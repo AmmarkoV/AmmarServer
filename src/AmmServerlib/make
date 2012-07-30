@@ -1,0 +1,31 @@
+#!/bin/bash
+ 
+echo "Compiling libAmmServerlib.a / Author : Ammar Qammaz"  
+LIBNAME="libAmmServerlib.a"
+
+if [ -e $LIBNAME ]
+then
+  rm $LIBNAME
+fi   
+
+CFLAGS="-s -O3 -fexpensive-optimizations"
+
+gcc -c $CFLAGS main.c -o main.o
+gcc -c $CFLAGS network.c -o network.o 
+
+PARTS_OF_LIB="main.o network.o"
+
+ar  rcs $LIBNAME $PARTS_OF_LIB
+
+rm $PARTS_OF_LIB
+
+if [ -e $LIBNAME ]
+then
+  echo "Success.."
+else
+  echo "Failure.."
+fi
+
+
+
+exit 0

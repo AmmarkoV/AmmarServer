@@ -1,0 +1,24 @@
+#!/bin/bash
+
+OUTPUT="ammarserver"
+
+if [ -e $OUTPUT ]
+then
+  rm $OUTPUT
+fi 
+
+CFLAGS="-s -O3 -fexpensive-optimizations" 
+OURLIBRARIES="AmmServerlib/libAmmServerlib.a" 
+LIBRARIES="-pthread -lrt"
+
+gcc  main.c -L. $LIBRARIES $OURLIBRARIES   -o $OUTPUT
+
+
+if [ -e $OUTPUT ]
+then
+  echo "Success.."
+else
+  echo "Failure.."
+fi
+
+exit 0

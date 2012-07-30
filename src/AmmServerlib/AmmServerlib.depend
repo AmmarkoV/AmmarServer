@@ -1,0 +1,25 @@
+# depslib dependency file v1.0
+1343687560 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+	<stdio.h>
+	<stdlib.h>
+	"AmmServerlib.h"
+	"network.h"
+
+1343684919 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+
+1343684902 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network.h
+
+1343686960 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network.c
+	"network.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<sys/types.h>
+	<sys/socket.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<netdb.h>
+	<sys/uio.h>
+	<unistd.h>
+	<pthread.h>
+
