@@ -12,8 +12,9 @@ CFLAGS="-s -O3 -fexpensive-optimizations"
 
 gcc -c $CFLAGS main.c -o main.o
 gcc -c $CFLAGS network.c -o network.o 
+gcc -c $CFLAGS httprules.c -o httprules.o 
 
-PARTS_OF_LIB="main.o network.o"
+PARTS_OF_LIB="main.o network.o httprules.o"
 
 ar  rcs $LIBNAME $PARTS_OF_LIB
 

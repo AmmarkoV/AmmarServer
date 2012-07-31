@@ -46,6 +46,84 @@ void error(char * msg)
 }
 
 
+unsigned long SendFile(int clientsock,char * verified_filename,char * content_type,unsigned long start_at_byte)
+{
+
+  char reply_header[1024]={0};
+  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/0.0\nConnection: close\nContent-type: %s\n",content_type);
+  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
+
+
+  FILE * pFile;
+  unsigned long lSize;
+  char * buffer;
+  size_t result;
+
+  pFile = fopen (verified_filename, "rb" );
+  if (pFile==0) { fprintf(stderr,"Could not opeen file %s\n",verified_filename); return 0;}
+
+  // obtain file size:
+  fseek (pFile , 0 , SEEK_END);
+  lSize = ftell (pFile);
+  sprintf(reply_header,"Content-length: %u\n",lSize);
+  opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);  //Send filesize as soon as we've got it
+
+  rewind (pFile);
+
+  if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
+
+  // allocate memory to contain the whole file:
+  buffer = (char*) malloc (sizeof(char)*lSize);
+  if (buffer == 0) { fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename); return 0;}
+
+  // copy the file into the buffer:
+  result = fread (buffer,1,lSize,pFile);
+  if (result != lSize) {fputs ("Reading error",stderr); return 0;}
+
+
+  opres=send(clientsock,buffer,result,MSG_WAITALL);  //Send file as soon as we've got it
+  /* the whole file is now loaded in the memory buffer. */
+
+  // terminate
+  fclose (pFile);
+  free (buffer);
+
+  return lSize;
+
+}
+
+
+
+unsigned long SendBanner(int clientsock)
+{
+  char reply_header[1024]={0};
+  char reply_body[1024]={0};
+  char body_type[1024]={0};
+
+
+  strcpy(body_type,"text/html");
+
+  strcpy(reply_body,(char*) "<html><head><title>AmmarServer</title></head><body><center>");
+  strcat(reply_body,(char*) "<br><br><br><h2><img src=\"up.gif\"><h2><h4> </h4>");
+  strcat(reply_body,(char*) "</center></body></html>");
+
+
+
+  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/0.0\nConnection: keep-alive\nContent-type: %s\nContent-length: %u\n\n",body_type,strlen(reply_body));
+  //Date: day day month year hour:minute:second\n
+  //Last-modified: day day month year hour:minute:second\n
+
+
+
+  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);
+      opres=send(clientsock,reply_body,strlen(reply_body),MSG_WAITALL);
+
+
+  SendFile(clientsock,"public_html/up.gif","image/gif",0);
+
+}
+
+
 
 
 void * ServeClient(void * ptr)
@@ -57,30 +135,11 @@ void * ServeClient(void * ptr)
   unsigned int clientlen=context->clientlen;
   context->keep_var_on_stack=2;
 
+  char incoming_request[2048];
+  int opres=recv(clientsock,&incoming_request,2048,0);
+  fprintf(stderr,"Received %s \n",incoming_request);
 
-
-
-  char reply_header[1024]={0};
-  char reply_body[1024]={0};
-  char body_type[1024]={0};
-
-
-  strcpy(body_type,"text/html");
-
-  strcpy(reply_body,(char*) "<html><head><title>AmmarServer</title></head>");
-  strcat(reply_body,(char*) "<body><center><br><br><br><h2>AmmarServer is running!<h2><h4>...</h4></center></body></html>");
-
-
-  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/0.0\nConnection: close\nContent-type: %s\nContent-length: %u\n\n",body_type,strlen(reply_body));
-  //Date: day day month year hour:minute:second\n
-  //Last-modified: day day month year hour:minute:second\n
-
-
-
-  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);
-
-
-       opres=send(clientsock,reply_body,strlen(reply_body),MSG_WAITALL);
+  SendBanner(clientsock);
 
   close(clientsock);
   pthread_exit(0);
