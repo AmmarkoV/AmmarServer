@@ -32,6 +32,7 @@ enum TypesOfRequests
 
 int HTTPRequestComplete(char * request,unsigned int request_length)
 {
+  fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
   int i=request_length-1;
   while (i>1)
    {
@@ -39,16 +40,18 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
        {
         if (i>=1)
           {
-           if (( request[i-1]==LF )&&( request[i]==LF )) { return 1; }  // unix 2x new line sequence
+           if (( request[i-1]==LF )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return 1; }  // unix 2x new line sequence
           }
 
          if (i>=3)
           {
-           if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { return 1; } // windows 2x new line sequence
+           if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return 1; } // windows 2x new line sequence
           }
        }
      --i;
    }
+
+   fprintf(stderr,"it isn't \n");
    return 0;
 }
 
@@ -104,22 +107,25 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
 int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length)
 {
-  fprintf(stderr,"Analyzing HTTP Request \n");
+  fprintf(stderr,"Starting an HTTP Request Analysis\n");
   char line[1024]={0};
-  unsigned int i=0,lines_gathered=0;
+  unsigned int i=0,chars_gathered=0,lines_gathered=0;
   while  (i<request_length)
    {
-     if  (request[i]=='\n')
+     if  ( ((request[i]==CR)||(request[i]==LF)) && (chars_gathered>0) )
       {
-        line[i]=0;
+        line[chars_gathered]=0;
 
         //We've got ourselves a new line!
         ++lines_gathered;
         AnalyzeHTTPLineRequest(output,line,strlen(line),lines_gathered);
+        line[0]=0; //line is "cleared" :P
+        chars_gathered=0;
       }
         else
       {
-        line[i]=request[i];
+        line[chars_gathered]=request[i];
+        ++chars_gathered;
       }
 
      ++i;

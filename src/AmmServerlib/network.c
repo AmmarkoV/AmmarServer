@@ -143,6 +143,7 @@ void * ServeClient(void * ptr)
   while ( !HTTPRequestComplete(incoming_request,total_header) )
    { //Gather Header until http request contains two newlines..!
      opres=recv(clientsock,&incoming_request[total_header],4096-total_header,0);
+     fprintf(stderr,"Got %u bytes \n",opres);
      //TODO : Error Check opres here..!
      total_header+=opres;
    }
