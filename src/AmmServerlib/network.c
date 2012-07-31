@@ -1,4 +1,7 @@
 #include "network.h"
+#include "httpprotocol.h"
+
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +13,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/uio.h>
+
 
 #include <unistd.h>
 #include <pthread.h>
@@ -117,6 +121,8 @@ unsigned long SendBanner(int clientsock)
 
   int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);
       opres=send(clientsock,reply_body,strlen(reply_body),MSG_WAITALL);
+
+   return 1;
 }
 
 
@@ -131,9 +137,23 @@ void * ServeClient(void * ptr)
   unsigned int clientlen=context->clientlen;
   context->keep_var_on_stack=2;
 
-  char incoming_request[2048];
-  int opres=recv(clientsock,&incoming_request,2048,0);
+  char incoming_request[4096]; //A 4K header is more than enough..!
+  incoming_request[0]=0;
+  int total_header=0,opres=0;
+  while ( !HTTPRequestComplete(incoming_request,total_header) )
+   { //Gather Header until http request contains two newlines..!
+     opres=recv(clientsock,&incoming_request[total_header],4096-total_header,0);
+     //TODO : Error Check opres here..!
+     total_header+=opres;
+   }
+
+
+
+
   fprintf(stderr,"Received %s \n",incoming_request);
+  struct HTTPRequest output={0};
+
+  int result = AnalyzeHTTPRequest(&output,incoming_request,total_header);
 
   //SendBanner(clientsock);
   SendFile(clientsock,"public_html/up.gif","image/gif",0);
