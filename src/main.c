@@ -8,7 +8,7 @@ int main()
 {
     printf("Ammar Server v0.0 starting up\n");
 
-    AmmServer_Start("0.0.0.0",8080);
+    AmmServer_Start("0.0.0.0",8081);
 
 
          while (AmmServer_Running())

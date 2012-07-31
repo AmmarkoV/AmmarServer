@@ -35,9 +35,17 @@
 			</Target>
 		</Build>
 		<Unit filename="AmmServerlib.h" />
+		<Unit filename="httprules.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="httprules.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="network.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

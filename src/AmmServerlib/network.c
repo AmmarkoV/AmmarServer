@@ -109,7 +109,7 @@ unsigned long SendBanner(int clientsock)
 
 
 
-  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/0.0\nConnection: keep-alive\nContent-type: %s\nContent-length: %u\n\n",body_type,strlen(reply_body));
+  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/0.0\nConnection: close\nContent-type: %s\nContent-length: %u\n\n",body_type,strlen(reply_body));
   //Date: day day month year hour:minute:second\n
   //Last-modified: day day month year hour:minute:second\n
 
@@ -117,10 +117,6 @@ unsigned long SendBanner(int clientsock)
 
   int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);
       opres=send(clientsock,reply_body,strlen(reply_body),MSG_WAITALL);
-
-
-  SendFile(clientsock,"public_html/up.gif","image/gif",0);
-
 }
 
 
@@ -139,7 +135,9 @@ void * ServeClient(void * ptr)
   int opres=recv(clientsock,&incoming_request,2048,0);
   fprintf(stderr,"Received %s \n",incoming_request);
 
-  SendBanner(clientsock);
+  //SendBanner(clientsock);
+  SendFile(clientsock,"public_html/up.gif","image/gif",0);
+
 
   close(clientsock);
   pthread_exit(0);
@@ -198,7 +196,7 @@ void * HTTPServerThread (void * ptr)
 
   context->keep_var_on_stack=2;
 
-  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port for RemoteVariables!"); return 0; }
+  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!"); return 0; }
   if (listen(serversock,10) < 0)  { error("Server Thread : Failed to listen on server socket"); return 0; }
 
 

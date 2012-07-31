@@ -32,6 +32,8 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>
+			<Add option="-pthread" />
+			<Add option="-lrt" />
 			<Add library="AmmServerlib/libAmmServerlib.a" />
 		</Linker>
 		<Unit filename="main.c">
