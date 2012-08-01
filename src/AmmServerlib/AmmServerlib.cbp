@@ -35,6 +35,10 @@
 			</Target>
 		</Build>
 		<Unit filename="AmmServerlib.h" />
+		<Unit filename="httpprotocol.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="httpprotocol.h" />
 		<Unit filename="httprules.c">
 			<Option compilerVar="CC" />
 		</Unit>

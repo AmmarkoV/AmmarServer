@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="AmmServerlib.h" open="1" top="0" tabpos="3">
+	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
 		<Cursor position="116" topLine="0" />
 	</File>
-	<File name="httprules.c" open="1" top="0" tabpos="9">
-		<Cursor position="55" topLine="0" />
+	<File name="httpprotocol.c" open="1" top="0" tabpos="7">
+		<Cursor position="259" topLine="0" />
 	</File>
-	<File name="main.c" open="1" top="1" tabpos="2">
-		<Cursor position="252" topLine="0" />
+	<File name="httpprotocol.h" open="1" top="0" tabpos="8">
+		<Cursor position="380" topLine="0" />
 	</File>
-	<File name="network.c" open="1" top="0" tabpos="4">
-		<Cursor position="5103" topLine="54" />
+	<File name="httprules.c" open="1" top="0" tabpos="5">
+		<Cursor position="42" topLine="0" />
 	</File>
-	<File name="network.h" open="1" top="0" tabpos="5">
-		<Cursor position="61" topLine="0" />
+	<File name="main.c" open="1" top="0" tabpos="1">
+		<Cursor position="267" topLine="0" />
+	</File>
+	<File name="network.c" open="1" top="1" tabpos="3">
+		<Cursor position="1414" topLine="61" />
+	</File>
+	<File name="network.h" open="1" top="0" tabpos="4">
+		<Cursor position="67" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

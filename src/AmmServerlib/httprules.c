@@ -1,5 +1,5 @@
 #include "httprules.h"
-
+#include "string.h"
 enum FileType
 {
     NO_FILETYPE=0,

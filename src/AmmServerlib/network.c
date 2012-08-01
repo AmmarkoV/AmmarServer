@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
+int server_running=0;
 int pause_server=0;
 int stop_server=0;
 pthread_t server_thread_id;
@@ -49,11 +50,37 @@ void error(char * msg)
  return;
 }
 
+char FileExists(char * filename)
+{
+ FILE *fp = fopen(filename,"r");
+ if( fp ) { /* exists */
+            fclose(fp);
+            return 1;
+          }
+          else
+          { /* doesnt exist */ }
+ return 0;
+}
 
-unsigned long SendFile(int clientsock,char * verified_filename,char * content_type,unsigned long start_at_byte)
+unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned char header_only)
 {
 
+
   char reply_header[1024]={0};
+
+  if (!FileExists(verified_filename))
+   {
+     fprintf(stderr,"File Requested (%s) does not exist \n",verified_filename);
+     //File doesnt exist , 404 error :P
+     sprintf(reply_header,"HTTP/1.1 404 Not Found\nServer: Ammarserver/0.0\nConnection: close\n");
+     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
+     return opres;
+   }
+
+  char content_type[512]={0};
+  strcpy(content_type,"text/html"); //image/gif;
+
+  fprintf(stderr,"Sending File %s \n",verified_filename);
   sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/0.0\nConnection: close\nContent-type: %s\n",content_type);
   int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
 
@@ -64,33 +91,36 @@ unsigned long SendFile(int clientsock,char * verified_filename,char * content_ty
   size_t result;
 
   pFile = fopen (verified_filename, "rb" );
-  if (pFile==0) { fprintf(stderr,"Could not opeen file %s\n",verified_filename); return 0;}
+  if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
 
   // obtain file size:
   fseek (pFile , 0 , SEEK_END);
   lSize = ftell (pFile);
-  sprintf(reply_header,"Content-length: %u\n",lSize);
+  sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
   opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);  //Send filesize as soon as we've got it
 
-  rewind (pFile);
 
-  if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
+  if (!header_only)
+  {
+      rewind (pFile);
+      if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
 
-  // allocate memory to contain the whole file:
-  buffer = (char*) malloc (sizeof(char)*lSize);
-  if (buffer == 0) { fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename); return 0;}
+      // allocate memory to contain the whole file:
+      buffer = (char*) malloc (sizeof(char)*lSize);
+      if (buffer == 0) { fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename); return 0;}
 
-  // copy the file into the buffer:
-  result = fread (buffer,1,lSize,pFile);
-  if (result != lSize) {fputs ("Reading error",stderr); return 0;}
+      // copy the file into the buffer:
+      result = fread (buffer,1,lSize,pFile);
+      if (result != lSize) {fputs ("Reading error",stderr); return 0;}
 
 
-  opres=send(clientsock,buffer,result,MSG_WAITALL);  //Send file as soon as we've got it
-  /* the whole file is now loaded in the memory buffer. */
+      opres=send(clientsock,buffer,result,MSG_WAITALL);  //Send file as soon as we've got it
+      /* the whole file is now loaded in the memory buffer. */
 
-  // terminate
-  fclose (pFile);
-  free (buffer);
+      // terminate
+      fclose (pFile);
+      free (buffer);
+  }
 
   return lSize;
 
@@ -143,22 +173,37 @@ void * ServeClient(void * ptr)
   while ( !HTTPRequestComplete(incoming_request,total_header) )
    { //Gather Header until http request contains two newlines..!
      opres=recv(clientsock,&incoming_request[total_header],4096-total_header,0);
-     fprintf(stderr,"Got %u bytes \n",opres);
-     //TODO : Error Check opres here..!
-     total_header+=opres;
+     if (opres<=0)
+      {
+        //TODO : Error Check opres here..!
+        break;
+      } else
+      {
+       fprintf(stderr,"Got %u bytes \n",opres);
+       total_header+=opres;
+      }
    }
 
 
+  if (opres>0)
+  {
+   fprintf(stderr,"Received %s \n",incoming_request);
+   struct HTTPRequest output={0};
+
+   int result = AnalyzeHTTPRequest(&output,incoming_request,total_header);
+
+   if ( (output.requestType==GET)||(output.requestType==HEAD))
+   {
+      char servefile[512]={0};
+      //A totally unsecured GET operation :p
+      if (strcmp(output.resource,"/")==0) { strcpy(servefile,"public_html/index.html"); } else
+                                          { strcpy(servefile,"public_html/"); strcat(servefile,output.resource); }
 
 
-  fprintf(stderr,"Received %s \n",incoming_request);
-  struct HTTPRequest output={0};
-
-  int result = AnalyzeHTTPRequest(&output,incoming_request,total_header);
-
-  //SendBanner(clientsock);
-  SendFile(clientsock,"public_html/up.gif","image/gif",0);
-
+      //SendBanner(clientsock);
+      SendFile(clientsock,servefile,0,(output.requestType==HEAD));
+   }
+  }
 
   close(clientsock);
   pthread_exit(0);
@@ -171,7 +216,7 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 {
   fprintf(stderr,"Server Thread : Client connected: %s\n", inet_ntoa(client.sin_addr));
 
-  struct PassToHTTPThread context={0};
+  struct PassToHTTPThread context={{0}};
   context.clientsock=clientsock;
   context.client=client;
   context.clientlen=clientlen;
@@ -205,7 +250,7 @@ void * HTTPServerThread (void * ptr)
   struct sockaddr_in client;
 
   serversock = socket(AF_INET, SOCK_STREAM, 0);
-    if ( serversock < 0 ) { error("Server Thread : Opening socket"); return 0; }
+    if ( serversock < 0 ) { error("Server Thread : Opening socket"); server_running=0; return 0; }
 
 
   bzero(&client,clientlen);
@@ -217,8 +262,8 @@ void * HTTPServerThread (void * ptr)
 
   context->keep_var_on_stack=2;
 
-  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!"); return 0; }
-  if (listen(serversock,10) < 0)  { error("Server Thread : Failed to listen on server socket"); return 0; }
+  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!"); server_running=0; return 0; }
+  if (listen(serversock,10) < 0)  { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
 
 
   while (stop_server==0)
@@ -248,6 +293,7 @@ int StartHTTPServer(char * ip,unsigned int port)
   context.port=port;
   context.keep_var_on_stack=1;
 
+  server_running=1;
   pause_server=0;
   stop_server=0;
 
