@@ -28,8 +28,9 @@ enum TypesOfRequests
 
 struct HTTPRequest
 {
-   int requestType;
+   int  requestType;
    char resource[MAX_RESOURCE];
+   int  keepalive;
    //Languages etc here..!
 };
 

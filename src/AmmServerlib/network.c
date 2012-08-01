@@ -62,27 +62,37 @@ char FileExists(char * filename)
  return 0;
 }
 
-unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned char header_only)
+unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned char header_only,unsigned char keepalive)
 {
 
 
+  char response[512]={0};
   char reply_header[1024]={0};
-
-  if (!FileExists(verified_filename))
-   {
-     fprintf(stderr,"File Requested (%s) does not exist \n",verified_filename);
-     //File doesnt exist , 404 error :P
-     sprintf(reply_header,"HTTP/1.1 404 Not Found\nServer: Ammarserver/0.0\nConnection: close\n");
-     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
-     return opres;
-   }
 
   char content_type[512]={0};
   strcpy(content_type,"text/html"); //image/gif;
 
-  fprintf(stderr,"Sending File %s \n",verified_filename);
-  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/0.0\nConnection: close\nContent-type: %s\n",content_type);
-  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
+  if (!FileExists(verified_filename))
+   {
+     //File doesnt exist , 404 error :P
+     strcpy(response,"404 Not Found");
+     fprintf(stderr,"File Requested (%s) does not exist \n",verified_filename);
+
+     //Not found so we give a 404 file
+     strcpy(verified_filename,"public_html/templates/404.html");
+     //Serve 404 template instead of non-existant file
+   } else
+   {
+     strcpy(response,"200 OK");
+   }
+
+
+     fprintf(stderr,"Sending File %s with response code %s\n",verified_filename,response);
+
+     sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/0.0\nContent-type: %s\n",response,content_type);
+     if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else
+                    { strcat(reply_header,"Connection: close\n"); }
+     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
 
 
   FILE * pFile;
@@ -106,6 +116,7 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
       if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
 
       // allocate memory to contain the whole file:
+      //Todo make a smaller allocation and gradually serve the whole file :P
       buffer = (char*) malloc (sizeof(char)*lSize);
       if (buffer == 0) { fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename); return 0;}
 
@@ -168,14 +179,21 @@ void * ServeClient(void * ptr)
   context->keep_var_on_stack=2;
 
   char incoming_request[4096]; //A 4K header is more than enough..!
-  incoming_request[0]=0;
-  int total_header=0,opres=0;
-  while ( !HTTPRequestComplete(incoming_request,total_header) )
+
+  int close_connection=0;
+
+  while (!close_connection)
+  {
+   incoming_request[0]=0;
+   int total_header=0,opres=0;
+   fprintf(stderr,"Waiting for a valid HTTP header..\n");
+   while ( !HTTPRequestComplete(incoming_request,total_header) )
    { //Gather Header until http request contains two newlines..!
      opres=recv(clientsock,&incoming_request[total_header],4096-total_header,0);
      if (opres<=0)
       {
         //TODO : Error Check opres here..!
+        close_connection=1;
         break;
       } else
       {
@@ -201,10 +219,11 @@ void * ServeClient(void * ptr)
 
 
       //SendBanner(clientsock);
-      SendFile(clientsock,servefile,0,(output.requestType==HEAD));
+      SendFile(clientsock,servefile,0,(output.requestType==HEAD),1);
    }
   }
 
+  }
   close(clientsock);
   pthread_exit(0);
   return 0;

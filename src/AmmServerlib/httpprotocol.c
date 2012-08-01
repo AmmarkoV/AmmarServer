@@ -100,6 +100,8 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
    }
 
 
+  //Todo keepalive handler here output->keepalive=1;
+
   return 0;
 }
 
