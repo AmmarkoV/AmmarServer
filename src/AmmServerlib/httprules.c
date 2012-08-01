@@ -41,3 +41,22 @@ if (strcmp(theextension,"RTF")==0) { return TEXT; }
 
  return 0;
 }
+
+
+int FilenameStripperOk(char * filename)
+{
+   unsigned int length=strlen(filename);
+   unsigned int i=length-1;
+
+   while (i>0)
+     {
+        if ( filename[i]<' ') { return 0; } else
+        if ( filename[i]>'~') { return 0; } else
+        if ( ( filename[i-1]=='.')&&( filename[i]=='.') ) { return 0; }
+
+        --i;
+     }
+
+
+   return 1;
+}

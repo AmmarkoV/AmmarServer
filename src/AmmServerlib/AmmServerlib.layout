@@ -4,11 +4,11 @@
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
 		<Cursor position="116" topLine="0" />
 	</File>
-	<File name="httpprotocol.c" open="1" top="0" tabpos="7">
-		<Cursor position="259" topLine="0" />
+	<File name="httpprotocol.c" open="1" top="0" tabpos="6">
+		<Cursor position="3904" topLine="78" />
 	</File>
-	<File name="httpprotocol.h" open="1" top="0" tabpos="8">
-		<Cursor position="380" topLine="0" />
+	<File name="httpprotocol.h" open="1" top="0" tabpos="7">
+		<Cursor position="1835" topLine="0" />
 	</File>
 	<File name="httprules.c" open="1" top="0" tabpos="5">
 		<Cursor position="42" topLine="0" />
@@ -17,7 +17,7 @@
 		<Cursor position="267" topLine="0" />
 	</File>
 	<File name="network.c" open="1" top="1" tabpos="3">
-		<Cursor position="1414" topLine="61" />
+		<Cursor position="5248" topLine="168" />
 	</File>
 	<File name="network.h" open="1" top="0" tabpos="4">
 		<Cursor position="67" topLine="0" />

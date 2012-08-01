@@ -62,37 +62,69 @@ char FileExists(char * filename)
  return 0;
 }
 
-unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned char header_only,unsigned char keepalive)
+
+
+
+unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename)
 {
 
 
+     char response[512]={0};
+     switch (error_code)
+     {
+       case 404 : strcpy(response,"404 Not Found"); strcpy(verified_filename,"public_html/templates/404.html"); break;
+       case 400 : strcpy(response,"400 Bad Request"); strcpy(verified_filename,"public_html/templates/400.html"); break;
+       case 500 : strcpy(response,"500 Internal Server Error"); strcpy(verified_filename,"public_html/templates/500.html"); break;
+       //---------------------------------------------------------------------------------------------------------------------------
+       default : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,"public_html/templates/500.html");  break;
+     };
+
+
+     char reply_header[512]={0};
+     sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/0.0\nContent-type: text/html\n",response);
+     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
+
+     return 1;
+}
+
+
+
+
+
+
+
+
+unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned char header_only,unsigned char keepalive)
+{
   char response[512]={0};
   char reply_header[1024]={0};
 
   char content_type[512]={0};
   strcpy(content_type,"text/html"); //image/gif;
 
+
+  if (!FilenameStripperOk(verified_filename))
+  {
+     //Unsafe filename , bad request :P
+     SendErrorCodeHeader(clientsock,400,verified_filename);
+  } else
   if (!FileExists(verified_filename))
    {
      //File doesnt exist , 404 error :P
-     strcpy(response,"404 Not Found");
      fprintf(stderr,"File Requested (%s) does not exist \n",verified_filename);
-
-     //Not found so we give a 404 file
-     strcpy(verified_filename,"public_html/templates/404.html");
-     //Serve 404 template instead of non-existant file
+     SendErrorCodeHeader(clientsock,404,verified_filename);
    } else
    {
-     strcpy(response,"200 OK");
+      strcpy(response,"200 OK");
+      fprintf(stderr,"Sending File %s with response code %s\n",verified_filename,response);
+      sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/0.0\nContent-type: %s\n",response,content_type);
    }
 
 
-     fprintf(stderr,"Sending File %s with response code %s\n",verified_filename,response);
 
-     sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/0.0\nContent-type: %s\n",response,content_type);
-     if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else
-                    { strcat(reply_header,"Connection: close\n"); }
-     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
+  if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else
+                 { strcat(reply_header,"Connection: close\n"); }
+  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
 
 
   FILE * pFile;
@@ -171,12 +203,22 @@ unsigned long SendBanner(int clientsock)
 
 void * ServeClient(void * ptr)
 {
+  fprintf(stderr,"New Serve Client call\n");
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
   int clientsock=context->clientsock;
   struct sockaddr_in client=context->client;
   unsigned int clientlen=context->clientlen;
   context->keep_var_on_stack=2;
+
+
+  struct timeval timeout;
+  timeout.tv_sec = 5;
+  timeout.tv_usec = 0;
+
+  if (setsockopt (clientsock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Receive timeout \n"); }
+  if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
+
 
   char incoming_request[4096]; //A 4K header is more than enough..!
 
@@ -239,13 +281,12 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   context.clientsock=clientsock;
   context.client=client;
   context.clientlen=clientlen;
+  context.keep_var_on_stack=1;
 
 
   int retres = pthread_create(&threads_pool[ACTIVE_CLIENT_THREADS++],0,ServeClient,(void*) &context);
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(10); } } // <- Keep PeerServerContext in stack for long enough :P
 
-
-  fprintf(stderr,"done\n");
 
   if (retres!=0) retres = 0; else
                  retres = 1;
