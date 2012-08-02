@@ -6,7 +6,8 @@
 
 enum TypesOfRequests
 {
-    HEAD=0,
+    NONE=0,
+    HEAD,
     //Asks for the response identical to the one that would correspond to a GET request, but without the response body. This is useful for retrieving meta-information written in response headers, without having to transport the entire content.
     GET,
     //Requests a representation of the specified resource. Requests using GET should only retrieve data and should have no other effect. (This is also true of some other HTTP methods.)[1] The W3C has published guidance principles on this distinction, saying, "Web application design should be informed by the above principles, but also by the relevant limitations."[11] See safe methods below.
@@ -36,7 +37,6 @@ struct HTTPRequest
 
 
 int HTTPRequestComplete(char * request,unsigned int request_length);
-
-int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered);
+int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length);
 
 #endif // HTTPPROTOCOL_H_INCLUDED

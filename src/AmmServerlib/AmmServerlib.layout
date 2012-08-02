@@ -11,13 +11,16 @@
 		<Cursor position="1835" topLine="0" />
 	</File>
 	<File name="httprules.c" open="1" top="0" tabpos="5">
-		<Cursor position="42" topLine="0" />
+		<Cursor position="1776" topLine="0" />
 	</File>
-	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="267" topLine="0" />
+	<File name="httprules.h" open="1" top="0" tabpos="9">
+		<Cursor position="66" topLine="0" />
 	</File>
-	<File name="network.c" open="1" top="1" tabpos="3">
-		<Cursor position="5248" topLine="168" />
+	<File name="main.c" open="1" top="1" tabpos="1">
+		<Cursor position="213" topLine="0" />
+	</File>
+	<File name="network.c" open="1" top="0" tabpos="3">
+		<Cursor position="3276" topLine="90" />
 	</File>
 	<File name="network.h" open="1" top="0" tabpos="4">
 		<Cursor position="67" topLine="0" />

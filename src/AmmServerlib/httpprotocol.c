@@ -1,4 +1,11 @@
+/*  Copyright 2012 Ammar Qammaz
+    This file is part of AmmarServer.
+    AmmarServer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+    AmmarServer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License along with AmmarServer. If not, see http://www.gnu.org/licenses/.*/
+
 #include "httpprotocol.h"
+#include "httprules.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,9 +13,6 @@
 
 #define CR 13
 #define LF 10
-
-
-
 
 int HTTPRequestComplete(char * request,unsigned int request_length)
 {
@@ -48,10 +52,10 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
      if ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T'))
        { // A GET Request..!
          fprintf(stderr,"GET Request %s\n", request);
-         int s=3;
+         unsigned int s=3;
          while ( (request[s]==' ')&&(s<request_length) ) { ++s; }
          if (s>=request_length) { fprintf(stderr,"Error #1 with GET request\n"); return 0;}
-         int e=s;
+         unsigned int e=s;
          while ( (request[e]!=' ')&&(e<request_length) ) { ++e; }
          if (e>=request_length) { fprintf(stderr,"Error #2 with GET request\n"); return 0;}
          request[e]=0; //Signal ending
@@ -99,9 +103,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
        }
    }
 
-
   //Todo keepalive handler here output->keepalive=1;
-
   return 0;
 }
 
@@ -131,7 +133,5 @@ int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int r
      ++i;
    }
 
-
-
-  return 0;
+  return 1;
 }

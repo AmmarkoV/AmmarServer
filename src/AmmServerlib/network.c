@@ -1,7 +1,12 @@
+/*  Copyright 2012 Ammar Qammaz
+    This file is part of AmmarServer.
+    AmmarServer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+    AmmarServer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License along with AmmarServer. If not, see http://www.gnu.org/licenses/.*/
+
 #include "network.h"
 #include "httpprotocol.h"
-
-
+#include "httprules.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +22,9 @@
 
 #include <unistd.h>
 #include <pthread.h>
+
+
+const char * AmmServerVERSION="0.1";
 
 int server_running=0;
 int pause_server=0;
@@ -53,12 +61,7 @@ void error(char * msg)
 char FileExists(char * filename)
 {
  FILE *fp = fopen(filename,"r");
- if( fp ) { /* exists */
-            fclose(fp);
-            return 1;
-          }
-          else
-          { /* doesnt exist */ }
+ if( fp ) { /* exists */ fclose(fp); return 1; }
  return 0;
 }
 
@@ -81,8 +84,9 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
 
      char reply_header[512]={0};
-     sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/0.0\nContent-type: text/html\n",response);
+     sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/%s\nContent-type: text/html\n",response,AmmServerVERSION);
      int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
+     if (opres<=0) { return 0; }
 
      return 1;
 }
@@ -93,10 +97,8 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
 
 
-
 unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned char header_only,unsigned char keepalive)
 {
-  char response[512]={0};
   char reply_header[1024]={0};
 
   char content_type[512]={0};
@@ -107,24 +109,24 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
   {
      //Unsafe filename , bad request :P
      SendErrorCodeHeader(clientsock,400,verified_filename);
+     //verified_filename should now point to the template file for 400 messages
   } else
   if (!FileExists(verified_filename))
    {
      //File doesnt exist , 404 error :P
      fprintf(stderr,"File Requested (%s) does not exist \n",verified_filename);
      SendErrorCodeHeader(clientsock,404,verified_filename);
+     //verified_filename should now point to the template file for 404 messages
    } else
    {
-      strcpy(response,"200 OK");
-      fprintf(stderr,"Sending File %s with response code %s\n",verified_filename,response);
-      sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/0.0\nContent-type: %s\n",response,content_type);
+      fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
+      sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nContent-type: %s\n",AmmServerVERSION,content_type);
    }
 
-
-
   if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else
-                 { strcat(reply_header,"Connection: close\n"); }
-  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
+                 { strcat(reply_header,"Connection: close\n"); } //Append Keep-Alive or Close and then..
+  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //.. send preliminary header to minimize lag
+  if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
 
 
   FILE * pFile;
@@ -186,20 +188,40 @@ unsigned long SendBanner(int clientsock)
 
 
 
-  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/0.0\nConnection: close\nContent-type: %s\nContent-length: %u\n\n",body_type,strlen(reply_body));
+  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nConnection: close\nContent-type: %s\nContent-length: %u\n\n",AmmServerVERSION,body_type,(unsigned int) strlen(reply_body));
   //Date: day day month year hour:minute:second\n
   //Last-modified: day day month year hour:minute:second\n
 
 
 
   int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);
+  if (opres<=0) { fprintf(stderr,"Error sending banner header \n"); return 0; }
+
       opres=send(clientsock,reply_body,strlen(reply_body),MSG_WAITALL);
+  if (opres<=0) { fprintf(stderr,"Error sending banner body\n"); return 0; }
 
    return 1;
 }
 
 
+/*
 
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+          /\                                             /\
+          ||        FILE TRANSFER / HEADER CALLS         ||
+          ||                                             ||
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+          ||                                             ||
+          ||           PER CLIENT SERVING THREAD         ||
+          \/                                             \/
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+
+*/
 
 void * ServeClient(void * ptr)
 {
@@ -207,8 +229,8 @@ void * ServeClient(void * ptr)
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
   int clientsock=context->clientsock;
-  struct sockaddr_in client=context->client;
-  unsigned int clientlen=context->clientlen;
+//  struct sockaddr_in client=context->client;
+//  unsigned int clientlen=context->clientlen;
   context->keep_var_on_stack=2;
 
 
@@ -234,7 +256,7 @@ void * ServeClient(void * ptr)
      opres=recv(clientsock,&incoming_request[total_header],4096-total_header,0);
      if (opres<=0)
       {
-        //TODO : Error Check opres here..!
+        //TODO : Check opres here..!
         close_connection=1;
         break;
       } else
@@ -248,19 +270,26 @@ void * ServeClient(void * ptr)
   if (opres>0)
   {
    fprintf(stderr,"Received %s \n",incoming_request);
-   struct HTTPRequest output={0};
+   struct HTTPRequest output;
+   memset(&output,0,sizeof(struct HTTPRequest));
 
    int result = AnalyzeHTTPRequest(&output,incoming_request,total_header);
+
+   if (!result) {  /*We got a bad http request so we will rig it to make server emmit the 500 message*/
+                   strcpy(output.resource,"/...../root/bad//GET/500/CODE:P\0\1\2\3$$#:P"); }
+
+   if (!output.keepalive) { close_connection=1; }
 
    if ( (output.requestType==GET)||(output.requestType==HEAD))
    {
       char servefile[512]={0};
-      //A totally unsecured GET operation :p
       if (strcmp(output.resource,"/")==0) { strcpy(servefile,"public_html/index.html"); } else
                                           { strcpy(servefile,"public_html/"); strcat(servefile,output.resource); }
 
 
-      //SendBanner(clientsock);
+
+      //SendFile decides about the safety of the resource requested..
+      //it should deny requests to paths like ../ or /etc/passwd
       SendFile(clientsock,servefile,0,(output.requestType==HEAD),1);
    }
   }
@@ -277,7 +306,9 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 {
   fprintf(stderr,"Server Thread : Client connected: %s\n", inet_ntoa(client.sin_addr));
 
-  struct PassToHTTPThread context={{0}};
+  struct PassToHTTPThread context;
+   memset(&context,0,sizeof(struct PassToHTTPThread));
+
   context.clientsock=clientsock;
   context.client=client;
   context.clientlen=clientlen;
@@ -294,6 +325,24 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   return retres;
 }
 
+/*
+
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+          /\                                             /\
+          ||           PER CLIENT SERVING THREAD         ||
+          ||                                             ||
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+          ||                                             ||
+          ||            MAIN HTTP SERVER THREAD          ||
+          \/                                             \/
+  -----------------------------------------------------------------
+  -----------------------------------------------------------------
+
+*/
 
 
 
@@ -348,7 +397,9 @@ void * HTTPServerThread (void * ptr)
 
 int StartHTTPServer(char * ip,unsigned int port)
 {
-  struct PassToHTTPThread context={0};
+  struct PassToHTTPThread context;
+  memset(&context,0,sizeof(context));
+
   strncpy(context.ip,ip,255);
   context.port=port;
   context.keep_var_on_stack=1;
