@@ -1,12 +1,22 @@
-/*  Copyright 2012 Ammar Qammaz
-    This file is part of AmmarServer.
-    AmmarServer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-    AmmarServer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License along with AmmarServer. If not, see http://www.gnu.org/licenses/.*/
+/*
+AmmarServer , HTTP Server Library
 
-#include "network.h"
-#include "httpprotocol.h"
-#include "httprules.h"
+URLs: http://ammar.gr
+Written by Ammar Qammaz a.k.a. AmmarkoV 2012
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,13 +29,19 @@
 #include <netdb.h>
 #include <sys/uio.h>
 
-
 #include <unistd.h>
 #include <pthread.h>
+
+#include "network.h"
+#include "httpprotocol.h"
+#include "httprules.h"
+#include "file_caching.h"
+
 
 
 const char * AmmServerVERSION="0.1";
 
+int serversock;
 int server_running=0;
 int pause_server=0;
 int stop_server=0;
@@ -70,7 +86,10 @@ char FileExists(char * filename)
 
 unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename)
 {
-
+/*
+    This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
+    it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
+*/
 
      char response[512]={0};
      switch (error_code)
@@ -120,6 +139,7 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
    } else
    {
       fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
+      GetContentType(verified_filename,content_type);
       sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nContent-type: %s\n",AmmServerVERSION,content_type);
    }
 
@@ -129,23 +149,44 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
   if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
 
 
-  FILE * pFile;
-  unsigned long lSize;
-  char * buffer;
-  size_t result;
+  unsigned long cached_lSize=0;
+  char * cached_buffer = CheckForCachedVersionOfThePage(verified_filename,&cached_lSize);
 
-  pFile = fopen (verified_filename, "rb" );
-  if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
+  if ((cached_buffer!=0)&&(cached_lSize!=0))
+   { /*TODO : Serve cached file */
+     sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
+     opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);  //Send filesize as soon as we've got it
+     if (!header_only)
+      {
+       opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL);  //Send file as soon as we've got it
+      }
+     return opres;
+   } else
 
-  // obtain file size:
-  fseek (pFile , 0 , SEEK_END);
-  lSize = ftell (pFile);
-  sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
-  opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);  //Send filesize as soon as we've got it
-
-
-  if (!header_only)
   {
+    /*TODO : Serve file by reading it from disk */
+    if ((cached_buffer==0)&&(cached_lSize==1)) { /*TODO : Cache indicates that file doesn't exist */ } else
+    if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
+
+
+
+    FILE * pFile;
+    unsigned long lSize;
+    char * buffer;
+    size_t result;
+
+    pFile = fopen (verified_filename, "rb" );
+    if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
+
+    // obtain file size:
+    fseek (pFile , 0 , SEEK_END);
+    lSize = ftell (pFile);
+    sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
+    opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);  //Send filesize as soon as we've got it
+
+
+    if (!header_only)
+    {
       rewind (pFile);
       if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
 
@@ -167,8 +208,9 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
       free (buffer);
   }
 
-  return lSize;
-
+    return opres;
+  }
+ return 0;
 }
 
 
@@ -246,12 +288,12 @@ void * ServeClient(void * ptr)
 
   int close_connection=0;
 
-  while (!close_connection)
+  while ( (!close_connection)&&(server_running) )
   {
    incoming_request[0]=0;
    int total_header=0,opres=0;
    fprintf(stderr,"Waiting for a valid HTTP header..\n");
-   while ( !HTTPRequestComplete(incoming_request,total_header) )
+   while ( (!HTTPRequestComplete(incoming_request,total_header))&&(server_running) )
    { //Gather Header until http request contains two newlines..!
      opres=recv(clientsock,&incoming_request[total_header],4096-total_header,0);
      if (opres<=0)
@@ -353,7 +395,7 @@ void * HTTPServerThread (void * ptr)
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
 
-  int serversock,clientsock;
+  int clientsock;
   unsigned int serverlen = sizeof(struct sockaddr_in),clientlen = sizeof(struct sockaddr_in);
   struct sockaddr_in server;
   struct sockaddr_in client;
@@ -390,6 +432,11 @@ void * HTTPServerThread (void * ptr)
             }
       }
  }
+  server_running=0;
+  stop_server=2;
+
+  //It should already be closed so skipping this : close(serversock);
+  pthread_exit(0);
   return 0;
 }
 
@@ -424,4 +471,24 @@ int StartHTTPServer(char * ip,unsigned int port)
   return retres;
 }
 
+int StopHTTPServer()
+{
+  /*
+     We want to stop the server that accepts new connections ( and we do that by signaling stop_server=1;
+     The problem is that it will keep waiting for one more job since it is blocked in the accept call..!
+     Thats why we force the socket close which in turn terminates the server thread..
+  */
+  if ( (stop_server==2)||(stop_server==0)) { fprintf(stderr,"Server has stopped working on its own..\n"); return 1;}
 
+  stop_server=1;
+  fprintf(stderr,"Waiting for Server to stop.. ");
+  close(serversock);
+  while (stop_server!=2)
+    {
+        fprintf(stderr,".");
+        usleep(10000);
+    }
+  fprintf(stderr," .. done \n");
+
+  return (stop_server==2);
+}

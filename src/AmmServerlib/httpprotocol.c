@@ -1,8 +1,22 @@
-/*  Copyright 2012 Ammar Qammaz
-    This file is part of AmmarServer.
-    AmmarServer is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-    AmmarServer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-    You should have received a copy of the GNU General Public License along with AmmarServer. If not, see http://www.gnu.org/licenses/.*/
+/*
+AmmarServer , HTTP Server Library
+
+URLs: http://ammar.gr
+Written by Ammar Qammaz a.k.a. AmmarkoV 2012
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "httpprotocol.h"
 #include "httprules.h"
@@ -16,6 +30,11 @@
 
 int HTTPRequestComplete(char * request,unsigned int request_length)
 {
+  /*
+      This call returns 1 when we find two subsequent newline characters
+      which mark the ending of an HTTP header..! The function returns 1 or 0 ..!
+  */
+
   if (request_length<2) { return 0; } // at least LF LF is expected :P
 
   fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
@@ -43,6 +62,11 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
 
 int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered)
 {
+  /*
+      This call fills in the output variable according to the line data held in the request string..!
+      it is made to be called internally by AnalyzeHTTPRequest
+  */
+
   fprintf(stderr,"Analyzing HTTP Request : Line %u , `%s` \n",lines_gathered,request);
 
   if (lines_gathered==1)
@@ -109,6 +133,10 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
 int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length)
 {
+  /*
+      This call fills in the output variable according by subsequent calls to the AnalyzeHTTPLineRequest function
+      the code here just serves as a line parser for AnalyzeHTTPLineRequest
+  */
   fprintf(stderr,"Starting an HTTP Request Analysis\n");
   char line[1024]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;
