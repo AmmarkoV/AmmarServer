@@ -39,7 +39,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-const char * AmmServerVERSION="0.1";
+const char * AmmServerVERSION="0.2";
 
 int serversock;
 int server_running=0;
@@ -94,9 +94,12 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
      char response[512]={0};
      switch (error_code)
      {
-       case 404 : strcpy(response,"404 Not Found"); strcpy(verified_filename,"public_html/templates/404.html"); break;
        case 400 : strcpy(response,"400 Bad Request"); strcpy(verified_filename,"public_html/templates/400.html"); break;
+       case 401 : strcpy(response,"401 Password Protected"); strcpy(verified_filename,"public_html/templates/401.html"); break;
+       case 404 : strcpy(response,"404 Not Found"); strcpy(verified_filename,"public_html/templates/404.html"); break;
+       case 408 : strcpy(response,"408 Timed Out"); strcpy(verified_filename,"public_html/templates/408.html"); break;
        case 500 : strcpy(response,"500 Internal Server Error"); strcpy(verified_filename,"public_html/templates/500.html"); break;
+       case 501 : strcpy(response,"501 Not Implemented"); strcpy(verified_filename,"public_html/templates/501.html"); break;
        //---------------------------------------------------------------------------------------------------------------------------
        default : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,"public_html/templates/500.html");  break;
      };
@@ -116,7 +119,7 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
 
 
-unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned char header_only,unsigned char keepalive)
+unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned int force_error_code,unsigned char header_only,unsigned char keepalive)
 {
   char reply_header[1024]={0};
 
@@ -124,6 +127,11 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
   strcpy(content_type,"text/html"); //image/gif;
 
 
+  if (force_error_code!=0)
+  {
+    //We want to force a specific error_code!
+    SendErrorCodeHeader(clientsock,force_error_code,verified_filename);
+  } else
   if (!FilenameStripperOk(verified_filename))
   {
      //Unsafe filename , bad request :P
@@ -332,8 +340,22 @@ void * ServeClient(void * ptr)
 
       //SendFile decides about the safety of the resource requested..
       //it should deny requests to paths like ../ or /etc/passwd
-      SendFile(clientsock,servefile,0,(output.requestType==HEAD),1);
+      SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),1);
+   } else
+   if (output.requestType==NONE)
+   {
+     fprintf(stderr,"Weird Request!");
+     char servefile[512]={0};
+     SendFile(clientsock,servefile,0,400,0,1);
+   } else
+   {
+     fprintf(stderr,"Not Implemented Request!");
+     char servefile[512]={0};
+     SendFile(clientsock,servefile,0,501,0,1);
+
    }
+
+
   }
 
   }

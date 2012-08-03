@@ -96,34 +96,42 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
      if ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D'))
        { // A HEAD Request..!
          fprintf(stderr,"HEAD Request %s\n", request);
+         output->requestType=HEAD;
        } else
      if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T'))
        { // A POST Request..!
          fprintf(stderr,"POST Request %s\n", request);
+         output->requestType=POST;
        } else
      if ((request[0]=='P')&&(request[1]=='U')&&(request[2]=='T'))
        { // A PUT Request..!
          fprintf(stderr,"PUT Request %s\n", request);
+         output->requestType=PUT;
        } else
      if ((request[0]=='D')&&(request[1]=='E')&&(request[2]=='L')&&(request[3]=='E')&&(request[4]=='T')&&(request[5]=='E'))
        { // A DELETE Request..!
          fprintf(stderr,"DELETE Request %s\n", request);
+         output->requestType=DELETE;
        } else
      if ((request[0]=='T')&&(request[1]=='R')&&(request[2]=='A')&&(request[3]=='C')&&(request[4]=='E'))
        { // A TRACE Request..!
          fprintf(stderr,"TRACE Request %s\n", request);
+         output->requestType=TRACE;
        } else
      if ((request[0]=='O')&&(request[1]=='P')&&(request[2]=='T')&&(request[3]=='I')&&(request[4]=='O')&&(request[5]=='N')&&(request[6]=='S'))
        { // A OPTIONS Request..!
          fprintf(stderr,"OPTIONS Request %s\n", request);
+         output->requestType=OPTIONS;
        } else
      if ((request[0]=='C')&&(request[1]=='O')&&(request[2]=='N')&&(request[3]=='N')&&(request[4]=='E')&&(request[5]=='C')&&(request[6]=='T'))
        { // A CONNECT Request..!
          fprintf(stderr,"CONNECT Request %s\n", request);
+         output->requestType=CONNECT;
        } else
      if ((request[0]=='P')&&(request[1]=='A')&&(request[2]=='T')&&(request[3]=='C')&&(request[4]=='H'))
        { // A PATCH Request..!
          fprintf(stderr,"PATCH Request %s\n", request);
+         output->requestType=PATCH;
        }
    }
 

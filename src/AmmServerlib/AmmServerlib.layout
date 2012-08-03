@@ -4,29 +4,29 @@
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
 		<Cursor position="66" topLine="0" />
 	</File>
-	<File name="file_caching.c" open="1" top="0" tabpos="10">
+	<File name="file_caching.c" open="1" top="1" tabpos="9">
 		<Cursor position="581" topLine="0" />
 	</File>
-	<File name="file_caching.h" open="1" top="0" tabpos="11">
+	<File name="file_caching.h" open="1" top="0" tabpos="10">
 		<Cursor position="155" topLine="0" />
 	</File>
 	<File name="httpprotocol.c" open="1" top="0" tabpos="6">
-		<Cursor position="1293" topLine="114" />
+		<Cursor position="4711" topLine="122" />
 	</File>
 	<File name="httpprotocol.h" open="1" top="0" tabpos="7">
 		<Cursor position="125" topLine="0" />
 	</File>
 	<File name="httprules.c" open="1" top="0" tabpos="5">
-		<Cursor position="5760" topLine="88" />
+		<Cursor position="799" topLine="0" />
 	</File>
 	<File name="httprules.h" open="1" top="0" tabpos="8">
 		<Cursor position="116" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="1353" topLine="0" />
+		<Cursor position="1083" topLine="0" />
 	</File>
-	<File name="network.c" open="1" top="1" tabpos="3">
-		<Cursor position="15501" topLine="443" />
+	<File name="network.c" open="1" top="0" tabpos="3">
+		<Cursor position="11927" topLine="315" />
 	</File>
 	<File name="network.h" open="1" top="0" tabpos="4">
 		<Cursor position="191" topLine="0" />

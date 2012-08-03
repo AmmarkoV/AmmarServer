@@ -29,7 +29,7 @@ int AmmServer_Start(char * ip,unsigned int port)
   fprintf(stderr,"Binding server to %s:%u\n",ip,port);
   fprintf(stderr,"\n\nDISCLAIMER : \n");
   fprintf(stderr,"Please note that this server version is not thoroughly\n");
-  fprintf(stderr," pen-tested so it is not ready for production deployment..\n");
+  fprintf(stderr," pen-tested so it is not meant for production deployment..\n");
 
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
