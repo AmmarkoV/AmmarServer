@@ -39,6 +39,10 @@
 			</Target>
 		</Build>
 		<Unit filename="AmmServerlib.h" />
+		<Unit filename="configuration.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="configuration.h" />
 		<Unit filename="file_caching.c">
 			<Option compilerVar="CC" />
 		</Unit>

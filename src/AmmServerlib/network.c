@@ -36,6 +36,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "httpprotocol.h"
 #include "httprules.h"
 #include "file_caching.h"
+#include "configuration.h"
 
 
 
@@ -48,9 +49,8 @@ int stop_server=0;
 pthread_t server_thread_id;
 
 
-#define MAX_CLIENT_THREADS 255
 int ACTIVE_CLIENT_THREADS=0;
-pthread_t threads_pool[MAX_CLIENT_THREADS];
+pthread_t threads_pool[MAX_CLIENTS];
 
 
 struct PassToHTTPThread
@@ -285,10 +285,10 @@ void * ServeClient(void * ptr)
 
 
   struct timeval timeout;
-  timeout.tv_sec = 5;
-  timeout.tv_usec = 0;
-
+  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_ms/1000; timeout.tv_usec = 0;
   if (setsockopt (clientsock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Receive timeout \n"); }
+
+  timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_ms/1000; timeout.tv_usec = 0;
   if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
 
 
@@ -332,7 +332,7 @@ void * ServeClient(void * ptr)
 
    if ( (output.requestType==GET)||(output.requestType==HEAD))
    {
-      char servefile[512]={0};
+      char servefile[MAX_FILE_PATH]={0};
       if (strcmp(output.resource,"/")==0) { strcpy(servefile,"public_html/index.html"); } else
                                           { strcpy(servefile,"public_html/"); strcat(servefile,output.resource); }
 
@@ -345,16 +345,14 @@ void * ServeClient(void * ptr)
    if (output.requestType==NONE)
    {
      fprintf(stderr,"Weird Request!");
-     char servefile[512]={0};
+     char servefile[MAX_FILE_PATH]={0};
      SendFile(clientsock,servefile,0,400,0,1);
    } else
    {
      fprintf(stderr,"Not Implemented Request!");
-     char servefile[512]={0};
+     char servefile[MAX_FILE_PATH]={0};
      SendFile(clientsock,servefile,0,501,0,1);
-
    }
-
 
   }
 
@@ -380,11 +378,10 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 
 
   int retres = pthread_create(&threads_pool[ACTIVE_CLIENT_THREADS++],0,ServeClient,(void*) &context);
-  if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(10); } } // <- Keep PeerServerContext in stack for long enough :P
+  if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(100); } } // <- Keep PeerServerContext in stack for long enough :P
 
 
-  if (retres!=0) retres = 0; else
-                 retres = 1;
+  if (retres!=0) retres = 0; else retres = 1;
 
   return retres;
 }
@@ -436,7 +433,7 @@ void * HTTPServerThread (void * ptr)
   context->keep_var_on_stack=2;
 
   if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!"); server_running=0; return 0; }
-  if (listen(serversock,10) < 0)  { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
+  if ( listen(serversock,MAX_CLIENTS) < 0 )  { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
 
 
   while (stop_server==0)
@@ -480,15 +477,9 @@ int StartHTTPServer(char * ip,unsigned int port)
   int retres=1;
 
   retres = pthread_create( &server_thread_id ,0,HTTPServerThread,(void*) &context);
-  if (retres!=0) retres = 0; else
-                 retres = 1;
+  if (retres!=0) retres = 0; else retres = 1;
 
-  while (context.keep_var_on_stack==1)
-   {
-      printf("..");
-      usleep(1000);
-     // wait;
-   }
+  while (context.keep_var_on_stack==1) { usleep(100); /*wait;*/ }
 
   return retres;
 }
@@ -496,8 +487,8 @@ int StartHTTPServer(char * ip,unsigned int port)
 int StopHTTPServer()
 {
   /*
-     We want to stop the server that accepts new connections ( and we do that by signaling stop_server=1;
-     The problem is that it will keep waiting for one more job since it is blocked in the accept call..!
+     We want to stop the server that accepts new connections ( and we do that by signaling stop_server=1; )
+     The problem is that it will keep waiting for one more job since the server is blocked in an accept call..!
      Thats why we force the socket close which in turn terminates the server thread..
   */
   if ( (stop_server==2)||(stop_server==0)) { fprintf(stderr,"Server has stopped working on its own..\n"); return 1;}

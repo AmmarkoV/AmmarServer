@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     if ( argc <= 2 ) { /*fprintf(stderr,"Please note that you may choose a different binding IP/port as command line parameters.. \"ammarserver 0.0.0.0 8080\"\n");*/ } else
      {
         if (strlen(argv[1])>=MAX_INPUT_IP) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
-                                           { strcpy(bindIP,argv[1]); }
+                                           { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
         port=atoi(argv[2]);
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
      }

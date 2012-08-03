@@ -1,8 +1,7 @@
 #ifndef HTTPPROTOCOL_H_INCLUDED
 #define HTTPPROTOCOL_H_INCLUDED
 
-
-#define MAX_RESOURCE 512
+#include "configuration.h"
 
 enum TypesOfRequests
 {

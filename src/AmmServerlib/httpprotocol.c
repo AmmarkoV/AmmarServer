@@ -73,30 +73,31 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
    {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }
      // The firs line should contain the message type so .. lets see..!
-     if ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T'))
-       { // A GET Request..!
-         fprintf(stderr,"GET Request %s\n", request);
-         unsigned int s=3;
+     if (
+          ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T')) ||
+          ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D'))
+        )
+       { // A GET or HEAD Request..!
+
+         unsigned int s=3; //Initial position past GET/HEAD
+         if ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T')) {  fprintf(stderr,"GET Request %s\n", request); output->requestType=GET; s=3; } else
+         if ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D')) {  fprintf(stderr,"HEAD Request %s\n", request); output->requestType=HEAD; s=4; }
+
          while ( (request[s]==' ')&&(s<request_length) ) { ++s; }
-         if (s>=request_length) { fprintf(stderr,"Error #1 with GET request\n"); return 0;}
+         if (s>=request_length) { fprintf(stderr,"Error #1 with GET/HEAD request\n"); return 0;}
          unsigned int e=s;
          while ( (request[e]!=' ')&&(e<request_length) ) { ++e; }
-         if (e>=request_length) { fprintf(stderr,"Error #2 with GET request\n"); return 0;}
+         if (e>=request_length) { fprintf(stderr,"Error #2 with GET/HEAD request\n"); return 0;}
          request[e]=0; //Signal ending
 
          char * stripped = &request[s];
-         fprintf(stderr,"Stripped GET request is %s \n",stripped);
+         fprintf(stderr,"Stripped GET/HEAD request is %s \n",stripped);
 
          output->requestType=GET;
          strncpy(output->resource,stripped,MAX_RESOURCE);
 
-         if (strlen(stripped)>=MAX_RESOURCE) { fprintf(stderr,"Warning : GET request is too big , some bytes dropped..! \n"); }
+         if (strlen(stripped)>=MAX_RESOURCE-1) { fprintf(stderr,"Warning : GET/HEAD request is too big , some bytes dropped..! \n"); }
 
-       } else
-     if ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D'))
-       { // A HEAD Request..!
-         fprintf(stderr,"HEAD Request %s\n", request);
-         output->requestType=HEAD;
        } else
      if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T'))
        { // A POST Request..!
@@ -145,7 +146,9 @@ int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int r
       This call fills in the output variable according by subsequent calls to the AnalyzeHTTPLineRequest function
       the code here just serves as a line parser for AnalyzeHTTPLineRequest
   */
-  fprintf(stderr,"Starting an HTTP Request Analysis\n");
+  fprintf(stderr,"Starting a fresh HTTP Request Analysis\n");
+  output->requestType=NONE; // invalidate current output data..!
+
   char line[1024]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;
   while  (i<request_length)

@@ -15,8 +15,9 @@ gcc -c $CFLAGS network.c -o network.o
 gcc -c $CFLAGS httprules.c -o httprules.o 
 gcc -c $CFLAGS httpprotocol.c -o httpprotocol.o 
 gcc -c $CFLAGS file_caching.c -o file_caching.o 
+gcc -c $CFLAGS configuration.c -o configuration.o 
 
-PARTS_OF_LIB="main.o network.o httprules.o httpprotocol.o file_caching.o"
+PARTS_OF_LIB="main.o network.o httprules.o httpprotocol.o file_caching.o configuration.o"
 
 ar  rcs $LIBNAME $PARTS_OF_LIB
 

@@ -29,8 +29,9 @@ enum FileType
 {
     NO_FILETYPE=0,
     TEXT,
-    PHOTO,
-    MUSIC,
+    IMAGE,
+    AUDIO,
+    VIDEO,
     EXECUTABLE
 };
 
@@ -38,7 +39,10 @@ enum FileType
 
 int GetContentTypeForExtension(char * theextension,char * content_type)
 {
-//This should be replaced with a hashmap with binary search going on on extensions..!
+//TODO: This should be replaced with an extension hashmap with binary search going on to strcpy the correct content-type..!
+
+
+//http://www.iana.org/assignments/media-types/image/index.html
 if (strcmp(theextension,"GIF")==0)  { strcpy(content_type,"image/gif"); return 1; } else
 if (strcmp(theextension,"PNG")==0)  { strcpy(content_type,"image/png"); return 1; } else
 if (strcmp(theextension,"JPG")==0)  { strcpy(content_type,"image/jpg"); return 1; } else
@@ -51,11 +55,12 @@ if (strcmp(theextension,"J2C")==0)  { strcpy(content_type,"image/j2c"); return 1
 if (strcmp(theextension,"ICO")==0)  { strcpy(content_type,"image/ico"); return 1; } else
 if (strcmp(theextension,"SVG")==0)  { strcpy(content_type,"image/svg+xml"); return 1; } else
 
-
+//http://www.iana.org/assignments/media-types/application/index.html
 if ((strcmp(theextension,"EXE")==0)||(strcmp(theextension,"DLL")==0)||(strcmp(theextension,"CPL")==0)||(strcmp(theextension,"SCR")==0)) { strcpy(content_type,"application/exe"); return 1; } else
 if (strcmp(theextension,"SWF")==0)  { strcpy(content_type,"application/x-shockwave-flash"); return 1; } else
+if (strcmp(theextension,"PDF")==0) { strcpy(content_type,"application/pdf"); return 1; } else
 
-
+//http://www.iana.org/assignments/media-types/video/index.html
 if (strcmp(theextension,"AVI")==0) { strcpy(content_type,"video/mp4"); return 1; } else
 if (strcmp(theextension,"MPEG4")==0) { strcpy(content_type,"video/mp4"); return 1; } else
 if (strcmp(theextension,"MPEG")==0) { strcpy(content_type,"video/mp4"); return 1; } else
@@ -66,7 +71,7 @@ if (strcmp(theextension,"H263")==0) { strcpy(content_type,"video/h263"); return 
 if (strcmp(theextension,"H264")==0) { strcpy(content_type,"video/h264"); return 1; } else
 if (strcmp(theextension,"FLV")==0) { strcpy(content_type,"video/x-flv"); return 1; } else
 
-
+//http://www.iana.org/assignments/media-types/audio/index.html
 if (strcmp(theextension,"MP3")==0) { strcpy(content_type,"audio/mp3"); return 1; } else
 if (strcmp(theextension,"WAV")==0) { strcpy(content_type,"audio/wav"); return 1; } else
 if (strcmp(theextension,"MID")==0) { strcpy(content_type,"audio/wav"); return 1; } else
@@ -74,6 +79,7 @@ if (strcmp(theextension,"OGG")==0) { strcpy(content_type,"audio/ogg"); return 1;
 if (strcmp(theextension,"VOC")==0) { strcpy(content_type,"audio/voc"); return 1; } else
 if (strcmp(theextension,"AU")==0)  { strcpy(content_type,"audio/au"); return 1; } else
 
+//http://www.iana.org/assignments/media-types/text/index.html
 if (strcmp(theextension,"HTML")==0) { strcpy(content_type,"text/html"); return 1; } else
 if (strcmp(theextension,"HTM")==0) { strcpy(content_type,"text/html"); return 1; } else
 if (strcmp(theextension,"CSS")==0) { strcpy(content_type,"text/css"); return 1; } else
@@ -81,8 +87,7 @@ if (strcmp(theextension,"TXT")==0) { strcpy(content_type,"text/txt"); return 1; 
 if (strcmp(theextension,"DOC")==0) { strcpy(content_type,"text/doc"); return 1; } else
 if (strcmp(theextension,"RTF")==0) { strcpy(content_type,"text/rtf"); return 1; } else
 if (strcmp(theextension,"ODF")==0) { strcpy(content_type,"text/odf"); return 1; } else
-if (strcmp(theextension,"ODT")==0) { strcpy(content_type,"text/odt"); return 1; } else
-if (strcmp(theextension,"PDF")==0) { strcpy(content_type,"application/pdf"); return 1; }
+if (strcmp(theextension,"ODT")==0) { strcpy(content_type,"text/odt"); return 1; }
 
 fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
 
@@ -95,9 +100,15 @@ int GetExtentionType(char * theextension)
 {
  char content_type[100]={0};
  GetContentTypeForExtension(theextension,content_type);
- //TODO : Check if it is text , audio ,video , image or application and return appropriate filetype..!
+
+ //Crude and fast lookup
+ if (content_type[0]=='t') { return TEXT; } else
+ if (content_type[0]=='i') { return IMAGE; } else
+ if (content_type[0]=='v') { return VIDEO; } else
+ if ((content_type[0]=='a')&&(content_type[0]=='u')) { return AUDIO; } else
+ if ((content_type[0]=='a')&&(content_type[0]=='p')) { return EXECUTABLE; }
  //this is made to be used when generating a dynamic directory list to show the appropriate icons..!
- return 0;
+ return NO_FILETYPE;
 }
 
 
@@ -146,7 +157,7 @@ int FilenameStripperOk(char * filename)
         //We only accept english strings
         if ( filename[i]<' ') { return 0; } else
         if ( filename[i]>'~') { return 0; } else
-        //We dont like /../ in paths..!
+        //We dont like /../ ... etc in paths..!
         if ( ( filename[i-1]=='.')&&( filename[i]=='.') ) { return 0; }
 
         --i;
