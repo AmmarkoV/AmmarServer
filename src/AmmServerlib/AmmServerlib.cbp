@@ -43,6 +43,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="configuration.h" />
+		<Unit filename="content_resources.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="content_resources.h" />
 		<Unit filename="file_caching.c">
 			<Option compilerVar="CC" />
 		</Unit>

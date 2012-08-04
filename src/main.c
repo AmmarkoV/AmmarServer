@@ -25,8 +25,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-#define DEFAULT_BINDING_PORT 1234
+#define DEFAULT_BINDING_PORT 8080
 #define MAX_INPUT_IP 256
+#define MAX_FILE_PATH 512
+
+char webserver_root[MAX_FILE_PATH]="public_html/";
+char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +50,7 @@ int main(int argc, char *argv[])
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
      }
 
-    AmmServer_Start(bindIP,port);
+    AmmServer_Start(bindIP,port,webserver_root,templates_root);
 
          while (AmmServer_Running())
            {

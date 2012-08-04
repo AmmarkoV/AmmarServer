@@ -42,6 +42,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 const char * AmmServerVERSION="0.21";
 
+
 int serversock;
 int server_running=0;
 int pause_server=0;
@@ -56,6 +57,9 @@ pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
 struct PassToHTTPThread
 {
      char ip[256];
+     char webserver_root[MAX_FILE_PATH];
+     char templates_root[MAX_FILE_PATH];
+
      unsigned int port;
      unsigned int keep_var_on_stack;
 
@@ -85,7 +89,7 @@ char FileExists(char * filename)
 
 
 
-unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename)
+unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -95,14 +99,14 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
      char response[512]={0};
      switch (error_code)
      {
-       case 400 : strcpy(response,"400 Bad Request"); strcpy(verified_filename,"public_html/templates/400.html"); break;
-       case 401 : strcpy(response,"401 Password Protected"); strcpy(verified_filename,"public_html/templates/401.html"); break;
-       case 404 : strcpy(response,"404 Not Found"); strcpy(verified_filename,"public_html/templates/404.html"); break;
-       case 408 : strcpy(response,"408 Timed Out"); strcpy(verified_filename,"public_html/templates/408.html"); break;
-       case 500 : strcpy(response,"500 Internal Server Error"); strcpy(verified_filename,"public_html/templates/500.html"); break;
-       case 501 : strcpy(response,"501 Not Implemented"); strcpy(verified_filename,"public_html/templates/501.html"); break;
+       case 400 : strcpy(response,"400 Bad Request");            strcpy(verified_filename,templates_root); strcat(verified_filename,"400.html"); break;
+       case 401 : strcpy(response,"401 Password Protected");     strcpy(verified_filename,templates_root); strcat(verified_filename,"401.html"); break;
+       case 404 : strcpy(response,"404 Not Found");              strcpy(verified_filename,templates_root); strcat(verified_filename,"404.html"); break;
+       case 408 : strcpy(response,"408 Timed Out");              strcpy(verified_filename,templates_root); strcat(verified_filename,"408.html"); break;
+       case 500 : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,templates_root); strcat(verified_filename,"500.html"); break;
+       case 501 : strcpy(response,"501 Not Implemented");        strcpy(verified_filename,templates_root); strcat(verified_filename,"501.html"); break;
        //---------------------------------------------------------------------------------------------------------------------------
-       default : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,"public_html/templates/500.html");  break;
+       default : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,templates_root); strcat(verified_filename,"500.html"); break;
      };
 
 
@@ -120,7 +124,20 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
 
 
-unsigned long SendFile(int clientsock,char * verified_filename_pending_copy,unsigned long start_at_byte,unsigned int force_error_code,unsigned char header_only,unsigned char keepalive,unsigned char gzip_supported)
+unsigned long SendFile
+  (
+    int clientsock, // The socket that will be used to send the data
+    char * verified_filename_pending_copy, // The filename to be served on the socket above
+
+    unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
+    unsigned int force_error_code, // Instead of the file , serve an error code..!
+    unsigned char header_only,     // Only serve header ( HEAD instead of GET )
+    unsigned char keepalive,       // Keep alive functionality
+    unsigned char gzip_supported,  // If gzip is supported try to use it!
+
+    //char * webserver_root,
+    char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
+    )
 {
   char verified_filename[MAX_FILE_PATH]={0};
   strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
@@ -134,19 +151,19 @@ unsigned long SendFile(int clientsock,char * verified_filename_pending_copy,unsi
   if (force_error_code!=0)
   {
     //We want to force a specific error_code!
-    SendErrorCodeHeader(clientsock,force_error_code,verified_filename);
+    SendErrorCodeHeader(clientsock,force_error_code,verified_filename,templates_root);
   } else
   if (!FilenameStripperOk(verified_filename))
   {
      //Unsafe filename , bad request :P
-     SendErrorCodeHeader(clientsock,400,verified_filename);
+     SendErrorCodeHeader(clientsock,400,verified_filename,templates_root);
      //verified_filename should now point to the template file for 400 messages
   } else
   if (!FileExists(verified_filename))
    {
      //File doesnt exist , 404 error :P
      fprintf(stderr,"File Requested (%s) does not exist \n",verified_filename);
-     SendErrorCodeHeader(clientsock,404,verified_filename);
+     SendErrorCodeHeader(clientsock,404,verified_filename,templates_root);
      //verified_filename should now point to the template file for 404 messages
    } else
    {
@@ -230,36 +247,6 @@ unsigned long SendFile(int clientsock,char * verified_filename_pending_copy,unsi
 
 
 
-unsigned long SendBanner(int clientsock)
-{
-  char reply_header[1024]={0};
-  char reply_body[1024]={0};
-  char body_type[1024]={0};
-
-
-  strcpy(body_type,"text/html");
-
-  strcpy(reply_body,(char*) "<html><head><title>AmmarServer</title></head><body><center>");
-  strcat(reply_body,(char*) "<br><br><br><h2><img src=\"up.gif\"><h2><h4> </h4>");
-  strcat(reply_body,(char*) "</center></body></html>");
-
-
-
-  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nConnection: close\nContent-type: %s\nContent-length: %u\n\n",AmmServerVERSION,body_type,(unsigned int) strlen(reply_body));
-  //Date: day day month year hour:minute:second\n
-  //Last-modified: day day month year hour:minute:second\n
-
-
-
-  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);
-  if (opres<=0) { fprintf(stderr,"Error sending banner header \n"); return 0; }
-
-      opres=send(clientsock,reply_body,strlen(reply_body),MSG_WAITALL);
-  if (opres<=0) { fprintf(stderr,"Error sending banner body\n"); return 0; }
-
-   return 1;
-}
-
 
 /*
 
@@ -282,8 +269,20 @@ unsigned long SendBanner(int clientsock)
 
 void * ServeClient(void * ptr)
 {
+
+
   fprintf(stderr,"New Serve Client call\n");
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
+
+
+  // In order for each thread to (in theory) be able to serve a different virtual website
+  // we declare the webserver_root etc here and we copy the value from the thread spawning function
+  // This creates a little code clutter but it is for the best..!
+  char webserver_root[MAX_FILE_PATH]="public_html/";
+  char templates_root[MAX_FILE_PATH]="public_html/templates/";
+
+  strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
+  strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
 
   int clientsock=context->clientsock;
   int thread_id = context->thread_id;
@@ -336,7 +335,7 @@ void * ServeClient(void * ptr)
    if (!result) {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
                    fprintf(stderr,"Bad Request!");
                    char servefile[MAX_FILE_PATH]={0};
-                   SendFile(clientsock,servefile,0,400,0,0,0);
+                   SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
                    close_connection=1;
                 }
        else
@@ -347,14 +346,14 @@ void * ServeClient(void * ptr)
      if ( (output.requestType==GET)||(output.requestType==HEAD))
      {
       char servefile[MAX_FILE_PATH]={0};
-      if (strcmp(output.resource,"/")==0) { strcpy(servefile,"public_html/index.html"); } else
-                                          { strcpy(servefile,"public_html/"); strcat(servefile,output.resource); }
+      if (strcmp(output.resource,"/")==0) { strcpy(servefile,webserver_root); strcat(servefile,"index.html"); } else
+                                          { strcpy(servefile,webserver_root); strcat(servefile,output.resource); }
 
 
 
       //SendFile decides about the safety of the resource requested..
       //it should deny requests to paths like ../ or /etc/passwd
-      if ( !SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),output.keepalive,output.supports_gzip) )
+      if ( !SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),output.keepalive,output.supports_gzip,templates_root) )
          {
            //We where unable to serve request , closing connections..\n
            fprintf(stderr,"We where unable to serve request , closing connections..\n");
@@ -365,13 +364,13 @@ void * ServeClient(void * ptr)
      {
      fprintf(stderr,"Weird Request!");
      char servefile[MAX_FILE_PATH]={0};
-     SendFile(clientsock,servefile,0,400,0,0,0);
+     SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
      close_connection=1;
      } else
      {
      fprintf(stderr,"Not Implemented Request!");
      char servefile[MAX_FILE_PATH]={0};
-     SendFile(clientsock,servefile,0,501,0,0,0);
+     SendFile(clientsock,servefile,0,501,0,0,0,templates_root);
      close_connection=1;
      }
    } // Not a Bad request END
@@ -396,7 +395,7 @@ void * ServeClient(void * ptr)
 
 
 
-int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen)
+int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
   fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),ACTIVE_CLIENT_THREADS);
 
@@ -413,7 +412,11 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   context.clientsock=clientsock;
   context.client=client;
   context.clientlen=clientlen;
+  strncpy(context.webserver_root,webserver_root,MAX_FILE_PATH);
+  strncpy(context.templates_root,templates_root,MAX_FILE_PATH);
+
   context.keep_var_on_stack=1;
+
   pthread_mutex_lock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
   context.thread_id = ACTIVE_CLIENT_THREADS++;
   pthread_mutex_unlock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
@@ -452,6 +455,9 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 void * HTTPServerThread (void * ptr)
 {
 
+  char webserver_root[MAX_FILE_PATH]="public_html/";
+  char templates_root[MAX_FILE_PATH]="public_html/templates/";
+
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
 
@@ -471,6 +477,9 @@ void * HTTPServerThread (void * ptr)
   server.sin_addr.s_addr = INADDR_ANY;
   server.sin_port = htons(context->port);
 
+  strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
+  strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
+
   context->keep_var_on_stack=2;
 
   if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!"); server_running=0; return 0; }
@@ -485,7 +494,7 @@ void * HTTPServerThread (void * ptr)
       else
       {
            fprintf(stderr,"Server Thread : Accepted new client \n");
-           if (!SpawnThreadToServeNewClient(clientsock,client,clientlen))
+           if (!SpawnThreadToServeNewClient(clientsock,client,clientlen,webserver_root,templates_root))
             {
                 fprintf(stderr,"Server Thread : Client failed, while handling him\n");
                 close(clientsock);
@@ -502,12 +511,15 @@ void * HTTPServerThread (void * ptr)
 
 
 
-int StartHTTPServer(char * ip,unsigned int port)
+int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * templates_path)
 {
   struct PassToHTTPThread context;
   memset(&context,0,sizeof(context));
 
   strncpy(context.ip,ip,255);
+  strncpy(context.webserver_root,root_path,MAX_FILE_PATH);
+  strncpy(context.templates_root,templates_path,MAX_FILE_PATH);
+
   context.port=port;
   context.keep_var_on_stack=1;
 

@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-int AmmServer_Start(char * ip,unsigned int port)
+int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * templates_root_path)
 {
   fprintf(stderr,"Binding server to %s:%u\n",ip,port);
   fprintf(stderr,"\n\nDISCLAIMER : \n");
@@ -42,7 +42,7 @@ int AmmServer_Start(char * ip,unsigned int port)
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
 
 
-  return StartHTTPServer(ip,port);
+  return StartHTTPServer(ip,port,web_root_path,templates_root_path);
 }
 
 int AmmServer_Stop()

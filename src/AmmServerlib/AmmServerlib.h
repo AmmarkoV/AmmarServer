@@ -2,7 +2,7 @@
 #define AMMSERVERLIB_H_INCLUDED
 
 
-int AmmServer_Start(char * ip,unsigned int port);
+int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop();
 int AmmServer_Running();
 
