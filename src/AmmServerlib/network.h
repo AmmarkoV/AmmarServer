@@ -1,7 +1,6 @@
 #ifndef NETWORK_H_INCLUDED
 #define NETWORK_H_INCLUDED
 
-extern const char * AmmServerVERSION;
 
 extern int server_running;
 extern int pause_server;

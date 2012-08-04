@@ -13,6 +13,9 @@
 #define MAX_HTTP_REQUEST_HEADER_LINE 1024
 #define MAX_HTTP_RESPONSE_HEADER 1024
 
+
+extern const char * AmmServerVERSION;
+
 extern int varSocketTimeoutREAD_ms;
 extern int varSocketTimeoutWRITE_ms;
 

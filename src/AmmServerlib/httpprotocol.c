@@ -67,7 +67,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
       it is made to be called internally by AnalyzeHTTPRequest
   */
 
-  fprintf(stderr,"Analyzing HTTP Request : Line %u , `%s` \n",lines_gathered,request);
+  //fprintf(stderr,"Analyzing HTTP Request : Line %u , `%s` \n",lines_gathered,request);
 
   if (lines_gathered==1)
    {
