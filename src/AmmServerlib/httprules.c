@@ -139,10 +139,10 @@ int GetContentType(char * filename,char * content_type)
 
    sprintf(extension,"%s",start_of_extension);
    convertToUpperCase(extension);
-   GetContentTypeForExtension(extension,content_type);
+   int res=GetContentTypeForExtension(extension,content_type);
    fprintf(stderr,"Extension ( %s ) hints content type %s\n",extension,content_type);
 
-  return 0;
+  return res;
 }
 
 

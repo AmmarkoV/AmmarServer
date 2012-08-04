@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-#define DEFAULT_BINDING_PORT 8081
+#define DEFAULT_BINDING_PORT 1234
 #define MAX_INPUT_IP 256
 
 int main(int argc, char *argv[])

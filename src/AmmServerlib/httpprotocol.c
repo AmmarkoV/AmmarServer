@@ -147,9 +147,10 @@ int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int r
       the code here just serves as a line parser for AnalyzeHTTPLineRequest
   */
   fprintf(stderr,"Starting a fresh HTTP Request Analysis\n");
+  memset(output,0,sizeof(struct HTTPRequest)); // Clear output http request
   output->requestType=NONE; // invalidate current output data..!
 
-  char line[1024]={0};
+  char line[MAX_HTTP_REQUEST_HEADER_LINE]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;
   while  (i<request_length)
    {

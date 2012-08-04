@@ -23,12 +23,12 @@ this algorithm (k=33) was first reported by dan bernstein many years ago in comp
 
 
 
-char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize)
+char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,unsigned char gzip_supported)
 {
        //TODO : Implement page caching..
-       filesize=0;
+       *filesize=0;
 
-       fprintf(stderr,"Cache skipping check on %s , filesize %u\n",verified_filename,(unsigned int) *filesize);
+       fprintf(stderr,"Cache skipping check on %s , filesize %u , gzip support %u \n",verified_filename,(unsigned int) *filesize,gzip_supported);
 
        return 0;
 }

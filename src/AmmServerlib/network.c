@@ -40,7 +40,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-const char * AmmServerVERSION="0.2";
+const char * AmmServerVERSION="0.21";
 
 int serversock;
 int server_running=0;
@@ -48,9 +48,9 @@ int pause_server=0;
 int stop_server=0;
 pthread_t server_thread_id;
 
-
+pthread_mutex_t thread_pool_access;
 int ACTIVE_CLIENT_THREADS=0;
-pthread_t threads_pool[MAX_CLIENTS];
+pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
 
 
 struct PassToHTTPThread
@@ -62,6 +62,7 @@ struct PassToHTTPThread
      int clientsock;
      struct sockaddr_in client;
      unsigned int clientlen;
+     unsigned int thread_id;
 };
 
 
@@ -119,11 +120,14 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
 
 
-unsigned long SendFile(int clientsock,char * verified_filename,unsigned long start_at_byte,unsigned int force_error_code,unsigned char header_only,unsigned char keepalive)
+unsigned long SendFile(int clientsock,char * verified_filename_pending_copy,unsigned long start_at_byte,unsigned int force_error_code,unsigned char header_only,unsigned char keepalive,unsigned char gzip_supported)
 {
-  char reply_header[1024]={0};
+  char verified_filename[MAX_FILE_PATH]={0};
+  strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
 
-  char content_type[512]={0};
+  char reply_header[MAX_HTTP_RESPONSE_HEADER]={0};
+  char content_type[MAX_CONTENT_TYPE]={0};
+
   strcpy(content_type,"text/html"); //image/gif;
 
 
@@ -151,6 +155,8 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
       sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nContent-type: %s\n",AmmServerVERSION,content_type);
    }
 
+
+
   if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else
                  { strcat(reply_header,"Connection: close\n"); } //Append Keep-Alive or Close and then..
   int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //.. send preliminary header to minimize lag
@@ -158,10 +164,11 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
 
 
   unsigned long cached_lSize=0;
-  char * cached_buffer = CheckForCachedVersionOfThePage(verified_filename,&cached_lSize);
+  char * cached_buffer = CheckForCachedVersionOfThePage(verified_filename,&cached_lSize,gzip_supported);
 
   if ((cached_buffer!=0)&&(cached_lSize!=0))
-   { /*TODO : Serve cached file */
+   { /*!Serve cached file !*/
+     if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);  //Send filesize as soon as we've got it
      if (!header_only)
@@ -169,20 +176,18 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
        opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL);  //Send file as soon as we've got it
       }
      return opres;
-   } else
-
-  {
-    /*TODO : Serve file by reading it from disk */
+   }
+     else
+  { /*!Serve file by reading it from disk !*/
     if ((cached_buffer==0)&&(cached_lSize==1)) { /*TODO : Cache indicates that file doesn't exist */ } else
     if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
 
-
-
-    FILE * pFile;
+    FILE * pFile=0;
     unsigned long lSize;
     char * buffer;
     size_t result;
 
+    fprintf(stderr,"fopen(%s,\"rb\")\n",verified_filename);
     pFile = fopen (verified_filename, "rb" );
     if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
 
@@ -199,7 +204,7 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
       if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
 
       // allocate memory to contain the whole file:
-      //Todo make a smaller allocation and gradually serve the whole file :P
+      //TODO: make a smaller allocation and gradually serve the whole file :P
       buffer = (char*) malloc (sizeof(char)*lSize);
       if (buffer == 0) { fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename); return 0;}
 
@@ -212,12 +217,14 @@ unsigned long SendFile(int clientsock,char * verified_filename,unsigned long sta
       /* the whole file is now loaded in the memory buffer. */
 
       // terminate
-      fclose (pFile);
       free (buffer);
   }
 
-    return opres;
+  fclose (pFile);
+
+  return 1;
   }
+
  return 0;
 }
 
@@ -279,6 +286,7 @@ void * ServeClient(void * ptr)
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
   int clientsock=context->clientsock;
+  int thread_id = context->thread_id;
 //  struct sockaddr_in client=context->client;
 //  unsigned int clientlen=context->clientlen;
   context->keep_var_on_stack=2;
@@ -292,7 +300,7 @@ void * ServeClient(void * ptr)
   if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
 
 
-  char incoming_request[4096]; //A 4K header is more than enough..!
+  char incoming_request[MAX_HTTP_REQUEST_HEADER]; //A 4K header is more than enough..!
 
   int close_connection=0;
 
@@ -303,11 +311,11 @@ void * ServeClient(void * ptr)
    fprintf(stderr,"Waiting for a valid HTTP header..\n");
    while ( (!HTTPRequestComplete(incoming_request,total_header))&&(server_running) )
    { //Gather Header until http request contains two newlines..!
-     opres=recv(clientsock,&incoming_request[total_header],4096-total_header,0);
+     opres=recv(clientsock,&incoming_request[total_header],MAX_HTTP_REQUEST_HEADER-total_header,0);
      if (opres<=0)
       {
         //TODO : Check opres here..!
-        close_connection=1;
+        close_connection=1; // Close_connection controls the receive "keep-alive" loop
         break;
       } else
       {
@@ -325,13 +333,19 @@ void * ServeClient(void * ptr)
 
    int result = AnalyzeHTTPRequest(&output,incoming_request,total_header);
 
-   if (!result) {  /*We got a bad http request so we will rig it to make server emmit the 500 message*/
-                   strcpy(output.resource,"/...../root/bad//GET/500/CODE:P\0\1\2\3$$#:P"); }
+   if (!result) {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
+                   fprintf(stderr,"Bad Request!");
+                   char servefile[MAX_FILE_PATH]={0};
+                   SendFile(clientsock,servefile,0,400,0,0,0);
+                   close_connection=1;
+                }
+       else
+   { // Not a Bad request Start
 
-   if (!output.keepalive) { close_connection=1; }
+     if (!output.keepalive) { close_connection=1; } // Close_connection controls the receive "keep-alive" loop
 
-   if ( (output.requestType==GET)||(output.requestType==HEAD))
-   {
+     if ( (output.requestType==GET)||(output.requestType==HEAD))
+     {
       char servefile[MAX_FILE_PATH]={0};
       if (strcmp(output.resource,"/")==0) { strcpy(servefile,"public_html/index.html"); } else
                                           { strcpy(servefile,"public_html/"); strcat(servefile,output.resource); }
@@ -340,24 +354,42 @@ void * ServeClient(void * ptr)
 
       //SendFile decides about the safety of the resource requested..
       //it should deny requests to paths like ../ or /etc/passwd
-      SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),1);
-   } else
-   if (output.requestType==NONE)
-   {
+      if ( !SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),output.keepalive,output.supports_gzip) )
+         {
+           //We where unable to serve request , closing connections..\n
+           fprintf(stderr,"We where unable to serve request , closing connections..\n");
+           close_connection=1;
+         }
+     } else
+     if (output.requestType==NONE)
+     {
      fprintf(stderr,"Weird Request!");
      char servefile[MAX_FILE_PATH]={0};
-     SendFile(clientsock,servefile,0,400,0,1);
-   } else
-   {
+     SendFile(clientsock,servefile,0,400,0,0,0);
+     close_connection=1;
+     } else
+     {
      fprintf(stderr,"Not Implemented Request!");
      char servefile[MAX_FILE_PATH]={0};
-     SendFile(clientsock,servefile,0,501,0,1);
-   }
+     SendFile(clientsock,servefile,0,501,0,0,0);
+     close_connection=1;
+     }
+   } // Not a Bad request END
 
   }
 
   }
   close(clientsock);
+
+
+  pthread_mutex_lock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
+  if (ACTIVE_CLIENT_THREADS>0)
+  {
+    threads_pool[thread_id]=threads_pool[ACTIVE_CLIENT_THREADS-1];
+    threads_pool[ACTIVE_CLIENT_THREADS-1]=0;
+    --ACTIVE_CLIENT_THREADS;
+  }
+  pthread_mutex_unlock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
   pthread_exit(0);
   return 0;
 }
@@ -366,18 +398,27 @@ void * ServeClient(void * ptr)
 
 int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen)
 {
-  fprintf(stderr,"Server Thread : Client connected: %s\n", inet_ntoa(client.sin_addr));
+  fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),ACTIVE_CLIENT_THREADS);
+
+  if (ACTIVE_CLIENT_THREADS>=MAX_CLIENT_THREADS)
+   {
+     fprintf(stderr,"We are over the limit on clients served..\nDropping client %s..!\n",inet_ntoa(client.sin_addr));
+     close(clientsock);
+     return 0;
+   }
 
   struct PassToHTTPThread context;
-   memset(&context,0,sizeof(struct PassToHTTPThread));
+  memset(&context,0,sizeof(struct PassToHTTPThread));
 
   context.clientsock=clientsock;
   context.client=client;
   context.clientlen=clientlen;
   context.keep_var_on_stack=1;
+  pthread_mutex_lock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
+  context.thread_id = ACTIVE_CLIENT_THREADS++;
+  pthread_mutex_unlock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
 
-
-  int retres = pthread_create(&threads_pool[ACTIVE_CLIENT_THREADS++],0,ServeClient,(void*) &context);
+  int retres = pthread_create(&threads_pool[context.thread_id],0,ServeClient,(void*) &context);
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(100); } } // <- Keep PeerServerContext in stack for long enough :P
 
 
@@ -433,7 +474,7 @@ void * HTTPServerThread (void * ptr)
   context->keep_var_on_stack=2;
 
   if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!"); server_running=0; return 0; }
-  if ( listen(serversock,MAX_CLIENTS) < 0 )  { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
+  if ( listen(serversock,MAX_CLIENT_THREADS) < 0 )  { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
 
 
   while (stop_server==0)

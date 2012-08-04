@@ -30,7 +30,8 @@ struct HTTPRequest
 {
    int  requestType;
    char resource[MAX_RESOURCE];
-   int  keepalive;
+   unsigned char keepalive;
+   unsigned char supports_gzip;
    //Languages etc here..!
 };
 
