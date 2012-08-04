@@ -34,12 +34,12 @@ int AmmServer_Start(char * ip,unsigned int port)
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
-  fprintf(stderr,"\n\nTODO: Add detailed input header parsing\n");
-  fprintf(stderr,"\n\nTODO: Add directory listings\n");
-  fprintf(stderr,"\n\nTODO: Implement file caching mechanism\n");
-  fprintf(stderr,"\n\nTODO: Implement linked in files coming from other programs..\n");
-  fprintf(stderr,"\n\nTODO: Implement gzip file compression\n");
-  fprintf(stderr,"\n\nTODO: Add apache like logging capabilities\n");
+  fprintf(stderr,"TODO: Add detailed input header parsing\n");
+  fprintf(stderr,"TODO: Add directory listings\n");
+  fprintf(stderr,"TODO: Implement file caching mechanism\n");
+  fprintf(stderr,"TODO: Implement linked in files coming from other programs..\n");
+  fprintf(stderr,"TODO: Implement gzip file compression\n");
+  fprintf(stderr,"TODO: Add apache like logging capabilities\n");
 
 
   return StartHTTPServer(ip,port);
