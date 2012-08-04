@@ -40,7 +40,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-const char * AmmServerVERSION="0.21";
+const char * AmmServerVERSION="0.24";
 
 
 int serversock;
@@ -72,20 +72,6 @@ struct PassToHTTPThread
 
 void * ServeClient(void * ptr);
 void * HTTPServerThread (void * ptr);
-
-void error(char * msg)
-{
- fprintf(stderr,"ERROR MESSAGE : %s\n",msg);
- return;
-}
-
-char FileExists(char * filename)
-{
- FILE *fp = fopen(filename,"r");
- if( fp ) { /* exists */ fclose(fp); return 1; }
- return 0;
-}
-
 
 
 
@@ -345,33 +331,82 @@ void * ServeClient(void * ptr)
 
      if ( (output.requestType==GET)||(output.requestType==HEAD))
      {
+
       char servefile[MAX_FILE_PATH]={0};
-      if (strcmp(output.resource,"/")==0) { strcpy(servefile,webserver_root); strcat(servefile,"index.html"); } else
-                                          { strcpy(servefile,webserver_root); strcat(servefile,output.resource); }
+      int resource_is_a_directory=0;
+      if (strlen(output.resource)>0)
+       {
+         if (output.resource[strlen(output.resource)-1]=='/')
+           {
+             resource_is_a_directory=1;
+           }
+       }
+
+      if ( (strcmp(output.resource,"/")==0) || (resource_is_a_directory) )
+        {
+          //We have a general request for an index file so we will try to find one , or generate a directory list..!
+
+
+          int generate_directory_list=0;
+
+          if (resource_is_a_directory)
+           {
+             /*resource_is_a_directory means we got something like directory1/directory2/ so we should check for index file at the path given..! */
+             if ( FindIndexFile(webserver_root,output.resource,servefile) ) { /*servefile should contain a valid index file*/ } else
+                {
+                 generate_directory_list=1;
+                }
+           } else
+           {
+             /*This is the case where we got a / as a request so we give "" as a dir parameter! */
+             if ( FindIndexFile(webserver_root,"",servefile) ) { /*servefile should contain a valid index file*/ } else
+                {
+                 generate_directory_list=1;
+                }
+           }
+
+
+         if (generate_directory_list)
+             {
+               fprintf(stderr,"TODO: Generate index file dynamically here , not implemented..!");
+               SendFile(clientsock,servefile,0,501,0,0,0,templates_root);
+               close_connection=1;
+               //Generate index file dynamically!
+               servefile[0]=0; // This prevents standard SendFile from beeing sent!
+             }
+
+        } else
+       {
+         //We have a specific request for a file ( output.resource )
+         strcpy(servefile,webserver_root); strcat(servefile,output.resource);
+       }
 
 
 
       //SendFile decides about the safety of the resource requested..
       //it should deny requests to paths like ../ or /etc/passwd
-      if ( !SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),output.keepalive,output.supports_gzip,templates_root) )
+      if (servefile[0]!=0) //This means that we have found a file to serve..!
+      {
+       if ( !SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),output.keepalive,output.supports_gzip,templates_root) )
          {
            //We where unable to serve request , closing connections..\n
            fprintf(stderr,"We where unable to serve request , closing connections..\n");
            close_connection=1;
          }
+      }
      } else
      if (output.requestType==NONE)
      {
-     fprintf(stderr,"Weird Request!");
-     char servefile[MAX_FILE_PATH]={0};
-     SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
-     close_connection=1;
+       fprintf(stderr,"Weird Request!");
+       char servefile[MAX_FILE_PATH]={0};
+       SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
+       close_connection=1;
      } else
      {
-     fprintf(stderr,"Not Implemented Request!");
-     char servefile[MAX_FILE_PATH]={0};
-     SendFile(clientsock,servefile,0,501,0,0,0,templates_root);
-     close_connection=1;
+       fprintf(stderr,"Not Implemented Request!");
+       char servefile[MAX_FILE_PATH]={0};
+       SendFile(clientsock,servefile,0,501,0,0,0,templates_root);
+       close_connection=1;
      }
    } // Not a Bad request END
 

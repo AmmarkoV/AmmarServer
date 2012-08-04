@@ -29,6 +29,9 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-fexpensive-optimizations" />
+			<Add option="-Os" />
+			<Add option="-O3" />
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>

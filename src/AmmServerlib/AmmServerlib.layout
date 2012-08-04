@@ -2,13 +2,16 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="66" topLine="0" />
+		<Cursor position="137" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="11">
 		<Cursor position="231" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="12">
 		<Cursor position="95" topLine="0" />
+	</File>
+	<File name="content_resources.c" open="1" top="0" tabpos="14">
+		<Cursor position="198" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="9">
 		<Cursor position="1052" topLine="0" />
@@ -28,13 +31,13 @@
 	<File name="httprules.h" open="1" top="0" tabpos="8">
 		<Cursor position="61" topLine="0" />
 	</File>
-	<File name="main.c" open="1" top="1" tabpos="1">
-		<Cursor position="1740" topLine="3" />
+	<File name="main.c" open="1" top="0" tabpos="1">
+		<Cursor position="878" topLine="5" />
 	</File>
-	<File name="network.c" open="1" top="0" tabpos="3">
-		<Cursor position="4000" topLine="431" />
+	<File name="network.c" open="1" top="1" tabpos="3">
+		<Cursor position="18497" topLine="509" />
 	</File>
 	<File name="network.h" open="1" top="0" tabpos="4">
-		<Cursor position="191" topLine="0" />
+		<Cursor position="261" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
         port=atoi(argv[2]);
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
      }
+   if (argc>=3) { strncpy(webserver_root,argv[3],MAX_FILE_PATH); }
+   if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
 
     AmmServer_Start(bindIP,port,webserver_root,templates_root);
 

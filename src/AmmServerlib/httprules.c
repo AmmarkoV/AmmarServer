@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <ctype.h>
 
 #include "httprules.h"
+#include "configuration.h"
 
 
 enum FileType
@@ -34,6 +35,20 @@ enum FileType
     VIDEO,
     EXECUTABLE
 };
+
+
+void error(char * msg)
+{
+ fprintf(stderr,"ERROR MESSAGE : %s\n",msg);
+ return;
+}
+
+char FileExists(char * filename)
+{
+ FILE *fp = fopen(filename,"r");
+ if( fp ) { /* exists */ fclose(fp); return 1; }
+ return 0;
+}
 
 
 
@@ -98,7 +113,7 @@ fprintf(stderr,"Could not find extension type for extension %s \n",theextension)
 
 int GetExtentionType(char * theextension)
 {
- char content_type[100]={0};
+ char content_type[MAX_CONTENT_TYPE]={0};
  GetContentTypeForExtension(theextension,content_type);
 
  //Crude and fast lookup
@@ -132,7 +147,7 @@ int GetContentType(char * filename,char * content_type)
    if (i==0) { return 0; } //<- could not find the content type..
    if (i+1>=length) { return 0; } //<- found the dot at i BUT it is the last character so no extension is possible..!
 
-   char extension[100]={0};
+   char extension[MAX_FILE_PATH_EXTENSION_SIZE]={0};
    char * start_of_extension = &filename[i+1]; // do not include . ( dot )
 
    //fprintf(stderr,"Extension for filename %s comes after character %u ( it is %s ) \n",filename,i,start_of_extension);
@@ -165,3 +180,23 @@ int FilenameStripperOk(char * filename)
 
    return 1;
 }
+
+
+
+int FindIndexFile(char * webserver_root,char * directory,char * indexfile)
+{
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.html");
+  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm"); // <- TODO : notice that i can just change the extension to reduce copying around
+  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm"); // <- TODO : notice that i can just change the extension to reduce copying around
+  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html"); // <- TODO : notice that i can just change the extension to reduce copying around
+  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.php"); // <- TODO : notice that i can just change the extension to reduce copying around
+  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
+
+  indexfile[0]=0;
+  return 0;
+}
+

@@ -43,3 +43,9 @@ unsigned long SendBanner(int clientsock)
 
    return 1;
 }
+
+/*
+  TODO : possibly add templates images/pages stuff here as a static resource..
+  it will increase the executable size though and I dont really like that..!
+
+ */
