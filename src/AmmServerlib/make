@@ -12,14 +12,14 @@ CFLAGS="-s -O3 -fexpensive-optimizations"
 
 gcc -c $CFLAGS main.c -o main.o
 gcc -c $CFLAGS server_threads.c -o server_threads.o 
-gcc -c $CFLAGS httprules.c -o httprules.o 
+gcc -c $CFLAGS http_tools.c -o http_tools.o 
 gcc -c $CFLAGS file_server.c -o file_server.o 
 gcc -c $CFLAGS http_header_analysis.c -o http_header_analysis.o 
 gcc -c $CFLAGS file_caching.c -o file_caching.o 
 gcc -c $CFLAGS configuration.c -o configuration.o 
 gcc -c $CFLAGS content_resources.c -o content_resources.o 
 
-PARTS_OF_LIB="main.o server_threads.o httprules.o file_server.o http_header_analysis.o file_caching.o configuration.o content_resources.o"
+PARTS_OF_LIB="main.o server_threads.o http_tools.o file_server.o http_header_analysis.o file_caching.o configuration.o content_resources.o"
 
 ar  rcs $LIBNAME $PARTS_OF_LIB
 
