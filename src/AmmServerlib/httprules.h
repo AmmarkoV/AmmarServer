@@ -3,6 +3,7 @@
 
 void error(char * msg);
 char FileExists(char * filename);
+char DirectoryExists( char* dirpath );
 
 int GetContentType(char * filename,char * content_type);
 

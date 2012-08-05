@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/uio.h>
 
+#include "version.h"
 #include "configuration.h"
 #include "content_resources.h"
 #include "network.h"
@@ -48,7 +49,7 @@ unsigned long SendBanner(int clientsock)
 
 
 
-  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nConnection: close\nContent-type: %s\nContent-length: %u\n\n",AmmServerVERSION,body_type,(unsigned int) strlen(reply_body));
+  sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nConnection: close\nContent-type: %s\nContent-length: %u\n\n",FULLVERSION_STRING,body_type,(unsigned int) strlen(reply_body));
   //Date: day day month year hour:minute:second\n
   //Last-modified: day day month year hour:minute:second\n
 

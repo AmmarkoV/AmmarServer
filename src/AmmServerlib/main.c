@@ -19,6 +19,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include "version.h"
 #include "AmmServerlib.h"
 #include "network.h"
 
@@ -26,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * templates_root_path)
 {
-  fprintf(stderr,"Binding server to %s:%u\n",ip,port);
+  fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
   fprintf(stderr,"\n\nDISCLAIMER : \n");
   fprintf(stderr,"Please note that this server version is not thoroughly\n");
   fprintf(stderr," pen-tested so it is not meant for production deployment..\n");

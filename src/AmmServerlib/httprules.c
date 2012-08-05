@@ -24,6 +24,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "httprules.h"
 #include "configuration.h"
+#include <dirent.h>
+
 
 
 enum FileType
@@ -48,6 +50,21 @@ char FileExists(char * filename)
  FILE *fp = fopen(filename,"r");
  if( fp ) { /* exists */ fclose(fp); return 1; }
  return 0;
+}
+
+char DirectoryExists( char* dirpath )
+{
+  if ( dirpath == 0) return 0;
+  char bExists = 0;
+  DIR *pDir = opendir (dirpath);
+
+  if (pDir != 0 )
+    {
+      bExists = 1;
+      closedir (pDir);
+    }
+
+   return bExists;
 }
 
 

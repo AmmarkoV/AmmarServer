@@ -9,7 +9,7 @@
 
 1344123404 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network.h
 
-1344123444 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network.c
+1344130391 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -22,20 +22,22 @@
 	<unistd.h>
 	<pthread.h>
 	"network.h"
+	"file_server.h"
 	"httpprotocol.h"
 	"httprules.h"
 	"file_caching.h"
 	"configuration.h"
 
-1344104835 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/httprules.c
+1344126567 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/httprules.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	<ctype.h>
 	"httprules.h"
 	"configuration.h"
+	<dirent.h>
 
-1344104338 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/httprules.h
+1344126596 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/httprules.h
 
 1344119537 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/httpprotocol.c
 	"httpprotocol.h"
@@ -47,12 +49,12 @@
 1344025145 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/httpprotocol.h
 	"configuration.h"
 
-1344123410 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.c
+1344130550 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.c
 	"configuration.h"
 
-1344123409 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
+1344130549 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
 
-1344123418 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.c
+1344130566 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -62,6 +64,7 @@
 	<arpa/inet.h>
 	<netdb.h>
 	<sys/uio.h>
+	"version.h"
 	"configuration.h"
 	"content_resources.h"
 	"network.h"
@@ -73,4 +76,25 @@
 	<stdio.h>
 
 1344025408 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
+
+1344130598 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<sys/types.h>
+	<sys/socket.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<netdb.h>
+	<sys/uio.h>
+	"version.h"
+	"file_server.h"
+	"file_caching.h"
+	"httpprotocol.h"
+	"httprules.h"
+	"configuration.h"
+
+1344123353 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.h
+
+1344130643 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 

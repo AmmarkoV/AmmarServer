@@ -40,9 +40,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "configuration.h"
 
 
-
-
-
 int serversock;
 int server_running=0;
 int pause_server=0;
@@ -155,12 +152,13 @@ void * ServeClient(void * ptr)
 
    int result = AnalyzeHTTPRequest(&output,incoming_request,total_header);
 
-   if (!result) {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
-                   fprintf(stderr,"Bad Request!");
-                   char servefile[MAX_FILE_PATH]={0};
-                   SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
-                   close_connection=1;
-                }
+   if (!result)
+   {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
+      fprintf(stderr,"Bad Request!");
+      char servefile[MAX_FILE_PATH]={0};
+      SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
+      close_connection=1;
+   }
        else
    { // Not a Bad request Start
 
@@ -170,7 +168,17 @@ void * ServeClient(void * ptr)
      {
 
       char servefile[MAX_FILE_PATH]={0};
-      int resource_is_a_directory=0;
+      int resource_is_a_directory=0,resource_is_a_file=0,generate_directory_list=0,we_can_send_result=1;
+
+      /*!
+             PART 1 : Sense what we want to serve , and set the flags
+             resource_is_a_directory , resource_is_a_file , generate_directory_list
+             accordingly..!
+      */
+
+      // STEP 0 : Is the resource an obvious directory , or obvious file ? Check for it..!
+      if  (strcmp(output.resource,"/")==0) { resource_is_a_directory=1; }
+        else
       if (strlen(output.resource)>0)
        {
          if (output.resource[strlen(output.resource)-1]=='/')
@@ -179,50 +187,93 @@ void * ServeClient(void * ptr)
            }
        }
 
-      if ( (strcmp(output.resource,"/")==0) || (resource_is_a_directory) )
-        {
-          //We have a general request for an index file so we will try to find one , or generate a directory list..!
+      strcpy(servefile,webserver_root);
+      strcat(servefile,output.resource);
+      //servefile variable now contains just the appended public_html/ with whatever came from the client..!
+      //we have checked output.resource for .. and weird ascii characters
 
 
-          int generate_directory_list=0;
+      // STEP 1 : If we can't obviously determine if the request is a directory ,  lets check on disk to find out if it is a directory after all..!
+      if (!resource_is_a_directory)
+       {
+         if (DirectoryExists(servefile))
+         {
+           resource_is_a_directory=1;
 
-          if (resource_is_a_directory)
+           //If the resource had an  / in the string end we would have already come to the conclusion that this was a directory
+           // so lets append the slash now on the request to help the code that follows work as intended
+           strcat(output.resource,"/");
+           strcat(servefile,"/");
+           fprintf(stderr,"TODO: this path is a little problematic because the web browser on the client will think\n");
+           fprintf(stderr,"that we are on the / directory , a location field in the response header will clarify things\n");
+         }
+       }
+
+      // STEP 2 : If we are sure that we dont have a directory then we have to find out accessing disk , could it be that our client wants a file ?
+      if (!resource_is_a_directory)
+       {
+         if (FileExists(servefile))
+         {
+           resource_is_a_file=1;
+         }
+       }
+
+
+
+
+      // STEP 3 : If after these steps the resource turned out to be a directory , we cant serve raw directories , so we will either look for an index.html
+      // and if an index file cannot be found we will generate a directory list and send that instead..!
+      if (resource_is_a_directory)
            {
              /*resource_is_a_directory means we got something like directory1/directory2/ so we should check for index file at the path given..! */
-             if ( FindIndexFile(webserver_root,output.resource,servefile) ) { /*servefile should contain a valid index file*/ } else
+             if ( FindIndexFile(webserver_root,output.resource,servefile) )
                 {
-                 generate_directory_list=1;
-                }
-           } else
-           {
-             /*This is the case where we got a / as a request so we give "" as a dir parameter! */
-             if ( FindIndexFile(webserver_root,"",servefile) ) { /*servefile should contain a valid index file*/ } else
+                   /*servefile should contain a valid index file ,
+                     lets make it look like it was a file we wanted all along :P! */
+                   resource_is_a_directory=0;
+                   resource_is_a_file=1;
+                } else
                 {
                  generate_directory_list=1;
                 }
            }
 
 
-         if (generate_directory_list)
-             {
-               fprintf(stderr,"TODO: Generate index file dynamically here , not implemented..!");
-               SendFile(clientsock,servefile,0,501,0,0,0,templates_root);
-               close_connection=1;
-               //Generate index file dynamically!
-               servefile[0]=0; // This prevents standard SendFile from beeing sent!
-             }
-
-        } else
-       {
+      /*!
+             PART 2 : The flags
+             resource_is_a_directory , resource_is_a_file , generate_directory_list
+             have been set to the correct ( :P ) value so all we have to do now is serve the correct repsonse..!
+      */
+     if (generate_directory_list)
+     {
+       // We need to generate and serve a directory listing..!
+       //TODO : Generate index file dynamically!
+       fprintf(stderr,"TODO: Generate index file dynamically here , not implemented..!");
+       SendFile(clientsock,servefile,0,501,0,0,0,templates_root);
+       close_connection=1;
+       we_can_send_result=0;
+     }
+        else
+      if  (resource_is_a_file)
+      {
          //We have a specific request for a file ( output.resource )
-         strcpy(servefile,webserver_root); strcat(servefile,output.resource);
-       }
+         fprintf(stderr,"It is a file request for %s ..!\n",servefile);
+         we_can_send_result=1;
+      }
+       else
+     {
+        fprintf(stderr,"404 not found..!!");
+        char servefile[MAX_FILE_PATH]={0};
+        SendFile(clientsock,servefile,0,404,0,0,0,templates_root);
+        close_connection=1;
+        we_can_send_result=0;
+     }
 
 
 
       //SendFile decides about the safety of the resource requested..
       //it should deny requests to paths like ../ or /etc/passwd
-      if (servefile[0]!=0) //This means that we have found a file to serve..!
+      if (we_can_send_result) //This means that we have found a file to serve..!
       {
        if ( !SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),output.keepalive,output.supports_gzip,templates_root) )
          {
@@ -232,9 +283,10 @@ void * ServeClient(void * ptr)
          }
       }
      } else
+     //It is not a GET / HEAD request..!
      if (output.requestType==NONE)
      {
-       fprintf(stderr,"Weird Request!");
+       fprintf(stderr,"Weird unrecognized Request!");
        char servefile[MAX_FILE_PATH]={0};
        SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
        close_connection=1;
@@ -249,10 +301,10 @@ void * ServeClient(void * ptr)
 
   }
 
-  }
+  } // Keep-Alive loop  ( not closing socket )
   close(clientsock);
 
-
+  //Clear thread id handler and we can gracefully exit..!
   pthread_mutex_lock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
   if (ACTIVE_CLIENT_THREADS>0)
   {
@@ -360,7 +412,7 @@ void * HTTPServerThread (void * ptr)
 
   while (stop_server==0)
   {
-    printf("Server Thread : Waiting for a new client");
+    fprintf(stderr,"\nServer Thread : Waiting for a new client");
     /* Wait for client connection */
     if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0) { error("Server Thread : Failed to accept client connection"); }
       else

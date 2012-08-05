@@ -29,6 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <sys/uio.h>
 
 
+#include "version.h"
 #include "file_server.h"
 #include "file_caching.h"
 #include "httpprotocol.h"
@@ -41,7 +42,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
    and starts reading and sending the file indicated by the function arguments..!
 */
 
-
+int files_open;
 
 unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root)
 {
@@ -65,10 +66,9 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
 
      char reply_header[512]={0};
+     sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/%s\nContent-type: text/html\n",response,FULLVERSION_STRING);
 
-     sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/%s\nContent-type: text/html\n",response,AmmServerVERSION);
-
-     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //Send preliminary header to minimize lag
+     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
      if (opres<=0) { return 0; }
 
      return 1;
@@ -76,6 +76,26 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
 
 
+unsigned long SendSuccessCodeHeader(int clientsock,char * verified_filename)
+{
+/*
+    This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
+    it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
+*/
+      char content_type[MAX_CONTENT_TYPE]={0};
+      strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
+
+      fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
+      GetContentType(verified_filename,content_type);
+
+      char reply_header[512]={0};
+      sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nContent-type: %s\n",FULLVERSION_STRING,content_type);
+
+      int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
+      if (opres<=0) { return 0; }
+
+      return 1;
+}
 
 
 
@@ -96,39 +116,29 @@ unsigned long SendFile
 {
   char verified_filename[MAX_FILE_PATH]={0};
   char reply_header[MAX_HTTP_RESPONSE_HEADER]={0};
-  char content_type[MAX_CONTENT_TYPE]={0};
 
   strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
-  strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
 
 
 /*!   Start sending the header first..!
       Due to error messages also having body payloads they are also handled here , creating
       clutter in the code but this way there is no need to write the same thing twice..! !*/
 
-/*! PRELIMINARY HEADER SEND START ----------------------------------------------*/
+/*! PRELIMINARY HEADER SENDING START ----------------------------------------------*/
   if (force_error_code!=0)
   {
     //We want to force a specific error_code!
-    SendErrorCodeHeader(clientsock,force_error_code,verified_filename,templates_root);
+    if (! SendErrorCodeHeader(clientsock,force_error_code,verified_filename,templates_root) ) { fprintf(stderr,"Failed sending error code %u\n",force_error_code); return 0; }
   } else
   if (!FilenameStripperOk(verified_filename))
   {
      //Unsafe filename , bad request :P
-     SendErrorCodeHeader(clientsock,400,verified_filename,templates_root);
+     if (! SendErrorCodeHeader(clientsock,400,verified_filename,templates_root) ) { fprintf(stderr,"Failed sending error code 400\n"); return 0; }
      //verified_filename should now point to the template file for 400 messages
   } else
-  if (!FileExists(verified_filename))
-   {
-     //File doesnt exist , 404 error :P
-     fprintf(stderr,"File Requested (%s) does not exist \n",verified_filename);
-     SendErrorCodeHeader(clientsock,404,verified_filename,templates_root); //verified_filename should now point to the template file for 404 messages
-   } else
    {
       //Normal 200 OK header
-      fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
-      GetContentType(verified_filename,content_type);
-      sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nContent-type: %s\n",AmmServerVERSION,content_type);
+      if (! SendSuccessCodeHeader(clientsock,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
    }
 /*! PRELIMINARY HEADER SEND END ----------------------------------------------*/
 
@@ -136,7 +146,7 @@ unsigned long SendFile
 
   if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else { strcat(reply_header,"Connection: close\n"); } //Append Keep-Alive or Close and then..
 
-  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL); //.. send preliminary header to minimize lag
+  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //.. send preliminary header to minimize lag
   if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
 
 
@@ -145,14 +155,16 @@ unsigned long SendFile
 
   if ((cached_buffer!=0)&&(cached_lSize!=0))
    { /*!Serve cached file !*/
+       /*
      if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
-     opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);  //Send filesize as soon as we've got it
+     opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (!header_only)
       {
-       opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL);  //Send file as soon as we've got it
+       opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
       }
-     return opres;
+     return opres;*/
+     fprintf(stderr,"Cached files are deactivated\n");
    }
      else
   { /*!Serve file by reading it from disk !*/
@@ -160,18 +172,27 @@ unsigned long SendFile
     if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
 
 
-    fprintf(stderr,"fopen(%s,\"rb\")\n",verified_filename);
+    fprintf(stderr,"fopen(%s,\"rb\") , files open %u \n",verified_filename,files_open);
     FILE * pFile = fopen (verified_filename, "rb" );
     if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
-
+    ++files_open;
 
     fprintf(stderr,"Sending file %s\n",verified_filename);
     // obtain file size:
-    fseek (pFile , 0 , SEEK_END);
+    if ( fseek (pFile , 0 , SEEK_END)!=0 )
+      {
+        fprintf(stderr,"Could not find file size..!\nUnable to serve client\n");
+        fclose(pFile);
+        --files_open;
+        return 0;
+      }
 
     unsigned long lSize = ftell (pFile);
     sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
-    opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL);  //Send filesize as soon as we've got it
+
+    opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+    if (opres<=0) { fprintf(stderr,"Failed sending content length..!\n"); } else
+    if ((unsigned int) opres!=lSize) { fprintf(stderr,"Failed sending the whole content length..!\n"); }
 
 
     if (!header_only)
@@ -187,7 +208,8 @@ unsigned long SendFile
         {
           fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename);
           fclose (pFile);
-          return 0;
+          --files_open;
+        return 0;
         }
 
       // copy the file into the buffer:
@@ -199,11 +221,12 @@ unsigned long SendFile
          fputs ("Reading error",stderr);
          free (buffer);
          fclose (pFile);
-         return 0;
+         --files_open;
+        return 0;
         }
 
 
-      opres=send(clientsock,buffer,result,MSG_WAITALL);  //Send file as soon as we've got it
+      opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
       /* the whole file is now loaded in the memory buffer. */
       if (opres<=0) { fprintf(stderr,"Failed sending file..!\n"); } else
       if ((unsigned int) opres!=lSize) { fprintf(stderr,"Failed sending the whole file..!\n"); }
@@ -213,7 +236,8 @@ unsigned long SendFile
       free (buffer);
   }
 
-  fprintf(stderr,"Closing file handler for %s\n",verified_filename);
+  fprintf(stderr,"Closing file handler for %s ( files open %u )\n",verified_filename,files_open);
+  --files_open;
   fclose (pFile);
 
   return 1;
