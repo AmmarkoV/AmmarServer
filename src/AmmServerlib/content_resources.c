@@ -31,7 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "configuration.h"
 #include "content_resources.h"
-#include "network.h"
+#include "server_threads.h"
 
 
 unsigned long SendBanner(int clientsock)

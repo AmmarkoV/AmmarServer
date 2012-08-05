@@ -1,5 +1,5 @@
-#ifndef NETWORK_H_INCLUDED
-#define NETWORK_H_INCLUDED
+#ifndef SERVER_THREADS_H_INCLUDED
+#define SERVER_THREADS_H_INCLUDED
 
 
 extern int server_running;
@@ -10,4 +10,4 @@ extern int stop_server;
 int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * templates_path);
 int StopHTTPServer();
 
-#endif // NETWORK_H_INCLUDED
+#endif // SERVER_THREADS_H_INCLUDED

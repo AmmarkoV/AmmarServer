@@ -21,7 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include "version.h"
 #include "AmmServerlib.h"
-#include "network.h"
+#include "server_threads.h"
 
 
 

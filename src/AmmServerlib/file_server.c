@@ -32,8 +32,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "file_server.h"
 #include "file_caching.h"
-#include "httpprotocol.h"
-#include "httprules.h"
+#include "http_header_analysis.h"
+#include "http_tools.h"
 #include "configuration.h"
 
 /*

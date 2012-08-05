@@ -1,5 +1,5 @@
-#ifndef HTTPPROTOCOL_H_INCLUDED
-#define HTTPPROTOCOL_H_INCLUDED
+#ifndef HTTP_HEADER_ANALYSIS_H_INCLUDED
+#define HTTP_HEADER_ANALYSIS_H_INCLUDED
 
 #include "configuration.h"
 
@@ -39,4 +39,4 @@ struct HTTPRequest
 int HTTPRequestComplete(char * request,unsigned int request_length);
 int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length);
 
-#endif // HTTPPROTOCOL_H_INCLUDED
+#endif // HTTP_HEADER_ANALYSIS_H_INCLUDED
