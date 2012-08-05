@@ -4,40 +4,49 @@
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
 		<Cursor position="137" topLine="0" />
 	</File>
-	<File name="configuration.c" open="1" top="0" tabpos="11">
-		<Cursor position="231" topLine="0" />
+	<File name="configuration.c" open="1" top="0" tabpos="5">
+		<Cursor position="27" topLine="0" />
 	</File>
-	<File name="configuration.h" open="1" top="0" tabpos="12">
-		<Cursor position="216" topLine="0" />
+	<File name="configuration.h" open="1" top="0" tabpos="6">
+		<Cursor position="397" topLine="0" />
 	</File>
-	<File name="content_resources.c" open="1" top="0" tabpos="13">
-		<Cursor position="1436" topLine="0" />
+	<File name="content_resources.c" open="1" top="0" tabpos="7">
+		<Cursor position="1020" topLine="20" />
 	</File>
-	<File name="file_caching.c" open="1" top="0" tabpos="9">
+	<File name="file_caching.c" open="1" top="0" tabpos="3">
 		<Cursor position="1052" topLine="0" />
 	</File>
-	<File name="file_caching.h" open="1" top="0" tabpos="10">
+	<File name="file_caching.h" open="1" top="0" tabpos="4">
 		<Cursor position="155" topLine="0" />
 	</File>
-	<File name="httpprotocol.c" open="1" top="0" tabpos="6">
-		<Cursor position="2110" topLine="15" />
+	<File name="file_server.c" open="1" top="0" tabpos="8">
+		<Cursor position="4271" topLine="0" />
 	</File>
-	<File name="httpprotocol.h" open="1" top="0" tabpos="7">
-		<Cursor position="1888" topLine="0" />
+	<File name="file_server.h" open="1" top="0" tabpos="9">
+		<Cursor position="811" topLine="0" />
 	</File>
-	<File name="httprules.c" open="1" top="0" tabpos="5">
-		<Cursor position="8609" topLine="151" />
+	<File name="http_header_analysis.c" open="1" top="0" tabpos="13">
+		<Cursor position="774" topLine="0" />
 	</File>
-	<File name="httprules.h" open="1" top="0" tabpos="8">
-		<Cursor position="235" topLine="0" />
+	<File name="http_header_analysis.h" open="1" top="0" tabpos="14">
+		<Cursor position="2146" topLine="0" />
 	</File>
-	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="1390" topLine="6" />
+	<File name="http_tools.c" open="1" top="0" tabpos="15">
+		<Cursor position="820" topLine="0" />
 	</File>
-	<File name="network.c" open="1" top="1" tabpos="3">
-		<Cursor position="7238" topLine="203" />
+	<File name="http_tools.h" open="1" top="0" tabpos="16">
+		<Cursor position="122" topLine="0" />
 	</File>
-	<File name="network.h" open="1" top="0" tabpos="4">
-		<Cursor position="261" topLine="0" />
+	<File name="main.c" open="1" top="1" tabpos="1">
+		<Cursor position="951" topLine="7" />
+	</File>
+	<File name="server_threads.c" open="1" top="0" tabpos="11">
+		<Cursor position="1067" topLine="402" />
+	</File>
+	<File name="server_threads.h" open="1" top="0" tabpos="12">
+		<Cursor position="289" topLine="0" />
+	</File>
+	<File name="version.h" open="1" top="0" tabpos="10">
+		<Cursor position="819" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

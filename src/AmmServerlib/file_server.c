@@ -35,6 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "http_header_analysis.h"
 #include "http_tools.h"
 #include "configuration.h"
+#include "time.h"
 
 /*
    This file contains the main routine called most of the time , i.e. SendFile..!
@@ -225,9 +226,23 @@ unsigned long SendFile
         return 0;
         }
 
+      //A timer added to partly as vanity code , partly to get transmission speeds for qos ( later on )
+      struct time_snap time_to_serve_file_s;
+      start_timer (&time_to_serve_file_s);
+       //ACTUAL SENDING OF FILE -->
+        opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
+       //ACTUAL SENDING OF FILE <--
+      double time_to_serve_file = (double ) end_timer (&time_to_serve_file_s) / 1000000; // go to seconds
+      double speed_in_Mbps= 0;
+      if (time_to_serve_file>0)
+       {
+        speed_in_Mbps = (double ) lSize/1048576;
+        speed_in_Mbps = (double ) speed_in_Mbps/time_to_serve_file;
+        fprintf(stderr,"Achieved a transmission speed of %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
+       }
+      //End of file
 
-      opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-      /* the whole file is now loaded in the memory buffer. */
+      /* the whole file should now have reached our client .! */
       if (opres<=0) { fprintf(stderr,"Failed sending file..!\n"); } else
       if ((unsigned int) opres!=lSize) { fprintf(stderr,"Failed sending the whole file..!\n"); }
 
