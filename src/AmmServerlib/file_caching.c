@@ -3,16 +3,9 @@
 #include "configuration.h"
 #include "file_caching.h"
 
-enum cace_item_states
-{
-   UNUSED =0 ,
-   LOADING ,
-   READY
-};
 
 struct cache_item
 {
-   unsigned char state;
    char filename[MAX_FILE_PATH];
    unsigned long filename_hash;
    unsigned int hits;
@@ -21,7 +14,7 @@ struct cache_item
 };
 
 
-unsigned char CACHING_ENABLED=0;
+unsigned char CACHING_ENABLED=1;
 unsigned int MAX_TOTAL_ALLOCATION_IN_MB=64;
 unsigned int MAX_CACHE_SIZE=1000;
 unsigned long loaded_cache_items_Kbytes;
@@ -52,7 +45,7 @@ Needless to say , this is our hash function..!
 
 unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
 {
-  fprintf(stderr,"Searching for file in cache%s \n",filename);
+  fprintf(stderr,"Searching for file in cache%s ..",filename);
   unsigned long file_we_are_looking_for = hash(filename);
   unsigned int i=0;
 
@@ -60,7 +53,8 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
    {
      if ( cache[i].filename_hash == file_we_are_looking_for )
       {
-        fprintf(stderr,"Found it here %u\n",i);
+        ++cache[i].hits;
+        fprintf(stderr," .. found it here %u , %u hits\n",i,cache[i].hits);
         *index=i;
         return 1;
       }
@@ -71,7 +65,7 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
 
 int AddFileToCache(char * filename,unsigned int * index)
 {
-  fprintf(stderr,"Adding file %s to cache \n",filename);
+  fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) loaded_cache_items_Kbytes/1048576 , MAX_TOTAL_ALLOCATION_IN_MB);
   FILE * pFile = fopen (filename, "rb" );
   if (pFile==0) { fprintf(stderr,"Could not open file to cache it.. %s\n",filename); return 0;}
   if ( fseek (pFile , 0 , SEEK_END)!=0 ) { fprintf(stderr,"Could not find file size to cache client..!\nUnable to serve client\n"); fclose(pFile); return 0; }
@@ -87,10 +81,11 @@ int AddFileToCache(char * filename,unsigned int * index)
   size_t result;
   result = fread (buffer,1,lSize,pFile);
   if (result != lSize) { fprintf(stderr,"Reading error , while filling in newly allocated cache item %s \n",filename); free (buffer); fclose (pFile); return 0; }
-
+  // file has been cached , so time to make it show up on the cache array
+  cache[*index].filename_hash = hash(filename);
   cache[*index].mem = buffer;
-  cache[*index].state = READY;
   cache[*index].filesize = lSize;
+  cache[*index].hits = 0;
   fprintf(stderr,"File %s has %u bytes cached with index %u \n",filename,(unsigned int ) lSize,*index);
   fclose(pFile);
 

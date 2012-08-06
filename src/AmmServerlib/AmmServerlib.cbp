@@ -67,6 +67,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="server_threads.h" />
+		<Unit filename="time.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="time.h" />
 		<Unit filename="version.h" />
 		<Extensions>
 			<envvars />

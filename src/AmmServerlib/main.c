@@ -39,7 +39,7 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
   fprintf(stderr,"TODO: Dont read to memory the whole file when sending..\n");
   fprintf(stderr,"TODO: Add detailed input header parsing\n");
   fprintf(stderr,"TODO: Add directory listings\n");
-  fprintf(stderr,"TODO: Implement file caching mechanism\n");
+  fprintf(stderr,"TODO: Improve implemented file caching mechanism\n");
   fprintf(stderr,"TODO: Implement linked in files coming from other programs..\n");
   fprintf(stderr,"TODO: Implement gzip file compression\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
