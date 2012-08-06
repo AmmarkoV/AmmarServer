@@ -73,13 +73,14 @@
 
 1344085035 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.h
 
-1344270308 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.c
+1344279032 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.c
 	<stdio.h>
 	<stdlib.h>
+	<string.h>
 	"configuration.h"
 	"file_caching.h"
 
-1344264317 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
+1344277397 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
 
 1344256250 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
 	<stdio.h>

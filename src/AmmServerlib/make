@@ -19,8 +19,9 @@ gcc -c $CFLAGS file_caching.c -o file_caching.o
 gcc -c $CFLAGS configuration.c -o configuration.o 
 gcc -c $CFLAGS content_resources.c -o content_resources.o 
 gcc -c $CFLAGS time.c -o time.o 
+gcc -c $CFLAGS logs.c -o logs.o 
 
-PARTS_OF_LIB="main.o server_threads.o http_tools.o file_server.o http_header_analysis.o file_caching.o configuration.o content_resources.o time.o"
+PARTS_OF_LIB="main.o server_threads.o http_tools.o file_server.o http_header_analysis.o file_caching.o configuration.o content_resources.o time.o logs.o"
 
 ar  rcs $LIBNAME $PARTS_OF_LIB
 
