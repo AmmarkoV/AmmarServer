@@ -193,6 +193,14 @@ void * ServeClient(void * ptr)
       //we have checked output.resource for .. and weird ascii characters
 
 
+      //STEP 0 : Check with cache!
+      if (CachedVersionExists(servefile) )
+      { //Skip disk access times for checking for directories and other stuff..!
+        //We know that the resource is a file from our cache indexes..!
+          resource_is_a_directory=0;
+          resource_is_a_file=1;
+      } else
+      {//Start of file not in cache scenario
       // STEP 1 : If we can't obviously determine if the request is a directory ,  lets check on disk to find out if it is a directory after all..!
       if (!resource_is_a_directory)
        {
@@ -237,7 +245,7 @@ void * ServeClient(void * ptr)
                  generate_directory_list=1;
                 }
            }
-
+      } //End of file not in cache scenario
 
       /*!
              PART 2 : The flags

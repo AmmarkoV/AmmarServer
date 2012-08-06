@@ -126,6 +126,13 @@ int AddFileToCache(char * filename,unsigned int * index)
   return 1;
 }
 
+int CachedVersionExists(char * verified_filename)
+{
+    unsigned int index=0;
+       if (FindCacheIndexForFile(verified_filename,&index))
+        { return 1; }
+    return 0;
+}
 
 char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,unsigned char gzip_supported)
 {

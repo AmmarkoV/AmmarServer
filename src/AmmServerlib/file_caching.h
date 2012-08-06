@@ -1,6 +1,7 @@
 #ifndef FILE_CACHING_H_INCLUDED
 #define FILE_CACHING_H_INCLUDED
 
+int CachedVersionExists(char * verified_filename);
 char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,unsigned char gzip_supported);
 
 int AddDirectResourceToCache(char * web_root_path,char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback);
