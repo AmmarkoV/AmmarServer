@@ -3,20 +3,20 @@
 #include "configuration.h"
 #include "file_caching.h"
 
+unsigned char CACHING_ENABLED=1;
+unsigned int MAX_TOTAL_ALLOCATION_IN_MB=64;
+unsigned int MAX_CACHE_SIZE=1000;
 
 struct cache_item
 {
    char filename[MAX_FILE_PATH];
    unsigned long filename_hash;
    unsigned int hits;
-   unsigned long filesize;
+   unsigned long * filesize;
    char * mem;
 };
 
 
-unsigned char CACHING_ENABLED=1;
-unsigned int MAX_TOTAL_ALLOCATION_IN_MB=64;
-unsigned int MAX_CACHE_SIZE=1000;
 unsigned long loaded_cache_items_Kbytes;
 unsigned int loaded_cache_items;
 struct cache_item * cache=0;
@@ -45,7 +45,7 @@ Needless to say , this is our hash function..!
 
 unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
 {
-  fprintf(stderr,"Searching for file in cache%s ..",filename);
+  fprintf(stderr,"Serial slow searching for file in cache %s ..",filename);
   unsigned long file_we_are_looking_for = hash(filename);
   unsigned int i=0;
 
@@ -60,6 +60,20 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
       }
    }
 
+  return 0;
+}
+
+
+int AddDirectResourceToCache(char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)
+{
+  fprintf(stderr,"AddDirectResourceToCache not implemented yet\n");
+  return 0;
+  unsigned int index=loaded_cache_items++;
+
+  cache[index].filename_hash = hash(resource_name);
+  cache[index].mem = content_memory;
+  cache[index].filesize = content_memory_size;
+  cache[index].hits = 0;
   return 0;
 }
 
@@ -84,7 +98,9 @@ int AddFileToCache(char * filename,unsigned int * index)
   // file has been cached , so time to make it show up on the cache array
   cache[*index].filename_hash = hash(filename);
   cache[*index].mem = buffer;
-  cache[*index].filesize = lSize;
+  if ( cache[*index].filesize!= 0 ) { free (cache[*index].filesize); cache[*index].filesize=0; }
+  cache[*index].filesize = (unsigned long * ) malloc(sizeof (unsigned long));
+  *cache[*index].filesize = lSize;
   cache[*index].hits = 0;
   fprintf(stderr,"File %s has %u bytes cached with index %u \n",filename,(unsigned int ) lSize,*index);
   fclose(pFile);
@@ -106,14 +122,14 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
         {
            if (cache[index].mem!=0)
            {
-             *filesize=cache[index].filesize;
+             *filesize=*cache[index].filesize;
              return cache[index].mem;
            }
         } else
         {
            if ( AddFileToCache(verified_filename,&index) )
             {
-              *filesize=cache[index].filesize;
+              *filesize=*cache[index].filesize;
               return cache[index].mem;
             }
         }
@@ -137,7 +153,7 @@ int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_all
    }
 
    unsigned int i=0;
-   for (i=0; i<max_seperate_items; i++) { cache[i].mem=0; }
+   for (i=0; i<max_seperate_items; i++) { cache[i].mem=0; cache[i].filesize=0; }
    return 1;
 }
 
@@ -151,6 +167,12 @@ int DestroyCache()
           free(cache[i].mem);
           cache[i].mem=0;
       }
+     if ( cache[i].filesize != 0 )
+      {
+          free(cache[i].filesize);
+          cache[i].filesize=0;
+      }
+
    }
 
    free(cache);

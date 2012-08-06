@@ -201,7 +201,7 @@ unsigned long SendFile
 
       // allocate memory to contain the whole file:
       //TODO: make a smaller allocation and gradually serve the whole file :P
-      char * buffer = (char*) malloc ( sizeof(char) * (lSize));
+      char * buffer = (char*) malloc ( sizeof(char) * (lSize-start_at_byte+1));
 
       if (buffer == 0)
         {
@@ -213,9 +213,9 @@ unsigned long SendFile
 
       // copy the file into the buffer:
       size_t result;
-      result = fread (buffer,1,lSize,pFile);
+      result = fread (buffer,1,lSize-start_at_byte,pFile);
 
-      if (result != lSize)
+      if (result != lSize-start_at_byte)
        {
          fputs ("Reading error",stderr);
          free (buffer);
@@ -234,7 +234,7 @@ unsigned long SendFile
       double speed_in_Mbps= 0;
       if (time_to_serve_file>0)
        {
-        speed_in_Mbps = (double ) lSize/1048576;
+        speed_in_Mbps = (double ) opres/1048576;
         speed_in_Mbps = (double ) speed_in_Mbps/time_to_serve_file;
         fprintf(stderr,"Achieved a transmission speed of %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
        }
@@ -242,7 +242,7 @@ unsigned long SendFile
 
       /* the whole file should now have reached our client .! */
       if (opres<=0) { fprintf(stderr,"Failed sending file..!\n"); } else
-      if ((unsigned int) opres!=lSize) { fprintf(stderr,"Failed sending the whole file..!\n"); }
+      if ((unsigned int) opres!=result) { fprintf(stderr,"Failed sending the whole file..!\n"); }
 
 
       // terminate

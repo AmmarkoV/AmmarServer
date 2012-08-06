@@ -32,6 +32,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char webserver_root[MAX_FILE_PATH]="public_html/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
+char stats_buf[2048]={0};
+unsigned long stats_size=0;
+
+void * prepare_content_callback()
+{
+
+  return 0;
+}
+
+
 int main(int argc, char *argv[])
 {
     printf("Ammar Server starting up\n");
@@ -54,6 +64,7 @@ int main(int argc, char *argv[])
 
     AmmServer_Start(bindIP,port,webserver_root,templates_root);
 
+    AmmServer_AddResourceHandler("uptime.html",stats_buf,&stats_size,&prepare_content_callback);
          while (AmmServer_Running())
            {
              usleep(10000);

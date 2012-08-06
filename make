@@ -5,7 +5,13 @@ cd src/AmmServerlib
 cd ..
 ./make
 
-
+# NOT READY YET..!
+#cd WebCamHttpBridge
+#./make
+#cd VideoInput
+#./make
+#cd ..
+#cd ..
 
 cd ..
 
