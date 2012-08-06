@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "AmmServerlib.h"
 #include "server_threads.h"
+#include "file_caching.h"
 
 
 
@@ -43,12 +44,13 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
   fprintf(stderr,"TODO: Implement gzip file compression\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
 
-
+  InitializeCache(2000/*Seperate items*/,64/*MB*/);
   return StartHTTPServer(ip,port,web_root_path,templates_root_path);
 }
 
 int AmmServer_Stop()
 {
+  DestroyCache();
   return StopHTTPServer();
 }
 

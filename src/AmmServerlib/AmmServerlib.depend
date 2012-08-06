@@ -1,10 +1,11 @@
 # depslib dependency file v1.0
-1344131288 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+1344212036 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
 	<stdio.h>
 	<stdlib.h>
 	"version.h"
 	"AmmServerlib.h"
 	"server_threads.h"
+	"file_caching.h"
 
 1344085881 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 
@@ -72,14 +73,14 @@
 
 1344085035 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.h
 
-1344208844 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.c
+1344212025 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.c
 	<stdio.h>
 	"configuration.h"
 	"file_caching.h"
 
-1344025408 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
+1344212049 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
 
-1344131626 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
+1344210719 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -95,6 +96,7 @@
 	"http_header_analysis.h"
 	"http_tools.h"
 	"configuration.h"
+	"time.h"
 
 1344123353 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.h
 
@@ -141,4 +143,12 @@
 	"http_tools.h"
 	"file_caching.h"
 	"configuration.h"
+
+1344210706 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/time.h
+	<sys/types.h>
+	<sys/time.h>
+
+1344210614 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/time.c
+	<unistd.h>
+	"time.h"
 

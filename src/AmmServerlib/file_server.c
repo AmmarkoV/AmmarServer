@@ -156,16 +156,14 @@ unsigned long SendFile
 
   if ((cached_buffer!=0)&&(cached_lSize!=0))
    { /*!Serve cached file !*/
-       /*
-     if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
+     //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (!header_only)
       {
        opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
       }
-     return opres;*/
-     fprintf(stderr,"Cached files are deactivated\n");
+     return opres;
    }
      else
   { /*!Serve file by reading it from disk !*/
@@ -240,7 +238,7 @@ unsigned long SendFile
         speed_in_Mbps = (double ) speed_in_Mbps/time_to_serve_file;
         fprintf(stderr,"Achieved a transmission speed of %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
        }
-      //End of file
+      //End of timer code
 
       /* the whole file should now have reached our client .! */
       if (opres<=0) { fprintf(stderr,"Failed sending file..!\n"); } else
