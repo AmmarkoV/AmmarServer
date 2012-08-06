@@ -6,6 +6,6 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
 int AmmServer_Stop();
 int AmmServer_Running();
 
-int AmmServer_AddResourceHandler(char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback);
+int AmmServer_AddResourceHandler(char * web_root_path,char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback);
 
 #endif // AMMSERVERLIB_H_INCLUDED

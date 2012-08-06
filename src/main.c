@@ -47,7 +47,7 @@ void * prepare_content_callback()
 
   sprintf(stats_buf,"<html><head><title>Dynamic Content Enabled</title></head><body>The time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
                      tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-  strcat(stats_buf,"The string you see is updated dynamically every time you get this file!<br><br>\n");
+  strcat(stats_buf,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
   strcat(stats_buf,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c\">Dynamic content code label in ammarserver main.c</a><br>\n");
   strcat(stats_buf,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
   strcat(stats_buf,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 
     AmmServer_Start(bindIP,port,webserver_root,templates_root);
 
-    AmmServer_AddResourceHandler("public_html//stats.html",stats_buf,&stats_size,&prepare_content_callback); /*! Dynamic content Add Resource Handler..! */
+    AmmServer_AddResourceHandler(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback); /*! Dynamic content Add Resource Handler..! */
 
          while (AmmServer_Running())
            {

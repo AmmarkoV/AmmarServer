@@ -10,7 +10,8 @@ unsigned int MAX_CACHE_SIZE=1000;
 
 struct cache_item
 {
-   char filename[MAX_FILE_PATH];
+   //TODO: add this to the checks to avoid hash collisions
+   //it will have negative performance effect though :P -> char filename[MAX_FILE_PATH];
    unsigned long filename_hash;
    unsigned int hits;
    unsigned long * filesize;
@@ -66,7 +67,7 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
 }
 
 
-int AddDirectResourceToCache(char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)
+int AddDirectResourceToCache(char * web_root_path,char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)
 {
   if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
    {
@@ -77,7 +78,12 @@ int AddDirectResourceToCache(char * resource_name,char * content_memory,unsigned
 
   unsigned int index=loaded_cache_items++;
 
-  cache[index].filename_hash = hash(resource_name);
+  //Create the full path to distinguish from different root_paths ( virutal servers ) ..!
+  char full_filename[MAX_RESOURCE]={0};
+  strcpy(full_filename,web_root_path);
+  strcat(full_filename,resource_name);
+
+  cache[index].filename_hash = hash(full_filename);
   cache[index].mem = content_memory;
   cache[index].filesize = content_memory_size;
   cache[index].hits = 0;

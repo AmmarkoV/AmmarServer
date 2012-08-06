@@ -60,8 +60,8 @@ int AmmServer_Running()
   return server_running;
 }
 
-int AmmServer_AddResourceHandler(char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)
+int AmmServer_AddResourceHandler(char * web_root_path,char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)
 {
-  return AddDirectResourceToCache(resource_name,content_memory,content_memory_size,prepare_content_callback);
+  return AddDirectResourceToCache(web_root_path,resource_name,content_memory,content_memory_size,prepare_content_callback);
 }
 
