@@ -20,8 +20,8 @@ struct cache_item
 };
 
 
-unsigned long loaded_cache_items_Kbytes;
-unsigned int loaded_cache_items;
+unsigned long loaded_cache_items_Kbytes=0;
+unsigned int loaded_cache_items=0;
 struct cache_item * cache=0;
 
 /*! djb2
@@ -198,25 +198,46 @@ int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_all
 
 int DestroyCache()
 {
+  fprintf(stderr,"Destroying cache..\n");
+
+   if (cache==0)
+    {
+       fprintf(stderr,"Cache already destroyed \n");
+       loaded_cache_items=0;
+       loaded_cache_items_Kbytes=0;
+      return 1;
+    }
+
    unsigned int i=0;
    for (i=0; i<loaded_cache_items; i++)
    {
-     if ( cache[i].mem != 0 )
-      {
+     if ( cache[i].prepare_mem_callback !=0)
+     {
+        //This cache item is "dynamic content" as a result
+        //it has its own memory handler , so we just dereference it..
+        cache[i].prepare_mem_callback=0;
+        cache[i].mem=0;
+        cache[i].filesize=0;
+     }
+       else
+     {
+      if ( cache[i].mem != 0 )
+       {
           free(cache[i].mem);
           cache[i].mem=0;
-      }
-     if ( cache[i].filesize != 0 )
-      {
+       }
+      if ( cache[i].filesize != 0 )
+       {
           free(cache[i].filesize);
           cache[i].filesize=0;
-      }
-
+       }
+     }
    }
 
    free(cache);
    cache = 0;
    loaded_cache_items=0;
+   loaded_cache_items_Kbytes=0;
 
    return 1;
 }

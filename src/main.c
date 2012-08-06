@@ -40,15 +40,15 @@ unsigned long stats_size=0;
 
 void * prepare_content_callback()
 {
-  fprintf(stderr,"CallbackCalled!\n");
+  //fprintf(stderr,"CallbackCalled!\n");
 
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
-  sprintf(stats_buf,"<html><head><title>Dynamic Content Enabled</title></head><body>The time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
-                     tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+  sprintf(stats_buf,"<html><head><title>Dynamic Content Enabled</title></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
+                    tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
   strcat(stats_buf,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
-  strcat(stats_buf,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c\">Dynamic content code label in ammarserver main.c</a><br>\n");
+  strcat(stats_buf,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
   strcat(stats_buf,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
   strcat(stats_buf,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
   stats_size=strlen(stats_buf);
