@@ -4,6 +4,7 @@
 #include "file_caching.h"
 
 unsigned char CACHING_ENABLED=1;
+unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
 unsigned int MAX_TOTAL_ALLOCATION_IN_MB=64;
 unsigned int MAX_CACHE_SIZE=1000;
 
@@ -14,6 +15,7 @@ struct cache_item
    unsigned int hits;
    unsigned long * filesize;
    char * mem;
+   void * prepare_mem_callback;
 };
 
 
@@ -66,19 +68,28 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
 
 int AddDirectResourceToCache(char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)
 {
-  fprintf(stderr,"AddDirectResourceToCache not implemented yet\n");
-  return 0;
+  if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
+   {
+     fprintf(stderr,"Dynamic content is disabled..!\n");
+     return 0;
+   }
+  if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full"); return 0; }
+
   unsigned int index=loaded_cache_items++;
 
   cache[index].filename_hash = hash(resource_name);
   cache[index].mem = content_memory;
   cache[index].filesize = content_memory_size;
   cache[index].hits = 0;
-  return 0;
+  cache[index].prepare_mem_callback=prepare_content_callback;
+
+  return 1;
 }
 
 int AddFileToCache(char * filename,unsigned int * index)
 {
+  if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full"); return 0; }
+
   fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) loaded_cache_items_Kbytes/1048576 , MAX_TOTAL_ALLOCATION_IN_MB);
   FILE * pFile = fopen (filename, "rb" );
   if (pFile==0) { fprintf(stderr,"Could not open file to cache it.. %s\n",filename); return 0;}
@@ -102,6 +113,7 @@ int AddFileToCache(char * filename,unsigned int * index)
   cache[*index].filesize = (unsigned long * ) malloc(sizeof (unsigned long));
   *cache[*index].filesize = lSize;
   cache[*index].hits = 0;
+  cache[*index].prepare_mem_callback=0; // No callback for this file..
   fprintf(stderr,"File %s has %u bytes cached with index %u \n",filename,(unsigned int ) lSize,*index);
   fclose(pFile);
 
@@ -122,6 +134,13 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
         {
            if (cache[index].mem!=0)
            {
+             if (cache[index].prepare_mem_callback!=0)
+              {
+                /*Do callback here*/
+                void ( *DoCallback) (void)=0 ;
+                DoCallback = cache[index].prepare_mem_callback;
+                DoCallback();
+              }
              *filesize=*cache[index].filesize;
              return cache[index].mem;
            }
@@ -129,6 +148,13 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
         {
            if ( AddFileToCache(verified_filename,&index) )
             {
+             if (cache[index].prepare_mem_callback!=0)
+              {
+                /*Do callback here*/
+                void ( *DoCallback) (void)=0 ;
+                DoCallback = cache[index].prepare_mem_callback;
+                DoCallback();
+              }
               *filesize=*cache[index].filesize;
               return cache[index].mem;
             }
@@ -153,7 +179,7 @@ int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_all
    }
 
    unsigned int i=0;
-   for (i=0; i<max_seperate_items; i++) { cache[i].mem=0; cache[i].filesize=0; }
+   for (i=0; i<max_seperate_items; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
    return 1;
 }
 
