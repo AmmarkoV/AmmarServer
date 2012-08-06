@@ -24,6 +24,7 @@ struct cache_item
 unsigned char CACHING_ENABLED=0;
 unsigned int MAX_TOTAL_ALLOCATION_IN_MB=64;
 unsigned int MAX_CACHE_SIZE=1000;
+unsigned long loaded_cache_items_Kbytes;
 unsigned int loaded_cache_items;
 struct cache_item * cache=0;
 
@@ -75,10 +76,18 @@ int AddFileToCache(char * filename,unsigned int * index)
   if (pFile==0) { fprintf(stderr,"Could not open file to cache it.. %s\n",filename); return 0;}
   if ( fseek (pFile , 0 , SEEK_END)!=0 ) { fprintf(stderr,"Could not find file size to cache client..!\nUnable to serve client\n"); fclose(pFile); return 0; }
   unsigned long lSize = ftell (pFile);
+  if (MAX_TOTAL_ALLOCATION_IN_MB*1024<loaded_cache_items_Kbytes+lSize/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_TOTAL_ALLOCATION_IN_MB); fclose(pFile); return 0; }
   rewind (pFile);
   char * buffer = (char*) malloc ( sizeof(char) * (lSize));
   if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory to cache this file..!\n"); fclose(pFile); return 0;  }
   *index=loaded_cache_items++;
+  loaded_cache_items_Kbytes+=(unsigned int) lSize/1024;
+
+  // copy the file into the buffer:
+  size_t result;
+  result = fread (buffer,1,lSize,pFile);
+  if (result != lSize) { fprintf(stderr,"Reading error , while filling in newly allocated cache item %s \n",filename); free (buffer); fclose (pFile); return 0; }
+
   cache[*index].mem = buffer;
   cache[*index].state = READY;
   cache[*index].filesize = lSize;
