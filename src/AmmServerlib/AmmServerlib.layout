@@ -5,51 +5,57 @@
 		<Cursor position="137" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="27" topLine="0" />
+		<Cursor position="150" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="397" topLine="0" />
+		<Cursor position="188" topLine="0" />
 	</File>
 	<File name="content_resources.c" open="1" top="0" tabpos="7">
 		<Cursor position="1020" topLine="20" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="367" topLine="0" />
+		<Cursor position="367" topLine="87" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
 		<Cursor position="301" topLine="0" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="8">
-		<Cursor position="9318" topLine="182" />
+		<Cursor position="5059" topLine="93" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="9">
 		<Cursor position="811" topLine="0" />
 	</File>
-	<File name="http_header_analysis.c" open="1" top="0" tabpos="13">
-		<Cursor position="774" topLine="0" />
+	<File name="http_header_analysis.c" open="1" top="1" tabpos="13">
+		<Cursor position="4034" topLine="67" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="14">
-		<Cursor position="2146" topLine="0" />
+		<Cursor position="1772" topLine="0" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="15">
-		<Cursor position="820" topLine="0" />
+		<Cursor position="7055" topLine="165" />
 	</File>
 	<File name="http_tools.h" open="1" top="0" tabpos="16">
 		<Cursor position="122" topLine="0" />
 	</File>
-	<File name="main.c" open="1" top="1" tabpos="1">
-		<Cursor position="1630" topLine="9" />
+	<File name="logs.c" open="1" top="0" tabpos="20">
+		<Cursor position="1125" topLine="0" />
+	</File>
+	<File name="logs.h" open="1" top="0" tabpos="21">
+		<Cursor position="351" topLine="0" />
+	</File>
+	<File name="main.c" open="1" top="0" tabpos="1">
+		<Cursor position="1821" topLine="9" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="11">
-		<Cursor position="1067" topLine="402" />
+		<Cursor position="4811" topLine="132" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="12">
 		<Cursor position="289" topLine="0" />
 	</File>
-	<File name="time.c" open="1" top="0" tabpos="18">
+	<File name="time.c" open="1" top="0" tabpos="17">
 		<Cursor position="20" topLine="0" />
 	</File>
-	<File name="time.h" open="1" top="0" tabpos="19">
+	<File name="time.h" open="1" top="0" tabpos="18">
 		<Cursor position="366" topLine="0" />
 	</File>
 	<File name="version.h" open="1" top="0" tabpos="10">

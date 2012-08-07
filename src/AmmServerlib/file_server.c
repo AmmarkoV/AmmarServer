@@ -199,9 +199,17 @@ unsigned long SendFile
       rewind (pFile);
       if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
 
+      //This is the file remaining to be sent..
+      unsigned long file_size_remaining = lSize-start_at_byte;
+      //We dont want the server to allocate a big enough space to reduce disk reading overheads
+      //but we dont want to allocate huge portions of memory so we set a soft limit here
+      unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB;
+      //Of course in case that the size to send is smaller than our limit we will commit a smaller amount of memory
+      if (file_size_remaining < malloc_size) { malloc_size=file_size_remaining; }
+
       // allocate memory to contain the whole file:
       //TODO: make a smaller allocation and gradually serve the whole file :P
-      char * buffer = (char*) malloc ( sizeof(char) * (lSize-start_at_byte+1));
+      char * buffer = (char*) malloc ( sizeof(char) * (malloc_size));
 
       if (buffer == 0)
         {
@@ -211,24 +219,42 @@ unsigned long SendFile
         return 0;
         }
 
-      // copy the file into the buffer:
-      size_t result;
-      result = fread (buffer,1,lSize-start_at_byte,pFile);
 
-      if (result != lSize-start_at_byte)
-       {
-         fputs ("Reading error",stderr);
-         free (buffer);
-         fclose (pFile);
-         --files_open;
-        return 0;
+      while ( file_size_remaining>0 )
+      {
+        // copy the file into the buffer:
+        size_t result;
+        result = fread (buffer,1,malloc_size,pFile);
+
+        if (result != malloc_size)
+        {
+         if (feof(pFile))
+          {
+             // Reached end of file , cool..!
+          }   else
+          {
+             fprintf(stderr,"Reading error %u while reading file %s",ferror(pFile),verified_filename);
+             free (buffer);
+             fclose (pFile);
+             --files_open;
+             return 0;
+          }
         }
 
-      //A timer added to partly as vanity code , partly to get transmission speeds for qos ( later on )
+      //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
       struct time_snap time_to_serve_file_s;
       start_timer (&time_to_serve_file_s);
        //ACTUAL SENDING OF FILE -->
         opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
+        /* the whole file should now have reached our client .! */
+        if (opres<=0) { fprintf(stderr,"Failed sending file..!\n"); } else
+        {
+          if ((unsigned int) opres!=result) { fprintf(stderr,"TODO : Handle , failed sending the whole file..!\n"); }
+          file_size_remaining-=opres;
+        }
+
+
+
        //ACTUAL SENDING OF FILE <--
       double time_to_serve_file = (double ) end_timer (&time_to_serve_file_s) / 1000000; // go to seconds
       double speed_in_Mbps= 0;
@@ -240,9 +266,9 @@ unsigned long SendFile
        }
       //End of timer code
 
-      /* the whole file should now have reached our client .! */
-      if (opres<=0) { fprintf(stderr,"Failed sending file..!\n"); } else
-      if ((unsigned int) opres!=result) { fprintf(stderr,"Failed sending the whole file..!\n"); }
+
+
+      }
 
 
       // terminate
