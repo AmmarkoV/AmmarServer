@@ -5,6 +5,7 @@
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
 
 #define MAX_RESOURCE 512
+#define MAX_RESOURCE_SLASHES 15
 #define MAX_FILE_PATH 1024
 #define MAX_FILE_PATH_EXTENSION_SIZE 128
 

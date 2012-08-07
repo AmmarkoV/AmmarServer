@@ -101,8 +101,15 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
              return 0;
            } else
            {
-             output->requestType=GET;
-             strncpy(output->resource,stripped,MAX_RESOURCE);
+             if (FilenameStripperOk(stripped))
+              {
+                output->requestType=GET;
+                strncpy(output->resource,stripped,MAX_RESOURCE);
+              } else
+              {
+                fprintf(stderr,"Warning : Suspicious request , dropping it ..! \n");
+                output->requestType=BAD;
+              }
            }
 
        } else

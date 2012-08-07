@@ -139,6 +139,12 @@ void * ServeClient(void * ptr)
       {
        fprintf(stderr,"Got %u bytes \n",opres);
        total_header+=opres;
+       if (total_header>=MAX_HTTP_REQUEST_HEADER)
+        {
+           fprintf(stderr,"The request would overflow , dropping client \n");
+           opres=0;
+           close_connection=1;
+        }
       }
    }
 
