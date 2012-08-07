@@ -22,8 +22,9 @@ enum TypesOfRequests
     //Returns the HTTP methods that the server supports for specified URL. This can be used to check the functionality of a web server by requesting '*' instead of a specific resource.
     CONNECT,
     //Converts the request connection to a transparent TCP/IP tunnel, usually to facilitate SSL-encrypted communication (HTTPS) through an unencrypted HTTP proxy.[12]
-    PATCH
+    PATCH,
     //Is used to apply partial modifications to a resource.[13]
+    BAD
 };
 
 struct HTTPRequest

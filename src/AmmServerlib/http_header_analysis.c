@@ -93,10 +93,17 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
          char * stripped = &request[s];
          fprintf(stderr,"Stripped GET/HEAD request is %s \n",stripped);
 
-         output->requestType=GET;
-         strncpy(output->resource,stripped,MAX_RESOURCE);
 
-         if (strlen(stripped)>=MAX_RESOURCE-1) { fprintf(stderr,"Warning : GET/HEAD request is too big , some bytes dropped..! \n"); }
+         if (strlen(stripped)>=MAX_RESOURCE-2)
+           {
+             fprintf(stderr,"Warning : GET/HEAD request is too big , dropping request..! \n");
+             output->requestType=BAD;
+             return 0;
+           } else
+           {
+             output->requestType=GET;
+             strncpy(output->resource,stripped,MAX_RESOURCE);
+           }
 
        } else
      if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T'))
@@ -137,7 +144,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
    }
 
   //Todo keepalive handler here output->keepalive=1;
-  return 0;
+  return 1;
 }
 
 int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length)

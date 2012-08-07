@@ -293,6 +293,13 @@ void * ServeClient(void * ptr)
       }
      } else
      //It is not a GET / HEAD request..!
+     if (output.requestType==BAD)
+     {
+       fprintf(stderr,"BAD predatory Request!");
+       char servefile[MAX_FILE_PATH]={0};
+       SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
+       close_connection=1;
+     } else
      if (output.requestType==NONE)
      {
        fprintf(stderr,"Weird unrecognized Request!");
