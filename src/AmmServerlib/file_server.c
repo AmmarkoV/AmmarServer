@@ -83,7 +83,7 @@ unsigned long SendSuccessCodeHeader(int clientsock,char * verified_filename)
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
     it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
 */
-      char content_type[MAX_CONTENT_TYPE]={0};
+      char content_type[MAX_CONTENT_TYPE+1]={0};
       strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
 
       fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
@@ -115,8 +115,8 @@ unsigned long SendFile
     char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
     )
 {
-  char verified_filename[MAX_FILE_PATH]={0};
-  char reply_header[MAX_HTTP_RESPONSE_HEADER]={0};
+  char verified_filename[MAX_FILE_PATH+1]={0};
+  char reply_header[MAX_HTTP_RESPONSE_HEADER+1]={0};
 
   strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
 

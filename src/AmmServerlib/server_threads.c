@@ -118,7 +118,7 @@ void * ServeClient(void * ptr)
   if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
 
 
-  char incoming_request[MAX_HTTP_REQUEST_HEADER]; //A 4K header is more than enough..!
+  char incoming_request[MAX_HTTP_REQUEST_HEADER+1]; //A 4K header is more than enough..!
 
   int close_connection=0;
 
@@ -167,7 +167,8 @@ void * ServeClient(void * ptr)
      if ( (output.requestType==GET)||(output.requestType==HEAD))
      {
 
-      char servefile[MAX_FILE_PATH]={0};
+      char servefile[(MAX_FILE_PATH*2)+1]={0}; // Since we are strcat-ing the file on top of the webserver_root it is only logical to
+      // reserve space for two MAX_FILE_PATHS they are a software security limitation ( system max_path is much larger ) so its not a problem anywhere..!
       int resource_is_a_directory=0,resource_is_a_file=0,generate_directory_list=0,we_can_send_result=1;
 
       /*!
@@ -187,8 +188,8 @@ void * ServeClient(void * ptr)
            }
        }
 
-      strcpy(servefile,webserver_root);
-      strcat(servefile,output.resource);
+      strncpy(servefile,webserver_root,MAX_FILE_PATH);
+      strncat(servefile,output.resource,MAX_FILE_PATH);
       //servefile variable now contains just the appended public_html/ with whatever came from the client..!
       //we have checked output.resource for .. and weird ascii characters
 
