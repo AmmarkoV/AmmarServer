@@ -60,6 +60,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="http_tools.h" />
+		<Unit filename="logs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="logs.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -159,7 +159,7 @@ int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int r
 
   char line[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;
-  while  (i<request_length)
+  while  ( (i<request_length)&&(i<MAX_HTTP_REQUEST_HEADER_LINE) )
    {
      if  ( ((request[i]==CR)||(request[i]==LF)) && (chars_gathered>0) )
       {
