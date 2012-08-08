@@ -179,39 +179,38 @@ int GetContentType(char * filename,char * content_type)
 
 int ReducePathSlashes_Inplace(char * filename)
 {
-  return 0; //Deactivated until fixed:P
-
   //This piece of code removes excess slashes from resource strings in place
   //For example the string public_html/////test.html will become public_html/test.html
   //While extra slashes cause no side effects on fopen calls etc , they interfere with the
   //hashing functions because public_html//test.html yields a different hash than public_html/test.html ..
-  //This in turn means that cache misses without any reason and grows larger for files already contained
-  //that is why it is worth it to reduce slashes for every incoming request even if it means growing the
-  //string processing surface ..
+  //This in turn means cache misses happening without any reason and the cache growing larger for files already
+  //contained in it , that is why it is worth it to reduce slashes for every incoming request even if it means
+  //growing the incoming string processing surface ..
 
+  fprintf(stderr,"ReducePathSlashes_Inplace needs thorough testing %s.. :P\n",filename);
   unsigned int length=strlen(filename);
   unsigned int i=0,offset=0;
-  fprintf(stderr,"Testing ReducePathSlashes_Inplace initially `%s` , length %u\n",filename,length);
      while (i+offset<length)
      {
         if ( filename[i+offset]=='/')
          {
-            fprintf(stderr,"Reached slash at %u",i);
             unsigned int z=i+offset+1;
             while ((filename[z]=='/')&&(z<length))
             {
-              fprintf(stderr,"Slash continues at %u , offset is now %u\n",z,offset);
               ++offset;
               ++z;
             }
 
-            ++i; // We dont want to hurt the first slash ..!
-            //The next character though should be eliminated if offset changed
+            if (z>i+offset+1)
+            {
+             //We increased the offset ..!
+             ++i; // We dont want to hurt the first slash ..!
+             //The next character though should be eliminated if offset changed
+            }
          }
 
         if ( (offset>0)&&(i+offset<length) )
          {
-            fprintf(stderr,"Replaced %c(%u) with %c(%u) \n",filename[i],i,filename[i+offset],i+offset);
             filename[i]=filename[i+offset];
          }
         ++i;
@@ -219,10 +218,10 @@ int ReducePathSlashes_Inplace(char * filename)
 
      if (offset>0)
      {
-       //We have reduced slashes..!
+       //We have reduced the total slashes..!
        //Append new null termination
-         fprintf(stderr,"After processing `%s` , length %u\n",filename,(unsigned int ) strlen(filename));
-         filename[i]=0;
+       filename[length-offset]=0;
+       fprintf(stderr,"String shortened to %s.. :P\n",filename);
        return 1;
      }
  return 0;
