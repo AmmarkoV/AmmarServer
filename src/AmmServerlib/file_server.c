@@ -216,7 +216,7 @@ unsigned long SendFile
           fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename);
           fclose (pFile);
           --files_open;
-        return 0;
+          return 0;
         }
 
 
@@ -247,7 +247,7 @@ unsigned long SendFile
        //ACTUAL SENDING OF FILE -->
         opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
         /* the whole file should now have reached our client .! */
-        if (opres<=0) { fprintf(stderr,"Failed sending file..!\n"); } else
+        if (opres<=0) { fprintf(stderr,"Failed sending the whole file part..!\n"); } else
         {
           if ((unsigned int) opres!=result) { fprintf(stderr,"TODO : Handle , failed sending the whole file..!\n"); }
           file_size_remaining-=opres;

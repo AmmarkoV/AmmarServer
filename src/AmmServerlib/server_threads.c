@@ -196,6 +196,7 @@ void * ServeClient(void * ptr)
 
       strncpy(servefile,webserver_root,MAX_FILE_PATH);
       strncat(servefile,output.resource,MAX_FILE_PATH);
+      ReducePathSlashes_Inplace(servefile);
       //servefile variable now contains just the appended public_html/ with whatever came from the client..!
       //we have checked output.resource for .. and weird ascii characters
 
@@ -428,7 +429,7 @@ void * HTTPServerThread (void * ptr)
 
   context->keep_var_on_stack=2;
 
-  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!"); server_running=0; return 0; }
+  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!\nThe server may already be running ..\n"); server_running=0; return 0; }
   if ( listen(serversock,MAX_CLIENT_THREADS) < 0 )  { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
 
 

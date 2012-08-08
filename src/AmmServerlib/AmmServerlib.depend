@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1344264389 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+1344337193 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
 	<stdio.h>
 	<stdlib.h>
 	"version.h"
@@ -7,7 +7,7 @@
 	"server_threads.h"
 	"file_caching.h"
 
-1344264396 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1344275721 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 
 1344123404 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network.h
 
@@ -82,7 +82,7 @@
 
 1344277397 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
 
-1344256250 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
+1344347227 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -106,12 +106,12 @@
 
 1344131271 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.h
 
-1344131490 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.h
+1344298192 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.h
 	"configuration.h"
 
-1344131668 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_tools.h
+1344387224 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_tools.h
 
-1344131657 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.c
+1344301699 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.c
 	"http_header_analysis.h"
 	"http_tools.h"
 	<stdio.h>
@@ -127,7 +127,7 @@
 	"configuration.h"
 	<dirent.h>
 
-1344131632 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.c
+1344300356 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -153,4 +153,11 @@
 1344210614 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/time.c
 	<unistd.h>
 	"time.h"
+
+1344295546 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.c
+	<stdio.h>
+	"logs.h"
+	"configuration.h"
+
+1344295556 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.h
 

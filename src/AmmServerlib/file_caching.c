@@ -3,6 +3,7 @@
 #include <string.h>
 #include "configuration.h"
 #include "file_caching.h"
+#include "http_tools.h"
 
 unsigned char CACHING_ENABLED=1;
 unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
@@ -80,9 +81,10 @@ int AddDirectResourceToCache(char * web_root_path,char * resource_name,char * co
   unsigned int index=loaded_cache_items++;
 
   //Create the full path to distinguish from different root_paths ( virutal servers ) ..!
-  char full_filename[MAX_RESOURCE]={0};
-  strcpy(full_filename,web_root_path);
-  strcat(full_filename,resource_name);
+  char full_filename[(MAX_RESOURCE*2)+1]={0};
+  strncpy(full_filename,web_root_path,MAX_RESOURCE);
+  strncat(full_filename,resource_name,MAX_RESOURCE);
+  ReducePathSlashes_Inplace(full_filename);
 
   cache[index].filename_hash = hash(full_filename);
   cache[index].mem = content_memory;
