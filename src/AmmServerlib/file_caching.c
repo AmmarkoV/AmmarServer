@@ -244,3 +244,32 @@ int DestroyCache()
 
    return 1;
 }
+
+int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_root)
+{
+  if (!ENABLE_INTERNAL_RESOURCES_RESOLVE)  { return 0; }
+  //The role of request caching is to intercept incoming requests and if they are referring
+  //to an internal resource using the TemplatesInternalURI URI we want to redirect the request
+  //to our templates folder ..!
+  if ( strlen(request)>strlen(TemplatesInternalURI)+24 )
+   {
+       fprintf(stderr,"\nWARNING : Skipping ChangeRequestIfInternalRequestIsAddressed due to a very large request\n");
+       return 0;
+   }
+
+  char tmp_cmp[MAX_FILE_PATH]={0};
+  char * res=strstr(request,TemplatesInternalURI);
+  char * res_skipped=res;
+  unsigned int template_size = strlen(TemplatesInternalURI);
+
+  if ( res!=0 )
+   {
+      res_skipped=res+template_size;
+      fprintf(stderr,"We've got a result , %s ( skipped %s )\n",res,res_skipped);
+      strncpy(tmp_cmp,templates_root,MAX_FILE_PATH);
+      strncat(tmp_cmp,res_skipped,MAX_FILE_PATH);
+      fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
+      strcpy(request,tmp_cmp);
+   }
+  return 1;
+}

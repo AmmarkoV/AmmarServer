@@ -284,3 +284,32 @@ unsigned long SendFile
 
  return 0;
 }
+
+
+
+
+
+unsigned long SendFileMemory
+  (
+    int clientsock, // The socket that will be used to send the data
+    //char * path, // The filename to be served on the socket above
+    char * mem, // The memory block body to be sent
+    unsigned long mem_block // The size of the memory block to be sent
+  )
+{
+  char reply_header[MAX_HTTP_RESPONSE_HEADER+1]={0};
+  if (! SendSuccessCodeHeader(clientsock,"dir.html")) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+  sprintf(reply_header,"Content-length: %u\n",(unsigned int) mem_block);
+  strcat(reply_header,"Connection: close\n\n");
+  //TODO : Location : path etc
+  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+  if (opres<=0) { fprintf(stderr,"Failed sending content length..!\n"); } else
+  if ((unsigned int) opres!=mem_block) { fprintf(stderr,"Failed sending the whole content length..!\n"); }
+
+
+  opres=send(clientsock,mem,mem_block,MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+  if (opres<=0) { fprintf(stderr,"Failed sending content length..!\n"); } else
+  if ((unsigned int) opres!=mem_block) { fprintf(stderr,"Failed sending the whole content length..!\n"); }
+
+ return 0;
+}

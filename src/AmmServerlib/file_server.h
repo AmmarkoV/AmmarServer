@@ -16,4 +16,13 @@ unsigned long SendFile
     char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
     );
 
+
+unsigned long SendFileMemory
+  (
+    int clientsock, // The socket that will be used to send the data
+    //char * path, // The filename to be served on the socket above
+    char * mem, // The filename to be served on the socket above
+    unsigned long mem_block
+  );
+
 #endif // FILE_SERVER_H_INCLUDED

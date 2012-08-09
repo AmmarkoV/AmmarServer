@@ -14,7 +14,10 @@
 #define MAX_HTTP_REQUEST_HEADER 4096
 #define MAX_HTTP_REQUEST_HEADER_LINE 1024
 #define MAX_HTTP_RESPONSE_HEADER 2048
+#define MAX_DIRECTORY_LIST_RESPONSE_BODY 4096
 
+#define ENABLE_INTERNAL_RESOURCES_RESOLVE 1
+#define ENABLE_DIRECTORY_LISTING 1
 
 extern int varSocketTimeoutREAD_ms;
 extern int varSocketTimeoutWRITE_ms;
@@ -24,5 +27,10 @@ extern char AccessLog[MAX_FILE_PATH];
 
 extern int ErrorLogEnable;
 extern char ErrorLog[MAX_FILE_PATH];
+
+
+extern char TemplatesInternalURI[MAX_RESOURCE];
+//Please note that the file server limits filenames _asvres_/filename.jpg is OK
+//a filename like _asvres_/filenamemplampla.jpg will return a 404
 
 #endif // CONFIGURATION_H_INCLUDED

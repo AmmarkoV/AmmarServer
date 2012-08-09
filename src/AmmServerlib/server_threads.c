@@ -32,6 +32,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <pthread.h>
 
+#include "directory_lists.h"
 #include "server_threads.h"
 #include "file_server.h"
 #include "http_header_analysis.h"
@@ -99,8 +100,13 @@ void * ServeClient(void * ptr)
   char webserver_root[MAX_FILE_PATH]="public_html/";
   char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
+
   strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
   strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
+
+//  char * spn = strstr (templates_root,webserver_root);
+//  if (spn==0) { /*templates_root is not the same path*/ }
+
 
   int clientsock=context->clientsock;
   int thread_id = context->thread_id;
@@ -173,6 +179,8 @@ void * ServeClient(void * ptr)
      if ( (output.requestType==GET)||(output.requestType==HEAD))
      {
 
+
+
       char servefile[(MAX_FILE_PATH*2)+1]={0}; // Since we are strcat-ing the file on top of the webserver_root it is only logical to
       // reserve space for two MAX_FILE_PATHS they are a software security limitation ( system max_path is much larger ) so its not a problem anywhere..!
       int resource_is_a_directory=0,resource_is_a_file=0,generate_directory_list=0,we_can_send_result=1;
@@ -199,6 +207,14 @@ void * ServeClient(void * ptr)
       ReducePathSlashes_Inplace(servefile);
       //servefile variable now contains just the appended public_html/ with whatever came from the client..!
       //we have checked output.resource for .. and weird ascii characters
+
+      //There are some virtual files we want to re-route to their real path..!
+      if (ChangeRequestIfInternalRequestIsAddressed(servefile,templates_root) )
+      { //Skip disk access times for checking for directories and other stuff..!
+        //We know that the resource is a file from our cache indexes..!
+          resource_is_a_directory=0;
+          resource_is_a_file=1;
+      }
 
 
       //STEP 0 : Check with cache!
@@ -263,9 +279,22 @@ void * ServeClient(void * ptr)
      if (generate_directory_list)
      {
        // We need to generate and serve a directory listing..!
-       //TODO : Generate index file dynamically!
-       fprintf(stderr,"TODO: Generate index file dynamically here , not implemented..!");
-       SendFile(clientsock,servefile,0,501,0,0,0,templates_root);
+
+       strncpy(servefile,webserver_root,MAX_FILE_PATH);
+       strncat(servefile,output.resource,MAX_FILE_PATH);
+       ReducePathSlashes_Inplace(servefile);
+
+       char reply_body[MAX_DIRECTORY_LIST_RESPONSE_BODY+1]={0};
+       unsigned long sendSize = GeneratePath(servefile,output.resource,reply_body,MAX_DIRECTORY_LIST_RESPONSE_BODY);
+       if (sendSize>0)
+        {
+          //If Directory_listing enabled and directory is ok , send the generated site
+          SendFileMemory(clientsock,reply_body,sendSize);
+        } else
+        {
+          //If Directory listing disabled or directory is not ok send a 404
+          SendFile(clientsock,servefile,0,404,0,0,0,templates_root);
+        }
        close_connection=1;
        we_can_send_result=0;
      }
@@ -505,3 +534,5 @@ int StopHTTPServer()
 
   return (stop_server==2);
 }
+
+

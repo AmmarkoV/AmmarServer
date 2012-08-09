@@ -8,6 +8,7 @@ char FileExists(char * filename);
 char DirectoryExists( char* dirpath );
 
 int GetContentType(char * filename,char * content_type);
+int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length);
 
 int FindIndexFile(char * webserver_root,char * directory,char * indexfile);
 

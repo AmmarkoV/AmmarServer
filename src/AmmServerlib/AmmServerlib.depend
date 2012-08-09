@@ -161,3 +161,124 @@
 
 1344295556 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.h
 
+1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/configuration.c
+	"configuration.h"
+
+1344490473 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/configuration.h
+
+1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/content_resources.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<sys/types.h>
+	<sys/socket.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<netdb.h>
+	<sys/uio.h>
+	"version.h"
+	"configuration.h"
+	"content_resources.h"
+	"server_threads.h"
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/version.h
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/content_resources.h
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/server_threads.h
+
+1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/file_caching.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"configuration.h"
+	"file_caching.h"
+	"http_tools.h"
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/file_caching.h
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/http_tools.h
+
+1344491105 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/file_server.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<sys/types.h>
+	<sys/socket.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<netdb.h>
+	<sys/uio.h>
+	"version.h"
+	"file_server.h"
+	"file_caching.h"
+	"http_header_analysis.h"
+	"http_tools.h"
+	"configuration.h"
+	"time.h"
+
+1344490838 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/file_server.h
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/http_header_analysis.h
+	"configuration.h"
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/time.h
+	<sys/types.h>
+	<sys/time.h>
+
+1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/http_header_analysis.c
+	"http_header_analysis.h"
+	"http_tools.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/http_tools.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+	"http_tools.h"
+	"configuration.h"
+	<dirent.h>
+
+1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/logs.c
+	<stdio.h>
+	"logs.h"
+	"configuration.h"
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/logs.h
+
+1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/main.c
+	<stdio.h>
+	<stdlib.h>
+	"version.h"
+	"AmmServerlib.h"
+	"server_threads.h"
+	"file_caching.h"
+
+1344488855 /home/artemis/Downloads/AmmarServer/src/AmmServerlib/AmmServerlib.h
+
+1344491185 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/server_threads.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<sys/types.h>
+	<sys/socket.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<netdb.h>
+	<sys/uio.h>
+	<unistd.h>
+	<pthread.h>
+	"server_threads.h"
+	"file_server.h"
+	"http_header_analysis.h"
+	"http_tools.h"
+	"file_caching.h"
+	"configuration.h"
+
+1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/time.c
+	<unistd.h>
+	"time.h"
+

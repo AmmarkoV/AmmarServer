@@ -35,7 +35,8 @@ enum FileType
     IMAGE,
     AUDIO,
     VIDEO,
-    EXECUTABLE
+    EXECUTABLE,
+    FOLDER
 };
 
 
@@ -130,19 +131,20 @@ fprintf(stderr,"Could not find extension type for extension %s \n",theextension)
 
 int GetExtentionType(char * theextension)
 {
- char content_type[MAX_CONTENT_TYPE]={0};
- GetContentTypeForExtension(theextension,content_type);
 
  //Crude and fast lookup
- if (content_type[0]=='t') { return TEXT; } else
- if (content_type[0]=='i') { return IMAGE; } else
- if (content_type[0]=='v') { return VIDEO; } else
- if ((content_type[0]=='a')&&(content_type[0]=='u')) { return AUDIO; } else
- if ((content_type[0]=='a')&&(content_type[0]=='p')) { return EXECUTABLE; }
+ if (theextension[0]=='t') { return TEXT; } else
+ if (theextension[0]=='i') { return IMAGE; } else
+ if (theextension[0]=='v') { return VIDEO; } else
+ if ((theextension[0]=='a')&&(theextension[1]=='u')) { return AUDIO; } else
+ if ((theextension[0]=='a')&&(theextension[1]=='p')) { return EXECUTABLE; }
  //this is made to be used when generating a dynamic directory list to show the appropriate icons..!
+
+
+ //fprintf(stderr,"GetExtentionType(%s)\n",theextension);
+ //fprintf(stderr,"No file type\n",theextension);
  return NO_FILETYPE;
 }
-
 
 
 void convertToUpperCase(char *sPtr)
@@ -175,6 +177,25 @@ int GetContentType(char * filename,char * content_type)
    fprintf(stderr,"Extension ( %s ) hints content type %s\n",extension,content_type);
 
   return res;
+}
+
+
+int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length)
+{
+  // fprintf(stderr,"GetExtensionImage for %s ",filename);
+   int res=GetContentType(filename,theimagepath);
+        res=GetExtentionType(theimagepath);
+  // fprintf(stderr,"yields %u\n",res);
+
+   if (res==TEXT)       { strncpy(theimagepath,"fdoc.gif",theimagepath_length);   } else
+   if (res==IMAGE)      { strncpy(theimagepath,"fpaint.gif",theimagepath_length); } else
+   if (res==VIDEO)      { strncpy(theimagepath,"fvideo.gif",theimagepath_length); } else
+   if (res==AUDIO)      { strncpy(theimagepath,"fmusic.gif",theimagepath_length); } else
+   if (res==EXECUTABLE) { strncpy(theimagepath,"fexe.gif",theimagepath_length);   } else
+                        { strncpy(theimagepath,"folder.gif",theimagepath_length); }
+
+   if ( res == NO_FILETYPE ) { return 0; }
+   return 1;
 }
 
 int ReducePathSlashes_Inplace(char * filename)

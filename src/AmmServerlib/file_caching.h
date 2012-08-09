@@ -9,4 +9,6 @@ int AddDirectResourceToCache(char * web_root_path,char * resource_name,char * co
 int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB);
 int DestroyCache();
 
+int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_root);
+
 #endif // FILE_CACHING_H_INCLUDED

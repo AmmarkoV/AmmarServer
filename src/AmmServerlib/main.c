@@ -37,9 +37,9 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
   fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
-  fprintf(stderr,"TODO: Dont read to memory the whole file when sending..\n");
+  fprintf(stderr,"TODO: Implement resume capabilities..\n");
   fprintf(stderr,"TODO: Add detailed input header parsing\n");
-  fprintf(stderr,"TODO: Add directory listings\n");
+  fprintf(stderr,"TODO: Improve directory listings\n");
   fprintf(stderr,"TODO: Improve implemented file caching mechanism\n");
   fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
