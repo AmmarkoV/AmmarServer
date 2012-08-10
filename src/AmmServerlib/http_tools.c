@@ -258,6 +258,569 @@ int StripHTMLCharacters_Inplace(char * filename)
   //Of course I don't know why anyone would want to name his file "index of-website+.html" but.. :P
   fprintf(stderr,"StripHTMLCharacters_Inplace(%s) not implemented yet..\n",filename);
   return 0;
+  unsigned int length=strlen(filename);
+  unsigned int offset=0;
+  char *f=filename;
+  if (length<=2) { return 0; }
+  unsigned int i=0;
+  while (i<length-2)
+     {
+        if (filename[i]=='%')
+         { //HERE WE GO!
+
+           //This nested switch is ridiculously long..
+           //I might as well could make a lookup array , or now I am writing this and
+           //I might run a comparative benchmark with a lookup array to see what wins..
+           //I am commiting this as a backup.. :P
+           switch (filename[i+1])
+           {
+             case '2'  :
+               switch (filename[i+2])
+                {
+                  case '0' : f[i]=' '; offset+=2; break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case '3'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case '4'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case '5'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case '6'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case '7'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case '8'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case '9'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case 'A'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case 'B'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case 'C'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case 'D'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case 'E'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+             case 'F'  :
+              switch (filename[i+2])
+                {
+                  case '0' : break;
+                  case '1' : break;
+                  case '2' : break;
+                  case '3' : break;
+                  case '4' : break;
+                  case '5' : break;
+                  case '6' : break;
+                  case '7' : break;
+                  case '8' : break;
+                  case '9' : break;
+                  case 'A' : break;
+                  case 'B' : break;
+                  case 'C' : break;
+                  case 'D' : break;
+                  case 'E' : break;
+                  case 'F' : break;
+                }; break;
+           };
+
+         }
+     }
+        //We have
+
+  /*
+space 	%20
+! 	%21
+" 	%22
+# 	%23
+$ 	%24
+% 	%25
+& 	%26
+' 	%27
+( 	%28
+) 	%29
+* 	%2A
++ 	%2B
+, 	%2C
+- 	%2D
+. 	%2E
+/ 	%2F
+0 	%30
+1 	%31
+2 	%32
+3 	%33
+4 	%34
+5 	%35
+6 	%36
+7 	%37
+8 	%38
+9 	%39
+: 	%3A
+; 	%3B
+< 	%3C
+= 	%3D
+> 	%3E
+? 	%3F
+@ 	%40
+A 	%41
+B 	%42
+C 	%43
+D 	%44
+E 	%45
+F 	%46
+G 	%47
+H 	%48
+I 	%49
+J 	%4A
+K 	%4B
+L 	%4C
+M 	%4D
+N 	%4E
+O 	%4F
+P 	%50
+Q 	%51
+R 	%52
+S 	%53
+T 	%54
+U 	%55
+V 	%56
+W 	%57
+X 	%58
+Y 	%59
+Z 	%5A
+[ 	%5B
+\ 	%5C
+] 	%5D
+^ 	%5E
+_ 	%5F
+` 	%60
+a 	%61
+b 	%62
+c 	%63
+d 	%64
+e 	%65
+f 	%66
+g 	%67
+h 	%68
+i 	%69
+j 	%6A
+k 	%6B
+l 	%6C
+m 	%6D
+n 	%6E
+o 	%6F
+p 	%70
+q 	%71
+r 	%72
+s 	%73
+t 	%74
+u 	%75
+v 	%76
+w 	%77
+x 	%78
+y 	%79
+z 	%7A
+{ 	%7B
+| 	%7C
+} 	%7D
+~ 	%7E
+  	%7F
+` 	%80
+ 	%81
+‚ 	%82
+ƒ 	%83
+„ 	%84
+… 	%85
+† 	%86
+‡ 	%87
+ˆ 	%88
+‰ 	%89
+Š 	%8A
+‹ 	%8B
+Œ 	%8C
+ 	%8D
+Ž 	%8E
+ 	%8F
+ 	%90
+‘ 	%91
+’ 	%92
+“ 	%93
+” 	%94
+• 	%95
+– 	%96
+— 	%97
+˜ 	%98
+™ 	%99
+š 	%9A
+› 	%9B
+œ 	%9C
+ 	%9D
+ž 	%9E
+Ÿ 	%9F
+  	%A0
+¡ 	%A1
+¢ 	%A2
+£ 	%A3
+¤ 	%A4
+¥ 	%A5
+¦ 	%A6
+§ 	%A7
+¨ 	%A8
+© 	%A9
+ª 	%AA
+« 	%AB
+¬ 	%AC
+­ 	%AD
+® 	%AE
+¯ 	%AF
+° 	%B0
+± 	%B1
+² 	%B2
+³ 	%B3
+´ 	%B4
+µ 	%B5
+¶ 	%B6
+· 	%B7
+¸ 	%B8
+¹ 	%B9
+º 	%BA
+» 	%BB
+¼ 	%BC
+½ 	%BD
+¾ 	%BE
+¿ 	%BF
+À 	%C0
+Á 	%C1
+Â 	%C2
+Ã 	%C3
+Ä 	%C4
+Å 	%C5
+Æ 	%C6
+Ç 	%C7
+È 	%C8
+É 	%C9
+Ê 	%CA
+Ë 	%CB
+Ì 	%CC
+Í 	%CD
+Î 	%CE
+Ï 	%CF
+Ð 	%D0
+Ñ 	%D1
+Ò 	%D2
+Ó 	%D3
+Ô 	%D4
+Õ 	%D5
+Ö 	%D6
+× 	%D7
+Ø 	%D8
+Ù 	%D9
+Ú 	%DA
+Û 	%DB
+Ü 	%DC
+Ý 	%DD
+Þ 	%DE
+ß 	%DF
+à 	%E0
+á 	%E1
+â 	%E2
+ã 	%E3
+ä 	%E4
+å 	%E5
+æ 	%E6
+ç 	%E7
+è 	%E8
+é 	%E9
+ê 	%EA
+ë 	%EB
+ì 	%EC
+í 	%ED
+î 	%EE
+ï 	%EF
+ð 	%F0
+ñ 	%F1
+ò 	%F2
+ó 	%F3
+ô 	%F4
+õ 	%F5
+ö 	%F6
+÷ 	%F7
+ø 	%F8
+ù 	%F9
+ú 	%FA
+û 	%FB
+ü 	%FC
+ý 	%FD
+þ 	%FE
+ÿ 	%FF
+  */
+/* IGNORED Control characters..!
+NUL 	null character 	%00
+SOH 	start of header 	%01
+STX 	start of text 	%02
+ETX 	end of text 	%03
+EOT 	end of transmission 	%04
+ENQ 	enquiry 	%05
+ACK 	acknowledge 	%06
+BEL 	bell (ring) 	%07
+BS 	backspace 	%08
+HT 	horizontal tab 	%09
+LF 	line feed 	%0A
+VT 	vertical tab 	%0B
+FF 	form feed 	%0C
+CR 	carriage return 	%0D
+SO 	shift out 	%0E
+SI 	shift in 	%0F
+DLE 	data link escape 	%10
+DC1 	device control 1 	%11
+DC2 	device control 2 	%12
+DC3 	device control 3 	%13
+DC4 	device control 4 	%14
+NAK 	negative acknowledge 	%15
+SYN 	synchronize 	%16
+ETB 	end transmission block 	%17
+CAN 	cancel 	%18
+EM 	end of medium 	%19
+SUB 	substitute 	%1A
+ESC 	escape 	%1B
+FS 	file separator 	%1C
+GS 	group separator 	%1D
+RS 	record separator 	%1E
+US 	unit separator 	%1F
+*/
+  return 0;
 }
 
 int FilenameStripperOk(char * filename)
