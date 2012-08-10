@@ -260,305 +260,42 @@ int StripHTMLCharacters_Inplace(char * filename)
   return 0;
   unsigned int length=strlen(filename);
   unsigned int offset=0;
-  char *f=filename;
   if (length<=2) { return 0; }
   unsigned int i=0;
-  while (i<length-2)
+  while (i<length)
      {
-        if (filename[i]=='%')
-         { //HERE WE GO!
 
-           //This nested switch is ridiculously long..
-           //I might as well could make a lookup array , or now I am writing this and
-           //I might run a comparative benchmark with a lookup array to see what wins..
-           //I am commiting this as a backup.. :P
-           switch (filename[i+1])
-           {
-             case '2'  :
-               switch (filename[i+2])
-                {
-                  case '0' : f[i]=' '; offset+=2; break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case '3'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case '4'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case '5'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case '6'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case '7'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case '8'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case '9'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case 'A'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case 'B'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case 'C'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case 'D'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case 'E'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-             case 'F'  :
-              switch (filename[i+2])
-                {
-                  case '0' : break;
-                  case '1' : break;
-                  case '2' : break;
-                  case '3' : break;
-                  case '4' : break;
-                  case '5' : break;
-                  case '6' : break;
-                  case '7' : break;
-                  case '8' : break;
-                  case '9' : break;
-                  case 'A' : break;
-                  case 'B' : break;
-                  case 'C' : break;
-                  case 'D' : break;
-                  case 'E' : break;
-                  case 'F' : break;
-                }; break;
-           };
+        if ( (filename[i]=='%') && (i<length-2) )
+         {
+           unsigned char ascii_val=0,sec_byte=0;
+           unsigned int sub_valNumb=filename[i+1]-'0',sub_valHex=filename[i+1]-'A';
+           if ((sub_valNumb>9) || (sub_valHex>5)) { sec_byte=1; /*Security check for overflow hex values*/ } else
+           if (sub_valNumb<=9) { ascii_val+=sub_valNumb*16; } else
+           if (sub_valHex<=5)  { ascii_val+=(10+sub_valHex)*16; }
 
+           sub_valNumb=filename[i+2]-'0'; sub_valHex=filename[i+2]-'A';
+           if ((sub_valNumb>9) || (sub_valHex>5)) { sec_byte=1; /*Security check for overflow hex values*/ } else
+           if (sub_valNumb<=9) { ascii_val+=sub_valNumb; } else
+           if (sub_valHex<=5)  { ascii_val+=10+sub_valHex; }
+
+           if (ascii_val<32) { sec_byte=1; /* See IGNORED Control characters..! */ }
+           //TODO : remove some more useless characters like † 	%86 etc.. :P
+
+           if (sec_byte)
+            {
+              fprintf(stderr,"Hex URI Char %%%c%c attempted overflow\n",filename[i+1],filename[i+2]);
+            } else
+            {
+              fprintf(stderr,"Hex URI Char %%%c%c = ascii %u = `%c`\n",filename[i+1],filename[i+2],ascii_val,ascii_val);
+              offset+=2;
+              filename[i]=ascii_val;
+            }
          }
+        ++i;
+        if (offset!=0) {  filename[i]=filename[i+offset]; }
      }
-        //We have
+  if (offset!=0) {  filename[i]=0; /*Append null termination..!*/ }
+
 
   /*
 space 	%20
