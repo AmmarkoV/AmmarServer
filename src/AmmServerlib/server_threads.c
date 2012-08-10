@@ -204,6 +204,7 @@ void * ServeClient(void * ptr)
 
       strncpy(servefile,webserver_root,MAX_FILE_PATH);
       strncat(servefile,output.resource,MAX_FILE_PATH);
+      StripHTMLCharacters_Inplace(servefile);
       ReducePathSlashes_Inplace(servefile);
       //servefile variable now contains just the appended public_html/ with whatever came from the client..!
       //we have checked output.resource for .. and weird ascii characters
@@ -282,6 +283,7 @@ void * ServeClient(void * ptr)
 
        strncpy(servefile,webserver_root,MAX_FILE_PATH);
        strncat(servefile,output.resource,MAX_FILE_PATH);
+       StripHTMLCharacters_Inplace(servefile);
        ReducePathSlashes_Inplace(servefile);
 
        char reply_body[MAX_DIRECTORY_LIST_RESPONSE_BODY+1]={0};

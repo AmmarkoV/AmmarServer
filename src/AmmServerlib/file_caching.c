@@ -266,8 +266,14 @@ int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_ro
    {
       res_skipped=res+template_size;
       fprintf(stderr,"We've got a result , %s ( skipped %s )\n",res,res_skipped);
-      strncpy(tmp_cmp,templates_root,MAX_FILE_PATH);
-      strncat(tmp_cmp,res_skipped,MAX_FILE_PATH);
+      if (strlen(res_skipped)+strlen(templates_root)<MAX_FILE_PATH)
+       {
+         strcpy(tmp_cmp,templates_root);
+         strcat(tmp_cmp,res_skipped);
+       } else
+       {
+           return 0;
+       }
       fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
       strcpy(request,tmp_cmp);
    }

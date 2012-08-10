@@ -249,6 +249,17 @@ int ReducePathSlashes_Inplace(char * filename)
 }
 
 
+int StripHTMLCharacters_Inplace(char * filename)
+{
+  //This piece of code converts characters like %20 to their ASCII equivalent " " ( for example )
+  //It is not a full mapping of HTML characters to ASCII characters since ( for security reasons )
+  //We dont want a full mapping.. :P , We just want to convert characters like spaces plus symbols etc
+  //that are common in the internet to try and maintain some level of compatibility with such weird filenames
+  //Of course I don't know why anyone would want to name his file "index of-website+.html" but.. :P
+  fprintf(stderr,"StripHTMLCharacters_Inplace(%s) not implemented yet..\n",filename);
+  return 0;
+}
+
 int FilenameStripperOk(char * filename)
 {
    //This function checks for paths to ensure that fopen will be handed a safe file path..!

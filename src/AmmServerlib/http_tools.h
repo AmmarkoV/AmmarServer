@@ -12,7 +12,7 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
 
 int FindIndexFile(char * webserver_root,char * directory,char * indexfile);
 
-
+int StripHTMLCharacters_Inplace(char * filename);
 int ReducePathSlashes_Inplace(char * filename);
 int FilenameStripperOk(char * filename);
 

@@ -37,13 +37,14 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
   fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
-  fprintf(stderr,"TODO: Implement resume capabilities..\n");
+  fprintf(stderr,"TODO: Implement download resume capabilities..\n");
+  fprintf(stderr,"TODO: Handle %%20 in resource requests\n");
   fprintf(stderr,"TODO: Add detailed input header parsing\n");
-  fprintf(stderr,"TODO: Improve directory listings\n");
+  fprintf(stderr,"TODO: Improve directory listings ( add filesizes , dates etc ) \n");
   fprintf(stderr,"TODO: Improve implemented file caching mechanism\n");
   fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
-  fprintf(stderr,"TODO: Implement gzip file compression\n");
+  fprintf(stderr,"TODO: Implement gzip gunzip file compression , especially in cache for txt,html low entropy files\n");
 
   InitializeCache(2000/*Seperate items*/,64/*MB*/);
   return StartHTTPServer(ip,port,web_root_path,templates_root_path);
