@@ -10,7 +10,7 @@
 #define MAX_FILE_PATH_EXTENSION_SIZE 128
 
 #define MAX_CONTENT_TYPE 128
-#define MAX_FILE_READ_BLOCK_KB 512 //How much KB is the max fread , malloc for serving files
+#define MAX_FILE_READ_BLOCK_KB 1024 //1MB - How much KB is the max fread , malloc for serving files
 #define MAX_HTTP_REQUEST_HEADER 4096
 #define MAX_HTTP_REQUEST_HEADER_LINE 1024
 #define MAX_HTTP_RESPONSE_HEADER 2048

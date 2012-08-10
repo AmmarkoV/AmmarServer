@@ -247,7 +247,7 @@ unsigned long SendFile
        //ACTUAL SENDING OF FILE -->
         opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
         /* the whole file should now have reached our client .! */
-        if (opres<=0) { fprintf(stderr,"Failed sending the whole file part..!\n"); } else
+        if (opres<=0) { fprintf(stderr,"Failed sending the whole file part..!\n"); file_size_remaining=0; } else
         {
           if ((unsigned int) opres!=result) { fprintf(stderr,"TODO : Handle , failed sending the whole file..!\n"); }
           file_size_remaining-=opres;
@@ -262,7 +262,7 @@ unsigned long SendFile
        {
         speed_in_Mbps = (double ) opres/1048576;
         speed_in_Mbps = (double ) speed_in_Mbps/time_to_serve_file;
-        fprintf(stderr,"Achieved a transmission speed of %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
+        fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
        }
       //End of timer code
 
