@@ -56,6 +56,7 @@ DIR *dir = opendir(system_path);
 if (dir==0) { return 0; }
 while ((dp=readdir(dir)) != 0)
   {
+    //TODO: remove // from requests.. of dp->d_name is like /filename.ext
     char *tmp = path_cat(client_path, dp->d_name);
 
     if ( (strcmp(dp->d_name,".")!=0) && (strcmp(dp->d_name,"..")!=0) )

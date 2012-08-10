@@ -163,6 +163,8 @@ int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int r
   fprintf(stderr,"Starting a fresh HTTP Request Analysis\n");
   memset(output,0,sizeof(struct HTTPRequest)); // Clear output http request
   output->requestType=NONE; // invalidate current output data..!
+  output->range_start=0;
+  output->range_end=0;
 
   char line[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;

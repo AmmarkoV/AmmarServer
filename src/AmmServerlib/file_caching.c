@@ -251,7 +251,7 @@ int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_ro
   //The role of request caching is to intercept incoming requests and if they are referring
   //to an internal resource using the TemplatesInternalURI URI we want to redirect the request
   //to our templates folder ..!
-  if ( strlen(request)>strlen(TemplatesInternalURI)+24 )
+  if ( strlen(request)>strlen(TemplatesInternalURI)+64 )
    {
        fprintf(stderr,"\nWARNING : Skipping ChangeRequestIfInternalRequestIsAddressed due to a very large request\n");
        return 0;

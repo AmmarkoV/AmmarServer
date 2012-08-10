@@ -7,6 +7,7 @@ unsigned long SendFile
     char * verified_filename_pending_copy, // The filename to be served on the socket above
 
     unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
+    unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
     unsigned int force_error_code, // Instead of the file , serve an error code..!
     unsigned char header_only,     // Only serve header ( HEAD instead of GET )
     unsigned char keepalive,       // Keep alive functionality

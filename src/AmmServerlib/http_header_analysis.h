@@ -33,6 +33,8 @@ struct HTTPRequest
    char resource[MAX_RESOURCE+1];
    unsigned char keepalive;
    unsigned char supports_gzip;
+   unsigned long range_start;
+   unsigned long range_end;
    //Languages etc here..!
 };
 

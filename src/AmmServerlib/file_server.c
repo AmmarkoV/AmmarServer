@@ -77,7 +77,7 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
 
 
-unsigned long SendSuccessCodeHeader(int clientsock,char * verified_filename)
+unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verified_filename)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -89,8 +89,8 @@ unsigned long SendSuccessCodeHeader(int clientsock,char * verified_filename)
       fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
       GetContentType(verified_filename,content_type);
 
-      char reply_header[512]={0};
-      sprintf(reply_header,"HTTP/1.1 200 OK\nServer: Ammarserver/%s\nContent-type: %s\n",FULLVERSION_STRING,content_type);
+      char reply_header[512]={0}; //Accept-Ranges: bytes\n
+      sprintf(reply_header,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\n",success_code,FULLVERSION_STRING,content_type);
 
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
@@ -106,6 +106,7 @@ unsigned long SendFile
     char * verified_filename_pending_copy, // The filename to be served on the socket above
 
     unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
+    unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
     unsigned int force_error_code, // Instead of the file , serve an error code..!
     unsigned char header_only,     // Only serve header ( HEAD instead of GET )
     unsigned char keepalive,       // Keep alive functionality
@@ -138,8 +139,17 @@ unsigned long SendFile
      //verified_filename should now point to the template file for 400 messages
   } else
    {
-      //Normal 200 OK header
-      if (! SendSuccessCodeHeader(clientsock,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+      //We have a legitimate file to send , if we want to send it all , we must emmit a 200 OK header
+      //if we are serving it with an offset , we must emmit a 206 OK header!
+      if (start_at_byte!=0)
+       {
+         //Range Accepted 206 OK header
+         if (! SendSuccessCodeHeader(clientsock,206,verified_filename)) { fprintf(stderr,"Failed sending Range Acknowledged success code \n"); return 0; }
+       } else
+       {
+         //Normal 200 OK header
+         if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+       }
    }
 /*! PRELIMINARY HEADER SEND END ----------------------------------------------*/
 
@@ -187,6 +197,8 @@ unsigned long SendFile
       }
 
     unsigned long lSize = ftell (pFile);
+    if ( (end_at_byte!=0) && (lSize<end_at_byte) ) { fprintf(stderr,"TODO: Handle  incorrect range request ( from %u to %u file 0 to %u ..!\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize); }
+
     sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
 
     opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
@@ -247,7 +259,7 @@ unsigned long SendFile
        //ACTUAL SENDING OF FILE -->
         opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
         /* the whole file should now have reached our client .! */
-        if (opres<=0) { fprintf(stderr,"Failed sending the whole file part..!\n"); file_size_remaining=0; } else
+        if (opres<=0) { fprintf(stderr,"Connection closed , while sending the whole file..!\n"); file_size_remaining=0; } else
         {
           if ((unsigned int) opres!=result) { fprintf(stderr,"TODO : Handle , failed sending the whole file..!\n"); }
           file_size_remaining-=opres;
@@ -298,7 +310,7 @@ unsigned long SendFileMemory
   )
 {
   char reply_header[MAX_HTTP_RESPONSE_HEADER+1]={0};
-  if (! SendSuccessCodeHeader(clientsock,"dir.html")) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+  if (! SendSuccessCodeHeader(clientsock,200,"dir.html")) { fprintf(stderr,"Failed sending success code \n"); return 0; }
   sprintf(reply_header,"Content-length: %u\n",(unsigned int) mem_block);
   strcat(reply_header,"Connection: close\n\n");
   //TODO : Location : path etc

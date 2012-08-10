@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1344337193 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+1344596300 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
 	<stdio.h>
 	<stdlib.h>
 	"version.h"
@@ -7,7 +7,7 @@
 	"server_threads.h"
 	"file_caching.h"
 
-1344275721 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1344488855 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 
 1344123404 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network.h
 
@@ -51,12 +51,12 @@
 1344025145 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/httpprotocol.h
 	"configuration.h"
 
-1344297116 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.c
+1344523832 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.c
 	"configuration.h"
 
-1344337467 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
+1344595750 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
 
-1344131286 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.c
+1344488855 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -71,18 +71,19 @@
 	"content_resources.h"
 	"server_threads.h"
 
-1344085035 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.h
+1344488855 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.h
 
-1344279032 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.c
+1344602227 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	"configuration.h"
 	"file_caching.h"
+	"http_tools.h"
 
-1344277397 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
+1344521724 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
 
-1344347227 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
+1344603437 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -100,25 +101,25 @@
 	"configuration.h"
 	"time.h"
 
-1344123353 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.h
+1344603407 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.h
 
-1344131132 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1344488855 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
-1344131271 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.h
+1344488855 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.h
 
-1344298192 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.h
+1344603044 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.h
 	"configuration.h"
 
-1344387224 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_tools.h
+1344561584 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_tools.h
 
-1344301699 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.c
+1344603065 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.c
 	"http_header_analysis.h"
 	"http_tools.h"
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 
-1344131614 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_tools.c
+1344562577 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_tools.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -146,7 +147,7 @@
 	"file_caching.h"
 	"configuration.h"
 
-1344210706 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/time.h
+1344488855 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/time.h
 	<sys/types.h>
 	<sys/time.h>
 
@@ -154,12 +155,12 @@
 	<unistd.h>
 	"time.h"
 
-1344295546 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.c
+1344488855 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.c
 	<stdio.h>
 	"logs.h"
 	"configuration.h"
 
-1344295556 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.h
+1344488855 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.h
 
 1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/configuration.c
 	"configuration.h"
@@ -281,4 +282,15 @@
 1344488855 source:/home/artemis/Downloads/AmmarServer/src/AmmServerlib/time.c
 	<unistd.h>
 	"time.h"
+
+1344546770 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/directory_lists.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<dirent.h>
+	"configuration.h"
+	"directory_lists.h"
+	"http_tools.h"
+
+1344520365 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/directory_lists.h
 

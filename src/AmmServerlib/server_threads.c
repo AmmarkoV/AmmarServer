@@ -168,7 +168,7 @@ void * ServeClient(void * ptr)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       fprintf(stderr,"Bad Request!");
       char servefile[MAX_FILE_PATH]={0};
-      SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
+      SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
       close_connection=1;
    }
        else
@@ -295,7 +295,7 @@ void * ServeClient(void * ptr)
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
-          SendFile(clientsock,servefile,0,404,0,0,0,templates_root);
+          SendFile(clientsock,servefile,0,0,404,0,0,0,templates_root);
         }
        close_connection=1;
        we_can_send_result=0;
@@ -311,7 +311,7 @@ void * ServeClient(void * ptr)
      {
         fprintf(stderr,"404 not found..!!");
         char servefile[MAX_FILE_PATH]={0};
-        SendFile(clientsock,servefile,0,404,0,0,0,templates_root);
+        SendFile(clientsock,servefile,0,0,404,0,0,0,templates_root);
         close_connection=1;
         we_can_send_result=0;
      }
@@ -322,7 +322,17 @@ void * ServeClient(void * ptr)
       //it should deny requests to paths like ../ or /etc/passwd
       if (we_can_send_result) //This means that we have found a file to serve..!
       {
-       if ( !SendFile(clientsock,servefile,0,0,(output.requestType==HEAD),output.keepalive,output.supports_gzip,templates_root) )
+       if ( !SendFile (
+                        clientsock, // -- Client socket
+                        servefile,  // -- Filename to be served
+                        output.range_start,  // -- In case of a range request , byte to start
+                        output.range_end,    // -- In case of a range request , byte to end
+                        0 /*DO NOT FORCE AN ERROR CODE , NORMAL SENDFILE*/ ,
+                        (output.requestType==HEAD),
+                        output.keepalive,
+                        output.supports_gzip,
+                        templates_root)
+                      )
          {
            //We where unable to serve request , closing connections..\n
            fprintf(stderr,"We where unable to serve request , closing connections..\n");
@@ -335,20 +345,20 @@ void * ServeClient(void * ptr)
      {
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
+       SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
      if (output.requestType==NONE)
      {
        fprintf(stderr,"Weird unrecognized Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(clientsock,servefile,0,400,0,0,0,templates_root);
+       SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
      {
        fprintf(stderr,"Not Implemented Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(clientsock,servefile,0,501,0,0,0,templates_root);
+       SendFile(clientsock,servefile,0,0,501,0,0,0,templates_root);
        close_connection=1;
      }
    } // Not a Bad request END
