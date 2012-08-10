@@ -92,7 +92,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
          char * stripped = &request[s];
          fprintf(stderr,"Stripped GET/HEAD request is %s \n",stripped);
-
+         StripHTMLCharacters_Inplace(stripped); // <- This converts char sequences like %20 to " " it HAS to be done before filename stripper to ensure string safety
 
          if (strlen(stripped)>=MAX_RESOURCE-2)
            {

@@ -256,8 +256,7 @@ int StripHTMLCharacters_Inplace(char * filename)
   //We dont want a full mapping.. :P , We just want to convert characters like spaces plus symbols etc
   //that are common in the internet to try and maintain some level of compatibility with such weird filenames
   //Of course I don't know why anyone would want to name his file "index of-website+.html" but.. :P
-  fprintf(stderr,"StripHTMLCharacters_Inplace(%s) not implemented yet..\n",filename);
-  return 0;
+
   unsigned int length=strlen(filename);
   unsigned int offset=0;
   if (length<=2) { return 0; }
@@ -268,26 +267,27 @@ int StripHTMLCharacters_Inplace(char * filename)
         if ( (filename[i]=='%') && (i<length-2) )
          {
            unsigned char ascii_val=0,sec_byte=0;
-           unsigned int sub_valNumb=filename[i+1]-'0',sub_valHex=filename[i+1]-'A';
-           if ((sub_valNumb>9) || (sub_valHex>5)) { sec_byte=1; /*Security check for overflow hex values*/ } else
-           if (sub_valNumb<=9) { ascii_val+=sub_valNumb*16; } else
-           if (sub_valHex<=5)  { ascii_val+=(10+sub_valHex)*16; }
+           unsigned char sub_valNumb=0,sub_valHex=0;
 
-           sub_valNumb=filename[i+2]-'0'; sub_valHex=filename[i+2]-'A';
-           if ((sub_valNumb>9) || (sub_valHex>5)) { sec_byte=1; /*Security check for overflow hex values*/ } else
-           if (sub_valNumb<=9) { ascii_val+=sub_valNumb; } else
-           if (sub_valHex<=5)  { ascii_val+=10+sub_valHex; }
+           if ((filename[i+1]>='0')&&(filename[i+1]<='9'))  { sub_valNumb=filename[i+1]-'0'; ascii_val+=sub_valNumb*16; }  else
+           if ((filename[i+1]>='A')&&(filename[i+1]<='F'))  { sub_valHex=filename[i+1]-'A';  ascii_val+=(10+sub_valHex)*16; }   else
+                                                            { sec_byte=1; }
 
-           if (ascii_val<32) { sec_byte=1; /* See IGNORED Control characters..! */ }
-           //TODO : remove some more useless characters like † 	%86 etc.. :P
+
+           if ((filename[i+2]>='0')&&(filename[i+2]<='9'))  { sub_valNumb=filename[i+2]-'0'; ascii_val+=sub_valNumb*1; }  else
+           if ((filename[i+2]>='A')&&(filename[i+2]<='F'))  { sub_valHex=filename[i+2]-'A';  ascii_val+=(10+sub_valHex)*1; }   else
+                                                            { sec_byte=1; }
+
+           if ( ascii_val<' ')   { sec_byte=1; } else /* See IGNORED Control characters..! */
+           if ( ascii_val>'~')   { sec_byte=1; }
 
            if (sec_byte)
             {
-              fprintf(stderr,"Hex URI Char %%%c%c attempted overflow\n",filename[i+1],filename[i+2]);
+              fprintf(stderr,"BAD Hex URI Char %%%c%c attempted overflow ( %u ) \n",filename[i+1],filename[i+2],ascii_val);
             } else
             {
-              fprintf(stderr,"Hex URI Char %%%c%c = ascii %u = `%c`\n",filename[i+1],filename[i+2],ascii_val,ascii_val);
-              offset+=2;
+              //fprintf(stderr,"Hex URI Char %%%c%c = ascii %u = `%c`\n",filename[i+1],filename[i+2],ascii_val,ascii_val);
+              offset+=2; //We keep 1 of the 3 charcters so offset is 2!
               filename[i]=ascii_val;
             }
          }
@@ -295,234 +295,9 @@ int StripHTMLCharacters_Inplace(char * filename)
         if (offset!=0) {  filename[i]=filename[i+offset]; }
      }
   if (offset!=0) {  filename[i]=0; /*Append null termination..!*/ }
+  fprintf(stderr,"\nStripHTMLCharacters_Inplace produced %s ..\n",filename);
 
 
-  /*
-space 	%20
-! 	%21
-" 	%22
-# 	%23
-$ 	%24
-% 	%25
-& 	%26
-' 	%27
-( 	%28
-) 	%29
-* 	%2A
-+ 	%2B
-, 	%2C
-- 	%2D
-. 	%2E
-/ 	%2F
-0 	%30
-1 	%31
-2 	%32
-3 	%33
-4 	%34
-5 	%35
-6 	%36
-7 	%37
-8 	%38
-9 	%39
-: 	%3A
-; 	%3B
-< 	%3C
-= 	%3D
-> 	%3E
-? 	%3F
-@ 	%40
-A 	%41
-B 	%42
-C 	%43
-D 	%44
-E 	%45
-F 	%46
-G 	%47
-H 	%48
-I 	%49
-J 	%4A
-K 	%4B
-L 	%4C
-M 	%4D
-N 	%4E
-O 	%4F
-P 	%50
-Q 	%51
-R 	%52
-S 	%53
-T 	%54
-U 	%55
-V 	%56
-W 	%57
-X 	%58
-Y 	%59
-Z 	%5A
-[ 	%5B
-\ 	%5C
-] 	%5D
-^ 	%5E
-_ 	%5F
-` 	%60
-a 	%61
-b 	%62
-c 	%63
-d 	%64
-e 	%65
-f 	%66
-g 	%67
-h 	%68
-i 	%69
-j 	%6A
-k 	%6B
-l 	%6C
-m 	%6D
-n 	%6E
-o 	%6F
-p 	%70
-q 	%71
-r 	%72
-s 	%73
-t 	%74
-u 	%75
-v 	%76
-w 	%77
-x 	%78
-y 	%79
-z 	%7A
-{ 	%7B
-| 	%7C
-} 	%7D
-~ 	%7E
-  	%7F
-` 	%80
- 	%81
-‚ 	%82
-ƒ 	%83
-„ 	%84
-… 	%85
-† 	%86
-‡ 	%87
-ˆ 	%88
-‰ 	%89
-Š 	%8A
-‹ 	%8B
-Œ 	%8C
- 	%8D
-Ž 	%8E
- 	%8F
- 	%90
-‘ 	%91
-’ 	%92
-“ 	%93
-” 	%94
-• 	%95
-– 	%96
-— 	%97
-˜ 	%98
-™ 	%99
-š 	%9A
-› 	%9B
-œ 	%9C
- 	%9D
-ž 	%9E
-Ÿ 	%9F
-  	%A0
-¡ 	%A1
-¢ 	%A2
-£ 	%A3
-¤ 	%A4
-¥ 	%A5
-¦ 	%A6
-§ 	%A7
-¨ 	%A8
-© 	%A9
-ª 	%AA
-« 	%AB
-¬ 	%AC
-­ 	%AD
-® 	%AE
-¯ 	%AF
-° 	%B0
-± 	%B1
-² 	%B2
-³ 	%B3
-´ 	%B4
-µ 	%B5
-¶ 	%B6
-· 	%B7
-¸ 	%B8
-¹ 	%B9
-º 	%BA
-» 	%BB
-¼ 	%BC
-½ 	%BD
-¾ 	%BE
-¿ 	%BF
-À 	%C0
-Á 	%C1
-Â 	%C2
-Ã 	%C3
-Ä 	%C4
-Å 	%C5
-Æ 	%C6
-Ç 	%C7
-È 	%C8
-É 	%C9
-Ê 	%CA
-Ë 	%CB
-Ì 	%CC
-Í 	%CD
-Î 	%CE
-Ï 	%CF
-Ð 	%D0
-Ñ 	%D1
-Ò 	%D2
-Ó 	%D3
-Ô 	%D4
-Õ 	%D5
-Ö 	%D6
-× 	%D7
-Ø 	%D8
-Ù 	%D9
-Ú 	%DA
-Û 	%DB
-Ü 	%DC
-Ý 	%DD
-Þ 	%DE
-ß 	%DF
-à 	%E0
-á 	%E1
-â 	%E2
-ã 	%E3
-ä 	%E4
-å 	%E5
-æ 	%E6
-ç 	%E7
-è 	%E8
-é 	%E9
-ê 	%EA
-ë 	%EB
-ì 	%EC
-í 	%ED
-î 	%EE
-ï 	%EF
-ð 	%F0
-ñ 	%F1
-ò 	%F2
-ó 	%F3
-ô 	%F4
-õ 	%F5
-ö 	%F6
-÷ 	%F7
-ø 	%F8
-ù 	%F9
-ú 	%FA
-û 	%FB
-ü 	%FC
-ý 	%FD
-þ 	%FE
-ÿ 	%FF
-  */
 /* IGNORED Control characters..!
 NUL 	null character 	%00
 SOH 	start of header 	%01
