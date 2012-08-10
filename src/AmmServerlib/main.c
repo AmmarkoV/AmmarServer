@@ -41,7 +41,7 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
   fprintf(stderr,"TODO: Handle %%20 in resource requests\n");
   fprintf(stderr,"TODO: Add detailed input header parsing\n");
   fprintf(stderr,"TODO: Improve directory listings ( add filesizes , dates etc ) \n");
-  fprintf(stderr,"TODO: Improve implemented file caching mechanism\n");
+  fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
   fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
   fprintf(stderr,"TODO: Implement gzip gunzip file compression , especially in cache for txt,html low entropy files\n");
