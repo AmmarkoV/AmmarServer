@@ -186,7 +186,6 @@ unsigned long SendFile
     if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
     ++files_open;
 
-    fprintf(stderr,"Sending file %s\n",verified_filename);
     // obtain file size:
     if ( fseek (pFile , 0 , SEEK_END)!=0 )
       {
@@ -198,6 +197,8 @@ unsigned long SendFile
 
     unsigned long lSize = ftell (pFile);
     if ( (end_at_byte!=0) && (lSize<end_at_byte) ) { fprintf(stderr,"TODO: Handle  incorrect range request ( from %u to %u file 0 to %u ..!\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize); }
+
+    fprintf(stderr,"Sending file %s , size %0.2f Kbytes\n",verified_filename,(double) lSize/1024);
 
     sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
 

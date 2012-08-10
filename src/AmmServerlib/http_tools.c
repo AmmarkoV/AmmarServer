@@ -208,7 +208,7 @@ int ReducePathSlashes_Inplace(char * filename)
   //contained in it , that is why it is worth it to reduce slashes for every incoming request even if it means
   //growing the incoming string processing surface ..
 
-  fprintf(stderr,"ReducePathSlashes_Inplace needs thorough testing %s.. :P\n",filename);
+  //fprintf(stderr,"ReducePathSlashes_Inplace needs thorough testing %s.. :P\n",filename);
   unsigned int length=strlen(filename);
   unsigned int i=0,offset=0;
      while (i+offset<length)
@@ -242,7 +242,7 @@ int ReducePathSlashes_Inplace(char * filename)
        //We have reduced the total slashes..!
        //Append new null termination
        filename[length-offset]=0;
-       fprintf(stderr,"String shortened to %s.. :P\n",filename);
+       //fprintf(stderr,"String shortened to %s.. :P\n",filename);
        return 1;
      }
  return 0;
@@ -295,10 +295,13 @@ int StripHTMLCharacters_Inplace(char * filename)
         if (offset!=0) {  filename[i]=filename[i+offset]; }
      }
   if (offset!=0) {  filename[i]=0; /*Append null termination..!*/ }
-  fprintf(stderr,"\nStripHTMLCharacters_Inplace produced %s ..\n",filename);
+  //fprintf(stderr,"\nStripHTMLCharacters_Inplace produced %s ..\n",filename);
 
 
-/* IGNORED Control characters..!
+  return 0;
+}
+
+/* IGNORED Control characters by nStripHTMLCharacters_Inplace ..!
 NUL 	null character 	%00
 SOH 	start of header 	%01
 STX 	start of text 	%02
@@ -332,8 +335,7 @@ GS 	group separator 	%1D
 RS 	record separator 	%1E
 US 	unit separator 	%1F
 */
-  return 0;
-}
+
 
 int FilenameStripperOk(char * filename)
 {
@@ -342,17 +344,16 @@ int FilenameStripperOk(char * filename)
    unsigned int i=length-1;
 
    unsigned int back_slashes_number=0;
-   unsigned int slashes_number=0;
 
    while (i>0)
      {
         //We have imposed a limit on slash number..!
-        if ( filename[i]=='\\') { ++slashes_number; } else
         if ( filename[i]=='/')  { ++back_slashes_number; }
-        if ( (back_slashes_number>MAX_RESOURCE_SLASHES) || (slashes_number>MAX_RESOURCE_SLASHES)  ) { return 0; }
+        if (back_slashes_number>MAX_RESOURCE_SLASHES)  { return 0; }
 
         //We only accept english strings
         if ( filename[i]<' ')   { return 0; } else
+        if ( filename[i]=='\\')   { return 0; } else //Front slashes (escape characters ) denied completely.!
         if ( filename[i]>'~')   { return 0; } else
 
         //We dont like /../ ... etc in paths..!

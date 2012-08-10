@@ -46,7 +46,7 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
   fprintf(stderr,"TODO: Implement gzip gunzip file compression , especially in cache for txt,html low entropy files\n");
 
-  InitializeCache(2000/*Seperate items*/,64/*MB*/);
+  InitializeCache(2000/*Seperate items*/,64/*MB Limit for the Whole Cache*/,3/*MB Max Size of Individual File*/);
   return StartHTTPServer(ip,port,web_root_path,templates_root_path);
 }
 

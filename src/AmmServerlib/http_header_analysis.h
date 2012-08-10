@@ -31,6 +31,7 @@ struct HTTPRequest
 {
    int  requestType;
    char resource[MAX_RESOURCE+1];
+   char verified_local_resource[MAX_FILE_PATH+1];
    unsigned char keepalive;
    unsigned char supports_gzip;
    unsigned long range_start;
@@ -40,6 +41,6 @@ struct HTTPRequest
 
 
 int HTTPRequestComplete(char * request,unsigned int request_length);
-int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length);
+int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root);
 
 #endif // HTTP_HEADER_ANALYSIS_H_INCLUDED

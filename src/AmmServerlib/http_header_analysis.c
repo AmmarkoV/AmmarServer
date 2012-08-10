@@ -60,7 +60,7 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
    return 0;
 }
 
-int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered)
+int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
 {
   /*
       This call fills in the output variable according to the line data held in the request string..!
@@ -91,7 +91,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
          request[e]=0; //Signal ending
 
          char * stripped = &request[s];
-         fprintf(stderr,"Stripped GET/HEAD request is %s \n",stripped);
+         //fprintf(stderr,"Stripped GET/HEAD request is %s \n",stripped);
          StripHTMLCharacters_Inplace(stripped); // <- This converts char sequences like %20 to " " it HAS to be done before filename stripper to ensure string safety
 
          if (strlen(stripped)>=MAX_RESOURCE-2)
@@ -101,14 +101,26 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
              return 0;
            } else
            {
+             /*!Input String Verification from client
+              Since this string will be passed to fopen this can be dangerous so we perform some
+              security checks with FilenameStripperOk to make sure no escape characters subdirs out of
+              public_html ( via public_html/../etc ) and overflows may happen..!
+              Most of the functions are implemented in http_tools!
+              The results are then copied to output->resource and output->verified_local_resource which contain
+              the resource requested as the client stated it and as we verified for local filesystem..!
+              */
              if (FilenameStripperOk(stripped))
               {
-                output->requestType=GET;
                 strncpy(output->resource,stripped,MAX_RESOURCE);
+                strncpy(output->verified_local_resource,webserver_root,MAX_FILE_PATH);
+                strncat(output->verified_local_resource,stripped,MAX_FILE_PATH);
+                ReducePathSlashes_Inplace(output->verified_local_resource);
+                return 1;
               } else
               {
                 fprintf(stderr,"Warning : Suspicious request , dropping it ..! \n");
                 output->requestType=BAD;
+                return 0;
               }
            }
 
@@ -154,13 +166,13 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
   return 1;
 }
 
-int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length)
+int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root)
 {
   /*
       This call fills in the output variable according by subsequent calls to the AnalyzeHTTPLineRequest function
       the code here just serves as a line parser for AnalyzeHTTPLineRequest
   */
-  fprintf(stderr,"Starting a fresh HTTP Request Analysis\n");
+  //fprintf(stderr,"Starting a fresh HTTP Request Analysis\n");
   memset(output,0,sizeof(struct HTTPRequest)); // Clear output http request
   output->requestType=NONE; // invalidate current output data..!
   output->range_start=0;
@@ -176,7 +188,7 @@ int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int r
 
         //We've got ourselves a new line!
         ++lines_gathered;
-        AnalyzeHTTPLineRequest(output,line,strlen(line),lines_gathered);
+        AnalyzeHTTPLineRequest(output,line,strlen(line),lines_gathered,webserver_root);
         line[0]=0; //line is "cleared" :P
         chars_gathered=0;
       }

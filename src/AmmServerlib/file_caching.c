@@ -8,6 +8,7 @@
 unsigned char CACHING_ENABLED=1;
 unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
 unsigned int MAX_TOTAL_ALLOCATION_IN_MB=64;
+unsigned int MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=1;
 unsigned int MAX_CACHE_SIZE=1000;
 
 struct cache_item
@@ -82,6 +83,8 @@ int AddDirectResourceToCache(char * web_root_path,char * resource_name,char * co
 
   //Create the full path to distinguish from different root_paths ( virutal servers ) ..!
   char full_filename[(MAX_RESOURCE*2)+1]={0};
+  //These direct resource functions come from inside our program so we can cpy/cat them here
+  //( they dont pass through http_header_analysis.c so this can't be done another way..!
   strncpy(full_filename,web_root_path,MAX_RESOURCE);
   strncat(full_filename,resource_name,MAX_RESOURCE);
   ReducePathSlashes_Inplace(full_filename);
@@ -104,6 +107,7 @@ int AddFileToCache(char * filename,unsigned int * index)
   if (pFile==0) { fprintf(stderr,"Could not open file to cache it.. %s\n",filename); return 0;}
   if ( fseek (pFile , 0 , SEEK_END)!=0 ) { fprintf(stderr,"Could not find file size to cache client..!\nUnable to serve client\n"); fclose(pFile); return 0; }
   unsigned long lSize = ftell (pFile);
+  if (MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB*1024*1024<lSize) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n"); fclose(pFile); return 0;  }
   if (MAX_TOTAL_ALLOCATION_IN_MB*1024<loaded_cache_items_Kbytes+lSize/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_TOTAL_ALLOCATION_IN_MB); fclose(pFile); return 0; }
   rewind (pFile);
   char * buffer = (char*) malloc ( sizeof(char) * (lSize));
@@ -185,9 +189,10 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
        return 0;
 }
 
-int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB)
+int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
 {
   MAX_TOTAL_ALLOCATION_IN_MB=max_total_allocation_MB;
+  MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=max_allocation_per_entry_MB;
   if (cache==0)
    {
      cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (max_seperate_items+1));
