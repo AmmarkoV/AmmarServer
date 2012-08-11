@@ -284,6 +284,10 @@ int StripHTMLCharacters_Inplace(char * filename)
            if (sec_byte)
             {
               fprintf(stderr,"BAD Hex URI Char %%%c%c attempted overflow ( %u ) \n",filename[i+1],filename[i+2],ascii_val);
+              //We mute the % character..!
+              filename[i]='_';
+              //filename[i+1]='_';
+              //filename[i+2]='_';
             } else
             {
               //fprintf(stderr,"Hex URI Char %%%c%c = ascii %u = `%c`\n",filename[i+1],filename[i+2],ascii_val,ascii_val);
