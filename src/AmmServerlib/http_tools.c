@@ -50,6 +50,7 @@ char FileExists(char * filename)
 {
  FILE *fp = fopen(filename,"r");
  if( fp ) { /* exists */ fclose(fp); return 1; }
+ fprintf(stderr,"FileExists(%s) returns 0\n",filename);
  return 0;
 }
 

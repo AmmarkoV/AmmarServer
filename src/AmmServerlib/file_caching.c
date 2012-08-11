@@ -256,6 +256,7 @@ int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_ro
   //The role of request caching is to intercept incoming requests and if they are referring
   //to an internal resource using the TemplatesInternalURI URI we want to redirect the request
   //to our templates folder ..!
+  //If the request was indeed a change request returns 1 else 0
   if ( strlen(request)>strlen(TemplatesInternalURI)+64 )
    {
        fprintf(stderr,"\nWARNING : Skipping ChangeRequestIfInternalRequestIsAddressed due to a very large request\n");
@@ -277,10 +278,12 @@ int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_ro
          strcat(tmp_cmp,res_skipped);
        } else
        {
+           fprintf(stderr,"Internal request too long , not thoroughly tested\n");
            return 0;
        }
       fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
       strcpy(request,tmp_cmp);
+      return 1;
    }
-  return 1;
+  return 0;
 }

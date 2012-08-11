@@ -38,7 +38,6 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
 
   fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
   fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
-  fprintf(stderr,"TODO: Handle %%20 in resource requests\n");
   fprintf(stderr,"TODO: Add detailed input header parsing\n");
   fprintf(stderr,"TODO: Improve directory listings ( add filesizes , dates etc ) \n");
   fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
