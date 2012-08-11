@@ -71,7 +71,10 @@ struct PassToHTTPThread
 void * ServeClient(void * ptr);
 void * HTTPServerThread (void * ptr);
 
-
+int HTTPServerIsRunning()
+{
+  return server_running;
+}
 
 /*
   -----------------------------------------------------------------

@@ -57,7 +57,7 @@ int AmmServer_Stop()
 
 int AmmServer_Running()
 {
-  return server_running;
+  return HTTPServerIsRunning();
 }
 
 int AmmServer_AddResourceHandler(char * web_root_path,char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)

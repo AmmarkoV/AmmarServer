@@ -35,13 +35,12 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
 /*! Dynamic content code ..! START!*/
-char stats_buf[4096]={0};
+char * stats_buf=0; // No need to allocate the stats buffer on the stack :P
 unsigned long stats_size=0;
 
 void * prepare_content_callback()
 {
   //fprintf(stderr,"CallbackCalled!\n");
-
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
@@ -79,12 +78,15 @@ int main(int argc, char *argv[])
 
     AmmServer_Start(bindIP,port,webserver_root,templates_root);
 
-    AmmServer_AddResourceHandler(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback); /*! Dynamic content Add Resource Handler..! */
+    stats_buf = (char*) malloc(sizeof(char) * 4096);
+    if (stats_buf!=0) { AmmServer_AddResourceHandler(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback); }/*! Dynamic content Add Resource Handler..! */
 
          while (AmmServer_Running())
            {
              usleep(10000);
            }
+
+    if (stats_buf!=0) { free(stats_buf); stats_buf=0; }
 
     AmmServer_Stop();
 

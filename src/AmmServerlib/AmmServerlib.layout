@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="AmmServerlib.h" open="1" top="1" tabpos="2">
+	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
 		<Cursor position="488" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
 		<Cursor position="150" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="573" topLine="0" />
+		<Cursor position="99" topLine="0" />
 	</File>
 	<File name="content_resources.c" open="1" top="0" tabpos="7">
 		<Cursor position="1020" topLine="20" />
@@ -17,13 +17,13 @@
 		<Cursor position="1780" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="9061" topLine="237" />
+		<Cursor position="9061" topLine="0" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
 		<Cursor position="537" topLine="0" />
 	</File>
-	<File name="file_server.c" open="1" top="0" tabpos="8">
-		<Cursor position="8461" topLine="115" />
+	<File name="file_server.c" open="1" top="1" tabpos="8">
+		<Cursor position="2278" topLine="123" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="9">
 		<Cursor position="66" topLine="0" />
@@ -47,16 +47,16 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="1073" topLine="16" />
+		<Cursor position="2450" topLine="16" />
 	</File>
 	<File name="post_analyzer.c" open="1" top="0" tabpos="22">
 		<Cursor position="62" topLine="0" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="11">
-		<Cursor position="7163" topLine="175" />
+		<Cursor position="1728" topLine="49" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="12">
-		<Cursor position="289" topLine="0" />
+		<Cursor position="206" topLine="0" />
 	</File>
 	<File name="time.c" open="1" top="0" tabpos="17">
 		<Cursor position="20" topLine="0" />
