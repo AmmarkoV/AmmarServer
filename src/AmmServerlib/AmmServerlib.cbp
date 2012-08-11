@@ -71,6 +71,10 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="post_analyzer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="post_analyzer.h" />
 		<Unit filename="server_threads.c">
 			<Option compilerVar="CC" />
 		</Unit>

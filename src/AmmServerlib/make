@@ -8,7 +8,8 @@ then
   rm $LIBNAME
 fi   
 
-CFLAGS="-s -O3 -fexpensive-optimizations"
+# -O3 -fexpensive-optimizations
+CFLAGS="-s"
 
 gcc -c $CFLAGS main.c -o main.o
 gcc -c $CFLAGS server_threads.c -o server_threads.o 
