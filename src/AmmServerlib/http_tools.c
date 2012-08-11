@@ -270,11 +270,13 @@ int StripHTMLCharacters_Inplace(char * filename)
            unsigned char sub_valNumb=0,sub_valHex=0;
 
            if ((filename[i+1]>='0')&&(filename[i+1]<='9'))  { sub_valNumb=filename[i+1]-'0'; ascii_val+=sub_valNumb*16; }  else
+           if ((filename[i+1]>='a')&&(filename[i+1]<='f'))  { sub_valHex=filename[i+1]-'a';  ascii_val+=(10+sub_valHex)*16; }   else
            if ((filename[i+1]>='A')&&(filename[i+1]<='F'))  { sub_valHex=filename[i+1]-'A';  ascii_val+=(10+sub_valHex)*16; }   else
                                                             { sec_byte=1; }
 
 
            if ((filename[i+2]>='0')&&(filename[i+2]<='9'))  { sub_valNumb=filename[i+2]-'0'; ascii_val+=sub_valNumb*1; }  else
+           if ((filename[i+2]>='a')&&(filename[i+2]<='f'))  { sub_valHex=filename[i+2]-'a';  ascii_val+=(10+sub_valHex)*1; }   else
            if ((filename[i+2]>='A')&&(filename[i+2]<='F'))  { sub_valHex=filename[i+2]-'A';  ascii_val+=(10+sub_valHex)*1; }   else
                                                             { sec_byte=1; }
 
