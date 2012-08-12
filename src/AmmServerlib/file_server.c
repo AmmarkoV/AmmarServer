@@ -164,7 +164,7 @@ unsigned long SendFile
   unsigned long cached_lSize=0;
   char * cached_buffer = CheckForCachedVersionOfThePage(verified_filename,&cached_lSize,gzip_supported);
 
-  if ((cached_buffer!=0)&&(cached_lSize!=0))
+  if (cached_buffer!=0) //&&(cached_lSize!=0) its not bad to have a zero size cache item!
    { /*!Serve cached file !*/
      //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
