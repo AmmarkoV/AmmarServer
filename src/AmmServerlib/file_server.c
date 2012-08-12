@@ -169,11 +169,15 @@ unsigned long SendFile
      //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+     if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); return 0; }
+     if (cached_lSize==0) { fprintf(stderr,"Bug(?) detected , zero cache payload\n"); }
      if (!header_only)
       {
        opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
       }
-     return opres;
+
+     if (opres<=0) { fprintf(stderr,"Error sending cached body\n"); return 0; }
+     return 1;
    }
      else
   { /*!Serve file by reading it from disk !*/

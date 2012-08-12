@@ -24,6 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "http_tools.h"
 #include "configuration.h"
+#include "file_caching.h"
 #include <dirent.h>
 
 
@@ -376,16 +377,18 @@ int FilenameStripperOk(char * filename)
 
 int FindIndexFile(char * webserver_root,char * directory,char * indexfile)
 {
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.html");
-  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm"); // <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm"); // <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html"); // <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.php"); // <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FilenameStripperOk(indexfile))&&(FileExists(indexfile))) { return 1; }
+  unsigned int unused=0;
+  //TODO : This code can become much better and avoid re making all the strings again and again and again..
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.html"); ReducePathSlashes_Inplace(indexfile);
+  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
+  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm");   ReducePathSlashes_Inplace(indexfile); // <- TODO : notice that i can just change the extension to reduce copying around
+  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
+  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.php");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
+  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
 
   indexfile[0]=0;
   return 0;

@@ -36,6 +36,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 /*! Dynamic content code ..! START!*/
 char * stats_buf=0; // No need to allocate the stats buffer on the stack :P
+unsigned long max_stats_size=0;
 unsigned long stats_size=0;
 
 void * prepare_content_callback()
@@ -44,6 +45,7 @@ void * prepare_content_callback()
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
+  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   sprintf(stats_buf,"<html><head><title>Dynamic Content Enabled</title></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
                     tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
   strcat(stats_buf,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
@@ -78,7 +80,8 @@ int main(int argc, char *argv[])
 
     AmmServer_Start(bindIP,port,webserver_root,templates_root);
 
-    stats_buf = (char*) malloc(sizeof(char) * 4096);
+    max_stats_size=4096;
+    stats_buf = (char*) malloc(sizeof(char) * max_stats_size);
     if (stats_buf!=0) { AmmServer_AddResourceHandler(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback); }/*! Dynamic content Add Resource Handler..! */
 
          while (AmmServer_Running())
@@ -86,7 +89,7 @@ int main(int argc, char *argv[])
              usleep(10000);
            }
 
-    if (stats_buf!=0) { free(stats_buf); stats_buf=0; }
+    if (stats_buf!=0) { max_stats_size=0; free(stats_buf); stats_buf=0; }
 
     AmmServer_Stop();
 
