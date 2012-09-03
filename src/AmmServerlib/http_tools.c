@@ -250,6 +250,34 @@ int ReducePathSlashes_Inplace(char * filename)
  return 0;
 }
 
+int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length)
+{
+   //fprintf(stderr,"StripGETRequestQueryAndFragment is not thoroughly tested yet\n");
+   unsigned int length=strlen(filename);
+   if (length==0) { return 0; }
+   unsigned int i=0,fragment_pos=length;
+
+   while ( (i<length) &&  (filename[i]!='?') /*Query start character*/)
+    {
+        if (filename[i]=='#' /*Fragment start character*/ ) { fragment_pos=i; }
+        ++i;
+    }
+
+   //fprintf(stderr,"Searching for Query : Request has a %u size , fragment at pos %u/%u \n",length,fragment_pos,length);
+   if (fragment_pos<length) { filename[fragment_pos]=0; /*Disregard any fragments , they are for the client only.. */ }
+   if (i==length) { return 0; } //<- could not find a ..
+   if (i+1>=length) { return 0; } //<- found the question mark at i BUT it is the last character so no extension is possible..!
+
+   char * start_of_query = &filename[i+1]; // do not include ? ( question mark )
+   filename[i]=0;
+
+   if (strlen(start_of_query)>=max_query_length) { fprintf(stderr,"Not enough space for GET Request query\n");  return 0; }
+   sprintf(query,"%s",start_of_query);
+
+   //fprintf(stderr,"GET Request ( %s ) has a query inlined ( %s ) \n",filename,query);
+  return 1;
+}
+
 
 int StripHTMLCharacters_Inplace(char * filename)
 {

@@ -286,7 +286,7 @@ void * ServeClient(void * ptr)
        ReducePathSlashes_Inplace(servefile);
 
        char reply_body[MAX_DIRECTORY_LIST_RESPONSE_BODY+1]={0};
-       unsigned long sendSize = GeneratePath(servefile,output.resource,reply_body,MAX_DIRECTORY_LIST_RESPONSE_BODY);
+       unsigned long sendSize = GenerateDirectoryPage(servefile,output.resource,reply_body,MAX_DIRECTORY_LIST_RESPONSE_BODY);
        if (sendSize>0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site

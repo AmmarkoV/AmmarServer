@@ -32,6 +32,7 @@ struct HTTPRequest
    int  requestType;
    char resource[MAX_RESOURCE+1];
    char verified_local_resource[MAX_FILE_PATH+1];
+   char query[MAX_QUERY+1];
    unsigned char keepalive;
    unsigned char supports_gzip;
    unsigned long range_start;

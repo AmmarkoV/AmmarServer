@@ -23,7 +23,7 @@ return result;
 }
 
 
-unsigned long GeneratePath(char * system_path,char * client_path,char * memory,unsigned int max_memory)
+unsigned long GenerateDirectoryPage(char * system_path,char * client_path,char * memory,unsigned int max_memory)
 {
 if (!ENABLE_DIRECTORY_LISTING) { return 0; }
 fprintf(stderr,"Generating path for directory %s \n",system_path);

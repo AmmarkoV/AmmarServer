@@ -60,7 +60,7 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
      if ( cache[i].filename_hash == file_we_are_looking_for )
       {
         ++cache[i].hits;
-        fprintf(stderr," .. found it here %u , %u hits\n",i,cache[i].hits);
+        fprintf(stderr,"..found it here %u , %u hits , %0.2f Kbytes\n",i,cache[i].hits,(double) (*cache[i].filesize/1024) );
         *index=i;
         return 1;
       }

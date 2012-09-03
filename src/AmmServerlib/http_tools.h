@@ -12,6 +12,8 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
 
 int FindIndexFile(char * webserver_root,char * directory,char * indexfile);
 
+int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length);
+
 int StripHTMLCharacters_Inplace(char * filename);
 int ReducePathSlashes_Inplace(char * filename);
 int FilenameStripperOk(char * filename);
