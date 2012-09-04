@@ -38,6 +38,7 @@
 			<Add option="-O3" />
 			<Add option="-Wall" />
 			<Add option="-pg" />
+			<Add option="-g" />
 		</Compiler>
 		<Linker>
 			<Add option="-pg" />

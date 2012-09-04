@@ -28,16 +28,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define MAX_BINDING_PORT 65534
 #define DEFAULT_BINDING_PORT 8080
 #define MAX_INPUT_IP 256
-#define MAX_FILE_PATH 512
 
 char webserver_root[MAX_FILE_PATH]="public_html/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
 /*! Dynamic content code ..! START!*/
-char * stats_buf=0; // No need to allocate the stats buffer on the stack :P
-unsigned long max_stats_size=0;
-unsigned long stats_size=0;
+struct AmmServer_RH_Context stats={0};
 
 void * prepare_content_callback()
 {
@@ -46,14 +43,40 @@ void * prepare_content_callback()
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(stats_buf,"<html><head><title>Dynamic Content Enabled</title></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
+  sprintf(stats.content_memory,"<html><head><title>Dynamic Content Enabled</title></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
                     tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-  strcat(stats_buf,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
-  strcat(stats_buf,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
-  strcat(stats_buf,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
-  strcat(stats_buf,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
-  stats_size=strlen(stats_buf);
+  strcat(stats.content_memory,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
+  strcat(stats.content_memory,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
+  strcat(stats.content_memory,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
+  strcat(stats.content_memory,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
+  stats.content_memory_size=strlen(stats.content_memory);
   return 0;
+}
+
+void init_dynamic_content()
+{
+   memset(&stats,0,sizeof(struct AmmServer_RH_Context));
+   strncpy(stats.web_root_path,webserver_root,MAX_FILE_PATH);
+   strncpy(stats.resource_name,"/stats.html",MAX_RESOURCE);
+   stats.MAX_content_memory_size=4096;
+   stats.prepare_content_callback=&prepare_content_callback;
+
+
+   stats.content_memory = (char*) malloc(sizeof(char) * stats.MAX_content_memory_size);
+   if (stats.content_memory!=0)
+     { //AmmServer_AddResourceHandlerOLD(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback);
+       AmmServer_AddResourceHandler(&stats);
+     }/*! Dynamic content Add Resource Handler..! */
+}
+
+void close_dynamic_content()
+{
+    if (stats.content_memory !=0)
+     {
+       stats.MAX_content_memory_size=0;
+       free(stats.content_memory );
+       stats.content_memory =0;
+     }
 }
 /*! Dynamic content code ..! END ------------------------*/
 
@@ -80,17 +103,14 @@ int main(int argc, char *argv[])
 
     AmmServer_Start(bindIP,port,webserver_root,templates_root);
 
-    max_stats_size=4096;
-    stats_buf = (char*) malloc(sizeof(char) * max_stats_size);
-    if (stats_buf!=0) { AmmServer_AddResourceHandlerOLD(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback);
-                         /*AmmServer_AddResourceHandler(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback);*/ }/*! Dynamic content Add Resource Handler..! */
+    init_dynamic_content();
 
          while (AmmServer_Running())
            {
              usleep(10000);
            }
 
-    if (stats_buf!=0) { max_stats_size=0; free(stats_buf); stats_buf=0; }
+    close_dynamic_content();
 
     AmmServer_Stop();
 

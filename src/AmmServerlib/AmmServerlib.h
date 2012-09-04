@@ -5,17 +5,19 @@
 extern "C" {
 #endif
 
+#include "configuration.h"
 
 struct AmmServer_RH_Context
 {
+   unsigned long MAX_content_memory_size;
    unsigned long content_memory_size;
    unsigned long GET_request_size;
    unsigned long POST_request_size;
 
    void * prepare_content_callback;
 
-   char * web_root_path;
-   char * resource_name;
+   char web_root_path[MAX_FILE_PATH];
+   char resource_name[MAX_RESOURCE];
 
    char * content_memory;
    char * GET_request;

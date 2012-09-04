@@ -114,18 +114,6 @@ int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
   char full_filename[(MAX_RESOURCE*2)+1]={0};
   //These direct resource functions come from inside our program so we can cpy/cat them here
   //( they dont pass through http_header_analysis.c so this can't be done another way..!
-   unsigned long content_memory_size;
-   unsigned long GET_request_size;
-   unsigned long POST_request_size;
-
-   void * prepare_content_callback;
-
-   char * web_root_path;
-   char * resource_name;
-
-   char * content_memory;
-   char * GET_request;
-   char * POST_request;
 
 
   strncpy(full_filename,context->web_root_path,MAX_RESOURCE);
@@ -134,7 +122,7 @@ int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
 
   cache[index].filename_hash = hash(full_filename);
   cache[index].mem = context->content_memory;
-  cache[index].filesize = context->content_memory_size;
+  cache[index].filesize = &context->content_memory_size;
   cache[index].hits = 0;
   cache[index].prepare_mem_callback = context->prepare_content_callback;
 
