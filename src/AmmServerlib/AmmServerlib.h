@@ -37,6 +37,10 @@ int AmmServer_Running();
 int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context);
 
 int AmmServer_GetInfo(unsigned int info_type);
+
+int AmmServer_GetIntSettingValue(unsigned int set_type);
+int AmmServer_SetIntSettingValue(unsigned int set_type);
+
 int AmmServer_SelfCheck();
 
 #ifdef __cplusplus

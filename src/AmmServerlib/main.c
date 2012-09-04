@@ -67,12 +67,34 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context)
 }
 
 
+
 int AmmServer_GetInfo(unsigned int info_type)
 {
   switch (info_type)
    {
      case AMMINF_ACTIVE_CLIENTS : return ACTIVE_CLIENT_THREADS; break;
    };
+  return 0;
+}
+
+
+/*
+The following calls are not implemented yet
+
+   ||
+  \||/
+   \/
+*/
+
+int AmmServer_GetIntSettingValue(unsigned int set_type)
+{
+  fprintf(stderr,"AmmServer_GetIntSettingValue : Not Implemented yet\n");
+  return 0;
+}
+
+int AmmServer_SetIntSettingValue(unsigned int set_type)
+{
+  fprintf(stderr,"AmmServer_SetIntSettingValue : Not Implemented yet\n");
   return 0;
 }
 
