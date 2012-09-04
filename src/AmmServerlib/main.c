@@ -36,7 +36,7 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
-  fprintf(stderr,"TODO: Add ? and # handler in GET requests ..\n");
+  fprintf(stderr,"TODO: Implement POST requests ..\n");
   fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
   fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
   fprintf(stderr,"TODO: Add detailed input header parsing\n");
@@ -61,9 +61,23 @@ int AmmServer_Running()
   return HTTPServerIsRunning();
 }
 
-int AmmServer_AddResourceHandler(char * web_root_path,char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)
+
+int AmmServer_AddResourceHandlerOLD
+ (
+   char * web_root_path,
+   char * resource_name,
+   char * content_memory,
+   unsigned long * content_memory_size,
+   void * prepare_content_callback
+ )
 {
-  return AddDirectResourceToCache(web_root_path,resource_name,content_memory,content_memory_size,prepare_content_callback);
+  return AddDirectResourceToCacheOLD(web_root_path,resource_name,content_memory,content_memory_size,prepare_content_callback);
+}
+
+
+int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context)
+{
+  return AddDirectResourceToCache(context);
 }
 
 

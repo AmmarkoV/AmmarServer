@@ -82,7 +82,8 @@ int main(int argc, char *argv[])
 
     max_stats_size=4096;
     stats_buf = (char*) malloc(sizeof(char) * max_stats_size);
-    if (stats_buf!=0) { AmmServer_AddResourceHandler(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback); }/*! Dynamic content Add Resource Handler..! */
+    if (stats_buf!=0) { AmmServer_AddResourceHandlerOLD(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback);
+                         /*AmmServer_AddResourceHandler(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback);*/ }/*! Dynamic content Add Resource Handler..! */
 
          while (AmmServer_Running())
            {
