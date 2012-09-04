@@ -9,8 +9,8 @@ extern "C" {
 
 struct AmmServer_RH_Context
 {
-   unsigned long MAX_content_memory_size;
-   unsigned long content_memory_size;
+   unsigned long MAX_content_size;
+   unsigned long content_size;
    unsigned long GET_request_size;
    unsigned long POST_request_size;
 
@@ -19,7 +19,7 @@ struct AmmServer_RH_Context
    char web_root_path[MAX_FILE_PATH];
    char resource_name[MAX_RESOURCE];
 
-   char * content_memory;
+   char * content;
    char * GET_request;
    char * POST_request;
 };

@@ -121,8 +121,8 @@ int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
   ReducePathSlashes_Inplace(full_filename);
 
   cache[index].filename_hash = hash(full_filename);
-  cache[index].mem = context->content_memory;
-  cache[index].filesize = &context->content_memory_size;
+  cache[index].mem = context->content;
+  cache[index].filesize = &context->content_size;
   cache[index].hits = 0;
   cache[index].prepare_mem_callback = context->prepare_content_callback;
 

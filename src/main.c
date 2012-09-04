@@ -43,13 +43,13 @@ void * prepare_content_callback()
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(stats.content_memory,"<html><head><title>Dynamic Content Enabled</title></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
+  sprintf(stats.content,"<html><head><title>Dynamic Content Enabled</title></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
                     tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-  strcat(stats.content_memory,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
-  strcat(stats.content_memory,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
-  strcat(stats.content_memory,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
-  strcat(stats.content_memory,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
-  stats.content_memory_size=strlen(stats.content_memory);
+  strcat(stats.content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
+  strcat(stats.content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
+  strcat(stats.content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
+  strcat(stats.content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
+  stats.content_size=strlen(stats.content);
   return 0;
 }
 
@@ -58,12 +58,12 @@ void init_dynamic_content()
    memset(&stats,0,sizeof(struct AmmServer_RH_Context));
    strncpy(stats.web_root_path,webserver_root,MAX_FILE_PATH);
    strncpy(stats.resource_name,"/stats.html",MAX_RESOURCE);
-   stats.MAX_content_memory_size=4096;
+   stats.MAX_content_size=4096;
    stats.prepare_content_callback=&prepare_content_callback;
 
 
-   stats.content_memory = (char*) malloc(sizeof(char) * stats.MAX_content_memory_size);
-   if (stats.content_memory!=0)
+   stats.content = (char*) malloc(sizeof(char) * stats.MAX_content_size);
+   if (stats.content!=0)
      { //AmmServer_AddResourceHandlerOLD(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback);
        AmmServer_AddResourceHandler(&stats);
      }/*! Dynamic content Add Resource Handler..! */
@@ -71,11 +71,11 @@ void init_dynamic_content()
 
 void close_dynamic_content()
 {
-    if (stats.content_memory !=0)
+    if (stats.content !=0)
      {
-       stats.MAX_content_memory_size=0;
-       free(stats.content_memory );
-       stats.content_memory =0;
+       stats.MAX_content_size=0;
+       free(stats.content );
+       stats.content =0;
      }
 }
 /*! Dynamic content code ..! END ------------------------*/
