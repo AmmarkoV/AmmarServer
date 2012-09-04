@@ -2,13 +2,13 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="488" topLine="0" />
+		<Cursor position="433" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
 		<Cursor position="150" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="172" topLine="0" />
+		<Cursor position="234" topLine="0" />
 	</File>
 	<File name="content_resources.c" open="1" top="0" tabpos="7">
 		<Cursor position="1020" topLine="20" />
@@ -16,14 +16,14 @@
 	<File name="directory_lists.c" open="1" top="0" tabpos="21">
 		<Cursor position="543" topLine="18" />
 	</File>
-	<File name="directory_lists.h" open="1" top="0" tabpos="24">
+	<File name="directory_lists.h" open="1" top="0" tabpos="23">
 		<Cursor position="109" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="1957" topLine="0" />
+		<Cursor position="4134" topLine="98" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
-		<Cursor position="403" topLine="0" />
+		<Cursor position="92" topLine="0" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="8">
 		<Cursor position="7554" topLine="147" />
@@ -31,14 +31,14 @@
 	<File name="file_server.h" open="1" top="0" tabpos="9">
 		<Cursor position="66" topLine="0" />
 	</File>
-	<File name="http_header_analysis.c" open="1" top="1" tabpos="13">
+	<File name="http_header_analysis.c" open="1" top="0" tabpos="13">
 		<Cursor position="4731" topLine="81" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="14">
 		<Cursor position="1919" topLine="0" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="15">
-		<Cursor position="11191" topLine="246" />
+		<Cursor position="11318" topLine="240" />
 	</File>
 	<File name="http_tools.h" open="1" top="0" tabpos="16">
 		<Cursor position="492" topLine="0" />
@@ -50,7 +50,7 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2250" topLine="22" />
+		<Cursor position="2973" topLine="0" />
 	</File>
 	<File name="post_analyzer.c" open="1" top="0" tabpos="22">
 		<Cursor position="62" topLine="0" />

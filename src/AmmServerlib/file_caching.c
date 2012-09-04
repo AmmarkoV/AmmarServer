@@ -70,35 +70,6 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
 }
 
 
-int AddDirectResourceToCacheOLD(char * web_root_path,char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback)
-{
-  if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
-   {
-     fprintf(stderr,"Dynamic content is disabled..!\n");
-     return 0;
-   }
-  if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full"); return 0; }
-
-  unsigned int index=loaded_cache_items++;
-
-  //Create the full path to distinguish from different root_paths ( virutal servers ) ..!
-  char full_filename[(MAX_RESOURCE*2)+1]={0};
-  //These direct resource functions come from inside our program so we can cpy/cat them here
-  //( they dont pass through http_header_analysis.c so this can't be done another way..!
-  strncpy(full_filename,web_root_path,MAX_RESOURCE);
-  strncat(full_filename,resource_name,MAX_RESOURCE);
-  ReducePathSlashes_Inplace(full_filename);
-
-  cache[index].filename_hash = hash(full_filename);
-  cache[index].mem = content_memory;
-  cache[index].filesize = content_memory_size;
-  cache[index].hits = 0;
-  cache[index].prepare_mem_callback=prepare_content_callback;
-
-  return 1;
-}
-
-
 int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
 {
   if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )

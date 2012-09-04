@@ -61,27 +61,23 @@ int AmmServer_Running()
   return HTTPServerIsRunning();
 }
 
-
-int AmmServer_AddResourceHandlerOLD
- (
-   char * web_root_path,
-   char * resource_name,
-   char * content_memory,
-   unsigned long * content_memory_size,
-   void * prepare_content_callback
- )
-{
-  return AddDirectResourceToCacheOLD(web_root_path,resource_name,content_memory,content_memory_size,prepare_content_callback);
-}
-
-
 int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context)
 {
   return AddDirectResourceToCache(context);
 }
 
 
+int AmmServer_GetInfo(unsigned int info_type)
+{
+  switch (info_type)
+   {
+     case AMMINF_ACTIVE_CLIENTS : return ACTIVE_CLIENT_THREADS; break;
+   };
+  return 0;
+}
+
 int AmmServer_SelfCheck()
 {
+  fprintf(stderr,"No Checks Implemented in this version , everything should be ok ..\n");
   return 0;
 }

@@ -24,13 +24,20 @@ struct AmmServer_RH_Context
    char * POST_request;
 };
 
+enum AmmServInfos
+{
+    AMMINF_ACTIVE_CLIENTS=0,
+    AMMINF_ACTIVE_THREADS
+};
+
 int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop();
 int AmmServer_Running();
 
-int AmmServer_AddResourceHandlerOLD(char * web_root_path,char * resource_name,char * content_memory,unsigned long * content_memory_size,void * prepare_content_callback);
 int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context);
 
+int AmmServer_GetInfo(unsigned int info_type);
+int AmmServer_SelfCheck();
 
 #ifdef __cplusplus
 }
