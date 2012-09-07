@@ -2,72 +2,69 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="433" topLine="0" />
+		<Cursor position="833" topLine="0" />
 	</File>
-	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="150" topLine="0" />
+	<File name="configuration.c" open="1" top="1" tabpos="5">
+		<Cursor position="54" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="234" topLine="0" />
+		<Cursor position="706" topLine="0" />
 	</File>
-	<File name="content_resources.c" open="1" top="0" tabpos="7">
-		<Cursor position="1020" topLine="20" />
-	</File>
-	<File name="directory_lists.c" open="1" top="0" tabpos="21">
+	<File name="directory_lists.c" open="1" top="0" tabpos="20">
 		<Cursor position="543" topLine="18" />
 	</File>
-	<File name="directory_lists.h" open="1" top="0" tabpos="23">
+	<File name="directory_lists.h" open="1" top="0" tabpos="22">
 		<Cursor position="109" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="4134" topLine="98" />
+		<Cursor position="2022" topLine="81" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
-		<Cursor position="92" topLine="0" />
+		<Cursor position="265" topLine="0" />
 	</File>
-	<File name="file_server.c" open="1" top="0" tabpos="8">
-		<Cursor position="7554" topLine="147" />
+	<File name="file_server.c" open="1" top="0" tabpos="7">
+		<Cursor position="7141" topLine="119" />
 	</File>
-	<File name="file_server.h" open="1" top="0" tabpos="9">
+	<File name="file_server.h" open="1" top="0" tabpos="8">
 		<Cursor position="66" topLine="0" />
 	</File>
-	<File name="http_header_analysis.c" open="1" top="0" tabpos="13">
+	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
 		<Cursor position="4731" topLine="81" />
 	</File>
-	<File name="http_header_analysis.h" open="1" top="0" tabpos="14">
+	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
 		<Cursor position="1919" topLine="0" />
 	</File>
-	<File name="http_tools.c" open="1" top="0" tabpos="15">
+	<File name="http_tools.c" open="1" top="0" tabpos="14">
 		<Cursor position="11318" topLine="240" />
 	</File>
-	<File name="http_tools.h" open="1" top="0" tabpos="16">
+	<File name="http_tools.h" open="1" top="0" tabpos="15">
 		<Cursor position="492" topLine="0" />
 	</File>
-	<File name="logs.c" open="1" top="0" tabpos="19">
-		<Cursor position="1125" topLine="0" />
+	<File name="logs.c" open="1" top="0" tabpos="18">
+		<Cursor position="1338" topLine="0" />
 	</File>
-	<File name="logs.h" open="1" top="0" tabpos="20">
+	<File name="logs.h" open="1" top="0" tabpos="19">
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2973" topLine="0" />
+		<Cursor position="2892" topLine="0" />
 	</File>
-	<File name="post_analyzer.c" open="1" top="0" tabpos="22">
+	<File name="post_analyzer.c" open="1" top="0" tabpos="21">
 		<Cursor position="62" topLine="0" />
 	</File>
-	<File name="server_threads.c" open="1" top="0" tabpos="11">
-		<Cursor position="10571" topLine="420" />
+	<File name="server_threads.c" open="1" top="0" tabpos="10">
+		<Cursor position="1297" topLine="415" />
 	</File>
-	<File name="server_threads.h" open="1" top="0" tabpos="12">
-		<Cursor position="206" topLine="0" />
+	<File name="server_threads.h" open="1" top="0" tabpos="11">
+		<Cursor position="102" topLine="0" />
 	</File>
-	<File name="time.c" open="1" top="0" tabpos="17">
+	<File name="time.c" open="1" top="0" tabpos="16">
 		<Cursor position="20" topLine="0" />
 	</File>
-	<File name="time.h" open="1" top="0" tabpos="18">
+	<File name="time.h" open="1" top="0" tabpos="17">
 		<Cursor position="366" topLine="0" />
 	</File>
-	<File name="version.h" open="1" top="0" tabpos="10">
+	<File name="version.h" open="1" top="0" tabpos="9">
 		<Cursor position="819" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

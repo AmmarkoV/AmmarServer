@@ -1,6 +1,8 @@
 #include "configuration.h"
 
 
+int PASSWORD_PROTECTION=0;
+
 int varSocketTimeoutREAD_ms=5000;
 int varSocketTimeoutWRITE_ms=5000;
 

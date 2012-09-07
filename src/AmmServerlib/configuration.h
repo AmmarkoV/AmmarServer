@@ -20,6 +20,8 @@
 #define ENABLE_INTERNAL_RESOURCES_RESOLVE 1
 #define ENABLE_DIRECTORY_LISTING 1
 
+extern int PASSWORD_PROTECTION;
+
 extern int varSocketTimeoutREAD_ms;
 extern int varSocketTimeoutWRITE_ms;
 

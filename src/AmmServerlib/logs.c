@@ -9,6 +9,7 @@
 
 int AccessLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
 {
+    if (!AccessLogEnable) { return 0; }
     FILE * pFile = fopen (AccessLog, "a");
     if (pFile==0) { return 0; }
 
@@ -29,6 +30,7 @@ int AccessLogAppend(char * IP,char * DateStr,char * Request,unsigned int Respons
 
 int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
 {
+    if (!ErrorLogEnable) { return 0; }
     FILE * pFile = fopen (AccessLog, "a");
     if (pFile==0) { return 0; }
 
