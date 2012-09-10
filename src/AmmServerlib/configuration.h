@@ -21,6 +21,7 @@
 #define ENABLE_DIRECTORY_LISTING 1
 
 extern int PASSWORD_PROTECTION;
+extern char * PASSWORD;
 
 extern int varSocketTimeoutREAD_ms;
 extern int varSocketTimeoutWRITE_ms;
@@ -35,5 +36,8 @@ extern char ErrorLog[MAX_FILE_PATH];
 extern char TemplatesInternalURI[MAX_RESOURCE];
 //Please note that the file server limits filenames _asvres_/filename.jpg is OK
 //a filename like _asvres_/filenamemplampla.jpg will return a 404
+
+int LoadConfigurationFile(char * conf_file);
+
 
 #endif // CONFIGURATION_H_INCLUDED

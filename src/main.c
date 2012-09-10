@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
    if (argc>=3) { strncpy(webserver_root,argv[3],MAX_FILE_PATH); }
    if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
 
-    AmmServer_Start(bindIP,port,webserver_root,templates_root);
+    AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
 
     init_dynamic_content();
 

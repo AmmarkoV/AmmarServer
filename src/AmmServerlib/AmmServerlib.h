@@ -30,7 +30,14 @@ enum AmmServInfos
     AMMINF_ACTIVE_THREADS
 };
 
-int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * templates_root_path);
+
+enum AmmServSettings
+{
+    AMMSET_PASSWORD_PROTECTION=0,
+    AMMSET_TEST
+};
+
+int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop();
 int AmmServer_Running();
 
@@ -39,7 +46,11 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context);
 int AmmServer_GetInfo(unsigned int info_type);
 
 int AmmServer_GetIntSettingValue(unsigned int set_type);
-int AmmServer_SetIntSettingValue(unsigned int set_type);
+int AmmServer_SetIntSettingValue(unsigned int set_type,int set_value);
+
+char * AmmServer_GetStrSettingValue(unsigned int set_type);
+int AmmServer_SetStrSettingValue(unsigned int set_type,char * set_value);
+
 
 int AmmServer_SelfCheck();
 

@@ -26,7 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * templates_root_path)
+int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
   fprintf(stderr,"\n\nDISCLAIMER : \n");
@@ -45,6 +45,8 @@ int AmmServer_Start(char * ip,unsigned int port,char * web_root_path,char * temp
   fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
   fprintf(stderr,"TODO: Implement gzip gunzip file compression , especially in cache for txt,html low entropy files\n");
+
+  LoadConfigurationFile(conf_file);
 
   InitializeCache(2000/*Seperate items*/,64/*MB Limit for the Whole Cache*/,3/*MB Max Size of Individual File*/);
   return StartHTTPServer(ip,port,web_root_path,templates_root_path);
@@ -88,15 +90,37 @@ The following calls are not implemented yet
 
 int AmmServer_GetIntSettingValue(unsigned int set_type)
 {
-  fprintf(stderr,"AmmServer_GetIntSettingValue : Not Implemented yet\n");
+  switch (set_type)
+   {
+     case AMMSET_PASSWORD_PROTECTION : return PASSWORD_PROTECTION; break;
+   };
+
   return 0;
 }
 
-int AmmServer_SetIntSettingValue(unsigned int set_type)
+int AmmServer_SetIntSettingValue(unsigned int set_type,int set_value)
 {
-  fprintf(stderr,"AmmServer_SetIntSettingValue : Not Implemented yet\n");
+  switch (set_type)
+   {
+     case AMMSET_PASSWORD_PROTECTION :   PASSWORD_PROTECTION=set_value; return 1; break;
+   };
+
   return 0;
 }
+
+
+char * AmmServer_GetStrSettingValue(unsigned int set_type)
+{
+  return 0;
+}
+
+int AmmServer_SetStrSettingValue(unsigned int set_type,char * set_value)
+{
+
+  return 0;
+}
+
+
 
 int AmmServer_SelfCheck()
 {
