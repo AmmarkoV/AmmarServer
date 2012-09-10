@@ -401,11 +401,27 @@ int FilenameStripperOk(char * filename)
    return 1;
 }
 
-int CheckHTTPHeaderCategory(char * line,char * potential_strCAPS,unsigned int * payload_start)
+
+int stristr2Caps(char * str1,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
 {
-  //TODO :
-  fprintf(stderr,"TODO : CheckHTTPHeaderCategory not implemented \n");
+  if (str1_length<str2_length) { return 0; }
+  unsigned int str1_i=0,str2_i=0;
+  while (str1_i<str1_length)
+  {
+    if (toupper(str1[str1_i])==str2CAPS[str2_i]) { ++str2_i; } else
+                                                 { str2_i=0; }
+
+    if (str2_i==str2_length)  { *pos_found=str1_i; return 1; }
+    ++str1_i;
+  }
+
   return 0;
+}
+
+
+int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start)
+{
+  return stristr2Caps(line,line_length,potential_strCAPS,strlen(potential_strCAPS),payload_start);
 }
 
 int FindIndexFile(char * webserver_root,char * directory,char * indexfile)

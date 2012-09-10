@@ -2,13 +2,13 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="833" topLine="0" />
+		<Cursor position="693" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="54" topLine="0" />
+		<Cursor position="678" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="706" topLine="0" />
+		<Cursor position="1196" topLine="0" />
 	</File>
 	<File name="directory_lists.c" open="1" top="0" tabpos="20">
 		<Cursor position="543" topLine="18" />
@@ -29,16 +29,16 @@
 		<Cursor position="66" topLine="0" />
 	</File>
 	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
-		<Cursor position="4731" topLine="81" />
+		<Cursor position="7438" topLine="153" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
 		<Cursor position="1919" topLine="0" />
 	</File>
-	<File name="http_tools.c" open="1" top="0" tabpos="14">
-		<Cursor position="11318" topLine="240" />
+	<File name="http_tools.c" open="1" top="1" tabpos="14">
+		<Cursor position="15653" topLine="373" />
 	</File>
 	<File name="http_tools.h" open="1" top="0" tabpos="15">
-		<Cursor position="492" topLine="0" />
+		<Cursor position="498" topLine="0" />
 	</File>
 	<File name="logs.c" open="1" top="0" tabpos="18">
 		<Cursor position="1338" topLine="0" />
@@ -47,7 +47,7 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="2892" topLine="0" />
+		<Cursor position="3155" topLine="82" />
 	</File>
 	<File name="post_analyzer.c" open="1" top="0" tabpos="21">
 		<Cursor position="62" topLine="0" />

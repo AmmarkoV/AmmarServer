@@ -169,10 +169,12 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
    {
      /*NOT PUT / GET / POST ETC .. */
      unsigned int payload_start = 0;
-     if ( CheckHTTPHeaderCategory(request,"AUTHORIZATION:",&payload_start) )
+     if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
      {
-        //It is an authorization line , typically like ->  `Authorization: Basic QWxhZGluOnNlc2FtIG9wZW4=`
-
+        //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=` for admin/ammar
+        fprintf(stderr,"Got an authorization string -> %s \n",request);
+        payload_start+=14/*strlen("AUTHORIZATION:")*/;
+        while ( (payload_start<request_length) && (request[payload_start]==' ') ) { ++payload_start; }
      }
 
 
