@@ -37,6 +37,14 @@ enum AmmServSettings
     AMMSET_TEST
 };
 
+
+enum AmmServStrSettings
+{
+    AMMSET_PASSWORD_STR=0,
+    AMMSET_TESTSTR
+};
+
+
 int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop();
 int AmmServer_Running();

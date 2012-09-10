@@ -94,7 +94,6 @@ int AmmServer_GetIntSettingValue(unsigned int set_type)
    {
      case AMMSET_PASSWORD_PROTECTION : return PASSWORD_PROTECTION; break;
    };
-
   return 0;
 }
 
@@ -104,19 +103,25 @@ int AmmServer_SetIntSettingValue(unsigned int set_type,int set_value)
    {
      case AMMSET_PASSWORD_PROTECTION :   PASSWORD_PROTECTION=set_value; return 1; break;
    };
-
   return 0;
 }
 
 
 char * AmmServer_GetStrSettingValue(unsigned int set_type)
 {
+  switch (set_type)
+   {
+     case AMMSET_PASSWORD_STR :   return PASSWORD; break;
+   };
   return 0;
 }
 
 int AmmServer_SetStrSettingValue(unsigned int set_type,char * set_value)
 {
-
+  switch (set_type)
+   {
+     case AMMSET_PASSWORD_STR :   return AssignStr(PASSWORD,set_value); break;
+   };
   return 0;
 }
 

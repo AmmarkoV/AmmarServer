@@ -401,7 +401,12 @@ int FilenameStripperOk(char * filename)
    return 1;
 }
 
-
+int CheckHTTPHeaderCategory(char * line,char * potential_strCAPS,unsigned int * payload_start)
+{
+  //TODO :
+  fprintf(stderr,"TODO : CheckHTTPHeaderCategory not implemented \n");
+  return 0;
+}
 
 int FindIndexFile(char * webserver_root,char * directory,char * indexfile)
 {

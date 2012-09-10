@@ -165,6 +165,17 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
          fprintf(stderr,"PATCH Request %s\n", request);
          output->requestType=PATCH;
        }
+   } else
+   {
+     /*NOT PUT / GET / POST ETC .. */
+     unsigned int payload_start = 0;
+     if ( CheckHTTPHeaderCategory(request,"AUTHORIZATION:",&payload_start) )
+     {
+        //It is an authorization line , typically like ->  `Authorization: Basic QWxhZGluOnNlc2FtIG9wZW4=`
+
+     }
+
+
    }
 
   //Todo keepalive handler here output->keepalive=1;
