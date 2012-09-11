@@ -90,6 +90,7 @@ int main(int argc, char *argv[])
 
     unsigned int port=DEFAULT_BINDING_PORT;
 
+
     if ( argc <1 ) { fprintf(stderr,"Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) { /*fprintf(stderr,"Please note that you may choose a different binding IP/port as command line parameters.. \"ammarserver 0.0.0.0 8080\"\n");*/ } else
      {
@@ -102,6 +103,11 @@ int main(int argc, char *argv[])
    if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
 
     AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
+
+    fprintf(stderr,"\nSetting password protection\n");
+    AmmServer_SetIntSettingValue(AMMSET_PASSWORD_PROTECTION,1);
+    AmmServer_SetStrSettingValue(AMMSET_PASSWORD_STR,"46YW1tYXI=");
+
 
     init_dynamic_content();
 

@@ -1,6 +1,8 @@
 #ifndef FILE_SERVER_H_INCLUDED
 #define FILE_SERVER_H_INCLUDED
 
+unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verified_filename);
+
 unsigned long SendFile
   (
     int clientsock, // The socket that will be used to send the data

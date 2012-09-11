@@ -148,16 +148,7 @@ unsigned long SendFile
       clutter in the code but this way there is no need to write the same thing twice..! !*/
 
 /*! PRELIMINARY HEADER SENDING START ----------------------------------------------*/
-  if (PASSWORD_PROTECTION)
-   {
-     SendAuthorizationHeader(clientsock,"AmmarServer authorization..!",verified_filename);
 
-     strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
-     strcat(reply_header,"and your host machine will be permenantly banned if you exceed the maximum number of incorrect login attempts..</h2></body></html>\n");
-     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-
-     return 0;
-   } else
   if (force_error_code!=0)
   {
     //We want to force a specific error_code!

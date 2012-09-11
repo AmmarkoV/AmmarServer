@@ -169,20 +169,27 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
    {
      /*NOT PUT / GET / POST ETC .. */
      unsigned int payload_start = 0;
-     if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
-     {
+
+     if ((PASSWORD_PROTECTION)&&(PASSWORD!=0))
+     { //Consider password protection header sections..!
+      if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
+      {
         //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=` for admin/ammar
-        payload_start+=14/*strlen("AUTHORIZATION:")*/;
+        payload_start+=strlen("AUTHORIZATION:");
         while ( (payload_start<request_length) && (request[payload_start]==' ') ) { ++payload_start; }
         if (payload_start<request_length)
          {
           trim_last_empty_chars(request,request_length);
           char * payload = &request[payload_start];
-          fprintf(stderr,"Got an authorization string -> `%s` \n",payload);
+          fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,PASSWORD);
+          if (strcmp(PASSWORD,payload)==0) { output->authorized=1; } else
+                                           { output->authorized=0; }
          }
-
+      }
+     } else
+     {
+         fprintf(stderr,"Skipping authorization check PASSWORD=%s , PASSWORD_PROTECTION=%u\n",PASSWORD,PASSWORD_PROTECTION);
      }
-
 
    }
 
@@ -201,6 +208,7 @@ int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int r
   output->requestType=NONE; // invalidate current output data..!
   output->range_start=0;
   output->range_end=0;
+  output->authorized=0;
 
   char line[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;

@@ -39,6 +39,6 @@ extern char TemplatesInternalURI[MAX_RESOURCE];
 
 int LoadConfigurationFile(char * conf_file);
 
-int AssignStr(char * dest , char * source);
+int AssignStr(char ** dest , char * source);
 
 #endif // CONFIGURATION_H_INCLUDED

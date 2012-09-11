@@ -174,8 +174,28 @@ void * ServeClient(void * ptr)
       SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
       close_connection=1;
    }
-       else
+      else
+   if ((PASSWORD_PROTECTION)&&(!output.authorized))
+   {
+     fprintf(stderr,"Send Password segment .. ");
+     SendAuthorizationHeader(clientsock,"AmmarServer authorization..!","authorization.html");
+
+     char reply_header[256]={0};
+     strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
+     strcat(reply_header,"and your host machine will be permenantly banned if you exceed the maximum number of incorrect login attempts..</h2></body></html>\n");
+     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
+     //todo check result
+     close_connection=1;
+     fprintf(stderr,"Survived..\n");
+   }
+     else
    { // Not a Bad request Start
+
+
+
+
+
+
 
      if (!output.keepalive) { close_connection=1; } // Close_connection controls the receive "keep-alive" loop
 
