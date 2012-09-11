@@ -30,14 +30,14 @@ int LoadConfigurationFile(char * conf_file)
 /*Kind of twisted function TODO : improve it :P*/
 int AssignStr(char ** dest , char * source)
 {  //THIS ISN'T WORKING!
-   if (dest!=0) { free(*dest); }
+   if (*dest!=0) { free(*dest); }
    *dest=0;
    if (source==0) { return 1; }
 
    unsigned int source_len=strlen(source);
    *dest = malloc(sizeof(char) * source_len);
 
-   if (*dest!=0) { return 0; }
+   if (*dest==0) { return 0; }
    strncpy(*dest,source,source_len);
    return 1;
 }
