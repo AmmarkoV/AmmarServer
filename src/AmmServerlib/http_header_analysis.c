@@ -181,7 +181,8 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
          {
           trim_last_empty_chars(request,request_length);
           char * payload = &request[payload_start];
-          fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,PASSWORD);
+          fprintf(stderr,"Got an authorization string -> `%s`\n",payload);
+          //fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,PASSWORD);
           if (strcmp(PASSWORD,payload)==0) { output->authorized=1; } else
                                            { output->authorized=0; }
          }
