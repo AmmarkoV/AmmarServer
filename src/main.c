@@ -104,9 +104,9 @@ int main(int argc, char *argv[])
 
     AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
 
-    fprintf(stderr,"\nSetting password protection\n");
-    AmmServer_SetIntSettingValue(AMMSET_PASSWORD_PROTECTION,1);
-    AmmServer_SetStrSettingValue(AMMSET_PASSWORD_STR,"46YW1tYXI=");
+    //fprintf(stderr,"\nSetting password protection\n");
+    //AmmServer_SetIntSettingValue(AMMSET_PASSWORD_PROTECTION,1);
+    //AmmServer_SetStrSettingValue(AMMSET_PASSWORD_STR,"46YW1tYXI=");
 
 
     init_dynamic_content();

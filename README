@@ -1,1 +1,4 @@
-A lightweight barebones HTTP server for linux
+A lightweight extendable barebones HTTP server for linux
+-------------------------------------------------------------------------------------------------
+
+Also Used in V4L2ToHTTP : https://github.com/AmmarkoV/V4L2ToHTTP/

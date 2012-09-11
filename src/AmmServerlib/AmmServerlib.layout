@@ -4,11 +4,11 @@
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
 		<Cursor position="693" topLine="0" />
 	</File>
-	<File name="configuration.c" open="1" top="1" tabpos="5">
-		<Cursor position="54" topLine="0" />
+	<File name="configuration.c" open="1" top="0" tabpos="5">
+		<Cursor position="586" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="1196" topLine="0" />
+		<Cursor position="1183" topLine="0" />
 	</File>
 	<File name="directory_lists.c" open="1" top="0" tabpos="20">
 		<Cursor position="543" topLine="18" />
@@ -23,22 +23,22 @@
 		<Cursor position="265" topLine="0" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="7">
-		<Cursor position="7141" topLine="119" />
+		<Cursor position="718" topLine="0" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
-		<Cursor position="66" topLine="0" />
+		<Cursor position="159" topLine="0" />
 	</File>
 	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
-		<Cursor position="7690" topLine="137" />
+		<Cursor position="7979" topLine="158" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
-		<Cursor position="1919" topLine="0" />
+		<Cursor position="1951" topLine="0" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="14">
-		<Cursor position="16429" topLine="250" />
+		<Cursor position="16204" topLine="205" />
 	</File>
 	<File name="http_tools.h" open="1" top="0" tabpos="15">
-		<Cursor position="494" topLine="0" />
+		<Cursor position="640" topLine="0" />
 	</File>
 	<File name="logs.c" open="1" top="0" tabpos="18">
 		<Cursor position="1338" topLine="0" />
@@ -47,13 +47,13 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="3155" topLine="83" />
+		<Cursor position="3261" topLine="83" />
 	</File>
 	<File name="post_analyzer.c" open="1" top="0" tabpos="21">
 		<Cursor position="62" topLine="0" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="10">
-		<Cursor position="1297" topLine="415" />
+		<Cursor position="6327" topLine="160" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="102" topLine="0" />
