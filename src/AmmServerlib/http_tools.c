@@ -418,6 +418,18 @@ int stristr2Caps(char * str1,unsigned int str1_length,char * str2CAPS,unsigned i
   return 0;
 }
 
+int trim_last_empty_chars(char * input,unsigned int input_length)
+{
+   unsigned int i=input_length;
+   while (i>0)
+    {
+         --i; // <-- before the next line for a reason :P
+         if (input[i]<'!') { input[i]=0; }
+    }
+
+   return 1;
+}
+
 
 int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start)
 {

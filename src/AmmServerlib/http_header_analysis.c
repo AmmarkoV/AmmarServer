@@ -172,9 +172,15 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
      if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
      {
         //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=` for admin/ammar
-        fprintf(stderr,"Got an authorization string -> %s \n",request);
         payload_start+=14/*strlen("AUTHORIZATION:")*/;
         while ( (payload_start<request_length) && (request[payload_start]==' ') ) { ++payload_start; }
+        if (payload_start<request_length)
+         {
+          trim_last_empty_chars(request,request_length);
+          char * payload = &request[payload_start];
+          fprintf(stderr,"Got an authorization string -> `%s` \n",payload);
+         }
+
      }
 
 
