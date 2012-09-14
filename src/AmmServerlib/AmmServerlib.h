@@ -40,7 +40,8 @@ enum AmmServSettings
 
 enum AmmServStrSettings
 {
-    AMMSET_PASSWORD_STR=0,
+    AMMSET_USERNAME_STR=0,
+    AMMSET_PASSWORD_STR,
     AMMSET_TESTSTR
 };
 

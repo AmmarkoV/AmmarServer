@@ -21,7 +21,9 @@
 #define ENABLE_DIRECTORY_LISTING 1
 
 extern int PASSWORD_PROTECTION;
+extern char * USERNAME;
 extern char * PASSWORD;
+extern char * BASE64PASSWORD;
 
 extern int varSocketTimeoutREAD_ms;
 extern int varSocketTimeoutWRITE_ms;
@@ -40,5 +42,6 @@ extern char TemplatesInternalURI[MAX_RESOURCE];
 int LoadConfigurationFile(char * conf_file);
 
 int AssignStr(char ** dest , char * source);
+int SetUsernameAndPassword(char * username,char * password);
 
 #endif // CONFIGURATION_H_INCLUDED

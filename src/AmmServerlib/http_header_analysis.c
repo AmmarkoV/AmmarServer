@@ -170,7 +170,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
      /*NOT PUT / GET / POST ETC .. */
      unsigned int payload_start = 0;
 
-     if ((PASSWORD_PROTECTION)&&(PASSWORD!=0))
+     if ((PASSWORD_PROTECTION)&&(BASE64PASSWORD!=0))
      { //Consider password protection header sections..!
       if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
       {
@@ -182,14 +182,14 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
           trim_last_empty_chars(request,request_length);
           char * payload = &request[payload_start];
           fprintf(stderr,"Got an authorization string -> `%s`\n",payload);
-          //fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,PASSWORD);
-          if (strcmp(PASSWORD,payload)==0) { output->authorized=1; } else
-                                           { output->authorized=0; }
+          //fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,BASE64PASSWORD);
+          if (strcmp(BASE64PASSWORD,payload)==0) { output->authorized=1; } else
+                                                 { output->authorized=0; }
          }
       }
      } else
      {
-         fprintf(stderr,"Skipping authorization check PASSWORD=%s , PASSWORD_PROTECTION=%u\n",PASSWORD,PASSWORD_PROTECTION);
+         fprintf(stderr,"Skipping authorization check BASE64PASSWORD=%s , PASSWORD_PROTECTION=%u\n",BASE64PASSWORD,PASSWORD_PROTECTION);
      }
 
    }

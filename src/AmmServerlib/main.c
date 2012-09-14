@@ -111,6 +111,7 @@ char * AmmServer_GetStrSettingValue(unsigned int set_type)
 {
   switch (set_type)
    {
+     case AMMSET_USERNAME_STR :    return USERNAME; break;
      case AMMSET_PASSWORD_STR :    return PASSWORD; break;
    };
   return 0;
@@ -120,7 +121,8 @@ int AmmServer_SetStrSettingValue(unsigned int set_type,char * set_value)
 {
   switch (set_type)
    {
-     case AMMSET_PASSWORD_STR :  return AssignStr(&PASSWORD,set_value);  break;
+     case AMMSET_USERNAME_STR :  AssignStr(&USERNAME,set_value); return SetUsernameAndPassword(USERNAME,PASSWORD); break;
+     case AMMSET_PASSWORD_STR :  AssignStr(&PASSWORD,set_value); return SetUsernameAndPassword(USERNAME,PASSWORD); break;
    };
   return 0;
 }

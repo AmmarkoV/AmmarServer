@@ -108,6 +108,11 @@ int main(int argc, char *argv[])
     //AmmServer_SetIntSettingValue(AMMSET_PASSWORD_PROTECTION,1);
     //AmmServer_SetStrSettingValue(AMMSET_PASSWORD_STR,"46YW1tYXI=");
 
+    AmmServer_SetStrSettingValue(AMMSET_USERNAME_STR,"admin");
+    AmmServer_SetStrSettingValue(AMMSET_PASSWORD_STR,"ammar");
+    AmmServer_SetStrSettingValue(AMMSET_PASSWORD_STR,"ammar");
+    AmmServer_SetIntSettingValue(AMMSET_PASSWORD_PROTECTION,1); // It is best to enable password protection after correctly setting both username and password
+    //to avoid the rare race condition of logging only with username ( i.e. when password hasn't been declared
 
     init_dynamic_content();
 
