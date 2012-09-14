@@ -57,27 +57,26 @@ int SetUsernameAndPassword(char * username,char * password)
   if ( pass_size>MAX_QUERY ) { fprintf(stderr,"Error : SetUsernameAndPassword was given a huge string to convert..!"); return 0; }
 
   char * mixed_string = malloc(sizeof (char) * pass_size );
-  if (mixed_string==0) { fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n"); }
-  mixed_string[0]=0;
+  if (mixed_string==0) { fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n"); return 0; }
 
-  if (username!=0) { strcpy(mixed_string,username); } else { strcpy(mixed_string,""); }
+  mixed_string[0]=0;
+  if (username!=0) { strcpy(mixed_string,username); }
   strcat(mixed_string,":");
   if (password!=0) { strcat(mixed_string,password); }
 
 
 
-  int result =0;
   char * base64pass = malloc(sizeof (char) *  (pass_size*2) );
-  if (base64pass==0) { fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n"); }
+  if (base64pass==0) { fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n"); return 0; }
   base64pass[0]=0;
 
-  result=encodeToBase64(mixed_string,strlen(mixed_string),base64pass,pass_size*2);
+  int result=encodeToBase64(mixed_string,strlen(mixed_string),base64pass,pass_size*2);
   if (result)
    { fprintf(stderr,"\nUsername and Password %s converted to %s \n",mixed_string,base64pass);
      AssignStr(&BASE64PASSWORD,base64pass);
      PASSWORD_PROTECTION=1;
    } else
-   { fprintf(stderr,"\nCould not encode Username and Password %s:%s \n",mixed_string); }
+   { fprintf(stderr,"\nCould not encode Username and Password %s \n",mixed_string); }
 
    free(mixed_string);
    free(base64pass);

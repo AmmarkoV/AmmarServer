@@ -174,14 +174,16 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
      { //Consider password protection header sections..!
       if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
       {
-        //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=` for admin/ammar
-        payload_start+=strlen("AUTHORIZATION:");
+        //TODO  :  THERE IS A BUG HERE :P , SOMETHING GETS SKIPPED
+        fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
+          //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=` for admin/ammar
+        payload_start+=strlen("AUTHORIZATION:")+1;
         while ( (payload_start<request_length) && (request[payload_start]==' ') ) { ++payload_start; }
         if (payload_start<request_length)
          {
           trim_last_empty_chars(request,request_length);
           char * payload = &request[payload_start];
-          fprintf(stderr,"Got an authorization string -> `%s`\n",payload);
+          fprintf(stderr,"Got an authorization string -> `%s` \n",payload);
           //fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,BASE64PASSWORD);
           if (strcmp(BASE64PASSWORD,payload)==0) { output->authorized=1; } else
                                                  { output->authorized=0; }
