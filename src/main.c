@@ -35,8 +35,9 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 /*! Dynamic content code ..! START!*/
 struct AmmServer_RH_Context stats={0};
+struct AmmServer_RH_Context form={0};
 
-void * prepare_content_callback()
+void * prepare_stats_content_callback()
 {
   //fprintf(stderr,"CallbackCalled!\n");
   time_t t = time(NULL);
@@ -53,13 +54,30 @@ void * prepare_content_callback()
   return 0;
 }
 
+
+
+void * prepare_form_content_callback()
+{
+  strcpy(form.content,"<html><body>");
+  strcat(stats.content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" /></form>");
+  strcat(stats.content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
+  strcat(stats.content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car");
+  strcat(stats.content,"</form></body></html>");
+  form.content_size=strlen(form.content);
+  return 0;
+}
+
+
+
+
+
 void init_dynamic_content()
 {
    memset(&stats,0,sizeof(struct AmmServer_RH_Context));
    strncpy(stats.web_root_path,webserver_root,MAX_FILE_PATH);
    strncpy(stats.resource_name,"/stats.html",MAX_RESOURCE);
    stats.MAX_content_size=4096;
-   stats.prepare_content_callback=&prepare_content_callback;
+   stats.prepare_content_callback=&prepare_stats_content_callback;
 
 
    stats.content = (char*) malloc(sizeof(char) * stats.MAX_content_size);
@@ -67,6 +85,21 @@ void init_dynamic_content()
      { //AmmServer_AddResourceHandlerOLD(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback);
        AmmServer_AddResourceHandler(&stats);
      }/*! Dynamic content Add Resource Handler..! */
+
+   memset(&form,0,sizeof(struct AmmServer_RH_Context));
+   strncpy(form.web_root_path,webserver_root,MAX_FILE_PATH);
+   strncpy(form.resource_name,"/formtest.html",MAX_RESOURCE);
+   form.MAX_content_size=4096;
+   form.prepare_content_callback=&prepare_form_content_callback;
+
+
+   form.content = (char*) malloc(sizeof(char) * stats.MAX_content_size);
+   if (form.content!=0)
+     { //AmmServer_AddResourceHandlerOLD(webserver_root,"/stats.html",stats_buf,&stats_size,&prepare_content_callback);
+       AmmServer_AddResourceHandler(&form);
+     }/*! Dynamic content Add Resource Handler..! */
+
+
 }
 
 void close_dynamic_content()
@@ -76,6 +109,14 @@ void close_dynamic_content()
        stats.MAX_content_size=0;
        free(stats.content );
        stats.content =0;
+     }
+
+
+    if (form.content !=0)
+     {
+       form.MAX_content_size=0;
+       free(form.content );
+       form.content =0;
      }
 }
 /*! Dynamic content code ..! END ------------------------*/
