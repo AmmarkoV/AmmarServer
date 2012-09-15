@@ -60,17 +60,10 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
    return 0;
 }
 
-int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
+
+
+inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
 {
-  /*
-      This call fills in the output variable according to the line data held in the request string..!
-      it is made to be called internally by AnalyzeHTTPRequest
-  */
-
-  //fprintf(stderr,"Analyzing HTTP Request : Line %u , `%s` \n",lines_gathered,request);
-
-  if (lines_gathered==1)
-   {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }
      // The firs line should contain the message type so .. lets see..!
      if (
@@ -165,15 +158,14 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
          fprintf(stderr,"PATCH Request %s\n", request);
          output->requestType=PATCH;
        }
-   } else
-   {
-     /*NOT PUT / GET / POST ETC .. */
-     unsigned int payload_start = 0;
+  return 1;
+}
 
-     if ((PASSWORD_PROTECTION)&&(BASE64PASSWORD!=0))
-     { //Consider password protection header sections..!
-      if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
-      {
+
+inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root,unsigned int * payload_pos)
+{
+
+        unsigned int payload_start = *payload_pos;
         //fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
         //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=`
         //TODO : this needs some thought , it can be improved!
@@ -191,11 +183,39 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
           if (strcmp(BASE64PASSWORD,payload)==0) { output->authorized=1; } else
                                                  { output->authorized=0; }
          }
+    return 1;
+}
+
+
+
+
+
+int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
+{
+  /*
+      This call fills in the output variable according to the line data held in the request string..!
+      it is made to be called internally by AnalyzeHTTPRequest
+  */
+
+  //fprintf(stderr,"Analyzing HTTP Request : Line %u , `%s` \n",lines_gathered,request);
+
+  if (lines_gathered==1)
+   { //Process first line , GET / HEAD / POST etc ,  this is a pretty lengthy call so it is split in a seperate function
+     return ProcessFirstHTTPLine(output,request,request_length,lines_gathered,webserver_root);
+   } else
+   {
+     /*NOT PUT / GET / POST ETC .. */
+
+     if ((PASSWORD_PROTECTION)&&(BASE64PASSWORD!=0))
+     { //Consider password protection header sections..!
+      unsigned int payload_start = 0;
+      if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
+      {
+        return ProcessAuthorizationHTTPLine(output,request,request_length,lines_gathered,webserver_root,&payload_start);
+
       }
-     } else
-     {
-         fprintf(stderr,"Skipping authorization check BASE64PASSWORD=%s , PASSWORD_PROTECTION=%u\n",BASE64PASSWORD,PASSWORD_PROTECTION);
      }
+     //This spams the console -> else { fprintf(stderr,"Skipping authorization check BASE64PASSWORD=%s , PASSWORD_PROTECTION=%u\n",BASE64PASSWORD,PASSWORD_PROTECTION); }
 
    }
 
