@@ -50,7 +50,8 @@ int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root
 int AmmServer_Stop();
 int AmmServer_Running();
 
-int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context);
+int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback);
+int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem);
 
 int AmmServer_GetInfo(unsigned int info_type);
 

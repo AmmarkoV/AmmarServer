@@ -69,37 +69,6 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
   return 0;
 }
 
-
-int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
-{
-  if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
-   {
-     fprintf(stderr,"Dynamic content is disabled..!\n");
-     return 0;
-   }
-  if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full"); return 0; }
-
-  unsigned int index=loaded_cache_items++;
-
-  //Create the full path to distinguish from different root_paths ( virutal servers ) ..!
-  char full_filename[(MAX_RESOURCE*2)+1]={0};
-  //These direct resource functions come from inside our program so we can cpy/cat them here
-  //( they dont pass through http_header_analysis.c so this can't be done another way..!
-
-
-  strncpy(full_filename,context->web_root_path,MAX_RESOURCE);
-  strncat(full_filename,context->resource_name,MAX_RESOURCE);
-  ReducePathSlashes_Inplace(full_filename);
-
-  cache[index].filename_hash = hash(full_filename);
-  cache[index].mem = context->content;
-  cache[index].filesize = &context->content_size;
-  cache[index].hits = 0;
-  cache[index].prepare_mem_callback = context->prepare_content_callback;
-
-  return 1;
-}
-
 int AddFileToCache(char * filename,unsigned int * index)
 {
   if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full"); return 0; }
@@ -134,6 +103,55 @@ int AddFileToCache(char * filename,unsigned int * index)
 
   return 1;
 }
+
+
+
+int RemoveFileFromCache(char * filename)
+{
+   fprintf(stderr,"RemoveFileFromCache(%s) not implemented\n",filename);
+   return 0;
+}
+
+
+int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
+{
+  if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
+   {
+     fprintf(stderr,"Dynamic content is disabled..!\n");
+     return 0;
+   }
+  if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full"); return 0; }
+
+  unsigned int index=loaded_cache_items++;
+
+  //Create the full path to distinguish from different root_paths ( virutal servers ) ..!
+  char full_filename[(MAX_RESOURCE*2)+1]={0};
+  //These direct resource functions come from inside our program so we can cpy/cat them here
+  //( they dont pass through http_header_analysis.c so this can't be done another way..!
+
+
+  strncpy(full_filename,context->web_root_path,MAX_RESOURCE);
+  strncat(full_filename,context->resource_name,MAX_RESOURCE);
+  ReducePathSlashes_Inplace(full_filename);
+
+  cache[index].filename_hash = hash(full_filename);
+  cache[index].mem = context->content;
+  cache[index].filesize = &context->content_size;
+  cache[index].hits = 0;
+  cache[index].prepare_mem_callback = context->prepare_content_callback;
+
+  return 1;
+}
+
+
+int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned char free_mem)
+{
+       context->MAX_content_size=0;
+       if ((free_mem)&&(context->content!=0)) { free(context->content); context->content=0; }
+       return RemoveFileFromCache(context->resource_name);
+}
+
+
 
 int CachedVersionExists(char * verified_filename)
 {

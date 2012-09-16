@@ -36,6 +36,7 @@ int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
+  fprintf(stderr,"TODO: Implement POST requests , and couple them to dynamic content ..\n");
   fprintf(stderr,"TODO: Implement POST requests ..\n");
   fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
   fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
@@ -63,9 +64,28 @@ int AmmServer_Running()
   return HTTPServerIsRunning();
 }
 
-int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context)
+int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback)
 {
+   if ( context->content!=0 ) { fprintf(stderr,"Context in AmmServer_AddResourceHandler for %s appears to have an already initialized memory part\n"); }
+   memset(context,0,sizeof(struct AmmServer_RH_Context));
+   strncpy(context->web_root_path,web_root,MAX_FILE_PATH);
+   strncpy(context->resource_name,resource_name,MAX_RESOURCE);
+   context->MAX_content_size=allocate_mem_bytes;
+   context->prepare_content_callback=callback;
+
+   //TODO : callback_every_x_msec is ignored for now , it should make the query the callback function no sooner than x_msec
+
+   if ( allocate_mem_bytes>0 )
+    {
+       context->content = (char*) malloc( sizeof(char) * allocate_mem_bytes );
+    }
   return AddDirectResourceToCache(context);
+}
+
+
+int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem)
+{
+  return RemoveDirectResourceToCache(context,free_mem);
 }
 
 

@@ -7,6 +7,7 @@ int CachedVersionExists(char * verified_filename);
 char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,unsigned char gzip_supported);
 
 int AddDirectResourceToCache(struct AmmServer_RH_Context * context);
+int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned char free_mem);
 
 unsigned int FindCacheIndexForFile(char * filename,unsigned int * index);
 
