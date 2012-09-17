@@ -64,7 +64,7 @@ void * prepare_form_content_callback()
   strcat(form.content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" /></form>");
   strcat(form.content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
   strcat(form.content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car");
-  strcat(form.content,"</form></body></html>");
+  strcat(form.content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form></body></html>");
   form.content_size=strlen(form.content);
   return 0;
 }

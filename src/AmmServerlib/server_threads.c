@@ -192,7 +192,10 @@ void * ServeClient(void * ptr)
    { // Not a Bad request Start
 
 
-
+      if (output.requestType==POST)
+       {
+          fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
+       }
 
 
 

@@ -68,9 +68,13 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 
      char reply_header[512]={0};
      sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/%s\nContent-type: text/html\n",response,FULLVERSION_STRING);
-
      int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
      if (opres<=0) { return 0; }
+
+     GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
+     opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+     if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
+
 
      return 1;
 }
@@ -95,6 +99,10 @@ unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verif
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
 
+      GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
+      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
+
       return 1;
 }
 
@@ -117,6 +125,10 @@ unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verif
 
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
+
+      GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
+      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
 
       return 1;
 }
@@ -189,6 +201,9 @@ unsigned long SendFile
   if (cached_buffer!=0) //&&(cached_lSize!=0) its not bad to have a zero size cache item!
    { /*!Serve cached file !*/
      //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
+     //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
+     //GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
+
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); return 0; }

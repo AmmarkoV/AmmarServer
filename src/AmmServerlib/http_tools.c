@@ -21,6 +21,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "http_tools.h"
 #include "configuration.h"
@@ -40,6 +41,9 @@ enum FileType
     FOLDER
 };
 
+
+const char *days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+const char *months[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 
 
 static char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -186,6 +190,25 @@ int GetContentType(char * filename,char * content_type)
    fprintf(stderr,"Extension ( %s ) hints content type %s\n",extension,content_type);
 
   return res;
+}
+
+
+int GetDateString(char * output,char * label,unsigned int now,unsigned int dayofweek,unsigned int day,unsigned int month,unsigned int year,unsigned int hour,unsigned int minute,unsigned int second)
+{
+   //Date: Sat, 29 May 2010 12:31:35 GMT
+   //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
+   if ( now )
+      {
+        time_t clock = time(NULL);
+        struct tm * ptm = gmtime ( &clock );
+
+        sprintf(output,"%s: %s, %u %s %u %u:%u:%u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+
+      } else
+      {
+        sprintf(output,"%s: %s, %u %s %u %u:%u:%u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
+      }
+
 }
 
 
