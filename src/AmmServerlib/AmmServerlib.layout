@@ -5,10 +5,10 @@
 		<Cursor position="910" topLine="20" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="610" topLine="1" />
+		<Cursor position="610" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="1286" topLine="0" />
+		<Cursor position="684" topLine="0" />
 	</File>
 	<File name="directory_lists.c" open="1" top="0" tabpos="20">
 		<Cursor position="543" topLine="18" />
@@ -23,22 +23,22 @@
 		<Cursor position="429" topLine="0" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="7">
-		<Cursor position="718" topLine="63" />
+		<Cursor position="4639" topLine="69" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
 		<Cursor position="159" topLine="0" />
 	</File>
 	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
-		<Cursor position="1812" topLine="191" />
+		<Cursor position="1812" topLine="197" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
 		<Cursor position="1951" topLine="0" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="14">
-		<Cursor position="17057" topLine="350" />
+		<Cursor position="7754" topLine="186" />
 	</File>
 	<File name="http_tools.h" open="1" top="0" tabpos="15">
-		<Cursor position="752" topLine="0" />
+		<Cursor position="693" topLine="0" />
 	</File>
 	<File name="logs.c" open="1" top="0" tabpos="18">
 		<Cursor position="1338" topLine="0" />
@@ -46,14 +46,14 @@
 	<File name="logs.h" open="1" top="0" tabpos="19">
 		<Cursor position="351" topLine="0" />
 	</File>
-	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="3429" topLine="41" />
+	<File name="main.c" open="1" top="1" tabpos="1">
+		<Cursor position="2115" topLine="12" />
 	</File>
 	<File name="post_analyzer.c" open="1" top="0" tabpos="21">
 		<Cursor position="62" topLine="0" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="10">
-		<Cursor position="6174" topLine="160" />
+		<Cursor position="4980" topLine="151" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="102" topLine="0" />

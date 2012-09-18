@@ -36,12 +36,34 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
 /*! Dynamic content code ..! START!*/
+/* A few words about dynamic content here..
+   This is actually one of the key features on AmmarServer and maybe the reason that I started the whole project
+   What I am trying to do here is serve content by directly linking the webserver to binary ( NOT Interpreted ) code
+   in order to serve pages with the maximum possible efficiency and skipping all intermidiate layers..
+
+   PHP , Ruby , Python and all other "web-languages" are very nice and handy and to be honest I can do most of my work fine using PHP , MySQL and Apache
+   However setting up , configuring and maintaining large projects with different database systems , seperate configuration files for each of the sub parts
+   and re deploying everything is a very tiresome affair.. Not to mention that despite the great work done by the apache  , php etc teams performance is wasted
+   due to the interpreters of the various scripting languages used..
+
+   Things can't get any faster than AmmarServer and the whole programming interface exposed to the programmer is ( imho ) very friendly and familiar to even inexperienced
+   C developer..
+
+   What follows is the decleration of some "Dynamic Content Resources" their Constructors/Destructors and their callback routines that fill them with the content to be served
+   each time a client requests one of the pages..
+
+   One can test them by opening http://127.0.0.1:8081/stats.html for a dynamic time page and http://127.0.0.1:8081/formtest.html for form testing..
+
+*/
+
+
+//The decleration of some dynamic content resources..
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 
+//This function prepares the content of  stats context , ( stats.content )
 void * prepare_stats_content_callback()
 {
-  //fprintf(stderr,"CallbackCalled!\n");
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
@@ -58,6 +80,7 @@ void * prepare_stats_content_callback()
 
 
 
+//This function prepares the content of  form context , ( form.content )
 void * prepare_form_content_callback()
 {
   strcpy(form.content,"<html><body>");
@@ -69,7 +92,7 @@ void * prepare_form_content_callback()
   return 0;
 }
 
-
+//This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
   if (! AmmServer_AddResourceHandler(&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback) )
@@ -79,6 +102,7 @@ void init_dynamic_content()
      { fprintf(stderr,"Failed adding form testing page\n"); }
 }
 
+//This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(&stats,1);
@@ -98,7 +122,7 @@ int main(int argc, char *argv[])
 
 
     if ( argc <1 ) { fprintf(stderr,"Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
-    if ( argc <= 2 ) { /*fprintf(stderr,"Please note that you may choose a different binding IP/port as command line parameters.. \"ammarserver 0.0.0.0 8080\"\n");*/ } else
+    if ( argc <= 2 ) {  } else
      {
         if (strlen(argv[1])>=MAX_INPUT_IP) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
                                            { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
@@ -108,12 +132,15 @@ int main(int argc, char *argv[])
    if (argc>=3) { strncpy(webserver_root,argv[3],MAX_FILE_PATH); }
    if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
 
+    //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
 
 
+    //If we want password protection ( variable defined in the start of this file ) we will have to set a username and a password
+    //and then enable password protection
     if (ENABLE_PASSWORD_PROTECTION)
     {
-      fprintf(stderr,"\nSetting password protection\n");
+      fprintf(stderr,"\nEnabling password protection\n");
       AmmServer_SetStrSettingValue(AMMSET_USERNAME_STR,"admin");
       AmmServer_SetStrSettingValue(AMMSET_PASSWORD_STR,"admin"); //these 2 calls should change BASE64PASSWORD in configuration.c to YWRtaW46YW1tYXI= (or something else)
       /* To avoid the rare race condition of logging only with username and keep a proper state ( i.e. when password hasn't been declared )
@@ -121,15 +148,23 @@ int main(int argc, char *argv[])
       AmmServer_SetIntSettingValue(AMMSET_PASSWORD_PROTECTION,1);
     }
 
+    //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
+    //stats.html and formtest.html should be availiable from now on..!
 
          while (AmmServer_Running())
            {
+             //Main thread should just sleep and let the background threads do the hard work..!
+             //In other applications the programmer could use the main thread to do anything he likes..
+             //The only caveat is that he would takeup more CPU time from the server and that he would have to poll
+             //the AmmServer_Running() call once in a while to make sure everything is in order
              usleep(10000);
            }
 
+    //Delete dynamic content allocations and remove stats.html and formtest.html from the server
     close_dynamic_content();
 
+    //Stop the server and clean state
     AmmServer_Stop();
 
     return 0;
