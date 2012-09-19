@@ -53,7 +53,19 @@ int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root
 
   LoadConfigurationFile(conf_file);
 
-  InitializeCache(2000/*Seperate items*/,64/*MB Limit for the Whole Cache*/,3/*MB Max Size of Individual File*/);
+  InitializeCache(
+                   /*These are the file cache settings , file caching is the mechanism that holds dynamic content and
+                     speeds up file serving by not accessing the whole disk drive subsystem ..*/
+                   2000 , /*Seperate items*/
+                   64   , /*MB Limit for the WHOLE Cache*/
+                   3    , /*MB Max Size of Individual File*/
+
+                   /*These are the POST/GET variable cache settings , POST and GET variables are stored in a seperate cache
+                     in order for dynamic content pages to be able to ..*/
+                   100  , /*Seperate GET/POST client entries */
+                   10   , /*MB Limit for the WHOLE GET/POST entry memory allocation*/
+                   1     /*MB Max Size of an Individual GET/POST entry memory allocation*/
+                  );
   return StartHTTPServer(ip,port,web_root_path,templates_root_path);
 }
 
@@ -86,6 +98,16 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
   return AddDirectResourceToCache(context);
 }
 
+
+int AmmServer_Get_GETArg(struct AmmServer_RH_Context * context,char * id,char * value,unsigned int max_value)
+{
+  return 0;
+}
+
+int AmmServer_Get_POSTArg(struct AmmServer_RH_Context * context,char * id,char * value,unsigned int max_value)
+{
+  return 0;
+}
 
 int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem)
 {

@@ -3,7 +3,9 @@
 #include <string.h>
 #include "configuration.h"
 #include "file_caching.h"
+#include "var_caching.h"
 #include "http_tools.h"
+
 
 unsigned char CACHING_ENABLED=1;
 unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
@@ -13,8 +15,8 @@ unsigned int MAX_CACHE_SIZE=1000;
 
 struct cache_item
 {
-   //TODO: add this to the checks to avoid hash collisions
-   //it will have negative performance effect though :P -> char filename[MAX_FILE_PATH];
+   //TODO: add this to the checks to avoid hash collisions -> char filename[MAX_FILE_PATH];
+   //it will have negative performance effect though :P
    unsigned long filename_hash;
    unsigned int hits;
    unsigned long * filesize;
@@ -209,24 +211,31 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
        return 0;
 }
 
-int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
+int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB,unsigned int max_seperate_variables , unsigned int max_total_var_allocation_MB,unsigned int max_var_allocation_per_entry_MB)
 {
   MAX_TOTAL_ALLOCATION_IN_MB=max_total_allocation_MB;
   MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=max_allocation_per_entry_MB;
+  MAX_CACHE_SIZE=max_seperate_items;
   if (cache==0)
    {
-     cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (max_seperate_items+1));
+     cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (MAX_CACHE_SIZE+1));
      if (cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
    }
 
+
+  InitializeVariableCache(max_seperate_variables, max_total_var_allocation_MB , max_var_allocation_per_entry_MB);
+
+
    unsigned int i=0;
-   for (i=0; i<max_seperate_items; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
+   for (i=0; i<MAX_CACHE_SIZE; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
    return 1;
 }
 
 int DestroyCache()
 {
   fprintf(stderr,"Destroying cache..\n");
+
+   if (!DestroyVariableCache()) { fprintf(stderr,"Failed destroying Variable Cache\n"); }
 
    if (cache==0)
     {
