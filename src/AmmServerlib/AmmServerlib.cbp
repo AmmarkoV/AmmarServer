@@ -40,6 +40,10 @@
 			</Target>
 		</Build>
 		<Unit filename="AmmServerlib.h" />
+		<Unit filename="client_list.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="client_list.h" />
 		<Unit filename="configuration.c">
 			<Option compilerVar="CC" />
 		</Unit>

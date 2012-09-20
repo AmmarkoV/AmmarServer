@@ -35,6 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "directory_lists.h"
 #include "server_threads.h"
 #include "file_server.h"
+#include "client_list.h"
 #include "http_header_analysis.h"
 #include "http_tools.h"
 #include "file_caching.h"
@@ -127,6 +128,17 @@ void * ServeClient(void * ptr)
   if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
 
 
+
+
+   //Now the real fun starts :P <- helpfull comment
+   unsigned int client_id=GetClientId("0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
+   if ( ClientIsBanned(client_id) )
+     {
+         SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
+     } else
+
+  { /*!START OF CLIENT IS NOT ON IP-BANNED-LIST!*/
+
   char incoming_request[MAX_HTTP_REQUEST_HEADER+1]; //A 4K header is more than enough..!
 
   int close_connection=0;
@@ -175,9 +187,15 @@ void * ServeClient(void * ptr)
       close_connection=1;
    }
       else
+   if (!AllowClientToUseResource(client_id,output.resource))
+   {
+     //Client is forbidden but he is not IP banned to use resource ( already opened too many connections )
+     //Doesnt have access to the specific file , etc..!
+     SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
+     close_connection=1;
+   } else
    if ((PASSWORD_PROTECTION)&&(!output.authorized))
    {
-     fprintf(stderr,"Send Password segment .. ");
      SendAuthorizationHeader(clientsock,"AmmarServer authorization..!","authorization.html");
 
      char reply_header[256]={0};
@@ -186,7 +204,6 @@ void * ServeClient(void * ptr)
      int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
      //todo check result
      close_connection=1;
-     fprintf(stderr,"Survived..\n");
    }
      else
    { // Not a Bad request Start
@@ -385,10 +402,17 @@ void * ServeClient(void * ptr)
      }
    } // Not a Bad request END
 
+    ClientStoppedUsingResource(client_id,output.resource);
   }
 
   } // Keep-Alive loop  ( not closing socket )
+
+
+
+  } /*!END OF CLIENT NOT IP-BANNED CODE !*/
+
   close(clientsock);
+
 
   //Clear thread id handler and we can gracefully exit..!
   pthread_mutex_lock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------

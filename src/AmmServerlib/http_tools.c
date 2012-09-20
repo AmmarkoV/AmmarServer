@@ -208,7 +208,7 @@ int GetDateString(char * output,char * label,unsigned int now,unsigned int dayof
       {
         sprintf(output,"%s: %s, %u %s %u %u:%u:%u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
       }
-
+    return 1;
 }
 
 

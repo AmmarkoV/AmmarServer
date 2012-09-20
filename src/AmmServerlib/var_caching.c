@@ -22,6 +22,7 @@ unsigned int loaded_var_cache_items=0;
 
 int InitializeVariableCache(unsigned int max_seperate_variables , unsigned int max_total_var_allocation_MB,unsigned int max_var_allocation_per_entry_MB)
 {
+  return 1;
 
   MAX_VAR_TOTAL_ALLOCATION_IN_MB=max_total_var_allocation_MB;
   MAX_VAR_CACHE_SIZE=max_seperate_variables;
@@ -46,12 +47,14 @@ int DestroyVariableCache()
 int AddVariablesFromClient(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp,unsigned int GETorPOST)
 {
   /* TODO , implementation here..*/
+  return 0;
 }
 
 
 int RemoveVariablesFromClient(unsigned int var_id)
 {
   /* TODO , implementation here..*/
+  return 0;
 }
 
 
