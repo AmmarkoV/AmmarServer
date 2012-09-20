@@ -28,6 +28,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/uio.h>
 
+#include <sys/stat.h>
+#include <time.h>
 
 #include "version.h"
 #include "file_server.h"
@@ -194,15 +196,27 @@ unsigned long SendFile
   int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //.. send preliminary header to minimize lag
   if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
 
+  struct stat last_modified;
+  if (stat(verified_filename, &last_modified))
+     { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
+     {
+       struct tm * ptm = gmtime ( &last_modified.st_mtime ); //This is not a particularly thread safe call , must add a mutex or something here..!
+       //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
+       GetDateString(reply_header,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+       opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+       if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); return 0; }
+     }
 
   unsigned long cached_lSize=0;
-  char * cached_buffer = CheckForCachedVersionOfThePage(verified_filename,&cached_lSize,gzip_supported);
+  char * cached_buffer = CheckForCachedVersionOfThePage(verified_filename,&cached_lSize,&last_modified,gzip_supported);
 
   if (cached_buffer!=0) //&&(cached_lSize!=0) its not bad to have a zero size cache item!
    { /*!Serve cached file !*/
      //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
      //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
      //GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
+
+
 
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it

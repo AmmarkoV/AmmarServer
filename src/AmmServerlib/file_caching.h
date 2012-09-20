@@ -3,8 +3,11 @@
 
 #include "AmmServerlib.h"
 
+#include <sys/stat.h>
+#include <time.h>
+
 int CachedVersionExists(char * verified_filename);
-char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,unsigned char gzip_supported);
+char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported);
 
 int AddDirectResourceToCache(struct AmmServer_RH_Context * context);
 int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned char free_mem);

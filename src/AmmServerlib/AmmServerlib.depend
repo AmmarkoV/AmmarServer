@@ -1,13 +1,14 @@
 # depslib dependency file v1.0
-1346757225 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+1348105240 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
 	<stdio.h>
 	<stdlib.h>
+	<string.h>
 	"version.h"
 	"AmmServerlib.h"
 	"server_threads.h"
 	"file_caching.h"
 
-1346760218 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1348011546 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 	"configuration.h"
 
 1344123404 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network.h
@@ -52,10 +53,14 @@
 1344025145 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/httpprotocol.h
 	"configuration.h"
 
-1344523832 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.c
+1347665216 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.c
 	"configuration.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"http_tools.h"
 
-1346664513 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
+1347884478 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
 
 1344488855 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.c
 	<stdio.h>
@@ -82,8 +87,10 @@
 	"file_caching.h"
 	"http_tools.h"
 
-1346757078 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
+1348108465 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_caching.h
 	"AmmServerlib.h"
+	<sys/stat.h>
+	<time.h>
 
 1344784577 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.c
 	<stdio.h>
@@ -103,18 +110,18 @@
 	"configuration.h"
 	"time.h"
 
-1344603407 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.h
+1347378034 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/file_server.h
 
 1344488855 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
-1344725096 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.h
+1346784199 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.h
 
-1346664541 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.h
+1347374149 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.h
 	"configuration.h"
 
-1346663216 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_tools.h
+1347883391 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_tools.h
 
-1346673435 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.c
+1347742824 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.c
 	"http_header_analysis.h"
 	"http_tools.h"
 	<stdio.h>
@@ -131,7 +138,7 @@
 	"file_caching.h"
 	<dirent.h>
 
-1346659010 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.c
+1348105259 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -146,6 +153,7 @@
 	"directory_lists.h"
 	"server_threads.h"
 	"file_server.h"
+	"client_list.h"
 	"http_header_analysis.h"
 	"http_tools.h"
 	"file_caching.h"
@@ -159,7 +167,7 @@
 	<unistd.h>
 	"time.h"
 
-1344488855 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.c
+1346943400 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/logs.c
 	<stdio.h>
 	"logs.h"
 	"configuration.h"
@@ -302,4 +310,17 @@
 	"post_analyzer.h"
 
 1344696138 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/post_analyzer.h
+
+1348104903 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/client_list.c
+	"client_list.h"
+
+1348103026 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/client_list.h
+
+1348104886 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/var_caching.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"var_caching.h"
+
+1348070489 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/var_caching.h
 

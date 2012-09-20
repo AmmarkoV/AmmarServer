@@ -202,11 +202,11 @@ int GetDateString(char * output,char * label,unsigned int now,unsigned int dayof
         time_t clock = time(NULL);
         struct tm * ptm = gmtime ( &clock );
 
-        sprintf(output,"%s: %s, %u %s %u %u:%u:%u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+        sprintf(output,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
 
       } else
       {
-        sprintf(output,"%s: %s, %u %s %u %u:%u:%u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
+        sprintf(output,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
       }
     return 1;
 }

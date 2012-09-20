@@ -22,6 +22,15 @@ struct cache_item
    unsigned long * filesize;
    char * mem;
    void * prepare_mem_callback;
+
+   /*Modification time..!*/
+   unsigned char hour;
+   unsigned char minute;
+   unsigned char second;
+   unsigned char wday;
+   unsigned char day;
+   unsigned char month;
+   unsigned int  year;
 };
 
 
@@ -71,7 +80,7 @@ unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
   return 0;
 }
 
-int AddFileToCache(char * filename,unsigned int * index)
+int AddFileToCache(char * filename,unsigned int * index,struct stat * last_modification)
 {
   if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full"); return 0; }
 
@@ -100,6 +109,20 @@ int AddFileToCache(char * filename,unsigned int * index)
   *cache[*index].filesize = lSize;
   cache[*index].hits = 0;
   cache[*index].prepare_mem_callback=0; // No callback for this file..
+
+
+
+   //Save modification time..! These are not used yet.. !
+   struct tm * ptm = gmtime ( &last_modification->st_mtime ); //This is not a particularly thread safe call , must add a mutex or something here..!
+   cache[*index].hour=ptm->tm_hour;
+   cache[*index].minute=ptm->tm_min;
+   cache[*index].second=ptm->tm_sec;
+   cache[*index].wday=ptm->tm_wday;
+   cache[*index].day=ptm->tm_mday;
+   cache[*index].month=ptm->tm_mon;
+   cache[*index].year=EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year;
+
+
   fprintf(stderr,"File %s has %u bytes cached with index %u \n",filename,(unsigned int ) lSize,*index);
   fclose(pFile);
 
@@ -163,7 +186,7 @@ int CachedVersionExists(char * verified_filename)
     return 0;
 }
 
-char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,unsigned char gzip_supported)
+char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported)
 {
       if (!CACHING_ENABLED)
       {
@@ -188,7 +211,7 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
            }
         } else
         {
-           if ( AddFileToCache(verified_filename,&index) )
+           if ( AddFileToCache(verified_filename,&index,last_modification) )
             {
              if (cache[index].prepare_mem_callback!=0)
               {
