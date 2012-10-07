@@ -357,7 +357,7 @@ unsigned long SendFile
 
 
 
-unsigned long SendFileMemory
+unsigned long SendMemoryBlockAsFile
   (
     int clientsock, // The socket that will be used to send the data
     //char * path, // The filename to be served on the socket above

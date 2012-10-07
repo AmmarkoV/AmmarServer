@@ -178,11 +178,9 @@ int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned c
 
 
 
-int CachedVersionExists(char * verified_filename)
+int CachedVersionExists(char * verified_filename,unsigned int * index)
 {
-    unsigned int index=0;
-       if (FindCacheIndexForFile(verified_filename,&index))
-        { return 1; }
+    if (FindCacheIndexForFile(verified_filename,index)) { return 1; }
     return 0;
 }
 
@@ -195,7 +193,7 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
       }
 
        unsigned int index=0;
-       if (FindCacheIndexForFile(verified_filename,&index))
+       if (FindCacheIndexForFile(verified_filename,&index)) //This can be avoided by adding an index as a parameter to this function call
         {
            if (cache[index].mem!=0)
            {

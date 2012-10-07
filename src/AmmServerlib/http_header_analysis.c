@@ -62,7 +62,7 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
 
 
 
-inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
+inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root)
 {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }
      // The firs line should contain the message type so .. lets see..!
@@ -162,7 +162,7 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
 }
 
 
-inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root,unsigned int * payload_pos)
+inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root,unsigned int * payload_pos)
 {
 
         unsigned int payload_start = *payload_pos;
@@ -201,7 +201,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
   if (lines_gathered==1)
    { //Process first line , GET / HEAD / POST etc ,  this is a pretty lengthy call so it is split in a seperate function
-     return ProcessFirstHTTPLine(output,request,request_length,lines_gathered,webserver_root);
+     return ProcessFirstHTTPLine(output,request,request_length,webserver_root);
    } else
    {
      /*NOT PUT / GET / POST ETC .. */
@@ -211,7 +211,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
       unsigned int payload_start = 0;
       if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
       {
-        return ProcessAuthorizationHTTPLine(output,request,request_length,lines_gathered,webserver_root,&payload_start);
+        return ProcessAuthorizationHTTPLine(output,request,request_length,webserver_root,&payload_start);
 
       }
      }

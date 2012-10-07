@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <time.h>
 
-int CachedVersionExists(char * verified_filename);
+int CachedVersionExists(char * verified_filename,unsigned int * index);
 char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported);
 
 int AddDirectResourceToCache(struct AmmServer_RH_Context * context);

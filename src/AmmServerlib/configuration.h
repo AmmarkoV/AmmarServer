@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H_INCLUDED
 #define CONFIGURATION_H_INCLUDED
 
-#define MAX_CLIENT_THREADS 100
+#define MAX_CLIENT_THREADS 150
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
 
 #define MAX_QUERY 512

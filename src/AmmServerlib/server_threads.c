@@ -92,8 +92,6 @@ int HTTPServerIsRunning()
 
 void * ServeClient(void * ptr)
 {
-
-
   fprintf(stderr,"New Serve Client call ..\n");
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
@@ -189,7 +187,7 @@ void * ServeClient(void * ptr)
       else
    if (!AllowClientToUseResource(client_id,output.resource))
    {
-     //Client is forbidden but he is not IP banned to use resource ( already opened too many connections )
+     //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
      SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
      close_connection=1;
@@ -202,7 +200,8 @@ void * ServeClient(void * ptr)
      strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
      strcat(reply_header,"and your host machine will be permenantly banned if you exceed the maximum number of incorrect login attempts..</h2></body></html>\n");
      int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-     //todo check result
+
+     if (opres<=0) { fprintf(stderr,"Error sending authorization needed message\n"); }
      close_connection=1;
    }
      else
@@ -259,9 +258,11 @@ void * ServeClient(void * ptr)
 
 
       //STEP 0 : Check with cache!
-      if (CachedVersionExists(servefile) )
+      unsigned int index=0;
+      if (CachedVersionExists(servefile,&index) )
       { //Skip disk access times for checking for directories and other stuff..!
         //We know that the resource is a file from our cache indexes..!
+        //Bonus points we now have the index id of the cached instance of the file for future use..
           resource_is_a_directory=0;
           resource_is_a_file=1;
       } else
@@ -330,7 +331,7 @@ void * ServeClient(void * ptr)
        if (sendSize>0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
-          SendFileMemory(clientsock,reply_body,sendSize);
+          SendMemoryBlockAsFile(clientsock,reply_body,sendSize);
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
@@ -379,22 +380,24 @@ void * ServeClient(void * ptr)
          }
       }
      } else
-     //It is not a GET / HEAD request..!
+     //It is not a valid GET / HEAD / POST request , so use the default handlers for Bad / Not Implemented requests..!
+
      if (output.requestType==BAD)
-     {
+     { //In case some of the security features of the server sensed a BAD! request we should log it..
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
+       //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
        char servefile[MAX_FILE_PATH]={0};
        SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
      if (output.requestType==NONE)
-     {
+     { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
        fprintf(stderr,"Weird unrecognized Request!");
        char servefile[MAX_FILE_PATH]={0};
        SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
-     {
+     { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
        fprintf(stderr,"Not Implemented Request!");
        char servefile[MAX_FILE_PATH]={0};
        SendFile(clientsock,servefile,0,0,501,0,0,0,templates_root);
@@ -402,12 +405,10 @@ void * ServeClient(void * ptr)
      }
    } // Not a Bad request END
 
-    ClientStoppedUsingResource(client_id,output.resource);
+    ClientStoppedUsingResource(client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
   }
 
   } // Keep-Alive loop  ( not closing socket )
-
-
 
   } /*!END OF CLIENT NOT IP-BANNED CODE !*/
 
@@ -435,10 +436,16 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 
   if (ACTIVE_CLIENT_THREADS>=MAX_CLIENT_THREADS)
    {
+     //This needs a little thought.. it is not "nice" to drop clients  , on the other hand what`s the point on opening and
+     //maintaining an idle TCP/IP connection when we are on our limits thread-wise..
      fprintf(stderr,"We are over the limit on clients served..\nDropping client %s..!\n",inet_ntoa(client.sin_addr));
      close(clientsock);
      return 0;
    }
+
+  //TODO : Here would be a good spot to query the client socket ip address in the client_list ..
+  //We may want to keep a client for opening too many connections or ban him early on , before going through the expense
+  //of creating a seperate thread for him..
 
   struct PassToHTTPThread context;
   memset(&context,0,sizeof(struct PassToHTTPThread));
@@ -517,7 +524,8 @@ void * HTTPServerThread (void * ptr)
   context->keep_var_on_stack=2;
 
   if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!\nThe server may already be running ..\n"); server_running=0; return 0; }
-  if ( listen(serversock,MAX_CLIENT_THREADS) < 0 )  { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
+  if ( listen(serversock,MAX_CLIENT_THREADS) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
+           { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
 
 
   while (stop_server==0)

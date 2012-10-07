@@ -26,14 +26,17 @@ int InitializeVariableCache(unsigned int max_seperate_variables , unsigned int m
 
   MAX_VAR_TOTAL_ALLOCATION_IN_MB=max_total_var_allocation_MB;
   MAX_VAR_CACHE_SIZE=max_seperate_variables;
+  //TODO : Take into account max_var_allocation_per_entry_MB
   if (var_cache==0)
    {
-     var_cache = (struct cache_item *) malloc(sizeof(struct submitted_variables) * (MAX_VAR_CACHE_SIZE+1));
+     var_cache = (struct submitted_variables *) malloc(sizeof(struct submitted_variables) * (MAX_VAR_CACHE_SIZE+1));
      if (var_cache == 0) { fprintf(stderr,"Unable to allocate initial cache for POST/GET requests \n"); return 0; }
    }
 
-   unsigned int i=0;
-   //TODO: Change implementation here for (i=0; i<MAX_VAR_CACHE_SIZE; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
+
+   //TODO: Change implementation here
+   //unsigned int i=0;
+   //for (i=0; i<MAX_VAR_CACHE_SIZE; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
    return 1;
 }
 
@@ -46,6 +49,7 @@ int DestroyVariableCache()
 
 int AddVariablesFromClient(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp,unsigned int GETorPOST)
 {
+  fprintf(stderr,"AddVariablesFromClient(%u,%s,%u,%u,%u) not implemented\n",client_id,variables,variables_length,timestamp,GETorPOST);
   /* TODO , implementation here..*/
   return 0;
 }
@@ -53,6 +57,7 @@ int AddVariablesFromClient(unsigned int client_id,char * variables,unsigned int 
 
 int RemoveVariablesFromClient(unsigned int var_id)
 {
+  fprintf(stderr,"RemoveVariablesFromClient(%u) not implemented\n",var_id);
   /* TODO , implementation here..*/
   return 0;
 }

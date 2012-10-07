@@ -1,6 +1,9 @@
 #ifndef FILE_SERVER_H_INCLUDED
 #define FILE_SERVER_H_INCLUDED
 
+
+unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root);
+unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verified_filename);
 unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verified_filename);
 
 unsigned long SendFile
@@ -20,7 +23,7 @@ unsigned long SendFile
     );
 
 
-unsigned long SendFileMemory
+unsigned long SendMemoryBlockAsFile
   (
     int clientsock, // The socket that will be used to send the data
     //char * path, // The filename to be served on the socket above

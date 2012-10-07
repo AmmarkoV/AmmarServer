@@ -27,6 +27,7 @@ char TemplatesInternalURI[MAX_RESOURCE]="_asvres_/";
 int LoadConfigurationFile(char * conf_file)
 {
   /*TODO : Stub*/
+  fprintf(stderr,"LoadConfigurationFile(%s) not implemented yet\n",conf_file);
   return 0;
 }
 

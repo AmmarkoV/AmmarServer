@@ -37,14 +37,14 @@ int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
+  fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST requests , and couple them to dynamic content ..\n");
+  fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
   fprintf(stderr,"TODO: require the Host: header from HTTP 1.1 clients\n");
   fprintf(stderr,"TODO: accept absolute URL's in a request\n");
   fprintf(stderr,"TODO: accept requests with chunked data\n");
   fprintf(stderr,"TODO: use the \"100 Continue\" response appropriately\n");
   fprintf(stderr,"TODO: handle requests with If-Modified-Since: or If-Unmodified-Since: headers\n");
-  fprintf(stderr,"TODO: Implement POST requests , and couple them to dynamic content ..\n");
   fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
-  fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
   fprintf(stderr,"TODO: Add detailed input header parsing\n");
   fprintf(stderr,"TODO: Improve directory listings ( add filesizes , dates etc ) \n");
   fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
