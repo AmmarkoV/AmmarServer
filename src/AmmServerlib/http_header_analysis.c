@@ -102,9 +102,9 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
               The results are then copied to output->resource and output->verified_local_resource which contain
               the resource requested as the client stated it and as we verified for local filesystem..!
               */
-             if ( StripGETRequestQueryAndFragment(stripped,output->query,MAX_QUERY) )
+             if ( StripGETRequestQueryAndFragment(stripped,output->GETquery,MAX_QUERY) )
                {
-                 fprintf(stderr,"Found a query , %s , resource is now %s \n",output->query,stripped);
+                 fprintf(stderr,"Found a query , %s , resource is now %s \n",output->GETquery,stripped);
                }
 
              if (FilenameStripperOk(stripped))

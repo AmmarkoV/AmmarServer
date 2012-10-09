@@ -222,22 +222,18 @@ void * ServeClient(void * ptr)
 
               fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
 
-              if (output.associated_vars!=0) { fprintf(stderr,"Debug : Please note that output.associated_vars is not empty ( %u ) \n",output.associated_vars); }
-              unsigned int client_vars_id = AddPOSTVariables_AndGetClientID(output.associated_vars,incoming_request,total_header);
-              if (client_vars_id  == 0)
-               {
-                 /*We couldnt add the variables to the list ( for any reason :P ) */
-                  SendErrorCodeHeader(clientsock,500 /*Internal Server Error*/,"500.html",templates_root);
-                  char servefile[(MAX_FILE_PATH*2)+1]={0}; // Since we are strcat-ing the file on top of the webserver_root it is only logical to
-                  SendFile(clientsock,servefile,0,0,500,0,0,0,templates_root);
-               } else
-               {
-                 /*
-                    We got us a valid client_vars_id  which points to a place in var_caching.c that contains
-                    the needed variables , we want to fill out this information in our struct HTTPRequest
-                 */
-                output.associated_vars = client_vars_id ;
-               }
+              if (total_header>=MAX_QUERY)
+              {
+                 /*Too large request .. We cannot handle it ..*/
+                  char servefile[MAX_FILE_PATH]={0};
+                  SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
+                  fprintf(stderr,"Huge POST request ( header size %u , MAX_QUERY size %u )  , drowning it..\n",total_header,MAX_QUERY);
+                  close_connection=1;
+              } else
+              {
+                  strncpy(output.POSTquery,incoming_request,MAX_QUERY);
+                  fprintf(stderr,"Found a POST query , %s \n",output.POSTquery);
+              }
             }
        }
 
@@ -248,9 +244,6 @@ void * ServeClient(void * ptr)
 
      if ( (output.requestType==GET)||(output.requestType==HEAD))
      {
-
-
-
       char servefile[(MAX_FILE_PATH*2)+1]={0}; // Since we are strcat-ing the file on top of the webserver_root it is only logical to
       // reserve space for two MAX_FILE_PATHS they are a software security limitation ( system max_path is much larger ) so its not a problem anywhere..!
       int resource_is_a_directory=0,resource_is_a_file=0,generate_directory_list=0,we_can_send_result=1;
