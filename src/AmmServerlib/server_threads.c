@@ -92,6 +92,9 @@ int HTTPServerIsRunning()
 
 void * ServeClient(void * ptr)
 {
+  //! One thing to remember is that we shouldnt return anywhere BUT the end of this function to keep
+  //! correct tracking of active threads , when something bad happens and we want to return , close_connection=1; is set
+
   fprintf(stderr,"New Serve Client call ..\n");
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
@@ -211,6 +214,11 @@ void * ServeClient(void * ptr)
       if (output.requestType==POST)
        {
           fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
+          unsigned int client_id = AddPOSTVariables_AndGetClientID(incoming_request,total_header);
+          if (client_id == 0)
+            {
+               /*We couldnt add the variables to the list ( for any reason :P ) */
+            }
        }
 
 
@@ -438,7 +446,7 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
    {
      //This needs a little thought.. it is not "nice" to drop clients  , on the other hand what`s the point on opening and
      //maintaining an idle TCP/IP connection when we are on our limits thread-wise..
-     fprintf(stderr,"We are over the limit on clients served..\nDropping client %s..!\n",inet_ntoa(client.sin_addr));
+     fprintf(stderr,"We are over the limit on clients served ( %u threads ) ..\nDropping client %s..!\n",ACTIVE_CLIENT_THREADS,inet_ntoa(client.sin_addr));
      close(clientsock);
      return 0;
    }
@@ -466,7 +474,7 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); } } // <- Keep PeerServerContext in stack for long enough :P
 
 
-  if (retres!=0) retres = 0; else retres = 1;
+  if (retres!=0) { retres = 0; } else { retres = 1; }
 
   return retres;
 }

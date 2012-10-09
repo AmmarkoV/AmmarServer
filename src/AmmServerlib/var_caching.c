@@ -47,6 +47,7 @@ int DestroyVariableCache()
 }
 
 
+
 int AddVariablesFromClient(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp,unsigned int GETorPOST)
 {
   fprintf(stderr,"AddVariablesFromClient(%u,%s,%u,%u,%u) not implemented\n",client_id,variables,variables_length,timestamp,GETorPOST);
@@ -63,12 +64,12 @@ int RemoveVariablesFromClient(unsigned int var_id)
 }
 
 
-int AddGETVariablesFromClient(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp)
+int AddGETVariables_AndGetClientID(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp)
 {
   return AddVariablesFromClient(client_id,variables,variables_length,timestamp,1);
 }
 
-int AddPOSTVariablesFromClient(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp)
+int AddPOSTVariables_AndGetClientID(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp)
 {
   return AddVariablesFromClient(client_id,variables,variables_length,timestamp,2);
 }

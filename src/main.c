@@ -62,10 +62,12 @@ struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback()
+void * prepare_stats_content_callback(unsigned int associated_vars)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
+
+  fprintf(stderr,"Associated Var with stats callback is %u \n",associated_vars);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   sprintf(stats.content,"<html><head><title>Dynamic Content Enabled</title></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
@@ -81,8 +83,11 @@ void * prepare_stats_content_callback()
 
 
 //This function prepares the content of  form context , ( form.content )
-void * prepare_form_content_callback()
+void * prepare_form_content_callback(unsigned int associated_vars)
 {
+
+  fprintf(stderr,"Associated Var with form callback is %u \n",associated_vars);
+
   strcpy(form.content,"<html><body>");
   strcat(form.content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" /></form>");
   strcat(form.content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");

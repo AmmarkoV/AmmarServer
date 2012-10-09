@@ -200,9 +200,11 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
              if (cache[index].prepare_mem_callback!=0)
               {
                 /*Do callback here*/
-                void ( *DoCallback) (void)=0 ;
+                void ( *DoCallback) (unsigned int)=0 ;
                 DoCallback = cache[index].prepare_mem_callback;
-                DoCallback();
+                unsigned int VariablesAssociatedWithRequest=0; // <- These variables are associated with this page ( POST / GET vars )
+                //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
+                DoCallback(VariablesAssociatedWithRequest);
               }
              *filesize=*cache[index].filesize;
              return cache[index].mem;
