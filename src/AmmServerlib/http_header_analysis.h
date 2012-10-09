@@ -38,6 +38,7 @@ struct HTTPRequest
    unsigned char supports_gzip;
    unsigned long range_start;
    unsigned long range_end;
+   unsigned int  associated_vars;
    //Languages etc here..!
 };
 

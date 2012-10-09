@@ -211,13 +211,33 @@ void * ServeClient(void * ptr)
    { // Not a Bad request Start
 
 
-      if (output.requestType==POST)
+      if ( output.requestType==POST )
        {
-          fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
-          unsigned int client_id = AddPOSTVariables_AndGetClientID(incoming_request,total_header);
-          if (client_id == 0)
+          if (!ENABLE_POST)
             {
-               /*We couldnt add the variables to the list ( for any reason :P ) */
+               //We may want to disable POST alltogether
+               fprintf(stderr,"POST Requests are disabled , dropping request , you can change this from configuration.h \n");
+            } else
+            {
+
+              fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
+
+              if (output.associated_vars!=0) { fprintf(stderr,"Debug : Please note that output.associated_vars is not empty ( %u ) \n",output.associated_vars); }
+              unsigned int client_vars_id = AddPOSTVariables_AndGetClientID(output.associated_vars,incoming_request,total_header);
+              if (client_vars_id  == 0)
+               {
+                 /*We couldnt add the variables to the list ( for any reason :P ) */
+                  SendErrorCodeHeader(clientsock,500 /*Internal Server Error*/,"500.html",templates_root);
+                  char servefile[(MAX_FILE_PATH*2)+1]={0}; // Since we are strcat-ing the file on top of the webserver_root it is only logical to
+                  SendFile(clientsock,servefile,0,0,500,0,0,0,templates_root);
+               } else
+               {
+                 /*
+                    We got us a valid client_vars_id  which points to a place in var_caching.c that contains
+                    the needed variables , we want to fill out this information in our struct HTTPRequest
+                 */
+                output.associated_vars = client_vars_id ;
+               }
             }
        }
 

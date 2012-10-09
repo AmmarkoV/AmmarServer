@@ -5,8 +5,8 @@ int InitializeVariableCache(unsigned int max_seperate_variables , unsigned int m
 int DestroyVariableCache();
 
 
-int AddGETVariables_AndGetClientID(char * variables,unsigned int variables_length);
-int AddPOSTVariables_AndGetClientID(char * variables,unsigned int variables_length);
+int AddGETVariables_AndGetClientID(unsigned int client_id,char * variables,unsigned int variables_length);
+int AddPOSTVariables_AndGetClientID(unsigned int client_id,char * variables,unsigned int variables_length);
 
 int RemoveVariablesFromClient(unsigned int var_id);
 

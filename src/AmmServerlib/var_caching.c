@@ -64,12 +64,12 @@ int RemoveVariablesFromClient(unsigned int var_id)
 }
 
 
-int AddGETVariables_AndGetClientID(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp)
+int AddGETVariables_AndGetClientID(unsigned int client_id,char * variables,unsigned int variables_length)
 {
-  return AddVariablesFromClient(client_id,variables,variables_length,timestamp,1);
+  return AddVariablesFromClient(client_id,variables,variables_length,0,1);
 }
 
-int AddPOSTVariables_AndGetClientID(unsigned int client_id,char * variables,unsigned int variables_length,unsigned int timestamp)
+int AddPOSTVariables_AndGetClientID(unsigned int client_id,char * variables,unsigned int variables_length)
 {
-  return AddVariablesFromClient(client_id,variables,variables_length,timestamp,2);
+  return AddVariablesFromClient(client_id,variables,variables_length,0,2);
 }
