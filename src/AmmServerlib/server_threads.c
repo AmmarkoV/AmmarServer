@@ -52,6 +52,8 @@ pthread_mutex_t thread_pool_access;
 int ACTIVE_CLIENT_THREADS=0;
 pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
 
+struct HTTPRequest * http_requests_of_threads[MAX_CLIENT_THREADS]={0};
+
 
 struct PassToHTTPThread
 {
@@ -177,6 +179,7 @@ void * ServeClient(void * ptr)
    //fprintf(stderr,"Received %s \n",incoming_request);
    struct HTTPRequest output;
    memset(&output,0,sizeof(struct HTTPRequest));
+   http_requests_of_threads[thread_id]=&output;
 
    int result = AnalyzeHTTPRequest(&output,incoming_request,total_header,webserver_root);
 
@@ -426,7 +429,12 @@ void * ServeClient(void * ptr)
      }
    } // Not a Bad request END
 
+
+    http_requests_of_threads[thread_id]=0; // We disassociate the request from the thread list since it has been "served"
+    //TODO : More documentation on this
+
     ClientStoppedUsingResource(client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
+
   }
 
   } // Keep-Alive loop  ( not closing socket )
@@ -436,12 +444,14 @@ void * ServeClient(void * ptr)
   close(clientsock);
 
 
+
   //Clear thread id handler and we can gracefully exit..!
   pthread_mutex_lock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
   if (ACTIVE_CLIENT_THREADS>0)
   {
     threads_pool[thread_id]=threads_pool[ACTIVE_CLIENT_THREADS-1];
     threads_pool[ACTIVE_CLIENT_THREADS-1]=0;
+    // TODO : THIS SHOULD ALSO BE CHANGED! http_requests_of_threads[thread_id]=0; // We disassociate the request from the thread list since it has been "served"
     --ACTIVE_CLIENT_THREADS;
   }
   pthread_mutex_unlock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------

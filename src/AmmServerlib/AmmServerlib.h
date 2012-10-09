@@ -53,8 +53,9 @@ int AmmServer_Running();
 int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback);
 int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem);
 
-int AmmServer_Get_GETArg(struct AmmServer_RH_Context * context,char * id,char * value,unsigned int max_value);
-int AmmServer_Get_POSTArg(struct AmmServer_RH_Context * context,char * id,char * value,unsigned int max_value);
+
+int AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length);
+int AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length);
 
 int AmmServer_GetInfo(unsigned int info_type);
 

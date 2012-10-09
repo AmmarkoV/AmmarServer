@@ -100,13 +100,47 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
 }
 
 
-int AmmServer_Get_GETArg(struct AmmServer_RH_Context * context,char * id,char * value,unsigned int max_value)
+int AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length)
 {
+  if (!ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES)
+     {
+        fprintf(stderr,"Interface access is disabled for GET and POST variables ( while trying to get GET vars ), you can change this by modifying configuration.h\n");
+        return 0;
+     }
+
+  if ( associated_var_id < ACTIVE_CLIENT_THREADS )
+   {
+       if (http_requests_of_threads[associated_var_id]!=0)
+        {
+            if (http_requests_of_threads[associated_var_id]->GETquery!=0)
+            {
+             strncpy(value,http_requests_of_threads[associated_var_id]->GETquery,max_value_length);
+             return 1;
+            }
+        }
+   }
   return 0;
 }
 
-int AmmServer_Get_POSTArg(struct AmmServer_RH_Context * context,char * id,char * value,unsigned int max_value)
+int AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length)
 {
+  if (!ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES)
+     {
+        fprintf(stderr,"Interface access is disabled for GET and POST variables ( while trying to get POST vars ), you can change this by modifying configuration.h\n");
+        return 0;
+     }
+
+  if ( associated_var_id < ACTIVE_CLIENT_THREADS )
+   {
+       if (http_requests_of_threads[associated_var_id]!=0)
+        {
+            if (http_requests_of_threads[associated_var_id]->POSTquery!=0)
+             {
+               strncpy(value,http_requests_of_threads[associated_var_id]->POSTquery,max_value_length);
+               return 1;
+             }
+        }
+   }
   return 0;
 }
 

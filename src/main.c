@@ -86,13 +86,49 @@ void * prepare_stats_content_callback(unsigned int associated_vars)
 void * prepare_form_content_callback(unsigned int associated_vars)
 {
 
-  fprintf(stderr,"Associated Var with form callback is %u \n",associated_vars);
-
   strcpy(form.content,"<html><body>");
   strcat(form.content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" /></form>");
   strcat(form.content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
   strcat(form.content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car");
-  strcat(form.content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form></body></html>");
+  strcat(form.content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form>");
+
+
+  fprintf(stderr,"Associated Var with form callback is %u \n",associated_vars);
+  //AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length);
+  //AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length);
+  char * POST_Request = (char * ) malloc ( 1024 * sizeof (char * )) ;
+  if (POST_Request!=0)
+  {
+   POST_Request[0]=0;
+   if (AmmServer_Get_POSTArguments(&form,associated_vars,POST_Request,1024) )
+    {
+      strcat(form.content,"<hr>POST REQUEST dynamically added here : <br><i>");
+      strcat(form.content,POST_Request);
+      strcat(form.content,"</i><hr>");
+
+    }
+   free(POST_Request);
+  }
+
+
+  char * GET_Request = (char * ) malloc ( 1024 * sizeof (char * )) ;
+  if (GET_Request !=0)
+  {
+   GET_Request [0]=0;
+   if (AmmServer_Get_POSTArguments(&form,associated_vars,GET_Request ,1024) )
+    {
+      strcat(form.content,"<hr>GET REQUEST dynamically added here : <br><i>");
+      strcat(form.content,GET_Request );
+      strcat(form.content,"</i><hr>");
+
+    }
+   free(GET_Request );
+  }
+
+
+  strcat(form.content,"</body></html>");
+
+
   form.content_size=strlen(form.content);
   return 0;
 }
