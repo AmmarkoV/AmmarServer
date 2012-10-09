@@ -3,7 +3,6 @@
 #include <string.h>
 #include "configuration.h"
 #include "file_caching.h"
-#include "var_caching.h"
 #include "http_tools.h"
 
 
@@ -246,7 +245,7 @@ int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_all
    }
 
 
-  InitializeVariableCache(max_seperate_variables, max_total_var_allocation_MB , max_var_allocation_per_entry_MB);
+//  InitializeVariableCache(max_seperate_variables, max_total_var_allocation_MB , max_var_allocation_per_entry_MB);
 
 
    unsigned int i=0;
@@ -258,7 +257,7 @@ int DestroyCache()
 {
   fprintf(stderr,"Destroying cache..\n");
 
-   if (!DestroyVariableCache()) { fprintf(stderr,"Failed destroying Variable Cache\n"); }
+//   if (!DestroyVariableCache()) { fprintf(stderr,"Failed destroying Variable Cache\n"); }
 
    if (cache==0)
     {

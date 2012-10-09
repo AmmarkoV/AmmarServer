@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1348105240 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+1349824878 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -60,7 +60,7 @@
 	<string.h>
 	"http_tools.h"
 
-1349801132 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
+1349824798 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
 
 1344488855 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.c
 	<stdio.h>
@@ -117,7 +117,8 @@
 
 1344488855 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
-1346784199 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.h
+1349824519 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.h
+	"http_header_analysis.h"
 
 1349801286 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/http_header_analysis.h
 	"configuration.h"
@@ -142,7 +143,7 @@
 	"file_caching.h"
 	<dirent.h>
 
-1348105259 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.c
+1349824330 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
