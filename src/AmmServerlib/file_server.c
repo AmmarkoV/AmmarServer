@@ -137,6 +137,9 @@ unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verif
 
 unsigned long SendFile
   (
+
+    struct HTTPRequest * request,
+
     int clientsock, // The socket that will be used to send the data
     char * verified_filename_pending_copy, // The filename to be served on the socket above
 
@@ -208,7 +211,7 @@ unsigned long SendFile
      }
 
   unsigned long cached_lSize=0;
-  char * cached_buffer = CheckForCachedVersionOfThePage(verified_filename,&cached_lSize,&last_modified,gzip_supported);
+  char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&cached_lSize,&last_modified,gzip_supported);
 
   if (cached_buffer!=0) //&&(cached_lSize!=0) its not bad to have a zero size cache item!
    { /*!Serve cached file !*/

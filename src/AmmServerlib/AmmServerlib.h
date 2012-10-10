@@ -21,7 +21,9 @@ struct AmmServer_RH_Context
 
    char * content;
    char * GET_request;
+   unsigned int GET_request_length;
    char * POST_request;
+   unsigned int POST_request_length;
 };
 
 enum AmmServInfos
@@ -54,8 +56,8 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
 int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem);
 
 
-int AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length);
-int AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length);
+int AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int transaction_id,char * value,unsigned int max_value_length);
+int AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int transaction_id,char * value,unsigned int max_value_length);
 
 int AmmServer_GetInfo(unsigned int info_type);
 

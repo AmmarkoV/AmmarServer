@@ -1,6 +1,8 @@
 #ifndef FILE_SERVER_H_INCLUDED
 #define FILE_SERVER_H_INCLUDED
 
+#include "http_header_analysis.h"
+
 
 unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root);
 unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verified_filename);
@@ -8,6 +10,9 @@ unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verif
 
 unsigned long SendFile
   (
+
+    struct HTTPRequest * request,
+
     int clientsock, // The socket that will be used to send the data
     char * verified_filename_pending_copy, // The filename to be served on the socket above
 

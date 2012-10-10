@@ -52,8 +52,6 @@ pthread_mutex_t thread_pool_access;
 int ACTIVE_CLIENT_THREADS=0;
 pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
 
-struct HTTPRequest * transaction_pool[MAX_CLIENT_THREADS]={0};
-
 
 struct PassToHTTPThread
 {
@@ -91,29 +89,6 @@ int HTTPServerIsRunning()
   -----------------------------------------------------------------
 
 */
-
-/* TODO -> Fill in the blanks here :P */
-
-int RegisterNewTransactionID(unsigned int already_have_an_id)
-{
-
-}
-
-
-int FreeTransactionID(unsigned int transaction_id)
-{
-
-}
-
-struct HTTPRequest * GetRequestStructForTransactionID(unsigned int transaction_id)
-{
-
-}
-
-/* TODO -> Fill in the blanks here :P */
-
-
-
 
 void * ServeClient(void * ptr)
 {
@@ -202,7 +177,7 @@ void * ServeClient(void * ptr)
    //fprintf(stderr,"Received %s \n",incoming_request);
    struct HTTPRequest output;
    memset(&output,0,sizeof(struct HTTPRequest));
-   transaction_pool[thread_id]=&output;
+
 
    int result = AnalyzeHTTPRequest(&output,incoming_request,total_header,webserver_root);
 
@@ -210,7 +185,7 @@ void * ServeClient(void * ptr)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       fprintf(stderr,"Bad Request!");
       char servefile[MAX_FILE_PATH]={0};
-      SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
+      SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
       close_connection=1;
    }
       else
@@ -252,7 +227,7 @@ void * ServeClient(void * ptr)
               {
                  /*Too large request .. We cannot handle it ..*/
                   char servefile[MAX_FILE_PATH]={0};
-                  SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
+                  SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
                   fprintf(stderr,"Huge POST request ( header size %u , MAX_QUERY size %u )  , drowning it..\n",total_header,MAX_QUERY);
                   close_connection=1;
               } else
@@ -382,7 +357,7 @@ void * ServeClient(void * ptr)
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
-          SendFile(clientsock,servefile,0,0,404,0,0,0,templates_root);
+          SendFile(&output,clientsock,servefile,0,0,404,0,0,0,templates_root);
         }
        close_connection=1;
        we_can_send_result=0;
@@ -398,7 +373,7 @@ void * ServeClient(void * ptr)
      {
         fprintf(stderr,"404 not found..!!");
         char servefile[MAX_FILE_PATH]={0};
-        SendFile(clientsock,servefile,0,0,404,0,0,0,templates_root);
+        SendFile(&output,clientsock,servefile,0,0,404,0,0,0,templates_root);
         close_connection=1;
         we_can_send_result=0;
      }
@@ -410,6 +385,7 @@ void * ServeClient(void * ptr)
       if (we_can_send_result) //This means that we have found a file to serve..!
       {
        if ( !SendFile (
+                        &output,
                         clientsock, // -- Client socket
                         servefile,  // -- Filename to be served
                         output.range_start,  // -- In case of a range request , byte to start
@@ -434,27 +410,24 @@ void * ServeClient(void * ptr)
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
        //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
+       SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
      if (output.requestType==NONE)
      { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
        fprintf(stderr,"Weird unrecognized Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(clientsock,servefile,0,0,400,0,0,0,templates_root);
+       SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
      { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
        fprintf(stderr,"Not Implemented Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(clientsock,servefile,0,0,501,0,0,0,templates_root);
+       SendFile(&output,clientsock,servefile,0,0,501,0,0,0,templates_root);
        close_connection=1;
      }
    } // Not a Bad request END
 
-
-    transaction_pool[thread_id]=0; // We disassociate the request from the thread list since it has been "served"
-    //TODO : More documentation on this
 
     ClientStoppedUsingResource(client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
 

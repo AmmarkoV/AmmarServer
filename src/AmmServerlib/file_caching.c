@@ -16,6 +16,9 @@ struct cache_item
 {
    //TODO: add this to the checks to avoid hash collisions -> char filename[MAX_FILE_PATH];
    //it will have negative performance effect though :P
+
+   struct AmmServer_RH_Context * context;
+
    unsigned long filename_hash;
    unsigned int hits;
    unsigned long * filesize;
@@ -158,6 +161,7 @@ int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
   strncat(full_filename,context->resource_name,MAX_RESOURCE);
   ReducePathSlashes_Inplace(full_filename);
 
+  cache[index].context = context;
   cache[index].filename_hash = hash(full_filename);
   cache[index].mem = context->content;
   cache[index].filesize = &context->content_size;
@@ -183,7 +187,7 @@ int CachedVersionExists(char * verified_filename,unsigned int * index)
     return 0;
 }
 
-char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported)
+char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported)
 {
       if (!CACHING_ENABLED)
       {
@@ -201,9 +205,16 @@ char * CheckForCachedVersionOfThePage(char * verified_filename,unsigned long *fi
                 /*Do callback here*/
                 void ( *DoCallback) (unsigned int)=0 ;
                 DoCallback = cache[index].prepare_mem_callback;
-                unsigned int VariablesAssociatedWithRequest=0; // <- These variables are associated with this page ( POST / GET vars )
+
+                cache[index].context.GET_request = request.context.GETquery;
+                if (request.context.GETquery!=0) { cache[index].context.GET_request_length = strlen(request.context.GETquery); } else { cache[index].context.GET_request_length = 0; }
+
+                cache[index].context.POST_request = request.context->POSTquery;
+                if (request.context.POSTquery!=0) { cache[index].context.POST_request_length = strlen(request.context.GETquery); } else { cache[index].context.POST_request_length = 0; }
+
+                unsigned int UNUSED=666; // <- These variables are associated with this page ( POST / GET vars )
                 //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
-                DoCallback(VariablesAssociatedWithRequest);
+                DoCallback(UNUSED);
               }
              *filesize=*cache[index].filesize;
              return cache[index].mem;

@@ -100,7 +100,7 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
 }
 
 
-int AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length)
+int AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int transaction_id,char * value,unsigned int max_value_length)
 {
   if (!ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES)
      {
@@ -108,21 +108,20 @@ int AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned in
         return 0;
      }
 
-  if ( associated_var_id < ACTIVE_CLIENT_THREADS )
+  struct HTTPRequest * transaction = GetRequestStructForTransactionID(transaction_id);
+
+  if ( transaction != 0 )
    {
-       if (http_requests_of_threads[associated_var_id]!=0)
+       if (transaction->GETquery!=0)
         {
-            if (http_requests_of_threads[associated_var_id]->GETquery!=0)
-            {
-             strncpy(value,http_requests_of_threads[associated_var_id]->GETquery,max_value_length);
-             return 1;
-            }
+           strncpy(value,transaction->GETquery,max_value_length);
+           return 1;
         }
    }
   return 0;
 }
 
-int AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length)
+int AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int transaction_id,char * value,unsigned int max_value_length)
 {
   if (!ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES)
      {
@@ -130,17 +129,17 @@ int AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned i
         return 0;
      }
 
-  if ( associated_var_id < ACTIVE_CLIENT_THREADS )
+  struct HTTPRequest * transaction = GetRequestStructForTransactionID(transaction_id);
+
+  if ( transaction != 0 )
    {
-       if (http_requests_of_threads[associated_var_id]!=0)
+       if (transaction->POSTquery!=0)
         {
-            if (http_requests_of_threads[associated_var_id]->POSTquery!=0)
-             {
-               strncpy(value,http_requests_of_threads[associated_var_id]->POSTquery,max_value_length);
-               return 1;
-             }
+           strncpy(value,transaction->POSTquery,max_value_length);
+           return 1;
         }
    }
+
   return 0;
 }
 
