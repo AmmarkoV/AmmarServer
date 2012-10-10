@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "AmmServerlib.h"
 #include "configuration.h"
 #include "file_caching.h"
 #include "http_tools.h"
@@ -111,7 +112,7 @@ int AddFileToCache(char * filename,unsigned int * index,struct stat * last_modif
   *cache[*index].filesize = lSize;
   cache[*index].hits = 0;
   cache[*index].prepare_mem_callback=0; // No callback for this file..
-
+  cache[*index].context=0;
 
 
    //Save modification time..! These are not used yet.. !
@@ -206,11 +207,12 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
                 void ( *DoCallback) (unsigned int)=0 ;
                 DoCallback = cache[index].prepare_mem_callback;
 
-                cache[index].context.GET_request = request.context.GETquery;
-                if (request.context.GETquery!=0) { cache[index].context.GET_request_length = strlen(request.context.GETquery); } else { cache[index].context.GET_request_length = 0; }
 
-                cache[index].context.POST_request = request.context->POSTquery;
-                if (request.context.POSTquery!=0) { cache[index].context.POST_request_length = strlen(request.context.GETquery); } else { cache[index].context.POST_request_length = 0; }
+                //TODO some good explanation here.>!
+                struct AmmServer_RH_Context * shared_context = cache[index].context;
+
+                shared_context->GET_request = request->GETquery;
+                if (shared_context->GETquery!=0) { shared_context->GET_request_length = strlen(shared_context->GETquery); } else { shared_context->GET_request_length = 0; }
 
                 unsigned int UNUSED=666; // <- These variables are associated with this page ( POST / GET vars )
                 //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
