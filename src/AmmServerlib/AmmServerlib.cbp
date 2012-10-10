@@ -87,10 +87,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="time.h" />
-		<Unit filename="var_caching.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="var_caching.h" />
 		<Unit filename="version.h" />
 		<Extensions>
 			<envvars />

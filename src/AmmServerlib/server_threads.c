@@ -52,7 +52,7 @@ pthread_mutex_t thread_pool_access;
 int ACTIVE_CLIENT_THREADS=0;
 pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
 
-struct HTTPRequest * http_requests_of_threads[MAX_CLIENT_THREADS]={0};
+struct HTTPRequest * transaction_pool[MAX_CLIENT_THREADS]={0};
 
 
 struct PassToHTTPThread
@@ -91,6 +91,29 @@ int HTTPServerIsRunning()
   -----------------------------------------------------------------
 
 */
+
+/* TODO -> Fill in the blanks here :P */
+
+int RegisterNewTransactionID(unsigned int already_have_an_id)
+{
+
+}
+
+
+int FreeTransactionID(unsigned int transaction_id)
+{
+
+}
+
+struct HTTPRequest * GetRequestStructForTransactionID(unsigned int transaction_id)
+{
+
+}
+
+/* TODO -> Fill in the blanks here :P */
+
+
+
 
 void * ServeClient(void * ptr)
 {
@@ -179,7 +202,7 @@ void * ServeClient(void * ptr)
    //fprintf(stderr,"Received %s \n",incoming_request);
    struct HTTPRequest output;
    memset(&output,0,sizeof(struct HTTPRequest));
-   http_requests_of_threads[thread_id]=&output;
+   transaction_pool[thread_id]=&output;
 
    int result = AnalyzeHTTPRequest(&output,incoming_request,total_header,webserver_root);
 
@@ -430,7 +453,7 @@ void * ServeClient(void * ptr)
    } // Not a Bad request END
 
 
-    http_requests_of_threads[thread_id]=0; // We disassociate the request from the thread list since it has been "served"
+    transaction_pool[thread_id]=0; // We disassociate the request from the thread list since it has been "served"
     //TODO : More documentation on this
 
     ClientStoppedUsingResource(client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
