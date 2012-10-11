@@ -87,9 +87,9 @@ void * prepare_form_content_callback(unsigned int associated_vars)
 {
 
   strcpy(form.content,"<html><body>");
-  strcat(form.content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" /></form>");
+  strcat(form.content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Submit\" /></form>");
   strcat(form.content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
-  strcat(form.content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car");
+  strcat(form.content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car &nbsp; ");
   strcat(form.content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form><br><br><br>");
 
 
@@ -109,6 +109,16 @@ void * prepare_form_content_callback(unsigned int associated_vars)
       if ( strlen(form.GET_request)>0 )
        {
          strcat(form.content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(form.content, form.GET_request ); strcat(form.content,"</i><hr>");
+
+         char * username = (char *) malloc ( 256 * sizeof(char) );
+         if (username!=0)
+          {
+            if ( AmmServer_GETArg(&form,"user",username,256) )
+             {
+               strcat(form.content,"GOT A  USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
+             }
+            free(username);
+          }
        }
     }
 

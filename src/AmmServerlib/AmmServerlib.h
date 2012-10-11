@@ -11,8 +11,6 @@ struct AmmServer_RH_Context
 {
    unsigned long MAX_content_size;
    unsigned long content_size;
-   unsigned long GET_request_size;
-   unsigned long POST_request_size;
 
    void * prepare_content_callback;
 
@@ -61,6 +59,9 @@ int AmmServer_GetInfo(unsigned int info_type);
 
 int AmmServer_GetIntSettingValue(unsigned int set_type);
 int AmmServer_SetIntSettingValue(unsigned int set_type,int set_value);
+
+int AmmServer_POSTArg(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int AmmServer_GETArg(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 char * AmmServer_GetStrSettingValue(unsigned int set_type);
 int AmmServer_SetStrSettingValue(unsigned int set_type,char * set_value);

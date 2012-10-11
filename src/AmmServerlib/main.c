@@ -25,6 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "server_threads.h"
 #include "file_caching.h"
 
+#include "http_tools.h"
 
 
 int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
@@ -112,6 +113,27 @@ int AmmServer_GetInfo(unsigned int info_type)
    {
      case AMMINF_ACTIVE_CLIENTS : return ACTIVE_CLIENT_THREADS; break;
    };
+  return 0;
+}
+
+
+int AmmServer_POSTArg(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+{
+  if  (  ( context->POST_request !=0 ) && ( context->POST_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
+   {
+     return StripVariableFromGETorPOSTString(context->POST_request,var_id_IN,var_value_OUT,max_var_value_OUT);
+   } else
+   { fprintf(stderr,"AmmServer_POSTArg failed , called with incorrect parameters..\n"); }
+  return 0;
+}
+
+int AmmServer_GETArg(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+{
+  if  (  ( context->GET_request !=0 ) && ( context->GET_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
+   {
+     return StripVariableFromGETorPOSTString(context->GET_request,var_id_IN,var_value_OUT,max_var_value_OUT);
+   } else
+   { fprintf(stderr,"AmmServer_GETArg failed , called with incorrect parameters..\n"); }
   return 0;
 }
 

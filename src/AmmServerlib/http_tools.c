@@ -308,6 +308,41 @@ int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned in
   return 1;
 }
 
+int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val , unsigned int var_val_length)
+{
+  if (var_val==0) { fprintf(stderr,"StripVariableFromGETorPOSTString called with a null output buf\n"); return 0; }
+  if (var_val_length==0) { fprintf(stderr,"StripVariableFromGETorPOSTString called with a null output buf size\n");  return 0; }
+  var_val[0]=0;
+
+  fprintf(stderr,"StripVariableFromGETorPOSTString is slopilly implemented \n");
+  /*! TODO : A decent implementation here..! , input is like idname=idvalue&idname2=idvalue2&idname3=idvalue3 ktl ktl*/
+  unsigned int input_length = strlen(input);
+  char * id_instance = strstr (input,var_id);
+  if (id_instance!=0)
+   {
+     fprintf(stderr,"Found var_id %s in GET/POST String \n");
+     unsigned int total_chars_to_copy=0;
+     unsigned int start_of_var_val=id_instance-input;
+     unsigned int i=start_of_var_val;
+     while ( i < input_length )
+       {
+          if (input[i]==0)    {  total_chars_to_copy = i-start_of_var_val; break; } else
+          if (input[i]=='&')  {  total_chars_to_copy = i-start_of_var_val; break; }
+          ++i;
+       }
+
+     if ( ( total_chars_to_copy < var_val_length ) && ( total_chars_to_copy != 0 ) )
+                 {
+                    strncpy(var_val,input,total_chars_to_copy);
+                    fprintf(stderr,"Found VAR %s value `%s` \n",var_id,var_val);
+                    return 1;
+                 }
+   }
+
+  fprintf(stderr,"Could not find VAR %s \n",var_id);
+  return 0;
+}
+
 
 int StripHTMLCharacters_Inplace(char * filename)
 {
