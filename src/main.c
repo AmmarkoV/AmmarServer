@@ -94,36 +94,22 @@ void * prepare_form_content_callback(unsigned int associated_vars)
 
 
   fprintf(stderr,"Associated Var with form callback is %u \n",associated_vars);
-  //AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length);
-  //AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int associated_var_id,char * value,unsigned int max_value_length);
-  char * POST_Request = (char * ) malloc ( 1024 * sizeof (char * )) ;
-  if (POST_Request!=0)
-  {
-   POST_Request[0]=0;
-   if (AmmServer_Get_POSTArguments(&form,associated_vars,POST_Request,1024) )
+
+   if ( form.POST_request != 0 )
     {
       strcat(form.content,"<hr>POST REQUEST dynamically added here : <br><i>");
-      strcat(form.content,POST_Request);
+      strcat(form.content, form.POST_request);
       strcat(form.content,"</i><hr>");
 
     }
-   free(POST_Request);
-  }
 
 
-  char * GET_Request = (char * ) malloc ( 1024 * sizeof (char * )) ;
-  if (GET_Request !=0)
-  {
-   GET_Request [0]=0;
-   if (AmmServer_Get_POSTArguments(&form,associated_vars,GET_Request ,1024) )
+  if  ( form.GET_request != 0 )
     {
       strcat(form.content,"<hr>GET REQUEST dynamically added here : <br><i>");
-      strcat(form.content,GET_Request );
+      strcat(form.content, form.GET_request );
       strcat(form.content,"</i><hr>");
-
     }
-   free(GET_Request );
-  }
 
 
   strcat(form.content,"</body></html>");

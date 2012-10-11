@@ -99,50 +99,6 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
   return AddDirectResourceToCache(context);
 }
 
-
-int AmmServer_Get_GETArguments(struct AmmServer_RH_Context * context,unsigned int transaction_id,char * value,unsigned int max_value_length)
-{
-  if (!ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES)
-     {
-        fprintf(stderr,"Interface access is disabled for GET and POST variables ( while trying to get GET vars ), you can change this by modifying configuration.h\n");
-        return 0;
-     }
-
-  struct HTTPRequest * transaction = GetRequestStructForTransactionID(transaction_id);
-
-  if ( transaction != 0 )
-   {
-       if (transaction->GETquery!=0)
-        {
-           strncpy(value,transaction->GETquery,max_value_length);
-           return 1;
-        }
-   }
-  return 0;
-}
-
-int AmmServer_Get_POSTArguments(struct AmmServer_RH_Context * context,unsigned int transaction_id,char * value,unsigned int max_value_length)
-{
-  if (!ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES)
-     {
-        fprintf(stderr,"Interface access is disabled for GET and POST variables ( while trying to get POST vars ), you can change this by modifying configuration.h\n");
-        return 0;
-     }
-
-  struct HTTPRequest * transaction = GetRequestStructForTransactionID(transaction_id);
-
-  if ( transaction != 0 )
-   {
-       if (transaction->POSTquery!=0)
-        {
-           strncpy(value,transaction->POSTquery,max_value_length);
-           return 1;
-        }
-   }
-
-  return 0;
-}
-
 int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
   return RemoveDirectResourceToCache(context,free_mem);
