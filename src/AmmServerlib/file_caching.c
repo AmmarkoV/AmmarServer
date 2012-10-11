@@ -212,7 +212,12 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
                 struct AmmServer_RH_Context * shared_context = cache[index].context;
 
                 shared_context->GET_request = request->GETquery;
-                if (shared_context->GETquery!=0) { shared_context->GET_request_length = strlen(shared_context->GETquery); } else { shared_context->GET_request_length = 0; }
+                if (shared_context->GET_request!=0) { shared_context->GET_request_length = strlen(shared_context->GET_request); } else
+                                                     { shared_context->GET_request_length = 0; }
+
+                shared_context->POST_request = request->POSTquery;
+                if (shared_context->POST_request!=0) { shared_context->POST_request_length = strlen(shared_context->POST_request); } else
+                                                     { shared_context->POST_request_length = 0; }
 
                 unsigned int UNUSED=666; // <- These variables are associated with this page ( POST / GET vars )
                 //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
