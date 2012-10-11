@@ -320,9 +320,11 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
   char * id_instance = strstr (input,var_id);
   if (id_instance!=0)
    {
-     fprintf(stderr,"Found var_id %s in GET/POST String \n");
+     fprintf(stderr,"Found var_id %s in GET/POST String \n",var_id);
      unsigned int total_chars_to_copy=0;
      unsigned int start_of_var_val=id_instance-input;
+     start_of_var_val+=strlen(var_id)+1; // We go past the = char!
+     if ( input[start_of_var_val-1]!='=') { fprintf(stderr,"Error Parsing GET/POST var string\n"); }
      unsigned int i=start_of_var_val;
      while ( i < input_length )
        {
@@ -331,12 +333,19 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
           ++i;
        }
 
-     if ( ( total_chars_to_copy < var_val_length ) && ( total_chars_to_copy != 0 ) )
-                 {
-                    strncpy(var_val,input,total_chars_to_copy);
-                    fprintf(stderr,"Found VAR %s value `%s` \n",var_id,var_val);
-                    return 1;
-                 }
+     if (total_chars_to_copy==0) { fprintf(stderr,"VAR %s was empty\n",var_id); return 0; } else
+     if (total_chars_to_copy < var_val_length)
+                                 {
+                                  strncpy(var_val,input,total_chars_to_copy);
+                                  fprintf(stderr,"Found VAR %s value `%s` \n",var_id,var_val);
+                                  return 1;
+                                 } else
+                                 {
+                                  fprintf(stderr,"There was not sufficient space to copy back the value of VAR %s \n",var_id);
+                                  fprintf(stderr,"The VAR %s had a size of %u bytes , we had %u bytes to accomodate it \n",var_id,total_chars_to_copy,var_val_length);
+                                  return 0;
+                                 }
+
    }
 
   fprintf(stderr,"Could not find VAR %s \n",var_id);
