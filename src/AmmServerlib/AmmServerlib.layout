@@ -2,7 +2,7 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="495" topLine="0" />
+		<Cursor position="1519" topLine="25" />
 	</File>
 	<File name="client_list.c" open="1" top="0" tabpos="23">
 		<Cursor position="141" topLine="0" />
@@ -41,10 +41,10 @@
 		<Cursor position="1957" topLine="0" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="14">
-		<Cursor position="737" topLine="0" />
+		<Cursor position="13581" topLine="303" />
 	</File>
 	<File name="http_tools.h" open="1" top="0" tabpos="15">
-		<Cursor position="693" topLine="0" />
+		<Cursor position="529" topLine="0" />
 	</File>
 	<File name="logs.c" open="1" top="0" tabpos="18">
 		<Cursor position="1005" topLine="0" />
@@ -53,12 +53,12 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="4722" topLine="63" />
+		<Cursor position="5415" topLine="93" />
 	</File>
 	<File name="post_analyzer.c" open="1" top="0" tabpos="21">
 		<Cursor position="62" topLine="0" />
 	</File>
-	<File name="server_threads.c" open="1" top="1" tabpos="10">
+	<File name="server_threads.c" open="1" top="0" tabpos="10">
 		<Cursor position="8172" topLine="196" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
