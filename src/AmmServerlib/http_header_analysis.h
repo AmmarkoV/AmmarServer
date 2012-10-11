@@ -33,7 +33,7 @@ struct HTTPRequest
    char resource[MAX_RESOURCE+1];
    char verified_local_resource[MAX_FILE_PATH+1];
    char GETquery[MAX_QUERY+1];
-   char POSTquery[MAX_QUERY+1];
+   char POSTquery[4*MAX_QUERY+1];
    unsigned char authorized;
    unsigned char keepalive;
    unsigned char supports_gzip;

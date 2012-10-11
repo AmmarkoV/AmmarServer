@@ -211,37 +211,32 @@ void * ServeClient(void * ptr)
      else
    { // Not a Bad request Start
 
+     if (!output.keepalive) { close_connection=1; } // Close_connection controls the receive "keep-alive" loop
 
-      if ( output.requestType==POST )
+
+      if ( ( output.requestType==POST ) && (ENABLE_POST) )
        {
-          if (!ENABLE_POST)
-            {
-               //We may want to disable POST alltogether
-               fprintf(stderr,"POST Requests are disabled , dropping request , you can change this from configuration.h \n");
-            } else
-            {
 
               fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
 
-              if (total_header>=MAX_QUERY)
+             /* if (total_header>=MAX_QUERY)
               {
-                 /*Too large request .. We cannot handle it ..*/
+                 //Too large request .. We cannot handle it ..
                   char servefile[MAX_FILE_PATH]={0};
                   SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
                   fprintf(stderr,"Huge POST request ( header size %u , MAX_QUERY size %u )  , drowning it..\n",total_header,MAX_QUERY);
                   close_connection=1;
-              } else
+              } else*/
               {
-                  strncpy(output.POSTquery,incoming_request,MAX_QUERY);
+                  strncpy(output.POSTquery,incoming_request,MAX_QUERY*4);
                   fprintf(stderr,"Found a POST query , %s \n",output.POSTquery);
+                  fprintf(stderr,"Will now pretend that we are a GET request for the rest of the page to be served nicely\n");
+
+                  //Will now pretend that we are a GET request for the rest of the page to be served nicely
+                  output.requestType=GET;
               }
-            }
        }
 
-
-
-
-     if (!output.keepalive) { close_connection=1; } // Close_connection controls the receive "keep-alive" loop
 
      if ( (output.requestType==GET)||(output.requestType==HEAD))
      {

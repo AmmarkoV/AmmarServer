@@ -68,13 +68,15 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
      // The firs line should contain the message type so .. lets see..!
      if (
           ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T')) ||
-          ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D'))
+          ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D')) ||
+          ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T')) //POST REQUEST DOESNT REALLY BELONG HERE , BUT TO SAVE SPACE AND EFFORT IT IS TREATED LIKE GET/HEAD
         )
        { // A GET or HEAD Request..!
 
          unsigned int s=3; //Initial position past GET/HEAD
          if ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T')) {  fprintf(stderr,"GET Request %s\n", request); output->requestType=GET; s=3; } else
          if ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D')) {  fprintf(stderr,"HEAD Request %s\n", request); output->requestType=HEAD; s=4; }
+         if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T')) {  fprintf(stderr,"POST Request %s\n", request); output->requestType=POST; s=4; }
 
          while ( (request[s]==' ')&&(s<request_length) ) { ++s; }
          if (s>=request_length) { fprintf(stderr,"Error #1 with GET/HEAD request\n"); return 0;}
@@ -122,11 +124,6 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
               }
            }
 
-       } else
-     if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T'))
-       { // A POST Request..!
-         fprintf(stderr,"POST Request %s\n", request);
-         output->requestType=POST;
        } else
      if ((request[0]=='P')&&(request[1]=='U')&&(request[2]=='T'))
        { // A PUT Request..!

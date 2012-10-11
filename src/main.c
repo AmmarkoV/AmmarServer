@@ -90,25 +90,26 @@ void * prepare_form_content_callback(unsigned int associated_vars)
   strcat(form.content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" /></form>");
   strcat(form.content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
   strcat(form.content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car");
-  strcat(form.content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form>");
+  strcat(form.content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form><br><br><br>");
 
 
   fprintf(stderr,"Associated Var with form callback is %u \n",associated_vars);
 
    if ( form.POST_request != 0 )
     {
-      strcat(form.content,"<hr>POST REQUEST dynamically added here : <br><i>");
-      strcat(form.content, form.POST_request);
-      strcat(form.content,"</i><hr>");
-
+      if ( strlen(form.POST_request)>0 )
+       {
+         strcat(form.content,"<hr>POST REQUEST dynamically added here : <br><i>"); strcat(form.content, form.POST_request); strcat(form.content,"</i><hr>");
+       }
     }
 
 
   if  ( form.GET_request != 0 )
     {
-      strcat(form.content,"<hr>GET REQUEST dynamically added here : <br><i>");
-      strcat(form.content, form.GET_request );
-      strcat(form.content,"</i><hr>");
+      if ( strlen(form.GET_request)>0 )
+       {
+         strcat(form.content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(form.content, form.GET_request ); strcat(form.content,"</i><hr>");
+       }
     }
 
 
