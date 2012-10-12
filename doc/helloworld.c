@@ -21,8 +21,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <unistd.h>
 #include "AmmServerlib/AmmServerlib.h"
 
 
@@ -31,9 +29,7 @@ char templates_root[512]="public_html/templates/";
 
 
 /*! Dynamic content code ..! START!*/
-/*
-     This is the dynamic Hello World example , as shown here : https://github.com/AmmarkoV/AmmarServer/wiki/Howto
-*/
+/* This is the dynamic Hello World example , as shown here : https://github.com/AmmarkoV/AmmarServer/wiki/Howto */
 
 //The decleration of hello world dynamic content resources..
 struct AmmServer_RH_Context helloworld={0};
@@ -53,10 +49,11 @@ void * prepare_helloworld_content_callback(unsigned int associated_vars)
   return 0;
 }
 
-//This function adds a Resource Handler for the pages helloworld.html and formtest.html and associates helloworld , form and their callback functions
+//This function adds a Resource Handler for the page index.html and its callback function
 void init_dynamic_content()
 {
-  if (! AmmServer_AddResourceHandler(&helloworld,"/index.html",webserver_root,4096,0,&prepare_stats_content_callback) ) { fprintf(stderr,"Failed adding helloworld page\n"); }
+  //We create a virtual file called "index.html" , when this gets requested our prepare_helloworld_content_callback gets called!
+  if (! AmmServer_AddResourceHandler(&helloworld,"/index.html",webserver_root,4096,0,&prepare_helloworld_content_callback) ) { fprintf(stderr,"Failed adding helloworld page\n"); }
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
