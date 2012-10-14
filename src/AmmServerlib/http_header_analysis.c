@@ -28,6 +28,25 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define CR 13
 #define LF 10
 
+/*
+Quick Reference -> A TYPICAL POST MESSAGE WITH A BINARY FILE CONTENT!
+---------------------------------------------------------------------------
+POST /formtest.html HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+DNT: 1
+Connection: keep-alive
+Referer: http://127.0.0.1:8080/formtest.html
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 40 <- This is the binary find content
+user=&vehicle=Bike&testfile=DSC01537.JPG <-This is the form data as a URL var encoding
+*/
+
+
+
 int HTTPRequestComplete(char * request,unsigned int request_length)
 {
   /*
@@ -188,54 +207,36 @@ inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * reque
 inline int ProcessContentTypeHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root,unsigned int * payload_pos)
 {
         fprintf(stderr,"ProcessContentTypeHTTPLine not implemented yet\n");
-        unsigned int payload_start = *payload_pos;
-        //fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
-        //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=`
-        //TODO : this needs some thought , it can be improved!
+        /*unsigned int payload_start = *payload_pos;
         payload_start+=1;
+
+        while ( (payload_start<request_length) && (request[payload_start]==' ') ) { ++payload_start; }
 
         if (payload_start<request_length)
          {
           trim_last_empty_chars(request,request_length);
           char * payload = &request[payload_start];
-          fprintf(stderr,"Got an Content-Type string -> `%s` \n",payload);
-         }
+          fprintf(stderr,"Got a Content-Type string -> `%s` \n",payload);
+         }*/
     return 1;
 }
 
 inline int ProcessContentLengthHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root,unsigned int * payload_pos)
 {
-        fprintf(stderr,"ProcessContentLengthHTTPLine not implemented yet\n");
+       /* fprintf(stderr,"ProcessContentLengthHTTPLine not implemented yet\n");
         unsigned int payload_start = *payload_pos;
-        //fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
-        //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=`
-        //TODO : this needs some thought , it can be improved!
         payload_start+=1;
 
         if (payload_start<request_length)
          {
           trim_last_empty_chars(request,request_length);
           char * payload = &request[payload_start];
-          fprintf(stderr,"Got an Content-Length string -> `%s` \n",payload);
-         }
+          fprintf(stderr,"Got a Content-Length string -> `%s` \n",payload);
+         }*/
     return 1;
 }
 
 
-/* A TYPICAL POST MESSAGE WITH A BINARY FILE CONTENT!
-POST /formtest.html HTTP/1.1
-Host: 127.0.0.1:8080
-User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:16.0) Gecko/20100101 Firefox/16.0
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*;q=0.8
-Accept-Language: en-US,en;q=0.5
-Accept-Encoding: gzip, deflate
-DNT: 1
-Connection: keep-alive
-Referer: http://127.0.0.1:8080/formtest.html
-Content-Type: application/x-www-form-urlencoded
-Content-Length: 40
-user=&vehicle=Bike&testfile=DSC01537.JPG
-*/
 
 
 int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
@@ -252,10 +253,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
      return ProcessFirstHTTPLine(output,request,request_length,webserver_root);
    } else
    {
-
-     /*NOT PUT / GET / POST ETC .. */
      unsigned int payload_start = 0;
-
 
      if ((PASSWORD_PROTECTION)&&(BASE64PASSWORD!=0))
        { //Consider password protection header sections..!
@@ -264,23 +262,25 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
              return ProcessAuthorizationHTTPLine(output,request,request_length,webserver_root,&payload_start);
            }
        }
-       //This spams the console -> else { fprintf(stderr,"Skipping authorization check BASE64PASSWORD=%s , PASSWORD_PROTECTION=%u\n",BASE64PASSWORD,PASSWORD_PROTECTION); }
 
 
-   //Scanning for the case that the line is -> Content-Type: (i.e.) application/x-www-form-urlencoded
-   if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-TYPE:",&payload_start) )
+     if (output->requestType==POST)
       {
-        return ProcessContentTypeHTTPLine(output,request,request_length,webserver_root,&payload_start);
-      }
+          //If we just had a POST request , it  may have a file associated with it , so we will check for content tags..
+          //Scanning for the case that the line is -> Content-Type: (i.e.) application/x-www-form-urlencoded
+         if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-TYPE:",&payload_start) )
+          {
+            return ProcessContentTypeHTTPLine(output,request,request_length,webserver_root,&payload_start);
+          }
 
-   //Scanning for the case that the line is -> Content-Length: This means a file has been appended
-   if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-LENGTH:",&payload_start) )
-      {
-        return ProcessContentLengthHTTPLine(output,request,request_length,webserver_root,&payload_start);
+         //Scanning for the case that the line is -> Content-Length: This means a file has been appended
+         if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-LENGTH:",&payload_start) )
+          {
+            return ProcessContentLengthHTTPLine(output,request,request_length,webserver_root,&payload_start);
+          }
       }
    }
-
-  //Todo keepalive handler here output->keepalive=1;
+  //Todo check for keepalive header option here and output->keepalive=1;
   return 1;
 }
 
