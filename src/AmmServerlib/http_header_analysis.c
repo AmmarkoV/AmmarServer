@@ -49,10 +49,8 @@ user=&vehicle=Bike&testfile=DSC01537.JPG <-This is the form data as a URL var en
 
 int HTTPRequestComplete(char * request,unsigned int request_length)
 {
-  /*
-      This call returns 1 when we find two subsequent newline characters
-      which mark the ending of an HTTP header..! The function returns 1 or 0 ..!
-  */
+  /*  This call returns 1 when we find two subsequent newline characters
+      which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
 
   if (request_length<2) { return 0; } // at least LF LF is expected :P
 
@@ -62,15 +60,8 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
    {
       if ( request[i]==LF )
        {
-        if (i>=1)
-          {
-           if (( request[i-1]==LF )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return 1; }  // unix 2x new line sequence
-          }
-
-         if (i>=3)
-          {
-           if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return 1; } // windows 2x new line sequence
-          }
+        if (i>=1) { if (( request[i-1]==LF )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return 1; }  } /* unix 2x new line sequence */
+        if (i>=3) { if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return 1; } } /* windows 2x new line sequence */
        }
      --i;
    }
@@ -144,36 +135,13 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
            }
 
        } else
-     if ((request[0]=='P')&&(request[1]=='U')&&(request[2]=='T'))
-       { // A PUT Request..!
-         fprintf(stderr,"PUT Request %s\n", request);
-         output->requestType=PUT;
-       } else
-     if ((request[0]=='D')&&(request[1]=='E')&&(request[2]=='L')&&(request[3]=='E')&&(request[4]=='T')&&(request[5]=='E'))
-       { // A DELETE Request..!
-         fprintf(stderr,"DELETE Request %s\n", request);
-         output->requestType=DELETE;
-       } else
-     if ((request[0]=='T')&&(request[1]=='R')&&(request[2]=='A')&&(request[3]=='C')&&(request[4]=='E'))
-       { // A TRACE Request..!
-         fprintf(stderr,"TRACE Request %s\n", request);
-         output->requestType=TRACE;
-       } else
-     if ((request[0]=='O')&&(request[1]=='P')&&(request[2]=='T')&&(request[3]=='I')&&(request[4]=='O')&&(request[5]=='N')&&(request[6]=='S'))
-       { // A OPTIONS Request..!
-         fprintf(stderr,"OPTIONS Request %s\n", request);
-         output->requestType=OPTIONS;
-       } else
-     if ((request[0]=='C')&&(request[1]=='O')&&(request[2]=='N')&&(request[3]=='N')&&(request[4]=='E')&&(request[5]=='C')&&(request[6]=='T'))
-       { // A CONNECT Request..!
-         fprintf(stderr,"CONNECT Request %s\n", request);
-         output->requestType=CONNECT;
-       } else
-     if ((request[0]=='P')&&(request[1]=='A')&&(request[2]=='T')&&(request[3]=='C')&&(request[4]=='H'))
-       { // A PATCH Request..!
-         fprintf(stderr,"PATCH Request %s\n", request);
-         output->requestType=PATCH;
-       }
+     if ((request[0]=='P')&&(request[1]=='U')&&(request[2]=='T'))                                                                             { /* A PUT Request..!     */ fprintf(stderr,"PUT Request %s\n", request);     output->requestType=PUT; } else
+     if ((request[0]=='D')&&(request[1]=='E')&&(request[2]=='L')&&(request[3]=='E')&&(request[4]=='T')&&(request[5]=='E'))                    { /* A DELETE Request..!  */ fprintf(stderr,"DELETE Request %s\n", request);  output->requestType=DELETE; } else
+     if ((request[0]=='T')&&(request[1]=='R')&&(request[2]=='A')&&(request[3]=='C')&&(request[4]=='E'))                                       { /* A TRACE Request..!   */ fprintf(stderr,"TRACE Request %s\n", request);   output->requestType=TRACE; } else
+     if ((request[0]=='O')&&(request[1]=='P')&&(request[2]=='T')&&(request[3]=='I')&&(request[4]=='O')&&(request[5]=='N')&&(request[6]=='S')) { /* A OPTIONS Request..! */ fprintf(stderr,"OPTIONS Request %s\n", request); output->requestType=OPTIONS; } else
+     if ((request[0]=='C')&&(request[1]=='O')&&(request[2]=='N')&&(request[3]=='N')&&(request[4]=='E')&&(request[5]=='C')&&(request[6]=='T')) { /* A CONNECT Request..! */ fprintf(stderr,"CONNECT Request %s\n", request); output->requestType=CONNECT; } else
+     if ((request[0]=='P')&&(request[1]=='A')&&(request[2]=='T')&&(request[3]=='C')&&(request[4]=='H'))                                       { /* A PATCH Request..!   */ fprintf(stderr,"PATCH Request %s\n", request);   output->requestType=PATCH; }
+
   return 1;
 }
 
