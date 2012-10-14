@@ -100,6 +100,16 @@ void * prepare_form_content_callback(unsigned int associated_vars)
       if ( strlen(form.POST_request)>0 )
        {
          strcat(form.content,"<hr>POST REQUEST dynamically added here : <br><i>"); strcat(form.content, form.POST_request); strcat(form.content,"</i><hr>");
+
+         char * username = (char *) malloc ( 256 * sizeof(char) );
+         if (username!=0)
+          {
+            if ( AmmServer_POSTArg(&form,"user",username,256) )
+             {
+               strcat(form.content,"GOT A POST USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
+             }
+            free(username);
+          }
        }
     }
 
@@ -115,7 +125,7 @@ void * prepare_form_content_callback(unsigned int associated_vars)
           {
             if ( AmmServer_GETArg(&form,"user",username,256) )
              {
-               strcat(form.content,"GOT A  USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
+               strcat(form.content,"GOT A GET USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
              }
             free(username);
           }
