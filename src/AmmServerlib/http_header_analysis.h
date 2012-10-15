@@ -38,18 +38,23 @@ struct HTTPRequest
    unsigned char authorized;
    unsigned char keepalive;
    unsigned char supports_gzip;
+
+   //RANGE DATA
    unsigned long range_start;
    unsigned long range_end;
 
-   //TODO update  FIELDS_TO_CLEAR_FROM_HTTP_REQUEST when I add something here..
-   char * Cookie; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
-   char * Referer; //<- for POST requests  *THIS SHOULD BE CLEARED AFTER USAGE*
+   /*! IMPORTANT update FIELDS_TO_CLEAR_FROM_HTTP_REQUEST when I add something here.. */
+   char * Cookie; //<-   *THIS SHOULD BE CLEARED AFTER USAGE*
+   char * Host; //<-     *THIS SHOULD BE CLEARED AFTER USAGE*
+   char * Referer; //<-  *THIS SHOULD BE CLEARED AFTER USAGE*
+   char * UserAgent;//<- *THIS SHOULD BE CLEARED AFTER USAGE*
    char * ContentType; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
    unsigned long ContentLength; //<- for POST requests
    //Languages etc here..!
 };
-
-#define FIELDS_TO_CLEAR_FROM_HTTP_REQUEST 3
+/*! IMPORTANT @@@ */
+#define FIELDS_TO_CLEAR_FROM_HTTP_REQUEST 5
+/*! IMPORTANT @@@*/
 
 int FreeHTTPRequest(struct HTTPRequest * output);
 int HTTPRequestComplete(char * request,unsigned int request_length);
