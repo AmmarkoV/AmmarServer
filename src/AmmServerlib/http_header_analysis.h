@@ -40,6 +40,8 @@ struct HTTPRequest
    unsigned long range_start;
    unsigned long range_end;
 
+
+   unsigned long content_length; //<- for POST requests
    //Languages etc here..!
 };
 

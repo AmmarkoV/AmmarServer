@@ -502,11 +502,31 @@ int trim_last_empty_chars(char * input,unsigned int input_length)
          --i; // <-- before the next line for a reason :P
          if (input[i]<'!') { input[i]=0; }
     }
-
    return 1;
 }
 
 
+int seek_non_blank_char(char * input,char * input_end)
+{
+   char * ptr=input;
+   while (ptr<input_end)
+    {
+         ++ptr; // <-- before the next line for a reason :P
+         if (*ptr>='!') { return ptr-input; }
+    }
+   return 0;
+}
+
+int seek_blank_char(char * input,char * input_end)
+{
+   char * ptr=input;
+   while (ptr<input_end)
+    {
+         ++ptr; // <-- before the next line for a reason :P
+         if (*ptr<'!') { return ptr-input; }
+    }
+   return 0;
+}
 
 
 

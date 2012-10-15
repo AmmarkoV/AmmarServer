@@ -19,6 +19,8 @@ int GetDateString(char * output,char * label,unsigned int now,unsigned int dayof
 
 int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start);
 int trim_last_empty_chars(char * input,unsigned int input_length);
+int seek_non_blank_char(char * input,char * input_end);
+int seek_blank_char(char * input,char * input_end);
 
 int encodeToBase64(char *src,unsigned s_len,char *dst,unsigned d_len);
 

@@ -137,6 +137,29 @@ int AmmServer_GETArg(struct AmmServer_RH_Context * context,char * var_id_IN,char
   return 0;
 }
 
+int AmmServer_FILES(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+{
+  fprintf(stderr,"AmmServer_FILES failed , called with incorrect parameters..\n");
+  return 0;
+}
+
+/*User friendly aliases of the above calls.. :P */
+
+int _POST(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+{
+    return AmmServer_FILES(context,var_id_IN,var_value_OUT,max_var_value_OUT);
+}
+
+int _GET(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+{
+    return AmmServer_FILES(context,var_id_IN,var_value_OUT,max_var_value_OUT);
+}
+
+int _FILES(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+{
+    return AmmServer_FILES(context,var_id_IN,var_value_OUT,max_var_value_OUT);
+}
+
 
 /*
 The following calls are not implemented yet

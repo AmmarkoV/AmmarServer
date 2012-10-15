@@ -104,7 +104,7 @@ void * prepare_form_content_callback(unsigned int associated_vars)
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
-            if ( AmmServer_POSTArg(&form,"user",username,256) )
+            if ( _POST(&form,"user",username,256) )
              {
                strcat(form.content,"GOT A POST USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
              }
@@ -123,7 +123,7 @@ void * prepare_form_content_callback(unsigned int associated_vars)
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
-            if ( AmmServer_GETArg(&form,"user",username,256) )
+            if ( _GET(&form,"user",username,256) )
              {
                strcat(form.content,"GOT A GET USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
              }

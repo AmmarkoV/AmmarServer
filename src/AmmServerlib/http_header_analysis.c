@@ -45,8 +45,6 @@ Content-Length: 40 <- This is the binary find content
 user=&vehicle=Bike&testfile=DSC01537.JPG <-This is the form data as a URL var encoding
 */
 
-
-
 int HTTPRequestComplete(char * request,unsigned int request_length)
 {
   /*  This call returns 1 when we find two subsequent newline characters
@@ -69,8 +67,6 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
    fprintf(stderr,"it isn't \n");
    return 0;
 }
-
-
 
 inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root)
 {
@@ -191,17 +187,43 @@ inline int ProcessContentTypeHTTPLine(struct HTTPRequest * output,char * request
 
 inline int ProcessContentLengthHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root,unsigned int * payload_pos)
 {
-       /* fprintf(stderr,"ProcessContentLengthHTTPLine not implemented yet\n");
-        unsigned int payload_start = *payload_pos;
-        payload_start+=1;
+        fprintf(stderr,"ProcessContentLengthHTTPLine not implemented yet\n");
 
-        if (payload_start<request_length)
+        /*                                                             char * request
+                                                                              ||
+                                                                              \/
+           The line we are trying to analyze looks like this -> Content-Length: 40<cr><lf> <-*/
+
+        //We are going to make a null teriminated string called "payload" inside the request string by getting the first blank <cr> or <lf> character
+        //after the payload ( 40 in this example ) making it null , then using the payload string as a regular string , and after processing turning it back to its former value in order to preserve
+        //the header line intact..
+        //It is kind of confusing but definately the fastest way to do it..
+
+        char * payload = request+*payload_pos;
+        char * payload_end = request+request_length;
+
+        unsigned int blank_offset = seek_non_blank_char(payload,payload_end);
+        if (blank_offset>0)
          {
-          trim_last_empty_chars(request,request_length);
-          char * payload = &request[payload_start];
-          fprintf(stderr,"Got a Content-Length string -> `%s` \n",payload);
-         }*/
-    return 1;
+           fprintf(stderr,"Got an offset of %u chars while seeking non_blank characters\n",blank_offset);
+           payload+=blank_offset;
+           blank_offset = seek_blank_char(payload,payload_end);
+             if (blank_offset>0)
+              {
+                fprintf(stderr,"Got an offset of %u chars while seeking for a blank character\n",blank_offset);
+                char * formerly_blank_char = payload+blank_offset;
+                char   formerly_blank_char_val = *formerly_blank_char;
+
+                *formerly_blank_char = 0 ; //It became a null terminated string now , efficiency ftw :P
+                fprintf(stderr,"Content length is %s (string)\n",payload);
+                output->content_length = atoi(payload);
+                fprintf(stderr,"Content length is %u (int)\n",output->content_length);
+                *formerly_blank_char = formerly_blank_char_val; //It came back to normal..
+                return 1;
+              }
+         }
+
+      return 0;
 }
 
 
