@@ -41,7 +41,9 @@ struct HTTPRequest
    unsigned long range_end;
 
 
-   unsigned long content_length; //<- for POST requests
+   char * Referer; //<- for POST requests
+   char * ContentType; //<- for POST requests
+   unsigned long ContentLength; //<- for POST requests
    //Languages etc here..!
 };
 

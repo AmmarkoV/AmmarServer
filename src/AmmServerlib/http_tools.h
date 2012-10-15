@@ -21,6 +21,8 @@ int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potentia
 int trim_last_empty_chars(char * input,unsigned int input_length);
 int seek_non_blank_char(char * input,char * input_end);
 int seek_blank_char(char * input,char * input_end);
+unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int request_length);
+char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int request_length);
 
 int encodeToBase64(char *src,unsigned s_len,char *dst,unsigned d_len);
 

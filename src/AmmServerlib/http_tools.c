@@ -528,6 +528,82 @@ int seek_blank_char(char * input,char * input_end)
    return 0;
 }
 
+unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
+{
+   /*                                                             char * request should initally point here ( at the `:` )
+                                                                              ||
+                                                                              \/
+           The line we are trying to analyze looks like this -> Content-Length: NUMBERHERE   <cr><lf> <-*/
+
+        //STEP 1 : We are going to make a null teriminated string called "payload" inside the request string by getting the first blank or <cr> or <lf> character after the NUMBERHERE and making it null
+        //STEP 2 : We will use payload like a regular nullterminated string and call atoi on it
+        //STEP 3 : After processing we will turn it back to its former value in order to preserve the header line intact..
+        //It is kind of confusing but definately the fastest way to do without meaningless string copying around..
+
+        char * payload = request;
+        char * payload_end = request+request_length;
+
+        unsigned int blank_offset = seek_non_blank_char(payload,payload_end);
+        if (blank_offset>0)
+         {
+           fprintf(stderr,"Got an offset of %u chars while seeking non_blank characters\n",blank_offset);
+           payload+=blank_offset;
+           blank_offset = seek_blank_char(payload,payload_end);
+             if (blank_offset>0)
+              {
+                fprintf(stderr,"Got an offset of %u chars while seeking for a blank character\n",blank_offset);
+                char * formerly_blank_char = payload+blank_offset;
+                char   formerly_blank_char_val = *formerly_blank_char;
+
+                *formerly_blank_char = 0 ; //It became a null terminated string now , efficiency ftw :P
+                fprintf(stderr,"Payload is %s (string)\n",payload);
+                unsigned int payload_in_uint_form = atoi(payload);
+                fprintf(stderr,"Payload is %u (int)\n",payload_in_uint_form);
+                *formerly_blank_char = formerly_blank_char_val; //It came back to normal..
+                return payload_in_uint_form;
+              }
+         }
+    return 0;
+}
+
+char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
+{
+   /*                                                             char * request should initally point here ( at the `:` )
+                                                                              ||
+                                                                              \/
+           The line we are trying to analyze looks like this -> Content-Length: STRINGMPLAMLPAMLPAHERE   <cr><lf> <-*/
+
+        //STEP 1 : We are going to make a null teriminated string called "payload" inside the request string by getting the first blank or <cr> or <lf> character after the STRINGMPLAMLPAMLPAHERE and making it null
+        //STEP 2 : We will use payload like a regular nullterminated string , malloc a new string , strncpy payload in it
+        //STEP 3 : After processing we will turn it back to its former value in order to preserve the header line intact..
+        //It is kind of confusing but definately the fastest way to do without meaningless string copying around..
+
+        char * payload = request;
+        char * payload_end = request+request_length;
+
+        unsigned int blank_offset = seek_non_blank_char(payload,payload_end);
+        if (blank_offset>0)
+         {
+           fprintf(stderr,"Got an offset of %u chars while seeking non_blank characters\n",blank_offset);
+           payload+=blank_offset;
+           blank_offset = seek_blank_char(payload,payload_end);
+             if (blank_offset>0)
+              {
+                fprintf(stderr,"Got an offset of %u chars while seeking for a blank character\n",blank_offset);
+                char * formerly_blank_char = payload+blank_offset;
+                char   formerly_blank_char_val = *formerly_blank_char;
+
+                *formerly_blank_char = 0 ; //It became a null terminated string now , efficiency ftw :P
+                fprintf(stderr,"Payload is %s (string)\n",payload);
+
+                fprintf(stderr,"TODO:  MALLOC AND STRCPY AND CLEANING AFTERWARDS NOT IMPLEMENTED..\n",blank_offset);
+                //TODO MALLOC ETC HERE..!
+                *formerly_blank_char = formerly_blank_char_val; //It came back to normal..
+                return 0;
+              }
+         }
+    return 0;
+}
 
 
 /*

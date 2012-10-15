@@ -168,67 +168,6 @@ inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * reque
 
 
 
-inline int ProcessContentTypeHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root,unsigned int * payload_pos)
-{
-        fprintf(stderr,"ProcessContentTypeHTTPLine not implemented yet\n");
-        /*unsigned int payload_start = *payload_pos;
-        payload_start+=1;
-
-        while ( (payload_start<request_length) && (request[payload_start]==' ') ) { ++payload_start; }
-
-        if (payload_start<request_length)
-         {
-          trim_last_empty_chars(request,request_length);
-          char * payload = &request[payload_start];
-          fprintf(stderr,"Got a Content-Type string -> `%s` \n",payload);
-         }*/
-    return 1;
-}
-
-inline int ProcessContentLengthHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root,unsigned int * payload_pos)
-{
-        fprintf(stderr,"ProcessContentLengthHTTPLine not implemented yet\n");
-
-        /*                                                             char * request
-                                                                              ||
-                                                                              \/
-           The line we are trying to analyze looks like this -> Content-Length: 40<cr><lf> <-*/
-
-        //We are going to make a null teriminated string called "payload" inside the request string by getting the first blank <cr> or <lf> character
-        //after the payload ( 40 in this example ) making it null , then using the payload string as a regular string , and after processing turning it back to its former value in order to preserve
-        //the header line intact..
-        //It is kind of confusing but definately the fastest way to do it..
-
-        char * payload = request+*payload_pos;
-        char * payload_end = request+request_length;
-
-        unsigned int blank_offset = seek_non_blank_char(payload,payload_end);
-        if (blank_offset>0)
-         {
-           fprintf(stderr,"Got an offset of %u chars while seeking non_blank characters\n",blank_offset);
-           payload+=blank_offset;
-           blank_offset = seek_blank_char(payload,payload_end);
-             if (blank_offset>0)
-              {
-                fprintf(stderr,"Got an offset of %u chars while seeking for a blank character\n",blank_offset);
-                char * formerly_blank_char = payload+blank_offset;
-                char   formerly_blank_char_val = *formerly_blank_char;
-
-                *formerly_blank_char = 0 ; //It became a null terminated string now , efficiency ftw :P
-                fprintf(stderr,"Content length is %s (string)\n",payload);
-                output->content_length = atoi(payload);
-                fprintf(stderr,"Content length is %u (int)\n",output->content_length);
-                *formerly_blank_char = formerly_blank_char_val; //It came back to normal..
-                return 1;
-              }
-         }
-
-      return 0;
-}
-
-
-
-
 int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
 {
   /*
@@ -260,15 +199,32 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
           //Scanning for the case that the line is -> Content-Type: (i.e.) application/x-www-form-urlencoded
          if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-TYPE:",&payload_start) )
           {
-            return ProcessContentTypeHTTPLine(output,request,request_length,webserver_root,&payload_start);
+            output->ContentType=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+            if (output->ContentType==0) { return 0; }
           }
 
          //Scanning for the case that the line is -> Content-Length: This means a file has been appended
          if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-LENGTH:",&payload_start) )
           {
-            return ProcessContentLengthHTTPLine(output,request,request_length,webserver_root,&payload_start);
+            output->ContentLength = GetIntFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+            return (output->ContentLength!=0);
           }
       }
+
+
+      if ( CheckHTTPHeaderCategory(request,request_length,"REFERER:",&payload_start) )
+          {
+            output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+            if (output->Referer==0) { return 0; }
+            return 1;
+          }
+
+      if ( CheckHTTPHeaderCategory(request,request_length,"CONNECTION:",&payload_start) )
+          {
+            if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
+            return 0;
+          }
+
    }
   //Todo check for keepalive header option here and output->keepalive=1;
   return 1;
