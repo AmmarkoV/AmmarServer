@@ -45,6 +45,17 @@ Content-Length: 40 <- This is the binary find content
 user=&vehicle=Bike&testfile=DSC01537.JPG <-This is the form data as a URL var encoding
 */
 
+int FreeHTTPRequest(struct HTTPRequest * output)
+{
+   unsigned int fields_I_try_to_clean=0;
+   ++fields_I_try_to_clean; if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
+   ++fields_I_try_to_clean; if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
+   ++fields_I_try_to_clean; if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
+   //FIELDS_TO_CLEAR_FROM_HTTP_REQUEST is a way to remember to add things here every time I add a new field..!
+    if (FIELDS_TO_CLEAR_FROM_HTTP_REQUEST!=fields_I_try_to_clean) { return 0; }
+    return 1;
+}
+
 int HTTPRequestComplete(char * request,unsigned int request_length)
 {
   /*  This call returns 1 when we find two subsequent newline characters
@@ -219,11 +230,28 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
             return 1;
           }
 
+
+      if ( CheckHTTPHeaderCategory(request,request_length,"COOKIE:",&payload_start) )
+          {
+            output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+            if (output->Referer==0) { return 0; }
+            return 1;
+          }
+
       if ( CheckHTTPHeaderCategory(request,request_length,"CONNECTION:",&payload_start) )
           {
             if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
             return 0;
           }
+
+      //If-None-Match: "3e0f0d-1485-4c2646d587b7d"
+      if ( CheckHTTPHeaderCategory(request,request_length,"IF-NONE-MATCH:",&payload_start) )
+          { fprintf(stderr,"E-Tag headers not supported yet\n"); return 0; }
+
+      //If-Modified-Since: Thu, 14 Jun 2012 01:14:53 GMT
+      if ( CheckHTTPHeaderCategory(request,request_length,"IF-MODIFIED-SINCE:",&payload_start) )
+          { fprintf(stderr,"304 Not Modified headers not supported yet\n"); return 0; }
+
 
    }
   //Todo check for keepalive header option here and output->keepalive=1;

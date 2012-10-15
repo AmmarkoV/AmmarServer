@@ -27,6 +27,7 @@ enum TypesOfRequests
     BAD
 };
 
+
 struct HTTPRequest
 {
    int  requestType;
@@ -40,14 +41,17 @@ struct HTTPRequest
    unsigned long range_start;
    unsigned long range_end;
 
-
-   char * Referer; //<- for POST requests
-   char * ContentType; //<- for POST requests
+   //TODO update  FIELDS_TO_CLEAR_FROM_HTTP_REQUEST when I add something here..
+   char * Cookie; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
+   char * Referer; //<- for POST requests  *THIS SHOULD BE CLEARED AFTER USAGE*
+   char * ContentType; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
    unsigned long ContentLength; //<- for POST requests
    //Languages etc here..!
 };
 
+#define FIELDS_TO_CLEAR_FROM_HTTP_REQUEST 3
 
+int FreeHTTPRequest(struct HTTPRequest * output);
 int HTTPRequestComplete(char * request,unsigned int request_length);
 int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root);
 

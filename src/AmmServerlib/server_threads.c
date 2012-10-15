@@ -175,7 +175,7 @@ void * ServeClient(void * ptr)
   {
    fprintf(stderr,"Received request header \n");
    //fprintf(stderr,"Received %s \n",incoming_request);
-   struct HTTPRequest output;
+   struct HTTPRequest output; // This should get free'ed once it isn't needed any more see FreeHTTPRequest call!
    memset(&output,0,sizeof(struct HTTPRequest));
 
 
@@ -425,7 +425,7 @@ void * ServeClient(void * ptr)
 
 
     ClientStoppedUsingResource(client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
-
+    if (!FreeHTTPRequest(&output)) { fprintf(stderr,"WARNING: Could not Free HTTP request , please check FIELDS_TO_CLEAR_FROM_HTTP_REQUEST (%u).. \n",FIELDS_TO_CLEAR_FROM_HTTP_REQUEST); }
   }
 
   } // Keep-Alive loop  ( not closing socket )
