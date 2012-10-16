@@ -135,6 +135,137 @@ unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verif
       return 1;
 }
 
+
+int SendPart(int clientsock,char * message,unsigned int message_size)
+{
+  int opres=send(clientsock,message,message_size,MSG_WAITALL|MSG_NOSIGNAL);
+  if (opres<=0) { fprintf(stderr,"Failed sending `%s`..!\n",message); return 0; } else
+  if ((unsigned int) opres!=message_size) { fprintf(stderr,"Failed sending the whole message (%s)..!\n",message); return 0; }
+  return 1;
+}
+
+
+int TransmitFileToSocket(
+                            int clientsock,
+                            char * verified_filename,
+                            unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
+                            unsigned long end_at_byte     // Optionally end at an offset ( resume download functionality )
+                         )
+{
+    fprintf(stderr,"fopen(%s,\"rb\") , files open %u \n",verified_filename,files_open);
+    FILE * pFile = fopen (verified_filename, "rb" );
+    if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
+    ++files_open;
+
+    // obtain file size:
+    if ( fseek (pFile , 0 , SEEK_END)!=0 )
+      {
+        fprintf(stderr,"Could not find file size..!\nUnable to serve client\n");
+        fclose(pFile);
+        --files_open;
+        return 0;
+      }
+
+    unsigned long lSize = ftell (pFile);
+    if ( (end_at_byte!=0) && (lSize<end_at_byte) ) { fprintf(stderr,"TODO: Handle  incorrect range request ( from %u to %u file 0 to %u ..!\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize); }
+
+    fprintf(stderr,"Sending file %s , size %0.2f Kbytes\n",verified_filename,(double) lSize/1024);
+
+    char reply_header[512];
+    sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
+    if (!SendPart(clientsock,reply_header,strlen(reply_header))) { fprintf(stderr,"Failed sending Content-length @  SendFile ..!\n");  }
+    /* opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+       if (opres<=0) { fprintf(stderr,"Failed sending content length..!\n"); } else
+       if ((unsigned int) opres!=lSize) { fprintf(stderr,"Failed sending the whole content length..!\n"); } */
+
+
+      rewind (pFile);
+      if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
+
+      //This is the file remaining to be sent..
+      unsigned long file_size_remaining = lSize-start_at_byte;
+      //We dont want the server to allocate a big enough space to reduce disk reading overheads
+      //but we dont want to allocate huge portions of memory so we set a soft limit here
+      unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB;
+      //Of course in case that the size to send is smaller than our limit we will commit a smaller amount of memory
+      if (file_size_remaining < malloc_size) { malloc_size=file_size_remaining; }
+
+      // allocate memory to contain the whole file:
+      //TODO: make a smaller allocation and gradually serve the whole file :P
+      char * buffer = (char*) malloc ( sizeof(char) * (malloc_size));
+
+      if (buffer == 0)
+        {
+          fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename);
+          fclose (pFile);
+          --files_open;
+          return 0;
+        }
+
+
+      while ( file_size_remaining>0 )
+      {
+        // copy the file into the buffer:
+        size_t result;
+        result = fread (buffer,1,malloc_size,pFile);
+
+        if (result != malloc_size)
+        {
+         if (feof(pFile))
+          {
+             // Reached end of file , cool..!
+          }   else
+          {
+             fprintf(stderr,"Reading error %u while reading file %s",ferror(pFile),verified_filename);
+             free (buffer);
+             fclose (pFile);
+             --files_open;
+             return 0;
+          }
+        }
+
+      //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
+      struct time_snap time_to_serve_file_s;
+      start_timer (&time_to_serve_file_s);
+       //ACTUAL SENDING OF FILE -->
+        int opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
+        /* the whole file should now have reached our client .! */
+        if (opres<=0) { fprintf(stderr,"Connection closed , while sending the whole file..!\n"); file_size_remaining=0; } else
+        {
+          if ((unsigned int) opres!=result) { fprintf(stderr,"TODO : Handle , failed sending the whole file..!\n"); }
+          file_size_remaining-=opres;
+        }
+
+
+
+       //ACTUAL SENDING OF FILE <--
+      double time_to_serve_file = (double ) end_timer (&time_to_serve_file_s) / 1000000; // go to seconds
+      double speed_in_Mbps= 0;
+      if (time_to_serve_file>0)
+       {
+        speed_in_Mbps = ( double ) opres/1048576;
+        speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file;
+        fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
+       }
+      //End of timer code
+
+
+
+      }
+
+
+      // terminate
+      free (buffer);
+
+  fprintf(stderr,"Closing file handler for %s ( files open %u )\n",verified_filename,files_open);
+  --files_open;
+  fclose (pFile);
+
+  return 1;
+}
+
+
+
 unsigned long SendFile
   (
 
@@ -245,10 +376,11 @@ unsigned long SendFile
        }
      } */
 
+     if (cached_lSize==0) { fprintf(stderr,"Bug(?) detected , zero cache payload\n"); }
+
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); return 0; }
-     if (cached_lSize==0) { fprintf(stderr,"Bug(?) detected , zero cache payload\n"); }
      if (!header_only)
       {
        opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
@@ -258,123 +390,20 @@ unsigned long SendFile
      return 1;
    }
      else
-  { /*!Serve file by reading it from disk !*/
+  {
+    /*!Serve file by reading it from disk !*/
+
     if ((cached_buffer==0)&&(cached_lSize==1)) { /*TODO : Cache indicates that file doesn't exist */ } else
     if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
 
 
-    fprintf(stderr,"fopen(%s,\"rb\") , files open %u \n",verified_filename,files_open);
-    FILE * pFile = fopen (verified_filename, "rb" );
-    if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
-    ++files_open;
-
-    // obtain file size:
-    if ( fseek (pFile , 0 , SEEK_END)!=0 )
-      {
-        fprintf(stderr,"Could not find file size..!\nUnable to serve client\n");
-        fclose(pFile);
-        --files_open;
-        return 0;
-      }
-
-    unsigned long lSize = ftell (pFile);
-    if ( (end_at_byte!=0) && (lSize<end_at_byte) ) { fprintf(stderr,"TODO: Handle  incorrect range request ( from %u to %u file 0 to %u ..!\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize); }
-
-    fprintf(stderr,"Sending file %s , size %0.2f Kbytes\n",verified_filename,(double) lSize/1024);
-
-    sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
-
-    opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-    if (opres<=0) { fprintf(stderr,"Failed sending content length..!\n"); } else
-    if ((unsigned int) opres!=lSize) { fprintf(stderr,"Failed sending the whole content length..!\n"); }
-
-
     if (!header_only)
     {
-      rewind (pFile);
-      if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
-
-      //This is the file remaining to be sent..
-      unsigned long file_size_remaining = lSize-start_at_byte;
-      //We dont want the server to allocate a big enough space to reduce disk reading overheads
-      //but we dont want to allocate huge portions of memory so we set a soft limit here
-      unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB;
-      //Of course in case that the size to send is smaller than our limit we will commit a smaller amount of memory
-      if (file_size_remaining < malloc_size) { malloc_size=file_size_remaining; }
-
-      // allocate memory to contain the whole file:
-      //TODO: make a smaller allocation and gradually serve the whole file :P
-      char * buffer = (char*) malloc ( sizeof(char) * (malloc_size));
-
-      if (buffer == 0)
-        {
-          fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename);
-          fclose (pFile);
-          --files_open;
-          return 0;
-        }
-
-
-      while ( file_size_remaining>0 )
+     if ( !TransmitFileToSocket(clientsock,verified_filename,start_at_byte,end_at_byte) )
       {
-        // copy the file into the buffer:
-        size_t result;
-        result = fread (buffer,1,malloc_size,pFile);
-
-        if (result != malloc_size)
-        {
-         if (feof(pFile))
-          {
-             // Reached end of file , cool..!
-          }   else
-          {
-             fprintf(stderr,"Reading error %u while reading file %s",ferror(pFile),verified_filename);
-             free (buffer);
-             fclose (pFile);
-             --files_open;
-             return 0;
-          }
-        }
-
-      //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
-      struct time_snap time_to_serve_file_s;
-      start_timer (&time_to_serve_file_s);
-       //ACTUAL SENDING OF FILE -->
-        opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-        /* the whole file should now have reached our client .! */
-        if (opres<=0) { fprintf(stderr,"Connection closed , while sending the whole file..!\n"); file_size_remaining=0; } else
-        {
-          if ((unsigned int) opres!=result) { fprintf(stderr,"TODO : Handle , failed sending the whole file..!\n"); }
-          file_size_remaining-=opres;
-        }
-
-
-
-       //ACTUAL SENDING OF FILE <--
-      double time_to_serve_file = (double ) end_timer (&time_to_serve_file_s) / 1000000; // go to seconds
-      double speed_in_Mbps= 0;
-      if (time_to_serve_file>0)
-       {
-        speed_in_Mbps = ( double ) opres/1048576;
-        speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file;
-        fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
-       }
-      //End of timer code
-
-
-
+         fprintf(stderr,"Could not transmit file %s \n",verified_filename);
       }
-
-
-      // terminate
-      free (buffer);
-  }
-
-  fprintf(stderr,"Closing file handler for %s ( files open %u )\n",verified_filename,files_open);
-  --files_open;
-  fclose (pFile);
-
-  return 1;
+    }
   }
 
  return 0;
@@ -397,14 +426,17 @@ unsigned long SendMemoryBlockAsFile
   sprintf(reply_header,"Content-length: %u\n",(unsigned int) mem_block);
   strcat(reply_header,"Connection: close\n\n");
   //TODO : Location : path etc
-  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+
+  if (!SendPart(clientsock,reply_header,strlen(reply_header))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
+  /*int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
   if (opres<=0) { fprintf(stderr,"Failed sending content length..!\n"); } else
-  if ((unsigned int) opres!=mem_block) { fprintf(stderr,"Failed sending the whole content length..!\n"); }
+  if ((unsigned int) opres!=mem_block) { fprintf(stderr,"Failed sending the whole content length..!\n"); }*/
 
 
-  opres=send(clientsock,mem,mem_block,MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-  if (opres<=0) { fprintf(stderr,"Failed sending content length..!\n"); } else
-  if ((unsigned int) opres!=mem_block) { fprintf(stderr,"Failed sending the whole content length..!\n"); }
+  if (!SendPart(clientsock,mem,mem_block)) { fprintf(stderr,"Failed sending content body @  SendMemoryBlockAsFile ..!\n");  }
+  /* opres=send(clientsock,mem,mem_block,MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+     if (opres<=0) { fprintf(stderr,"Failed sending content length..!\n"); } else
+     if ((unsigned int) opres!=mem_block) { fprintf(stderr,"Failed sending the whole content length..!\n"); } */
 
  return 0;
 }
