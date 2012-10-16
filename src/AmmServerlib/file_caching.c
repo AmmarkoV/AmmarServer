@@ -112,9 +112,9 @@ int CreateCacheIndexForResource(char * resource,unsigned int * index)
 }
 
 /*This is the Destroy Index Function , it isn't implemented , as one can see.. */
-int DestroyCacheIndexForResource(char * resource,unsigned int * index)
+int DestroyCacheIndexForResource(unsigned int * index)
 {
-  fprintf(stderr,"DestroyCacheIndexForResource(%s,%u) hasn't been implemented yet\n",resource,*index);
+  fprintf(stderr,"DestroyCacheIndexForResource(%u) hasn't been implemented yet\n",*index);
   return 0;
 }
 
@@ -124,6 +124,13 @@ int DestroyCacheIndexForResource(char * resource,unsigned int * index)
    ------------------------------------------------------------------
    ------------------------------------------------------------------
 */
+
+int CreateGZippedVersionofCachedResource(unsigned int * index)
+{
+  fprintf(stderr,"CreateGZippedVersionofCachedResource for index %u not implemented yet\n",*index);
+  return 0;
+}
+
 
 int KeepFileInMemoryIndex(char *filename,unsigned int * index)
 {
@@ -166,6 +173,10 @@ int KeepFileInMemoryIndex(char *filename,unsigned int * index)
   cache[*index].filesize = (unsigned long * ) malloc(sizeof (unsigned long));
   *cache[*index].filesize = lSize;
 
+
+  /*This could be a good place to make the gzipped version of the buffer..!*/
+  if (!CreateGZippedVersionofCachedResource(index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
+
   return 1;
 }
 
@@ -179,6 +190,9 @@ int AddFileToCache(char * filename,unsigned int * index,struct stat * last_modif
   if (!KeepFileInMemoryIndex(filename,index))
    {
        fprintf(stderr,"Could not read file %s into memory\n",filename);
+       fprintf(stderr,"Erasing index from memory\n");
+       DestroyCacheIndexForResource(index);
+       *index=0;
        return 0;
    }
 
@@ -265,7 +279,10 @@ int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned c
        return RemoveFileFromCache(context->resource_name);
 }
 
-
+char * GetETagForCacheItem(unsigned int index)
+{
+    return cache[index].filename_hash;
+}
 
 int CachedVersionExists(char * verified_filename,unsigned int * index)
 {
@@ -273,7 +290,7 @@ int CachedVersionExists(char * verified_filename,unsigned int * index)
     return 0;
 }
 
-char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported)
+char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported)
 {
       if (!CACHING_ENABLED)
       {
@@ -281,26 +298,24 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
         return 0;
       }
 
-       unsigned int index=0;
-
-       if (FindCacheIndexForResource(verified_filename,&index)) //This can be avoided by adding an index as a parameter to this function call
+       if (FindCacheIndexForResource(verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
         {
-           if (cache[index].doNOTCache)
+           if (cache[*index].doNOTCache)
             {
               fprintf(stderr,"We do not want to serve a cached version of this file..\n");
               return 0;
             }  else
-           if (cache[index].mem!=0)
+           if (cache[*index].mem!=0)
            {
-             if (cache[index].prepare_mem_callback!=0)
+             if (cache[*index].prepare_mem_callback!=0)
               {
                 /*Do callback here*/
                 void ( *DoCallback) (unsigned int)=0 ;
-                DoCallback = cache[index].prepare_mem_callback;
+                DoCallback = cache[*index].prepare_mem_callback;
 
 
                 //TODO some good explanation here.>!
-                struct AmmServer_RH_Context * shared_context = cache[index].context;
+                struct AmmServer_RH_Context * shared_context = cache[*index].context;
 
                 shared_context->GET_request = request->GETquery;
                 if (shared_context->GET_request!=0) { shared_context->GET_request_length = strlen(shared_context->GET_request); } else
@@ -314,16 +329,16 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
                 //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                 DoCallback(UNUSED);
               }
-             *filesize=*cache[index].filesize;
-             return cache[index].mem;
+             *filesize=*cache[*index].filesize;
+             return cache[*index].mem;
            }
         } else
         {
            /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
-           if ( AddFileToCache(verified_filename,&index,last_modification) )
+           if ( AddFileToCache(verified_filename,index,last_modification) )
             {
-              *filesize=*cache[index].filesize; //We return the filesize after the operation..
-              return cache[index].mem;
+              *filesize=*cache[*index].filesize; //We return the filesize after the operation..
+              return cache[*index].mem;
             }
         }
        //If we are here we are unlocky , our file wasn't in cache and to make things worse we also failed to load it so

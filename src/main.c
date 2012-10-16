@@ -30,6 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define MAX_INPUT_IP 256
 #define ENABLE_PASSWORD_PROTECTION 0
 
+#define ENABLE_CHAT_BOX 0
 
 char webserver_root[MAX_FILE_PATH]="public_html/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -241,17 +242,18 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback) )
      { fprintf(stderr,"Failed adding form testing page\n"); }
 
-  if (! AmmServer_AddResourceHandler(&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
-     { fprintf(stderr,"Failed adding chatbox page\n"); }
+  if (ENABLE_CHAT_BOX)
+  {
+   if (! AmmServer_AddResourceHandler(&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
+      { fprintf(stderr,"Failed adding chatbox page\n"); }
 
-  char chatlog_path[MAX_FILE_PATH]={0};
-  strcpy(chatlog_path,webserver_root);
-  strcat(chatlog_path,"chat.html");
-  EraseFile(chatlog_path);
+     char chatlog_path[MAX_FILE_PATH]={0};
+     strcpy(chatlog_path,webserver_root);
+     strcat(chatlog_path,"chat.html");
+     EraseFile(chatlog_path);
 
-
-  AmmServer_DoNOTCacheResource(chatlog_path); // Chat Html will be changing all the time , so we don't want to cache it..!
-
+     AmmServer_DoNOTCacheResource(chatlog_path); // Chat Html will be changing all the time , so we don't want to cache it..!
+  }
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
@@ -259,7 +261,7 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(&stats,1);
     AmmServer_RemoveResourceHandler(&form,1);
-    AmmServer_RemoveResourceHandler(&chatbox,1);
+    if (ENABLE_CHAT_BOX) { AmmServer_RemoveResourceHandler(&chatbox,1); }
 }
 /*! Dynamic content code ..! END ------------------------*/
 

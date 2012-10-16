@@ -75,18 +75,14 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="post_analyzer.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="post_analyzer.h" />
 		<Unit filename="server_threads.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="server_threads.h" />
-		<Unit filename="time.c">
+		<Unit filename="time_provider.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="time.h" />
+		<Unit filename="time_provider.h" />
 		<Unit filename="version.h" />
 		<Extensions>
 			<envvars />

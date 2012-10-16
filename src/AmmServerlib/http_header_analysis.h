@@ -44,6 +44,7 @@ struct HTTPRequest
    unsigned long range_end;
 
    /*! IMPORTANT update FIELDS_TO_CLEAR_FROM_HTTP_REQUEST when I add something here.. */
+   char * ETag; //<-   *THIS SHOULD BE CLEARED AFTER USAGE*
    char * Cookie; //<-   *THIS SHOULD BE CLEARED AFTER USAGE*
    char * Host; //<-     *THIS SHOULD BE CLEARED AFTER USAGE*
    char * Referer; //<-  *THIS SHOULD BE CLEARED AFTER USAGE*
@@ -53,7 +54,7 @@ struct HTTPRequest
    //Languages etc here..!
 };
 /*! IMPORTANT @@@ */
-#define FIELDS_TO_CLEAR_FROM_HTTP_REQUEST 5
+#define FIELDS_TO_CLEAR_FROM_HTTP_REQUEST 6
 /*! IMPORTANT @@@*/
 
 int FreeHTTPRequest(struct HTTPRequest * output);

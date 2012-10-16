@@ -575,10 +575,12 @@ char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int reques
                 *formerly_blank_char = 0 ; //It became a null terminated string now , efficiency ftw :P
                 fprintf(stderr,"Payload is %s (string)\n",payload);
 
-                fprintf(stderr,"TODO:  MALLOC AND STRCPY AND CLEANING AFTERWARDS NOT IMPLEMENTED..\n",blank_offset);
-                //TODO MALLOC ETC HERE..!
+                char * new_allocation = (char *) malloc (strlen(payload)*sizeof(char));
+                if (new_allocation!=0) { strcpy(new_allocation,payload); }
+
                 *formerly_blank_char = formerly_blank_char_val; //It came back to normal..
-                return 0;
+
+                return new_allocation;
               }
          }
     return 0;

@@ -84,6 +84,7 @@ Content-Type: text/html
 int FreeHTTPRequest(struct HTTPRequest * output)
 {
    unsigned int fields_I_try_to_clean=0;
+   ++fields_I_try_to_clean; if (output->ETag !=0) { free(output->ETag); output->ETag=0; }
    ++fields_I_try_to_clean; if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
    ++fields_I_try_to_clean; if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
    ++fields_I_try_to_clean; if (output->Host!=0) { free(output->Host); output->Host=0; }
@@ -311,7 +312,9 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
       //If-None-Match: "3e0f0d-1485-4c2646d587b7d"
       if ( CheckHTTPHeaderCategory(request,request_length,"IF-NONE-MATCH:",&payload_start) )
-          { fprintf(stderr,"E-Tag headers not supported yet\n"); return 0; }
+          { output->ETag=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+            if (output->ETag==0) { return 0; } else { return 1;}
+          }
 
       //If-Modified-Since: Thu, 14 Jun 2012 01:14:53 GMT
       if ( CheckHTTPHeaderCategory(request,request_length,"IF-MODIFIED-SINCE:",&payload_start) )

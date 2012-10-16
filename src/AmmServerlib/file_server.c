@@ -165,6 +165,7 @@ unsigned long SendFile
       clutter in the code but this way there is no need to write the same thing twice..! !*/
 
 /*! PRELIMINARY HEADER SENDING START ----------------------------------------------*/
+  unsigned int WeWantA200OK=0;
 
   if (force_error_code!=0)
   {
@@ -180,7 +181,7 @@ unsigned long SendFile
    {
       //We have a legitimate file to send , if we want to send it all , we must emmit a 200 OK header
       //if we are serving it with an offset , we must emmit a 206 OK header!
-      if (start_at_byte!=0)
+      if ( (start_at_byte!=0) || (end_at_byte!=0) )
        {
          //Range Accepted 206 OK header
          if (! SendSuccessCodeHeader(clientsock,206,verified_filename)) { fprintf(stderr,"Failed sending Range Acknowledged success code \n"); return 0; }
@@ -188,20 +189,31 @@ unsigned long SendFile
        {
          //Normal 200 OK header
          /*! TODO Reorganize this : THIS SHOULD NOT BE SENT YET , SINCE WE MAY WANT TO EMMIT A 304 Not Modified Header if content is unmodified..!*/
-         if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+         WeWantA200OK=1;
        }
    }
 /*! PRELIMINARY HEADER SEND END ----------------------------------------------*/
 
-
-
-  if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else { strcat(reply_header,"Connection: close\n"); } //Append Keep-Alive or Close and then..
-  int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //.. send preliminary header to minimize lag
-  if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
-
+  unsigned int have_last_modified=0;
   struct stat last_modified;
-  if (stat(verified_filename, &last_modified))
-     { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
+  if (stat(verified_filename, &last_modified))  { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
+                                                {  have_last_modified=1; }
+
+  int opres=0;
+  unsigned int index=0;
+  unsigned long cached_lSize=0;
+  char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,&last_modified,gzip_supported);
+
+  if (cached_buffer!=0)
+   {
+      //Check E-Tag here..!
+      char * cache_etag = GetETagForCacheItem(index);
+      if ((request->ETag!=0)&&(cache_etag!=0)) { fprintf(stderr,"E-Tag is %s , local hash is %s",request->ETag,cache_etag); }
+   }
+
+   if ( WeWantA200OK ) { if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; } }
+
+   if (have_last_modified)
      {
        struct tm * ptm = gmtime ( &last_modified.st_mtime ); //This is not a particularly thread safe call , must add a mutex or something here..!
        //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
@@ -210,8 +222,9 @@ unsigned long SendFile
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); return 0; }
      }
 
-  unsigned long cached_lSize=0;
-  char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&cached_lSize,&last_modified,gzip_supported);
+  if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else { strcat(reply_header,"Connection: close\n"); } //Append Keep-Alive or Close and then..
+  opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //.. send preliminary header to minimize lag
+  if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
 
   if (cached_buffer!=0) //&&(cached_lSize!=0) its not bad to have a zero size cache item!
    { /*!Serve cached file !*/
@@ -220,6 +233,17 @@ unsigned long SendFile
      //GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
 
 
+    /* THIS SEGFAULTS!
+     char * cache_etag = GetETagForCacheItem(index);
+     if (cache_etag!=0)
+     {
+       if (MAX_HTTP_RESPONSE_HEADER > strlen(cache_etag)+10)
+       {
+        sprintf(reply_header,"ETag: \"%s\"\n",cache_etag);
+        opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+        if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); return 0; }
+       }
+     } */
 
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
