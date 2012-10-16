@@ -116,9 +116,8 @@ void * ServeClient(void * ptr)
 
   int clientsock=context->clientsock;
   int thread_id = context->thread_id;
-//  struct sockaddr_in client=context->client;
-//  unsigned int clientlen=context->clientlen;
-  context->keep_var_on_stack=2;
+
+  context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
   fprintf(stderr,"Passing message to HTTP thread is done \n");
 
 
@@ -220,14 +219,14 @@ void * ServeClient(void * ptr)
 
               fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
 
-             /* if (total_header>=MAX_QUERY)
+              if (total_header>=MAX_QUERY*4)
               {
                  //Too large request .. We cannot handle it ..
                   char servefile[MAX_FILE_PATH]={0};
                   SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
                   fprintf(stderr,"Huge POST request ( header size %u , MAX_QUERY size %u )  , drowning it..\n",total_header,MAX_QUERY);
                   close_connection=1;
-              } else*/
+              } else
               {
                   strncpy(output.POSTquery,incoming_request,MAX_QUERY*4);
                   fprintf(stderr,"Found a POST query , %s \n",output.POSTquery);

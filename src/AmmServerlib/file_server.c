@@ -196,7 +196,6 @@ unsigned long SendFile
 
 
   if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else { strcat(reply_header,"Connection: close\n"); } //Append Keep-Alive or Close and then..
-
   int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //.. send preliminary header to minimize lag
   if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
 
@@ -332,8 +331,8 @@ unsigned long SendFile
       double speed_in_Mbps= 0;
       if (time_to_serve_file>0)
        {
-        speed_in_Mbps = (double ) opres/1048576;
-        speed_in_Mbps = (double ) speed_in_Mbps/time_to_serve_file;
+        speed_in_Mbps = ( double ) opres/1048576;
+        speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file;
         fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
        }
       //End of timer code

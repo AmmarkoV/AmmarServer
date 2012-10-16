@@ -60,6 +60,98 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 //The decleration of some dynamic content resources..
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
+struct AmmServer_RH_Context chatbox={0};
+
+
+
+char FileExistsTest(char * filename)
+{
+ FILE *fp = fopen(filename,"r");
+ if( fp ) { /* exists */ fclose(fp); return 1; }
+ fprintf(stderr,"FileExists(%s) returns 0\n",filename);
+ return 0;
+}
+
+char EraseFile(char * filename)
+{
+ FILE *fp = fopen(filename,"w");
+ if( fp ) { /* exists */ fclose(fp); return 1; }
+ return 0;
+}
+
+
+unsigned int StringIsHTMLSafe(char * str)
+{
+  unsigned int i=0;
+  while(i<strlen(str)) { if ( ( str[i]<'!' ) || ( str[i]=='<' ) || ( str[i]=='>' ) ) { return 0;} ++i; }
+  return 1;
+}
+
+
+
+void * prepare_chatbox_content_callback(unsigned int associated_vars)
+{
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+
+  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+  sprintf(chatbox.content,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=500 height=500>This Browser does not support frames</iframe><br><hr><br>");
+
+
+  char chatlog_path[MAX_FILE_PATH]={0};
+  strcpy(chatlog_path,webserver_root);
+  strcat(chatlog_path,"chat.html");
+
+   unsigned int default_post_form = 1;
+
+   if ( chatbox.POST_request != 0 )
+    {
+      if ( strlen(chatbox.POST_request)>0 )
+       {
+         char * username = (char *) malloc ( 256 * sizeof(char) );
+         char * comment = (char *) malloc ( 1024 * sizeof(char) );
+         if ((username!=0)&&(comment!=0))
+          {
+            if ( _POST(&chatbox,"user",username,256) )
+             {
+                _POST(&chatbox,"comment",comment,1024);
+                if ((StringIsHTMLSafe(username))&&(StringIsHTMLSafe(comment)))
+                {
+                FILE * chatlog = fopen(chatlog_path,"a");
+                if (chatlog!=0)
+                  {
+                    fprintf(chatlog,"( %02d-%02d-%02d %02d:%02d:%02d )",tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
+                    fprintf(chatlog,username);
+                    fprintf(chatlog," : ");
+                    fprintf(chatlog,comment);
+                    fprintf(chatlog,"<br>");
+                    fclose(chatlog);
+
+                    strcat(chatbox.content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" readonly=\"readonly\" value =\"");
+                    strcat(chatbox.content,username);
+                    strcat(chatbox.content,"\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
+                    default_post_form=0;
+                  }
+               }
+           }
+          }
+         if (username!=0) { free(username); }
+         if (comment!=0) { free(comment);  }
+       }
+    }
+
+
+  if (default_post_form)
+    {
+      strcat(chatbox.content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
+      strcat(chatbox.content,"Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
+     }
+
+  strcat(chatbox.content,"</center></body></html>");
+  chatbox.content_size=strlen(chatbox.content);
+  return 0;
+}
+
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_stats_content_callback(unsigned int associated_vars)
@@ -148,6 +240,16 @@ void init_dynamic_content()
 
   if (! AmmServer_AddResourceHandler(&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback) )
      { fprintf(stderr,"Failed adding form testing page\n"); }
+
+  if (! AmmServer_AddResourceHandler(&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
+     { fprintf(stderr,"Failed adding chatbox page\n"); }
+
+
+  char chatlog_path[MAX_FILE_PATH]={0};
+  strcpy(chatlog_path,webserver_root);
+  strcat(chatlog_path,"chat.html");
+  EraseFile(chatlog_path);
+
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
@@ -155,6 +257,7 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(&stats,1);
     AmmServer_RemoveResourceHandler(&form,1);
+    AmmServer_RemoveResourceHandler(&chatbox,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 

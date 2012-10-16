@@ -1,5 +1,5 @@
-#ifndef TIME_H_INCLUDED
-#define TIME_H_INCLUDED
+#ifndef TIME_PROVIDER_H_INCLUDED
+#define TIME_PROVIDER_H_INCLUDED
 
 #include <sys/types.h>
 #include <sys/time.h>

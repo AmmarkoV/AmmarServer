@@ -100,6 +100,12 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
   return AddDirectResourceToCache(context);
 }
 
+
+int AmmServer_DoNOTCacheResource(struct AmmServer_RH_Context * context, char * resource_name)
+{
+}
+
+
 int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
   return RemoveDirectResourceToCache(context,free_mem);
@@ -147,12 +153,12 @@ int AmmServer_FILES(struct AmmServer_RH_Context * context,char * var_id_IN,char 
 
 int _POST(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_FILES(context,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_POSTArg(context,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
 int _GET(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_FILES(context,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_GETArg(context,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
 int _FILES(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
