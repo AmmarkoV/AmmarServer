@@ -287,7 +287,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
         {
            if (cache[index].doNOTCache)
             {
-              fprintf(stderr,"We do not want to cache this file..\n");
+              fprintf(stderr,"We do not want to serve a cached version of this file..\n");
               return 0;
             }  else
            if (cache[index].mem!=0)
@@ -329,7 +329,6 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
        //If we are here we are unlocky , our file wasn't in cache and to make things worse we also failed to load it so
        //regular file sending it is ..!
 
-       //TODO : Implement page caching..
        *filesize=0;
        fprintf(stderr,"Cache could not find file %s , filesize %u , gzip support %u \n",verified_filename,(unsigned int) *filesize,gzip_supported);
 

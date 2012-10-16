@@ -121,7 +121,7 @@ void * prepare_chatbox_content_callback(unsigned int associated_vars)
                  FILE * chatlog = fopen(chatlog_path,"a");
                  if (chatlog!=0)
                   {
-                    fprintf(chatlog,"( %02d-%02d-%02d %02d:%02d:%02d )",tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
+                    fprintf(chatlog,"( %02d:%02d:%02d )", tm.tm_hour, tm.tm_min, tm.tm_sec);
                     fprintf(chatlog,"%s : %s <br>",username,comment);
                     fclose(chatlog);
 
@@ -244,13 +244,13 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
      { fprintf(stderr,"Failed adding chatbox page\n"); }
 
-  AmmServer_DoNOTCacheResource("/chat.html"); // Chat Html will be changing all the time , so we don't want to cache it..!
-
-
   char chatlog_path[MAX_FILE_PATH]={0};
   strcpy(chatlog_path,webserver_root);
   strcat(chatlog_path,"chat.html");
   EraseFile(chatlog_path);
+
+
+  AmmServer_DoNOTCacheResource(chatlog_path); // Chat Html will be changing all the time , so we don't want to cache it..!
 
 }
 
