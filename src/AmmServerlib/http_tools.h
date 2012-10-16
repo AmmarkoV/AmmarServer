@@ -3,9 +3,8 @@
 
 void error(char * msg);
 
-char FileExists(char * filename);
-
-char DirectoryExists( char* dirpath );
+char FileExistsAmmServ(char * filename);
+char DirectoryExistsAmmServ( char* dirpath );
 
 int GetContentType(char * filename,char * content_type);
 int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length);

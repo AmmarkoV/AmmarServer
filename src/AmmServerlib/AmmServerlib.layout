@@ -23,28 +23,28 @@
 		<Cursor position="109" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="10600" topLine="268" />
+		<Cursor position="10170" topLine="240" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
-		<Cursor position="592" topLine="0" />
+		<Cursor position="658" topLine="0" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="7">
-		<Cursor position="10243" topLine="200" />
+		<Cursor position="7441" topLine="132" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
 		<Cursor position="100" topLine="0" />
 	</File>
 	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
-		<Cursor position="13510" topLine="12" />
+		<Cursor position="15988" topLine="276" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
-		<Cursor position="2095" topLine="7" />
+		<Cursor position="2766" topLine="7" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="14">
-		<Cursor position="12690" topLine="280" />
+		<Cursor position="26897" topLine="604" />
 	</File>
-	<File name="http_tools.h" open="1" top="0" tabpos="15">
-		<Cursor position="1200" topLine="0" />
+	<File name="http_tools.h" open="1" top="1" tabpos="15">
+		<Cursor position="128" topLine="0" />
 	</File>
 	<File name="logs.c" open="1" top="0" tabpos="16">
 		<Cursor position="1353" topLine="0" />
@@ -53,18 +53,18 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="4975" topLine="69" />
+		<Cursor position="4975" topLine="81" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="10">
-		<Cursor position="9127" topLine="420" />
+		<Cursor position="11976" topLine="280" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="668" topLine="0" />
 	</File>
-	<File name="time_provider.c" open="1" top="0" tabpos="23">
+	<File name="time_provider.c" open="1" top="0" tabpos="22">
 		<Cursor position="733" topLine="0" />
 	</File>
-	<File name="time_provider.h" open="1" top="0" tabpos="24">
+	<File name="time_provider.h" open="1" top="0" tabpos="23">
 		<Cursor position="614" topLine="0" />
 	</File>
 	<File name="version.h" open="1" top="0" tabpos="9">

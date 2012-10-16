@@ -287,7 +287,7 @@ void * ServeClient(void * ptr)
       // STEP 1 : If we can't obviously determine if the request is a directory ,  lets check on disk to find out if it is a directory after all..!
       if (!resource_is_a_directory)
        {
-         if (DirectoryExists(servefile))
+         if (DirectoryExistsAmmServ(servefile))
          {
            resource_is_a_directory=1;
 
@@ -303,7 +303,7 @@ void * ServeClient(void * ptr)
       // STEP 2 : If we are sure that we dont have a directory then we have to find out accessing disk , could it be that our client wants a file ?
       if (!resource_is_a_directory)
        {
-         if (FileExists(servefile))
+         if (FileExistsAmmServ(servefile))
          {
            resource_is_a_file=1;
          }

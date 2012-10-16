@@ -53,7 +53,7 @@ void error(char * msg)
  return;
 }
 
-char FileExists(char * filename)
+char FileExistsAmmServ(char * filename)
 {
  FILE *fp = fopen(filename,"r");
  if( fp ) { /* exists */ fclose(fp); return 1; }
@@ -61,7 +61,7 @@ char FileExists(char * filename)
  return 0;
 }
 
-char DirectoryExists( char* dirpath )
+char DirectoryExistsAmmServ( char* dirpath )
 {
   if ( dirpath == 0) return 0;
   char bExists = 0;
@@ -642,15 +642,15 @@ int FindIndexFile(char * webserver_root,char * directory,char * indexfile)
   unsigned int unused=0;
   //TODO : This code can become much better and avoid re making all the strings again and again and again..
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.html"); ReducePathSlashes_Inplace(indexfile);
-  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm");   ReducePathSlashes_Inplace(indexfile); // <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.php");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
 
   indexfile[0]=0;
   return 0;
