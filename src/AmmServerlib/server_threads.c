@@ -49,7 +49,8 @@ int stop_server=0;
 pthread_t server_thread_id;
 
 pthread_mutex_t thread_pool_access;
-int ACTIVE_CLIENT_THREADS=0;
+int CLIENT_THREADS_STARTED=0;
+int CLIENT_THREADS_STOPPED=0;
 pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
 
 
@@ -435,32 +436,37 @@ void * ServeClient(void * ptr)
   close(clientsock);
 
 
-
-  //Clear thread id handler and we can gracefully exit..!
-  pthread_mutex_lock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
-  if (ACTIVE_CLIENT_THREADS>0)
-  {
-    threads_pool[thread_id]=threads_pool[ACTIVE_CLIENT_THREADS-1];
-    threads_pool[ACTIVE_CLIENT_THREADS-1]=0;
-    // TODO : THIS SHOULD ALSO BE CHANGED! http_requests_of_threads[thread_id]=0; // We disassociate the request from the thread list since it has been "served"
-    --ACTIVE_CLIENT_THREADS;
-  }
-  pthread_mutex_unlock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
+  //Clear thread id handler and we can gracefully exit..! ( LOCKLESS OPERATION)
+  if (threads_pool[thread_id]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",thread_id); }
+  threads_pool[thread_id]=0;
+  ++CLIENT_THREADS_STOPPED;
   pthread_exit(0);
   return 0;
 }
 
+unsigned int FindAProperThreadID(unsigned int starting_from)
+{
+    if (starting_from>=MAX_CLIENT_THREADS) { starting_from = starting_from % MAX_CLIENT_THREADS; }
 
+    while ( 1 )
+     {
+       while (starting_from<MAX_CLIENT_THREADS) { if ( threads_pool[starting_from]==0 ) { return starting_from; } ++starting_from; }
+       starting_from=0;
+       fprintf(stderr,"Looped .. while finding a proper thread id..\n");
+     }
+
+    return starting_from;
+}
 
 int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
-  fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),ACTIVE_CLIENT_THREADS);
+  fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED);
 
-  if (ACTIVE_CLIENT_THREADS>=MAX_CLIENT_THREADS)
+  if (CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED >= MAX_CLIENT_THREADS)
    {
      //This needs a little thought.. it is not "nice" to drop clients  , on the other hand what`s the point on opening and
      //maintaining an idle TCP/IP connection when we are on our limits thread-wise..
-     fprintf(stderr,"We are over the limit on clients served ( %u threads ) ..\nDropping client %s..!\n",ACTIVE_CLIENT_THREADS,inet_ntoa(client.sin_addr));
+     fprintf(stderr,"We are over the limit on clients served ( %u threads ) ..\nDropping client %s..!\n",CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED,inet_ntoa(client.sin_addr));
      close(clientsock);
      return 0;
    }
@@ -480,9 +486,9 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 
   context.keep_var_on_stack=1;
 
-  pthread_mutex_lock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
-  context.thread_id = ACTIVE_CLIENT_THREADS++;
-  pthread_mutex_unlock (&thread_pool_access); // LOCK PROTECTED OPERATION -------------------------------------------
+  //I Have removed the lock here , so getting a thread_id is a little more complex ..
+  context.thread_id = CLIENT_THREADS_STARTED++;
+  context.thread_id = FindAProperThreadID(context.thread_id);
 
   int retres = pthread_create(&threads_pool[context.thread_id],0,ServeClient,(void*) &context);
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); } } // <- Keep PeerServerContext in stack for long enough :P

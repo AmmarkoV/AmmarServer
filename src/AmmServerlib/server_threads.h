@@ -3,7 +3,8 @@
 
 #include "http_header_analysis.h"
 
-extern int ACTIVE_CLIENT_THREADS;
+extern int CLIENT_THREADS_STARTED;
+extern int CLIENT_THREADS_STOPPED;
 extern struct HTTPRequest * http_requests_of_threads[MAX_CLIENT_THREADS];
 
 

@@ -111,7 +111,7 @@ int AmmServer_GetInfo(unsigned int info_type)
 {
   switch (info_type)
    {
-     case AMMINF_ACTIVE_CLIENTS : return ACTIVE_CLIENT_THREADS; break;
+     case AMMINF_ACTIVE_CLIENTS : return CLIENT_THREADS_STARTED-CLIENT_THREADS_STOPPED; break;
    };
   return 0;
 }
