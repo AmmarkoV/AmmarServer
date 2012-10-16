@@ -109,6 +109,29 @@ unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verif
 }
 
 
+unsigned long SendNotModifiedHeader(int clientsock,char * verified_filename)
+{
+/*
+    This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
+    it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
+*/
+      char content_type[MAX_CONTENT_TYPE+1]={0};
+      strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
+      fprintf(stderr,"Sending File %s with response code 304 NOT MODIFIED\n",verified_filename);
+      GetContentType(verified_filename,content_type);
+
+      char reply_header[512]={0}; //Accept-Ranges: bytes\n
+      sprintf(reply_header,"HTTP/1.1 304 NOT MODIFIED\nServer: Ammarserver/%s\n",FULLVERSION_STRING);
+
+      int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
+      if (opres<=0) { return 0; }
+
+      GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
+      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
+
+      return 1;
+}
 
 unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verified_filename)
 {
@@ -338,11 +361,24 @@ unsigned long SendFile
   if (cached_buffer!=0)
    {
       //Check E-Tag here..!
-      char * cache_etag = GetETagForCacheItem(index);
-      if ((request->ETag!=0)&&(cache_etag!=0)) { fprintf(stderr,"E-Tag is %s , local hash is %s",request->ETag,cache_etag); }
+      unsigned int cache_etag = GetHashForCacheItem(index);
+      if ((request->ETag!=0)&&(cache_etag!=0))
+        {
+          fprintf(stderr,"E-Tag is %s , local hash is %u \n",request->ETag,cache_etag);
+          char LocalETag[40]={0};
+          sprintf(LocalETag,"\"%u\"",cache_etag);
+          if ( strcmp(request->ETag,LocalETag)==0 )
+           {
+              fprintf(stderr,"The content matches oure ETag , we will reply with 304 NOT MODIFIED! :) \n");
+              SendNotModifiedHeader(clientsock,verified_filename);
+              WeWantA200OK=0;
+              header_only=1;
+           }
+        }
    }
 
    if ( WeWantA200OK ) { if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; } }
+
 
    if (have_last_modified)
      {
@@ -357,6 +393,8 @@ unsigned long SendFile
   opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //.. send preliminary header to minimize lag
   if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
 
+if (!header_only)
+ {
   if (cached_buffer!=0) //&&(cached_lSize!=0) its not bad to have a zero size cache item!
    { /*!Serve cached file !*/
      //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
@@ -364,17 +402,14 @@ unsigned long SendFile
      //GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
 
 
-    /* THIS SEGFAULTS!
-     char * cache_etag = GetETagForCacheItem(index);
+     unsigned int  cache_etag = GetHashForCacheItem(index);
      if (cache_etag!=0)
      {
-       if (MAX_HTTP_RESPONSE_HEADER > strlen(cache_etag)+10)
-       {
-        sprintf(reply_header,"ETag: \"%s\"\n",cache_etag);
+        sprintf(reply_header,"ETag: \"%u\"\n",cache_etag);
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); return 0; }
-       }
-     } */
+
+     }
 
      if (cached_lSize==0) { fprintf(stderr,"Bug(?) detected , zero cache payload\n"); }
 
@@ -397,14 +432,15 @@ unsigned long SendFile
     if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
 
 
-    if (!header_only)
-    {
+
      if ( !TransmitFileToSocket(clientsock,verified_filename,start_at_byte,end_at_byte) )
       {
          fprintf(stderr,"Could not transmit file %s \n",verified_filename);
       }
-    }
   }
+} else
+ { send(clientsock,"\n\n",strlen("\n\n"),MSG_WAITALL|MSG_NOSIGNAL); }
+
 
  return 0;
 }

@@ -279,7 +279,7 @@ int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned c
        return RemoveFileFromCache(context->resource_name);
 }
 
-char * GetETagForCacheItem(unsigned int index)
+unsigned int GetHashForCacheItem(unsigned int index)
 {
     return cache[index].filename_hash;
 }
