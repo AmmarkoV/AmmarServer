@@ -319,16 +319,10 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
            }
         } else
         {
+           /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
            if ( AddFileToCache(verified_filename,&index,last_modification) )
             {
-             if (cache[index].prepare_mem_callback!=0)
-              {
-                /*Do callback here*/
-                void ( *DoCallback) (void)=0 ;
-                DoCallback = cache[index].prepare_mem_callback;
-                DoCallback();
-              }
-              *filesize=*cache[index].filesize;
+              *filesize=*cache[index].filesize; //We return the filesize after the operation..
               return cache[index].mem;
             }
         }
