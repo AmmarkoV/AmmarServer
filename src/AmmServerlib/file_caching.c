@@ -75,11 +75,11 @@ Needless to say , this is our hash function..!
 */
 
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
-unsigned int FindCacheIndexForFile(char * filename,unsigned int * index)
+unsigned int FindCacheIndexForResource(char * resource,unsigned int * index)
 {
-  fprintf(stderr,"Serial slow searching for file in cache %s ..",filename);
+  fprintf(stderr,"Serial slow searching for resource in cache %s ..",resource);
   if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
-  unsigned long file_we_are_looking_for = hash(filename);
+  unsigned long file_we_are_looking_for = hash(resource);
   unsigned int i=0;
 
   for (i=0; i<loaded_cache_items; i++)
@@ -209,13 +209,13 @@ int AddFileToCache(char * filename,unsigned int * index,struct stat * last_modif
 int DoNotCacheResource(char * filename)
 {
    unsigned int index=0;
-   if (FindCacheIndexForFile(filename,&index))  { cache[index].doNOTCache=1; }
+   if (FindCacheIndexForResource(filename,&index))  { cache[index].doNOTCache=1; }
     else
      {
        //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
        if (!CreateCacheIndexForResource(filename,&index) ) { return 0; }
-       if (FindCacheIndexForFile(filename,&index)) { cache[index].doNOTCache=1; } else
-                                                   { return 0; } //Could not set doNOTCache..!
+       if (FindCacheIndexForResource(filename,&index)) { cache[index].doNOTCache=1; } else
+                                                        { return 0; } //Could not set doNOTCache..!
      }
    return 1;
 }
@@ -269,7 +269,7 @@ int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned c
 
 int CachedVersionExists(char * verified_filename,unsigned int * index)
 {
-    if (FindCacheIndexForFile(verified_filename,index)) { return 1; }
+    if (FindCacheIndexForResource(verified_filename,index)) { return 1; }
     return 0;
 }
 
@@ -282,7 +282,8 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
       }
 
        unsigned int index=0;
-       if (FindCacheIndexForFile(verified_filename,&index)) //This can be avoided by adding an index as a parameter to this function call
+
+       if (FindCacheIndexForResource(verified_filename,&index)) //This can be avoided by adding an index as a parameter to this function call
         {
            if (cache[index].doNOTCache)
             {

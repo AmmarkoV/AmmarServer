@@ -271,7 +271,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
           }
 
 
-      /*REFERRER AND REFERER ARE THE SAME CASE :P*/
+      /*REFERRER AND REFERER ARE THE SAME CASE , THE RFC HAS THE MISPELLED VERSION OF THE WORD , BOTH OF THEM EXIST IN THE WILD :P*/
       if ( CheckHTTPHeaderCategory(request,request_length,"REFERRER:",&payload_start) )
           {
             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
@@ -282,7 +282,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Referer==0) { return 0; } else { return 1;}
           }
-       /*---------------------------------------*/
+       /*---------------------------------------------------------------------------------------------------------------------*/
 
       if ( CheckHTTPHeaderCategory(request,request_length,"HOST:",&payload_start) )
           {

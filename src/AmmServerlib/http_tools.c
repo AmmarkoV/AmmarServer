@@ -41,8 +41,6 @@ enum FileType
 };
 
 
-
-
 static char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "abcdefghijklmnopqrstuvwxyz"
 "0123456789"
@@ -310,6 +308,9 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
           if (input[i]=='&')  {  total_chars_to_copy = i-start_of_var_val; break; }
           ++i;
        }
+     if (i==input_length) { fprintf(stderr,"This is the last arg ? \n");
+                             total_chars_to_copy = i-start_of_var_val; }
+
 
      if (total_chars_to_copy==0) { fprintf(stderr,"VAR %s was empty\n",var_id); return 0; } else
      if (total_chars_to_copy < var_val_length-1) //We want to include a null terminator
@@ -639,15 +640,15 @@ int FindIndexFile(char * webserver_root,char * directory,char * indexfile)
   unsigned int unused=0;
   //TODO : This code can become much better and avoid re making all the strings again and again and again..
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.html"); ReducePathSlashes_Inplace(indexfile);
-  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm");   ReducePathSlashes_Inplace(indexfile); // <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.php");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((FindCacheIndexForFile(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
+  if ((FindCacheIndexForResource(indexfile,&unused))||(FileExists(indexfile))) { return 1; }
 
   indexfile[0]=0;
   return 0;
