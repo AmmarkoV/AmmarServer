@@ -95,7 +95,7 @@ void * prepare_chatbox_content_callback(unsigned int associated_vars)
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(chatbox.content,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=500 height=500>This Browser does not support frames</iframe><br><hr><br>");
+  sprintf(chatbox.content,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=700 height=500>This Browser does not support frames</iframe><br><hr><br>");
 
 
   char chatlog_path[MAX_FILE_PATH]={0};
@@ -114,20 +114,19 @@ void * prepare_chatbox_content_callback(unsigned int associated_vars)
           {
             if ( _POST(&chatbox,"user",username,256) )
              {
-                _POST(&chatbox,"comment",comment,1024);
+                if (! _POST(&chatbox,"comment",comment,1024) ) { fprintf(stderr,"Didn't find a comment \n"); }
+
                 if ((StringIsHTMLSafe(username))&&(StringIsHTMLSafe(comment)))
                 {
-                FILE * chatlog = fopen(chatlog_path,"a");
-                if (chatlog!=0)
+                 FILE * chatlog = fopen(chatlog_path,"a");
+                 if (chatlog!=0)
                   {
                     fprintf(chatlog,"( %02d-%02d-%02d %02d:%02d:%02d )",tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-                    fprintf(chatlog,username);
-                    fprintf(chatlog," : ");
-                    fprintf(chatlog,comment);
-                    fprintf(chatlog,"<br>");
+                    fprintf(chatlog,"%s : %s <br>",username,comment);
                     fclose(chatlog);
 
-                    strcat(chatbox.content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" readonly=\"readonly\" value =\"");
+                    strcat(chatbox.content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
+                    strcat(chatbox.content,"  Username: <input type=\"text\" name=\"user\" readonly=\"readonly\" value =\"");
                     strcat(chatbox.content,username);
                     strcat(chatbox.content,"\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
                     default_post_form=0;
@@ -144,7 +143,8 @@ void * prepare_chatbox_content_callback(unsigned int associated_vars)
   if (default_post_form)
     {
       strcat(chatbox.content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
-      strcat(chatbox.content,"Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
+      strcat(chatbox.content,"Username: <input type=\"text\" name=\"user\" />");
+      strcat(chatbox.content,"Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
      }
 
   strcat(chatbox.content,"</center></body></html>");
@@ -243,6 +243,8 @@ void init_dynamic_content()
 
   if (! AmmServer_AddResourceHandler(&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
      { fprintf(stderr,"Failed adding chatbox page\n"); }
+
+  AmmServer_DoNOTCacheResource("/chat.html"); // Chat Html will be changing all the time , so we don't want to cache it..!
 
 
   char chatlog_path[MAX_FILE_PATH]={0};

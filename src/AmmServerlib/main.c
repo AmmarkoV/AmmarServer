@@ -101,8 +101,14 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
 }
 
 
-int AmmServer_DoNOTCacheResource(struct AmmServer_RH_Context * context, char * resource_name)
+int AmmServer_DoNOTCacheResource(char * resource_name)
 {
+    if (! DoNotCacheResource(resource_name) )
+     {
+       fprintf(stderr,"Could not set AmmServer_DoNOTCacheResource for resource %s\n",resource_name);
+       return 0;
+     }
+    return 1;
 }
 
 

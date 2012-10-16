@@ -13,6 +13,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
 
 int AddDirectResourceToCache(struct AmmServer_RH_Context * context);
 int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned char free_mem);
+int DoNotCacheResource(char * filename);
 
 unsigned int FindCacheIndexForFile(char * filename,unsigned int * index);
 

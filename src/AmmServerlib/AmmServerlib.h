@@ -68,6 +68,8 @@ int _POST(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_valu
 int _GET(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 int _FILES(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
+int AmmServer_DoNOTCacheResource(char * resource_name);
+
 char * AmmServer_GetStrSettingValue(unsigned int set_type);
 int AmmServer_SetStrSettingValue(unsigned int set_type,char * set_value);
 
