@@ -318,7 +318,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
       //If-Modified-Since: Thu, 14 Jun 2012 01:14:53 GMT
       if ( CheckHTTPHeaderCategory(request,request_length,"IF-MODIFIED-SINCE:",&payload_start) )
-          { fprintf(stderr,"304 Not Modified headers not supported yet\n"); return 0; }
+          { fprintf(stderr,"304 Not Modified headers through dates not supported yet\n"); return 0; }
 
 
    }

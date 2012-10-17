@@ -148,7 +148,7 @@ void * ServeClient(void * ptr)
   {
    incoming_request[0]=0;
    int total_header=0,opres=0;
-   fprintf(stderr,"Waiting for a valid HTTP header..\n");
+   fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
    while ( (!HTTPRequestComplete(incoming_request,total_header))&&(server_running) )
    { //Gather Header until http request contains two newlines..!
      opres=recv(clientsock,&incoming_request[total_header],MAX_HTTP_REQUEST_HEADER-total_header,0);
@@ -490,7 +490,8 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   context.thread_id = FindAProperThreadID(context.thread_id);
 
   int retres = pthread_create(&threads_pool[context.thread_id],0,ServeClient,(void*) &context);
-  if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); } } // <- Keep PeerServerContext in stack for long enough :P
+  usleep(2); //<- Give some time to the thread to startup
+  if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*usleep(1);*/ } } // <- Keep PeerServerContext in stack for long enough :P
 
 
   if (retres!=0) { retres = 0; } else { retres = 1; }

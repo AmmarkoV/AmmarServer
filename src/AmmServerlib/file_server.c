@@ -115,20 +115,15 @@ unsigned long SendNotModifiedHeader(int clientsock,char * verified_filename)
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
     it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
 */
-      char content_type[MAX_CONTENT_TYPE+1]={0};
-      strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
-      fprintf(stderr,"Sending File %s with response code 304 NOT MODIFIED\n",verified_filename);
-      GetContentType(verified_filename,content_type);
-
       char reply_header[512]={0}; //Accept-Ranges: bytes\n
-      sprintf(reply_header,"HTTP/1.1 304 NOT MODIFIED\nServer: Ammarserver/%s\n",FULLVERSION_STRING);
+      sprintf(reply_header,"HTTP/1.1 304 Not Modified\nServer: Ammarserver/%s\n",FULLVERSION_STRING);
 
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
-
+/*
       GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
       opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-      if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
+      if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }*/
 
       return 1;
 }
@@ -348,15 +343,11 @@ unsigned long SendFile
    }
 /*! PRELIMINARY HEADER SEND END ----------------------------------------------*/
 
-  unsigned int have_last_modified=0;
-  struct stat last_modified;
-  if (stat(verified_filename, &last_modified))  { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
-                                                {  have_last_modified=1; }
 
   int opres=0;
   unsigned int index=0;
   unsigned long cached_lSize=0;
-  char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,&last_modified,gzip_supported);
+  char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,gzip_supported);
 
   if (cached_buffer!=0)
    {
@@ -377,8 +368,17 @@ unsigned long SendFile
         }
    }
 
-   if ( WeWantA200OK ) { if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; } }
+   unsigned int have_last_modified=0;
+   struct stat last_modified;
 
+   if ( WeWantA200OK )
+   {
+       if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+
+       if (stat(verified_filename, &last_modified))  { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
+                                                     {  have_last_modified=1; }
+       //TODO -> Check with last modified -> char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,gzip_supported);
+   }
 
    if (have_last_modified)
      {
@@ -389,9 +389,9 @@ unsigned long SendFile
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); return 0; }
      }
 
-  if (keepalive) { strcat(reply_header,"Connection: keep-alive\n"); } else { strcat(reply_header,"Connection: close\n"); } //Append Keep-Alive or Close and then..
-  opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //.. send preliminary header to minimize lag
-  if (opres<=0) { fprintf(stderr,"Failed while sending header\n"); return 0; }
+  if (keepalive) { if (!SendPart(clientsock,"Connection: keep-alive\n",strlen("Connection: keep-alive\n"))) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
+                 { if (!SendPart(clientsock,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
+
 
 if (!header_only)
  {
@@ -439,7 +439,7 @@ if (!header_only)
       }
   }
 } else
- { send(clientsock,"\n\n",strlen("\n\n"),MSG_WAITALL|MSG_NOSIGNAL); }
+ { send(clientsock,"\n\n\n",strlen("\n\n\n"),MSG_WAITALL|MSG_NOSIGNAL); }
 
 
  return 0;
