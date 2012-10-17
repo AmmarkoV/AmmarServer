@@ -389,7 +389,8 @@ unsigned long SendFile
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); return 0; }
      }
 
-  if (keepalive) { if (!SendPart(clientsock,"Connection: keep-alive\n",strlen("Connection: keep-alive\n"))) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
+  if (keepalive) { if (!SendPart(clientsock,"Connection: keep-alive\nKeep-Alive: timeout=5, max=100\n",
+                                     strlen("Connection: keep-alive\nKeep-Alive: timeout=5, max=100\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
                  { if (!SendPart(clientsock,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
 
 
@@ -406,16 +407,19 @@ if (!header_only)
      if (cache_etag!=0)
      {
         sprintf(reply_header,"ETag: \"%u\"\n",cache_etag);
-        opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+        opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); return 0; }
 
      }
 
      if (cached_lSize==0) { fprintf(stderr,"Bug(?) detected , zero cache payload\n"); }
 
+     //This is the last header part , so we are appending an extra \n to mark the end of the header
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); return 0; }
+
+
      if (!header_only)
       {
        opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
@@ -439,7 +443,7 @@ if (!header_only)
       }
   }
 } else
- { send(clientsock,"\n\n\n",strlen("\n\n\n"),MSG_WAITALL|MSG_NOSIGNAL); }
+ { send(clientsock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL); }
 
 
  return 0;

@@ -32,7 +32,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define ENABLE_CHAT_BOX 0
 
-char webserver_root[MAX_FILE_PATH]="public_html_static/";
+//char webserver_root[MAX_FILE_PATH]="public_html_static/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
+char webserver_root[MAX_FILE_PATH]="public_html/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 

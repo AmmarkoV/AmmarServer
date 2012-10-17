@@ -11,7 +11,7 @@
 		<Cursor position="287" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="297" topLine="2" />
+		<Cursor position="191" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
 		<Cursor position="673" topLine="0" />
@@ -23,19 +23,19 @@
 		<Cursor position="109" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="10337" topLine="267" />
+		<Cursor position="10337" topLine="199" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
 		<Cursor position="684" topLine="0" />
 	</File>
-	<File name="file_server.c" open="1" top="1" tabpos="7">
-		<Cursor position="5631" topLine="81" />
+	<File name="file_server.c" open="1" top="0" tabpos="7">
+		<Cursor position="17451" topLine="301" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
 		<Cursor position="100" topLine="0" />
 	</File>
 	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
-		<Cursor position="15988" topLine="276" />
+		<Cursor position="16143" topLine="73" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
 		<Cursor position="2766" topLine="7" />
@@ -53,10 +53,10 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="4975" topLine="81" />
+		<Cursor position="4802" topLine="130" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="10">
-		<Cursor position="11976" topLine="280" />
+		<Cursor position="4914" topLine="122" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="668" topLine="0" />
