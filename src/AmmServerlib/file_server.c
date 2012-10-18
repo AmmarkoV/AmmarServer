@@ -96,7 +96,7 @@ unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verif
       GetContentType(verified_filename,content_type);
 
       char reply_header[512]={0}; //Accept-Ranges: bytes\n
-      sprintf(reply_header,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\n",success_code,FULLVERSION_STRING,content_type);
+      sprintf(reply_header,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age\n",success_code,FULLVERSION_STRING,content_type);
 
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
@@ -116,7 +116,7 @@ unsigned long SendNotModifiedHeader(int clientsock,char * verified_filename)
     it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
 */
       char reply_header[512]={0}; //Accept-Ranges: bytes\n
-      sprintf(reply_header,"HTTP/1.1 304 Not Modified\nServer: Ammarserver/%s\n",FULLVERSION_STRING);
+      sprintf(reply_header,"HTTP/1.1 304 Not Modified\nServer: Ammarserver/%s\nCache-Control: max-age\n",FULLVERSION_STRING);
 
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
@@ -381,13 +381,16 @@ unsigned long SendFile
    {
        if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
 
+       /* TODO : TEMPORARILY DISABLED LAST-MODIFIED :P
        if (stat(verified_filename, &last_modified))  { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
-                                                     {  have_last_modified=1; }
+                                                     {  have_last_modified=1; }*/
+
        //TODO -> Check with last modified -> char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,gzip_supported);
    }
 
    if (have_last_modified)
      {
+
        struct tm * ptm = gmtime ( &last_modified.st_mtime ); //This is not a particularly thread safe call , must add a mutex or something here..!
        //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
        GetDateString(reply_header,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
