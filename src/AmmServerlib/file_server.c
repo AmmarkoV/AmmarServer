@@ -120,10 +120,10 @@ unsigned long SendNotModifiedHeader(int clientsock,char * verified_filename)
 
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
-/*
+
       GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
       opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-      if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }*/
+      if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
 
       return 1;
 }
