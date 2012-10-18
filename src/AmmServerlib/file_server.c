@@ -362,6 +362,12 @@ unsigned long SendFile
            {
               fprintf(stderr,"The content matches oure ETag , we will reply with 304 NOT MODIFIED! :) \n");
               SendNotModifiedHeader(clientsock,verified_filename);
+
+              //The Etag is mandatory on 304 messages..!
+              char ETagSendChunk[128]={0};
+              sprintf(ETagSendChunk,"ETag: \"%u\"\n",cache_etag);
+              if (!SendPart(clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
+
               WeWantA200OK=0;
               header_only=1;
            }
