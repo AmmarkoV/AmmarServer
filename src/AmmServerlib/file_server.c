@@ -96,7 +96,7 @@ unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verif
       GetContentType(verified_filename,content_type);
 
       char reply_header[512]={0}; //Accept-Ranges: bytes\n
-      sprintf(reply_header,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age\n",success_code,FULLVERSION_STRING,content_type);
+      sprintf(reply_header,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\n",success_code,FULLVERSION_STRING,content_type);
 
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
@@ -116,7 +116,7 @@ unsigned long SendNotModifiedHeader(int clientsock,char * verified_filename)
     it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
 */
       char reply_header[512]={0}; //Accept-Ranges: bytes\n
-      sprintf(reply_header,"HTTP/1.1 304 Not Modified\nServer: Ammarserver/%s\nCache-Control: max-age\n",FULLVERSION_STRING);
+      sprintf(reply_header,"HTTP/1.1 304 Not Modified\nServer: Ammarserver/%s\nCache-Control: max-age=3600\n",FULLVERSION_STRING);
 
       int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
       if (opres<=0) { return 0; }
