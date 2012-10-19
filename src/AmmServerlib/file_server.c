@@ -360,7 +360,7 @@ unsigned long SendFile
           sprintf(LocalETag,"\"%u\"",cache_etag);
           if ( strcmp(request->ETag,LocalETag)==0 )
            {
-              fprintf(stderr,"The content matches oure ETag , we will reply with 304 NOT MODIFIED! :) \n");
+              fprintf(stderr,"The content matches our ETag , we will reply with 304 NOT MODIFIED! :) \n");
               SendNotModifiedHeader(clientsock,verified_filename);
 
               //The Etag is mandatory on 304 messages..!

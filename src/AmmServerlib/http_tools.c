@@ -547,6 +547,9 @@ unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int reques
 
 char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
 {
+    fprintf(stderr,"Testing Version of GetNewStringFromHTTPHeaderFieldPayload(%s,%u) called\n",request,request_length);
+    /*THIS IS NOT CORRECT , IT NEEDS TO BE FIXED..!*/
+
    /*                                                             char * request should initally point here ( at the `:` )
                                                                               ||
                                                                               \/
