@@ -83,14 +83,28 @@ Content-Type: text/html
 
 int FreeHTTPRequest(struct HTTPRequest * output)
 {
+   fprintf(stderr,"Freeing HTTP Request : ");
    unsigned int fields_I_try_to_clean=0;
+
+   fprintf(stderr,"ETag ");
    ++fields_I_try_to_clean; if (output->ETag !=0) { free(output->ETag); output->ETag=0; }
+
+   fprintf(stderr,"Cookie ");
    ++fields_I_try_to_clean; if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
+
+   fprintf(stderr,"Referer ");
    ++fields_I_try_to_clean; if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
+
+   fprintf(stderr,"Host ");
    ++fields_I_try_to_clean; if (output->Host!=0) { free(output->Host); output->Host=0; }
+
+   fprintf(stderr,"UserAgent ");
    ++fields_I_try_to_clean; if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
+
+   fprintf(stderr,"ContentType ");
    ++fields_I_try_to_clean; if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
    //FIELDS_TO_CLEAR_FROM_HTTP_REQUEST is a way to remember to add things here every time I add a new field..!
+   fprintf(stderr,".... ok\n");
     if (FIELDS_TO_CLEAR_FROM_HTTP_REQUEST!=fields_I_try_to_clean) { return 0; }
     return 1;
 }
