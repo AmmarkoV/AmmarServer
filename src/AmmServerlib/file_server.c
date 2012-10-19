@@ -368,6 +368,9 @@ unsigned long SendFile
               sprintf(ETagSendChunk,"ETag: \"%u\"\n",cache_etag);
               if (!SendPart(clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
+              //The incoming ETag is no loger useful , so lets free it right here..
+              free(request->ETag); request->ETag=0;
+
               WeWantA200OK=0;
               header_only=1;
            }

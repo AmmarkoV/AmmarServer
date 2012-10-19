@@ -83,6 +83,9 @@ Content-Type: text/html
 
 int FreeHTTPRequest(struct HTTPRequest * output)
 {
+/* Getting a consistent segfault on the raspberry pi The last console line is
+   ->  Freeing HTTP Request : ETag *** glibc detected *** src/ammarserver: free(): invalid next size (fast): 0x01ad7ac8 *** */
+
    fprintf(stderr,"Freeing HTTP Request : ");
    unsigned int fields_I_try_to_clean=0;
 
