@@ -397,9 +397,12 @@ unsigned long SendFile
        opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); return 0; }
      }
-
-  if (keepalive) { if (!SendPart(clientsock,"Connection: keep-alive\nKeep-Alive: timeout=5, max=100\n",
-                                     strlen("Connection: keep-alive\nKeep-Alive: timeout=5, max=100\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
+                 //This used to also emmit --> Keep-Alive: timeout=5, max=100\n <--
+                 /* RedBot says ( http://redbot.org/?uri=http%3A%2F%2Fammar.gr%3A8080%2F ) ..!
+                     The Keep-Alive header is completely optional; it is defined primarily because the keep-alive connection token implies that such a header exists, not because anyone actually uses it.
+                    Some implementations (e.g., Apache) do generate a Keep-Alive header to convey how many requests they're willing to serve on a single connection, what the connection timeout is and other information. However, this isn't usually used by clients.
+                    It's safe to remove this header if you wish to save a few bytes in the response.*/
+  if (keepalive) { if (!SendPart(clientsock,"Connection: keep-alive\n",strlen("Connection: keep-alive\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
                  { if (!SendPart(clientsock,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
 
 

@@ -249,6 +249,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
           //Scanning for the case that the line is -> Content-Type: (i.e.) application/x-www-form-urlencoded
          if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-TYPE:",&payload_start) )
           {
+            if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
             output->ContentType=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->ContentType==0) { return 0; } else { return 1;}
           }
@@ -275,11 +276,13 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
       /*REFERRER AND REFERER ARE THE SAME CASE , THE RFC HAS THE MISPELLED VERSION OF THE WORD , BOTH OF THEM EXIST IN THE WILD :P*/
       if ( CheckHTTPHeaderCategory(request,request_length,"REFERRER:",&payload_start) )
           {
+            if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Referer==0) { return 0; } else { return 1;}
           } else
       if ( CheckHTTPHeaderCategory(request,request_length,"REFERER:",&payload_start) ) // <- The spec Referrer string is wrong :P
           {
+            if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Referer==0) { return 0; } else { return 1;}
           }
@@ -287,12 +290,14 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
       if ( CheckHTTPHeaderCategory(request,request_length,"HOST:",&payload_start) )
           {
+            if (output->Host!=0) { free(output->Host); output->Host=0; }
             output->Host=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Host==0) { return 0; } else { return 1;}
           }
 
       if ( CheckHTTPHeaderCategory(request,request_length,"USER-AGENT:",&payload_start) )
           {
+            if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
             output->UserAgent=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->UserAgent==0) { return 0; } else { return 1;}
           }
@@ -300,8 +305,9 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
       if ( CheckHTTPHeaderCategory(request,request_length,"COOKIE:",&payload_start) )
           {
-            output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->Referer==0) { return 0; } else { return 1;}
+            if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
+            output->Cookie=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+            if (output->Cookie==0) { return 0; } else { return 1;}
           }
 
       if ( CheckHTTPHeaderCategory(request,request_length,"CONNECTION:",&payload_start) )
@@ -312,7 +318,9 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
       //If-None-Match: "3e0f0d-1485-4c2646d587b7d"
       if ( CheckHTTPHeaderCategory(request,request_length,"IF-NONE-MATCH:",&payload_start) )
-          { output->ETag=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+          {
+            if (output->ETag!=0) { free(output->ETag); output->ETag=0; }
+            output->ETag=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->ETag==0) { return 0; } else { return 1;}
           }
 
