@@ -26,14 +26,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-#define DEFAULT_BINDING_PORT 8080
 #define MAX_INPUT_IP 256
 #define ENABLE_PASSWORD_PROTECTION 0
 
 #define ENABLE_CHAT_BOX 0
 
+
+#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
-char webserver_root[MAX_FILE_PATH]="public_html/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 

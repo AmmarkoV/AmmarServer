@@ -582,7 +582,12 @@ char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int reques
                                                           //also add some space for the null termination..!
                 unsigned int payload_length = strlen(payload);
                 char * new_allocation = (char *) malloc ((payload_length+1 /*Null Termination*/)*sizeof(char));
-                if (new_allocation!=0) { strncpy(new_allocation,payload,payload_length); }
+                if (new_allocation!=0)
+                  {
+                    strncpy(new_allocation,payload,payload_length);
+                    new_allocation[payload_length]=0; //<- Null termination should automatically (via strncpy ) be there BUT I am trying to debug some weird behaviour..!
+                  }
+
 
                 *formerly_blank_char = formerly_blank_char_val; //It came back to normal..
 

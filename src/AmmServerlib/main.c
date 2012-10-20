@@ -59,7 +59,7 @@ int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root
                    /*These are the file cache settings , file caching is the mechanism that holds dynamic content and
                      speeds up file serving by not accessing the whole disk drive subsystem ..*/
                    2000 , /*Seperate items*/
-                   64   , /*MB Limit for the WHOLE Cache*/
+                   128   , /*MB Limit for the WHOLE Cache*/
                    3    , /*MB Max Size of Individual File*/
 
                    /*These are the POST/GET variable cache settings , POST and GET variables are stored in a seperate cache

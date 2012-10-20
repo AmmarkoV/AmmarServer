@@ -355,7 +355,7 @@ unsigned long SendFile
       unsigned int cache_etag = GetHashForCacheItem(index);
       if ((request->ETag!=0)&&(cache_etag!=0))
         {
-          fprintf(stderr,"E-Tag is %s , local hash is %u \n",request->ETag,cache_etag);
+          fprintf(stderr,"E-Tag is `%s` , local hash is `%u` \n",request->ETag,cache_etag);
           char LocalETag[40]={0};
           sprintf(LocalETag,"\"%u\"",cache_etag);
           if ( strcmp(request->ETag,LocalETag)==0 )
@@ -365,7 +365,7 @@ unsigned long SendFile
 
               //The Etag is mandatory on 304 messages..!
               char ETagSendChunk[128]={0};
-              sprintf(ETagSendChunk,"ETag: \"%u\"\n",cache_etag);
+              sprintf(ETagSendChunk,"ETag: \"%u\" \n",cache_etag);
               if (!SendPart(clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
               //The incoming ETag is no loger useful , so lets free it right here..
