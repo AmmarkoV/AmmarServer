@@ -55,9 +55,15 @@ pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
 
 struct PreSpawnedThread
 {
-    int socket_to_use;
     pthread_t thread_id;
-}
+
+    int clientsock;
+    struct sockaddr_in client;
+    unsigned int clientlen;
+
+    char webserver_root[MAX_FILE_PATH];
+    char templates_root[MAX_FILE_PATH];
+};
 
 
 struct PassToHTTPThread
@@ -511,18 +517,51 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 
 void * PreSpawnedThread(void * ptr)
 {
+  int * i_adapt = (int *) ptr;
+  int i = *i_adapt;
+  *i_adapt = MAX_CLIENT_PRESPAWNED_THREADS+1; // <-- This signals we got the i value..
 
+
+  struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
+  memset(&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
+
+
+  while (stop_server==0)
+   {
+      if (prespawn_turn_to_serve==i)
+       {
+          /*It is our turn!!*/
+          if (prespawned_pool[i].clientsock!=0)
+          {
+            /*We have something to do , lets fill our context..*/
+             context.clientsock=prespawned_pool[i].clientsock;
+             context.client=prespawned_pool[i].client;
+             context.clientlen=prespawned_pool[i].clientlen;
+             strncpy(context.webserver_root,prespawned_pool[i].webserver_root,MAX_FILE_PATH);
+             strncpy(context.templates_root,prespawned_pool[i].templates_root,MAX_FILE_PATH);
+             context.keep_var_on_stack=1;
+              //ServeClient from this thread ( without forking..! )
+                ServeClient((void *)  &context);
+              //ServeClient from this thread ( without forking..! )
+             prespawned_pool[i].clientsock=0; // <- This signals we finished our task ..!
+          }  else { usleep(1); /*It is our turn so lets stay vigilant*/ }
+       } else { usleep(100); /*It is not our turn so lets chill..*/ }
+   }
 
   return 0;
 }
 
 void PreSpawnThreads()
 {
+  if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
+  fprintf(stderr,"PreSpawning Threads is disabled , it is beta functionality.. \n");
   return ;
-  int i=0;
+  int i=0,thread_i=0;
   for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
    {
-      int retres = pthread_create(&prespawned_pool[context.thread_id],0,PreSpawnedThread,0);
+      thread_i=i;
+      int retres = pthread_create(&prespawned_pool[i].thread_id,0,PreSpawnedThread,(void*) &thread_i );
+      if ( retres==0 ) { while (thread_i==i) { usleep(1); } } // <- Keep i value the same for long enough without locks
    }
 }
 
