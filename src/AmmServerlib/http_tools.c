@@ -318,6 +318,7 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
                                   char * val_start_on_input = input + start_of_var_val;
                                   strncpy(var_val,val_start_on_input,total_chars_to_copy);
                                   var_val[total_chars_to_copy]=0;
+
                                   fprintf(stderr,"Found VAR %s value `%s` \n",var_id,var_val);
                                   return 1;
                                  } else
