@@ -500,7 +500,7 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   context.clientsock=clientsock;
   context.client=client;
   context.clientlen=clientlen;
-  context.pre_spawned_thread = 0; // THIS IS A NEW THREAD
+  context.pre_spawned_thread = 0; // THIS IS A !!!NEW!!! THREAD , NOT A PRESPAWNED ONE
   strncpy(context.webserver_root,webserver_root,MAX_FILE_PATH);
   strncpy(context.templates_root,templates_root,MAX_FILE_PATH);
 
@@ -566,13 +566,15 @@ void * PreSpawnedThread(void * ptr)
              context.clientsock=prespawned_pool[i].clientsock;
              context.client=prespawned_pool[i].client;
              context.clientlen=prespawned_pool[i].clientlen;
-             context.pre_spawned_thread = 1; // THIS IS A PRE SPAWNED THREAD
+             context.pre_spawned_thread = 1; // THIS IS A !!!!PRE SPAWNED!!!! THREAD
              strncpy(context.webserver_root,prespawned_pool[i].webserver_root,MAX_FILE_PATH);
              strncpy(context.templates_root,prespawned_pool[i].templates_root,MAX_FILE_PATH);
              context.keep_var_on_stack=1;
+
               //ServeClient from this thread ( without forking..! )
+              fprintf(stderr,"Prespawned thread %u/%u starting to serve new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
                 ServeClient((void *)  &context);
-              //ServeClient from this thread ( without forking..! )
+              //---------------------------------------------------
 
              ++prespawn_jobs_finished;
              prespawned_pool[i].clientsock=0; // <- This signals we finished our task ..!
@@ -605,6 +607,7 @@ int UsePreSpawnedThreadToServeNewClient(int clientsock,struct sockaddr_in client
         prespawn_turn_to_serve=prespawn_turn_to_serve%MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
         if (prespawned_pool[prespawn_turn_to_serve].clientsock==0)
          {
+             fprintf(stderr,"Decided to use prespawned thread %u/%u to serve new client\n",prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
              prespawned_pool[prespawn_turn_to_serve].clientsock=clientsock;
              prespawned_pool[prespawn_turn_to_serve].client=client;
              prespawned_pool[prespawn_turn_to_serve].clientlen=clientlen;
