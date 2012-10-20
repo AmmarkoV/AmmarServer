@@ -53,6 +53,12 @@ int CLIENT_THREADS_STARTED=0;
 int CLIENT_THREADS_STOPPED=0;
 pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
 
+struct PreSpawnedThread
+{
+    int socket_to_use;
+    pthread_t thread_id;
+}
+
 
 struct PassToHTTPThread
 {
@@ -69,6 +75,8 @@ struct PassToHTTPThread
      unsigned int thread_id;
 };
 
+unsigned int prespawn_turn_to_serve=0,prespawn_jobs_started=0,prespawn_jobs_finished=0;
+struct PreSpawnedThread prespawned_pool[MAX_CLIENT_PRESPAWNED_THREADS]={0};
 
 void * ServeClient(void * ptr);
 void * HTTPServerThread (void * ptr);
@@ -457,6 +465,7 @@ unsigned int FindAProperThreadID(unsigned int starting_from)
     return starting_from;
 }
 
+
 int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
   fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED);
@@ -497,6 +506,24 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   if (retres!=0) { retres = 0; } else { retres = 1; }
 
   return retres;
+}
+
+
+void * PreSpawnedThread(void * ptr)
+{
+
+
+  return 0;
+}
+
+void PreSpawnThreads()
+{
+  return ;
+  int i=0;
+  for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
+   {
+      int retres = pthread_create(&prespawned_pool[context.thread_id],0,PreSpawnedThread,0);
+   }
 }
 
 /*
@@ -603,6 +630,10 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
   if (retres!=0) retres = 0; else retres = 1;
 
   while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ }
+
+
+  PreSpawnThreads();
+
 
   return retres;
 }
