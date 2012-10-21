@@ -209,7 +209,7 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
 }
 
 
-inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root,unsigned int * payload_pos)
+inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int * payload_pos)
 {
 
         unsigned int payload_start = *payload_pos;
@@ -255,7 +255,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
        { //Consider password protection header sections..!
         if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
            {
-             return ProcessAuthorizationHTTPLine(output,request,request_length,webserver_root,&payload_start);
+             return ProcessAuthorizationHTTPLine(output,request,request_length,&payload_start);
            }
        }
 

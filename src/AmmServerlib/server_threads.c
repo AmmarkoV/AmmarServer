@@ -510,6 +510,7 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   context.thread_id = CLIENT_THREADS_STARTED++;
   context.thread_id = FindAProperThreadID(context.thread_id);
 
+  fprintf(stderr,"Spawning a new thread %u/%u to serve this client\n",CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS);
   int retres = pthread_create(&threads_pool[context.thread_id],0,ServeClient,(void*) &context);
   usleep(2); //<- Give some time to the thread to startup
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*usleep(1);*/ } } else // <- Keep PeerServerContext in stack for long enough :P
@@ -545,8 +546,8 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 
 void * PreSpawnedThread(void * ptr)
 {
-  int * i_adapt = (int *) ptr;
-  int i = *i_adapt;
+  unsigned int * i_adapt = (unsigned int *) ptr;
+  unsigned int i = *i_adapt;
   *i_adapt = MAX_CLIENT_PRESPAWNED_THREADS+1; // <-- This signals we got the i value..
 
 
@@ -589,7 +590,7 @@ void PreSpawnThreads()
 {
   if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
 
-  int i=0,thread_i=0;
+  unsigned int i=0,thread_i=0;
   for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
    {
       thread_i=i;
@@ -601,6 +602,7 @@ void PreSpawnThreads()
 
 int UsePreSpawnedThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
+   if (prespawn_jobs_started<prespawn_jobs_finished ) {  fprintf(stderr,"Prespawn jobs counters truncated (?) \n"); } else
    if (prespawn_jobs_started-prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
     {
         ++prespawn_turn_to_serve;
@@ -742,6 +744,14 @@ void * HTTPServerThread (void * ptr)
 
 int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * templates_path)
 {
+
+  //Since this webserver is "serious-stuff" we may want to increase its priority..
+   if ( CHANGE_PRIORITY != 0 )
+    { if ( nice(CHANGE_PRIORITY) == -1 ) { fprintf(stderr,"Error changing process priority to %i \n",CHANGE_PRIORITY); } else
+                                         { fprintf(stderr,"Changed priority to %i \n",CHANGE_PRIORITY); } }
+  //-------------------------------------------------------------------------------------------------------------
+
+
   struct PassToHTTPThread context;
   memset(&context,0,sizeof(context));
 
@@ -758,15 +768,24 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
 
   int retres=1;
 
+  //Creating the main WebServer thread..
+  //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
   retres = pthread_create( &server_thread_id ,0,HTTPServerThread,(void*) &context);
-  if (retres!=0) retres = 0; else retres = 1;
+  //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
+  if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ } }
 
-  while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ }
 
-
+  //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
+  //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
   PreSpawnThreads();
 
+  //The next call simulates an incoming request that gets served by the server in order to test it and preload the index page for better performance..!
+  char * file = RequestHTTPWebPage("127.0.0.1",port,"\0",100);
+  if (file!=0) { free(file); fprintf(stderr,"Internal Index Request was succesful..\n"); } else
+               { fprintf(stderr,"Internal Index Request failed ..\n"); }
 
+  //We flip the retres
+  if (retres!=0) retres = 0; else retres = 1;
   return retres;
 }
 

@@ -9,6 +9,8 @@ char * USERNAME=0;
 char * PASSWORD=0;
 char * BASE64PASSWORD=0;
 
+int CHANGE_PRIORITY=-10;
+
 int varSocketTimeoutREAD_ms=5000;
 int varSocketTimeoutWRITE_ms=5000;
 

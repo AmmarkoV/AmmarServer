@@ -29,4 +29,6 @@ int StripHTMLCharacters_Inplace(char * filename);
 int ReducePathSlashes_Inplace(char * filename);
 int FilenameStripperOk(char * filename);
 
+char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsigned int max_content);
+
 #endif // HTTP_TOOLS_H_INCLUDED

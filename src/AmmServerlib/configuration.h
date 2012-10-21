@@ -31,6 +31,7 @@ extern char * USERNAME;
 extern char * PASSWORD;
 extern char * BASE64PASSWORD;
 
+extern int CHANGE_PRIORITY;
 extern int varSocketTimeoutREAD_ms;
 extern int varSocketTimeoutWRITE_ms;
 

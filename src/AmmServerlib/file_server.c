@@ -109,7 +109,7 @@ unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verif
 }
 
 
-unsigned long SendNotModifiedHeader(int clientsock,char * verified_filename)
+unsigned long SendNotModifiedHeader(int clientsock)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -361,7 +361,7 @@ unsigned long SendFile
           if ( strcmp(request->ETag,LocalETag)==0 )
            {
               fprintf(stderr,"The content matches our ETag , we will reply with 304 NOT MODIFIED! :) \n");
-              SendNotModifiedHeader(clientsock,verified_filename);
+              SendNotModifiedHeader(clientsock);
 
               //The Etag is mandatory on 304 messages..!
               char ETagSendChunk[128]={0};

@@ -23,6 +23,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <ctype.h>
 #include <dirent.h>
 
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
 #include "http_tools.h"
 #include "configuration.h"
 #include "file_caching.h"
@@ -667,4 +676,55 @@ int FindIndexFile(char * webserver_root,char * directory,char * indexfile)
   indexfile[0]=0;
   return 0;
 }
+
+
+
+char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsigned int max_content)
+{
+  int sockfd;
+  struct hostent *he=0;
+  struct sockaddr_in their_addr;
+
+  if ((he=gethostbyname(hostname)) == 0) { fprintf(stderr,"Error getting host (%s) by name \n",hostname); return 0; } else
+                                        { printf("Client-The remote host is: %s\n",hostname); }
+
+  if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) { error("Could not create the socket for the connection\n"); return 0; } else
+                                                        { printf("Client socket ok\n"); }
+
+    // host byte order
+    their_addr.sin_family = AF_INET;
+    // short, network byte order
+    printf("Server-Using %s:%d...\n",hostname,port);
+    their_addr.sin_port = htons(port);
+    their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+    // zero the rest of the struct
+    memset(&(their_addr.sin_zero), '\0', 8);
+
+   if(connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1) { error("Could not connect the created socket \n");  return 0; } else
+                                                                                         { printf("Starting Request for filename %s \n",filename); }
+
+
+
+    struct timeval timeout;
+    timeout.tv_sec = (unsigned int) 1/1000; timeout.tv_usec = 0;
+    if (setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Receive timeout \n"); }
+
+    timeout.tv_sec = (unsigned int) 1/1000; timeout.tv_usec = 0;
+    if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
+
+
+    char buffer[1024]={0};
+    sprintf(buffer,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
+
+    int opres =  send(sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+    if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
+    {
+      buffer[0]=0;
+      opres = recv(sockfd,buffer,1024,MSG_WAITALL|MSG_NOSIGNAL);
+    }
+    // Todo add here some header sensing , malloc a good sized buffer , put the file in there ,
+    close(sockfd);
+  return 0;
+}
+
 

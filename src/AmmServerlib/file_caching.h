@@ -17,9 +17,9 @@ int DoNotCacheResource(char * filename);
 
 
 unsigned int GetHashForCacheItem(unsigned int index);
-unsigned int FindCacheIndexForFile(char * filename,unsigned int * index);
+unsigned int FindCacheIndexForResource(char * resource,unsigned int * index);
 
-int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB,unsigned int max_seperate_variables , unsigned int max_total_var_allocation_MB,unsigned int max_var_allocation_per_entry_MB);
+int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB);
 int DestroyCache();
 
 int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_root);

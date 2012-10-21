@@ -29,7 +29,7 @@
 		<Cursor position="684" topLine="0" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="7">
-		<Cursor position="16506" topLine="367" />
+		<Cursor position="16506" topLine="394" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
 		<Cursor position="100" topLine="0" />
@@ -55,8 +55,8 @@
 	<File name="main.c" open="1" top="0" tabpos="1">
 		<Cursor position="3047" topLine="49" />
 	</File>
-	<File name="server_threads.c" open="1" top="0" tabpos="10">
-		<Cursor position="20465" topLine="316" />
+	<File name="server_threads.c" open="1" top="1" tabpos="10">
+		<Cursor position="24659" topLine="579" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="668" topLine="0" />
