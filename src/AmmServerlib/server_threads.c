@@ -93,6 +93,31 @@ int HTTPServerIsRunning()
   return server_running;
 }
 
+
+unsigned int DropRootUID()
+{
+   if (!ENABLE_DROPING_ROOT_UID) { fprintf(stderr,"DropRootUID() is disabled..\n"); return 0; }
+
+   FILE *fp;
+   /* Open the command for reading. */
+   fp = popen("id -u `whoami`", "r");
+   if (fp == 0 ) { fprintf(stderr,"Failed to get our user id ( trying to drop root UID ) \n"); return 0; }
+
+   char output[101]={0};
+   /* Read the output a line at a time - output it. */
+     unsigned int i=0;
+     while (fgets(output,101 , fp) != 0) { ++i; /*fprintf(stderr,"\n\nline %u = %s \n",i,output);*/ break; }
+    /* close */
+     pclose(fp);
+
+   int non_root_uid = atoi(output);
+   if (non_root_uid<1000) { fprintf(stderr,"Our current user is root (%u) , we will set up a bogus uid",non_root_uid);  non_root_uid=1500;}
+
+   return setuid(non_root_uid); // Non Root UID :-P
+}
+
+
+
 /*
   -----------------------------------------------------------------
   -----------------------------------------------------------------
@@ -742,14 +767,19 @@ void * HTTPServerThread (void * ptr)
 
 
 
+
 int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * templates_path)
 {
-
   //Since this webserver is "serious-stuff" we may want to increase its priority..
    if ( CHANGE_PRIORITY != 0 )
     { if ( nice(CHANGE_PRIORITY) == -1 ) { fprintf(stderr,"Error changing process priority to %i \n",CHANGE_PRIORITY); } else
                                          { fprintf(stderr,"Changed priority to %i \n",CHANGE_PRIORITY); } }
   //-------------------------------------------------------------------------------------------------------------
+
+   //After changing our priority ( which could require superuser powers ) , it may be time to drop RootUID
+   //There could be a user like www-run or something else that we could setuid to , but this isn't yet implemented...
+   DropRootUID();
+
 
 
   struct PassToHTTPThread context;

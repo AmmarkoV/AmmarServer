@@ -1,6 +1,7 @@
 #ifndef CONFIGURATION_H_INCLUDED
 #define CONFIGURATION_H_INCLUDED
 
+
 #define MAX_CLIENT_THREADS 150 //This is the maximum number of simultainious regular threads that serve incoming requests..!
 #define MAX_CLIENT_PRESPAWNED_THREADS 8 //This is the number of prespawned threads that run to reduce overall latency
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
@@ -20,6 +21,8 @@
 
 #define ENABLE_POST 1
 #define ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES 1
+
+#define ENABLE_DROPING_ROOT_UID 0
 
 #define ENABLE_INTERNAL_RESOURCES_RESOLVE 1
 #define ENABLE_DIRECTORY_LISTING 1

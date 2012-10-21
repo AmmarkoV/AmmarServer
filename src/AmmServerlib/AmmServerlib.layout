@@ -2,7 +2,7 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="1804" topLine="25" />
+		<Cursor position="302" topLine="0" />
 	</File>
 	<File name="client_list.c" open="1" top="0" tabpos="20">
 		<Cursor position="141" topLine="0" />
@@ -11,10 +11,10 @@
 		<Cursor position="287" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="191" topLine="0" />
+		<Cursor position="224" topLine="0" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="233" topLine="0" />
+		<Cursor position="896" topLine="0" />
 	</File>
 	<File name="directory_lists.c" open="1" top="0" tabpos="18">
 		<Cursor position="168" topLine="88" />
@@ -23,28 +23,28 @@
 		<Cursor position="109" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="10337" topLine="199" />
+		<Cursor position="2344" topLine="52" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
-		<Cursor position="684" topLine="0" />
+		<Cursor position="1064" topLine="0" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="7">
-		<Cursor position="16506" topLine="394" />
+		<Cursor position="15906" topLine="338" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
 		<Cursor position="100" topLine="0" />
 	</File>
 	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
-		<Cursor position="6659" topLine="118" />
+		<Cursor position="12607" topLine="232" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
 		<Cursor position="2766" topLine="7" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="14">
-		<Cursor position="24636" topLine="551" />
+		<Cursor position="29908" topLine="678" />
 	</File>
 	<File name="http_tools.h" open="1" top="0" tabpos="15">
-		<Cursor position="506" topLine="0" />
+		<Cursor position="1612" topLine="0" />
 	</File>
 	<File name="logs.c" open="1" top="0" tabpos="16">
 		<Cursor position="1353" topLine="0" />
@@ -53,10 +53,10 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="3047" topLine="49" />
+		<Cursor position="4024" topLine="52" />
 	</File>
 	<File name="server_threads.c" open="1" top="1" tabpos="10">
-		<Cursor position="24659" topLine="579" />
+		<Cursor position="3092" topLine="68" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="668" topLine="0" />
