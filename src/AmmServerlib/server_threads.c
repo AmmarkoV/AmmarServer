@@ -61,6 +61,8 @@ struct PreSpawnedThread
     struct sockaddr_in client;
     unsigned int clientlen;
 
+    char busy;
+
     char webserver_root[MAX_FILE_PATH];
     char templates_root[MAX_FILE_PATH];
 };
@@ -98,9 +100,7 @@ unsigned int DropRootUID()
 {
    if (!ENABLE_DROPING_ROOT_UID) { fprintf(stderr,"DropRootUID() is disabled..\n"); return 0; }
 
-   FILE *fp;
-   /* Open the command for reading. */
-   fp = popen("id -u `whoami`", "r");
+   FILE * fp  = popen("id -u `whoami`", "r");
    if (fp == 0 ) { fprintf(stderr,"Failed to get our user id ( trying to drop root UID ) \n"); return 0; }
 
    char output[101]={0};
@@ -480,10 +480,11 @@ void * ServeClient(void * ptr)
      if (threads_pool[thread_id]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",thread_id); }
      threads_pool[thread_id]=0;
      ++CLIENT_THREADS_STOPPED;
+
+     //We also only want to stop the thread if itsnot prespawned !
+     pthread_exit(0);
    }
 
-
-  pthread_exit(0);
   return 0;
 }
 
@@ -582,10 +583,9 @@ void * PreSpawnedThread(void * ptr)
 
   while (stop_server==0)
    {
-      if (prespawn_turn_to_serve==i)
-       {
+      //fprintf(stderr,"Prespawned Thread %u waiting ( its %u's turn ) \n",i,prespawn_turn_to_serve);
           /*It is our turn!!*/
-          if (prespawned_pool[i].clientsock!=0)
+          if (prespawned_pool[i].busy) //Master thread considers us busy again , this means there is work to be done..!
           {
             ++prespawn_jobs_started;
             /*We have something to do , lets fill our context..*/
@@ -602,11 +602,14 @@ void * PreSpawnedThread(void * ptr)
                 ServeClient((void *)  &context);
               //---------------------------------------------------
 
+             prespawned_pool[i].busy=0; // <- This signals we finished our task ..!
              ++prespawn_jobs_finished;
-             prespawned_pool[i].clientsock=0; // <- This signals we finished our task ..!
-          }  else { usleep(1); /*It is our turn so lets stay vigilant*/ }
-       } else { usleep(100); /*It is not our turn so lets chill..*/ }
-   }
+           }
+
+      if (prespawn_turn_to_serve==i)
+            { usleep(10); /*It is our turn so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
+               { usleep(1000); /*It is not our turn so lets chill..*/ }
+  } // while the server doesn't stop..
 
   return 0;
 }
@@ -619,6 +622,7 @@ void PreSpawnThreads()
   for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
    {
       thread_i=i;
+      prespawned_pool[i].busy=0; // We do this here (and not in the PreSpawnedThread ) to make sure a clean state is sure to be initialized , not having race conditions , locks etc...
       int retres = pthread_create(&prespawned_pool[i].thread_id,0,PreSpawnedThread,(void*) &thread_i );
       if ( retres==0 ) { while (thread_i==i) { usleep(1); } } // <- Keep i value the same for long enough without locks
    }
@@ -627,12 +631,12 @@ void PreSpawnThreads()
 
 int UsePreSpawnedThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
+   //Please note that this must only get called from the main process/thread..
+   if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
    if (prespawn_jobs_started<prespawn_jobs_finished ) {  fprintf(stderr,"Prespawn jobs counters truncated (?) \n"); } else
    if (prespawn_jobs_started-prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
     {
-        ++prespawn_turn_to_serve;
-        prespawn_turn_to_serve=prespawn_turn_to_serve%MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
-        if (prespawned_pool[prespawn_turn_to_serve].clientsock==0)
+        if (!prespawned_pool[prespawn_turn_to_serve].busy)
          {
              fprintf(stderr,"Decided to use prespawned thread %u/%u to serve new client\n",prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
              prespawned_pool[prespawn_turn_to_serve].clientsock=clientsock;
@@ -640,13 +644,21 @@ int UsePreSpawnedThreadToServeNewClient(int clientsock,struct sockaddr_in client
              prespawned_pool[prespawn_turn_to_serve].clientlen=clientlen;
              strncpy(prespawned_pool[prespawn_turn_to_serve].webserver_root,webserver_root,MAX_FILE_PATH);
              strncpy(prespawned_pool[prespawn_turn_to_serve].templates_root,templates_root,MAX_FILE_PATH);
+             // The busy byte gets filled in last because it is what causes the client thread to wake up..!
+             prespawned_pool[prespawn_turn_to_serve].busy=1;
+
+             ++prespawn_turn_to_serve;
+             prespawn_turn_to_serve = prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
 
              return 1;
          } else
          {
-            //Seems that this thread is not free yet..!
+            fprintf(stderr,"Seems that the prespaned thread %u/%u is still busy ..\n",prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
             return 0;
          }
+    } else
+    {
+        fprintf(stderr,"All prespawned threads are busy.. ( start %u , end %u , max %u) \n",prespawn_jobs_started,prespawn_jobs_finished,MAX_CLIENT_PRESPAWNED_THREADS);
     }
   return 0;
 }
@@ -708,7 +720,7 @@ void * HTTPServerThread (void * ptr)
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
 
-  int clientsock;
+  int clientsock=0;
   unsigned int serverlen = sizeof(struct sockaddr_in),clientlen = sizeof(struct sockaddr_in);
   struct sockaddr_in server;
   struct sockaddr_in client;
@@ -736,13 +748,12 @@ void * HTTPServerThread (void * ptr)
 
   while (stop_server==0)
   {
-    fprintf(stderr,"\nServer Thread : Waiting for a new client");
+    fprintf(stderr,"\nServer Thread : Waiting for a new client\n");
     /* Wait for client connection */
     if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0) { error("Server Thread : Failed to accept client connection"); }
       else
       {
-           fprintf(stderr,"Server Thread : Accepted new client \n");
-
+           fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
 
            if (UsePreSpawnedThreadToServeNewClient(clientsock,client,clientlen,webserver_root,templates_root))
             {

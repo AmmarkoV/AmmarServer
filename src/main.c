@@ -59,12 +59,10 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 */
 
-
 //The decleration of some dynamic content resources..
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
-
 
 
 char FileExistsTest(char * filename)
