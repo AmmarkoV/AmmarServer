@@ -548,7 +548,8 @@ unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int reques
 
 char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
 {
-    fprintf(stderr,"Testing Version of GetNewStringFromHTTPHeaderFieldPayload(%s,%u) called\n",request,request_length);
+    int PRINT_HELP_HERE=0;
+    if (PRINT_HELP_HERE) fprintf(stderr,"Testing Version of GetNewStringFromHTTPHeaderFieldPayload(%s,%u) called\n",request,request_length);
     /*THIS IS NOT CORRECT , IT NEEDS TO BE FIXED..!*/
 
    /*                                                             char * request should initally point here ( at the `:` )
@@ -567,17 +568,17 @@ char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int reques
         unsigned int blank_offset = seek_non_blank_char(payload,payload_end);
         if (blank_offset>0)
          {
-           fprintf(stderr,"Got an offset of %u chars while seeking non_blank characters\n",blank_offset);
+           if (PRINT_HELP_HERE) fprintf(stderr,"Got an offset of %u chars while seeking non_blank characters\n",blank_offset);
            payload+=blank_offset;
            blank_offset = seek_blank_char(payload,payload_end);
              if (blank_offset>0)
               {
-                fprintf(stderr,"Got an offset of %u chars while seeking for a blank character\n",blank_offset);
+                if (PRINT_HELP_HERE) fprintf(stderr,"Got an offset of %u chars while seeking for a blank character\n",blank_offset);
                 char * formerly_blank_char = payload+blank_offset;
                 char   formerly_blank_char_val = *formerly_blank_char;
 
                 *formerly_blank_char = 0 ; //It became a null terminated string now , efficiency ftw :P
-                fprintf(stderr,"Payload is %s (string)\n",payload);
+                if (PRINT_HELP_HERE) fprintf(stderr,"Payload is %s (string)\n",payload);
 
                                                           //also add some space for the null termination..!
                 unsigned int payload_length = strlen(payload);

@@ -512,8 +512,8 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 
   int retres = pthread_create(&threads_pool[context.thread_id],0,ServeClient,(void*) &context);
   usleep(2); //<- Give some time to the thread to startup
-  if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*usleep(1);*/ } } // <- Keep PeerServerContext in stack for long enough :P
-
+  if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*usleep(1);*/ } } else // <- Keep PeerServerContext in stack for long enough :P
+                   { fprintf(stderr,"Could not create a new thread..\n "); }
 
   if (retres!=0) { retres = 0; } else { retres = 1; }
 
