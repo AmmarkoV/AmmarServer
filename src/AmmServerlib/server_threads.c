@@ -607,8 +607,8 @@ void * PreSpawnedThread(void * ptr)
            }
 
       if (prespawn_turn_to_serve==i)
-            { usleep(10); /*It is our turn so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
-               { usleep(1000); /*It is not our turn so lets chill..*/ }
+            { usleep(10); /*It is our turn next so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
+               { usleep(1000); /*It is not our turn so lets chill for a WHOLE millisecond!..*/ }
   } // while the server doesn't stop..
 
   return 0;

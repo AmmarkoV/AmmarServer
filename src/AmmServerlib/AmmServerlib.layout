@@ -4,8 +4,8 @@
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
 		<Cursor position="302" topLine="0" />
 	</File>
-	<File name="client_list.c" open="1" top="0" tabpos="20">
-		<Cursor position="141" topLine="0" />
+	<File name="client_list.c" open="1" top="1" tabpos="20">
+		<Cursor position="546" topLine="0" />
 	</File>
 	<File name="client_list.h" open="1" top="0" tabpos="21">
 		<Cursor position="287" topLine="0" />
@@ -53,10 +53,10 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="4024" topLine="52" />
+		<Cursor position="4024" topLine="24" />
 	</File>
-	<File name="server_threads.c" open="1" top="1" tabpos="10">
-		<Cursor position="2411" topLine="134" />
+	<File name="server_threads.c" open="1" top="0" tabpos="10">
+		<Cursor position="24817" topLine="725" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="668" topLine="0" />
