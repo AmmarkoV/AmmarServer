@@ -35,17 +35,26 @@ int LoadConfigurationFile(char * conf_file)
 
 /*Kind of twisted function TODO : improve it :P*/
 int AssignStr(char ** dest , char * source)
-{  //THIS ISN'T WORKING!
+{
+    //We want to replace **dest with a pointer to a valid point
+    //in memory that contains a copy of source.. :P
+
+   //Beginning we would like to free any allocation and set dest to point at null!
    if (*dest!=0) { free(*dest); }
    *dest=0;
+   //If the source is null , so is the dest
    if (source==0) { return 1; }
 
    unsigned int source_len=strlen(source);
-   *dest = malloc(sizeof(char) * source_len);
+   *dest = malloc(sizeof(char) * (source_len+1) );
 
-   if (*dest==0) { return 0; }
-   *dest[0]=0;
-   strncpy(*dest,source,source_len);
+   if (*dest==0) { fprintf(stderr,"Could not allocate string to assign value\n"); return 0; }
+   char * destination = *dest;
+
+   destination[0]=0;
+   strncpy(destination,source,source_len);
+   destination[source_len]=0; // <- This should happen automatically but we reinforce it here..!
+
    return 1;
 }
 
@@ -69,7 +78,7 @@ int SetUsernameAndPassword(char * username,char * password)
 
 
 
-  char * base64pass = malloc(sizeof (char) *  (pass_size*2) );
+  char * base64pass = malloc(sizeof (char) *  ((pass_size*2)+1 ));
   if (base64pass==0) { fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n"); return 0; }
   base64pass[0]=0;
 

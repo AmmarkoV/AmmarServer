@@ -15,6 +15,7 @@ const char *months[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","O
 
 unsigned long GetTickCount()
 {
+   //This returns a monotnic "uptime" value in milliseconds , it behaves like windows GetTickCount() but its not the same..
    struct timespec ts;
    if ( clock_gettime(CLOCK_MONOTONIC,&ts) != 0) { fprintf(stderr,"Error Getting Tick Count\n"); return 0; }
    return ts.tv_sec*1000 + ts.tv_nsec/1000000;

@@ -616,8 +616,11 @@ char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int reques
    Encode source from raw data into Base64 encoded string */
 int encodeToBase64(char *src,unsigned s_len,char *dst,unsigned d_len)
 {
-  unsigned triad;
+  //This function doesnt seem to append a proper null termination ..
+  //So lets preemtively clear everything..!
+  memset(dst,0,d_len);
 
+  unsigned triad;
    for (triad = 0; triad < s_len; triad += 3)
    {
      unsigned long int sr;
