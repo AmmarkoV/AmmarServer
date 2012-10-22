@@ -11,7 +11,7 @@
 		<Cursor position="287" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="396" topLine="0" />
+		<Cursor position="927" topLine="56" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
 		<Cursor position="921" topLine="6" />
@@ -23,25 +23,25 @@
 		<Cursor position="109" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="11108" topLine="282" />
+		<Cursor position="16358" topLine="163" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
 		<Cursor position="774" topLine="0" />
 	</File>
-	<File name="file_server.c" open="1" top="0" tabpos="7">
-		<Cursor position="21881" topLine="475" />
+	<File name="file_server.c" open="1" top="1" tabpos="7">
+		<Cursor position="17055" topLine="346" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
 		<Cursor position="100" topLine="0" />
 	</File>
 	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
-		<Cursor position="3923" topLine="253" />
+		<Cursor position="11501" topLine="192" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
 		<Cursor position="2766" topLine="7" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="14">
-		<Cursor position="29908" topLine="678" />
+		<Cursor position="25181" topLine="376" />
 	</File>
 	<File name="http_tools.h" open="1" top="0" tabpos="15">
 		<Cursor position="1612" topLine="0" />
@@ -53,16 +53,16 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="4207" topLine="54" />
+		<Cursor position="7788" topLine="172" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="10">
-		<Cursor position="24817" topLine="725" />
+		<Cursor position="30539" topLine="360" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="668" topLine="0" />
 	</File>
 	<File name="time_provider.c" open="1" top="0" tabpos="22">
-		<Cursor position="845" topLine="1" />
+		<Cursor position="400" topLine="0" />
 	</File>
 	<File name="time_provider.h" open="1" top="0" tabpos="23">
 		<Cursor position="200" topLine="0" />

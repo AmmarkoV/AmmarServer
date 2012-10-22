@@ -4,6 +4,11 @@
 #include <string.h>
 #include "http_tools.h"
 
+
+/*
+   THERE ARE TWO KIND OF CONFIGURATION OPTIONS , SOME THAT ARE CONSTANT , AND DEFINED IN CONFIGURATION.H
+   AND SOME THAT CAN BE MODIFIED ON RUNTIME WHICH YOU CAN SEE HERE..
+*/
 int PASSWORD_PROTECTION=0;
 char * USERNAME=0;
 char * PASSWORD=0;
@@ -24,6 +29,11 @@ char ErrorLog[MAX_FILE_PATH]="error.log";
 char TemplatesInternalURI[MAX_RESOURCE]="_asvres_/";
 //Please note that the file server limits filenames _asvres_/filename.jpg is OK
 //a filename like _asvres_/filenamemplampla.jpg will return a 404
+
+// ------------------------------------------------------------------------------------------------------
+
+
+
 
 
 int LoadConfigurationFile(char * conf_file)

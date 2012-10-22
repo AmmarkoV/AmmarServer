@@ -371,7 +371,7 @@ unsigned long SendFile
 
       //The application might want the file to always be served as a fresh one..
       if ( cache[index].doNOTCache ) { ok_to_serve_not_modified = 0; } /*We have written orders that we want this file to NEVER get cached.. EVER :P */
-
+      if (force_error_code!=0) { ok_to_serve_not_modified = 0; } /*We want 404 etc messages to remain 404 :P , no point in serving 404 and then 304 ( that the 404 didn't change )*/
 
       if (ok_to_serve_not_modified)
       {
