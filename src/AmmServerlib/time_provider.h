@@ -9,6 +9,7 @@ struct time_snap
   struct timeval starttime,endtime,difference;
 };
 
+unsigned long GetTickCount();
 int GetDateString(char * output,char * label,unsigned int now,unsigned int dayofweek,unsigned int day,unsigned int month,unsigned int year,unsigned int hour,unsigned int minute,unsigned int second);
 
 int start_timer (  struct time_snap * val );

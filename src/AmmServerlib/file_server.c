@@ -351,9 +351,29 @@ unsigned long SendFile
 
   if (cached_buffer!=0)
    {
-      //Check E-Tag here..!
-      unsigned int cache_etag = GetHashForCacheItem(index);
-      if ((request->ETag!=0)&&(cache_etag!=0))
+      unsigned char ok_to_serve_not_modified = 1;
+
+      /*OK We have a cached buffer on this page BUT a good question to ask is the following..
+        Is it a regular file we are talking about , or a dynamic page ? */
+
+      if (cache[index].prepare_mem_callback!=0)
+              {
+                /*It seems we have ourselves a dynamic page..! Are we on a callback cooldown ? */
+                /*The only built in way to serve a not modified response is if the request is too soon ( callback_every_x_msec callback cooldown ) ! */
+                struct AmmServer_RH_Context * shared_context = cache[index].context;
+                if ( shared_context->callback_cooldown ) { ok_to_serve_not_modified=1; } else // <- the dynamic page is still fresh.. so lets serve not modified..!
+                                                         { ok_to_serve_not_modified=0; } // <- the dynamic page has expired is dynamic so it can't be cached
+              } else
+              {
+                  //It seems we have ourselves a regular page
+                  //ok_to_serve_not_modified = 1; not needed , it hasn't been changed..!
+              }
+
+      if (ok_to_serve_not_modified)
+      {
+       //Check E-Tag here..!
+       unsigned int cache_etag = GetHashForCacheItem(index);
+       if ((request->ETag!=0)&&(cache_etag!=0))
         {
           fprintf(stderr,"E-Tag is `%s` , local hash is `%u` \n",request->ETag,cache_etag);
           char LocalETag[40]={0};
@@ -375,6 +395,7 @@ unsigned long SendFile
               header_only=1;
            }
         }
+     }
    }
 
    unsigned int have_last_modified=0;

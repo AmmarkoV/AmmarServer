@@ -84,7 +84,8 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
    context->MAX_content_size=allocate_mem_bytes;
    context->prepare_content_callback=callback;
    context->callback_every_x_msec=callback_every_x_msec;
-   //TODO : callback_every_x_msec is ignored for now , it should make the query the callback function no sooner than x_msec
+   context->last_callback=0; //This is important because a random value here will screw up things with callback_every_x_msec..
+   context->callback_cooldown=0;
 
    if ( allocate_mem_bytes>0 )
     {

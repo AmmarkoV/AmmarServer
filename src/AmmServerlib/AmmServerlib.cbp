@@ -21,6 +21,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-pg" />
+					<Add option="-lrt" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -31,14 +32,18 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-Wall" />
 					<Add option="-O2" />
+					<Add option="-Wall" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-lrt" />
 				</Linker>
 			</Target>
 		</Build>
+		<Linker>
+			<Add option="-lrt" />
+		</Linker>
 		<Unit filename="AmmServerlib.h" />
 		<Unit filename="client_list.c">
 			<Option compilerVar="CC" />

@@ -14,6 +14,7 @@ struct AmmServer_RH_Context
 
    unsigned int last_callback;
    unsigned int callback_every_x_msec;
+   char callback_cooldown;
    void * prepare_content_callback;
 
    char web_root_path[MAX_FILE_PATH];

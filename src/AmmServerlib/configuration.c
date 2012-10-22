@@ -11,8 +11,8 @@ char * BASE64PASSWORD=0;
 
 int CHANGE_PRIORITY=-10;
 
-int varSocketTimeoutREAD_ms=5000;
-int varSocketTimeoutWRITE_ms=5000;
+int varSocketTimeoutREAD_ms=10*1000;
+int varSocketTimeoutWRITE_ms=10*1000;
 
 int AccessLogEnable=0;
 char AccessLog[MAX_FILE_PATH]="access.log";

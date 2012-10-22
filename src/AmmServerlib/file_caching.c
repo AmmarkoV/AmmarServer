@@ -5,6 +5,7 @@
 #include "configuration.h"
 #include "file_caching.h"
 #include "http_tools.h"
+#include "time_provider.h"
 
 
 unsigned char CACHING_ENABLED=1;
@@ -12,31 +13,6 @@ unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
 unsigned int MAX_TOTAL_ALLOCATION_IN_MB=64;
 unsigned int MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=1;
 unsigned int MAX_CACHE_SIZE=1000;
-
-struct cache_item
-{
-   //TODO: add this to the checks to avoid hash collisions -> char filename[MAX_FILE_PATH];
-   //it will have negative performance effect though :P
-
-   struct AmmServer_RH_Context * context;
-
-   unsigned long filename_hash;
-   unsigned int hits;
-   unsigned long * filesize;
-   char * mem;
-   void * prepare_mem_callback;
-
-   unsigned char doNOTCache;
-
-   /*Modification time..!*/
-   unsigned char hour;
-   unsigned char minute;
-   unsigned char second;
-   unsigned char wday;
-   unsigned char day;
-   unsigned char month;
-   unsigned int  year;
-};
 
 
 unsigned long loaded_cache_items_Kbytes=0;
@@ -309,14 +285,35 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
            {
              if (cache[*index].prepare_mem_callback!=0)
               {
+                //TODO some good explanation here.>!
+                struct AmmServer_RH_Context * shared_context = cache[*index].context;
+
+                unsigned long now=0; //If there is no callback limits the time of the call will always be 0
+                //That doesnt bother anything or anyone..
+
+                if (shared_context-> callback_every_x_msec!=0)
+                { //Dynamic pages without time limits dont have to call the "expensive" GetTickCount
+                 now=GetTickCount();
+                 if ( now-shared_context->last_callback < shared_context-> callback_every_x_msec )
+                    {
+                      //The request came too fast.. We will serve our existing file..!
+                      shared_context->callback_cooldown=1;
+                      *filesize=*cache[*index].filesize;
+                      return cache[*index].mem;
+                    } else
+                    {
+                      fprintf(stderr,"Request deserves fresh page , %u last gen, %u now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
+                    }
+                }
+
                 /*Do callback here*/
+                shared_context->callback_cooldown=0;
+                shared_context->last_callback = now;
                 void ( *DoCallback) (unsigned int)=0 ;
                 DoCallback = cache[*index].prepare_mem_callback;
 
 
-                //TODO some good explanation here.>!
-                struct AmmServer_RH_Context * shared_context = cache[*index].context;
-
+                /*If we have GET or POST request variables , lets pass them through to our shared context.. */
                 shared_context->GET_request = request->GETquery;
                 if (shared_context->GET_request!=0) { shared_context->GET_request_length = strlen(shared_context->GET_request); } else
                                                      { shared_context->GET_request_length = 0; }

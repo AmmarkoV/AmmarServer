@@ -12,6 +12,16 @@
 const char *days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 const char *months[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 
+
+unsigned long GetTickCount()
+{
+   struct timespec ts;
+   if ( clock_gettime(CLOCK_MONOTONIC,&ts) != 0) { fprintf(stderr,"Error Getting Tick Count\n"); return 0; }
+   return ts.tv_sec*1000 + ts.tv_nsec/1000000;
+}
+
+
+
 int GetDateString(char * output,char * label,unsigned int now,unsigned int dayofweek,unsigned int day,unsigned int month,unsigned int year,unsigned int hour,unsigned int minute,unsigned int second)
 {
    //Date: Sat, 29 May 2010 12:31:35 GMT
