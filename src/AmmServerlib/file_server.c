@@ -349,7 +349,7 @@ unsigned long SendFile
   unsigned long cached_lSize=0;
   char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,gzip_supported);
 
-  if (cached_buffer!=0)
+  if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
       unsigned char ok_to_serve_not_modified = 1;
 
@@ -366,8 +366,12 @@ unsigned long SendFile
               } else
               {
                   //It seems we have ourselves a regular page
-                  //ok_to_serve_not_modified = 1; not needed , it hasn't been changed..!
+                  //ok_to_serve_not_modified already should equal 1 so leave this here as documentation.. :P
               }
+
+      //The application might want the file to always be served as a fresh one..
+      if ( cache[index].doNOTCache ) { ok_to_serve_not_modified = 0; } /*We have written orders that we want this file to NEVER get cached.. EVER :P */
+
 
       if (ok_to_serve_not_modified)
       {
@@ -432,7 +436,9 @@ unsigned long SendFile
 
 if (!header_only)
  {
-  if (cached_buffer!=0) //&&(cached_lSize!=0) its not bad to have a zero size cache item!
+  if ( (cached_buffer!=0) &&
+        (!cache[index].doNOTCache) ) // if we doNOT want to cache the file , well dont .. :P
+         //&&(cached_lSize!=0) its not bad to have a zero size cache item!
    { /*!Serve cached file !*/
      //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
      //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
@@ -455,11 +461,8 @@ if (!header_only)
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); return 0; }
 
+     opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
 
-     if (!header_only)
-      {
-       opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-      }
 
      if (opres<=0) { fprintf(stderr,"Error sending cached body\n"); return 0; }
      return 1;
@@ -478,8 +481,13 @@ if (!header_only)
          fprintf(stderr,"Could not transmit file %s \n",verified_filename);
       }
   }
-} else
- { send(clientsock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL); }
+  //
+} //we also want a body with that header END
+ else
+{
+  //We only served a header so lets append the last new line char..!
+  send(clientsock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+}
 
 
  return 0;
