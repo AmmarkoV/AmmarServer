@@ -436,9 +436,9 @@ unsigned long SendFile
 
 if (!header_only)
  {
-  if ( (cached_buffer!=0) &&
-        (!cache[index].doNOTCache) ) // if we doNOT want to cache the file , well dont .. :P
-         //&&(cached_lSize!=0) its not bad to have a zero size cache item!
+  if ( (cached_buffer!=0) && //If we haven't got a buffer cached.. AND
+        ( (!cache[index].doNOTCache) /*If we dont forbid caching */ || ( (cache[index].doNOTCache)&&(cache[index].prepare_mem_callback!=0) ) /*Or we forbid caching but we are talking about a dynamic page*/)
+     ) // its ok to serve a cached file..
    { /*!Serve cached file !*/
      //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
      //Last-Modified: Sat, 29 May 2010 12:31:35 GMT

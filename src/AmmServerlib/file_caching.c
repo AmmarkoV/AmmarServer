@@ -276,7 +276,8 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
 
        if (FindCacheIndexForResource(verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
         {
-           if (cache[*index].doNOTCache)
+           //if doNOTCache is set and this is a real file..
+           if ((cache[*index].doNOTCache)&&(cache[*index].prepare_mem_callback==0))
             {
               fprintf(stderr,"We do not want to serve a cached version of this file..\n");
               return 0;
