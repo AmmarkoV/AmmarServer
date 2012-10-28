@@ -59,9 +59,11 @@ int compress2(Bytef * dest, uLongf * destLen, const Bytef * source, uLong source
 
 Description
 
-The compress2() function shall attempt to compress sourceLen bytes of data in the buffer source, placing the result in the buffer dest, at the level described by level. The level supplied shall be a value between 0 and 9, or the value Z_DEFAULT_COMPRESSION. A level of 1 requests the highest speed, while a level of 9 requests the highest compression. A level of 0 indicates that no compression should be used, and the output shall be the same as the input.
+The compress2() function shall attempt to compress sourceLen bytes of data in the buffer source, placing the result in the buffer dest, at the level described by level. The level supplied shall be a value between 0 and 9, or the value Z_DEFAULT_COMPRESSION. A level of 1 requests
+the highest speed, while a level of 9 requests the highest compression. A level of 0 indicates that no compression should be used, and the output shall be the same as the input.
 
-On entry, destLen should point to a value describing the size of the dest buffer. The application should ensure that this value be at least (sourceLen � 1.001) + 12. On successful exit, the variable referenced by destLen shall be updated to hold the length of compressed data in dest.
+On entry, destLen should point to a value describing the size of the dest buffer. The application should ensure that this value be at least (sourceLen � 1.001) + 12. On successful exit,
+the variable referenced by destLen shall be updated to hold the length of compressed data in dest.
 
 The compress() function is equivalent to compress2() with a level of Z_DEFAULT_LEVEL.
 Return Value
@@ -70,10 +72,15 @@ On success, compress2() shall return Z_OK. Otherwise, compress2() shall return a
 
 */
 
-unsigned int CompressCacheItem(unsigned int index)
+
+int CreateGZippedVersionofCachedResource(unsigned int * index)
 {
-  //cache[i].filename_hash
-  //No need to say that this doesnt work yet.. :P
+  fprintf(stderr,"CreateGZippedVersionofCachedResource for index %u not implemented yet\n",*index);
+  return 0;
+
+  cache[*index].compressed_mem_filesize=0;
+  cache[*index].compressed_mem=0;
+
   return compress2(0,0,0,0,0);
 }
 
@@ -134,12 +141,6 @@ int DestroyCacheIndexForResource(unsigned int * index)
    ------------------------------------------------------------------
 */
 
-int CreateGZippedVersionofCachedResource(unsigned int * index)
-{
-  fprintf(stderr,"CreateGZippedVersionofCachedResource for index %u not implemented yet\n",*index);
-  return 0;
-}
-
 
 int KeepFileInMemoryIndex(char *filename,unsigned int * index)
 {
@@ -182,8 +183,9 @@ int KeepFileInMemoryIndex(char *filename,unsigned int * index)
   cache[*index].filesize = (unsigned long * ) malloc(sizeof (unsigned long));
   *cache[*index].filesize = lSize;
 
-
   /*This could be a good place to make the gzipped version of the buffer..!*/
+  cache[*index].compressed_mem_filesize=0;
+  cache[*index].compressed_mem=0;
   if (!CreateGZippedVersionofCachedResource(index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
 
   return 1;
@@ -274,6 +276,9 @@ int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
   cache[index].context = context;
   cache[index].mem = context->content;
   cache[index].filesize = &context->content_size;
+  cache[index].compressed_mem_filesize=0;
+  cache[index].compressed_mem=0;
+
   cache[index].hits = 0;
   cache[index].prepare_mem_callback = context->prepare_content_callback;
 
@@ -439,6 +444,19 @@ int DestroyCache()
           cache[i].filesize=0;
        }
      }
+
+     //Compressed mem is not controlled by the callback so we can deallocate it at our convinience (not inside the if then else scope )!
+      if ( cache[i].compressed_mem != 0 )
+       {
+          free(cache[i].compressed_mem);
+          cache[i].compressed_mem=0;
+       }
+      if ( cache[i].compressed_mem_filesize != 0 )
+       {
+          free(cache[i].compressed_mem_filesize);
+          cache[i].compressed_mem_filesize=0;
+       }
+
    }
 
    free(cache);

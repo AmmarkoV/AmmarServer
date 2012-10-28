@@ -18,8 +18,13 @@ struct cache_item
 
    unsigned long filename_hash;
    unsigned int hits;
+
    unsigned long * filesize;
    char * mem;
+
+   unsigned long * compressed_mem_filesize;
+   char * compressed_mem;
+
    void * prepare_mem_callback;
 
    unsigned char doNOTCache;
