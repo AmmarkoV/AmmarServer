@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 #include "AmmServerlib.h"
 #include "configuration.h"
 #include "file_caching.h"
@@ -49,6 +50,38 @@ Needless to say , this is our hash function..!
      are implemented here
      ------------------------------------------------------------------
 */
+
+
+
+
+/*
+int compress2(Bytef * dest, uLongf * destLen, const Bytef * source, uLong sourceLen, int level);
+
+Description
+
+The compress2() function shall attempt to compress sourceLen bytes of data in the buffer source, placing the result in the buffer dest, at the level described by level. The level supplied shall be a value between 0 and 9, or the value Z_DEFAULT_COMPRESSION. A level of 1 requests the highest speed, while a level of 9 requests the highest compression. A level of 0 indicates that no compression should be used, and the output shall be the same as the input.
+
+On entry, destLen should point to a value describing the size of the dest buffer. The application should ensure that this value be at least (sourceLen � 1.001) + 12. On successful exit, the variable referenced by destLen shall be updated to hold the length of compressed data in dest.
+
+The compress() function is equivalent to compress2() with a level of Z_DEFAULT_LEVEL.
+Return Value
+
+On success, compress2() shall return Z_OK. Otherwise, compress2() shall return a value to indicate the error.
+
+*/
+
+unsigned int CompressCacheItem(unsigned int index)
+{
+  //cache[i].filename_hash
+  //No need to say that this doesnt work yet.. :P
+  return compress2(0,0,0,0,0);
+}
+
+
+
+
+
+
 
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
 unsigned int FindCacheIndexForResource(char * resource,unsigned int * index)

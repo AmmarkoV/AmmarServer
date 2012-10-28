@@ -9,7 +9,7 @@ fi
 
 CFLAGS="-s -O3 -fexpensive-optimizations" 
 OURLIBRARIES="AmmServerlib/libAmmServerlib.a" 
-LIBRARIES="-pthread -lrt"
+LIBRARIES="-pthread -lrt -lz"
 
 gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 

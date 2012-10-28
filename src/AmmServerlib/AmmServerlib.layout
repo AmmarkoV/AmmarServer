@@ -11,25 +11,25 @@
 		<Cursor position="287" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="927" topLine="56" />
+		<Cursor position="2599" topLine="56" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
 		<Cursor position="921" topLine="6" />
 	</File>
 	<File name="directory_lists.c" open="1" top="0" tabpos="18">
-		<Cursor position="168" topLine="88" />
+		<Cursor position="3951" topLine="38" />
 	</File>
 	<File name="directory_lists.h" open="1" top="0" tabpos="19">
 		<Cursor position="109" topLine="0" />
 	</File>
-	<File name="file_caching.c" open="1" top="1" tabpos="3">
-		<Cursor position="10549" topLine="262" />
+	<File name="file_caching.c" open="1" top="0" tabpos="3">
+		<Cursor position="10549" topLine="316" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
 		<Cursor position="774" topLine="0" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="7">
-		<Cursor position="17055" topLine="346" />
+		<Cursor position="24066" topLine="430" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
 		<Cursor position="100" topLine="0" />
@@ -53,10 +53,10 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="7788" topLine="172" />
+		<Cursor position="7788" topLine="22" />
 	</File>
-	<File name="server_threads.c" open="1" top="0" tabpos="10">
-		<Cursor position="30539" topLine="360" />
+	<File name="server_threads.c" open="1" top="1" tabpos="10">
+		<Cursor position="30539" topLine="0" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="668" topLine="0" />
