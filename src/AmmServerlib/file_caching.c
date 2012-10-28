@@ -72,16 +72,46 @@ On success, compress2() shall return Z_OK. Otherwise, compress2() shall return a
 
 */
 
-
+/*
+   This function should populate cache[*index].compressed_mem_filesize and cache[*index].compressed_mem with a compressed version
+   of the file in  cache[*index].mem
+*/
 int CreateGZippedVersionofCachedResource(unsigned int * index)
 {
   fprintf(stderr,"CreateGZippedVersionofCachedResource for index %u not implemented yet\n",*index);
   return 0;
 
+  if ( (cache[*index].filesize==0)||(cache[*index].mem==0) )
+     {
+       fprintf(stderr,"Cannot create GZipped content for non-existant buffer..!\n");
+       return 0;
+     }
+  if (*cache[*index].filesize==0)
+     {
+       fprintf(stderr,"Cannot create GZipped content for existant but empty buffer ..!\n");
+       return 0;
+     }
+
+  //First to prepare the memory length holder , we clean it up and allocate an unsigned long ..!
+  if (cache[*index].compressed_mem_filesize!=0) { free(cache[*index].compressed_mem_filesize); cache[*index].compressed_mem_filesize=0; }
+  cache[*index].compressed_mem_filesize = (unsigned long * ) malloc(sizeof (unsigned long));
+  *cache[*index].compressed_mem_filesize = *cache[*index].filesize;
+
+  //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
+  if (cache[*index].compressed_mem!=0) { free(cache[*index].compressed_mem); cache[*index].compressed_mem=0; }
+  cache[*index].compressed_mem = (char * ) malloc(sizeof (char) * ( *cache[*index].filesize));
+
+
   cache[*index].compressed_mem_filesize=0;
   cache[*index].compressed_mem=0;
 
-  return compress2(0,0,0,0,0);
+  compress2( (Bytef*)  cache[*index].compressed_mem, //Destination *Compressed* file
+             (uLongf*) cache[*index].compressed_mem_filesize, //Destination filesize (this will change so we pass a pointer)..
+             (Bytef*)  cache[*index].mem,  //Source UNCompressed file
+             (uLongf)  *cache[*index].filesize, //Source filesize ( this wont change so we pass it by value )
+             3); //The compression level ( this needs some thought..! )
+
+  return 0;
 }
 
 
