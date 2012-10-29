@@ -348,6 +348,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
       if (!CACHING_ENABLED)
       {
         fprintf(stderr,"Caching deactivated..!\n");
+        *compression_supported=0;
         return 0;
       }
 
@@ -357,11 +358,11 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
            if ((cache[*index].doNOTCache)&&(cache[*index].prepare_mem_callback==0))
             {
               fprintf(stderr,"We do not want to serve a cached version of this file..\n");
+              *compression_supported=0;
               return 0;
             }  else
          {
            /*We want to serve a cached version of the file START*/
-
 
              /*Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
              if cache[*index].prepare_mem_callback is set then it means we will have to call it first to load data in cache[*index].mem  */
@@ -386,6 +387,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
                      if ( now-shared_context->last_callback < shared_context-> callback_every_x_msec )
                           {
                             //The request came too fast.. We will serve our existing file..!
+                            *compression_supported=0;
                             shared_context->callback_cooldown=1;
                             *filesize=*cache[*index].filesize;
                             return cache[*index].mem;
@@ -420,7 +422,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
 
 
            /*We want to serve a cached version of the file START*/
-           if ( (*compression_supported)&&(ENABLE_COMPRESSION)&&(cache[*index].compressed_mem!=0) )
+           if ( (cache[*index].compressed_mem!=0) && (*compression_supported!=0) && (ENABLE_COMPRESSION) )
            {
              *compression_supported=1; // The response is compressed ( already set but in the future it may need to distinguish differnet compression schemes!..!
 
@@ -448,6 +450,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
            /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
            if ( AddFileToCache(verified_filename,index,last_modification) )
             {
+              *compression_supported=0;
               *filesize=*cache[*index].filesize; //We return the filesize after the operation..
               return cache[*index].mem;
             }
@@ -455,6 +458,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
        //If we are here we are unlocky , our file wasn't in cache and to make things worse we also failed to load it so
        //regular file sending it as it is ..!
 
+       *compression_supported=0;
        *filesize=0;
        fprintf(stderr,"Cache could not find file %s , filesize %u , compression support %u \n",verified_filename,(unsigned int) *filesize,*compression_supported);
 
