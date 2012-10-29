@@ -82,6 +82,9 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
 {
   if (!ENABLE_COMPRESSION) { return 0; }
 
+   //Todo check file type , if it is jpg , zip etc it doesnt need compression..!
+   //If it is css html etc compression would be very nice..
+
   int return_value = 0;
 
   if ( (cache[*index].filesize==0)||(cache[*index].mem==0) )
@@ -95,26 +98,33 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
        return 0;
      }
 
+
+  #if ENABLE_COMPRESSION
+  //When compression is disabled we shouldn't link with -lz so we remove all calls to zlib stuff ( they are marked with a ZLIB CALL ) ..!
+
+  unsigned long compressed_buffer_filesize = compressBound( (uLongf) *cache[*index].filesize); /*!ZLIB CALL!*/
+
   //First to prepare the memory length holder , we clean it up and allocate an unsigned long ..!
   if (cache[*index].compressed_mem_filesize!=0) { free(cache[*index].compressed_mem_filesize); cache[*index].compressed_mem_filesize=0; }
   cache[*index].compressed_mem_filesize = (unsigned long * ) malloc(sizeof (unsigned long));
-  *cache[*index].compressed_mem_filesize = *cache[*index].filesize;
+  *cache[*index].compressed_mem_filesize = compressed_buffer_filesize;
+
 
   //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
   if (cache[*index].compressed_mem!=0) { free(cache[*index].compressed_mem); cache[*index].compressed_mem=0; }
-  cache[*index].compressed_mem = (char * ) malloc(sizeof (char) * ( *cache[*index].filesize));
+  cache[*index].compressed_mem = (char * ) malloc(sizeof (char) * ( compressed_buffer_filesize ));
 
 
-  //When compression is disabled we shouldn't link with -lz so we remove all calls to it..!
-  #if ENABLE_COMPRESSION
-  int res=compress2(
+  int res=compress2( /*!ZLIB CALL!*/
                      (Bytef*)  cache[*index].compressed_mem, //Destination *Compressed* file
                      (uLongf*) cache[*index].compressed_mem_filesize, //Destination filesize (this will change so we pass a pointer)..
                      (Bytef*)  cache[*index].mem,  //Source UNCompressed file
                      (uLongf)  *cache[*index].filesize, //Source filesize ( this wont change so we pass it by value )
                     3); //The compression level ( this needs some thought..! )
-  if (Z_OK==res) { return_value = 1;}
-  #endif
+  if (Z_OK==res) { return_value = 1;} else
+  if ( Z_BUF_ERROR==res )  { fprintf(stderr,"Compressed buffer was not created , The created buffer ( %u bytes ) was not large enough to hold the compressed data.\n",compressed_buffer_filesize); } else
+  if ( Z_MEM_ERROR == res) { fprintf(stderr,"Compressed buffer was not created , Insufficient memory..\n"); } else
+  if ( Z_STREAM_ERROR == res ) { fprintf(stderr,"Compressed buffer was not created , The compression level was not Z_DEFAULT_LEVEL, or was not between 0 and 9...\n"); }
 
 
   if (!return_value)
@@ -125,6 +135,10 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
      cache[*index].compressed_mem_filesize=0;
      cache[*index].compressed_mem=0;
   }
+
+  #endif
+
+
 
   return return_value;
 }
