@@ -297,7 +297,7 @@ unsigned long SendFile
     unsigned int force_error_code, // Instead of the file , serve an error code..!
     unsigned char header_only,     // Only serve header ( HEAD instead of GET )
     unsigned char keepalive,       // Keep alive functionality
-    unsigned char gzip_supported,  // If gzip is supported try to use it!
+    unsigned char compression_supported,  // If gzip is supported try to use it!
 
     //char * webserver_root,
     char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
@@ -347,7 +347,8 @@ unsigned long SendFile
   int opres=0;
   unsigned int index=0;
   unsigned long cached_lSize=0;
-  char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,gzip_supported);
+  unsigned char cached_buffer_is_compressed = compression_supported;
+  char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed);
 
   if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
@@ -455,6 +456,15 @@ if (!header_only)
      }
 
      if (cached_lSize==0) { fprintf(stderr,"Bug(?) detected , zero cache payload\n"); }
+
+
+     if ( cached_buffer_is_compressed )
+     {
+        strcpy(reply_header,"Content-Encoding: deflate\n");
+        opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
+        if (opres<=0) { fprintf(stderr,"Error sending Compression header \n"); return 0; }
+     }
+
 
      //This is the last header part , so we are appending an extra \n to mark the end of the header
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);

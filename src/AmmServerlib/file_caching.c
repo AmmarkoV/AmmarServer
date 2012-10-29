@@ -343,7 +343,7 @@ int CachedVersionExists(char * verified_filename,unsigned int * index)
     return 0;
 }
 
-char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported)
+char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported)
 {
       if (!CACHING_ENABLED)
       {
@@ -359,54 +359,90 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
               fprintf(stderr,"We do not want to serve a cached version of this file..\n");
               return 0;
             }  else
-           if (cache[*index].mem!=0)
-           {
+         {
+           /*We want to serve a cached version of the file START*/
+
+
+             /*Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
+             if cache[*index].prepare_mem_callback is set then it means we will have to call it first to load data in cache[*index].mem  */
              if (cache[*index].prepare_mem_callback!=0)
               {
-                //TODO some good explanation here.>!
-                struct AmmServer_RH_Context * shared_context = cache[*index].context;
+                //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
+                //So we bail out and emmit an error message..!
+                if ( (cache[*index].mem==0) || (cache[*index].filesize==0) )
+                {
+                  fprintf(stderr,"Not going to call callback function with an empty buffer..!\n");
+                } else
+                {
+                  //This means we can call the callback to prepare the memory content..! START
+                  struct AmmServer_RH_Context * shared_context = cache[*index].context;
 
-                unsigned long now=0; //If there is no callback limits the time of the call will always be 0
-                //That doesnt bother anything or anyone..
+                  unsigned long now=0; //If there is no callback limits the time of the call will always be 0
+                  //That doesnt bother anything or anyone..
 
-                if (shared_context-> callback_every_x_msec!=0)
-                { //Dynamic pages without time limits dont have to call the "expensive" GetTickCount
-                 now=GetTickCount();
-                 if ( now-shared_context->last_callback < shared_context-> callback_every_x_msec )
-                    {
-                      //The request came too fast.. We will serve our existing file..!
-                      shared_context->callback_cooldown=1;
-                      *filesize=*cache[*index].filesize;
-                      return cache[*index].mem;
-                    } else
-                    {
-                      fprintf(stderr,"Request deserves fresh page , %u last gen, %u now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
-                    }
+                  if (shared_context-> callback_every_x_msec!=0)
+                   { //Dynamic pages without time limits dont have to call the "expensive" GetTickCount
+                     now=GetTickCount();
+                     if ( now-shared_context->last_callback < shared_context-> callback_every_x_msec )
+                          {
+                            //The request came too fast.. We will serve our existing file..!
+                            shared_context->callback_cooldown=1;
+                            *filesize=*cache[*index].filesize;
+                            return cache[*index].mem;
+                          } else
+                          {
+                           fprintf(stderr,"Request deserves fresh page , %u last gen, %u now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
+                          }
+                   }
+
+                   /*Do callback here*/
+                   shared_context->callback_cooldown=0;
+                   shared_context->last_callback = now;
+                   void ( *DoCallback) (unsigned int)=0 ;
+                   DoCallback = cache[*index].prepare_mem_callback;
+
+
+                   /*If we have GET or POST request variables , lets pass them through to our shared context.. */
+                   shared_context->GET_request = request->GETquery;
+                   if (shared_context->GET_request!=0) { shared_context->GET_request_length = strlen(shared_context->GET_request); } else
+                                                        { shared_context->GET_request_length = 0; }
+
+                   shared_context->POST_request = request->POSTquery;
+                   if (shared_context->POST_request!=0) { shared_context->POST_request_length = strlen(shared_context->POST_request); } else
+                                                         { shared_context->POST_request_length = 0; }
+
+                   unsigned int UNUSED=666; // <- These variables are associated with this page ( POST / GET vars )
+                   //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
+                   DoCallback(UNUSED);
+                  //This means we can call the callback to prepare the memory content..! END
                 }
-
-                /*Do callback here*/
-                shared_context->callback_cooldown=0;
-                shared_context->last_callback = now;
-                void ( *DoCallback) (unsigned int)=0 ;
-                DoCallback = cache[*index].prepare_mem_callback;
-
-
-                /*If we have GET or POST request variables , lets pass them through to our shared context.. */
-                shared_context->GET_request = request->GETquery;
-                if (shared_context->GET_request!=0) { shared_context->GET_request_length = strlen(shared_context->GET_request); } else
-                                                     { shared_context->GET_request_length = 0; }
-
-                shared_context->POST_request = request->POSTquery;
-                if (shared_context->POST_request!=0) { shared_context->POST_request_length = strlen(shared_context->POST_request); } else
-                                                     { shared_context->POST_request_length = 0; }
-
-                unsigned int UNUSED=666; // <- These variables are associated with this page ( POST / GET vars )
-                //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
-                DoCallback(UNUSED);
               }
+
+
+           /*We want to serve a cached version of the file START*/
+           if ( (*compression_supported)&&(ENABLE_COMPRESSION)&&(cache[*index].compressed_mem!=0) )
+           {
+             *compression_supported=1; // The response is compressed ( already set but in the future it may need to distinguish differnet compression schemes!..!
+
+              /* We can and will serve back a cached version of the page..! */
+             *filesize=*cache[*index].compressed_mem_filesize;
+             fprintf(stderr,"Cache Serving back a compressed buffer sized %u bytes\n",*filesize);
+
+             return cache[*index].compressed_mem;
+           }
+               else
+           if (cache[*index].mem!=0)
+           {
+             *compression_supported=0; // The response is not compressed..!
+
              *filesize=*cache[*index].filesize;
+             fprintf(stderr,"Cache Serving back a buffer sized %u bytes\n",*filesize);
+
              return cache[*index].mem;
            }
+
+          /*We want to serve a cached version of the file END*/
+         }
         } else
         {
            /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
@@ -417,10 +453,10 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
             }
         }
        //If we are here we are unlocky , our file wasn't in cache and to make things worse we also failed to load it so
-       //regular file sending it is ..!
+       //regular file sending it as it is ..!
 
        *filesize=0;
-       fprintf(stderr,"Cache could not find file %s , filesize %u , gzip support %u \n",verified_filename,(unsigned int) *filesize,gzip_supported);
+       fprintf(stderr,"Cache could not find file %s , filesize %u , compression support %u \n",verified_filename,(unsigned int) *filesize,*compression_supported);
 
        return 0;
 }

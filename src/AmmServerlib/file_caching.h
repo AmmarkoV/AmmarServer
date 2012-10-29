@@ -42,7 +42,7 @@ struct cache_item
 extern struct cache_item * cache;
 
 int CachedVersionExists(char * verified_filename,unsigned int * index);
-char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char gzip_supported);
+char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported);
 
 int AddDirectResourceToCache(struct AmmServer_RH_Context * context);
 int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned char free_mem);

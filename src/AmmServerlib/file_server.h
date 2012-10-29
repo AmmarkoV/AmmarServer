@@ -21,7 +21,7 @@ unsigned long SendFile
     unsigned int force_error_code, // Instead of the file , serve an error code..!
     unsigned char header_only,     // Only serve header ( HEAD instead of GET )
     unsigned char keepalive,       // Keep alive functionality
-    unsigned char gzip_supported,  // If gzip is supported try to use it!
+    unsigned char compression_supported,  // If gzip is supported try to use it!
 
     //char * webserver_root,
     char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
