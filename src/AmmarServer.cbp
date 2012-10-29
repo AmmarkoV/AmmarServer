@@ -45,6 +45,7 @@
 			<Add option="AmmServerlib/libAmmServerlib.a" />
 			<Add option="-pthread" />
 			<Add option="-lrt" />
+			<Add option="-lz" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />

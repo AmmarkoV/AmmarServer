@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlib.h>
 #include "AmmServerlib.h"
 #include "configuration.h"
 #include "file_caching.h"
 #include "http_tools.h"
 #include "time_provider.h"
 
+#if ENABLE_COMPRESSION
+#include <zlib.h>
+#endif
 
 unsigned char CACHING_ENABLED=1;
 unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
@@ -76,19 +78,22 @@ On success, compress2() shall return Z_OK. Otherwise, compress2() shall return a
    This function should populate cache[*index].compressed_mem_filesize and cache[*index].compressed_mem with a compressed version
    of the file in  cache[*index].mem
 */
-int CreateGZippedVersionofCachedResource(unsigned int * index)
+int CreateCompressedVersionofCachedResource(unsigned int * index)
 {
-  fprintf(stderr,"CreateGZippedVersionofCachedResource for index %u not implemented yet\n",*index);
+  if (!ENABLE_COMPRESSION) { return 0; }
+
+  int return_value = 0;
+  fprintf(stderr,"CreateCompressedVersionofCachedResource for index %u not implemented yet\n",*index);
   return 0;
 
   if ( (cache[*index].filesize==0)||(cache[*index].mem==0) )
      {
-       fprintf(stderr,"Cannot create GZipped content for non-existant buffer..!\n");
+       fprintf(stderr,"Cannot create Compressed content for non-existant buffer..!\n");
        return 0;
      }
   if (*cache[*index].filesize==0)
      {
-       fprintf(stderr,"Cannot create GZipped content for existant but empty buffer ..!\n");
+       fprintf(stderr,"Cannot create Compressed content for existant but empty buffer ..!\n");
        return 0;
      }
 
@@ -105,13 +110,19 @@ int CreateGZippedVersionofCachedResource(unsigned int * index)
   cache[*index].compressed_mem_filesize=0;
   cache[*index].compressed_mem=0;
 
-  compress2( (Bytef*)  cache[*index].compressed_mem, //Destination *Compressed* file
-             (uLongf*) cache[*index].compressed_mem_filesize, //Destination filesize (this will change so we pass a pointer)..
-             (Bytef*)  cache[*index].mem,  //Source UNCompressed file
-             (uLongf)  *cache[*index].filesize, //Source filesize ( this wont change so we pass it by value )
-             3); //The compression level ( this needs some thought..! )
+  #if ENABLE_COMPRESSION
+  int res=compress2(
+                     (Bytef*)  cache[*index].compressed_mem, //Destination *Compressed* file
+                     (uLongf*) cache[*index].compressed_mem_filesize, //Destination filesize (this will change so we pass a pointer)..
+                     (Bytef*)  cache[*index].mem,  //Source UNCompressed file
+                     (uLongf)  *cache[*index].filesize, //Source filesize ( this wont change so we pass it by value )
+                    3); //The compression level ( this needs some thought..! )
+  if (Z_OK==res) { return_value = 1;}
+  #endif
 
-  return 0;
+
+
+  return return_value;
 }
 
 
@@ -216,7 +227,7 @@ int KeepFileInMemoryIndex(char *filename,unsigned int * index)
   /*This could be a good place to make the gzipped version of the buffer..!*/
   cache[*index].compressed_mem_filesize=0;
   cache[*index].compressed_mem=0;
-  if (!CreateGZippedVersionofCachedResource(index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
+  if (!CreateCompressedVersionofCachedResource(index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
 
   return 1;
 }
