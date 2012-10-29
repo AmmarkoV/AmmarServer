@@ -305,6 +305,13 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
             if (output->Host==0) { return 0; } else { return 1;}
           }
 
+      if ( CheckHTTPHeaderCategory(request,request_length,"ACCEPT-ENCODING:",&payload_start) )
+          {
+            if ( CheckHTTPHeaderCategory(request,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
+                                                                                            { output->supports_compression=0; }
+          }
+
+
       if ( CheckHTTPHeaderCategory(request,request_length,"USER-AGENT:",&payload_start) )
           {
             if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }

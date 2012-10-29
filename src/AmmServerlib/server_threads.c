@@ -428,7 +428,7 @@ void * ServeClient(void * ptr)
                         0 /*DO NOT FORCE AN ERROR CODE , NORMAL SENDFILE*/ ,
                         (output.requestType==HEAD),
                         output.keepalive,
-                        output.supports_gzip,
+                        output.supports_compression,
                         templates_root)
                       )
          {

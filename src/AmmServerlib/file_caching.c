@@ -107,9 +107,7 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
   cache[*index].compressed_mem = (char * ) malloc(sizeof (char) * ( *cache[*index].filesize));
 
 
-  cache[*index].compressed_mem_filesize=0;
-  cache[*index].compressed_mem=0;
-
+  //When compression is disabled we shouldn't link with -lz so we remove all calls to it..!
   #if ENABLE_COMPRESSION
   int res=compress2(
                      (Bytef*)  cache[*index].compressed_mem, //Destination *Compressed* file

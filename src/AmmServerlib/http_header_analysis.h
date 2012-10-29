@@ -37,7 +37,7 @@ struct HTTPRequest
    char POSTquery[4*MAX_QUERY+1];
    unsigned char authorized;
    unsigned char keepalive;
-   unsigned char supports_gzip;
+   unsigned char supports_compression;
 
    //RANGE DATA
    unsigned long range_start;
