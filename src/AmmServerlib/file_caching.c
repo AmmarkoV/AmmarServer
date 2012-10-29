@@ -83,8 +83,6 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
   if (!ENABLE_COMPRESSION) { return 0; }
 
   int return_value = 0;
-  fprintf(stderr,"CreateCompressedVersionofCachedResource for index %u not implemented yet\n",*index);
-  return 0;
 
   if ( (cache[*index].filesize==0)||(cache[*index].mem==0) )
      {
@@ -119,6 +117,14 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
   #endif
 
 
+  if (!return_value)
+  { //Compression failed so we will now free our buffers..!
+     free(cache[*index].compressed_mem_filesize);
+     free(cache[*index].compressed_mem);
+
+     cache[*index].compressed_mem_filesize=0;
+     cache[*index].compressed_mem=0;
+  }
 
   return return_value;
 }
