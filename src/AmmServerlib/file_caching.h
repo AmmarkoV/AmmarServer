@@ -22,6 +22,7 @@ struct cache_item
    unsigned long * filesize;
    char * mem;
 
+   int content_type; /*AS Declared in http_tools int GetContentType(char * filename,char * content_type) */
    unsigned long * compressed_mem_filesize;
    char * compressed_mem;
 

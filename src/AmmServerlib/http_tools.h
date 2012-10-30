@@ -1,6 +1,18 @@
 #ifndef HTTP_TOOLS_H_INCLUDED
 #define HTTP_TOOLS_H_INCLUDED
 
+
+enum FileType
+{
+    NO_FILETYPE=0,
+    TEXT,
+    IMAGE,
+    AUDIO,
+    VIDEO,
+    EXECUTABLE,
+    FOLDER
+};
+
 void error(char * msg);
 
 char FileExistsAmmServ(char * filename);

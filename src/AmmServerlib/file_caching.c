@@ -53,8 +53,19 @@ Needless to say , this is our hash function..!
      ------------------------------------------------------------------
 */
 
+int WeCanCommitMoreMemoryForCaching(unsigned long additional_mem_to_malloc_in_bytes)
+{
+  if (MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
+  if (MAX_TOTAL_ALLOCATION_IN_MB*1024<loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_TOTAL_ALLOCATION_IN_MB);  return 0; }
+  return 1;
+}
 
 
+int AddNewMallocToCacheCounter(unsigned long additional_mem_to_malloc_in_bytes)
+{
+  loaded_cache_items_Kbytes+=(additional_mem_to_malloc_in_bytes/1024);
+  return 1;
+}
 
 /*
 int compress2(Bytef * dest, uLongf * destLen, const Bytef * source, uLong sourceLen, int level);
@@ -82,8 +93,9 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
 {
   if (!ENABLE_COMPRESSION) { return 0; }
 
-   //Todo check file type , if it is jpg , zip etc it doesnt need compression..!
-   //If it is css html etc compression would be very nice..
+  //Todo check file type , if it is jpg , zip etc it doesnt need compression..!
+  if ( cache[*index].content_type!=TEXT ) { fprintf(stderr,"The content is not text , so we wont go in the trouble of compressing it..\n"); return 0; }
+  //If it is css html etc compression would be very nice..
 
   int return_value = 0;
 
@@ -104,6 +116,9 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
 
   unsigned long compressed_buffer_filesize = compressBound( (uLongf) *cache[*index].filesize); /*!ZLIB CALL!*/
 
+  if (!WeCanCommitMoreMemoryForCaching(compressed_buffer_filesize)) { return 0; }
+
+
   //First to prepare the memory length holder , we clean it up and allocate an unsigned long ..!
   if (cache[*index].compressed_mem_filesize!=0) { free(cache[*index].compressed_mem_filesize); cache[*index].compressed_mem_filesize=0; }
   cache[*index].compressed_mem_filesize = (unsigned long * ) malloc(sizeof (unsigned long));
@@ -111,6 +126,7 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
 
 
   //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
+  AddNewMallocToCacheCounter(compressed_buffer_filesize);
   if (cache[*index].compressed_mem!=0) { free(cache[*index].compressed_mem); cache[*index].compressed_mem=0; }
   cache[*index].compressed_mem = (char * ) malloc(sizeof (char) * ( compressed_buffer_filesize ));
 
@@ -121,7 +137,11 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
                      (Bytef*)  cache[*index].mem,  //Source UNCompressed file
                      (uLongf)  *cache[*index].filesize, //Source filesize ( this wont change so we pass it by value )
                     3); //The compression level ( this needs some thought..! )
-  if (Z_OK==res) { return_value = 1;} else
+  if (Z_OK==res)
+   {
+     return_value = 1;
+     //Todo compare  compressed_buffer_filesize with *cache[*index].compressed_mem_filesize and realloc what is needed..!
+   } else
   if ( Z_BUF_ERROR==res )  { fprintf(stderr,"Compressed buffer was not created , The created buffer ( %u bytes ) was not large enough to hold the compressed data.\n",compressed_buffer_filesize); } else
   if ( Z_MEM_ERROR == res) { fprintf(stderr,"Compressed buffer was not created , Insufficient memory..\n"); } else
   if ( Z_STREAM_ERROR == res ) { fprintf(stderr,"Compressed buffer was not created , The compression level was not Z_DEFAULT_LEVEL, or was not between 0 and 9...\n"); }
@@ -218,8 +238,7 @@ int KeepFileInMemoryIndex(char *filename,unsigned int * index)
   //lSize now holds the size of the file..
 
   //We check if the file size is ok with our configuration limits
-  if (MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB*1024*1024<lSize) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n"); fclose(pFile); return 0;  }
-  if (MAX_TOTAL_ALLOCATION_IN_MB*1024<loaded_cache_items_Kbytes+lSize/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_TOTAL_ALLOCATION_IN_MB); fclose(pFile); return 0; }
+  if (!WeCanCommitMoreMemoryForCaching(lSize)) { fclose(pFile); return 0; }
 
   //We are ok with the file size , we will now rewind the file to start reading it from the beginning..!
   rewind (pFile);
@@ -227,7 +246,7 @@ int KeepFileInMemoryIndex(char *filename,unsigned int * index)
   char * buffer = (char*) malloc ( sizeof(char) * (lSize));
   if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory to cache this file..!\n"); fclose(pFile); return 0;  }
   //We have allocated the new memory chunk so we will update our loaded cache counter..!
-  loaded_cache_items_Kbytes+=(unsigned int) lSize/1024;
+  AddNewMallocToCacheCounter(lSize);
 
   // copy the file into the buffer:
   size_t result;
@@ -265,6 +284,9 @@ int AddFileToCache(char * filename,unsigned int * index,struct stat * last_modif
        *index=0;
        return 0;
    }
+
+  char content_type_str[128]={0};
+  cache[*index].content_type = GetContentType(filename,content_type_str);
 
   cache[*index].hits = 0;
   cache[*index].prepare_mem_callback=0; // No callback for this file..

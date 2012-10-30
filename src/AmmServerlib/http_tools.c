@@ -38,17 +38,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-enum FileType
-{
-    NO_FILETYPE=0,
-    TEXT,
-    IMAGE,
-    AUDIO,
-    VIDEO,
-    EXECUTABLE,
-    FOLDER
-};
-
 
 static char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "abcdefghijklmnopqrstuvwxyz"

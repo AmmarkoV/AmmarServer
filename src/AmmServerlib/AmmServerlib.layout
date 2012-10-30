@@ -11,10 +11,10 @@
 		<Cursor position="287" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="2599" topLine="56" />
+		<Cursor position="2599" topLine="0" />
 	</File>
-	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="921" topLine="6" />
+	<File name="configuration.h" open="1" top="1" tabpos="6">
+		<Cursor position="1112" topLine="0" />
 	</File>
 	<File name="directory_lists.c" open="1" top="0" tabpos="18">
 		<Cursor position="3951" topLine="89" />
@@ -22,23 +22,23 @@
 	<File name="directory_lists.h" open="1" top="0" tabpos="19">
 		<Cursor position="109" topLine="0" />
 	</File>
-	<File name="file_caching.c" open="1" top="1" tabpos="3">
-		<Cursor position="4279" topLine="68" />
+	<File name="file_caching.c" open="1" top="0" tabpos="3">
+		<Cursor position="3745" topLine="82" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
-		<Cursor position="483" topLine="9" />
+		<Cursor position="922" topLine="9" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="7">
-		<Cursor position="24066" topLine="265" />
+		<Cursor position="21802" topLine="393" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="8">
-		<Cursor position="100" topLine="0" />
+		<Cursor position="1109" topLine="0" />
 	</File>
 	<File name="http_header_analysis.c" open="1" top="0" tabpos="12">
-		<Cursor position="11501" topLine="192" />
+		<Cursor position="15547" topLine="279" />
 	</File>
 	<File name="http_header_analysis.h" open="1" top="0" tabpos="13">
-		<Cursor position="2766" topLine="7" />
+		<Cursor position="2046" topLine="12" />
 	</File>
 	<File name="http_tools.c" open="1" top="0" tabpos="14">
 		<Cursor position="25181" topLine="631" />
@@ -56,7 +56,7 @@
 		<Cursor position="7788" topLine="22" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="10">
-		<Cursor position="30539" topLine="246" />
+		<Cursor position="16705" topLine="105" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="11">
 		<Cursor position="668" topLine="0" />
