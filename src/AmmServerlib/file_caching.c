@@ -21,6 +21,12 @@ unsigned int MAX_CACHE_SIZE=1000;
 unsigned long loaded_cache_items_Kbytes=0;
 unsigned int loaded_cache_items=0;
 struct cache_item * cache=0;
+//The cache consists of cache items.. Each cache item Gets Added and Removed with calls defined beneath..
+//The cache must be Created and then Destroyed because on program execution its pointer has no memory allocated for the content..!
+
+
+
+
 
 /*! djb2
 This algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c. another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i]; the magic of number 33 (why it works better than many other constants, prime or not) has never been adequately explained.
@@ -61,9 +67,15 @@ int WeCanCommitMoreMemoryForCaching(unsigned long additional_mem_to_malloc_in_by
 }
 
 
-int AddNewMallocToCacheCounter(unsigned long additional_mem_to_malloc_in_bytes)
+int AddNewMallocOpToCacheCounter(unsigned long additional_mem_to_malloc_in_bytes)
 {
   loaded_cache_items_Kbytes+=(additional_mem_to_malloc_in_bytes/1024);
+  return 1;
+}
+
+int AddFreeOpToCacheCounter(unsigned long additional_mem_to_malloc_in_bytes)
+{
+  loaded_cache_items_Kbytes-=(additional_mem_to_malloc_in_bytes/1024);
   return 1;
 }
 
@@ -155,19 +167,70 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
      cache[*index].compressed_mem_filesize=0;
      cache[*index].compressed_mem=0;
   }
-
   #endif
-
-
 
   return return_value;
 }
 
+/*
+ --------------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------------
 
 
 
+ --------------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------------
+*/
 
 
+int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_root)
+{
+  if (!ENABLE_INTERNAL_RESOURCES_RESOLVE)  { return 0; }
+  //The role of request caching is to intercept incoming requests and if they are referring
+  //to an internal resource using the TemplatesInternalURI URI we want to redirect the request
+  //to our templates folder ..!
+  //If the request was indeed a change request returns 1 else 0
+  if ( strlen(request)>strlen(TemplatesInternalURI)+64 )
+   {
+       fprintf(stderr,"\nWARNING : Skipping ChangeRequestIfInternalRequestIsAddressed due to a very large request\n");
+       return 0;
+   }
+
+  char tmp_cmp[MAX_FILE_PATH]={0};
+  char * res=strstr(request,TemplatesInternalURI);
+  char * res_skipped=res;
+  unsigned int template_size = strlen(TemplatesInternalURI);
+
+  if ( res!=0 )
+   {
+      res_skipped=res+template_size;
+      fprintf(stderr,"We've got a result , %s ( skipped %s )\n",res,res_skipped);
+      if (strlen(res_skipped)+strlen(templates_root)<MAX_FILE_PATH)
+       {
+         strcpy(tmp_cmp,templates_root);
+         strcat(tmp_cmp,res_skipped);
+       } else
+       {
+           fprintf(stderr,"Internal request too long , not thoroughly tested\n");
+           return 0;
+       }
+      fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
+      strcpy(request,tmp_cmp);
+      return 1;
+   }
+  return 0;
+}
+
+
+/*
+ --------------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------------
+
+
+
+ --------------------------------------------------------------------------------------
+ --------------------------------------------------------------------------------------
+*/
 
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
 unsigned int FindCacheIndexForResource(char * resource,unsigned int * index)
@@ -221,7 +284,7 @@ int DestroyCacheIndexForResource(unsigned int * index)
 */
 
 
-int KeepFileInMemoryIndex(char *filename,unsigned int * index)
+int LoadFileFromDisk_For_CacheItem(char *filename,unsigned int * index)
 {
 
   /*Now we will do the following things
@@ -246,7 +309,7 @@ int KeepFileInMemoryIndex(char *filename,unsigned int * index)
   char * buffer = (char*) malloc ( sizeof(char) * (lSize));
   if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory to cache this file..!\n"); fclose(pFile); return 0;  }
   //We have allocated the new memory chunk so we will update our loaded cache counter..!
-  AddNewMallocToCacheCounter(lSize);
+  AddNewMallocOpToCacheCounter(lSize);
 
   // copy the file into the buffer:
   size_t result;
@@ -278,13 +341,13 @@ int KeepFileInMemoryIndex(char *filename,unsigned int * index)
 }
 
 
-int AddFileToCache(char * filename,unsigned int * index,struct stat * last_modification)
+int AddFile_As_CacheItem(char * filename,unsigned int * index,struct stat * last_modification)
 {
   if (!CreateCacheIndexForResource(filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
 
   fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) loaded_cache_items_Kbytes/1048576 , MAX_TOTAL_ALLOCATION_IN_MB);
 
-  if (!KeepFileInMemoryIndex(filename,index))
+  if (!LoadFileFromDisk_For_CacheItem(filename,index))
    {
        fprintf(stderr,"Could not read file %s into memory\n",filename);
        fprintf(stderr,"Erasing index from memory\n");
@@ -311,35 +374,12 @@ int AddFileToCache(char * filename,unsigned int * index,struct stat * last_modif
     cache[*index].year=EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year;
    }
 
-
   return 1;
 }
 
 
 
-int DoNotCacheResource(char * filename)
-{
-   unsigned int index=0;
-   if (FindCacheIndexForResource(filename,&index))  { cache[index].doNOTCache=1; }
-    else
-     {
-       //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
-       if (!CreateCacheIndexForResource(filename,&index) ) { return 0; }
-       if (FindCacheIndexForResource(filename,&index)) { cache[index].doNOTCache=1; } else
-                                                        { return 0; } //Could not set doNOTCache..!
-     }
-   return 1;
-}
-
-
-int RemoveFileFromCache(char * filename)
-{
-   fprintf(stderr,"RemoveFileFromCache(%s) not implemented\n",filename);
-   return 0;
-}
-
-
-int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
+int AddDirectResource_As_CacheItem(struct AmmServer_RH_Context * context)
 {
   if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
    {
@@ -372,11 +412,33 @@ int AddDirectResourceToCache(struct AmmServer_RH_Context * context)
 }
 
 
-int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned char free_mem)
+int AddDoNOTCache_CacheItem(char * filename)
+{
+   unsigned int index=0;
+   if (FindCacheIndexForResource(filename,&index))  { cache[index].doNOTCache=1; }
+    else
+     {
+       //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
+       if (!CreateCacheIndexForResource(filename,&index) ) { return 0; }
+       if (FindCacheIndexForResource(filename,&index)) { cache[index].doNOTCache=1; } else
+                                                        { return 0; } //Could not set doNOTCache..!
+     }
+   return 1;
+}
+
+
+int Remove_CacheItem(char * filename)
+{
+   fprintf(stderr,"RemoveFileFromCache(%s) not implemented\n",filename);
+   return 0;
+}
+
+
+int RemoveDirectResource_CacheItem(struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
        context->MAX_content_size=0;
        if ((free_mem)&&(context->content!=0)) { free(context->content); context->content=0; }
-       return RemoveFileFromCache(context->resource_name);
+       return Remove_CacheItem(context->resource_name);
 }
 
 unsigned int GetHashForCacheItem(unsigned int index)
@@ -495,7 +557,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
         } else
         {
            /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
-           if ( AddFileToCache(verified_filename,index,last_modification) )
+           if ( AddFile_As_CacheItem(verified_filename,index,last_modification) )
             {
               *compression_supported=0;
               *filesize=*cache[*index].filesize; //We return the filesize after the operation..
@@ -591,42 +653,4 @@ int DestroyCache()
    loaded_cache_items_Kbytes=0;
 
    return 1;
-}
-
-int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_root)
-{
-  if (!ENABLE_INTERNAL_RESOURCES_RESOLVE)  { return 0; }
-  //The role of request caching is to intercept incoming requests and if they are referring
-  //to an internal resource using the TemplatesInternalURI URI we want to redirect the request
-  //to our templates folder ..!
-  //If the request was indeed a change request returns 1 else 0
-  if ( strlen(request)>strlen(TemplatesInternalURI)+64 )
-   {
-       fprintf(stderr,"\nWARNING : Skipping ChangeRequestIfInternalRequestIsAddressed due to a very large request\n");
-       return 0;
-   }
-
-  char tmp_cmp[MAX_FILE_PATH]={0};
-  char * res=strstr(request,TemplatesInternalURI);
-  char * res_skipped=res;
-  unsigned int template_size = strlen(TemplatesInternalURI);
-
-  if ( res!=0 )
-   {
-      res_skipped=res+template_size;
-      fprintf(stderr,"We've got a result , %s ( skipped %s )\n",res,res_skipped);
-      if (strlen(res_skipped)+strlen(templates_root)<MAX_FILE_PATH)
-       {
-         strcpy(tmp_cmp,templates_root);
-         strcat(tmp_cmp,res_skipped);
-       } else
-       {
-           fprintf(stderr,"Internal request too long , not thoroughly tested\n");
-           return 0;
-       }
-      fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
-      strcpy(request,tmp_cmp);
-      return 1;
-   }
-  return 0;
 }

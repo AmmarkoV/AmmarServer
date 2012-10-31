@@ -45,9 +45,10 @@ extern struct cache_item * cache;
 int CachedVersionExists(char * verified_filename,unsigned int * index);
 char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported);
 
-int AddDirectResourceToCache(struct AmmServer_RH_Context * context);
-int RemoveDirectResourceToCache(struct AmmServer_RH_Context * context,unsigned char free_mem);
-int DoNotCacheResource(char * filename);
+int AddFile_As_CacheItem(char * filename,unsigned int * index,struct stat * last_modification);
+int AddDirectResource_As_CacheItem(struct AmmServer_RH_Context * context);
+int AddDoNOTCache_CacheItem(char * filename);
+int RemoveDirectResource_CacheItem(struct AmmServer_RH_Context * context,unsigned char free_mem);
 
 
 unsigned int GetHashForCacheItem(unsigned int index);
