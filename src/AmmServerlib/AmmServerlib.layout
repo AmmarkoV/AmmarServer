@@ -22,8 +22,8 @@
 	<File name="directory_lists.h" open="1" top="0" tabpos="19">
 		<Cursor position="109" topLine="0" />
 	</File>
-	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="18864" topLine="534" />
+	<File name="file_caching.c" open="1" top="1" tabpos="3">
+		<Cursor position="8146" topLine="283" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
 		<Cursor position="1639" topLine="11" />

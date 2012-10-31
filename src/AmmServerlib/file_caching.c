@@ -101,22 +101,22 @@ On success, compress2() shall return Z_OK. Otherwise, compress2() shall return a
    This function should populate cache[*index].compressed_mem_filesize and cache[*index].compressed_mem with a compressed version
    of the file in  cache[*index].mem
 */
-int CreateCompressedVersionofCachedResource(unsigned int * index)
+inline int CreateCompressedVersionofCachedResource(unsigned int index,int compression_level)
 {
   if (!ENABLE_COMPRESSION) { return 0; }
 
   //Todo check file type , if it is jpg , zip etc it doesnt need compression..!
-  if ( cache[*index].content_type!=TEXT ) { fprintf(stderr,"The content is not text , so we wont go in the trouble of compressing it..\n"); return 0; }
+  if ( cache[index].content_type!=TEXT ) { fprintf(stderr,"The content is not text , so we wont go in the trouble of compressing it..\n"); return 0; }
   //If it is css html etc compression would be very nice..
 
   int return_value = 0;
 
-  if ( (cache[*index].filesize==0)||(cache[*index].mem==0) )
+  if ( (cache[index].filesize==0)||(cache[index].mem==0) )
      {
        fprintf(stderr,"Cannot create Compressed content for non-existant buffer..!\n");
        return 0;
      }
-  if (*cache[*index].filesize==0)
+  if (*cache[index].filesize==0)
      {
        fprintf(stderr,"Cannot create Compressed content for existant but empty buffer ..!\n");
        return 0;
@@ -126,29 +126,29 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
   #if ENABLE_COMPRESSION
   //When compression is disabled we shouldn't link with -lz so we remove all calls to zlib stuff ( they are marked with a ZLIB CALL ) ..!
 
-  unsigned long compressed_buffer_filesize = compressBound( (uLongf) *cache[*index].filesize); /*!ZLIB CALL!*/
+  unsigned long compressed_buffer_filesize = compressBound( (uLongf) *cache[index].filesize); /*!ZLIB CALL!*/
 
   if (!WeCanCommitMoreMemoryForCaching(compressed_buffer_filesize)) { return 0; }
 
 
   //First to prepare the memory length holder , we clean it up and allocate an unsigned long ..!
-  if (cache[*index].compressed_mem_filesize!=0) { free(cache[*index].compressed_mem_filesize); cache[*index].compressed_mem_filesize=0; }
-  cache[*index].compressed_mem_filesize = (unsigned long * ) malloc(sizeof (unsigned long));
-  *cache[*index].compressed_mem_filesize = compressed_buffer_filesize;
+  if (cache[index].compressed_mem_filesize!=0) { free(cache[index].compressed_mem_filesize); cache[index].compressed_mem_filesize=0; }
+  cache[index].compressed_mem_filesize = (unsigned long * ) malloc(sizeof (unsigned long));
+  *cache[index].compressed_mem_filesize = compressed_buffer_filesize;
 
 
   //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
   AddNewMallocToCacheCounter(compressed_buffer_filesize);
-  if (cache[*index].compressed_mem!=0) { free(cache[*index].compressed_mem); cache[*index].compressed_mem=0; }
-  cache[*index].compressed_mem = (char * ) malloc(sizeof (char) * ( compressed_buffer_filesize ));
+  if (cache[index].compressed_mem!=0) { free(cache[index].compressed_mem); cache[index].compressed_mem=0; }
+  cache[index].compressed_mem = (char * ) malloc(sizeof (char) * ( compressed_buffer_filesize ));
 
 
   int res=compress2( /*!ZLIB CALL!*/
-                     (Bytef*)  cache[*index].compressed_mem, //Destination *Compressed* file
-                     (uLongf*) cache[*index].compressed_mem_filesize, //Destination filesize (this will change so we pass a pointer)..
-                     (Bytef*)  cache[*index].mem,  //Source UNCompressed file
-                     (uLongf)  *cache[*index].filesize, //Source filesize ( this wont change so we pass it by value )
-                    3); //The compression level ( this needs some thought..! )
+                     (Bytef*)  cache[index].compressed_mem, //Destination *Compressed* file
+                     (uLongf*) cache[index].compressed_mem_filesize, //Destination filesize (this will change so we pass a pointer)..
+                     (Bytef*)  cache[index].mem,  //Source UNCompressed file
+                     (uLongf)  *cache[index].filesize, //Source filesize ( this wont change so we pass it by value )
+                     compression_level); //The compression level ( this needs some thought..! )
   if (Z_OK==res)
    {
      return_value = 1;
@@ -161,17 +161,39 @@ int CreateCompressedVersionofCachedResource(unsigned int * index)
 
   if (!return_value)
   { //Compression failed so we will now free our buffers..!
-     free(cache[*index].compressed_mem_filesize);
-     free(cache[*index].compressed_mem);
+     free(cache[index].compressed_mem_filesize);
+     free(cache[index].compressed_mem);
 
-     cache[*index].compressed_mem_filesize=0;
-     cache[*index].compressed_mem=0;
+     cache[index].compressed_mem_filesize=0;
+     cache[index].compressed_mem=0;
   }
   #endif
 
   return return_value;
 }
 
+/* ---------------------------------------------------------------------------------------------------------------------------------------
+   The 3 functions that follow are aliases with different compression levels for the  CreateCompressedVersionofCachedResource(index,level);
+   ---------------------------------------------------------------------------------------------------------------------------------------
+*/
+int CreateCompressedVersionofDynamicContent(unsigned int index)
+{
+  if (!ENABLE_COMPRESSION) { return 0; }
+  //Dynamic Content should be compressed FAST! so 1 compression level
+  return CreateCompressedVersionofCachedResource(index,1);
+}
+
+int CreateCompressedVersionofStaticContent(unsigned int index)
+{
+  if (!ENABLE_COMPRESSION) { return 0; }
+  return CreateCompressedVersionofCachedResource(index,3);
+}
+
+int CreateCompressedVersionofStaticContentPreloading(unsigned int index)
+{
+  if (!ENABLE_COMPRESSION) { return 0; }
+  return CreateCompressedVersionofCachedResource(index,9);
+}
 /*
  --------------------------------------------------------------------------------------
  --------------------------------------------------------------------------------------
@@ -335,7 +357,7 @@ int LoadFileFromDisk_For_CacheItem(char *filename,unsigned int * index)
 
   cache[*index].compressed_mem_filesize=0;
   cache[*index].compressed_mem=0;
-  if (!CreateCompressedVersionofCachedResource(index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
+  if (!CreateCompressedVersionofStaticContent(*index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
 
   return 1;
 }
@@ -629,6 +651,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
                    //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                    DoCallback(UNUSED);
                   //This means we can call the callback to prepare the memory content..! END
+                   CreateCompressedVersionofDynamicContent(*index);
                 }
               }
 
