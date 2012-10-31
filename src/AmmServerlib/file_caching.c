@@ -233,7 +233,7 @@ int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_ro
 */
 
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
-unsigned int FindCacheIndexForResource(char * resource,unsigned int * index)
+unsigned int Find_CacheItem(char * resource,unsigned int * index)
 {
   fprintf(stderr,"Serial slow searching for resource in cache %s ..",resource);
   if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
@@ -259,10 +259,10 @@ unsigned int FindCacheIndexForResource(char * resource,unsigned int * index)
 
 /*This is the Create Index Function , Nothing is sorted so we just append our cache item list with another one..
   Also for now only the hash is used to retrieve it ( talk about a sloppy implementation ) */
-int CreateCacheIndexForResource(char * resource,unsigned int * index)
+int Create_CacheItem(char * resource,unsigned int * index)
 {
   if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
-  if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not CreateCacheIndexForResource(%s)",resource); return 0; }
+  if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
   *index=loaded_cache_items++;
 
   cache[*index].filename_hash = hash(resource);
@@ -270,9 +270,9 @@ int CreateCacheIndexForResource(char * resource,unsigned int * index)
 }
 
 /*This is the Destroy Index Function , it isn't implemented , as one can see.. */
-int DestroyCacheIndexForResource(unsigned int * index)
+int Destroy_CacheItem(unsigned int * index)
 {
-  fprintf(stderr,"DestroyCacheIndexForResource(%u) hasn't been implemented yet\n",*index);
+  fprintf(stderr,"Destroy_CacheItem(%u) hasn't been implemented yet\n",*index);
   return 0;
 }
 
@@ -343,7 +343,7 @@ int LoadFileFromDisk_For_CacheItem(char *filename,unsigned int * index)
 
 int AddFile_As_CacheItem(char * filename,unsigned int * index,struct stat * last_modification)
 {
-  if (!CreateCacheIndexForResource(filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
+  if (!Create_CacheItem(filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
 
   fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) loaded_cache_items_Kbytes/1048576 , MAX_TOTAL_ALLOCATION_IN_MB);
 
@@ -351,7 +351,7 @@ int AddFile_As_CacheItem(char * filename,unsigned int * index,struct stat * last
    {
        fprintf(stderr,"Could not read file %s into memory\n",filename);
        fprintf(stderr,"Erasing index from memory\n");
-       DestroyCacheIndexForResource(index);
+       Destroy_CacheItem(index);
        *index=0;
        return 0;
    }
@@ -397,7 +397,7 @@ int AddDirectResource_As_CacheItem(struct AmmServer_RH_Context * context)
   ReducePathSlashes_Inplace(full_filename);
 
   unsigned int index=0;
-  if (! CreateCacheIndexForResource(full_filename,&index) ) { return 0; }
+  if (! Create_CacheItem(full_filename,&index) ) { return 0; }
 
   cache[index].context = context;
   cache[index].mem = context->content;
@@ -415,21 +415,56 @@ int AddDirectResource_As_CacheItem(struct AmmServer_RH_Context * context)
 int AddDoNOTCache_CacheItem(char * filename)
 {
    unsigned int index=0;
-   if (FindCacheIndexForResource(filename,&index))  { cache[index].doNOTCache=1; }
+   if (Find_CacheItem(filename,&index))  { cache[index].doNOTCache=1; }
     else
      {
        //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
-       if (!CreateCacheIndexForResource(filename,&index) ) { return 0; }
-       if (FindCacheIndexForResource(filename,&index)) { cache[index].doNOTCache=1; } else
-                                                        { return 0; } //Could not set doNOTCache..!
+       if (!Create_CacheItem(filename,&index) ) { return 0; }
+       if (Find_CacheItem(filename,&index)) { cache[index].doNOTCache=1; } else
+                                             { return 0; } //Could not set doNOTCache..!
      }
    return 1;
 }
 
 
-int Remove_CacheItem(char * filename)
+int Remove_CacheItem(unsigned int index)
 {
-   fprintf(stderr,"RemoveFileFromCache(%s) not implemented\n",filename);
+    unsigned int i = index;
+    if ( cache[i].prepare_mem_callback !=0)
+     {
+        //This cache item is "dynamic content" as a result
+        //it has its own memory handler , so we just dereference it..
+        cache[i].prepare_mem_callback=0;
+        cache[i].mem=0;
+        cache[i].filesize=0;
+     }
+       else
+     {
+      if ( cache[i].mem != 0 )
+       {
+          free(cache[i].mem);
+          cache[i].mem=0;
+          if ( cache[i].filesize != 0 ) { AddFreeOpToCacheCounter(*cache[i].filesize); } //If we have a filesize we subtract it from the cache malloc counter
+       }
+      if ( cache[i].filesize != 0 )
+       {
+          free(cache[i].filesize);
+          cache[i].filesize=0;
+       }
+     }
+
+     //Compressed mem is not controlled by the callback so we can deallocate it at our convinience (not inside the if then else scope )!
+      if ( cache[i].compressed_mem != 0 )
+       {
+          free(cache[i].compressed_mem);
+          cache[i].compressed_mem=0;
+          if ( cache[i].filesize != 0 ) { AddFreeOpToCacheCounter(*cache[i].compressed_mem_filesize); } //If we have a filesize we subtract it from the cache malloc counter
+       }
+      if ( cache[i].compressed_mem_filesize != 0 )
+       {
+          free(cache[i].compressed_mem_filesize);
+          cache[i].compressed_mem_filesize=0;
+       }
    return 0;
 }
 
@@ -438,7 +473,11 @@ int RemoveDirectResource_CacheItem(struct AmmServer_RH_Context * context,unsigne
 {
        context->MAX_content_size=0;
        if ((free_mem)&&(context->content!=0)) { free(context->content); context->content=0; }
-       return Remove_CacheItem(context->resource_name);
+
+
+       unsigned int index;
+       if (!Find_CacheItem(context->resource_name,&index) ) { fprintf(stderr,"Error..\n"); return 0; }
+       return Remove_CacheItem(index);
 }
 
 unsigned int GetHashForCacheItem(unsigned int index)
@@ -446,9 +485,73 @@ unsigned int GetHashForCacheItem(unsigned int index)
     return cache[index].filename_hash;
 }
 
+
+
+int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
+{
+  MAX_TOTAL_ALLOCATION_IN_MB=max_total_allocation_MB;
+  MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=max_allocation_per_entry_MB;
+  MAX_CACHE_SIZE=max_seperate_items;
+  if (cache==0)
+   {
+     cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (MAX_CACHE_SIZE+1));
+     if (cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
+   }
+
+
+//  InitializeVariableCache(max_seperate_variables, max_total_var_allocation_MB , max_var_allocation_per_entry_MB);
+
+
+   unsigned int i=0;
+   for (i=0; i<MAX_CACHE_SIZE; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
+   return 1;
+}
+
+int DestroyCache()
+{
+  fprintf(stderr,"Destroying cache..\n");
+
+//   if (!DestroyVariableCache()) { fprintf(stderr,"Failed destroying Variable Cache\n"); }
+
+   if (cache==0)
+    {
+       fprintf(stderr,"Cache already destroyed \n");
+       loaded_cache_items=0;
+       loaded_cache_items_Kbytes=0;
+      return 1;
+    }
+
+   unsigned int i=0;
+   for (i=0; i<loaded_cache_items; i++)
+   {
+      Remove_CacheItem(i);
+   }
+
+   free(cache);
+   cache = 0;
+   loaded_cache_items=0;
+   loaded_cache_items_Kbytes=0;
+
+   return 1;
+}
+
+
+/*
+
+  ----------------------------------------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------------------------------
+
+     This ( CheckForCachedVersionOfThePage ) is the most heavily used and complex call in this file , it is what the file server
+     calls when a new file is requested.. and it both serves ready cache items but also creates them if we need them..
+                 It also has to deal with calling the callback function for dynamic content
+
+  ----------------------------------------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------------------------------------------------------
+*/
+
 int CachedVersionExists(char * verified_filename,unsigned int * index)
 {
-    if (FindCacheIndexForResource(verified_filename,index)) { return 1; }
+    if (Find_CacheItem(verified_filename,index)) { return 1; }
     return 0;
 }
 
@@ -461,7 +564,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
         return 0;
       }
 
-       if (FindCacheIndexForResource(verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
+       if (Find_CacheItem(verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
         {
            //if doNOTCache is set and this is a real file..
            if ((cache[*index].doNOTCache)&&(cache[*index].prepare_mem_callback==0))
@@ -574,83 +677,3 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
        return 0;
 }
 
-int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
-{
-  MAX_TOTAL_ALLOCATION_IN_MB=max_total_allocation_MB;
-  MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=max_allocation_per_entry_MB;
-  MAX_CACHE_SIZE=max_seperate_items;
-  if (cache==0)
-   {
-     cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (MAX_CACHE_SIZE+1));
-     if (cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
-   }
-
-
-//  InitializeVariableCache(max_seperate_variables, max_total_var_allocation_MB , max_var_allocation_per_entry_MB);
-
-
-   unsigned int i=0;
-   for (i=0; i<MAX_CACHE_SIZE; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
-   return 1;
-}
-
-int DestroyCache()
-{
-  fprintf(stderr,"Destroying cache..\n");
-
-//   if (!DestroyVariableCache()) { fprintf(stderr,"Failed destroying Variable Cache\n"); }
-
-   if (cache==0)
-    {
-       fprintf(stderr,"Cache already destroyed \n");
-       loaded_cache_items=0;
-       loaded_cache_items_Kbytes=0;
-      return 1;
-    }
-
-   unsigned int i=0;
-   for (i=0; i<loaded_cache_items; i++)
-   {
-     if ( cache[i].prepare_mem_callback !=0)
-     {
-        //This cache item is "dynamic content" as a result
-        //it has its own memory handler , so we just dereference it..
-        cache[i].prepare_mem_callback=0;
-        cache[i].mem=0;
-        cache[i].filesize=0;
-     }
-       else
-     {
-      if ( cache[i].mem != 0 )
-       {
-          free(cache[i].mem);
-          cache[i].mem=0;
-       }
-      if ( cache[i].filesize != 0 )
-       {
-          free(cache[i].filesize);
-          cache[i].filesize=0;
-       }
-     }
-
-     //Compressed mem is not controlled by the callback so we can deallocate it at our convinience (not inside the if then else scope )!
-      if ( cache[i].compressed_mem != 0 )
-       {
-          free(cache[i].compressed_mem);
-          cache[i].compressed_mem=0;
-       }
-      if ( cache[i].compressed_mem_filesize != 0 )
-       {
-          free(cache[i].compressed_mem_filesize);
-          cache[i].compressed_mem_filesize=0;
-       }
-
-   }
-
-   free(cache);
-   cache = 0;
-   loaded_cache_items=0;
-   loaded_cache_items_Kbytes=0;
-
-   return 1;
-}

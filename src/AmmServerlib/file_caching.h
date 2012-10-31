@@ -52,7 +52,7 @@ int RemoveDirectResource_CacheItem(struct AmmServer_RH_Context * context,unsigne
 
 
 unsigned int GetHashForCacheItem(unsigned int index);
-unsigned int FindCacheIndexForResource(char * resource,unsigned int * index);
+unsigned int Find_CacheItem(char * resource,unsigned int * index);
 
 int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB);
 int DestroyCache();
