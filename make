@@ -3,18 +3,14 @@
 cd src/AmmServerlib
 ./make
 cd ..
+
+cd src/MyURL
 ./make
-
-# NOT READY YET..!
-#cd WebCamHttpBridge
-#./make
-#cd VideoInput
-#./make
-#cd ..
-#cd ..
-
 cd ..
 
+./make
+ 
+cd ..
 
 if [ -e "src/ammarserver" ]; then
 echo "Success creating ammarserver executable.." 
