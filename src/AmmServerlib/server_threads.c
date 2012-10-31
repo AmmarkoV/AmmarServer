@@ -820,10 +820,11 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
   PreSpawnThreads();
 
+/*
   //The next call simulates an incoming request that gets served by the server in order to test it and preload the index page for better performance..!
   char * file = RequestHTTPWebPage("127.0.0.1",port,"\0",100);
   if (file!=0) { free(file); fprintf(stderr,"Internal Index Request was succesful..\n"); } else
-               { fprintf(stderr,"Internal Index Request failed ..\n"); }
+               { fprintf(stderr,"Internal Index Request failed ..\n"); } */
 
   //We flip the retres
   if (retres!=0) retres = 0; else retres = 1;

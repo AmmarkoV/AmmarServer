@@ -262,6 +262,14 @@ int KeepFileInMemoryIndex(char *filename,unsigned int * index)
   *cache[*index].filesize = lSize;
 
   /*This could be a good place to make the gzipped version of the buffer..!*/
+   char content_type_str[128]={0};
+   if ( GetContentType(filename,content_type_str) )
+    {
+        //This will fill content_type with a value from enum FileType ( declared at http_tools.h )
+        //if the value is TEXT we are good to go :P
+        cache[*index].content_type =  GetExtentionType(content_type_str);
+    }
+
   cache[*index].compressed_mem_filesize=0;
   cache[*index].compressed_mem=0;
   if (!CreateCompressedVersionofCachedResource(index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
@@ -284,9 +292,6 @@ int AddFileToCache(char * filename,unsigned int * index,struct stat * last_modif
        *index=0;
        return 0;
    }
-
-  char content_type_str[128]={0};
-  cache[*index].content_type = GetContentType(filename,content_type_str);
 
   cache[*index].hits = 0;
   cache[*index].prepare_mem_callback=0; // No callback for this file..

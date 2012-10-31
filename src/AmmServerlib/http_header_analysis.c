@@ -308,7 +308,8 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
       if ( CheckHTTPHeaderCategory(request,request_length,"ACCEPT-ENCODING:",&payload_start) )
           {
             if ( CheckHTTPHeaderCategory(request,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
-                                                                                            { output->supports_compression=0; }
+                                                                                            { output->supports_compression=0;
+                                                                                              fprintf(stderr,"We found an accept-encoding header , but not the deflate method..\n"); }
           }
 
 
