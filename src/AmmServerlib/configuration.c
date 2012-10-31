@@ -32,7 +32,30 @@ char TemplatesInternalURI[MAX_RESOURCE]="_asvres_/";
 
 // ------------------------------------------------------------------------------------------------------
 
+int EmmitPossibleConfigurationWarnings()
+{
+  fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST requests , and couple them to dynamic content ..\n");
+  fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
+  fprintf(stderr,"TODO: require the Host: header from HTTP 1.1 clients\n");
+  fprintf(stderr,"TODO: accept absolute URL's in a request\n");
+  fprintf(stderr,"TODO: accept requests with chunked data\n");
+  fprintf(stderr,"TODO: use the \"100 Continue\" response appropriately\n");
+  fprintf(stderr,"TODO: handle requests with If-Modified-Since: or If-Unmodified-Since: headers\n");
+  fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
+  fprintf(stderr,"TODO: Add detailed input header parsing\n");
+  fprintf(stderr,"TODO: Improve directory listings ( add filesizes , dates etc ) \n");
+  fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
+  fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
+  fprintf(stderr,"TODO: Add apache like logging capabilities\n");
+  fprintf(stderr,"TODO: Implement gzip gunzip file compression , especially in cache for txt,html low entropy files\n");
 
+
+  if (ENABLE_COMPRESSION)
+   {
+       fprintf(stderr,"Please note that compression doesn't yet emmit the payload as per HTTP  RFC 1950, RFC 1951, and RFC 1952 \n");
+       fprintf(stderr,"To make things worse content sensing is kind of broken since it is based on the GetContentType TEXT type instead of a user configurable extension blacklist/whitelist\n");
+   }
+}
 
 
 

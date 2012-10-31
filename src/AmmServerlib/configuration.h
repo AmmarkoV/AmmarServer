@@ -50,6 +50,8 @@ extern char TemplatesInternalURI[MAX_RESOURCE];
 //Please note that the file server limits filenames _asvres_/filename.jpg is OK
 //a filename like _asvres_/filenamemplampla.jpg will return a 404
 
+int EmmitPossibleConfigurationWarnings();
+
 int LoadConfigurationFile(char * conf_file);
 
 int AssignStr(char ** dest , char * source);

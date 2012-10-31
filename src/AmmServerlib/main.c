@@ -31,6 +31,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
+
+
   fprintf(stderr,"\n\nDISCLAIMER : \n");
   fprintf(stderr,"Please note that this server version is not thoroughly\n");
   fprintf(stderr," pen-tested so it is not meant for production deployment..\n");
@@ -38,22 +40,10 @@ int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
-  fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST requests , and couple them to dynamic content ..\n");
-  fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
-  fprintf(stderr,"TODO: require the Host: header from HTTP 1.1 clients\n");
-  fprintf(stderr,"TODO: accept absolute URL's in a request\n");
-  fprintf(stderr,"TODO: accept requests with chunked data\n");
-  fprintf(stderr,"TODO: use the \"100 Continue\" response appropriately\n");
-  fprintf(stderr,"TODO: handle requests with If-Modified-Since: or If-Unmodified-Since: headers\n");
-  fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
-  fprintf(stderr,"TODO: Add detailed input header parsing\n");
-  fprintf(stderr,"TODO: Improve directory listings ( add filesizes , dates etc ) \n");
-  fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
-  fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
-  fprintf(stderr,"TODO: Add apache like logging capabilities\n");
-  fprintf(stderr,"TODO: Implement gzip gunzip file compression , especially in cache for txt,html low entropy files\n");
-
   LoadConfigurationFile(conf_file);
+
+  EmmitPossibleConfigurationWarnings();
+
 
   InitializeCache( /*These are the file cache settings , file caching is the mechanism that holds dynamic content and
                      speeds up file serving by not accessing the whole disk drive subsystem ..*/
