@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OUTPUT="myURL"
+OUTPUT="myurl"
 
 if [ -e $OUTPUT ]
 then

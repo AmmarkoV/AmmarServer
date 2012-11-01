@@ -44,7 +44,12 @@ struct AmmServer_RH_Context goto_url={0};
 //This function prepares the content of  the url creator context
 void * serve_create_url_page(unsigned int associated_vars)
 {
-  strcat(create_url.content,"<html><body>This is the create URL page</body></html>");
+
+  strcpy(create_url.content,"<html><head><title>Welcome to MyURL</title></head><body><br><br><br><br><br><br><br><br><br><br><center><table border=5><tr><td><center><br><h2>Welcome to MyURL</h2><br>");
+
+  strcat(create_url.content,"<form name=\"input\" action=\"go.html\" method=\"get\">Long URL : <input type=\"text\" name=\"url\" /> Name: <input type=\"text\" name=\"name\" value=\"automatic generation\" /><input type=\"submit\" value=\"Submit\" /></form>");
+
+  strcat(create_url.content,"</center><br><br></td></tr></table></center></body></html>");
   create_url.content_size=strlen(create_url.content);
   return 0;
 }
@@ -53,7 +58,7 @@ void * serve_create_url_page(unsigned int associated_vars)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_goto_url_page(unsigned int associated_vars)
 {
-  strcat(goto_url.content,"<html><body>This is the create URL page</body></html>");
+  strcat(goto_url.content,"<html><body>This is the serve go URL page</body></html>");
   goto_url.content_size=strlen(goto_url.content);
   return 0;
 }
