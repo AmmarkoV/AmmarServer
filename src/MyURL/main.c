@@ -34,11 +34,11 @@ char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the dire
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
-char service_root[128]="http://ammar.gr:8080/go.html";
+char service_root[128]="http://ammar.gr:8080/go";
 char db_file[128]="myurl.db";
 
 
-#define MAX_NAME_SIZE 20
+#define MAX_TO_SIZE 20
 #define MAX_LONG_URL_SIZE 512
 #define MAX_LINKS 1000
 
@@ -59,6 +59,18 @@ char * default_failed = (char*)"http://ammar.gr/myloader/vfile.php?i=f2166b56f91
 
 unsigned int loaded_links=0;
 struct URLDB links[MAX_LINKS]={0};
+
+
+int is_an_unsafe_str(char * input,unsigned int input_length)
+{
+  int i=0;
+  while (i<input_length)
+  {
+     if (input[i]<=14) { return 1;}
+     ++i;
+  }
+  return 0;
+}
 
 
 /*
@@ -148,7 +160,7 @@ void * serve_create_url_page(unsigned int associated_vars)
 
   strcpy(create_url.content,"<html><head><title>Welcome to MyURL</title></head><body><br><br><br><br><br><br><br><br><br><br><center><table border=5><tr><td><center><br><h2>Welcome to MyURL(Alpha)</h2><br>");
 
-  strcat(create_url.content,"<form name=\"input\" action=\"go.html\" method=\"get\"> Long URL : http://<input type=\"text\" name=\"url\" /> Name: <input type=\"text\" name=\"name\"/><input type=\"submit\" value=\"Submit\" /></form>");
+  strcat(create_url.content,"<form name=\"input\" action=\"go\" method=\"get\"> Long URL : <input type=\"text\" name=\"url\" /> Name: <input type=\"text\" name=\"to\"/><input type=\"submit\" value=\"Submit\" /></form>");
 
   strcat(create_url.content,"</center><br><br></td></tr></table></center></body></html>");
   create_url.content_size=strlen(create_url.content);
@@ -159,28 +171,36 @@ void * serve_create_url_page(unsigned int associated_vars)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_goto_url_page(unsigned int associated_vars)
 {
+  //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
+
   if  ( goto_url.GET_request != 0 )
     {
         char url[MAX_LONG_URL_SIZE]={0};
-        char name[MAX_NAME_SIZE]={0};
-        //If both URL and NAME is set we want to assign a (short)name to a (long)url
+        char to[MAX_TO_SIZE]={0};
+        //If both URL and NAME is set we want to assign a (short)to to a (long)url
         if ( _GET(&goto_url,"url",url,MAX_LONG_URL_SIZE) )
              {
-               if ( _GET(&goto_url,"name",name,MAX_NAME_SIZE) )
+               if ( _GET(&goto_url,"to",to,MAX_TO_SIZE) )
                 {
-                  //Assigning a (short)name to a (long)url
-                  Add_MyURL(url,name);
-                  sprintf(goto_url.content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready <a href=\"%s?name=%s\">%s?name=%s</a></center></body></html>",service_root,name,service_root,name);
-                } else
+                  //Assigning a (short)to to a (long)url
+                  if ( (is_an_unsafe_str(to,strlen(to))) || (is_an_unsafe_str(url,strlen(url)) ) ) //There should be an internal length of the get argument instead of strlen!
+                    {
+                      sprintf(goto_url.content,"<html><body>Bad Strings provided..</body></html>");
+                    } else
+                    {
+                      Add_MyURL(url,to);
+                      sprintf(goto_url.content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready <a target=\"_new\" href=\"%s?to=%s\">%s?to=%s</a><br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root,to,service_root,to);
+                    }
+                  } else
                 {
-                 //No Point in a url without a name , here we could probably generate a random name !
+                 //No Point in a url without a to , here we could probably generate a random to !
                  strcpy(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to make a new short operation </body></html>");
                 }
              } else
-         //If only name is set it means we have ourselves somewhere to go to!
-         if ( _GET(&goto_url,"name",name,MAX_NAME_SIZE) )
+         //If only to is set it means we have ourselves somewhere to go to!
+         if ( _GET(&goto_url,"to",to,MAX_TO_SIZE) )
              {
-                sprintf(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='http://%s'\"></head><body></body></html>",Get_LongURL(name));
+                sprintf(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_LongURL(to));
              }
     } else
     {
@@ -206,8 +226,8 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page) ) { fprintf(stderr,"Failed adding create page\n"); }
   AmmServer_DoNOTCacheResource("public_html/index.html"); // Chat Html will be changing all the time , so we don't want to cache it..!
 
-  if (! AmmServer_AddResourceHandler(&goto_url,"/go.html",webserver_root,4096,0,&serve_goto_url_page) ) { fprintf(stderr,"Failed adding form testing page\n"); }
-  AmmServer_DoNOTCacheResource("public_html/go.html"); // Chat Html will be changing all the time , so we don't want to cache it..!
+  if (! AmmServer_AddResourceHandler(&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+  AmmServer_DoNOTCacheResource("public_html/go"); // Chat Html will be changing all the time , so we don't want to cache it..!
 
 }
 
