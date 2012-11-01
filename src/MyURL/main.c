@@ -37,6 +37,11 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 char service_root[128]="http://ammar.gr:8080/go.html";
 
 
+#define MAX_NAME_SIZE 20
+#define MAX_LONG_URL_SIZE 512
+#define MAX_LINKS 1000
+
+
 struct URLDB
 {
   char * long_url;
@@ -47,15 +52,17 @@ struct URLDB
 struct AmmServer_RH_Context create_url={0};
 struct AmmServer_RH_Context goto_url={0};
 
-#define MAX_NAME_SIZE 20
-#define MAX_LONG_URL_SIZE 512
-#define MAX_LINKS 1000
 
 char * default_failed = (char*)"http://ammar.gr/myloader/vfile.php?i=f2166b56f919fa75345991e73448febc-notyet_new.ogg";
 unsigned int loaded_links=0;
 struct URLDB links[MAX_LINKS]={0};
 
 
+/*
+  -----------------------------------------------------------
+                   This is the backbone of MyURL
+   -----------------------------------------------------------
+*/
 unsigned long hashURL(char *str)
     {
         if (str==0) return 0;
@@ -104,7 +111,19 @@ char * Get_LongURL(char * ShortURL)
   return default_failed;
 }
 
+/*
+   -----------------------------------------------------------
+   -----------------------------------------------------------
+*/
 
+
+
+
+/*
+  -----------------------------------------------------------
+            This is the HTML page output of MyURL
+   -----------------------------------------------------------
+*/
 
 //This function prepares the content of  the url creator context
 void * serve_create_url_page(unsigned int associated_vars)
@@ -141,7 +160,7 @@ void * serve_goto_url_page(unsigned int associated_vars)
                  strcpy(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to make a new short operation </body></html>");
                 }
              } else
-         //If only name is set it means we
+         //If only name is set it means we have ourselves somewhere to go to!
          if ( _GET(&goto_url,"name",name,MAX_NAME_SIZE) )
              {
                 sprintf(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='http://%s'\"></head><body></body></html>",Get_LongURL(name));
@@ -155,8 +174,16 @@ void * serve_goto_url_page(unsigned int associated_vars)
   return 0;
 }
 
+/*
+   -----------------------------------------------------------
+   -----------------------------------------------------------
+*/
 
-//This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
+
+
+
+
+//This function adds a Resource Handler for the pages and their callback functions
 void init_dynamic_content()
 {
   if (! AmmServer_AddResourceHandler(&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page) ) { fprintf(stderr,"Failed adding create page\n"); }
@@ -173,7 +200,6 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(&create_url,1);
     AmmServer_RemoveResourceHandler(&goto_url,1);
 }
-/*! Dynamic content code ..! END ------------------------*/
 
 
 int main(int argc, char *argv[])
