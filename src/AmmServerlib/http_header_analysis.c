@@ -151,9 +151,9 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
          if (e>=request_length) { fprintf(stderr,"Error #2 with GET/HEAD request\n"); return 0;}
          request[e]=0; //Signal ending
 
+         //We move forward to the GET request , stripped will contain the stripped resource requested
+         //after stripping GET Query and Fragment and raw html characters
          char * stripped = &request[s];
-         //fprintf(stderr,"Stripped GET/HEAD request is %s \n",stripped);
-         StripHTMLCharacters_Inplace(stripped); // <- This converts char sequences like %20 to " " it HAS to be done before filename stripper to ensure string safety
 
          if (strlen(stripped)>=MAX_RESOURCE-2)
            {
@@ -172,8 +172,11 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
               */
              if ( StripGETRequestQueryAndFragment(stripped,output->GETquery,MAX_QUERY) )
                {
+                 StripHTMLCharacters_Inplace(output->GETquery,1 /* 1 = Disregard dangerous bytes , Safety OFF*/); // <- This converts char sequences like %20 to " " disregarding filename safety , ( since it is a raw var )
                  fprintf(stderr,"Found a query , %s , resource is now %s \n",output->GETquery,stripped);
                }
+
+             StripHTMLCharacters_Inplace(stripped,0 /* 0 = filter dangerous bytes , File Safety ON*/); // <- This converts char sequences like %20 to " " it HAS to be done before filename stripper to ensure string safety
 
              if (FilenameStripperOk(stripped))
               {

@@ -35,6 +35,7 @@ char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the dire
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 char service_root[128]="http://ammar.gr:8080/go.html";
+char db_file[128]="myurl.db";
 
 
 #define MAX_NAME_SIZE 20
@@ -54,6 +55,8 @@ struct AmmServer_RH_Context goto_url={0};
 
 
 char * default_failed = (char*)"http://ammar.gr/myloader/vfile.php?i=f2166b56f919fa75345991e73448febc-notyet_new.ogg";
+
+
 unsigned int loaded_links=0;
 struct URLDB links[MAX_LINKS]={0};
 
@@ -80,6 +83,17 @@ unsigned long hashURL(char *str)
         return hash;
     }
 
+int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
+{
+    fprintf(stderr,"Append2MyURLDBFile(%s,%s,%s) not implemented yet..!\n",filename,LongURL,ShortURL);
+    return 0;
+}
+
+int LoadMyURLDBFile(char * filename)
+{
+    fprintf(stderr,"LoadMyURLDBFile(%s) not implemented yet..!\n",filename);
+    return 1;
+}
 
 unsigned long Add_MyURL(char * LongURL,char * ShortURL)
 {
@@ -94,6 +108,8 @@ unsigned long Add_MyURL(char * LongURL,char * ShortURL)
   links[our_index].short_url=our_hash;
   links[our_index].long_url = ( char * ) malloc (sizeof(char) * (long_url_length+1) );
   strncpy(links[our_index].long_url,LongURL,long_url_length);
+
+  Append2MyURLDBFile(db_file,LongURL,ShortURL);
 
   return 1;
 }
@@ -110,6 +126,7 @@ char * Get_LongURL(char * ShortURL)
 
   return default_failed;
 }
+
 
 /*
    -----------------------------------------------------------
@@ -226,9 +243,10 @@ int main(int argc, char *argv[])
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
 
-    //Create dynamic content allocations and associate context to the correct files
-    init_dynamic_content();
-    //stats.html and formtest.html should be availiable from now on..!
+    if (LoadMyURLDBFile(db_file))
+    {
+      //Create dynamic content allocations and associate context to the correct files
+      init_dynamic_content();
 
          while (AmmServer_Running())
            {
@@ -239,9 +257,12 @@ int main(int argc, char *argv[])
              usleep(10000);
            }
 
-    //Delete dynamic content allocations and remove stats.html and formtest.html from the server
-    close_dynamic_content();
-
+      //Delete dynamic content allocations and remove stats.html and formtest.html from the server
+      close_dynamic_content();
+    } else
+    {
+      fprintf(stderr,"Could not load the database file , so exiting..!\n");
+    }
     //Stop the server and clean state
     AmmServer_Stop();
 

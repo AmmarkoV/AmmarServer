@@ -333,7 +333,7 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
 }
 
 
-int StripHTMLCharacters_Inplace(char * filename)
+int StripHTMLCharacters_Inplace(char * filename,int disable_security)
 {
   //This piece of code converts characters like %20 to their ASCII equivalent " " ( for example )
   //It is not a full mapping of HTML characters to ASCII characters since ( for security reasons )
@@ -343,37 +343,47 @@ int StripHTMLCharacters_Inplace(char * filename)
 
   unsigned int length=strlen(filename);
   unsigned int offset=0;
+
+  //The following 2 lines of checks are kind of redundant but if we want all % symbols stripped they have to be here..
+  /*1*/   if (length==1) { if (filename[0]=='%') { filename[0]="_"; } }
+  /*2*/   if (length==2) { if (filename[0]=='%') { filename[0]="_"; } if (filename[1]=='%') { filename[1]="_"; }  }
+
+  //This line will return if the input is very small
   if (length<=2) { return 0; }
+
   unsigned int i=0;
   while (i<length)
      {
-
-        if ( (filename[i]=='%') && (i<length-2) )
+        if ( (filename[i+offset]=='%') && (i+offset<length-2) )
          {
            unsigned char ascii_val=0,sec_byte=0;
            unsigned char sub_valNumb=0,sub_valHex=0;
 
-           if ((filename[i+1]>='0')&&(filename[i+1]<='9'))  { sub_valNumb=filename[i+1]-'0'; ascii_val+=sub_valNumb*16; }  else
-           if ((filename[i+1]>='a')&&(filename[i+1]<='f'))  { sub_valHex=filename[i+1]-'a';  ascii_val+=(10+sub_valHex)*16; }   else
-           if ((filename[i+1]>='A')&&(filename[i+1]<='F'))  { sub_valHex=filename[i+1]-'A';  ascii_val+=(10+sub_valHex)*16; }   else
-                                                            { sec_byte=1; }
+           unsigned int A=i+offset+1; // The first byte (A) of hex %AB
+           if ((filename[A]>='0')&&(filename[A]<='9'))  { sub_valNumb=filename[A]-'0'; ascii_val+=sub_valNumb*16; }  else
+           if ((filename[A]>='a')&&(filename[A]<='f'))  { sub_valHex=filename[A]-'a';  ascii_val+=(10+sub_valHex)*16; }   else
+           if ((filename[A]>='A')&&(filename[A]<='F'))  { sub_valHex=filename[A]-'A';  ascii_val+=(10+sub_valHex)*16; }   else
+                                                        { sec_byte=1; } //This byte is out of 0-F range so we trigger an alarm
 
 
-           if ((filename[i+2]>='0')&&(filename[i+2]<='9'))  { sub_valNumb=filename[i+2]-'0'; ascii_val+=sub_valNumb*1; }  else
-           if ((filename[i+2]>='a')&&(filename[i+2]<='f'))  { sub_valHex=filename[i+2]-'a';  ascii_val+=(10+sub_valHex)*1; }   else
-           if ((filename[i+2]>='A')&&(filename[i+2]<='F'))  { sub_valHex=filename[i+2]-'A';  ascii_val+=(10+sub_valHex)*1; }   else
-                                                            { sec_byte=1; }
+           unsigned int B=i+offset+2; // The second byte (B) of hex %AB
+           if ((filename[B]>='0')&&(filename[B]<='9'))  { sub_valNumb=filename[B]-'0'; ascii_val+=sub_valNumb*1; }  else
+           if ((filename[B]>='a')&&(filename[B]<='f'))  { sub_valHex=filename[B]-'a';  ascii_val+=(10+sub_valHex)*1; }   else
+           if ((filename[B]>='A')&&(filename[B]<='F'))  { sub_valHex=filename[B]-'A';  ascii_val+=(10+sub_valHex)*1; }   else
+                                                        { sec_byte=1; } //This byte is out of 0-F range so we trigger an alarm
 
+          if (!disable_security)
+          { //Security to filter out possibly unwanted bytes..!! , bytes larger than 255 are always filtered since the sec_byte
+            //can be also triggered by %ZZ or any ascii value out of 0-F for ( see code above ) ..!
            if ( ascii_val<' ')   { sec_byte=1; } else /* See IGNORED Control characters..! */
            if ( ascii_val>'~')   { sec_byte=1; }
+          }
 
            if (sec_byte)
             {
-              fprintf(stderr,"BAD Hex URI Char %%%c%c attempted overflow ( %u ) \n",filename[i+1],filename[i+2],ascii_val);
-              //We mute the % character..!
+              fprintf(stderr,"BAD Hex URI Char %% %c %c attempted overflow ( %u ) \n",filename[i+1],filename[i+2],ascii_val);
+              //We mute the % character that caused the problem..!
               filename[i]='_';
-              //filename[i+1]='_';
-              //filename[i+2]='_';
             } else
             {
               //fprintf(stderr,"Hex URI Char %%%c%c = ascii %u = `%c`\n",filename[i+1],filename[i+2],ascii_val,ascii_val);

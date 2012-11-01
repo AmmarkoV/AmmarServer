@@ -38,7 +38,7 @@ char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int reques
 
 int encodeToBase64(char *src,unsigned s_len,char *dst,unsigned d_len);
 
-int StripHTMLCharacters_Inplace(char * filename);
+int StripHTMLCharacters_Inplace(char * filename,int disable_security);
 int ReducePathSlashes_Inplace(char * filename);
 int FilenameStripperOk(char * filename);
 
