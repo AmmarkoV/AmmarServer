@@ -172,11 +172,11 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
               */
              if ( StripGETRequestQueryAndFragment(stripped,output->GETquery,MAX_QUERY) )
                {
-                 StripHTMLCharacters_Inplace(output->GETquery,1 /* 1 = Disregard dangerous bytes , Safety OFF*/); // <- This converts char sequences like %20 to " " disregarding filename safety , ( since it is a raw var )
+                 StripHTMLCharacters_Inplace(output->GETquery,0 /* 0 = Disregard dangerous bytes , Safety OFF*/); // <- This call converts char sequences like %20 to " " and %00 to \0 disregarding any form of safety , ( since it is a raw var )
                  fprintf(stderr,"Found a query , %s , resource is now %s \n",output->GETquery,stripped);
                }
 
-             StripHTMLCharacters_Inplace(stripped,0 /* 0 = filter dangerous bytes , File Safety ON*/); // <- This converts char sequences like %20 to " " it HAS to be done before filename stripper to ensure string safety
+             StripHTMLCharacters_Inplace(stripped,1 /* 1 = filter dangerous bytes , File Safety ON*/); // <- This call converts char sequences like %20 to " " but %00 becomes _00 ( instead of \0 ) , it HAS to be done before filename stripper to ensure string safety
 
              if (FilenameStripperOk(stripped))
               {

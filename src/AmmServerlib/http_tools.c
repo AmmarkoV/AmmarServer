@@ -333,7 +333,7 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
 }
 
 
-int StripHTMLCharacters_Inplace(char * filename,int disable_security)
+int StripHTMLCharacters_Inplace(char * filename,int enable_security)
 {
   //This piece of code converts characters like %20 to their ASCII equivalent " " ( for example )
   //It is not a full mapping of HTML characters to ASCII characters since ( for security reasons )
@@ -372,7 +372,7 @@ int StripHTMLCharacters_Inplace(char * filename,int disable_security)
            if ((filename[B]>='A')&&(filename[B]<='F'))  { sub_valHex=filename[B]-'A';  ascii_val+=(10+sub_valHex)*1; }   else
                                                         { sec_byte=1; } //This byte is out of 0-F range so we trigger an alarm
 
-          if (!disable_security)
+          if (enable_security)
           { //Security to filter out possibly unwanted bytes..!! , bytes larger than 255 are always filtered since the sec_byte
             //can be also triggered by %ZZ or any ascii value out of 0-F for ( see code above ) ..!
            if ( ascii_val<' ')   { sec_byte=1; } else /* See IGNORED Control characters..! */
