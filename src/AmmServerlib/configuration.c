@@ -34,7 +34,7 @@ char TemplatesInternalURI[MAX_RESOURCE]="_asvres_/";
 
 int EmmitPossibleConfigurationWarnings()
 {
-  fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST requests , and couple them to dynamic content ..\n");
+  fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST !FILE! requests , and couple them to dynamic content ..\n");
   fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
   fprintf(stderr,"TODO: require the Host: header from HTTP 1.1 clients\n");
   fprintf(stderr,"TODO: accept absolute URL's in a request\n");
@@ -47,7 +47,6 @@ int EmmitPossibleConfigurationWarnings()
   fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
   fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
-  fprintf(stderr,"TODO: Implement gzip gunzip file compression , especially in cache for txt,html low entropy files\n");
 
 
   if (ENABLE_COMPRESSION)

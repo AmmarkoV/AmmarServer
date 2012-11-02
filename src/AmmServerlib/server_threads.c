@@ -259,6 +259,11 @@ void * ServeClient(void * ptr)
 
               fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
 
+
+              //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
+              //TODO TODO TODO
+
+
               if (total_header>=MAX_QUERY*4)
               {
                  //Too large request .. We cannot handle it ..

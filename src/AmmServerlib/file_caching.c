@@ -126,21 +126,24 @@ inline int CreateCompressedVersionofCachedResource(unsigned int index,int compre
   #if ENABLE_COMPRESSION
   //When compression is disabled we shouldn't link with -lz so we remove all calls to zlib stuff ( they are marked with a ZLIB CALL ) ..!
 
-  unsigned long compressed_buffer_filesize = compressBound( (uLongf) *cache[index].filesize); /*!ZLIB CALL!*/
+  unsigned long initial_compressed_buffer_filesize_estimation = compressBound( (uLongf) *cache[index].filesize); /*!ZLIB CALL!*/
 
-  if (!WeCanCommitMoreMemoryForCaching(compressed_buffer_filesize)) { return 0; }
+  if (!WeCanCommitMoreMemoryForCaching(initial_compressed_buffer_filesize_estimation)) { return 0; }
+
+
+  //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
+  AddNewMallocToCacheCounter(initial_compressed_buffer_filesize_estimation);
+  if (cache[index].compressed_mem!=0) { free(cache[index].compressed_mem); cache[index].compressed_mem=0;
+                                        if (cache[index].compressed_mem_filesize!=0) { AddFreeOpToCacheCounter(*cache[index].compressed_mem_filesize); }  }
+  cache[index].compressed_mem = (char * ) malloc(sizeof (char) * ( initial_compressed_buffer_filesize_estimation ));
 
 
   //First to prepare the memory length holder , we clean it up and allocate an unsigned long ..!
   if (cache[index].compressed_mem_filesize!=0) { free(cache[index].compressed_mem_filesize); cache[index].compressed_mem_filesize=0; }
   cache[index].compressed_mem_filesize = (unsigned long * ) malloc(sizeof (unsigned long));
-  *cache[index].compressed_mem_filesize = compressed_buffer_filesize;
+  *cache[index].compressed_mem_filesize = initial_compressed_buffer_filesize_estimation;
 
 
-  //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
-  AddNewMallocToCacheCounter(compressed_buffer_filesize);
-  if (cache[index].compressed_mem!=0) { free(cache[index].compressed_mem); cache[index].compressed_mem=0; }
-  cache[index].compressed_mem = (char * ) malloc(sizeof (char) * ( compressed_buffer_filesize ));
 
 
   int res=compress2( /*!ZLIB CALL!*/
@@ -151,16 +154,30 @@ inline int CreateCompressedVersionofCachedResource(unsigned int index,int compre
                      compression_level); //The compression level ( this needs some thought..! )
   if (Z_OK==res)
    {
-     return_value = 1;
-     //Todo compare  compressed_buffer_filesize with *cache[*index].compressed_mem_filesize and realloc what is needed..!
+     //If compression was a success we probably used less memory than what we thought we would before the procedure..
+     //It could be the case that a realloc would help us use less system memory which will improve performance..
+     //In case that the saved memory is less than a preset number of bytes it may not be worth it to make the realloc call..!
+     if (REALLOC_TO_SAVE_MORE_THAN_THIS_NUMBER_BYTES<initial_compressed_buffer_filesize_estimation-*cache[index].compressed_mem_filesize)
+     {
+      char * better_fit = (char*) realloc ( cache[index].compressed_mem , *cache[index].compressed_mem_filesize );
+      if (better_fit!=0) { cache[index].compressed_mem=better_fit;
+                           AddNewMallocToCacheCounter(*cache[index].compressed_mem_filesize); // We subtract the freed bytes as a second operation to take care of race conditions..!
+                           AddFreeOpToCacheCounter(initial_compressed_buffer_filesize_estimation);
+                         }
+     }
+     //Finally , very important , never forget to mark the operation as successfull!
+      return_value = 1;
+     //-----------------------------
    } else
-  if ( Z_BUF_ERROR==res )  { fprintf(stderr,"Compressed buffer was not created , The created buffer ( %u bytes ) was not large enough to hold the compressed data.\n",compressed_buffer_filesize); } else
+  if ( Z_BUF_ERROR==res )  { fprintf(stderr,"Compressed buffer was not created , The created buffer ( %u bytes ) was not large enough to hold the compressed data.\n",initial_compressed_buffer_filesize_estimation); } else
   if ( Z_MEM_ERROR == res) { fprintf(stderr,"Compressed buffer was not created , Insufficient memory..\n"); } else
   if ( Z_STREAM_ERROR == res ) { fprintf(stderr,"Compressed buffer was not created , The compression level was not Z_DEFAULT_LEVEL, or was not between 0 and 9...\n"); }
 
 
   if (!return_value)
   { //Compression failed so we will now free our buffers..!
+
+     AddFreeOpToCacheCounter(initial_compressed_buffer_filesize_estimation); //A failed return_value ( compression ) means we still have our initial buffer , so we free the initial number of bytes..!
      free(cache[index].compressed_mem_filesize);
      free(cache[index].compressed_mem);
 

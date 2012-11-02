@@ -19,6 +19,8 @@
 #define MAX_HTTP_RESPONSE_HEADER 2048
 #define MAX_DIRECTORY_LIST_RESPONSE_BODY 4096
 
+#define REALLOC_TO_SAVE_MORE_THAN_THIS_NUMBER_BYTES 4096 //This may happen during compression in file_caching.c
+
 #define ENABLE_POST 1
 #define ENABLE_COMPRESSION 0 //Compression doesn't work all that well yet
 #define ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES 1
