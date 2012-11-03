@@ -107,15 +107,22 @@ unsigned long Add_MyURL(char * LongURL,char * ShortURL,int saveit)
 
   links[our_index].short_url=our_hash;
   links[our_index].long_url = ( char * ) malloc (sizeof(char) * (long_url_length+1) );
-  strncpy(links[our_index].long_url,LongURL,long_url_length);
+  if (links[our_index].long_url != 0 )
+   {
+     memset(links[our_index].long_url,0,long_url_length+1);
 
-  if (saveit) { Append2MyURLDBFile(db_file,LongURL,ShortURL); }
+     strncpy(links[our_index].long_url,LongURL,long_url_length);
+
+    if (saveit) { Append2MyURLDBFile(db_file,LongURL,ShortURL); }
+   } else
+   { fprintf(stderr,"Could not allocate space for a new string \n "); /*To prevent race conditions.. --loaded_links;*/ return 0; }
 
   return 1;
 }
 
 int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
 {
+    if  ((ShortURL==0)||(LongURL==0)) { return 0; }
     FILE * pFile;
     pFile = fopen (filename,"a");
     if (pFile!=0)
@@ -123,6 +130,7 @@ int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
      //LongURL , ShortURL have stripped the newline character so there is no danger in just plain adding them with a \n seperator..!
      fprintf(pFile,"%s\n%s\n",LongURL,ShortURL);
      fclose (pFile);
+     return 1;
     }
 
     return 0;
@@ -140,6 +148,9 @@ int LoadMyURLDBFile(char * filename)
        unsigned int i=0;
        while (!feof(pFile))
         {
+           memset(LongURL,0,MAX_LONG_URL_SIZE);
+           memset(ShortURL,0,MAX_TO_SIZE);
+
            fscanf (pFile, "%s\n", LongURL);
            fscanf (pFile, "%s\n", ShortURL);
            Add_MyURL(LongURL,ShortURL,0 /*We dont want to reappend it :P*/);
@@ -147,9 +158,10 @@ int LoadMyURLDBFile(char * filename)
            fprintf(stderr,"%u - Loaded Keyword %s \n",i,ShortURL);
         }
      fclose (pFile);
+     return 1;
     }
 
-    return 1;
+    return 0;
 }
 
 
@@ -184,6 +196,7 @@ char * Get_LongURL(char * ShortURL)
 //This function prepares the content of  the url creator context
 void * serve_create_url_page(unsigned int associated_vars)
 {
+  memset(create_url.content,0,4096);
 
   strcpy(create_url.content,"<html><head><title>Welcome to MyURL</title></head><body><br><br><br><br><br><br><br><br><br><br><center><table border=5><tr><td><center><br><h2>Welcome to MyURL(Alpha)</h2><br>");
 
@@ -199,6 +212,7 @@ void * serve_create_url_page(unsigned int associated_vars)
 void * serve_goto_url_page(unsigned int associated_vars)
 {
   //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
+  memset(goto_url.content,0,4096);
 
   if  ( goto_url.GET_request != 0 )
     {
