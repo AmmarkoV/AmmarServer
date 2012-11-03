@@ -258,8 +258,21 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
 
      if (output->requestType==POST)
       {
-          //If we just had a POST request , it  may have a file associated with it , so we will check for content tags..
-          //Scanning for the case that the line is -> Content-Type: (i.e.) application/x-www-form-urlencoded
+         //If we just had a POST request , it  may have a file associated with it , so we will check for content tags..
+         //Scanning for the case that the line is -> Content-Type: (i.e.) application/x-www-form-urlencoded
+         /* OR SOMETHING LIKE
+         Content-Type: multipart/form-data; boundary=---------------------------15737843761039122011733265042
+         Content-Length: 9288
+         -----------------------------15737843761039122011733265042
+         Content-Disposition: form-data; name="rawresponse"
+
+         NO
+         -----------------------------15737843761039122011733265042
+         Content-Disposition: form-data; name="uploadedfile"; filename="feels.jpeg"
+         Content-Type: image/jpeg
+
+         IMAGE DATA STARTS HERE */
+
          if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-TYPE:",&payload_start) )
           {
             if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }

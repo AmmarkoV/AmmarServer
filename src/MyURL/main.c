@@ -40,7 +40,7 @@ char db_file[128]="myurl.db";
 
 #define MAX_TO_SIZE 20
 #define MAX_LONG_URL_SIZE 512
-#define MAX_LINKS 1000
+#define MAX_LINKS 20000
 
 
 struct URLDB
@@ -95,19 +95,7 @@ unsigned long hashURL(char *str)
         return hash;
     }
 
-int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
-{
-    fprintf(stderr,"Append2MyURLDBFile(%s,%s,%s) not implemented yet..!\n",filename,LongURL,ShortURL);
-    return 0;
-}
-
-int LoadMyURLDBFile(char * filename)
-{
-    fprintf(stderr,"LoadMyURLDBFile(%s) not implemented yet..!\n",filename);
-    return 1;
-}
-
-unsigned long Add_MyURL(char * LongURL,char * ShortURL)
+unsigned long Add_MyURL(char * LongURL,char * ShortURL,int saveit)
 {
   if (loaded_links>=MAX_LINKS) { return 0; }
 
@@ -121,10 +109,49 @@ unsigned long Add_MyURL(char * LongURL,char * ShortURL)
   links[our_index].long_url = ( char * ) malloc (sizeof(char) * (long_url_length+1) );
   strncpy(links[our_index].long_url,LongURL,long_url_length);
 
-  Append2MyURLDBFile(db_file,LongURL,ShortURL);
+  if (saveit) { Append2MyURLDBFile(db_file,LongURL,ShortURL); }
 
   return 1;
 }
+
+int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
+{
+    FILE * pFile;
+    pFile = fopen (filename,"a");
+    if (pFile!=0)
+    {
+     //LongURL , ShortURL have stripped the newline character so there is no danger in just plain adding them with a \n seperator..!
+     fprintf(pFile,"%s\n%s\n",LongURL,ShortURL);
+     fclose (pFile);
+    }
+
+    return 0;
+}
+
+int LoadMyURLDBFile(char * filename)
+{
+    FILE * pFile;
+    pFile = fopen (filename,"r");
+    if (pFile!=0)
+    {
+       char LongURL[MAX_LONG_URL_SIZE]={0};
+       char ShortURL[MAX_TO_SIZE]={0};
+
+       unsigned int i=0;
+       while (!feof(pFile))
+        {
+           fscanf (pFile, "%s\n", LongURL);
+           fscanf (pFile, "%s\n", ShortURL);
+           Add_MyURL(LongURL,ShortURL,0 /*We dont want to reappend it :P*/);
+           ++i;
+           fprintf(stderr,"%u - Loaded Keyword %s \n",i,ShortURL);
+        }
+     fclose (pFile);
+    }
+
+    return 1;
+}
+
 
 char * Get_LongURL(char * ShortURL)
 {
@@ -188,7 +215,7 @@ void * serve_goto_url_page(unsigned int associated_vars)
                       sprintf(goto_url.content,"<html><body>Bad Strings provided..</body></html>");
                     } else
                     {
-                      Add_MyURL(url,to);
+                      Add_MyURL(url,to,1 /*We want to save it to disk..!*/);
                       sprintf(goto_url.content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready <a target=\"_new\" href=\"%s?to=%s\">%s?to=%s</a><br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root,to,service_root,to);
                     }
                   } else

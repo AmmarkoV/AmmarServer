@@ -122,6 +122,12 @@ inline int CreateCompressedVersionofCachedResource(unsigned int index,int compre
        return 0;
      }
 
+  //We free compressed buffers outside of the ENABLE_COMPRESSION precompiler selector , aftere the next 2 steps we have a clean state and so we are ready to allocate
+  //memory for the compressed content
+  if (cache[index].compressed_mem!=0) { free(cache[index].compressed_mem); cache[index].compressed_mem=0;
+                                        if (cache[index].compressed_mem_filesize!=0) { AddFreeOpToCacheCounter(*cache[index].compressed_mem_filesize); }  }
+  if (cache[index].compressed_mem_filesize!=0) { free(cache[index].compressed_mem_filesize); cache[index].compressed_mem_filesize=0; }
+
 
   #if ENABLE_COMPRESSION
   //When compression is disabled we shouldn't link with -lz so we remove all calls to zlib stuff ( they are marked with a ZLIB CALL ) ..!
@@ -133,13 +139,10 @@ inline int CreateCompressedVersionofCachedResource(unsigned int index,int compre
 
   //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
   AddNewMallocToCacheCounter(initial_compressed_buffer_filesize_estimation);
-  if (cache[index].compressed_mem!=0) { free(cache[index].compressed_mem); cache[index].compressed_mem=0;
-                                        if (cache[index].compressed_mem_filesize!=0) { AddFreeOpToCacheCounter(*cache[index].compressed_mem_filesize); }  }
   cache[index].compressed_mem = (char * ) malloc(sizeof (char) * ( initial_compressed_buffer_filesize_estimation ));
 
 
   //First to prepare the memory length holder , we clean it up and allocate an unsigned long ..!
-  if (cache[index].compressed_mem_filesize!=0) { free(cache[index].compressed_mem_filesize); cache[index].compressed_mem_filesize=0; }
   cache[index].compressed_mem_filesize = (unsigned long * ) malloc(sizeof (unsigned long));
   *cache[index].compressed_mem_filesize = initial_compressed_buffer_filesize_estimation;
 
@@ -195,7 +198,7 @@ inline int CreateCompressedVersionofCachedResource(unsigned int index,int compre
 */
 int CreateCompressedVersionofDynamicContent(unsigned int index)
 {
-  if (!ENABLE_COMPRESSION) { return 0; }
+  if ( (!ENABLE_COMPRESSION) || (!ENABLE_DYNAMIC_CONTENT_COMPRESSION) ) { return 0; }
   //Dynamic Content should be compressed FAST! so 1 compression level
   return CreateCompressedVersionofCachedResource(index,1);
 }

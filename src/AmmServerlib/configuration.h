@@ -23,6 +23,7 @@
 
 #define ENABLE_POST 1
 #define ENABLE_COMPRESSION 0 //Compression doesn't work all that well yet
+#define ENABLE_DYNAMIC_CONTENT_COMPRESSION 0 // Compression for dynamic content ( doesnt seem like a very good idea unless you have a dynamic html file of 20KB +
 #define ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES 1
 
 #define ENABLE_DROPING_ROOT_UID 0
