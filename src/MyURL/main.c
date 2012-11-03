@@ -38,7 +38,7 @@ char service_root[128]="http://ammar.gr:8080/go";
 char db_file[128]="myurl.db";
 
 
-#define MAX_TO_SIZE 20
+#define MAX_TO_SIZE 32
 #define MAX_LONG_URL_SIZE 512
 #define MAX_LINKS 20000
 
@@ -109,9 +109,8 @@ unsigned long Add_MyURL(char * LongURL,char * ShortURL,int saveit)
   links[our_index].long_url = ( char * ) malloc (sizeof(char) * (long_url_length+1) );
   if (links[our_index].long_url != 0 )
    {
-     memset(links[our_index].long_url,0,long_url_length+1);
-
      strncpy(links[our_index].long_url,LongURL,long_url_length);
+     links[our_index].long_url[long_url_length]=0;  // null terminator :P
 
     if (saveit) { Append2MyURLDBFile(db_file,LongURL,ShortURL); }
    } else
