@@ -234,7 +234,7 @@ void * serve_goto_url_page(unsigned int associated_vars)
                   } else
                 {
                  //No Point in a url without a to , here we could probably generate a random to !
-                 strcpy(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to make a new short operation </body></html>");
+                 strcpy(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Error creating a new url</h2></body></html>");
                 }
              } else
          //If only to is set it means we have ourselves somewhere to go to!
@@ -322,6 +322,7 @@ int main(int argc, char *argv[])
     } else
     {
       fprintf(stderr,"Could not load the database file , so exiting..!\n");
+      fprintf(stderr,"!!!!!! If this is the first installation/run of the program please consider issuing `touch %s` to create an empty db file ..!!!!!!\n",db_file);
     }
     //Stop the server and clean state
     AmmServer_Stop();

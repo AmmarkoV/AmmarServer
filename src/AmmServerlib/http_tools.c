@@ -289,16 +289,21 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
   var_val[0]=0;
 
   fprintf(stderr,"StripVariableFromGETorPOSTString is slopilly implemented \n");
-  /*! TODO : A decent implementation here..! , input is like idname=idvalue&idname2=idvalue2&idname3=idvalue3 ktl ktl*/
+  /*! TODO : A decent implementation here..! , input is like "idname=idvalue&idname2=idvalue2&idname3=idvalue3" , var_id is the value we are looking for
+             var_val is the payload which has space allocated as declared in var_val_length  */
+
   unsigned int input_length = strlen(input);
   char * id_instance = strstr (input,var_id);
   if (id_instance!=0)
    {
      fprintf(stderr,"Found var_id %s in GET/POST String \n",var_id);
-     unsigned int total_chars_to_copy=0;
      unsigned int start_of_var_val=id_instance-input;
-     start_of_var_val+=strlen(var_id)+1; // We go past the = char!
-     if ( input[start_of_var_val-1]!='=') { fprintf(stderr,"Error Parsing GET/POST var string\n"); }
+     unsigned int total_chars_to_copy=0;
+     start_of_var_val+=strlen(var_id); // We go right at the = char!
+     while ( (input[start_of_var_val]!='=') && (start_of_var_val<input_length) ) {  ++start_of_var_val; } //We seek the = sign
+
+     if ( input[start_of_var_val]=='=') { ++start_of_var_val; } else
+     if ( input[start_of_var_val]!='=') { fprintf(stderr,"Error Parsing GET/POST var string\n"); }
      unsigned int i=start_of_var_val;
      while ( i < input_length )
        {
@@ -306,28 +311,28 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
           if (input[i]=='&')  {  total_chars_to_copy = i-start_of_var_val; break; }
           ++i;
        }
-     if (i==input_length) { fprintf(stderr,"This is the last arg ? \n");
-                             total_chars_to_copy = i-start_of_var_val; }
+     if (i>=input_length) { fprintf(stderr,"This is the last arg ? , we finished the string! \n");
+                             total_chars_to_copy = input_length-start_of_var_val; }
 
 
-     if (total_chars_to_copy==0) { fprintf(stderr,"VAR %s was empty\n",var_id); return 0; } else
+     if (total_chars_to_copy==0) { fprintf(stderr,"VAR `%s` was empty\n",var_id); return 0; } else
      if (total_chars_to_copy < var_val_length-1) //We want to include a null terminator
                                  {
                                   char * val_start_on_input = input + start_of_var_val;
                                   strncpy(var_val,val_start_on_input,total_chars_to_copy);
                                   var_val[total_chars_to_copy]=0;
 
-                                  fprintf(stderr,"Found VAR %s value `%s` \n",var_id,var_val);
+                                  fprintf(stderr,"Found VAR `%s` value `%s` \n",var_id,var_val);
                                   return 1;
                                  } else
                                  {
-                                  fprintf(stderr,"There was not sufficient space to copy back the value of VAR %s \n",var_id);
-                                  fprintf(stderr,"The VAR %s had a size of %u bytes , we had %u bytes to accomodate it \n",var_id,total_chars_to_copy,var_val_length);
+                                  fprintf(stderr,"There was not sufficient space to copy back the value of VAR `%s` \n",var_id);
+                                  fprintf(stderr,"The VAR `%s` had a size of %u bytes , we had %u bytes to accomodate it \n",var_id,total_chars_to_copy,var_val_length);
                                   return 0;
                                  }
 
    }
-
+  //If we are here this means we couldnt find an instance of our var in the input string..!
   fprintf(stderr,"Could not find VAR %s \n",var_id);
   return 0;
 }
