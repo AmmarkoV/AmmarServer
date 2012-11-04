@@ -39,7 +39,7 @@ char db_file[128]="myurl.db";
 
 
 #define MAX_TO_SIZE 32
-#define MAX_LONG_URL_SIZE 512
+#define MAX_LONG_URL_SIZE 1024
 #define MAX_LINKS 20000
 
 
@@ -78,6 +78,9 @@ int is_an_unsafe_str(char * input,unsigned int input_length)
                    This is the backbone of MyURL
    -----------------------------------------------------------
 */
+
+int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL);
+
 unsigned long hashURL(char *str)
     {
         if (str==0) return 0;
@@ -197,9 +200,9 @@ void * serve_create_url_page(unsigned int associated_vars)
 {
   memset(create_url.content,0,4096);
 
-  strcpy(create_url.content,"<html><head><title>Welcome to MyURL</title></head><body><br><br><br><br><br><br><br><br><br><br><center><table border=5><tr><td><center><br><h2>Welcome to MyURL(Alpha)</h2><br>");
+  strcpy(create_url.content,"<html><head><title>Welcome to MyURL</title></head><body><br><br><br><br><br><br><br><br><br><br><center><table border=5><tr><td><center><br><h2>Welcome to MyURL(<blink>Alpha</blink>)</h2><br>");
 
-  strcat(create_url.content,"<form name=\"input\" action=\"go\" method=\"get\"> Long URL : <input type=\"text\" name=\"url\" /> Name: <input type=\"text\" name=\"to\"/><input type=\"submit\" value=\"Submit\" /></form>");
+  strcat(create_url.content,"&nbsp;&nbsp;&nbsp;<form name=\"input\" action=\"go\" method=\"get\"> Long URL : <input type=\"text\" name=\"url\" /> Name: <input type=\"text\" name=\"to\"/>&nbsp;<input type=\"submit\" value=\"Submit\" /></form>&nbsp;&nbsp;&nbsp;");
 
   strcat(create_url.content,"</center><br><br></td></tr></table></center></body></html>");
   create_url.content_size=strlen(create_url.content);
