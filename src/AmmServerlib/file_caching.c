@@ -636,8 +636,8 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
                   //That doesnt bother anything or anyone..
 
                   if (shared_context-> callback_every_x_msec!=0)
-                   { //Dynamic pages without time limits dont have to call the "expensive" GetTickCount
-                     now=GetTickCount();
+                   { //Dynamic pages without time limits dont have to call the "expensive" GetTickCountAmmServ
+                     now=GetTickCountAmmServ();
                      if ( now-shared_context->last_callback < shared_context-> callback_every_x_msec )
                           {
                             //The request came too fast.. We will serve our existing file..!

@@ -13,7 +13,7 @@ const char *days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 const char *months[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 
 
-unsigned long GetTickCount()
+unsigned long GetTickCountAmmServ()
 {
    //This returns a monotnic "uptime" value in milliseconds , it behaves like windows GetTickCount() but its not the same..
    struct timespec ts;
