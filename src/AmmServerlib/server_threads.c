@@ -96,7 +96,7 @@ int HTTPServerIsRunning()
 }
 
 
-unsigned int DropRootUID()
+unsigned int ServerThreads_DropRootUID()
 {
    if (!ENABLE_DROPING_ROOT_UID) { fprintf(stderr,"DropRootUID() is disabled..\n"); return 0; }
 
@@ -794,7 +794,7 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
 
    //After changing our priority ( which could require superuser powers ) , it may be time to drop RootUID
    //There could be a user like www-run or something else that we could setuid to , but this isn't yet implemented...
-   DropRootUID();
+   ServerThreads_DropRootUID();
 
 
 
