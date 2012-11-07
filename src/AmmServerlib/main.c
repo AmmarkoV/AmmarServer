@@ -92,6 +92,22 @@ int AmmServer_PreCacheFile(char * filename)
 }
 
 
+int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_RH_Context * context)
+{
+    char resource_name[MAX_FILE_PATH]={0};
+    strcpy(resource_name,context->web_root_path);
+    strcat(resource_name,context->resource_name);
+
+    if (! AddDoNOTCache_CacheItem(resource_name) )
+     {
+       fprintf(stderr,"Could not set AmmServer_DoNOTCacheResourceHandler for resource %s\n",resource_name);
+       return 0;
+     }
+    return 1;
+}
+
+
+
 int AmmServer_DoNOTCacheResource(char * resource_name)
 {
     if (! AddDoNOTCache_CacheItem(resource_name) )
