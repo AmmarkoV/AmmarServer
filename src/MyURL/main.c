@@ -267,11 +267,10 @@ void * serve_goto_url_page(unsigned int associated_vars)
 void init_dynamic_content()
 {
   if (! AmmServer_AddResourceHandler(&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page) ) { fprintf(stderr,"Failed adding create page\n"); }
-  AmmServer_DoNOTCacheResource("public_html/index.html"); // Chat Html will be changing all the time , so we don't want to cache it..!
+  AmmServer_DoNOTCacheResourceHandler(&create_url);  
 
   if (! AmmServer_AddResourceHandler(&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page) ) { fprintf(stderr,"Failed adding form testing page\n"); }
-  AmmServer_DoNOTCacheResource("public_html/go"); // Chat Html will be changing all the time , so we don't want to cache it..!
-
+  AmmServer_DoNOTCacheResourceHandler(&goto_url);  
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

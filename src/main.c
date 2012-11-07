@@ -244,15 +244,15 @@ void init_dynamic_content()
 
   if (ENABLE_CHAT_BOX)
   {
-   if (! AmmServer_AddResourceHandler(&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
+   if (!AmmServer_AddResourceHandler(&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
       { fprintf(stderr,"Failed adding chatbox page\n"); }
 
      char chatlog_path[MAX_FILE_PATH]={0};
      strcpy(chatlog_path,webserver_root);
      strcat(chatlog_path,"chat.html");
      EraseFile(chatlog_path);
-
-     AmmServer_DoNOTCacheResource(chatlog_path); // Chat Html will be changing all the time , so we don't want to cache it..!
+     
+     AmmServer_DoNOTCacheResourceHandler(&chatbox);  
   }
 }
 
