@@ -26,7 +26,7 @@
 #define ENABLE_DYNAMIC_CONTENT_COMPRESSION 0 // Compression for dynamic content ( doesnt seem like a very good idea unless you have a dynamic html file of 20KB +
 #define ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES 1
 
-#define ENABLE_DROPING_ROOT_UID 0
+#define ENABLE_DROPPING_ROOT_UID 0
 
 #define ENABLE_INTERNAL_RESOURCES_RESOLVE 1
 #define ENABLE_DIRECTORY_LISTING 1

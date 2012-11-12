@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
 #include "AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
@@ -251,8 +252,8 @@ void init_dynamic_content()
      strcpy(chatlog_path,webserver_root);
      strcat(chatlog_path,"chat.html");
      EraseFile(chatlog_path);
-     
-     AmmServer_DoNOTCacheResourceHandler(&chatbox);  
+
+     AmmServer_DoNOTCacheResourceHandler(&chatbox);
   }
 }
 
@@ -264,6 +265,18 @@ void close_dynamic_content()
     if (ENABLE_CHAT_BOX) { AmmServer_RemoveResourceHandler(&chatbox,1); }
 }
 /*! Dynamic content code ..! END ------------------------*/
+
+
+
+void termination_handler (int signum)
+     {
+        fprintf(stderr,"Terminating AmmarServer.. ");
+        close_dynamic_content();
+        AmmServer_Stop();
+        fprintf(stderr,"done\n");
+        exit(0);
+     }
+
 
 
 int main(int argc, char *argv[])
@@ -290,6 +303,10 @@ int main(int argc, char *argv[])
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
 
+    if (signal(SIGINT, termination_handler) == SIG_ERR)   printf("Cannot handle SIGINT!\n");
+    if (signal(SIGHUP, termination_handler) == SIG_ERR)   printf("Cannot handle SIGHUP!\n");
+    if (signal(SIGTERM, termination_handler) == SIG_ERR)  printf("Cannot handle SIGTERM!\n");
+    if (signal(SIGKILL, termination_handler) == SIG_ERR)  printf("Cannot handle SIGKILL!\n");
 
     //If we want password protection ( variable defined in the start of this file ) we will have to set a username and a password
     //and then enable password protection

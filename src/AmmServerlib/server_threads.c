@@ -98,7 +98,7 @@ int HTTPServerIsRunning()
 
 unsigned int ServerThreads_DropRootUID()
 {
-   if (!ENABLE_DROPING_ROOT_UID) { fprintf(stderr,"DropRootUID() is disabled..\n"); return 0; }
+   if (!ENABLE_DROPPING_ROOT_UID) { fprintf(stderr,"DropRootUID() is disabled..\n"); return 0; }
 
    FILE * fp  = popen("id -u `whoami`", "r");
    if (fp == 0 ) { fprintf(stderr,"Failed to get our user id ( trying to drop root UID ) \n"); return 0; }
