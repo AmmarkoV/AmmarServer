@@ -127,6 +127,7 @@ unsigned int ServerThreads_DropRootUID()
                                 { non_root_uid=CHANGE_TO_UID; }
       }
 
+   fprintf(stderr,"setuid(%u);\n",non_root_uid);
    return setuid(non_root_uid); // Non Root UID :-P
 }
 
@@ -806,10 +807,6 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
                                          { fprintf(stderr,"Changed priority to %i \n",CHANGE_PRIORITY); } }
   //-------------------------------------------------------------------------------------------------------------
 
-   //After changing our priority ( which could require superuser powers ) , it may be time to drop RootUID
-   //There could be a user like www-run or something else that we could setuid to , but this isn't yet implemented...
-   ServerThreads_DropRootUID();
-
 
 
   struct PassToHTTPThread context;
@@ -833,11 +830,19 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
   retres = pthread_create( &server_thread_id ,0,HTTPServerThread,(void*) &context);
   //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ } }
+  //We flip the retres
+  if (retres!=0) retres = 0; else retres = 1;
 
 
   //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
   PreSpawnThreads();
+
+
+
+   //After changing our priority , binding our port ( which could be 80 and could require superuser powers ) , it may be time to drop RootUID
+   //There could be a user like www-run or something else that we could setuid to , but this isn't yet implemented...
+   ServerThreads_DropRootUID();
 
 /*
   //The next call simulates an incoming request that gets served by the server in order to test it and preload the index page for better performance..!
@@ -845,8 +850,6 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
   if (file!=0) { free(file); fprintf(stderr,"Internal Index Request was succesful..\n"); } else
                { fprintf(stderr,"Internal Index Request failed ..\n"); } */
 
-  //We flip the retres
-  if (retres!=0) retres = 0; else retres = 1;
   return retres;
 }
 

@@ -15,7 +15,7 @@ char * PASSWORD=0;
 char * BASE64PASSWORD=0;
 
 char USERNAME_UID_FOR_DAEMON[MAX_FILE_PATH]="www-data";  //one interesting value here is `whoami` since it will input the username of the current user :P
-int  CHANGE_TO_UID=1501;
+int  CHANGE_TO_UID=1000; //First non superuser system
 
 int CHANGE_PRIORITY=-10;
 
