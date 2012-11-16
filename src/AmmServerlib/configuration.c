@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "http_tools.h"
+#include "InputParser/InputParser_C.h"
 
 
 /*
@@ -65,6 +66,14 @@ int LoadConfigurationFile(char * conf_file)
 {
   /*TODO : Stub*/
   fprintf(stderr,"LoadConfigurationFile(%s) not implemented yet\n",conf_file);
+
+
+    struct InputParserC * ipc=0;
+
+    ipc = InputParser_Create(256,5);
+
+    InputParser_Destroy(ipc);
+
   return 0;
 }
 
