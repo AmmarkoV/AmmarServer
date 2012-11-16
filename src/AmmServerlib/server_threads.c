@@ -98,9 +98,18 @@ int HTTPServerIsRunning()
 
 unsigned int ServerThreads_DropRootUID()
 {
-   if (!ENABLE_DROPPING_ROOT_UID) { fprintf(stderr,"DropRootUID() is disabled..\n"); return 0; }
+   if (ENABLE_DROPPING_UID_ALWAYS ) { /* We fall through and change UID , as a mandatory step.. */} else
+   if (ENABLE_DROPPING_ROOT_UID_IF_ROOT) { /*Check if we are root */
+                                           if (getuid()>=1000) { /*Non root id , we can skip dropping our UID with this configuration..*/ return 0; }
+                                           //If we fell through it means we are root and dropping root when root is enabled so the code that follows will alter our uid..
+                                         } else
+                                          { fprintf(stderr,"DropRootUID() not needed ..\n"); return 0; }
 
-   FILE * fp  = popen("id -u `whoami`", "r");
+   char command_to_get_uid[MAX_FILE_PATH]={0};
+   sprintf(command_to_get_uid,"id -u %s",USERNAME_UID_FOR_DAEMON);
+
+
+   FILE * fp  = popen(command_to_get_uid, "r");
    if (fp == 0 ) { fprintf(stderr,"Failed to get our user id ( trying to drop root UID ) \n"); return 0; }
 
    char output[101]={0};
@@ -111,7 +120,12 @@ unsigned int ServerThreads_DropRootUID()
      pclose(fp);
 
    int non_root_uid = atoi(output);
-   if (non_root_uid<1000) { fprintf(stderr,"Our current user is root (%u) , we will set up a bogus uid",non_root_uid);  non_root_uid=1500;}
+   if (non_root_uid<1000)
+      {
+        fprintf(stderr,"The user set in USERNAME_UID_FOR_DAEMON=\"%s\" is also root (his uid is %u)\n",USERNAME_UID_FOR_DAEMON,non_root_uid);
+        if (CHANGE_TO_UID<1000) { fprintf(stderr,"Our CHANGE_TO_UID value is also super user %u , setting a bogus non-root value..\n"); non_root_uid=1500; } else
+                                { non_root_uid=CHANGE_TO_UID; }
+      }
 
    return setuid(non_root_uid); // Non Root UID :-P
 }

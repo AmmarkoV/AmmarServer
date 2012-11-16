@@ -26,7 +26,10 @@
 #define ENABLE_DYNAMIC_CONTENT_COMPRESSION 0 // Compression for dynamic content ( doesnt seem like a very good idea unless you have a dynamic html file of 20KB +
 #define ENABLE_INTERFACE_ACCESS_TO_GET_POST_VARIABLES 1
 
-#define ENABLE_DROPPING_ROOT_UID 0
+#define ENABLE_DROPPING_ROOT_UID_IF_ROOT 1
+#define ENABLE_DROPPING_UID_ALWAYS 0
+extern char USERNAME_UID_FOR_DAEMON[MAX_FILE_PATH]; //Check this value on configuration.c if you want to set the daemon running as a specific user i.e. www-data
+extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR_DAEMON doesn't provide a useful UID..
 
 #define ENABLE_INTERNAL_RESOURCES_RESOLVE 1
 #define ENABLE_DIRECTORY_LISTING 1
