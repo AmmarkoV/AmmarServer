@@ -1,0 +1,1 @@
+This is an embedded instance of my InputParser ( see https://github.com/AmmarkoV/InputParser ) , calling ./update_from_git.sh will update this directory with the full project which  supplies additional modules and a fresh Input Parser code base..
