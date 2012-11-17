@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1352256881 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+1353144029 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -61,7 +61,7 @@
 	<string.h>
 	"http_tools.h"
 
-1353098662 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
+1353149060 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/configuration.h
 
 1344488855 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/content_resources.c
 	<stdio.h>
@@ -154,7 +154,7 @@
 	"configuration.h"
 	"file_caching.h"
 
-1352763459 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.c
+1353100688 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_threads.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -354,4 +354,13 @@
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
+
+1353146008 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/InputParser/InputParser_C.c
+	"InputParser_C.h"
+
+1353146022 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/InputParser/InputParser_C.h
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<ctype.h>
 

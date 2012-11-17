@@ -20,7 +20,7 @@
 */
 
 
-const char * _ipc_ver=" 0.34 written from scratch - 8/2/10 \0";
+const char * _ipc_ver=" 0.356 written from scratch - 8/2/10 \0";
 
 char * InputParserC_Version()
 {
@@ -91,7 +91,8 @@ int InputParser_TrimCharactersEnd(char * inpt , unsigned int length,char what2tr
    if ( (length==1) && (inpt[0]==what2trim) ) {  inpt[0]=0; return 1; } else
    if ( length==1 )                           { return 1; }
 
-   unsigned int i; i=length-1;
+   unsigned int i;
+   i=length-1;
    while ((inpt[i]==what2trim)&&(i>0)) { --i; }
    if ( i==length-1 ) { /*No chars found*/ return 1; }
 
@@ -401,6 +402,18 @@ unsigned char InputParser_WordCompareNoCase(struct InputParserC * ipc,unsigned i
     return 1;
 }
 
+/*
+   InputParser_WordCompareNoCase..
+   Compares word (word) with token with number (num) , null terminating character is required , NO CASE SENSITIVITY..!
+*/
+unsigned char InputParser_WordCompareNoCaseAuto(struct InputParserC * ipc,unsigned int num,char * word)
+{
+    if (word==0) { return 0; }
+    unsigned int wordsize=strlen(word);
+    return InputParser_WordCompareNoCase(ipc,num,word,wordsize);
+}
+
+
 
 /*
    InputParser_WordCompare..
@@ -417,6 +430,17 @@ unsigned char InputParser_WordCompare(struct InputParserC * ipc,unsigned int num
       if (ipc->str[ipc->tokenlist[num].token_start+i]!=word[i]) {  return 0; }
     }
     return 1;
+}
+
+/*
+   InputParser_WordCompareNoCase..
+   Compares word (word) with token with number (num) , null terminating character is required , NO CASE SENSITIVITY..!
+*/
+unsigned char InputParser_WordCompareAuto(struct InputParserC * ipc,unsigned int num,char * word)
+{
+    if (word==0) { return 0; }
+    unsigned int wordsize=strlen(word);
+    return InputParser_WordCompare(ipc,num,word,wordsize);
 }
 
 

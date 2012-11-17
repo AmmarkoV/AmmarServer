@@ -20,8 +20,21 @@ int  CHANGE_TO_UID=1000; //First non superuser system
 
 int CHANGE_PRIORITY=-10;
 
+
+int BINDING_PORT = 8080;
+
 int varSocketTimeoutREAD_ms=10*1000;
 int varSocketTimeoutWRITE_ms=10*1000;
+
+//CACHE
+int MAX_SEPERATE_CACHE_ITEMS = 2000;
+int MAX_CACHE_SIZE_IN_MB = 128;
+int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB = 3;
+
+
+
+
+
 
 int AccessLogEnable=0;
 char AccessLog[MAX_FILE_PATH]="access.log";
@@ -61,18 +74,117 @@ int EmmitPossibleConfigurationWarnings()
 }
 
 
+char FileExistsConf(char * filename)
+{
+ FILE *fp = fopen(filename,"r");
+ if( fp ) { /* exists */
+            fclose(fp);
+            return 1;
+          }
+          else
+          { /* doesnt exist */ }
+ return 0;
+}
+
+
+
+
+
+/*! MAJOR TODO :P , so that we can parse the configuration file.. !*/
+void ParseConfigString(struct InputParserC * ipc,char * inpt)
+{
+  unsigned int words_count = InputParser_SeperateWords(ipc,inpt,0);
+  if ( words_count > 0 )
+    {
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"TIMEOUT"))
+        {
+            int timeout_value = InputParser_GetWordInt(ipc,1);
+            varSocketTimeoutREAD_ms = timeout_value*1000;
+            varSocketTimeoutWRITE_ms = timeout_value*1000;
+        } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"KEEPALIVE"))
+        {
+             int keepalive_value = 0;
+             if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON")) { keepalive_value =1; }
+        } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))
+        {
+           BINDING_PORT = InputParser_GetWordInt(ipc,1);
+        }
+
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 int LoadConfigurationFile(char * conf_file)
 {
-  /*TODO : Stub*/
-  fprintf(stderr,"LoadConfigurationFile(%s) not implemented yet\n",conf_file);
+  char line[MAX_CONFIGURATION_FILE_LINE_SIZE]={0};
+  FILE * pFile;
+  pFile = 0;
+  if ( (conf_file!=0)&&(strlen(conf_file)>1) ) {  pFile = fopen (conf_file ,"r");  } //We may want to open a particluar configuration file
 
+  if (ENABLE_AUTOMATIC_CONFIGURATION_LOADING)
+   { //We may want or we may not want automatic configuration loading from the files below ..
+     //A particularly embedded service may not want to use this files for security reasons for example...
+     if (pFile==0) {  pFile = fopen ("ammarServer.conf" ,"r");  } //First lets try for a local ammarServer.conf ( i.e. development directory scenario )
+     if (pFile==0) {  pFile = fopen ("/etc/ammarServer.conf" ,"r");  } //Second try lets try for the real system installation scenario ( /etc/ammarServer.conf )
+     if (pFile==0) {  pFile = fopen ("default.conf" ,"r");  } //If we can't find a regular conf file lets check for a default one
+   }
 
-    struct InputParserC * ipc=0;
+  if (pFile!=0 )
+    {
 
-    ipc = InputParser_Create(256,5);
+       struct InputParserC * ipc=0;
+       ipc = InputParser_Create(MAX_CONFIGURATION_FILE_LINE_SIZE,1);
+       InputParser_SetDelimeter(ipc,0,' ');
 
-    InputParser_Destroy(ipc);
+      int line_length=0;
+      int c=0;
+      do
+        {
+          c = getc (pFile);
+
+          if ( MAX_CONFIGURATION_FILE_LINE_SIZE-1 <= line_length )
+             {
+               fprintf(stderr,"Oveflow while loading configuration file \n");
+               line[MAX_CONFIGURATION_FILE_LINE_SIZE-1]=0;
+               ParseConfigString(ipc,line);
+               line_length=0;
+             } else
+          if (c == '\n')
+            {
+              ParseConfigString(ipc,line);
+              line_length=0;
+            }
+          else
+            {
+              line[line_length]=c;
+              ++line_length;
+              line[line_length]=0; // always append null termination ;P
+            }
+        }
+      while (c != EOF);
+      fclose (pFile);
+
+      InputParser_Destroy(ipc);
+
+      return 1;
+    }
+  else
+    {
+      fprintf(stderr,"Cannot find and open an AmmarServer Configuration file \n");
+      if (!ENABLE_AUTOMATIC_CONFIGURATION_LOADING) { fprintf(stderr,"Please note that ENABLE_AUTOMATIC_CONFIGURATION_LOADING=0 in configuration.h \n"); }
+    }
 
   return 0;
 }

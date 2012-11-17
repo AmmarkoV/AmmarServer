@@ -95,7 +95,9 @@ char InputParser_GetWordChar(struct InputParserC * ipc,unsigned int num,unsigned
 
 /* WordCompare and WordCompareNoCase return 1 when strings match , 0 otherwise..*/
 unsigned char InputParser_WordCompareNoCase(struct InputParserC * ipc,unsigned int num,char * word,unsigned int wordsize);
+unsigned char InputParser_WordCompareNoCaseAuto(struct InputParserC * ipc,unsigned int num,char * word);
 unsigned char InputParser_WordCompare(struct InputParserC * ipc,unsigned int num,char * word,unsigned int wordsize);
+unsigned char InputParser_WordCompareAuto(struct InputParserC * ipc,unsigned int num,char * word);
 
 unsigned int InputParser_GetWord(struct InputParserC * ipc,unsigned int num,char * wheretostore,unsigned int storagesize);
 unsigned int InputParser_GetUpcaseWord(struct InputParserC * ipc,unsigned int num,char * wheretostore,unsigned int storagesize);

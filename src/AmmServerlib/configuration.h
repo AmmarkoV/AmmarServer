@@ -9,6 +9,7 @@
 #define MAX_QUERY 512
 #define MAX_RESOURCE 512
 #define MAX_RESOURCE_SLASHES 15
+#define MAX_CONFIGURATION_FILE_LINE_SIZE 512
 #define MAX_FILE_PATH 1024
 #define MAX_FILE_PATH_EXTENSION_SIZE 128
 
@@ -20,6 +21,8 @@
 #define MAX_DIRECTORY_LIST_RESPONSE_BODY 4096
 
 #define REALLOC_TO_SAVE_MORE_THAN_THIS_NUMBER_BYTES 4096 //This may happen during compression in file_caching.c
+
+#define ENABLE_AUTOMATIC_CONFIGURATION_LOADING 1
 
 #define ENABLE_POST 1
 #define ENABLE_COMPRESSION 0 //Compression doesn't work all that well yet
@@ -42,8 +45,17 @@ extern char * PASSWORD;
 extern char * BASE64PASSWORD;
 
 extern int CHANGE_PRIORITY;
+
+extern int BINDING_PORT;
+
 extern int varSocketTimeoutREAD_ms;
 extern int varSocketTimeoutWRITE_ms;
+
+// ----------------- CACHE OPTIONS -----------------
+extern int MAX_SEPERATE_CACHE_ITEMS;
+extern int MAX_CACHE_SIZE_IN_MB;
+extern int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
+
 
 extern int AccessLogEnable;
 extern char AccessLog[MAX_FILE_PATH];

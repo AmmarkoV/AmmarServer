@@ -45,6 +45,10 @@
 			<Add option="-lrt" />
 		</Linker>
 		<Unit filename="AmmServerlib.h" />
+		<Unit filename="InputParser/InputParser_C.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="InputParser/InputParser_C.h" />
 		<Unit filename="client_list.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -301,7 +301,14 @@ int main(int argc, char *argv[])
    if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
-    AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
+    AmmServer_Start
+        (
+           bindIP,
+           port,
+           0, /*This means we don't want a specific configuration file*/
+           webserver_root,
+           templates_root
+         );
 
     if (signal(SIGINT, termination_handler) == SIG_ERR)   printf("Cannot handle SIGINT!\n");
     if (signal(SIGHUP, termination_handler) == SIG_ERR)   printf("Cannot handle SIGHUP!\n");

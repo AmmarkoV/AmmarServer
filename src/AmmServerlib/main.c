@@ -40,18 +40,26 @@ int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
+  //These are the initial values provided by the server interface..
+  //LoadConfigurationFile may change them if configuration files are enablaed / exist etc..
+  BINDING_PORT = port;
+
+  //LoadConfigurationFile happens before dropping root id so we are more sure that we will manage to read the configuration file..
   LoadConfigurationFile(conf_file);
 
+  //This line explains configuration conflicts in a user understandable manner :p
   EmmitPossibleConfigurationWarnings();
 
 
   InitializeCache( /*These are the file cache settings , file caching is the mechanism that holds dynamic content and
                      speeds up file serving by not accessing the whole disk drive subsystem ..*/
-                   2000 , /*Seperate items*/
-                   128   , /*MB Limit for the WHOLE Cache*/
-                   3    /*MB Max Size of Individual File*/
+                   MAX_SEPERATE_CACHE_ITEMS , /*Seperate items*/
+                   MAX_CACHE_SIZE_IN_MB   , /*MB Limit for the WHOLE Cache*/
+                   MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB    /*MB Max Size of Individual File*/
                   );
-  return StartHTTPServer(ip,port,web_root_path,templates_root_path);
+
+
+  return StartHTTPServer(ip,BINDING_PORT,web_root_path,templates_root_path);
 }
 
 int AmmServer_Stop()
