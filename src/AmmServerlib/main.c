@@ -73,6 +73,17 @@ int AmmServer_Running()
   return HTTPServerIsRunning();
 }
 
+
+
+//This call , calls  callback every time a request hits the server..
+//The outer layer of the server can do interesting things with it :P
+//request_type is supposed to be GET , HEAD , POST , CONNECT , etc..
+int AmmServer_AddRequestHandler(struct AmmServer_RequestOverride_Context * context,char * request_type,void * callback)
+{
+  return 0;
+}
+
+
 int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback)
 {
    if ( context->content!=0 ) { fprintf(stderr,"Context in AmmServer_AddResourceHandler for %s appears to have an already initialized memory part\n",resource_name); }

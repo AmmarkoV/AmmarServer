@@ -123,7 +123,7 @@ unsigned int ServerThreads_DropRootUID()
    if (non_root_uid<1000)
       {
         fprintf(stderr,"The user set in USERNAME_UID_FOR_DAEMON=\"%s\" is also root (his uid is %u)\n",USERNAME_UID_FOR_DAEMON,non_root_uid);
-        if (CHANGE_TO_UID<1000) { fprintf(stderr,"Our CHANGE_TO_UID value is also super user %u , setting a bogus non-root value..\n"); non_root_uid=1500; } else
+        if (CHANGE_TO_UID<1000) { fprintf(stderr,"Our CHANGE_TO_UID value is also super user , setting a bogus non-root value..\n"); non_root_uid=1500; } else
                                 { non_root_uid=CHANGE_TO_UID; }
       }
 

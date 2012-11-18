@@ -1,4 +1,10 @@
 #!/bin/bash
+#Reminder , to get a single file out of the repo use  "git checkout -- path/to/file.c"
+
+
+git reset --hard HEAD
+git pull
+
 
 #This project has a small code part ( called Input Parser that is actually a standalone Repository mixed in to the code..
 #Since we will go ahead and update_from git , it is good to pull a fresh version out of the github server since bugs may exist
@@ -21,10 +27,9 @@ else
   cd ..
 fi
 
-#Reminder , to get a single file out of the repo use  "git checkout -- path/to/file.c"
+#after everything is done we can now make the project
+#using the fresh code base..
 
-
-git reset --hard HEAD
-git pull
 ./make
+
 exit 0

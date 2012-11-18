@@ -11,10 +11,10 @@
 		<Cursor position="287" topLine="0" />
 	</File>
 	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="2110" topLine="78" />
+		<Cursor position="3944" topLine="80" />
 	</File>
-	<File name="configuration.h" open="1" top="0" tabpos="6">
-		<Cursor position="468" topLine="0" />
+	<File name="configuration.h" open="1" top="1" tabpos="6">
+		<Cursor position="1720" topLine="0" />
 	</File>
 	<File name="directory_lists.c" open="1" top="0" tabpos="18">
 		<Cursor position="3951" topLine="89" />
@@ -53,7 +53,7 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="3299" topLine="185" />
+		<Cursor position="2404" topLine="0" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="10">
 		<Cursor position="22051" topLine="810" />

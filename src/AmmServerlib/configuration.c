@@ -16,7 +16,7 @@ char * PASSWORD=0;
 char * BASE64PASSWORD=0;
 
 char USERNAME_UID_FOR_DAEMON[MAX_FILE_PATH]="www-data";  //one interesting value here is `whoami` since it will input the username of the current user :P
-int  CHANGE_TO_UID=1000; //First non superuser system
+int  CHANGE_TO_UID=1500; //Non superuser system
 
 int CHANGE_PRIORITY=-10;
 
@@ -107,11 +107,9 @@ void ParseConfigString(struct InputParserC * ipc,char * inpt)
              int keepalive_value = 0;
              if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON")) { keepalive_value =1; }
         } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))
-        {
-           BINDING_PORT = InputParser_GetWordInt(ipc,1);
-        }
-
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))      { BINDING_PORT = InputParser_GetWordInt(ipc,1); } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASUSER"))   { InputParser_GetWord(ipc,1,USERNAME_UID_FOR_DAEMON,MAX_FILE_PATH); } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IFUSERDOESNTEXISTRUNASUID")) { CHANGE_TO_UID = InputParser_GetWordInt(ipc,1); }
     }
 }
 

@@ -58,7 +58,7 @@ char * default_failed = (char*)"http://ammar.gr/myloader/vfile.php?i=f2166b56f91
 
 
 unsigned int loaded_links=0;
-struct URLDB links[MAX_LINKS]={0};
+struct URLDB links[MAX_LINKS]={{0}};
 
 
 int is_an_unsafe_str(char * input,unsigned int input_length)
@@ -267,10 +267,10 @@ void * serve_goto_url_page(unsigned int associated_vars)
 void init_dynamic_content()
 {
   if (! AmmServer_AddResourceHandler(&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page) ) { fprintf(stderr,"Failed adding create page\n"); }
-  AmmServer_DoNOTCacheResourceHandler(&create_url);  
+  AmmServer_DoNOTCacheResourceHandler(&create_url);
 
   if (! AmmServer_AddResourceHandler(&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page) ) { fprintf(stderr,"Failed adding form testing page\n"); }
-  AmmServer_DoNOTCacheResourceHandler(&goto_url);  
+  AmmServer_DoNOTCacheResourceHandler(&goto_url);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

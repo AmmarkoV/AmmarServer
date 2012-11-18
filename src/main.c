@@ -61,6 +61,8 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 */
 
 //The decleration of some dynamic content resources..
+struct AmmServer_RequestOverride_Context GET_override={0};
+
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
@@ -234,9 +236,24 @@ void * prepare_form_content_callback(unsigned int associated_vars)
   return 0;
 }
 
+
+
+
+
+//This function prepares the content of  form context , ( form.content )
+void * request_override_callback(unsigned int associated_vars)
+{
+  //This does nothing for now :P
+  return 0;
+}
+
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
+  AmmServer_AddRequestHandler(&GET_override,"GET",&request_override_callback);
+
   if (! AmmServer_AddResourceHandler(&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback) )
      { fprintf(stderr,"Failed adding stats page\n"); }
 

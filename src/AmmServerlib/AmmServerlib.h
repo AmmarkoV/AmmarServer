@@ -29,6 +29,12 @@ struct AmmServer_RH_Context
    unsigned int POST_request_length;
 };
 
+
+struct AmmServer_RequestOverride_Context
+{
+   unsigned int TODO;
+};
+
 enum AmmServInfos
 {
     AMMINF_ACTIVE_CLIENTS=0,
@@ -54,6 +60,9 @@ enum AmmServStrSettings
 int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop();
 int AmmServer_Running();
+
+
+int AmmServer_AddRequestHandler(struct AmmServer_RequestOverride_Context * context,char * request_type,void * callback);
 
 int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback);
 int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem);
