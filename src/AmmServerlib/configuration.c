@@ -74,7 +74,7 @@ int EmmitPossibleConfigurationWarnings()
 }
 
 
-char FileExistsConf(char * filename)
+static char FileExistsConf(char * filename)
 {
  FILE *fp = fopen(filename,"r");
  if( fp ) { /* exists */
