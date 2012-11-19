@@ -28,7 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "http_tools.h"
 
 
-int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
+int AmmServer_Start(struct AmmServer_Instance * instance,char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
 
@@ -62,13 +62,13 @@ int AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root
   return StartHTTPServer(ip,BINDING_PORT,web_root_path,templates_root_path);
 }
 
-int AmmServer_Stop()
+int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
   DestroyCache();
   return StopHTTPServer();
 }
 
-int AmmServer_Running()
+int AmmServer_Running(struct AmmServer_Instance * instance)
 {
   return HTTPServerIsRunning();
 }
@@ -78,13 +78,20 @@ int AmmServer_Running()
 //This call , calls  callback every time a request hits the server..
 //The outer layer of the server can do interesting things with it :P
 //request_type is supposed to be GET , HEAD , POST , CONNECT , etc..
-int AmmServer_AddRequestHandler(struct AmmServer_RequestOverride_Context * context,char * request_type,void * callback)
+int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * context,char * request_type,void * callback)
 {
-  return 0;
+  if ( (context==0)||(request_type==0)||(callback==0) ) { return 0; }
+  strncpy( context->requestHeader , request_type , 64 /*limit declared on AmmServerlib.h*/) ;
+  context->request=0;
+  // void * request_override_callback;
+
+  //TODO add the callback somewhere that makes sense!
+
+  return 1;
 }
 
 
-int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback)
+int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback)
 {
    if ( context->content!=0 ) { fprintf(stderr,"Context in AmmServer_AddResourceHandler for %s appears to have an already initialized memory part\n",resource_name); }
    memset(context,0,sizeof(struct AmmServer_RH_Context));
@@ -104,14 +111,14 @@ int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * r
 }
 
 
-int AmmServer_PreCacheFile(char * filename)
+int AmmServer_PreCacheFile(struct AmmServer_Instance * instance,char * filename)
 {
   unsigned int index=0;
   return AddFile_As_CacheItem(filename,&index,0);
 }
 
 
-int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_RH_Context * context)
+int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
 {
     char resource_name[MAX_FILE_PATH]={0};
     strcpy(resource_name,context->web_root_path);
@@ -127,7 +134,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_RH_Context * context)
 
 
 
-int AmmServer_DoNOTCacheResource(char * resource_name)
+int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name)
 {
     if (! AddDoNOTCache_CacheItem(resource_name) )
      {
@@ -138,14 +145,14 @@ int AmmServer_DoNOTCacheResource(char * resource_name)
 }
 
 
-int AmmServer_RemoveResourceHandler(struct AmmServer_RH_Context * context,unsigned char free_mem)
+int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
   return RemoveDirectResource_CacheItem(context,free_mem);
 }
 
 
 
-int AmmServer_GetInfo(unsigned int info_type)
+int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_type)
 {
   switch (info_type)
    {
@@ -155,7 +162,7 @@ int AmmServer_GetInfo(unsigned int info_type)
 }
 
 
-int AmmServer_POSTArg(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   if  (  ( context->POST_request !=0 ) && ( context->POST_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
    {
@@ -165,7 +172,7 @@ int AmmServer_POSTArg(struct AmmServer_RH_Context * context,char * var_id_IN,cha
   return 0;
 }
 
-int AmmServer_GETArg(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_GETArg(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   if  (  ( context->GET_request !=0 ) && ( context->GET_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
    {
@@ -175,7 +182,7 @@ int AmmServer_GETArg(struct AmmServer_RH_Context * context,char * var_id_IN,char
   return 0;
 }
 
-int AmmServer_FILES(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   fprintf(stderr,"AmmServer_FILES failed , called with incorrect parameters..\n");
   return 0;
@@ -183,19 +190,19 @@ int AmmServer_FILES(struct AmmServer_RH_Context * context,char * var_id_IN,char 
 
 /*User friendly aliases of the above calls.. :P */
 
-int _POST(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _POST(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_POSTArg(context,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_POSTArg(instance,context,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
-int _GET(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _GET(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_GETArg(context,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_GETArg(instance,context,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
-int _FILES(struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _FILES(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_FILES(context,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_FILES(instance,context,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
 
@@ -207,7 +214,7 @@ The following calls are not implemented yet
    \/
 */
 
-int AmmServer_GetIntSettingValue(unsigned int set_type)
+int AmmServer_GetIntSettingValue(struct AmmServer_Instance * instance,unsigned int set_type)
 {
   switch (set_type)
    {
@@ -216,7 +223,7 @@ int AmmServer_GetIntSettingValue(unsigned int set_type)
   return 0;
 }
 
-int AmmServer_SetIntSettingValue(unsigned int set_type,int set_value)
+int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,int set_value)
 {
   switch (set_type)
    {
@@ -226,7 +233,7 @@ int AmmServer_SetIntSettingValue(unsigned int set_type,int set_value)
 }
 
 
-char * AmmServer_GetStrSettingValue(unsigned int set_type)
+char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type)
 {
   switch (set_type)
    {
@@ -236,7 +243,7 @@ char * AmmServer_GetStrSettingValue(unsigned int set_type)
   return 0;
 }
 
-int AmmServer_SetStrSettingValue(unsigned int set_type,char * set_value)
+int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,char * set_value)
 {
   switch (set_type)
    {
@@ -248,7 +255,7 @@ int AmmServer_SetStrSettingValue(unsigned int set_type,char * set_value)
 
 
 
-int AmmServer_SelfCheck()
+int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 {
   fprintf(stderr,"No Checks Implemented in this version , everything should be ok ..\n");
   return 0;

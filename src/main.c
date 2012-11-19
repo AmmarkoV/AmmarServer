@@ -61,7 +61,8 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 */
 
 //The decleration of some dynamic content resources..
-struct AmmServer_RequestOverride_Context GET_override={0};
+struct AmmServer_Instance default_server={0};
+struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
@@ -116,9 +117,9 @@ void * prepare_chatbox_content_callback(unsigned int associated_vars)
          char * comment = (char *) malloc ( 1024 * sizeof(char) );
          if ((username!=0)&&(comment!=0))
           {
-            if ( _POST(&chatbox,"user",username,256) )
+            if ( _POST(&default_server,&chatbox,"user",username,256) )
              {
-                if (! _POST(&chatbox,"comment",comment,1024) ) { fprintf(stderr,"Didn't find a comment \n"); }
+                if (! _POST(&default_server,&chatbox,"comment",comment,1024) ) { fprintf(stderr,"Didn't find a comment \n"); }
 
                 if ((StringIsHTMLSafe(username))&&(StringIsHTMLSafe(comment)))
                 {
@@ -200,7 +201,7 @@ void * prepare_form_content_callback(unsigned int associated_vars)
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
-            if ( _POST(&form,"user",username,256) )
+            if ( _POST(&default_server,&form,"user",username,256) )
              {
                strcat(form.content,"GOT A POST USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
              }
@@ -219,7 +220,7 @@ void * prepare_form_content_callback(unsigned int associated_vars)
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
-            if ( _GET(&form,"user",username,256) )
+            if ( _GET(&default_server,&form,"user",username,256) )
              {
                strcat(form.content,"GOT A GET USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
              }
@@ -243,6 +244,10 @@ void * prepare_form_content_callback(unsigned int associated_vars)
 //This function prepares the content of  form context , ( form.content )
 void * request_override_callback(unsigned int associated_vars)
 {
+  // char requestHeader;
+  // struct HTTPRequest * request;
+  // void * request_override_callback;
+
   //This does nothing for now :P
   return 0;
 }
@@ -252,17 +257,17 @@ void * request_override_callback(unsigned int associated_vars)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddRequestHandler(&GET_override,"GET",&request_override_callback);
+  AmmServer_AddRequestHandler(&default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback) )
+  if (! AmmServer_AddResourceHandler(&default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback) )
      { fprintf(stderr,"Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback) )
+  if (! AmmServer_AddResourceHandler(&default_server,&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback) )
      { fprintf(stderr,"Failed adding form testing page\n"); }
 
   if (ENABLE_CHAT_BOX)
   {
-   if (!AmmServer_AddResourceHandler(&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
+   if (!AmmServer_AddResourceHandler(&default_server,&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
       { fprintf(stderr,"Failed adding chatbox page\n"); }
 
      char chatlog_path[MAX_FILE_PATH]={0};
@@ -270,16 +275,16 @@ void init_dynamic_content()
      strcat(chatlog_path,"chat.html");
      EraseFile(chatlog_path);
 
-     AmmServer_DoNOTCacheResourceHandler(&chatbox);
+     AmmServer_DoNOTCacheResourceHandler(&default_server,&chatbox);
   }
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    AmmServer_RemoveResourceHandler(&stats,1);
-    AmmServer_RemoveResourceHandler(&form,1);
-    if (ENABLE_CHAT_BOX) { AmmServer_RemoveResourceHandler(&chatbox,1); }
+    AmmServer_RemoveResourceHandler(&default_server,&stats,1);
+    AmmServer_RemoveResourceHandler(&default_server,&form,1);
+    if (ENABLE_CHAT_BOX) { AmmServer_RemoveResourceHandler(&default_server,&chatbox,1); }
 }
 /*! Dynamic content code ..! END ------------------------*/
 
@@ -289,7 +294,7 @@ void termination_handler (int signum)
      {
         fprintf(stderr,"Terminating AmmarServer.. ");
         close_dynamic_content();
-        AmmServer_Stop();
+        AmmServer_Stop(&default_server);
         fprintf(stderr,"done\n");
         exit(0);
      }
@@ -320,6 +325,7 @@ int main(int argc, char *argv[])
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     AmmServer_Start
         (
+           &default_server,
            bindIP,
            port,
            0, /*This means we don't want a specific configuration file*/
@@ -337,18 +343,18 @@ int main(int argc, char *argv[])
     if (ENABLE_PASSWORD_PROTECTION)
     {
       fprintf(stderr,"\nEnabling password protection\n");
-      AmmServer_SetStrSettingValue(AMMSET_USERNAME_STR,"admin");
-      AmmServer_SetStrSettingValue(AMMSET_PASSWORD_STR,"admin"); //these 2 calls should change BASE64PASSWORD in configuration.c to YWRtaW46YW1tYXI= (or something else)
+      AmmServer_SetStrSettingValue(&default_server,AMMSET_USERNAME_STR,"admin");
+      AmmServer_SetStrSettingValue(&default_server,AMMSET_PASSWORD_STR,"admin"); //these 2 calls should change BASE64PASSWORD in configuration.c to YWRtaW46YW1tYXI= (or something else)
       /* To avoid the rare race condition of logging only with username and keep a proper state ( i.e. when password hasn't been declared )
          It is best to enable password protection after correctly setting both username and password */
-      AmmServer_SetIntSettingValue(AMMSET_PASSWORD_PROTECTION,1);
+      AmmServer_SetIntSettingValue(&default_server,AMMSET_PASSWORD_PROTECTION,1);
     }
 
     //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
 
-         while (AmmServer_Running())
+         while (AmmServer_Running(&default_server))
            {
              //Main thread should just sleep and let the background threads do the hard work..!
              //In other applications the programmer could use the main thread to do anything he likes..
@@ -361,7 +367,7 @@ int main(int argc, char *argv[])
     close_dynamic_content();
 
     //Stop the server and clean state
-    AmmServer_Stop();
+    AmmServer_Stop(&default_server);
 
     return 0;
 }

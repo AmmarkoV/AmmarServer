@@ -50,6 +50,8 @@ struct URLDB
 };
 
 
+struct AmmServer_Instance myurl_server={0};
+
 struct AmmServer_RH_Context create_url={0};
 struct AmmServer_RH_Context goto_url={0};
 
@@ -221,9 +223,9 @@ void * serve_goto_url_page(unsigned int associated_vars)
         char url[MAX_LONG_URL_SIZE]={0};
         char to[MAX_TO_SIZE]={0};
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
-        if ( _GET(&goto_url,"url",url,MAX_LONG_URL_SIZE) )
+        if ( _GET(&myurl_server,&goto_url,"url",url,MAX_LONG_URL_SIZE) )
              {
-               if ( _GET(&goto_url,"to",to,MAX_TO_SIZE) )
+               if ( _GET(&myurl_server,&goto_url,"to",to,MAX_TO_SIZE) )
                 {
                   //Assigning a (short)to to a (long)url
                   if ( (is_an_unsafe_str(to,strlen(to))) || (is_an_unsafe_str(url,strlen(url)) ) ) //There should be an internal length of the get argument instead of strlen!
@@ -241,7 +243,7 @@ void * serve_goto_url_page(unsigned int associated_vars)
                 }
              } else
          //If only to is set it means we have ourselves somewhere to go to!
-         if ( _GET(&goto_url,"to",to,MAX_TO_SIZE) )
+         if ( _GET(&myurl_server,&goto_url,"to",to,MAX_TO_SIZE) )
              {
                 sprintf(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_LongURL(to));
              }
@@ -266,18 +268,18 @@ void * serve_goto_url_page(unsigned int associated_vars)
 //This function adds a Resource Handler for the pages and their callback functions
 void init_dynamic_content()
 {
-  if (! AmmServer_AddResourceHandler(&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page) ) { fprintf(stderr,"Failed adding create page\n"); }
-  AmmServer_DoNOTCacheResourceHandler(&create_url);
+  if (! AmmServer_AddResourceHandler(&myurl_server,&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page) ) { fprintf(stderr,"Failed adding create page\n"); }
+  AmmServer_DoNOTCacheResourceHandler(&myurl_server,&create_url);
 
-  if (! AmmServer_AddResourceHandler(&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page) ) { fprintf(stderr,"Failed adding form testing page\n"); }
-  AmmServer_DoNOTCacheResourceHandler(&goto_url);
+  if (! AmmServer_AddResourceHandler(&myurl_server,&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+  AmmServer_DoNOTCacheResourceHandler(&myurl_server,&goto_url);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    AmmServer_RemoveResourceHandler(&create_url,1);
-    AmmServer_RemoveResourceHandler(&goto_url,1);
+    AmmServer_RemoveResourceHandler(&myurl_server,&create_url,1);
+    AmmServer_RemoveResourceHandler(&myurl_server,&goto_url,1);
 }
 
 
@@ -303,14 +305,14 @@ int main(int argc, char *argv[])
    if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
-    AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
+    AmmServer_Start(&myurl_server,bindIP,port,0,webserver_root,templates_root);
 
     if (LoadMyURLDBFile(db_file))
     {
       //Create dynamic content allocations and associate context to the correct files
       init_dynamic_content();
 
-         while (AmmServer_Running())
+         while (AmmServer_Running(&myurl_server))
            {
              //Main thread should just sleep and let the background threads do the hard work..!
              //In other applications the programmer could use the main thread to do anything he likes..
@@ -327,7 +329,7 @@ int main(int argc, char *argv[])
       fprintf(stderr,"!!!!!! If this is the first installation/run of the program please consider issuing `touch %s` to create an empty db file ..!!!!!!\n",db_file);
     }
     //Stop the server and clean state
-    AmmServer_Stop();
+    AmmServer_Stop(&myurl_server);
 
     return 0;
 }
