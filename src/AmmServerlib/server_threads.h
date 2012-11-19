@@ -2,6 +2,7 @@
 #define SERVER_THREADS_H_INCLUDED
 
 #include "http_header_analysis.h"
+#include "server_configuration.h"
 
 extern int CLIENT_THREADS_STARTED;
 extern int CLIENT_THREADS_STOPPED;

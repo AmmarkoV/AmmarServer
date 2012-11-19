@@ -1,16 +1,14 @@
 #ifndef CONFIGURATION_H_INCLUDED
 #define CONFIGURATION_H_INCLUDED
 
+#include "AmmServerlib.h"
 
 #define MAX_CLIENT_THREADS 150 //This is the maximum number of simultainious regular threads that serve incoming requests..!
 #define MAX_CLIENT_PRESPAWNED_THREADS 8 //This is the number of prespawned threads that run to reduce overall latency
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
 
-#define MAX_QUERY 512
-#define MAX_RESOURCE 512
 #define MAX_RESOURCE_SLASHES 15
 #define MAX_CONFIGURATION_FILE_LINE_SIZE 512
-#define MAX_FILE_PATH 1024
 #define MAX_FILE_PATH_EXTENSION_SIZE 128
 
 #define MAX_CONTENT_TYPE 128
@@ -31,6 +29,7 @@
 
 #define ENABLE_DROPPING_ROOT_UID_IF_ROOT 1
 #define ENABLE_DROPPING_UID_ALWAYS 0
+
 extern char USERNAME_UID_FOR_DAEMON[MAX_FILE_PATH]; //Check this value on configuration.c if you want to set the daemon running as a specific user i.e. www-data
 extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR_DAEMON doesn't provide a useful UID..
 

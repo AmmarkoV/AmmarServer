@@ -20,6 +20,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "http_header_analysis.h"
 #include "http_tools.h"
+#include "server_configuration.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>

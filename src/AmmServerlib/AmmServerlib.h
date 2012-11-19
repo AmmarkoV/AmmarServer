@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-#include "server_configuration.h"
-
 
 
 enum TypesOfRequests
@@ -32,6 +30,11 @@ enum TypesOfRequests
     //Is used to apply partial modifications to a resource.[13]
     BAD
 };
+
+
+#define MAX_QUERY 512
+#define MAX_RESOURCE 512
+#define MAX_FILE_PATH 1024
 
 
 struct HTTPRequest
