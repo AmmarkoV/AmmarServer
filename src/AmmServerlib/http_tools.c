@@ -33,7 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 
 #include "http_tools.h"
-#include "configuration.h"
+#include "server_configuration.h"
 #include "file_caching.h"
 
 

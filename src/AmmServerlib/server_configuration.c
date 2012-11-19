@@ -1,4 +1,4 @@
-#include "configuration.h"
+#include "server_configuration.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,20 +71,9 @@ int EmmitPossibleConfigurationWarnings()
        fprintf(stderr,"Please note that compression doesn't yet emmit the payload as per HTTP  RFC 1950, RFC 1951, and RFC 1952 \n");
        fprintf(stderr,"To make things worse content sensing is kind of broken since it is based on the GetContentType TEXT type instead of a user configurable extension blacklist/whitelist\n");
    }
+  return 1;
 }
 
-
-static char FileExistsConf(char * filename)
-{
- FILE *fp = fopen(filename,"r");
- if( fp ) { /* exists */
-            fclose(fp);
-            return 1;
-          }
-          else
-          { /* doesnt exist */ }
- return 0;
-}
 
 
 

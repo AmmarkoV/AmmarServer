@@ -39,7 +39,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "http_header_analysis.h"
 #include "http_tools.h"
 #include "file_caching.h"
-#include "configuration.h"
+#include "server_configuration.h"
 
 
 int serversock;
@@ -85,7 +85,7 @@ struct PassToHTTPThread
 };
 
 unsigned int prespawn_turn_to_serve=0,prespawn_jobs_started=0,prespawn_jobs_finished=0;
-struct PreSpawnedThread prespawned_pool[MAX_CLIENT_PRESPAWNED_THREADS]={0};
+struct PreSpawnedThread prespawned_pool[MAX_CLIENT_PRESPAWNED_THREADS]={{0}};
 
 void * ServeClient(void * ptr);
 void * HTTPServerThread (void * ptr);

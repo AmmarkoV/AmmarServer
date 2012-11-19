@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "AmmServerlib.h"
-#include "configuration.h"
+#include "server_configuration.h"
 #include "file_caching.h"
 #include "http_tools.h"
 #include "time_provider.h"

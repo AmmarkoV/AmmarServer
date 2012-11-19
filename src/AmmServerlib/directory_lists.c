@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-#include "configuration.h"
+#include "server_configuration.h"
 #include "directory_lists.h"
 #include "http_tools.h"
 

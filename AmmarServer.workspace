@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
-		<Project filename="src/AmmServerlib/AmmServerlib.cbp" active="1" />
-		<Project filename="src/MyURL/MyURL.cbp" />
+		<Project filename="src/AmmServerlib/AmmServerlib.cbp" />
+		<Project filename="src/MyURL/MyURL.cbp" active="1" />
 		<Project filename="src/AmmarServer.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

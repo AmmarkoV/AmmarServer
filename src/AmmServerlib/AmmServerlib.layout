@@ -2,7 +2,7 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="3367" topLine="51" />
+		<Cursor position="3802" topLine="105" />
 	</File>
 	<File name="InputParser/InputParser_C.c" open="1" top="0" tabpos="25">
 		<Cursor position="3536" topLine="193" />
@@ -16,8 +16,8 @@
 	<File name="client_list.h" open="1" top="0" tabpos="21">
 		<Cursor position="287" topLine="0" />
 	</File>
-	<File name="configuration.c" open="1" top="0" tabpos="5">
-		<Cursor position="765" topLine="0" />
+	<File name="configuration.c" open="1" top="1" tabpos="5">
+		<Cursor position="3366" topLine="81" />
 	</File>
 	<File name="configuration.h" open="1" top="0" tabpos="6">
 		<Cursor position="395" topLine="0" />
@@ -58,8 +58,8 @@
 	<File name="logs.h" open="1" top="0" tabpos="17">
 		<Cursor position="351" topLine="0" />
 	</File>
-	<File name="main.c" open="1" top="1" tabpos="1">
-		<Cursor position="3016" topLine="59" />
+	<File name="main.c" open="1" top="0" tabpos="1">
+		<Cursor position="7941" topLine="169" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="10">
 		<Cursor position="2083" topLine="62" />

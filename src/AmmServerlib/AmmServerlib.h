@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "configuration.h"
+#include "server_configuration.h"
 
 
 

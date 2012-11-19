@@ -24,12 +24,12 @@ gcc -c $CFLAGS file_server.c -o file_server.o
 gcc -c $CFLAGS http_header_analysis.c -o http_header_analysis.o  
 gcc -c $CFLAGS file_caching.c -o file_caching.o  
 gcc -c $CFLAGS directory_lists.c -o directory_lists.o
-gcc -c $CFLAGS configuration.c -o configuration.o  
+gcc -c $CFLAGS server_configuration.c -o server_configuration.o  
 gcc -c $CFLAGS time_provider.c -o time_provider.o 
 gcc -c $CFLAGS InputParser/InputParser_C.c -o InputParser_C.o 
 gcc -c $CFLAGS logs.c -o logs.o 
 
-PARTS_OF_LIB="main.o server_threads.o http_tools.o client_list.o file_server.o http_header_analysis.o file_caching.o directory_lists.o configuration.o time_provider.o InputParser_C.o logs.o"
+PARTS_OF_LIB="main.o server_threads.o http_tools.o client_list.o file_server.o http_header_analysis.o file_caching.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o"
 
 ar  rcs $LIBNAME $PARTS_OF_LIB
 

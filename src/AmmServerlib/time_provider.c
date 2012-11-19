@@ -1,6 +1,6 @@
 
 #include <unistd.h>
-#include "configuration.h"
+#include "server_configuration.h"
 #include <ctype.h>
 #include <time.h>
 #include "time_provider.h"
