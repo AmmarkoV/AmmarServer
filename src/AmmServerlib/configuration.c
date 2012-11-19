@@ -91,7 +91,7 @@ static char FileExistsConf(char * filename)
 
 
 /*! MAJOR TODO :P , so that we can parse the configuration file.. !*/
-void ParseConfigString(struct InputParserC * ipc,char * inpt)
+static void ParseConfigString(struct InputParserC * ipc,char * inpt)
 {
   unsigned int words_count = InputParser_SeperateWords(ipc,inpt,0);
   if ( words_count > 0 )
@@ -112,16 +112,6 @@ void ParseConfigString(struct InputParserC * ipc,char * inpt)
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IFUSERDOESNTEXISTRUNASUID")) { CHANGE_TO_UID = InputParser_GetWordInt(ipc,1); }
     }
 }
-
-
-
-
-
-
-
-
-
-
 
 
 int LoadConfigurationFile(char * conf_file)
