@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 
+#include <pthread.h>
 
 enum TypesOfRequests
 {
@@ -103,7 +104,24 @@ struct AmmServer_RequestOverride_Context
 
 struct AmmServer_Instance
 {
-    int TODO;
+    unsigned long loaded_cache_items_Kbytes;
+    unsigned int loaded_cache_items;
+    void * cache; /*Actually struct cache_item * but declared as a void pointer here */
+
+
+    int files_open;
+
+    int serversock;
+    int server_running;
+    int pause_server;
+    int stop_server;
+
+    int CLIENT_THREADS_STARTED;
+    int CLIENT_THREADS_STOPPED;
+
+    pthread_t server_thread_id;
+    pthread_mutex_t thread_pool_access;
+    pthread_t * threads_pool;
 };
 
 
