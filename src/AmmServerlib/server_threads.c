@@ -41,18 +41,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "file_caching.h"
 #include "server_configuration.h"
 
-/*
-int instance->serversock;
-int instance->server_running=0;
-int instance->pause_server=0;
-int instance->stop_server=0;
-pthread_t instance->server_thread_id;
-
-pthread_mutex_t instance->thread_pool_access;
-int instance->CLIENT_THREADS_STARTED=0;
-int instance->CLIENT_THREADS_STOPPED=0;
-pthread_t instance->threads_pool[MAX_CLIENT_THREADS]={0};
-*/
 
 struct PreSpawnedThread
 {
@@ -68,8 +56,6 @@ struct PreSpawnedThread
     char webserver_root[MAX_FILE_PATH];
     char templates_root[MAX_FILE_PATH];
 };
-
-
 
 struct PassToPreSpawnedThread
 {
@@ -772,6 +758,7 @@ void * HTTPServerThread (void * ptr)
   char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
+  if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); return 0; }
 
 
   int clientsock=0;
@@ -837,12 +824,17 @@ void * HTTPServerThread (void * ptr)
 
 int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int port,char * root_path,char * templates_path)
 {
+  if (instance==0) { fprintf(stderr,"StartHTTPServer called with an unallocated instance \n"); return 0; }
+
   //Since this webserver is "serious-stuff" we may want to increase its priority..
    if ( CHANGE_PRIORITY != 0 )
     { if ( nice(CHANGE_PRIORITY) == -1 ) { fprintf(stderr,"Error changing process priority to %i \n",CHANGE_PRIORITY); } else
                                          { fprintf(stderr,"Changed priority to %i \n",CHANGE_PRIORITY); } }
   //-------------------------------------------------------------------------------------------------------------
 
+
+  //Clear instance..
+  memset(&instance,0,sizeof(struct AmmServer_Instance)); //Clear instance..!
 
 
   struct PassToHTTPThread context;
@@ -860,6 +852,16 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   instance->stop_server=0;
 
   int retres=1;
+
+
+  //Lets allocate a decent sized thread pool
+   instance->threads_pool = (struct pthread_t *) malloc(MAX_CLIENT_THREADS*sizeof(pthread_t) );
+   if (instance->threads_pool==0) { fprintf(stderr,"Could not allocate a big enough ( %u ) thread pool\n",MAX_CLIENT_THREADS); }
+
+
+
+
+
 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads

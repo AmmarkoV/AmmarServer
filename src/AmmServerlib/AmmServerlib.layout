@@ -4,7 +4,7 @@
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
 		<Cursor position="107" topLine="0" />
 	</File>
-	<File name="InputParser/InputParser_C.c" open="1" top="1" tabpos="23">
+	<File name="InputParser/InputParser_C.c" open="1" top="0" tabpos="23">
 		<Cursor position="1246" topLine="8" />
 	</File>
 	<File name="InputParser/InputParser_C.h" open="1" top="0" tabpos="22">
@@ -55,10 +55,10 @@
 	<File name="main.c" open="1" top="0" tabpos="1">
 		<Cursor position="7941" topLine="169" />
 	</File>
-	<File name="server_configuration.c" open="1" top="0" tabpos="26">
+	<File name="server_configuration.c" open="1" top="0" tabpos="24">
 		<Cursor position="2895" topLine="0" />
 	</File>
-	<File name="server_configuration.h" open="1" top="0" tabpos="27">
+	<File name="server_configuration.h" open="1" top="0" tabpos="25">
 		<Cursor position="95" topLine="0" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="8">
