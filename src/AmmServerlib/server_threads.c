@@ -41,20 +41,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "file_caching.h"
 #include "server_configuration.h"
 
+/*
+int instance->serversock;
+int instance->server_running=0;
+int instance->pause_server=0;
+int instance->stop_server=0;
+pthread_t instance->server_thread_id;
 
-int serversock;
-int server_running=0;
-int pause_server=0;
-int stop_server=0;
-pthread_t server_thread_id;
-
-pthread_mutex_t thread_pool_access;
-int CLIENT_THREADS_STARTED=0;
-int CLIENT_THREADS_STOPPED=0;
-pthread_t threads_pool[MAX_CLIENT_THREADS]={0};
+pthread_mutex_t instance->thread_pool_access;
+int instance->CLIENT_THREADS_STARTED=0;
+int instance->CLIENT_THREADS_STOPPED=0;
+pthread_t instance->threads_pool[MAX_CLIENT_THREADS]={0};
+*/
 
 struct PreSpawnedThread
 {
+    struct AmmServer_Instance * instance;
     pthread_t thread_id;
 
     int clientsock;
@@ -68,8 +70,17 @@ struct PreSpawnedThread
 };
 
 
+
+struct PassToPreSpawnedThread
+{
+    struct AmmServer_Instance * instance;
+    unsigned int i_adapt;
+};
+
 struct PassToHTTPThread
 {
+     struct AmmServer_Instance * instance;
+
      char ip[256];
      char webserver_root[MAX_FILE_PATH];
      char templates_root[MAX_FILE_PATH];
@@ -84,15 +95,13 @@ struct PassToHTTPThread
      unsigned int thread_id;
 };
 
-unsigned int prespawn_turn_to_serve=0,prespawn_jobs_started=0,prespawn_jobs_finished=0;
-struct PreSpawnedThread prespawned_pool[MAX_CLIENT_PRESPAWNED_THREADS]={{0}};
 
 void * ServeClient(void * ptr);
 void * HTTPServerThread (void * ptr);
 
-int HTTPServerIsRunning()
+int HTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
-  return server_running;
+  return instance->server_running;
 }
 
 
@@ -168,6 +177,8 @@ void * ServeClient(void * ptr)
 //  char * spn = strstr (templates_root,webserver_root);
 //  if (spn==0) { /*templates_root is not the same path*/ }
 
+  struct AmmServer_Instance * instance = context->instance;
+
   int pre_spawned_thread=context->pre_spawned_thread;
   int clientsock=context->clientsock;
   int thread_id = context->thread_id;
@@ -199,12 +210,12 @@ void * ServeClient(void * ptr)
 
   int close_connection=0;
 
-  while ( (!close_connection)&&(server_running) )
+  while ( (!close_connection) && (instance->server_running) )
   {
    incoming_request[0]=0;
    int total_header=0,opres=0;
    fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
-   while ( (!HTTPRequestComplete(incoming_request,total_header))&&(server_running) )
+   while ( (!HTTPRequestComplete(incoming_request,total_header))&&(instance->server_running) )
    { //Gather Header until http request contains two newlines..!
      opres=recv(clientsock,&incoming_request[total_header],MAX_HTTP_REQUEST_HEADER-total_header,0);
      if (opres<=0)
@@ -497,9 +508,9 @@ void * ServeClient(void * ptr)
   if (!pre_spawned_thread)
    { //If we are running in a prespawned thread it is wrong to count this thread as a *dynamic* one that just stopped !
      //Clear thread id handler and we can gracefully exit..! ( LOCKLESS OPERATION)
-     if (threads_pool[thread_id]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",thread_id); }
-     threads_pool[thread_id]=0;
-     ++CLIENT_THREADS_STOPPED;
+     if (instance->threads_pool[thread_id]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",thread_id); }
+     instance->threads_pool[thread_id]=0;
+     ++instance->CLIENT_THREADS_STOPPED;
 
      //We also only want to stop the thread if itsnot prespawned !
      pthread_exit(0);
@@ -508,13 +519,13 @@ void * ServeClient(void * ptr)
   return 0;
 }
 
-unsigned int FindAProperThreadID(unsigned int starting_from)
+unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,unsigned int starting_from)
 {
     if (starting_from>=MAX_CLIENT_THREADS) { starting_from = starting_from % MAX_CLIENT_THREADS; }
 
     while ( 1 )
      {
-       while (starting_from<MAX_CLIENT_THREADS) { if ( threads_pool[starting_from]==0 ) { return starting_from; } ++starting_from; }
+       while (starting_from<MAX_CLIENT_THREADS) { if ( instance->threads_pool[starting_from]==0 ) { return starting_from; } ++starting_from; }
        starting_from=0;
        fprintf(stderr,"Looped .. while finding a proper thread id..\n");
      }
@@ -523,15 +534,15 @@ unsigned int FindAProperThreadID(unsigned int starting_from)
 }
 
 
-int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
+int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
-  fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED);
+  fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
 
-  if (CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED >= MAX_CLIENT_THREADS)
+  if (instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED >= MAX_CLIENT_THREADS)
    {
      //This needs a little thought.. it is not "nice" to drop clients  , on the other hand what`s the point on opening and
      //maintaining an idle TCP/IP connection when we are on our limits thread-wise..
-     fprintf(stderr,"We are over the limit on clients served ( %u threads ) ..\nDropping client %s..!\n",CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED,inet_ntoa(client.sin_addr));
+     fprintf(stderr,"We are over the limit on clients served ( %u threads ) ..\nDropping client %s..!\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,inet_ntoa(client.sin_addr));
      close(clientsock);
      return 0;
    }
@@ -553,11 +564,11 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
   context.keep_var_on_stack=1;
 
   //I Have removed the lock here , so getting a thread_id is a little more complex ..
-  context.thread_id = CLIENT_THREADS_STARTED++;
-  context.thread_id = FindAProperThreadID(context.thread_id);
+  context.thread_id = instance->CLIENT_THREADS_STARTED++;
+  context.thread_id = FindAProperThreadID(instance,context.thread_id);
 
-  fprintf(stderr,"Spawning a new thread %u/%u to serve this client\n",CLIENT_THREADS_STARTED - CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS);
-  int retres = pthread_create(&threads_pool[context.thread_id],0,ServeClient,(void*) &context);
+  fprintf(stderr,"Spawning a new thread %u/%u to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS);
+  int retres = pthread_create(&instance->threads_pool[context.thread_id],0,ServeClient,(void*) &context);
   usleep(2); //<- Give some time to the thread to startup
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*usleep(1);*/ } } else // <- Keep PeerServerContext in stack for long enough :P
                    { fprintf(stderr,"Could not create a new thread..\n "); }
@@ -592,16 +603,21 @@ int SpawnThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigne
 
 void * PreSpawnedThread(void * ptr)
 {
+
+  //We are a thread so lets retrieve our variables..
+  struct PassToPreSpawnedThread * context = (struct PassToPreSpawnedThread *) ptr;
+
   unsigned int * i_adapt = (unsigned int *) ptr;
   unsigned int i = *i_adapt;
   *i_adapt = MAX_CLIENT_PRESPAWNED_THREADS+1; // <-- This signals we got the i value..
 
 
+  //We will also spawn our own threads so lets prepare their variables..
   struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
   memset(&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
 
 
-  while (stop_server==0)
+  while (instance->stop_server==0)
    {
       //fprintf(stderr,"Prespawned Thread %u waiting ( its %u's turn ) \n",i,prespawn_turn_to_serve);
           /*It is our turn!!*/
@@ -745,8 +761,8 @@ void * HTTPServerThread (void * ptr)
   struct sockaddr_in server;
   struct sockaddr_in client;
 
-  serversock = socket(AF_INET, SOCK_STREAM, 0);
-    if ( serversock < 0 ) { error("Server Thread : Opening socket"); server_running=0; return 0; }
+  instance->serversock = socket(AF_INET, SOCK_STREAM, 0);
+    if ( instance->serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; return 0; }
 
 
   bzero(&client,clientlen);
@@ -761,16 +777,16 @@ void * HTTPServerThread (void * ptr)
 
   context->keep_var_on_stack=2;
 
-  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!\nThe server may already be running ..\n"); server_running=0; return 0; }
-  if ( listen(serversock,MAX_CLIENT_THREADS) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
-           { error("Server Thread : Failed to listen on server socket"); server_running=0; return 0; }
+  if ( bind(instance->serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!\nThe server may already be running ..\n"); instance->server_running=0; return 0; }
+  if ( listen(instance->serversock,MAX_CLIENT_THREADS) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
+           { error("Server Thread : Failed to listen on server socket"); instance->server_running=0; return 0; }
 
 
-  while (stop_server==0)
+  while (instance->stop_server==0)
   {
     fprintf(stderr,"\nServer Thread : Waiting for a new client\n");
     /* Wait for client connection */
-    if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0) { error("Server Thread : Failed to accept client connection"); }
+    if ( (clientsock = accept(instance->serversock,(struct sockaddr *) &client, &clientlen)) < 0) { error("Server Thread : Failed to accept client connection"); }
       else
       {
            fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
@@ -788,10 +804,10 @@ void * HTTPServerThread (void * ptr)
             }
       }
  }
-  server_running=0;
-  stop_server=2;
+  instance->server_running=0;
+  instance->stop_server=2;
 
-  //It should already be closed so skipping this : close(serversock);
+  //It should already be closed so skipping this : close(instance->serversock);
   pthread_exit(0);
   return 0;
 }
@@ -799,7 +815,7 @@ void * HTTPServerThread (void * ptr)
 
 
 
-int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * templates_path)
+int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int port,char * root_path,char * templates_path)
 {
   //Since this webserver is "serious-stuff" we may want to increase its priority..
    if ( CHANGE_PRIORITY != 0 )
@@ -819,15 +835,15 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
   context.port=port;
   context.keep_var_on_stack=1;
 
-  server_running=1;
-  pause_server=0;
-  stop_server=0;
+  instance->server_running=1;
+  instance->pause_server=0;
+  instance->stop_server=0;
 
   int retres=1;
 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
-  retres = pthread_create( &server_thread_id ,0,HTTPServerThread,(void*) &context);
+  retres = pthread_create( &instance->server_thread_id ,0,HTTPServerThread,(void*) &context);
   //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ } }
   //We flip the retres
@@ -853,26 +869,26 @@ int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * template
   return retres;
 }
 
-int StopHTTPServer()
+int StopHTTPServer(struct AmmServer_Instance * instance)
 {
   /*
-     We want to stop the server that accepts new connections ( and we do that by signaling stop_server=1; )
+     We want to stop the server that accepts new connections ( and we do that by signaling instance->stop_server=1; )
      The problem is that it will keep waiting for one more job since the server is blocked in an accept call..!
      Thats why we force the socket close which in turn terminates the server thread..
   */
-  if ( (stop_server==2)||(stop_server==0)) { fprintf(stderr,"Server has stopped working on its own..\n"); return 1;}
+  if ( (instance->stop_server==2)||(instance->stop_server==0)) { fprintf(stderr,"Server has stopped working on its own..\n"); return 1;}
 
-  stop_server=1;
+  instance->stop_server=1;
   fprintf(stderr,"Waiting for Server to stop.. ");
-  close(serversock);
-  while (stop_server!=2)
+  close(instance->serversock);
+  while (instance->stop_server!=2)
     {
         fprintf(stderr,".");
         usleep(10000);
     }
   fprintf(stderr," .. done \n");
 
-  return (stop_server==2);
+  return (instance->stop_server==2);
 }
 
 
