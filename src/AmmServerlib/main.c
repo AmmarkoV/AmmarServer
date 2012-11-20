@@ -59,18 +59,18 @@ int AmmServer_Start(struct AmmServer_Instance * instance,char * ip,unsigned int 
                   );
 
 
-  return StartHTTPServer(ip,BINDING_PORT,web_root_path,templates_root_path);
+  return StartHTTPServer(instance,ip,BINDING_PORT,web_root_path,templates_root_path);
 }
 
 int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
   DestroyCache();
-  return StopHTTPServer();
+  return StopHTTPServer(instance);
 }
 
 int AmmServer_Running(struct AmmServer_Instance * instance)
 {
-  return HTTPServerIsRunning();
+  return HTTPServerIsRunning(instance);
 }
 
 
@@ -156,7 +156,7 @@ int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_typ
 {
   switch (info_type)
    {
-     case AMMINF_ACTIVE_CLIENTS : return CLIENT_THREADS_STARTED-CLIENT_THREADS_STOPPED; break;
+     case AMMINF_ACTIVE_CLIENTS : return instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED; break;
    };
   return 0;
 }

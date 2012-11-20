@@ -13,8 +13,8 @@ int RegisterNewTransactionID(unsigned int already_have_an_id,struct HTTPRequest 
 int FreeTransactionID(unsigned int transaction_id);
 struct HTTPRequest * GetRequestStructForTransactionID(unsigned int transaction_id);
 
-int StartHTTPServer(char * ip,unsigned int port,char * root_path,char * templates_path);
-int StopHTTPServer();
-int HTTPServerIsRunning();
+int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int port,char * root_path,char * templates_path);
+int StopHTTPServer(struct AmmServer_Instance * instance);
+int HTTPServerIsRunning(struct AmmServer_Instance * instance);
 
 #endif // SERVER_THREADS_H_INCLUDED

@@ -605,32 +605,35 @@ void * PreSpawnedThread(void * ptr)
 {
 
   //We are a thread so lets retrieve our variables..
-  struct PassToPreSpawnedThread * context = (struct PassToPreSpawnedThread *) ptr;
+  struct PassToPreSpawnedThread * incoming_context = (struct PassToPreSpawnedThread *) ptr;
 
-  unsigned int * i_adapt = (unsigned int *) ptr;
-  unsigned int i = *i_adapt;
-  *i_adapt = MAX_CLIENT_PRESPAWNED_THREADS+1; // <-- This signals we got the i value..
+  struct AmmServer_Instance * instance = incoming_context->instance;
+  unsigned int i = incoming_context->i_adapt;
+  incoming_context->i_adapt = MAX_CLIENT_PRESPAWNED_THREADS+1; // <-- This signals we got the i value..
 
 
   //We will also spawn our own threads so lets prepare their variables..
   struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
   memset(&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
 
+  struct PreSpawnedThread * prespawned_data;
+  prespawned_data = (struct PreSpawnedThread *) &instance->prespawned_pool[i];
 
   while (instance->stop_server==0)
    {
       //fprintf(stderr,"Prespawned Thread %u waiting ( its %u's turn ) \n",i,prespawn_turn_to_serve);
           /*It is our turn!!*/
-          if (prespawned_pool[i].busy) //Master thread considers us busy again , this means there is work to be done..!
+          if (prespawned_data->busy) //Master thread considers us busy again , this means there is work to be done..!
           {
-            ++prespawn_jobs_started;
+            ++instance->prespawn_jobs_started;
             /*We have something to do , lets fill our context..*/
-             context.clientsock=prespawned_pool[i].clientsock;
-             context.client=prespawned_pool[i].client;
-             context.clientlen=prespawned_pool[i].clientlen;
+             context.instance=instance;
+             context.clientsock=prespawned_data->clientsock;
+             context.client=prespawned_data->client;
+             context.clientlen=prespawned_data->clientlen;
              context.pre_spawned_thread = 1; // THIS IS A !!!!PRE SPAWNED!!!! THREAD
-             strncpy(context.webserver_root,prespawned_pool[i].webserver_root,MAX_FILE_PATH);
-             strncpy(context.templates_root,prespawned_pool[i].templates_root,MAX_FILE_PATH);
+             strncpy(context.webserver_root,prespawned_data->webserver_root,MAX_FILE_PATH);
+             strncpy(context.templates_root,prespawned_data->templates_root,MAX_FILE_PATH);
              context.keep_var_on_stack=1;
 
               //ServeClient from this thread ( without forking..! )
@@ -638,11 +641,11 @@ void * PreSpawnedThread(void * ptr)
                 ServeClient((void *)  &context);
               //---------------------------------------------------
 
-             prespawned_pool[i].busy=0; // <- This signals we finished our task ..!
-             ++prespawn_jobs_finished;
+             prespawned_data->busy=0; // <- This signals we finished our task ..!
+             ++instance->prespawn_jobs_finished;
            }
 
-      if (prespawn_turn_to_serve==i)
+      if (instance->prespawn_turn_to_serve==i)
             { usleep(10); /*It is our turn next so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
                { usleep(1000); /*It is not our turn so lets chill for a WHOLE millisecond!..*/ }
   } // while the server doesn't stop..
@@ -650,51 +653,66 @@ void * PreSpawnedThread(void * ptr)
   return 0;
 }
 
-void PreSpawnThreads()
+void PreSpawnThreads(struct AmmServer_Instance * instance)
 {
   if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
+
+
+  struct PassToPreSpawnedThread context={0};
+
+  struct PreSpawnedThread * prespawned_data;
 
   unsigned int i=0,thread_i=0;
   for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
    {
-      thread_i=i;
-      prespawned_pool[i].busy=0; // We do this here (and not in the PreSpawnedThread ) to make sure a clean state is sure to be initialized , not having race conditions , locks etc...
-      int retres = pthread_create(&prespawned_pool[i].thread_id,0,PreSpawnedThread,(void*) &thread_i );
+
+      prespawned_data = (struct PreSpawnedThread *) &instance->prespawned_pool[i];
+
+      context.instance = instance;
+      context.i_adapt = i;
+      prespawned_data->busy=0; // We do this here (and not in the PreSpawnedThread ) to make sure a clean state is sure to be initialized , not having race conditions , locks etc...
+      int retres = pthread_create(&prespawned_data->thread_id,0,PreSpawnedThread,(void*) &context );
       if ( retres==0 ) { while (thread_i==i) { usleep(1); } } // <- Keep i value the same for long enough without locks
    }
 }
 
 
-int UsePreSpawnedThreadToServeNewClient(int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
+int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
    //Please note that this must only get called from the main process/thread..
-   if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
-   if (prespawn_jobs_started<prespawn_jobs_finished ) {  fprintf(stderr,"Prespawn jobs counters truncated (?) \n"); } else
-   if (prespawn_jobs_started-prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
-    {
-        if (!prespawned_pool[prespawn_turn_to_serve].busy)
-         {
-             fprintf(stderr,"Decided to use prespawned thread %u/%u to serve new client\n",prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
-             prespawned_pool[prespawn_turn_to_serve].clientsock=clientsock;
-             prespawned_pool[prespawn_turn_to_serve].client=client;
-             prespawned_pool[prespawn_turn_to_serve].clientlen=clientlen;
-             strncpy(prespawned_pool[prespawn_turn_to_serve].webserver_root,webserver_root,MAX_FILE_PATH);
-             strncpy(prespawned_pool[prespawn_turn_to_serve].templates_root,templates_root,MAX_FILE_PATH);
-             // The busy byte gets filled in last because it is what causes the client thread to wake up..!
-             prespawned_pool[prespawn_turn_to_serve].busy=1;
 
-             ++prespawn_turn_to_serve;
-             prespawn_turn_to_serve = prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
+   struct PreSpawnedThread * prespawned_data=0;
+
+   if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
+   if (instance->prespawn_jobs_started<instance->prespawn_jobs_finished ) {  fprintf(stderr,"Prespawn jobs counters truncated (?) \n"); } else
+   if (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
+    {
+
+        prespawned_data = (struct PreSpawnedThread *) &instance->prespawned_pool[instance->prespawn_turn_to_serve];
+
+        if (!prespawned_data->busy)
+         {
+             fprintf(stderr,"Decided to use prespawned thread %u/%u to serve new client\n",instance->prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
+             prespawned_data->clientsock=clientsock;
+             prespawned_data->client=client;
+             prespawned_data->clientlen=clientlen;
+             strncpy(prespawned_data->webserver_root,webserver_root,MAX_FILE_PATH);
+             strncpy(prespawned_data->templates_root,templates_root,MAX_FILE_PATH);
+             // The busy byte gets filled in last because it is what causes the client thread to wake up..!
+             prespawned_data->busy=1;
+
+             ++instance->prespawn_turn_to_serve;
+             instance->prespawn_turn_to_serve = instance->prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
 
              return 1;
          } else
          {
-            fprintf(stderr,"Seems that the prespaned thread %u/%u is still busy ..\n",prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
+            fprintf(stderr,"Seems that the prespaned thread %u/%u is still busy ..\n",instance->prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
             return 0;
          }
     } else
     {
-        fprintf(stderr,"All prespawned threads are busy.. ( start %u , end %u , max %u) \n",prespawn_jobs_started,prespawn_jobs_finished,MAX_CLIENT_PRESPAWNED_THREADS);
+        fprintf(stderr,"All prespawned threads are busy.. ( start %u , end %u , max %u) \n",instance->prespawn_jobs_started,instance->prespawn_jobs_finished,MAX_CLIENT_PRESPAWNED_THREADS);
     }
   return 0;
 }
@@ -761,6 +779,8 @@ void * HTTPServerThread (void * ptr)
   struct sockaddr_in server;
   struct sockaddr_in client;
 
+  struct AmmServer_Instance * instance = context->instance;
+
   instance->serversock = socket(AF_INET, SOCK_STREAM, 0);
     if ( instance->serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; return 0; }
 
@@ -791,13 +811,13 @@ void * HTTPServerThread (void * ptr)
       {
            fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
 
-           if (UsePreSpawnedThreadToServeNewClient(clientsock,client,clientlen,webserver_root,templates_root))
+           if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,webserver_root,templates_root))
             {
               // This request got served by a prespawned thread..!
               // Nothing to do here , proceeding to the next incoming connection..
               // if we failed to use a pre spawned thread we will spawn a new one using the next call..!
             } else
-           if (!SpawnThreadToServeNewClient(clientsock,client,clientlen,webserver_root,templates_root))
+           if (!SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,webserver_root,templates_root))
             {
                 fprintf(stderr,"Server Thread : Client failed, while handling him\n");
                 close(clientsock);
@@ -852,7 +872,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
   //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
-  PreSpawnThreads();
+  PreSpawnThreads(instance);
 
 
 
