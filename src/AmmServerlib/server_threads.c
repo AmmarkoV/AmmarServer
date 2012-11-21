@@ -643,10 +643,11 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 {
   if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
 
+  if ( (instance==0)||(instance->prespawned_pool==0) ) { fprintf(stderr,"PreSpawnThreads called on an invalid instance..\n"); return 0; }
 
   struct PassToPreSpawnedThread context={0};
 
-  struct PreSpawnedThread * prespawned_data;
+  struct PreSpawnedThread * prespawned_data=0;
 
   unsigned int i=0,thread_i=0;
   for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
@@ -767,6 +768,7 @@ void * HTTPServerThread (void * ptr)
   struct sockaddr_in client;
 
   struct AmmServer_Instance * instance = context->instance;
+  if (instance==0) { fprintf(stderr,"Error , HTTPServerThread called with an invalid instance\n"); return 0; }
 
   instance->serversock = socket(AF_INET, SOCK_STREAM, 0);
     if ( instance->serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; return 0; }
@@ -834,7 +836,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 
   //Clear instance..
-  memset(&instance,0,sizeof(struct AmmServer_Instance)); //Clear instance..!
+  memset(instance,0,sizeof(struct AmmServer_Instance)); //Clear instance..!
 
 
   struct PassToHTTPThread context;
@@ -845,27 +847,26 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   strncpy(context.templates_root,templates_path,MAX_FILE_PATH);
 
   context.port=port;
+  context.instance = instance; //Also pass instance on new thread..
   context.keep_var_on_stack=1;
 
   instance->server_running=1;
   instance->pause_server=0;
   instance->stop_server=0;
 
-  int retres=1;
 
 
   //Lets allocate a decent sized thread pool
    instance->threads_pool = (struct pthread_t *) malloc(MAX_CLIENT_THREADS*sizeof(pthread_t) );
-   if (instance->threads_pool==0) { fprintf(stderr,"Could not allocate a big enough ( %u ) thread pool\n",MAX_CLIENT_THREADS); }
-
-
-
+   if (instance->threads_pool==0) { fprintf(stderr,"Could not allocate a big enough ( %u ) thread pool\n",MAX_CLIENT_THREADS); return 0;  }
 
 
 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
-  retres = pthread_create( &instance->server_thread_id ,0,HTTPServerThread,(void*) &context);
+  pthread_t server_thread_id;
+  int retres = pthread_create( &server_thread_id ,0,HTTPServerThread,(void*) &context);
+  instance->server_thread_id = server_thread_id;
   //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ } }
   //We flip the retres

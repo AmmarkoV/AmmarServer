@@ -51,7 +51,8 @@ int AmmServer_Start(struct AmmServer_Instance * instance,char * ip,unsigned int 
   EmmitPossibleConfigurationWarnings();
 
 
-  InitializeCache( /*These are the file cache settings , file caching is the mechanism that holds dynamic content and
+  InitializeCache( instance,
+                   /*These are the file cache settings , file caching is the mechanism that holds dynamic content and
                      speeds up file serving by not accessing the whole disk drive subsystem ..*/
                    MAX_SEPERATE_CACHE_ITEMS , /*Seperate items*/
                    MAX_CACHE_SIZE_IN_MB   , /*MB Limit for the WHOLE Cache*/
@@ -64,7 +65,7 @@ int AmmServer_Start(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
-  DestroyCache();
+  DestroyCache(instance);
   return StopHTTPServer(instance);
 }
 

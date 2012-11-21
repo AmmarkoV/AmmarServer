@@ -531,7 +531,7 @@ unsigned int GetHashForCacheItem(unsigned int index)
 
 
 
-int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
+int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
 {
   MAX_TOTAL_ALLOCATION_IN_MB=max_total_allocation_MB;
   MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=max_allocation_per_entry_MB;
@@ -551,7 +551,7 @@ int InitializeCache(unsigned int max_seperate_items , unsigned int max_total_all
    return 1;
 }
 
-int DestroyCache()
+int DestroyCache(struct AmmServer_Instance * instance)
 {
   fprintf(stderr,"Destroying cache..\n");
 
