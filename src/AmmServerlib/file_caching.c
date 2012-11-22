@@ -18,9 +18,10 @@ unsigned int MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=1;
 unsigned int MAX_CACHE_SIZE=1000;
 
 
-unsigned long loaded_cache_items_Kbytes=0;
-unsigned int loaded_cache_items=0;
-struct cache_item * cache=0;
+/*
+unsigned long instance->instance->loaded_cache_items_Kbytes=0;
+unsigned int instance->loaded_cache_items=0;
+struct cache_item * cache=0;*/
 //The cache consists of cache items.. Each cache item Gets Added and Removed with calls defined beneath..
 //The cache must be Created and then Destroyed because on program execution its pointer has no memory allocated for the content..!
 
@@ -59,23 +60,23 @@ Needless to say , this is our hash function..!
      ------------------------------------------------------------------
 */
 
-int WeCanCommitMoreMemoryForCaching(unsigned long additional_mem_to_malloc_in_bytes)
+int WeCanCommitMoreMemoryForCaching(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
 {
   if (MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
-  if (MAX_TOTAL_ALLOCATION_IN_MB*1024<loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_TOTAL_ALLOCATION_IN_MB);  return 0; }
+  if (MAX_TOTAL_ALLOCATION_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_TOTAL_ALLOCATION_IN_MB);  return 0; }
   return 1;
 }
 
 
-int AddNewMallocOpToCacheCounter(unsigned long additional_mem_to_malloc_in_bytes)
+int AddNewMallocOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
 {
-  loaded_cache_items_Kbytes+=(additional_mem_to_malloc_in_bytes/1024);
+  instance->loaded_cache_items_Kbytes+=(additional_mem_to_malloc_in_bytes/1024);
   return 1;
 }
 
-int AddFreeOpToCacheCounter(unsigned long additional_mem_to_malloc_in_bytes)
+int AddFreeOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
 {
-  loaded_cache_items_Kbytes-=(additional_mem_to_malloc_in_bytes/1024);
+  instance->loaded_cache_items_Kbytes-=(additional_mem_to_malloc_in_bytes/1024);
   return 1;
 }
 
@@ -101,9 +102,12 @@ On success, compress2() shall return Z_OK. Otherwise, compress2() shall return a
    This function should populate cache[*index].compressed_mem_filesize and cache[*index].compressed_mem with a compressed version
    of the file in  cache[*index].mem
 */
-inline int CreateCompressedVersionofCachedResource(unsigned int index,int compression_level)
+inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * instance,unsigned int index,int compression_level)
 {
   if (!ENABLE_COMPRESSION) { return 0; }
+
+  struct cache_item * cache = (struct cache_item *) instance->cache;
+
 
   //Todo check file type , if it is jpg , zip etc it doesnt need compression..!
   if ( cache[index].content_type!=TEXT ) { fprintf(stderr,"The content is not text , so we wont go in the trouble of compressing it..\n"); return 0; }
@@ -125,7 +129,7 @@ inline int CreateCompressedVersionofCachedResource(unsigned int index,int compre
   //We free compressed buffers outside of the ENABLE_COMPRESSION precompiler selector , aftere the next 2 steps we have a clean state and so we are ready to allocate
   //memory for the compressed content
   if (cache[index].compressed_mem!=0) { free(cache[index].compressed_mem); cache[index].compressed_mem=0;
-                                        if (cache[index].compressed_mem_filesize!=0) { AddFreeOpToCacheCounter(*cache[index].compressed_mem_filesize); }  }
+                                        if (cache[index].compressed_mem_filesize!=0) { AddFreeOpToCacheCounter(instance,*cache[index].compressed_mem_filesize); }  }
   if (cache[index].compressed_mem_filesize!=0) { free(cache[index].compressed_mem_filesize); cache[index].compressed_mem_filesize=0; }
 
 
@@ -196,23 +200,23 @@ inline int CreateCompressedVersionofCachedResource(unsigned int index,int compre
    The 3 functions that follow are aliases with different compression levels for the  CreateCompressedVersionofCachedResource(index,level);
    ---------------------------------------------------------------------------------------------------------------------------------------
 */
-int CreateCompressedVersionofDynamicContent(unsigned int index)
+int CreateCompressedVersionofDynamicContent(struct AmmServer_Instance * instance,unsigned int index)
 {
   if ( (!ENABLE_COMPRESSION) || (!ENABLE_DYNAMIC_CONTENT_COMPRESSION) ) { return 0; }
   //Dynamic Content should be compressed FAST! so 1 compression level
-  return CreateCompressedVersionofCachedResource(index,1);
+  return CreateCompressedVersionofCachedResource(instance,index,1);
 }
 
-int CreateCompressedVersionofStaticContent(unsigned int index)
+int CreateCompressedVersionofStaticContent(struct AmmServer_Instance * instance,unsigned int index)
 {
   if (!ENABLE_COMPRESSION) { return 0; }
-  return CreateCompressedVersionofCachedResource(index,3);
+  return CreateCompressedVersionofCachedResource(instance,index,3);
 }
 
-int CreateCompressedVersionofStaticContentPreloading(unsigned int index)
+int CreateCompressedVersionofStaticContentPreloading(struct AmmServer_Instance * instance,unsigned int index)
 {
   if (!ENABLE_COMPRESSION) { return 0; }
-  return CreateCompressedVersionofCachedResource(index,9);
+  return CreateCompressedVersionofCachedResource(instance,index,9);
 }
 /*
  --------------------------------------------------------------------------------------
@@ -225,7 +229,7 @@ int CreateCompressedVersionofStaticContentPreloading(unsigned int index)
 */
 
 
-int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_root)
+int ChangeRequestIfInternalRequestIsAddressed(struct AmmServer_Instance * instance,char * request,char * templates_root)
 {
   if (!ENABLE_INTERNAL_RESOURCES_RESOLVE)  { return 0; }
   //The role of request caching is to intercept incoming requests and if they are referring
@@ -275,14 +279,18 @@ int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_ro
 */
 
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
-unsigned int Find_CacheItem(char * resource,unsigned int * index)
+unsigned int Find_CacheItem(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
 {
   fprintf(stderr,"Serial slow searching for resource in cache %s ..",resource);
+
+  struct cache_item * cache = (struct cache_item *) instance->cache;
+
   if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
+
   unsigned long file_we_are_looking_for = hash(resource);
   unsigned int i=0;
 
-  for (i=0; i<loaded_cache_items; i++)
+  for (i=0; i<instance->loaded_cache_items; i++)
    {
      if ( cache[i].filename_hash == file_we_are_looking_for )
       {
@@ -301,11 +309,12 @@ unsigned int Find_CacheItem(char * resource,unsigned int * index)
 
 /*This is the Create Index Function , Nothing is sorted so we just append our cache item list with another one..
   Also for now only the hash is used to retrieve it ( talk about a sloppy implementation ) */
-int Create_CacheItem(char * resource,unsigned int * index)
+int Create_CacheItem(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
 {
+  struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
-  if (MAX_CACHE_SIZE<=loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
-  *index=loaded_cache_items++;
+  if (MAX_CACHE_SIZE<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
+  *index=instance->loaded_cache_items++;
 
   cache[*index].filename_hash = hash(resource);
   return 1;
@@ -326,13 +335,15 @@ int Destroy_CacheItem(unsigned int * index)
 */
 
 
-int LoadFileFromDisk_For_CacheItem(char *filename,unsigned int * index)
+int LoadFileFromDisk_For_CacheItem(struct AmmServer_Instance * instance,char *filename,unsigned int * index)
 {
 
   /*Now we will do the following things
     1) Open the file and find how large it is
     2) Allocate a large enough chunk of memory
     3) Read it all in memory and close the file */
+
+  struct cache_item * cache = (struct cache_item *) instance->cache;
 
   FILE * pFile = fopen (filename, "rb" );
   if (pFile==0) { fprintf(stderr,"Could not open file to cache it.. %s\n",filename); return 0;}
@@ -343,7 +354,7 @@ int LoadFileFromDisk_For_CacheItem(char *filename,unsigned int * index)
   //lSize now holds the size of the file..
 
   //We check if the file size is ok with our configuration limits
-  if (!WeCanCommitMoreMemoryForCaching(lSize)) { fclose(pFile); return 0; }
+  if (!WeCanCommitMoreMemoryForCaching(instance,lSize)) { fclose(pFile); return 0; }
 
   //We are ok with the file size , we will now rewind the file to start reading it from the beginning..!
   rewind (pFile);
@@ -351,7 +362,7 @@ int LoadFileFromDisk_For_CacheItem(char *filename,unsigned int * index)
   char * buffer = (char*) malloc ( sizeof(char) * (lSize));
   if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory to cache this file..!\n"); fclose(pFile); return 0;  }
   //We have allocated the new memory chunk so we will update our loaded cache counter..!
-  AddNewMallocOpToCacheCounter(lSize);
+  AddNewMallocOpToCacheCounter(instance,lSize);
 
   // copy the file into the buffer:
   size_t result;
@@ -377,19 +388,21 @@ int LoadFileFromDisk_For_CacheItem(char *filename,unsigned int * index)
 
   cache[*index].compressed_mem_filesize=0;
   cache[*index].compressed_mem=0;
-  if (!CreateCompressedVersionofStaticContent(*index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
+  if (!CreateCompressedVersionofStaticContent(instance,*index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
 
   return 1;
 }
 
 
-int AddFile_As_CacheItem(char * filename,unsigned int * index,struct stat * last_modification)
+int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification)
 {
-  if (!Create_CacheItem(filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
+  if (!Create_CacheItem(instance,filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
 
-  fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) loaded_cache_items_Kbytes/1048576 , MAX_TOTAL_ALLOCATION_IN_MB);
+  struct cache_item * cache = (struct cache_item *) instance->cache;
 
-  if (!LoadFileFromDisk_For_CacheItem(filename,index))
+  fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) instance->loaded_cache_items_Kbytes/1048576 , MAX_TOTAL_ALLOCATION_IN_MB);
+
+  if (!LoadFileFromDisk_For_CacheItem(instance,filename,index))
    {
        fprintf(stderr,"Could not read file %s into memory\n",filename);
        fprintf(stderr,"Erasing index from memory\n");
@@ -421,7 +434,7 @@ int AddFile_As_CacheItem(char * filename,unsigned int * index,struct stat * last
 
 
 
-int AddDirectResource_As_CacheItem(struct AmmServer_RH_Context * context)
+int AddDirectResource_As_CacheItem(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
 {
   if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
    {
@@ -434,12 +447,14 @@ int AddDirectResource_As_CacheItem(struct AmmServer_RH_Context * context)
   //These direct resource functions come from inside our program so we can cpy/cat them here
   //( they dont pass through http_header_analysis.c so this can't be done another way..!
 
+  struct cache_item * cache = (struct cache_item *) instance->cache;
+
   strncpy(full_filename,context->web_root_path,MAX_RESOURCE);
   strncat(full_filename,context->resource_name,MAX_RESOURCE);
   ReducePathSlashes_Inplace(full_filename);
 
   unsigned int index=0;
-  if (! Create_CacheItem(full_filename,&index) ) { return 0; }
+  if (! Create_CacheItem(instance,full_filename,&index) ) { return 0; }
 
   cache[index].context = context;
   cache[index].mem = context->content;
@@ -454,15 +469,16 @@ int AddDirectResource_As_CacheItem(struct AmmServer_RH_Context * context)
 }
 
 
-int AddDoNOTCache_CacheItem(char * filename)
+int AddDoNOTCache_CacheItem(struct AmmServer_Instance * instance,char * filename)
 {
+   struct cache_item * cache = (struct cache_item *) instance->cache;
    unsigned int index=0;
-   if (Find_CacheItem(filename,&index))  { cache[index].doNOTCache=1; }
+   if (Find_CacheItem(instance,filename,&index))  { cache[index].doNOTCache=1; }
     else
      {
        //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
-       if (!Create_CacheItem(filename,&index) ) { return 0; }
-       if (Find_CacheItem(filename,&index)) { cache[index].doNOTCache=1; } else
+       if (!Create_CacheItem(instance,filename,&index) ) { return 0; }
+       if (Find_CacheItem(instance,filename,&index)) { cache[index].doNOTCache=1; } else
                                              { return 0; } //Could not set doNOTCache..!
      }
    return 1;
@@ -471,8 +487,9 @@ int AddDoNOTCache_CacheItem(char * filename)
 
 
 
-int Remove_CacheItem(unsigned int index)
+int Remove_CacheItem(struct AmmServer_Instance * instance,unsigned int index)
 {
+    struct cache_item * cache = (struct cache_item *) instance->cache;
     unsigned int i = index;
     if ( cache[i].prepare_mem_callback !=0)
      {
@@ -488,7 +505,7 @@ int Remove_CacheItem(unsigned int index)
        {
           free(cache[i].mem);
           cache[i].mem=0;
-          if ( cache[i].filesize != 0 ) { AddFreeOpToCacheCounter(*cache[i].filesize); } //If we have a filesize we subtract it from the cache malloc counter
+          if ( cache[i].filesize != 0 ) { AddFreeOpToCacheCounter(instance,*cache[i].filesize); } //If we have a filesize we subtract it from the cache malloc counter
        }
       if ( cache[i].filesize != 0 )
        {
@@ -502,7 +519,7 @@ int Remove_CacheItem(unsigned int index)
        {
           free(cache[i].compressed_mem);
           cache[i].compressed_mem=0;
-          if ( cache[i].filesize != 0 ) { AddFreeOpToCacheCounter(*cache[i].compressed_mem_filesize); } //If we have a filesize we subtract it from the cache malloc counter
+          if ( cache[i].filesize != 0 ) { AddFreeOpToCacheCounter(instance,*cache[i].compressed_mem_filesize); } //If we have a filesize we subtract it from the cache malloc counter
        }
       if ( cache[i].compressed_mem_filesize != 0 )
        {
@@ -513,19 +530,20 @@ int Remove_CacheItem(unsigned int index)
 }
 
 
-int RemoveDirectResource_CacheItem(struct AmmServer_RH_Context * context,unsigned char free_mem)
+int RemoveDirectResource_CacheItem(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
        context->MAX_content_size=0;
        if ((free_mem)&&(context->content!=0)) { free(context->content); context->content=0; }
 
 
        unsigned int index;
-       if (!Find_CacheItem(context->resource_name,&index) ) { fprintf(stderr,"Error..\n"); return 0; }
-       return Remove_CacheItem(index);
+       if (!Find_CacheItem(instance,context->resource_name,&index) ) { fprintf(stderr,"Error..\n"); return 0; }
+       return Remove_CacheItem(instance,index);
 }
 
-unsigned int GetHashForCacheItem(unsigned int index)
+unsigned int GetHashForCacheItem(struct AmmServer_Instance * instance,unsigned int index)
 {
+    struct cache_item * cache = (struct cache_item *) instance->cache;
     return cache[index].filename_hash;
 }
 
@@ -533,6 +551,8 @@ unsigned int GetHashForCacheItem(unsigned int index)
 
 int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
 {
+  struct cache_item * cache = (struct cache_item *) instance->cache;
+
   MAX_TOTAL_ALLOCATION_IN_MB=max_total_allocation_MB;
   MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=max_allocation_per_entry_MB;
   MAX_CACHE_SIZE=max_seperate_items;
@@ -553,6 +573,7 @@ int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_sepera
 
 int DestroyCache(struct AmmServer_Instance * instance)
 {
+  struct cache_item * cache = (struct cache_item *) instance->cache;
   fprintf(stderr,"Destroying cache..\n");
 
 //   if (!DestroyVariableCache()) { fprintf(stderr,"Failed destroying Variable Cache\n"); }
@@ -560,21 +581,21 @@ int DestroyCache(struct AmmServer_Instance * instance)
    if (cache==0)
     {
        fprintf(stderr,"Cache already destroyed \n");
-       loaded_cache_items=0;
-       loaded_cache_items_Kbytes=0;
+       instance->loaded_cache_items=0;
+       instance->loaded_cache_items_Kbytes=0;
       return 1;
     }
 
    unsigned int i=0;
-   for (i=0; i<loaded_cache_items; i++)
+   for (i=0; i<instance->loaded_cache_items; i++)
    {
-      Remove_CacheItem(i);
+      Remove_CacheItem(instance,i);
    }
 
    free(cache);
    cache = 0;
-   loaded_cache_items=0;
-   loaded_cache_items_Kbytes=0;
+   instance->loaded_cache_items=0;
+   instance->loaded_cache_items_Kbytes=0;
 
    return 1;
 }
@@ -593,13 +614,13 @@ int DestroyCache(struct AmmServer_Instance * instance)
   ----------------------------------------------------------------------------------------------------------------------
 */
 
-int CachedVersionExists(char * verified_filename,unsigned int * index)
+int CachedVersionExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index)
 {
-    if (Find_CacheItem(verified_filename,index)) { return 1; }
+    if (Find_CacheItem(instance,verified_filename,index)) { return 1; }
     return 0;
 }
 
-char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported)
+char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported)
 {
       if (!CACHING_ENABLED)
       {
@@ -608,7 +629,10 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
         return 0;
       }
 
-       if (Find_CacheItem(verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
+      struct cache_item * cache = (struct cache_item *) instance->cache;
+
+
+       if (Find_CacheItem(instance,verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
         {
            //if doNOTCache is set and this is a real file..
            if ((cache[*index].doNOTCache)&&(cache[*index].prepare_mem_callback==0))
@@ -673,7 +697,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
                    //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                    DoCallback(UNUSED);
                   //This means we can call the callback to prepare the memory content..! END
-                   CreateCompressedVersionofDynamicContent(*index);
+                   CreateCompressedVersionofDynamicContent(instance,*index);
                 }
               }
 
@@ -705,7 +729,7 @@ char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verifi
         } else
         {
            /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
-           if ( AddFile_As_CacheItem(verified_filename,index,last_modification) )
+           if ( AddFile_As_CacheItem(instance,verified_filename,index,last_modification) )
             {
               *compression_supported=0;
               *filesize=*cache[*index].filesize; //We return the filesize after the operation..

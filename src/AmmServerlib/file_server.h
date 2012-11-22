@@ -10,7 +10,7 @@ unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verif
 
 unsigned long SendFile
   (
-
+    struct AmmServer_Instance * instance,
     struct HTTPRequest * request,
 
     int clientsock, // The socket that will be used to send the data

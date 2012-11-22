@@ -227,7 +227,7 @@ void * ServeClient(void * ptr)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       fprintf(stderr,"Bad Request!");
       char servefile[MAX_FILE_PATH]={0};
-      SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
+      SendFile(instance,&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
       close_connection=1;
    }
       else
@@ -270,7 +270,7 @@ void * ServeClient(void * ptr)
               {
                  //Too large request .. We cannot handle it ..
                   char servefile[MAX_FILE_PATH]={0};
-                  SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
+                  SendFile(instance,&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
                   fprintf(stderr,"Huge POST request ( header size %u , MAX_QUERY size %u )  , drowning it..\n",total_header,MAX_QUERY);
                   close_connection=1;
               } else
@@ -313,7 +313,7 @@ void * ServeClient(void * ptr)
       //we have checked output.verified_local_resource for .. , weird ascii characters etc, so it should be safe for usage from now on..!
 
       //There are some virtual files we want to re-route to their real path..!
-      if (ChangeRequestIfInternalRequestIsAddressed(servefile,templates_root) )
+      if (ChangeRequestIfInternalRequestIsAddressed(instance,servefile,templates_root) )
       { //Skip disk access times for checking for directories and other stuff..!
         //We know that the resource is a file from our cache indexes..!
           resource_is_a_directory=0;
@@ -323,7 +323,7 @@ void * ServeClient(void * ptr)
 
       //STEP 0 : Check with cache!
       unsigned int index=0;
-      if (CachedVersionExists(servefile,&index) )
+      if (CachedVersionExists(instance,servefile,&index) )
       { //Skip disk access times for checking for directories and other stuff..!
         //We know that the resource is a file from our cache indexes..!
         //Bonus points we now have the index id of the cached instance of the file for future use..
@@ -364,7 +364,7 @@ void * ServeClient(void * ptr)
       if (resource_is_a_directory)
            {
              /*resource_is_a_directory means we got something like directory1/directory2/ so we should check for index file at the path given..! */
-             if ( FindIndexFile(webserver_root,output.resource,servefile) )
+             if ( FindIndexFile(instance,webserver_root,output.resource,servefile) )
                 {
                    /*servefile should contain a valid index file ,
                      lets make it look like it was a file we wanted all along :P! */
@@ -399,7 +399,7 @@ void * ServeClient(void * ptr)
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
-          SendFile(&output,clientsock,servefile,0,0,404,0,0,0,templates_root);
+          SendFile(instance,&output,clientsock,servefile,0,0,404,0,0,0,templates_root);
         }
        close_connection=1;
        we_can_send_result=0;
@@ -415,7 +415,7 @@ void * ServeClient(void * ptr)
      {
         fprintf(stderr,"404 not found..!!");
         char servefile[MAX_FILE_PATH]={0};
-        SendFile(&output,clientsock,servefile,0,0,404,0,0,0,templates_root);
+        SendFile(instance,&output,clientsock,servefile,0,0,404,0,0,0,templates_root);
         close_connection=1;
         we_can_send_result=0;
      }
@@ -427,6 +427,7 @@ void * ServeClient(void * ptr)
       if (we_can_send_result) //This means that we have found a file to serve..!
       {
        if ( !SendFile (
+                        instance,
                         &output,
                         clientsock, // -- Client socket
                         servefile,  // -- Filename to be served
@@ -452,20 +453,20 @@ void * ServeClient(void * ptr)
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
        //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
+       SendFile(instance,&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
      if (output.requestType==NONE)
      { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
        fprintf(stderr,"Weird unrecognized Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
+       SendFile(instance,&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
      { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
        fprintf(stderr,"Not Implemented Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(&output,clientsock,servefile,0,0,501,0,0,0,templates_root);
+       SendFile(instance,&output,clientsock,servefile,0,0,501,0,0,0,templates_root);
        close_connection=1;
      }
    } // Not a Bad request END

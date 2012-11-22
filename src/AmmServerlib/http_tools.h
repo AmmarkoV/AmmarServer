@@ -2,6 +2,8 @@
 #define HTTP_TOOLS_H_INCLUDED
 
 
+#include "AmmServerlib.h"
+
 enum FileType
 {
     NO_FILETYPE=0,
@@ -22,7 +24,7 @@ char DirectoryExistsAmmServ( char* dirpath );
 int GetContentType(char * filename,char * content_type);
 int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length);
 
-int FindIndexFile(char * webserver_root,char * directory,char * indexfile);
+int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,char * directory,char * indexfile);
 
 int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length);
 int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val , unsigned int var_val_length);

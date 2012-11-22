@@ -145,14 +145,14 @@ int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct Amm
     {
        context->content = (char*) malloc( sizeof(char) * allocate_mem_bytes );
     }
-  return AddDirectResource_As_CacheItem(context);
+  return AddDirectResource_As_CacheItem(instance,context);
 }
 
 
 int AmmServer_PreCacheFile(struct AmmServer_Instance * instance,char * filename)
 {
   unsigned int index=0;
-  return AddFile_As_CacheItem(filename,&index,0);
+  return AddFile_As_CacheItem(instance,filename,&index,0);
 }
 
 
@@ -162,7 +162,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
     strcpy(resource_name,context->web_root_path);
     strcat(resource_name,context->resource_name);
 
-    if (! AddDoNOTCache_CacheItem(resource_name) )
+    if (! AddDoNOTCache_CacheItem(instance,resource_name) )
      {
        fprintf(stderr,"Could not set AmmServer_DoNOTCacheResourceHandler for resource %s\n",resource_name);
        return 0;
@@ -174,7 +174,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
 
 int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name)
 {
-    if (! AddDoNOTCache_CacheItem(resource_name) )
+    if (! AddDoNOTCache_CacheItem(instance,resource_name) )
      {
        fprintf(stderr,"Could not set AmmServer_DoNOTCacheResource for resource %s\n",resource_name);
        return 0;
@@ -185,7 +185,7 @@ int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * res
 
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
-  return RemoveDirectResource_CacheItem(context,free_mem);
+  return RemoveDirectResource_CacheItem(instance,context,free_mem);
 }
 
 

@@ -42,21 +42,21 @@ struct cache_item
 
 extern struct cache_item * cache;
 
-int CachedVersionExists(char * verified_filename,unsigned int * index);
-char * CheckForCachedVersionOfThePage(struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported);
+int CachedVersionExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index);
+char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported);
 
-int AddFile_As_CacheItem(char * filename,unsigned int * index,struct stat * last_modification);
-int AddDirectResource_As_CacheItem(struct AmmServer_RH_Context * context);
-int AddDoNOTCache_CacheItem(char * filename);
-int RemoveDirectResource_CacheItem(struct AmmServer_RH_Context * context,unsigned char free_mem);
+int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification);
+int AddDirectResource_As_CacheItem(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context);
+int AddDoNOTCache_CacheItem(struct AmmServer_Instance * instance,char * filename);
+int RemoveDirectResource_CacheItem(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem);
 
 
-unsigned int GetHashForCacheItem(unsigned int index);
-unsigned int Find_CacheItem(char * resource,unsigned int * index);
+unsigned int GetHashForCacheItem(struct AmmServer_Instance * instance,unsigned int index);
+unsigned int Find_CacheItem(struct AmmServer_Instance * instance,char * resource,unsigned int * index);
 
 int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB);
 int DestroyCache(struct AmmServer_Instance * instance);
 
-int ChangeRequestIfInternalRequestIsAddressed(char * request,char * templates_root);
+int ChangeRequestIfInternalRequestIsAddressed(struct AmmServer_Instance * instance,char * request,char * templates_root);
 
 #endif // FILE_CACHING_H_INCLUDED

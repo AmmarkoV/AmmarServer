@@ -286,7 +286,7 @@ int TransmitFileToSocket(
 
 unsigned long SendFile
   (
-
+    struct AmmServer_Instance * instance,
     struct HTTPRequest * request,
 
     int clientsock, // The socket that will be used to send the data
@@ -344,11 +344,13 @@ unsigned long SendFile
 /*! PRELIMINARY HEADER SEND END ----------------------------------------------*/
 
 
+  struct cache_item * cache = (struct cache_item *) instance->cache;
+
   int opres=0;
   unsigned int index=0;
   unsigned long cached_lSize=0;
   unsigned char cached_buffer_is_compressed = compression_supported;
-  char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed);
+  char * cached_buffer = CheckForCachedVersionOfThePage(instance,request,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed);
 
   if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
@@ -377,7 +379,7 @@ unsigned long SendFile
       if (ok_to_serve_not_modified)
       {
        //Check E-Tag here..!
-       unsigned int cache_etag = GetHashForCacheItem(index);
+       unsigned int cache_etag = GetHashForCacheItem(instance,index);
        if ((request->ETag!=0)&&(cache_etag!=0))
         {
           fprintf(stderr,"E-Tag is `%s` , local hash is `%u` \n",request->ETag,cache_etag);
@@ -446,7 +448,7 @@ if (!header_only)
      //GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
 
 
-     unsigned int  cache_etag = GetHashForCacheItem(index);
+     unsigned int  cache_etag = GetHashForCacheItem(instance,index);
      if (cache_etag!=0)
      {
         sprintf(reply_header,"ETag: \"%u\"\n",cache_etag);
