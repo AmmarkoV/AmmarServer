@@ -497,7 +497,11 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,unsigned i
 
     while ( 1 )
      {
-       while (starting_from<MAX_CLIENT_THREADS) { if ( instance->threads_pool[starting_from]==0 ) { return starting_from; } ++starting_from; }
+       while (starting_from<MAX_CLIENT_THREADS)
+         {
+            if ( instance->threads_pool[starting_from]==0 ) { return starting_from; }
+            ++starting_from;
+          }
        starting_from=0;
        fprintf(stderr,"Looped .. while finding a proper thread id..\n");
      }
@@ -509,6 +513,8 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,unsigned i
 int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
   fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
+
+  fprintf(stderr,"SpawnThreadToServeNewClient instance pointing @ %p \n",instance);
 
   if (instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED >= MAX_CLIENT_THREADS)
    {
