@@ -25,10 +25,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "server_threads.h"
 #include "file_caching.h"
 
+
 #include "http_tools.h"
 
 
-int AmmServer_Start(struct AmmServer_Instance * instance,char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
+int AmmServer_Stop(struct AmmServer_Instance * instance)
+{
+  if (!instance) { return 0; }
+  DestroyCache(instance);
+  StopHTTPServer(instance);
+
+  if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); }
+  if (instance!=0) { free(instance); }
+  return 1;
+}
+
+struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
 
@@ -39,6 +51,19 @@ int AmmServer_Start(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
+
+
+  //Allocate and Clear instance..
+  struct AmmServer_Instance * instance = (struct AmmServer_Instance *) malloc(sizeof(struct AmmServer_Instance));
+  if (!instance) { fprintf(stderr,"AmmServer_Start failed to allocate a new instance \n"); }
+  memset(instance,0,sizeof(struct AmmServer_Instance));
+
+
+  instance->prespawned_pool = (void *) malloc( sizeof(struct PreSpawnedThread) * MAX_CLIENT_THREADS);
+  if (instance->prespawned_pool!=0) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_THREADS);  }
+
+  fprintf(stderr,"Initial AmmServer_Start instance pointing @ %p \n",instance);//Clear instance..!
+
 
   //These are the initial values provided by the server interface..
   //LoadConfigurationFile may change them if configuration files are enablaed / exist etc..
@@ -59,15 +84,19 @@ int AmmServer_Start(struct AmmServer_Instance * instance,char * ip,unsigned int 
                    MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB    /*MB Max Size of Individual File*/
                   );
 
+   if (StartHTTPServer(instance,ip,BINDING_PORT,web_root_path,templates_root_path))
+      {
+          //All is well , we return a valid instance
+          return instance;
+      } else
+      {
+          AmmServer_Stop(instance);
+          return 0;
+      }
 
-  return StartHTTPServer(instance,ip,BINDING_PORT,web_root_path,templates_root_path);
+  return 0;
 }
 
-int AmmServer_Stop(struct AmmServer_Instance * instance)
-{
-  DestroyCache(instance);
-  return StopHTTPServer(instance);
-}
 
 int AmmServer_Running(struct AmmServer_Instance * instance)
 {

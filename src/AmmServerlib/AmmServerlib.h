@@ -110,7 +110,7 @@ struct AmmServer_Instance
 
     int files_open;
 
-    //Binding Socket , and server state
+    //Server state
     int serversock;
     int server_running;
     int pause_server;
@@ -153,7 +153,7 @@ enum AmmServStrSettings
 };
 
 
-int AmmServer_Start(struct AmmServer_Instance * instance,char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
+struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop(struct AmmServer_Instance * instance);
 int AmmServer_Running(struct AmmServer_Instance * instance);
 

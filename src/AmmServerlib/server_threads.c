@@ -42,20 +42,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "server_configuration.h"
 
 
-struct PreSpawnedThread
-{
-    struct AmmServer_Instance * instance;
-    pthread_t thread_id;
-
-    int clientsock;
-    struct sockaddr_in client;
-    unsigned int clientlen;
-
-    char busy;
-
-    char webserver_root[MAX_FILE_PATH];
-    char templates_root[MAX_FILE_PATH];
-};
 
 struct PassToPreSpawnedThread
 {
@@ -668,6 +654,8 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
 {
    //Please note that this must only get called from the main process/thread..
 
+  fprintf(stderr,"UsePreSpawnedThreadToServeNewClient instance pointing @ %p \n",instance);
+
    struct PreSpawnedThread * prespawned_data=0;
 
    if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
@@ -762,17 +750,17 @@ void * HTTPServerThread (void * ptr)
   if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); return 0; }
 
 
-  int clientsock=0;
   unsigned int serverlen = sizeof(struct sockaddr_in),clientlen = sizeof(struct sockaddr_in);
   struct sockaddr_in server;
   struct sockaddr_in client;
 
   struct AmmServer_Instance * instance = context->instance;
   if (instance==0) { fprintf(stderr,"Error , HTTPServerThread called with an invalid instance\n"); return 0; }
+  fprintf(stderr,"HTTPServerThread instance pointing @ %p \n",instance);
 
-  instance->serversock = socket(AF_INET, SOCK_STREAM, 0);
-    if ( instance->serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; return 0; }
-
+  int serversock = socket(AF_INET, SOCK_STREAM, 0);
+    if ( serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; return 0; }
+  instance->serversock = serversock;
 
   bzero(&client,clientlen);
   bzero(&server,serverlen);
@@ -786,8 +774,8 @@ void * HTTPServerThread (void * ptr)
 
   context->keep_var_on_stack=2;
 
-  if ( bind(instance->serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!\nThe server may already be running ..\n"); instance->server_running=0; return 0; }
-  if ( listen(instance->serversock,MAX_CLIENT_THREADS) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
+  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!\nThe server may already be running ..\n"); instance->server_running=0; return 0; }
+  if ( listen(serversock,MAX_CLIENT_THREADS) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
            { error("Server Thread : Failed to listen on server socket"); instance->server_running=0; return 0; }
 
 
@@ -795,7 +783,8 @@ void * HTTPServerThread (void * ptr)
   {
     fprintf(stderr,"\nServer Thread : Waiting for a new client\n");
     /* Wait for client connection */
-    if ( (clientsock = accept(instance->serversock,(struct sockaddr *) &client, &clientlen)) < 0) { error("Server Thread : Failed to accept client connection"); }
+    int clientsock=0;
+    if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0) { error("Server Thread : Failed to accept client connection"); }
       else
       {
            fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
@@ -816,7 +805,7 @@ void * HTTPServerThread (void * ptr)
   instance->server_running=0;
   instance->stop_server=2;
 
-  //It should already be closed so skipping this : close(instance->serversock);
+  //It should already be closed so skipping this : close(serversock);
   pthread_exit(0);
   return 0;
 }
@@ -835,8 +824,6 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   //-------------------------------------------------------------------------------------------------------------
 
 
-  //Clear instance..
-  memset(instance,0,sizeof(struct AmmServer_Instance)); //Clear instance..!
 
 
   struct PassToHTTPThread context;
@@ -855,6 +842,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   instance->stop_server=0;
 
 
+  fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
 
   //Lets allocate a decent sized thread pool
    instance->threads_pool = (struct pthread_t *) malloc(MAX_CLIENT_THREADS*sizeof(pthread_t) );
