@@ -149,14 +149,18 @@ void * ServeClient(void * ptr)
 //  char * spn = strstr (templates_root,webserver_root);
 //  if (spn==0) { /*templates_root is not the same path*/ }
 
-  struct AmmServer_Instance * instance = context->instance;
 
   int pre_spawned_thread=context->pre_spawned_thread;
   int clientsock=context->clientsock;
   int thread_id = context->thread_id;
 
+  struct AmmServer_Instance * instance = context->instance;
+
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
+
   fprintf(stderr,"Passing message to HTTP thread is done \n");
+  if (instance==0) { fprintf(stderr,"Serve Client called without a valid instance , it cannot continue \n"); return 0; }
+  fprintf(stderr,"ServeClient instance pointing @ %p \n",instance);
 
 
   struct timeval timeout;
@@ -495,6 +499,9 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,unsigned i
 {
     if (starting_from>=MAX_CLIENT_THREADS) { starting_from = starting_from % MAX_CLIENT_THREADS; }
 
+
+   fprintf(stderr,"FindAProperThreadID instance pointing @ %p \n",instance);//Clear instance..!
+    fprintf(stderr,"FindAProperThreadID thread pool pointing @ %p \n",instance->threads_pool);//Clear instance..!
     while ( 1 )
      {
        while (starting_from<MAX_CLIENT_THREADS)
@@ -539,11 +546,14 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   strncpy(context.webserver_root,webserver_root,MAX_FILE_PATH);
   strncpy(context.templates_root,templates_root,MAX_FILE_PATH);
 
-  context.keep_var_on_stack=1;
-
   //I Have removed the lock here , so getting a thread_id is a little more complex ..
   context.thread_id = instance->CLIENT_THREADS_STARTED++;
   context.thread_id = FindAProperThreadID(instance,context.thread_id);
+
+  context.instance = instance;
+
+  context.keep_var_on_stack=1;
+
 
   fprintf(stderr,"Spawning a new thread %u/%u to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS);
   int retres = pthread_create(&instance->threads_pool[context.thread_id],0,ServeClient,(void*) &context);
@@ -849,11 +859,6 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 
   fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
-
-  //Lets allocate a decent sized thread pool
-   instance->threads_pool = (struct pthread_t *) malloc(MAX_CLIENT_THREADS*sizeof(pthread_t) );
-   if (instance->threads_pool==0) { fprintf(stderr,"Could not allocate a big enough ( %u ) thread pool\n",MAX_CLIENT_THREADS); return 0;  }
-
 
 
   //Creating the main WebServer thread..

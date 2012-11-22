@@ -2,7 +2,7 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="107" topLine="0" />
+		<Cursor position="4149" topLine="108" />
 	</File>
 	<File name="InputParser/InputParser_C.c" open="1" top="0" tabpos="23">
 		<Cursor position="1246" topLine="8" />
@@ -23,10 +23,10 @@
 		<Cursor position="109" topLine="0" />
 	</File>
 	<File name="file_caching.c" open="1" top="0" tabpos="3">
-		<Cursor position="4068" topLine="78" />
+		<Cursor position="22636" topLine="513" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
-		<Cursor position="1639" topLine="9" />
+		<Cursor position="1736" topLine="11" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="5">
 		<Cursor position="1105" topLine="13" />
@@ -53,7 +53,7 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="7941" topLine="169" />
+		<Cursor position="882" topLine="0" />
 	</File>
 	<File name="server_configuration.c" open="1" top="0" tabpos="24">
 		<Cursor position="2895" topLine="0" />
@@ -61,11 +61,11 @@
 	<File name="server_configuration.h" open="1" top="0" tabpos="25">
 		<Cursor position="95" topLine="0" />
 	</File>
-	<File name="server_threads.c" open="1" top="0" tabpos="8">
-		<Cursor position="2090" topLine="38" />
+	<File name="server_threads.c" open="1" top="1" tabpos="8">
+		<Cursor position="23235" topLine="439" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="9">
-		<Cursor position="134" topLine="0" />
+		<Cursor position="69" topLine="0" />
 	</File>
 	<File name="time_provider.c" open="1" top="0" tabpos="20">
 		<Cursor position="38" topLine="0" />

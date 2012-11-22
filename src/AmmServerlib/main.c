@@ -35,7 +35,8 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   DestroyCache(instance);
   StopHTTPServer(instance);
 
-  if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); }
+  if (instance->threads_pool!=0) { free(instance->threads_pool); instance->threads_pool=0; }
+  if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
   if (instance!=0) { free(instance); }
   return 1;
 }
@@ -49,20 +50,27 @@ struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * c
   fprintf(stderr,"Please note that this server version is not thoroughly\n");
   fprintf(stderr," pen-tested so it is not meant for production deployment..\n");
 
+  fprintf(stderr," \n\n This is the instances branch of the project which at the momment has VERY serious issues..\n");
+
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
 
   //Allocate and Clear instance..
   struct AmmServer_Instance * instance = (struct AmmServer_Instance *) malloc(sizeof(struct AmmServer_Instance));
-  if (!instance) { fprintf(stderr,"AmmServer_Start failed to allocate a new instance \n"); }
-  memset(instance,0,sizeof(struct AmmServer_Instance));
-
-
-  instance->prespawned_pool = (void *) malloc( sizeof(struct PreSpawnedThread) * MAX_CLIENT_THREADS);
-  if (instance->prespawned_pool!=0) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_THREADS);  }
-
+  if (!instance) { fprintf(stderr,"AmmServer_Start failed to allocate a new instance \n"); } else
+                 { memset(instance,0,sizeof(struct AmmServer_Instance)); }
   fprintf(stderr,"Initial AmmServer_Start instance pointing @ %p \n",instance);//Clear instance..!
+
+  instance->threads_pool = (pthread_t *) malloc( sizeof(pthread_t) * MAX_CLIENT_THREADS);
+  if (!instance->threads_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a thread pool\n",MAX_CLIENT_THREADS);  } else
+                               {  memset(instance->threads_pool,0,sizeof(pthread_t)*MAX_CLIENT_THREADS); }
+  fprintf(stderr,"Initial AmmServer_Start thread pool pointing @ %p \n",instance->threads_pool);//Clear instance..!
+
+  instance->prespawned_pool = (void *) malloc( sizeof(struct PreSpawnedThread) * MAX_CLIENT_PRESPAWNED_THREADS);
+  if (!instance->prespawned_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_PRESPAWNED_THREADS);  }else
+                                  {  memset(instance->prespawned_pool,0,sizeof(pthread_t)*MAX_CLIENT_PRESPAWNED_THREADS);  }
+
 
 
   //These are the initial values provided by the server interface..
