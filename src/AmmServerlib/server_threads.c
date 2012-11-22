@@ -605,8 +605,10 @@ void * PreSpawnedThread(void * ptr)
   struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
   memset(&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
 
+
+  struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
   struct PreSpawnedThread * prespawned_data;
-  prespawned_data = (struct PreSpawnedThread *) &instance->prespawned_pool[i];
+  prespawned_data = (struct PreSpawnedThread *) &prespawned_pool[i];
 
   while (instance->stop_server==0)
    {
@@ -646,17 +648,19 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 {
   if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
 
-  if ( (instance==0)||(instance->prespawned_pool==0) ) { fprintf(stderr,"PreSpawnThreads called on an invalid instance..\n"); return 0; }
+  if ( (instance==0)||(instance->prespawned_pool==0) ) { fprintf(stderr,"PreSpawnThreads called on an invalid instance..\n"); return; }
 
-  struct PassToPreSpawnedThread context={0};
+  struct PassToPreSpawnedThread context;
+  memset(&context,0,sizeof(struct PassToPreSpawnedThread));
 
+  struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
   struct PreSpawnedThread * prespawned_data=0;
 
   unsigned int i=0,thread_i=0;
   for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
    {
 
-      prespawned_data = (struct PreSpawnedThread *) &instance->prespawned_pool[i];
+      prespawned_data = (struct PreSpawnedThread *) &prespawned_pool[i];
 
       context.instance = instance;
       context.i_adapt = i;
@@ -673,14 +677,14 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
 
   fprintf(stderr,"UsePreSpawnedThreadToServeNewClient instance pointing @ %p \n",instance);
 
+   struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
    struct PreSpawnedThread * prespawned_data=0;
 
    if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
    if (instance->prespawn_jobs_started<instance->prespawn_jobs_finished ) {  fprintf(stderr,"Prespawn jobs counters truncated (?) \n"); } else
    if (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
     {
-
-        prespawned_data = (struct PreSpawnedThread *) &instance->prespawned_pool[instance->prespawn_turn_to_serve];
+        prespawned_data = &prespawned_pool[instance->prespawn_turn_to_serve];
 
         if (!prespawned_data->busy)
          {

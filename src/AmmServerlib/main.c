@@ -295,6 +295,6 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 {
-  fprintf(stderr,"No Checks Implemented in this version , everything should be ok ..\n");
+  fprintf(stderr,"No Checks Implemented in this version , instance pointer is %p ..\n",instance);
   return 0;
 }

@@ -33,7 +33,7 @@ struct cache_item * cache=0;*/
 This algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c. another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i]; the magic of number 33 (why it works better than many other constants, prime or not) has never been adequately explained.
 Needless to say , this is our hash function..!
 */
-    unsigned long hash(char *str)
+    static unsigned long hash(char *str)
     {
         if (str==0) return 0;
         if (str[0]==0) return 0;

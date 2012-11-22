@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <time.h>
 
-
 struct cache_item
 {
    //TODO: add this to the checks to avoid hash collisions -> char filename[MAX_FILE_PATH];
@@ -40,7 +39,6 @@ struct cache_item
    unsigned int  year;
 };
 
-extern struct cache_item * cache;
 
 int CachedVersionExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index);
 char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported);

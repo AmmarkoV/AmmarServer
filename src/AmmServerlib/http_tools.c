@@ -350,8 +350,8 @@ int StripHTMLCharacters_Inplace(char * filename,int enable_security)
   unsigned int offset=0;
 
   //The following 2 lines of checks are kind of redundant but if we want all % symbols stripped they have to be here..
-  /*1*/   if (length==1) { if (filename[0]=='%') { filename[0]="_"; } }
-  /*2*/   if (length==2) { if (filename[0]=='%') { filename[0]="_"; } if (filename[1]=='%') { filename[1]="_"; }  }
+  /*1*/   if (length==1) { if (filename[0]=='%') { filename[0]=(char) "_"; } }
+  /*2*/   if (length==2) { if (filename[0]=='%') { filename[0]=(char) "_"; } if (filename[1]=='%') { filename[1]= (char) "_"; }  }
 
   //This line will return if the input is very small
   if (length<=2) { return 0; }
