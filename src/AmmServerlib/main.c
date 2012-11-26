@@ -24,9 +24,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "AmmServerlib.h"
 #include "server_threads.h"
 #include "file_caching.h"
-
-
+#include "version.h"
 #include "http_tools.h"
+
+char * AmmServer_Version()
+{
+  return FULLVERSION_STRING;
+}
 
 
 int AmmServer_Stop(struct AmmServer_Instance * instance)
@@ -121,8 +125,9 @@ int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmS
   if ( (context==0)||(request_type==0)||(callback==0) ) { return 0; }
   strncpy( context->requestHeader , request_type , 64 /*limit declared on AmmServerlib.h*/) ;
   context->request=0;
-  // void * request_override_callback;
 
+
+  // void * request_override_callback;
   //TODO add the callback somewhere that makes sense!
 
   return 1;
@@ -256,7 +261,7 @@ int AmmServer_GetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
 {
   switch (set_type)
    {
-     case AMMSET_PASSWORD_PROTECTION : return PASSWORD_PROTECTION; break;
+     case AMMSET_PASSWORD_PROTECTION : return instance->PASSWORD_PROTECTION; break;
    };
   return 0;
 }
@@ -265,7 +270,7 @@ int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
 {
   switch (set_type)
    {
-     case AMMSET_PASSWORD_PROTECTION :  PASSWORD_PROTECTION=set_value; return 1; break;
+     case AMMSET_PASSWORD_PROTECTION :  instance->PASSWORD_PROTECTION=set_value; return 1; break;
    };
   return 0;
 }
@@ -275,8 +280,8 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
 {
   switch (set_type)
    {
-     case AMMSET_USERNAME_STR :    return USERNAME; break;
-     case AMMSET_PASSWORD_STR :    return PASSWORD; break;
+     case AMMSET_USERNAME_STR :    return instance->USERNAME; break;
+     case AMMSET_PASSWORD_STR :    return instance->PASSWORD; break;
    };
   return 0;
 }
@@ -285,8 +290,8 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 {
   switch (set_type)
    {
-     case AMMSET_USERNAME_STR :  AssignStr(&USERNAME,set_value); return SetUsernameAndPassword(USERNAME,PASSWORD); break;
-     case AMMSET_PASSWORD_STR :  AssignStr(&PASSWORD,set_value); return SetUsernameAndPassword(USERNAME,PASSWORD); break;
+     case AMMSET_USERNAME_STR :  AssignStr(&instance->USERNAME,set_value); return SetUsernameAndPassword(instance,instance->USERNAME,instance->PASSWORD); break;
+     case AMMSET_PASSWORD_STR :  AssignStr(&instance->PASSWORD,set_value); return SetUsernameAndPassword(instance,instance->USERNAME,instance->PASSWORD); break;
    };
   return 0;
 }

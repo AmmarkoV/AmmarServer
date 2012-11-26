@@ -221,7 +221,7 @@ void * ServeClient(void * ptr)
    memset(&output,0,sizeof(struct HTTPRequest));
 
 
-   int result = AnalyzeHTTPRequest(&output,incoming_request,total_header,webserver_root);
+   int result = AnalyzeHTTPRequest(instance,&output,incoming_request,total_header,webserver_root);
 
    if (!result)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
@@ -238,7 +238,7 @@ void * ServeClient(void * ptr)
      SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
      close_connection=1;
    } else
-   if ((PASSWORD_PROTECTION)&&(!output.authorized))
+   if ((instance->PASSWORD_PROTECTION)&&(!output.authorized))
    {
      SendAuthorizationHeader(clientsock,"AmmarServer authorization..!","authorization.html");
 
@@ -656,7 +656,7 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
   struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
   struct PreSpawnedThread * prespawned_data=0;
 
-  unsigned int i=0,thread_i=0;
+  unsigned int i=0;
   for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
    {
 
@@ -666,7 +666,7 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
       context.i_adapt = i;
       prespawned_data->busy=0; // We do this here (and not in the PreSpawnedThread ) to make sure a clean state is sure to be initialized , not having race conditions , locks etc...
       int retres = pthread_create(&prespawned_data->thread_id,0,PreSpawnedThread,(void*) &context );
-      if ( retres==0 ) { while (thread_i==i) { usleep(1); } } // <- Keep i value the same for long enough without locks
+      if ( retres==0 ) { while (context.i_adapt==i) { usleep(1); } } // <- Keep i value the same for long enough without locks
    }
 }
 

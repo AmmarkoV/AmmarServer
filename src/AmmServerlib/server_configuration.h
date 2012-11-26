@@ -38,10 +38,6 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 
 #define EPOCH_YEAR_IN_TM_YEAR 1900
 
-extern int PASSWORD_PROTECTION;
-extern char * USERNAME;
-extern char * PASSWORD;
-extern char * BASE64PASSWORD;
 
 extern int CHANGE_PRIORITY;
 
@@ -54,6 +50,13 @@ extern int varSocketTimeoutWRITE_ms;
 extern int MAX_SEPERATE_CACHE_ITEMS;
 extern int MAX_CACHE_SIZE_IN_MB;
 extern int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
+
+extern unsigned char CACHING_ENABLED;
+extern unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED;
+extern int MAX_SEPERATE_CACHE_ITEMS;
+extern int MAX_CACHE_SIZE_IN_MB;
+extern int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
+
 
 
 extern int AccessLogEnable;
@@ -72,6 +75,6 @@ int EmmitPossibleConfigurationWarnings();
 int LoadConfigurationFile(char * conf_file);
 
 int AssignStr(char ** dest , char * source);
-int SetUsernameAndPassword(char * username,char * password);
+int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,char * password);
 
 #endif // CONFIGURATION_H_INCLUDED

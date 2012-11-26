@@ -11,12 +11,6 @@
 #include <zlib.h>
 #endif
 
-unsigned char CACHING_ENABLED=1;
-unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
-unsigned int MAX_TOTAL_ALLOCATION_IN_MB=64;
-unsigned int MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=1;
-unsigned int MAX_CACHE_SIZE=1000;
-
 
 /*
 unsigned long instance->instance->loaded_cache_items_Kbytes=0;
@@ -62,8 +56,8 @@ Needless to say , this is our hash function..!
 
 int WeCanCommitMoreMemoryForCaching(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
 {
-  if (MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
-  if (MAX_TOTAL_ALLOCATION_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_TOTAL_ALLOCATION_IN_MB);  return 0; }
+  if (MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
+  if (MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
   return 1;
 }
 
@@ -313,7 +307,7 @@ int Create_CacheItem(struct AmmServer_Instance * instance,char * resource,unsign
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
-  if (MAX_CACHE_SIZE<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
+  if (MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
   *index=instance->loaded_cache_items++;
 
   cache[*index].filename_hash = hash(resource);
@@ -400,7 +394,7 @@ int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,un
 
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
-  fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) instance->loaded_cache_items_Kbytes/1048576 , MAX_TOTAL_ALLOCATION_IN_MB);
+  fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) instance->loaded_cache_items_Kbytes/1048576 ,  MAX_CACHE_SIZE_IN_MB);
 
   if (!LoadFileFromDisk_For_CacheItem(instance,filename,index))
    {
@@ -553,12 +547,12 @@ int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_sepera
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
-  MAX_TOTAL_ALLOCATION_IN_MB=max_total_allocation_MB;
-  MAX_INDIVIDUAL_CACHE_ENTRY_IN_MB=max_allocation_per_entry_MB;
-  MAX_CACHE_SIZE=max_seperate_items;
+   MAX_CACHE_SIZE_IN_MB=max_total_allocation_MB;
+   MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=max_allocation_per_entry_MB;
+   MAX_SEPERATE_CACHE_ITEMS=max_seperate_items;
   if (cache==0)
    {
-     cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (MAX_CACHE_SIZE+1));
+     cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (MAX_SEPERATE_CACHE_ITEMS+1));
      if (cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
    }
 
@@ -567,7 +561,7 @@ int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_sepera
 
 
    unsigned int i=0;
-   for (i=0; i<MAX_CACHE_SIZE; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
+   for (i=0; i<MAX_SEPERATE_CACHE_ITEMS; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
    return 1;
 }
 

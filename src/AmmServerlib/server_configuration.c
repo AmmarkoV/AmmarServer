@@ -10,10 +10,6 @@
    THERE ARE TWO KIND OF CONFIGURATION OPTIONS , SOME THAT ARE CONSTANT , AND DEFINED IN CONFIGURATION.H
    AND SOME THAT CAN BE MODIFIED ON RUNTIME WHICH YOU CAN SEE HERE..
 */
-int PASSWORD_PROTECTION=0;
-char * USERNAME=0;
-char * PASSWORD=0;
-char * BASE64PASSWORD=0;
 
 char USERNAME_UID_FOR_DAEMON[MAX_FILE_PATH]="www-data";  //one interesting value here is `whoami` since it will input the username of the current user :P
 int  CHANGE_TO_UID=1500; //Non superuser system
@@ -27,11 +23,11 @@ int varSocketTimeoutREAD_ms=10*1000;
 int varSocketTimeoutWRITE_ms=10*1000;
 
 //CACHE
+unsigned char CACHING_ENABLED=1;
+unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
 int MAX_SEPERATE_CACHE_ITEMS = 2000;
 int MAX_CACHE_SIZE_IN_MB = 128;
 int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB = 3;
-
-
 
 
 
@@ -98,7 +94,12 @@ static void ParseConfigString(struct InputParserC * ipc,char * inpt)
         } else
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))      { BINDING_PORT = InputParser_GetWordInt(ipc,1); } else
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASUSER"))   { InputParser_GetWord(ipc,1,USERNAME_UID_FOR_DAEMON,MAX_FILE_PATH); } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IFUSERDOESNTEXISTRUNASUID")) { CHANGE_TO_UID = InputParser_GetWordInt(ipc,1); }
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IFUSERDOESNTEXISTRUNASUID")) { CHANGE_TO_UID = InputParser_GetWordInt(ipc,1); } else
+      //CONFIGURE CACHING BEHAVIOUR
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"CACHING"))                 { CACHING_ENABLED=0; if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON")) { CACHING_ENABLED=1; } } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXCACHESIZE"))            { MAX_CACHE_SIZE_IN_MB = InputParser_GetWordInt(ipc,1); } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXCACHESIZEFOREACHFILE")) {  MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB = InputParser_GetWordInt(ipc,1); } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXSEPERATECACHEITEMS"))   { MAX_SEPERATE_CACHE_ITEMS = InputParser_GetWordInt(ipc,1); }
     }
 }
 
@@ -192,7 +193,7 @@ int AssignStr(char ** dest , char * source)
 }
 
 
-int SetUsernameAndPassword(char * username,char * password)
+int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,char * password)
 {
 
   unsigned int pass_size = 2; // : and \0
@@ -218,8 +219,8 @@ int SetUsernameAndPassword(char * username,char * password)
   int result=encodeToBase64(mixed_string,strlen(mixed_string),base64pass,pass_size*2);
   if (result)
    { fprintf(stderr,"\nUsername and Password %s converted to %s \n",mixed_string,base64pass);
-     AssignStr(&BASE64PASSWORD,base64pass);
-     PASSWORD_PROTECTION=1;
+     AssignStr(&instance->BASE64PASSWORD,base64pass);
+     instance->PASSWORD_PROTECTION=1;
    } else
    { fprintf(stderr,"\nCould not encode Username and Password %s \n",mixed_string); }
 

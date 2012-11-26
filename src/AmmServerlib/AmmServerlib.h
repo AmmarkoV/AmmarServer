@@ -103,6 +103,17 @@ struct AmmServer_RequestOverride_Context
 
 struct AmmServer_Instance
 {
+    //Configuration of instance..
+    //------------------------------------------------
+    //A ) Password protection..
+    int PASSWORD_PROTECTION;
+    char * USERNAME;
+    char * PASSWORD;
+    char * BASE64PASSWORD;
+    //------------------------------------------------
+
+
+
     //Cache Items..
     unsigned long loaded_cache_items_Kbytes;
     unsigned int loaded_cache_items;
@@ -152,6 +163,7 @@ enum AmmServStrSettings
     AMMSET_TESTSTR
 };
 
+char * AmmServer_Version();
 
 struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop(struct AmmServer_Instance * instance);

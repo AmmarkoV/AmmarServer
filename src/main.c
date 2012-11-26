@@ -34,8 +34,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
-char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
-//char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
+//char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
@@ -303,7 +303,13 @@ void termination_handler (int signum)
 
 int main(int argc, char *argv[])
 {
-    printf("Ammar Server starting up\n");
+    printf("Ammar Server %s starting up..\n",AmmServer_Version());
+
+    if (signal(SIGINT, termination_handler) == SIG_ERR)   printf("Cannot handle SIGINT!\n");
+    if (signal(SIGHUP, termination_handler) == SIG_ERR)   printf("Cannot handle SIGHUP!\n");
+    if (signal(SIGTERM, termination_handler) == SIG_ERR)  printf("Cannot handle SIGTERM!\n");
+    if (signal(SIGKILL, termination_handler) == SIG_ERR)  printf("Cannot handle SIGKILL!\n");
+
 
     char bindIP[MAX_INPUT_IP];
     strcpy(bindIP,"0.0.0.0");
@@ -334,10 +340,6 @@ int main(int argc, char *argv[])
 
     if (!default_server) { fprintf(stderr,"Closing everything.."); exit(1); }
 
-    if (signal(SIGINT, termination_handler) == SIG_ERR)   printf("Cannot handle SIGINT!\n");
-    if (signal(SIGHUP, termination_handler) == SIG_ERR)   printf("Cannot handle SIGHUP!\n");
-    if (signal(SIGTERM, termination_handler) == SIG_ERR)  printf("Cannot handle SIGTERM!\n");
-    if (signal(SIGKILL, termination_handler) == SIG_ERR)  printf("Cannot handle SIGKILL!\n");
 
     //If we want password protection ( variable defined in the start of this file ) we will have to set a username and a password
     //and then enable password protection
@@ -349,6 +351,8 @@ int main(int argc, char *argv[])
       /* To avoid the rare race condition of logging only with username and keep a proper state ( i.e. when password hasn't been declared )
          It is best to enable password protection after correctly setting both username and password */
       AmmServer_SetIntSettingValue(default_server,AMMSET_PASSWORD_PROTECTION,1);
+      //fprintf(stderr,"Debug ..  , Username = %s , Password = %s , Base64Representation = %s \n",default_server->USERNAME,default_server->PASSWORD,default_server->BASE64PASSWORD);
+
     }
 
     //Create dynamic content allocations and associate context to the correct files

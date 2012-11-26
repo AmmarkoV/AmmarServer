@@ -207,7 +207,7 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
 }
 
 
-inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int * payload_pos)
+inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int * payload_pos)
 {
 
         unsigned int payload_start = *payload_pos;
@@ -225,15 +225,15 @@ inline int ProcessAuthorizationHTTPLine(struct HTTPRequest * output,char * reque
           char * payload = &request[payload_start];
           fprintf(stderr,"Got an authorization string -> `%s` \n",payload);
           //fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,BASE64PASSWORD);
-          if (strcmp(BASE64PASSWORD,payload)==0) { output->authorized=1; } else
-                                                 { output->authorized=0; }
+          if (strcmp(instance->BASE64PASSWORD,payload)==0) { output->authorized=1; } else
+                                                           { output->authorized=0; }
          }
     return 1;
 }
 
 
 
-int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
+int AnalyzeHTTPLineRequest(struct AmmServer_Instance * instance,struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int lines_gathered, char * webserver_root)
 {
   /*
       This call fills in the output variable according to the line data held in the request string..!
@@ -249,11 +249,11 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
    {
      unsigned int payload_start = 0;
 
-     if ((PASSWORD_PROTECTION)&&(BASE64PASSWORD!=0))
+     if ((instance->PASSWORD_PROTECTION)&&(instance->BASE64PASSWORD!=0))
        { //Consider password protection header sections..!
         if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
            {
-             return ProcessAuthorizationHTTPLine(output,request,request_length,&payload_start);
+             return ProcessAuthorizationHTTPLine(instance,output,request,request_length,&payload_start);
            }
        }
 
@@ -370,7 +370,7 @@ int AnalyzeHTTPLineRequest(struct HTTPRequest * output,char * request,unsigned i
   return 1;
 }
 
-int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root)
+int AnalyzeHTTPRequest(struct AmmServer_Instance * instance,struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root)
 {
   /*
       This call fills in the output variable according by subsequent calls to the AnalyzeHTTPLineRequest function
@@ -393,7 +393,7 @@ int AnalyzeHTTPRequest(struct HTTPRequest * output,char * request,unsigned int r
 
         //We've got ourselves a new line!
         ++lines_gathered;
-        AnalyzeHTTPLineRequest(output,line,strlen(line),lines_gathered,webserver_root);
+        AnalyzeHTTPLineRequest(instance,output,line,strlen(line),lines_gathered,webserver_root);
         line[0]=0; //line is "cleared" :P
         chars_gathered=0;
       }
