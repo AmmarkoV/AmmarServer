@@ -238,7 +238,7 @@ void * ServeClient(void * ptr)
      SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
      close_connection=1;
    } else
-   if ((instance->PASSWORD_PROTECTION)&&(!output.authorized))
+   if ((instance->settings.PASSWORD_PROTECTION)&&(!output.authorized))
    {
      SendAuthorizationHeader(clientsock,"AmmarServer authorization..!","authorization.html");
 

@@ -7,17 +7,16 @@
 
 
 /*
-   THERE ARE TWO KIND OF CONFIGURATION OPTIONS , SOME THAT ARE CONSTANT , AND DEFINED IN CONFIGURATION.H
-   AND SOME THAT CAN BE MODIFIED ON RUNTIME WHICH YOU CAN SEE HERE..
+   THERE ARE THREE KIND OF CONFIGURATION OPTIONS ,
+      A ) SOME THAT ARE CONSTANT , AND DEFINED IN CONFIGURATION.H
+      B ) SOME THAT ARE COMMON FOR ALL INSTANCES , AND CAN BE MODIFIED ON RUNTIME , YOU CAN SEE THEM UNDER HERE..
+      C ) SOME THAT ARE INSTANCE SPECIFIC , AND THEY ARE DECLARED IN  AmmServerlib.h INSIDE struct AmmServer_Instance_Settings  ..
 */
 
 char USERNAME_UID_FOR_DAEMON[MAX_FILE_PATH]="www-data";  //one interesting value here is `whoami` since it will input the username of the current user :P
 int  CHANGE_TO_UID=1500; //Non superuser system
 
-int CHANGE_PRIORITY=-10;
-
-
-int BINDING_PORT = 8080;
+signed int CHANGE_PRIORITY=0;
 
 int varSocketTimeoutREAD_ms=10*1000;
 int varSocketTimeoutWRITE_ms=10*1000;
@@ -76,7 +75,7 @@ int EmmitPossibleConfigurationWarnings()
 
 
 /*! MAJOR TODO :P , so that we can parse the configuration file.. !*/
-static void ParseConfigString(struct InputParserC * ipc,char * inpt)
+static void ParseConfigString(struct AmmServer_Instance * instance,struct InputParserC * ipc,char * inpt)
 {
   unsigned int words_count = InputParser_SeperateWords(ipc,inpt,0);
   if ( words_count > 0 )
@@ -92,8 +91,9 @@ static void ParseConfigString(struct InputParserC * ipc,char * inpt)
              int keepalive_value = 0;
              if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON")) { keepalive_value =1; }
         } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))      { BINDING_PORT = InputParser_GetWordInt(ipc,1); } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASUSER"))   { InputParser_GetWord(ipc,1,USERNAME_UID_FOR_DAEMON,MAX_FILE_PATH); } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))      { instance->settings.BINDING_PORT = InputParser_GetWordInt(ipc,1); } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASPRIORITY"))   { CHANGE_PRIORITY  = InputParser_GetWordInt(ipc,1); } else
+      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASUSER"))       { InputParser_GetWord(ipc,1,USERNAME_UID_FOR_DAEMON,MAX_FILE_PATH); } else
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IFUSERDOESNTEXISTRUNASUID")) { CHANGE_TO_UID = InputParser_GetWordInt(ipc,1); } else
       //CONFIGURE CACHING BEHAVIOUR
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"CACHING"))                 { CACHING_ENABLED=0; if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON")) { CACHING_ENABLED=1; } } else
@@ -104,7 +104,7 @@ static void ParseConfigString(struct InputParserC * ipc,char * inpt)
 }
 
 
-int LoadConfigurationFile(char * conf_file)
+int LoadConfigurationFile(struct AmmServer_Instance * instance,char * conf_file)
 {
   char line[MAX_CONFIGURATION_FILE_LINE_SIZE]={0};
   FILE * pFile;
@@ -136,12 +136,12 @@ int LoadConfigurationFile(char * conf_file)
              {
                fprintf(stderr,"Oveflow while loading configuration file \n");
                line[MAX_CONFIGURATION_FILE_LINE_SIZE-1]=0;
-               ParseConfigString(ipc,line);
+               ParseConfigString(instance,ipc,line);
                line_length=0;
              } else
           if (c == '\n')
             {
-              ParseConfigString(ipc,line);
+              ParseConfigString(instance,ipc,line);
               line_length=0;
             }
           else
@@ -219,8 +219,8 @@ int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,
   int result=encodeToBase64(mixed_string,strlen(mixed_string),base64pass,pass_size*2);
   if (result)
    { fprintf(stderr,"\nUsername and Password %s converted to %s \n",mixed_string,base64pass);
-     AssignStr(&instance->BASE64PASSWORD,base64pass);
-     instance->PASSWORD_PROTECTION=1;
+     AssignStr(&instance->settings.BASE64PASSWORD,base64pass);
+     instance->settings.PASSWORD_PROTECTION=1;
    } else
    { fprintf(stderr,"\nCould not encode Username and Password %s \n",mixed_string); }
 

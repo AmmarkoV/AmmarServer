@@ -77,12 +77,11 @@ struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * c
 
 
 
-  //These are the initial values provided by the server interface..
-  //LoadConfigurationFile may change them if configuration files are enablaed / exist etc..
-  BINDING_PORT = port;
-
   //LoadConfigurationFile happens before dropping root id so we are more sure that we will manage to read the configuration file..
-  LoadConfigurationFile(conf_file);
+  LoadConfigurationFile(instance,conf_file);
+
+  //LoadConfigurationFile may set a binding port but if the parent call set a nonzero a port setting here it overrides configuration file....
+  if (port!=0) { instance->settings.BINDING_PORT = port; }
 
   //This line explains configuration conflicts in a user understandable manner :p
   EmmitPossibleConfigurationWarnings();
@@ -96,7 +95,7 @@ struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * c
                    MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB    /*MB Max Size of Individual File*/
                   );
 
-   if (StartHTTPServer(instance,ip,BINDING_PORT,web_root_path,templates_root_path))
+   if (StartHTTPServer(instance,ip,instance->settings.BINDING_PORT,web_root_path,templates_root_path))
       {
           //All is well , we return a valid instance
           return instance;
@@ -261,7 +260,7 @@ int AmmServer_GetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
 {
   switch (set_type)
    {
-     case AMMSET_PASSWORD_PROTECTION : return instance->PASSWORD_PROTECTION; break;
+     case AMMSET_PASSWORD_PROTECTION : return instance->settings.PASSWORD_PROTECTION; break;
    };
   return 0;
 }
@@ -270,7 +269,7 @@ int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
 {
   switch (set_type)
    {
-     case AMMSET_PASSWORD_PROTECTION :  instance->PASSWORD_PROTECTION=set_value; return 1; break;
+     case AMMSET_PASSWORD_PROTECTION :  instance->settings.PASSWORD_PROTECTION=set_value; return 1; break;
    };
   return 0;
 }
@@ -280,8 +279,8 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
 {
   switch (set_type)
    {
-     case AMMSET_USERNAME_STR :    return instance->USERNAME; break;
-     case AMMSET_PASSWORD_STR :    return instance->PASSWORD; break;
+     case AMMSET_USERNAME_STR :    return instance->settings.USERNAME; break;
+     case AMMSET_PASSWORD_STR :    return instance->settings.PASSWORD; break;
    };
   return 0;
 }
@@ -290,8 +289,8 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 {
   switch (set_type)
    {
-     case AMMSET_USERNAME_STR :  AssignStr(&instance->USERNAME,set_value); return SetUsernameAndPassword(instance,instance->USERNAME,instance->PASSWORD); break;
-     case AMMSET_PASSWORD_STR :  AssignStr(&instance->PASSWORD,set_value); return SetUsernameAndPassword(instance,instance->USERNAME,instance->PASSWORD); break;
+     case AMMSET_USERNAME_STR :  AssignStr(&instance->settings.USERNAME,set_value); return SetUsernameAndPassword(instance,instance->settings.USERNAME,instance->settings.PASSWORD); break;
+     case AMMSET_PASSWORD_STR :  AssignStr(&instance->settings.PASSWORD,set_value); return SetUsernameAndPassword(instance,instance->settings.USERNAME,instance->settings.PASSWORD); break;
    };
   return 0;
 }

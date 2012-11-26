@@ -99,9 +99,7 @@ struct AmmServer_RequestOverride_Context
 };
 
 
-
-
-struct AmmServer_Instance
+struct AmmServer_Instance_Settings
 {
     //Configuration of instance..
     //------------------------------------------------
@@ -112,6 +110,14 @@ struct AmmServer_Instance
     char * BASE64PASSWORD;
     //------------------------------------------------
 
+    int BINDING_PORT;
+};
+
+
+
+struct AmmServer_Instance
+{
+    struct AmmServer_Instance_Settings settings;
 
 
     //Cache Items..

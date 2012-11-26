@@ -41,16 +41,10 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 
 extern int CHANGE_PRIORITY;
 
-extern int BINDING_PORT;
-
 extern int varSocketTimeoutREAD_ms;
 extern int varSocketTimeoutWRITE_ms;
 
 // ----------------- CACHE OPTIONS -----------------
-extern int MAX_SEPERATE_CACHE_ITEMS;
-extern int MAX_CACHE_SIZE_IN_MB;
-extern int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
-
 extern unsigned char CACHING_ENABLED;
 extern unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED;
 extern int MAX_SEPERATE_CACHE_ITEMS;
@@ -58,11 +52,10 @@ extern int MAX_CACHE_SIZE_IN_MB;
 extern int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
 
 
-
-extern int AccessLogEnable;
+extern int  AccessLogEnable;
 extern char AccessLog[MAX_FILE_PATH];
 
-extern int ErrorLogEnable;
+extern int  ErrorLogEnable;
 extern char ErrorLog[MAX_FILE_PATH];
 
 
@@ -72,7 +65,7 @@ extern char TemplatesInternalURI[MAX_RESOURCE];
 
 int EmmitPossibleConfigurationWarnings();
 
-int LoadConfigurationFile(char * conf_file);
+int LoadConfigurationFile(struct AmmServer_Instance * instance,char * conf_file);
 
 int AssignStr(char ** dest , char * source);
 int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,char * password);

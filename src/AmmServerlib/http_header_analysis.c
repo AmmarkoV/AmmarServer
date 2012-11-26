@@ -225,8 +225,8 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
           char * payload = &request[payload_start];
           fprintf(stderr,"Got an authorization string -> `%s` \n",payload);
           //fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,BASE64PASSWORD);
-          if (strcmp(instance->BASE64PASSWORD,payload)==0) { output->authorized=1; } else
-                                                           { output->authorized=0; }
+          if (strcmp(instance->settings.BASE64PASSWORD,payload)==0) { output->authorized=1; } else
+                                                                      { output->authorized=0; }
          }
     return 1;
 }
@@ -249,7 +249,7 @@ int AnalyzeHTTPLineRequest(struct AmmServer_Instance * instance,struct HTTPReque
    {
      unsigned int payload_start = 0;
 
-     if ((instance->PASSWORD_PROTECTION)&&(instance->BASE64PASSWORD!=0))
+     if ((instance->settings.PASSWORD_PROTECTION)&&(instance->settings.BASE64PASSWORD!=0))
        { //Consider password protection header sections..!
         if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
            {
