@@ -34,7 +34,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+#define ADMIN_BINDING_PORT 8082
+#define ENABLE_ADMIN_PAGE 0
+
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented out or removed in stable release..
+char admin_root[MAX_FILE_PATH]="admin_html/"; // <- change this to the directory that contains your content if you dont want to use the default admin_html dir..
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
@@ -62,6 +66,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
+struct AmmServer_Instance  * admin_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context stats={0};
@@ -338,6 +343,19 @@ int main(int argc, char *argv[])
            templates_root
          );
 
+    if (ENABLE_ADMIN_PAGE)
+     {
+      admin_server = AmmServer_Start
+        (
+           bindIP,
+           ADMIN_BINDING_PORT,
+           0, /*This means we don't want a specific configuration file*/
+           admin_root,
+           templates_root
+         );
+       if (!admin_server) { fprintf(stderr,"Could not create admin server carying on though...");  }
+     }
+
     if (!default_server) { fprintf(stderr,"Closing everything.."); exit(1); }
 
 
@@ -352,14 +370,20 @@ int main(int argc, char *argv[])
          It is best to enable password protection after correctly setting both username and password */
       AmmServer_SetIntSettingValue(default_server,AMMSET_PASSWORD_PROTECTION,1);
       //fprintf(stderr,"Debug ..  , Username = %s , Password = %s , Base64Representation = %s \n",default_server->USERNAME,default_server->PASSWORD,default_server->BASE64PASSWORD);
-
     }
+
+    if (ENABLE_ADMIN_PAGE)
+     {
+      AmmServer_SetStrSettingValue(admin_server,AMMSET_USERNAME_STR,"admin");
+      AmmServer_SetStrSettingValue(admin_server,AMMSET_PASSWORD_STR,"admin");
+      AmmServer_SetIntSettingValue(admin_server,AMMSET_PASSWORD_PROTECTION,1);
+     }
 
     //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
 
-         while (AmmServer_Running(default_server))
+         while ( (AmmServer_Running(default_server)) && (AmmServer_Running(admin_server))  )
            {
              //Main thread should just sleep and let the background threads do the hard work..!
              //In other applications the programmer could use the main thread to do anything he likes..
@@ -373,6 +397,8 @@ int main(int argc, char *argv[])
 
     //Stop the server and clean state
     AmmServer_Stop(default_server);
+    //Stop the server and clean state
+    AmmServer_Stop(admin_server);
 
     return 0;
 }
