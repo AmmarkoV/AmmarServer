@@ -545,23 +545,24 @@ unsigned int GetHashForCacheItem(struct AmmServer_Instance * instance,unsigned i
 
 int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
 {
-  struct cache_item * cache = (struct cache_item *) instance->cache;
-
    MAX_CACHE_SIZE_IN_MB=max_total_allocation_MB;
    MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=max_allocation_per_entry_MB;
    MAX_SEPERATE_CACHE_ITEMS=max_seperate_items;
-  if (cache==0)
+  if (instance->cache==0)
    {
-     cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (MAX_SEPERATE_CACHE_ITEMS+1));
-     if (cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
+     instance->cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (MAX_SEPERATE_CACHE_ITEMS+1));
+     if (instance->cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
    }
 
-
-//  InitializeVariableCache(max_seperate_variables, max_total_var_allocation_MB , max_var_allocation_per_entry_MB);
-
-
    unsigned int i=0;
-   for (i=0; i<MAX_SEPERATE_CACHE_ITEMS; i++) { cache[i].mem=0; cache[i].filesize=0; cache[i].prepare_mem_callback=0; }
+   struct cache_item * cache = (struct cache_item *) instance->cache; /* In order to clear specific items we cast void structure to struct cache_item */
+   for (i=0; i<MAX_SEPERATE_CACHE_ITEMS; i++)
+       {
+         cache[i].mem=0;
+         cache[i].filesize=0;
+         cache[i].prepare_mem_callback=0;
+        }
+
    return 1;
 }
 
