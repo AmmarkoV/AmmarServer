@@ -345,13 +345,10 @@ int main(int argc, char *argv[])
 
     if (ENABLE_ADMIN_PAGE)
      {
-      admin_server = AmmServer_Start
+      admin_server = AmmServer_StartAdminInstance
         (
            bindIP,
-           ADMIN_BINDING_PORT,
-           0, /*This means we don't want a specific configuration file*/
-           admin_root,
-           templates_root
+           ADMIN_BINDING_PORT
          );
        if (!admin_server) { fprintf(stderr,"Could not create admin server carying on though...");  }
      }
@@ -397,8 +394,6 @@ int main(int argc, char *argv[])
 
     //Stop the server and clean state
     AmmServer_Stop(default_server);
-    //Stop the server and clean state
-    AmmServer_Stop(admin_server);
 
     return 0;
 }

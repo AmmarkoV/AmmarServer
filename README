@@ -1,4 +1,38 @@
 A lightweight extendable barebones HTTP server for linux
+Please see the wiki for more info on whats going on in this repository : )
+https://github.com/AmmarkoV/AmmarServer/wiki
+
 -------------------------------------------------------------------------------------------------
 
-Also Used in V4L2ToHTTP : https://github.com/AmmarkoV/V4L2ToHTTP/
+The projects build dependencies are the gcc compiler , pthreads and pretty basic things 
+so if you issue sudo apt-get install build-essential  ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
+
+To perform a compilation you just need to issue 
+./make from the root directory
+it is a bash script that will start making evertyhing 
+
+To update your version of the project you can use the provided script that updates directly from github
+It will remove any changes you have made to any of the files in the repository   
+./update_from_git from the root directory 
+
+-------------------------------------------------------------------------------------------------
+
+This Repository contains :
+
+-  The AmmarServer library with which you can build your own highly optimized 
+and fully customizable web service..
+
+-  A simple (but extensible) webserver demo
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c
+   You can run it by issuing ./run_ammarserver from root directory 
+
+-  A URL Shortner service like tinyurl , bitly etc..
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/MyURL/main.c
+   You can run it by issuing ./run_myurl from root directory 
+
+-------------------------------------------------------------------------------------------------
+
+
+AmmarServer is also Used in :
+V4L2ToHTTP : https://github.com/AmmarkoV/V4L2ToHTTP/
+RoboVision    : https://github.com/AmmarkoV/RoboVision/

@@ -200,6 +200,7 @@ int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * res
 char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type);
 int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,char * set_value);
 
+struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int port);
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 

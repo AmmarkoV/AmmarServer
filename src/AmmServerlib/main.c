@@ -296,6 +296,12 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 }
 
 
+struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int port)
+{
+  return 0;
+}
+
+
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 {

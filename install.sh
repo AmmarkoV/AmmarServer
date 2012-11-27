@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "System Installation is deactivated.. I havent decided on where to put content yet.."
+exit 0
+
 echo "Installing AmmarServer into system"
 sudo echo " "
 
@@ -15,13 +18,12 @@ BINARY="ammarserver"
   fi
  
    
-  if [ -e /srv/httptemplates/404.html ]
+  if [ -e /var/www/index.html ]
   then
-    echo "There seems to already be template content in this host skipping copy"
+    echo "There seems to already be www content in this host skipping copy"
   else
     echo "TODO : Copying templates web page..!"
-    sudo cp /robot/permfs/www/guarddog.jpg  /srv/http/guarddog.jpg
-    sudo cp /robot/permfs/www/StaticPlaceholderPage.html  /srv/http/index.html
+    sudo cp public_html/* /var/www/
    fi
    
 exit 0
