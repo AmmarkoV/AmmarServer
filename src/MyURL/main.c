@@ -268,10 +268,10 @@ void * serve_goto_url_page(char * content)
 //This function adds a Resource Handler for the pages and their callback functions
 void init_dynamic_content()
 {
-  if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page) ) { fprintf(stderr,"Failed adding create page\n"); }
+  if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding create page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&create_url);
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+  if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { fprintf(stderr,"Failed adding form testing page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&goto_url);
 }
 

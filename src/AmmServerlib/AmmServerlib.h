@@ -68,8 +68,19 @@ struct HTTPRequest
 
 
 
+enum RHScenarios
+{
+   SAME_PAGE_FOR_ALL_CLIENTS = 0 ,
+   DIFFERENT_PAGE_FOR_EACH_CLIENT
+};
+
+
 struct AmmServer_RH_Context
 {
+
+   unsigned int RH_Scenario;
+
+
    unsigned long MAX_content_size;
    unsigned long content_size;
 
@@ -178,7 +189,7 @@ int AmmServer_Running(struct AmmServer_Instance * instance);
 
 int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * context,char * request_type,void * callback);
 
-int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback);
+int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback,unsigned int scenario);
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem);
 
 int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_type);

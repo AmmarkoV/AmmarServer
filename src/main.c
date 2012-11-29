@@ -261,15 +261,15 @@ void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback) )
+  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { fprintf(stderr,"Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback) )
+  if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { fprintf(stderr,"Failed adding form testing page\n"); }
 
   if (ENABLE_CHAT_BOX)
   {
-   if (!AmmServer_AddResourceHandler(default_server,&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback) )
+   if (!AmmServer_AddResourceHandler(default_server,&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
       { fprintf(stderr,"Failed adding chatbox page\n"); }
 
      char chatlog_path[MAX_FILE_PATH]={0};

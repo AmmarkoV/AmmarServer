@@ -639,6 +639,8 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
 
        if (Find_CacheItem(instance,verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
         {
+           //Initially we would like to work with the memory block allocated when the dynamic call
+           //was first registered..
            char * cache_memory = cache[*index].mem;
 
            //if doNOTCache is set and this is a real file..
@@ -657,7 +659,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
               {
                 //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
                 //So we bail out and emmit an error message..!
-                if ( (cache[*index].mem==0) || (cache[*index].filesize==0) )
+                if ( (cache_memory==0) || (cache[*index].filesize==0) )
                 {
                   fprintf(stderr,"Not going to call callback function with an empty buffer..!\n");
                 } else
@@ -677,12 +679,24 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                             *compression_supported=0;
                             shared_context->callback_cooldown=1;
                             *filesize=*cache[*index].filesize;
-                            return cache[*index].mem;
+                            return cache_memory;
                           } else
                           {
                            fprintf(stderr,"Request deserves fresh page , %u last gen, %u now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
                           }
                    }
+
+
+                   //Before doing callback we might want to allocate a different response space dedicated to this callback instead to using
+                   //one common memory buffer for every client...!
+                   if (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT)
+                      {
+                          cache_memory = (char *) malloc(sizeof(char) * *cache[*index].filesize );
+                          if (cache_memory!=0) { free_after_use=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
+                                               { cache_memory=cache[*index].mem; } //Lets work with our default buffer till the end..!
+                       }
+
+
 
                    /*Do callback here*/
                    shared_context->callback_cooldown=0;
@@ -701,7 +715,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                                                          { shared_context->POST_request_length = 0; }
 
                    //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
-                   DoCallback(cache[*index].mem);
+                   DoCallback(cache_memory);
                   //This means we can call the callback to prepare the memory content..! END
                    CreateCompressedVersionofDynamicContent(instance,*index);
                 }
@@ -720,14 +734,14 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
              return cache[*index].compressed_mem;
            }
                else
-           if (cache[*index].mem!=0)
+           if (cache_memory!=0)
            {
              *compression_supported=0; // The response is not compressed..!
 
              *filesize=*cache[*index].filesize;
              fprintf(stderr,"Cache Serving back a buffer sized %u bytes\n",*filesize);
 
-             return cache[*index].mem;
+             return cache_memory;
            }
 
           /*We want to serve a cached version of the file END*/
@@ -739,7 +753,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
             {
               *compression_supported=0;
               *filesize=*cache[*index].filesize; //We return the filesize after the operation..
-              return cache[*index].mem;
+              return cache[*index].mem; //because cache_memory hasn't been declared here..
             }
         }
        //If we are here we are unlocky , our file wasn't in cache and to make things worse we also failed to load it so
