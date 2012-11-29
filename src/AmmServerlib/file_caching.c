@@ -689,7 +689,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
 
                    //Before doing callback we might want to allocate a different response space dedicated to this callback instead to using
                    //one common memory buffer for every client...!
-                   if (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT)
+                   if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) && (ENABLE_SEPERATE_MALLOC_FOR_CHANGING_DYNAMIC_PAGES) )
                       {
                           cache_memory = (char *) malloc(sizeof(char) * *cache[*index].filesize );
                           if (cache_memory!=0) { free_after_use=1; } else //Allocation was successfull , we would like parent procedure to free it after use..

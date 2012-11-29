@@ -38,7 +38,7 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 
 #define EPOCH_YEAR_IN_TM_YEAR 1900
 
-
+#define ENABLE_SEPERATE_MALLOC_FOR_CHANGING_DYNAMIC_PAGES 0
 
 extern int CHANGE_PRIORITY;
 
