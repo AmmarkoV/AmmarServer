@@ -73,6 +73,7 @@ void * HTTPServerThread (void * ptr);
 
 int HTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
+  if (instance==0) { return 0; } //We can't be running not even the instance is allocated..
   return instance->server_running;
 }
 
@@ -601,6 +602,7 @@ void * PreSpawnedThread(void * ptr)
   incoming_context->i_adapt = MAX_CLIENT_PRESPAWNED_THREADS+1; // <-- This signals we got the i value..
 
 
+  if (instance==0) { fprintf(stderr,"Prespawned thread did not receive a valid instance context\n"); return 0; }
   //We will also spawn our own threads so lets prepare their variables..
   struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
   memset(&context,0,sizeof(struct PassToHTTPThread)); // We clear it out

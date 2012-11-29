@@ -350,7 +350,8 @@ unsigned long SendFile
   unsigned int index=0;
   unsigned long cached_lSize=0;
   unsigned char cached_buffer_is_compressed = compression_supported;
-  char * cached_buffer = CheckForCachedVersionOfThePage(instance,request,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed);
+  unsigned char free_cached_buffer_after_use=0;
+  char * cached_buffer = CheckForCachedVersionOfThePage(instance,request,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use);
 
   if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
@@ -410,7 +411,7 @@ unsigned long SendFile
 
    if ( WeWantA200OK )
    {
-       if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+       if (! SendSuccessCodeHeader(clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); FreeCachedMemoryAllocation(cached_buffer,free_cached_buffer_after_use); return 0; }
 
        /* TODO : TEMPORARILY DISABLED LAST-MODIFIED :P
        if (stat(verified_filename, &last_modified))  { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
@@ -426,7 +427,7 @@ unsigned long SendFile
        //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
        GetDateString(reply_header,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
        opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-       if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); return 0; }
+       if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); FreeCachedMemoryAllocation(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
                  //This used to also emmit --> Keep-Alive: timeout=5, max=100\n <--
                  /* RedBot says ( http://redbot.org/?uri=http%3A%2F%2Fammar.gr%3A8080%2F ) ..!
@@ -453,7 +454,7 @@ if (!header_only)
      {
         sprintf(reply_header,"ETag: \"%u\"\n",cache_etag);
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
-        if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); return 0; }
+        if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); FreeCachedMemoryAllocation(cached_buffer,free_cached_buffer_after_use); return 0; }
 
      }
 
@@ -464,17 +465,17 @@ if (!header_only)
      {
         strcpy(reply_header,"Content-Encoding: deflate\n");
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
-        if (opres<=0) { fprintf(stderr,"Error sending Compression header \n"); return 0; }
+        if (opres<=0) { fprintf(stderr,"Error sending Compression header \n"); FreeCachedMemoryAllocation(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
 
 
      //This is the last header part , so we are appending an extra \n to mark the end of the header
      sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-     if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); return 0; }
+     if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); FreeCachedMemoryAllocation(cached_buffer,free_cached_buffer_after_use); return 0; }
 
      opres=send(clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-
+     FreeCachedMemoryAllocation(cached_buffer,free_cached_buffer_after_use);
 
      if (opres<=0) { fprintf(stderr,"Error sending cached body\n"); return 0; }
      return 1;

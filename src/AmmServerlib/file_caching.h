@@ -41,7 +41,9 @@ struct cache_item
 
 
 int CachedVersionExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index);
-char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported);
+
+int FreeCachedMemoryAllocation(char * mem,unsigned char free_is_needed);
+char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported,unsigned char * free_after_use);
 
 int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification);
 int AddDirectResource_As_CacheItem(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context);

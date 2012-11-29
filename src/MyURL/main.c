@@ -198,25 +198,25 @@ char * Get_LongURL(char * ShortURL)
 */
 
 //This function prepares the content of  the url creator context
-void * serve_create_url_page(unsigned int associated_vars)
+void * serve_create_url_page(char * content)
 {
-  memset(create_url.content,0,4096);
+  memset(content,0,4096);
 
-  strcpy(create_url.content,"<html><head><title>Welcome to MyURL</title></head><body><br><br><br><br><br><br><br><br><br><br><center><table border=5><tr><td><center><br><h2>Welcome to MyURL(<blink>Alpha</blink>)</h2><br>");
+  strcpy(content,"<html><head><title>Welcome to MyURL</title></head><body><br><br><br><br><br><br><br><br><br><br><center><table border=5><tr><td><center><br><h2>Welcome to MyURL(<blink>Alpha</blink>)</h2><br>");
 
-  strcat(create_url.content,"&nbsp;&nbsp;&nbsp;<form name=\"input\" action=\"go\" method=\"get\"> Long URL : <input type=\"text\" name=\"url\" /> Name: <input type=\"text\" name=\"to\"/>&nbsp;<input type=\"submit\" value=\"Submit\" /></form>&nbsp;&nbsp;&nbsp;");
+  strcat(content,"&nbsp;&nbsp;&nbsp;<form name=\"input\" action=\"go\" method=\"get\"> Long URL : <input type=\"text\" name=\"url\" /> Name: <input type=\"text\" name=\"to\"/>&nbsp;<input type=\"submit\" value=\"Submit\" /></form>&nbsp;&nbsp;&nbsp;");
 
-  strcat(create_url.content,"</center><br><br></td></tr></table></center></body></html>");
-  create_url.content_size=strlen(create_url.content);
+  strcat(content,"</center><br><br></td></tr></table></center></body></html>");
+  create_url.content_size=strlen(content);
   return 0;
 }
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * serve_goto_url_page(unsigned int associated_vars)
+void * serve_goto_url_page(char * content)
 {
   //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
-  memset(goto_url.content,0,4096);
+  memset(content,0,4096);
 
   if  ( goto_url.GET_request != 0 )
     {
@@ -230,29 +230,29 @@ void * serve_goto_url_page(unsigned int associated_vars)
                   //Assigning a (short)to to a (long)url
                   if ( (is_an_unsafe_str(to,strlen(to))) || (is_an_unsafe_str(url,strlen(url)) ) ) //There should be an internal length of the get argument instead of strlen!
                     {
-                      sprintf(goto_url.content,"<html><body>Bad Strings provided..</body></html>");
+                      sprintf(content,"<html><body>Bad Strings provided..</body></html>");
                     } else
                     {
                       Add_MyURL(url,to,1 /*We want to save it to disk..!*/);
-                      sprintf(goto_url.content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready <a target=\"_new\" href=\"%s?to=%s\">%s?to=%s</a><br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root,to,service_root,to);
+                      sprintf(content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready <a target=\"_new\" href=\"%s?to=%s\">%s?to=%s</a><br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root,to,service_root,to);
                     }
                   } else
                 {
                  //No Point in a url without a to , here we could probably generate a random to !
-                 strcpy(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Error creating a new url</h2></body></html>");
+                 strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Error creating a new url</h2></body></html>");
                 }
              } else
          //If only to is set it means we have ourselves somewhere to go to!
          if ( _GET(myurl_server,&goto_url,"to",to,MAX_TO_SIZE) )
              {
-                sprintf(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_LongURL(to));
+                sprintf(content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_LongURL(to));
              }
     } else
     {
-      strcpy(goto_url.content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to go to .. </body></html>");
+      strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to go to .. </body></html>");
     }
 
-  goto_url.content_size=strlen(goto_url.content);
+  goto_url.content_size=strlen(content);
   return 0;
 }
 

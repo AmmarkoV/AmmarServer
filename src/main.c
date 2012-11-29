@@ -99,13 +99,13 @@ unsigned int StringIsHTMLSafe(char * str)
 
 
 
-void * prepare_chatbox_content_callback(unsigned int associated_vars)
+void * prepare_chatbox_content_callback(char * content)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(chatbox.content,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=700 height=500>This Browser does not support frames</iframe><br><hr><br>");
+  sprintf(content,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=700 height=500>This Browser does not support frames</iframe><br><hr><br>");
 
 
   char chatlog_path[MAX_FILE_PATH]={0};
@@ -135,10 +135,10 @@ void * prepare_chatbox_content_callback(unsigned int associated_vars)
                     fprintf(chatlog,"%s : %s <br>",username,comment);
                     fclose(chatlog);
 
-                    strcat(chatbox.content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
-                    strcat(chatbox.content,"  Username: <input type=\"text\" name=\"user\" readonly=\"readonly\" value =\"");
-                    strcat(chatbox.content,username);
-                    strcat(chatbox.content,"\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
+                    strcat(content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
+                    strcat(content,"  Username: <input type=\"text\" name=\"user\" readonly=\"readonly\" value =\"");
+                    strcat(content,username);
+                    strcat(content,"\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
                     default_post_form=0;
                   }
                }
@@ -152,63 +152,60 @@ void * prepare_chatbox_content_callback(unsigned int associated_vars)
 
   if (default_post_form)
     {
-      strcat(chatbox.content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
-      strcat(chatbox.content,"Username: <input type=\"text\" name=\"user\" />");
-      strcat(chatbox.content,"Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
+      strcat(content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
+      strcat(content,"Username: <input type=\"text\" name=\"user\" />");
+      strcat(content,"Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
      }
 
-  strcat(chatbox.content,"</center></body></html>");
-  chatbox.content_size=strlen(chatbox.content);
+  strcat(content,"</center></body></html>");
+  chatbox.content_size=strlen(content);
   return 0;
 }
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(unsigned int associated_vars)
+void * prepare_stats_content_callback(char * content)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
-  fprintf(stderr,"Associated Var with stats callback is %u \n",associated_vars);
-
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(stats.content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
+  sprintf(content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
                     tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-  strcat(stats.content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
-  strcat(stats.content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
-  strcat(stats.content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
-  strcat(stats.content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
-  stats.content_size=strlen(stats.content);
+  strcat(content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
+  strcat(content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
+  strcat(content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
+  strcat(content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
+  stats.content_size=strlen(content);
   return 0;
 }
 
 
 
-//This function prepares the content of  form context , ( form.content )
-void * prepare_form_content_callback(unsigned int associated_vars)
+//This function prepares the content of  form context , ( content )
+void * prepare_form_content_callback(char * content)
 {
 
-  strcpy(form.content,"<html><body>");
-  strcat(form.content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Submit\" /></form>");
-  strcat(form.content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
-  strcat(form.content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car &nbsp; ");
-  strcat(form.content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form><br><br><br>");
+  strcpy(content,"<html><body>");
+  strcat(content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Submit\" /></form>");
+  strcat(content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
+  strcat(content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car &nbsp; ");
+  strcat(content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form><br><br><br>");
 
 
-  fprintf(stderr,"Associated Var with form callback is %u \n",associated_vars);
 
    if ( form.POST_request != 0 )
     {
       if ( strlen(form.POST_request)>0 )
        {
-         strcat(form.content,"<hr>POST REQUEST dynamically added here : <br><i>"); strcat(form.content, form.POST_request); strcat(form.content,"</i><hr>");
+         strcat(content,"<hr>POST REQUEST dynamically added here : <br><i>"); strcat(content, form.POST_request); strcat(content,"</i><hr>");
 
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
             if ( _POST(default_server,&form,"user",username,256) )
              {
-               strcat(form.content,"GOT A POST USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
+               strcat(content,"GOT A POST USERNAME !!!  : "); strcat(content,username); strcat(content," ! ! <br>");
              }
             free(username);
           }
@@ -220,14 +217,14 @@ void * prepare_form_content_callback(unsigned int associated_vars)
     {
       if ( strlen(form.GET_request)>0 )
        {
-         strcat(form.content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(form.content, form.GET_request ); strcat(form.content,"</i><hr>");
+         strcat(content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(content, form.GET_request ); strcat(content,"</i><hr>");
 
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
             if ( _GET(default_server,&form,"user",username,256) )
              {
-               strcat(form.content,"GOT A GET USERNAME !!!  : "); strcat(form.content,username); strcat(form.content," ! ! <br>");
+               strcat(content,"GOT A GET USERNAME !!!  : "); strcat(content,username); strcat(content," ! ! <br>");
              }
             free(username);
           }
@@ -235,10 +232,10 @@ void * prepare_form_content_callback(unsigned int associated_vars)
     }
 
 
-  strcat(form.content,"</body></html>");
+  strcat(content,"</body></html>");
 
 
-  form.content_size=strlen(form.content);
+  form.content_size=strlen(content);
   return 0;
 }
 
@@ -246,8 +243,8 @@ void * prepare_form_content_callback(unsigned int associated_vars)
 
 
 
-//This function prepares the content of  form context , ( form.content )
-void * request_override_callback(unsigned int associated_vars)
+//This function prepares the content of  form context , ( content )
+void * request_override_callback(char * content)
 {
   // char requestHeader;
   // struct HTTPRequest * request;
@@ -380,7 +377,8 @@ int main(int argc, char *argv[])
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
 
-         while ( (AmmServer_Running(default_server)) && (AmmServer_Running(admin_server))  )
+         fprintf(stderr,"Going into passive receive loop..\n");
+         while ( (AmmServer_Running(default_server))  )
            {
              //Main thread should just sleep and let the background threads do the hard work..!
              //In other applications the programmer could use the main thread to do anything he likes..
@@ -388,6 +386,8 @@ int main(int argc, char *argv[])
              //the AmmServer_Running() call once in a while to make sure everything is in order
              usleep(10000);
            }
+         fprintf(stderr,"Ending receive loop\n");
+
 
     //Delete dynamic content allocations and remove stats.html and formtest.html from the server
     close_dynamic_content();

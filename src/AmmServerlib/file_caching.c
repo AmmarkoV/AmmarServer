@@ -615,8 +615,18 @@ int CachedVersionExists(struct AmmServer_Instance * instance,char * verified_fil
     return 0;
 }
 
-char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported)
+int FreeCachedMemoryAllocation(char * mem,unsigned char free_is_needed)
 {
+    if ( (free_is_needed)&&(mem!=0) ) { free(mem); return 1; }
+    return 0;
+}
+
+
+char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported,unsigned char * free_after_use)
+{
+     //By default we dont want to free the memory allocation after use..
+      *free_after_use=0;
+
       if (!CACHING_ENABLED)
       {
         fprintf(stderr,"Caching deactivated..!\n");
@@ -675,7 +685,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                    /*Do callback here*/
                    shared_context->callback_cooldown=0;
                    shared_context->last_callback = now;
-                   void ( *DoCallback) (unsigned int)=0 ;
+                   void ( *DoCallback) ( char * )=0 ;
                    DoCallback = cache[*index].prepare_mem_callback;
 
 
@@ -688,9 +698,8 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                    if (shared_context->POST_request!=0) { shared_context->POST_request_length = strlen(shared_context->POST_request); } else
                                                          { shared_context->POST_request_length = 0; }
 
-                   unsigned int UNUSED=666; // <- These variables are associated with this page ( POST / GET vars )
                    //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
-                   DoCallback(UNUSED);
+                   DoCallback(cache[*index].mem);
                   //This means we can call the callback to prepare the memory content..! END
                    CreateCompressedVersionofDynamicContent(instance,*index);
                 }
