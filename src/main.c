@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
 
-         fprintf(stderr,"Going into passive receive loop..\n");
+
          while ( (AmmServer_Running(default_server))  )
            {
              //Main thread should just sleep and let the background threads do the hard work..!
@@ -386,7 +386,6 @@ int main(int argc, char *argv[])
              //the AmmServer_Running() call once in a while to make sure everything is in order
              usleep(10000);
            }
-         fprintf(stderr,"Ending receive loop\n");
 
 
     //Delete dynamic content allocations and remove stats.html and formtest.html from the server

@@ -639,6 +639,8 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
 
        if (Find_CacheItem(instance,verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
         {
+           char * cache_memory = cache[*index].mem;
+
            //if doNOTCache is set and this is a real file..
            if ((cache[*index].doNOTCache)&&(cache[*index].prepare_mem_callback==0))
             {
