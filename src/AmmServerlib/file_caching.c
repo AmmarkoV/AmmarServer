@@ -553,20 +553,14 @@ int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_sepera
    MAX_CACHE_SIZE_IN_MB=max_total_allocation_MB;
    MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=max_allocation_per_entry_MB;
    MAX_SEPERATE_CACHE_ITEMS=max_seperate_items;
+
+   unsigned int cache_memory_size = sizeof(struct cache_item) * (MAX_SEPERATE_CACHE_ITEMS+1);
   if (instance->cache==0)
    {
-     instance->cache = (struct cache_item *) malloc(sizeof(struct cache_item) * (MAX_SEPERATE_CACHE_ITEMS+1));
+     instance->cache = (struct cache_item *) malloc(cache_memory_size);
      if (instance->cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
+     memset(instance->cache , 0 , cache_memory_size);
    }
-
-   unsigned int i=0;
-   struct cache_item * cache = (struct cache_item *) instance->cache; /* In order to clear specific items we cast void structure to struct cache_item */
-   for (i=0; i<MAX_SEPERATE_CACHE_ITEMS; i++)
-       {
-         cache[i].mem=0;
-         cache[i].filesize=0;
-         cache[i].prepare_mem_callback=0;
-        }
 
    return 1;
 }
