@@ -138,7 +138,7 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
   //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
   AddNewMallocToCacheCounter(initial_compressed_buffer_filesize_estimation);
   cache[index].compressed_mem = (char * ) malloc(sizeof (char) * ( initial_compressed_buffer_filesize_estimation ));
-
+  //We dont need to clear this buffer , it is a waste of time .. It will get filled in one step , so lets conserve CPU time..
 
   //First to prepare the memory length holder , we clean it up and allocate an unsigned long ..!
   cache[index].compressed_mem_filesize = (unsigned long * ) malloc(sizeof (unsigned long));
