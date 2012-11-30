@@ -700,9 +700,19 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                    //one common memory buffer for every client...!
                    if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) && (ENABLE_SEPERATE_MALLOC_FOR_CHANGING_DYNAMIC_PAGES) )
                       {
-                          cache_memory = (char *) malloc(sizeof(char) * (*cache[*index].filesize) );
+                        unsigned int size_to_allocate =  sizeof(char) * ( shared_context->content_size ) ;
+
+                        if (size_to_allocate==0)
+                         {
+                          fprintf(stderr,"BUG : We should allocate additional space for this request.. Unfortunately it appears to be zero.. \n ");
+                         }
+                         else
+                         {
+                          fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
+                          cache_memory = (char *) malloc( size_to_allocate );
                           if (cache_memory!=0) { free_after_use=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
                                                { cache_memory=cache[*index].mem; } //Lets work with our default buffer till the end..!
+                         }
                        }
 
 
