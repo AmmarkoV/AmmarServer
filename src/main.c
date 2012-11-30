@@ -72,6 +72,7 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
+struct AmmServer_RH_Context random_chars={0};
 
 
 char FileExistsTest(char * filename)
@@ -181,6 +182,27 @@ void * prepare_stats_content_callback(char * content)
 }
 
 
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * prepare_random_content_callback(char * content)
+{
+  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+  strcpy(content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>");
+
+  char hex[10]={0};
+  unsigned int i=0;
+  for (i=0; i<200; i++)
+    {
+        sprintf(hex, "%x ", rand()%256 );
+        strcat(content,hex);
+    }
+
+  strcat(content,"</body></html>");
+
+  random_chars.content_size=strlen(content);
+  return 0;
+}
+
+
 
 //This function prepares the content of  form context , ( content )
 void * prepare_form_content_callback(char * content)
@@ -266,6 +288,10 @@ void init_dynamic_content()
 
   if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { fprintf(stderr,"Failed adding form testing page\n"); }
+
+  if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     { fprintf(stderr,"Failed adding random testing page\n"); }
+
 
   if (ENABLE_CHAT_BOX)
   {
