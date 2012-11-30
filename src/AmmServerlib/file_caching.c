@@ -396,6 +396,10 @@ int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,un
 
   fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) instance->loaded_cache_items_Kbytes/1048576 ,  MAX_CACHE_SIZE_IN_MB);
 
+  //first to clear this cache item
+  memset((void*) &cache[*index],0,sizeof(struct cache_item));
+
+
   if (!LoadFileFromDisk_For_CacheItem(instance,filename,index))
    {
        fprintf(stderr,"Could not read file %s into memory\n",filename);
@@ -405,10 +409,11 @@ int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,un
        return 0;
    }
 
+/* We clear everything using memset !
   cache[*index].hits = 0;
   cache[*index].prepare_mem_callback=0; // No callback for this file..
   cache[*index].context=0;
-  cache[*index].doNOTCache=0;
+  cache[*index].doNOTCache=0;*/
 
    //Save modification time..! These are not used yet.. !
    if (last_modification!=0)
@@ -644,6 +649,10 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
            char * cache_memory = cache[*index].mem;
 
            //if doNOTCache is set and this is a real file..
+           fprintf(stderr,"index = %u\n",*index);
+           fprintf(stderr,"doNotCache = %u \n",cache[*index].doNOTCache);
+           fprintf(stderr,"mem_callback = %p \n",cache[*index].prepare_mem_callback);
+
            if ((cache[*index].doNOTCache)&&(cache[*index].prepare_mem_callback==0))
             {
               fprintf(stderr,"We do not want to serve a cached version of this file..\n");
@@ -691,7 +700,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                    //one common memory buffer for every client...!
                    if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) && (ENABLE_SEPERATE_MALLOC_FOR_CHANGING_DYNAMIC_PAGES) )
                       {
-                          cache_memory = (char *) malloc(sizeof(char) * *cache[*index].filesize );
+                          cache_memory = (char *) malloc(sizeof(char) * (*cache[*index].filesize) );
                           if (cache_memory!=0) { free_after_use=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
                                                { cache_memory=cache[*index].mem; } //Lets work with our default buffer till the end..!
                        }

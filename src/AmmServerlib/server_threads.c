@@ -770,7 +770,7 @@ void * HTTPServerThread (void * ptr)
   char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
-  if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); return 0; }
+  if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); /*We dont have a context , so we cant signal anything :P */ return 0; }
 
 
   unsigned int serverlen = sizeof(struct sockaddr_in),clientlen = sizeof(struct sockaddr_in);
@@ -778,11 +778,11 @@ void * HTTPServerThread (void * ptr)
   struct sockaddr_in client;
 
   struct AmmServer_Instance * instance = context->instance;
-  if (instance==0) { fprintf(stderr,"Error , HTTPServerThread called with an invalid instance\n"); return 0; }
+  if (instance==0) { fprintf(stderr,"Error , HTTPServerThread called with an invalid instance\n"); context->keep_var_on_stack=2;  return 0; }
   fprintf(stderr,"HTTPServerThread instance pointing @ %p \n",instance);
 
   int serversock = socket(AF_INET, SOCK_STREAM, 0);
-    if ( serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; return 0; }
+    if ( serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; context->keep_var_on_stack=2;  return 0; }
   instance->serversock = serversock;
 
   bzero(&client,clientlen);
@@ -795,12 +795,29 @@ void * HTTPServerThread (void * ptr)
   strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
   strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
 
+
+  //We bind to our port..!
+  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 )
+    {
+      error("Server Thread : Error binding master port!\nThe server may already be running ..\n");
+      instance->server_running=0;
+      context->keep_var_on_stack=2; //If we were not able to bind we still signal that we got the message so that parent thread can continue
+      return 0;
+    }
+
+  //If we managed to bind we return success! so that the parent thread can continue with its work..
   context->keep_var_on_stack=2;
 
-  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) { error("Server Thread : Error binding master port!\nThe server may already be running ..\n"); instance->server_running=0; return 0; }
+
   if ( listen(serversock,MAX_CLIENT_THREADS) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
            { error("Server Thread : Failed to listen on server socket"); instance->server_running=0; return 0; }
 
+
+
+  //If we made it this far , it means we got ourselfs the port we wanted and we can start serving requests , but before we do that..
+  //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
+  //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
+  PreSpawnThreads(instance);
 
   while (instance->stop_server==0)
   {
@@ -877,11 +894,6 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ } }
   //We flip the retres
   if (retres!=0) retres = 0; else retres = 1;
-
-
-  //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
-  //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
-  PreSpawnThreads(instance);
 
 
 
