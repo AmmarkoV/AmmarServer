@@ -190,7 +190,7 @@ void * prepare_random_content_callback(char * content)
 
   char hex[10]={0};
   unsigned int i=0;
-  for (i=0; i<200; i++)
+  for (i=0; i<1024; i++)
     {
         sprintf(hex, "%x ", rand()%256 );
         strcat(content,hex);

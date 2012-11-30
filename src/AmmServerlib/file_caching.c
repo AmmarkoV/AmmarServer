@@ -632,6 +632,12 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
      //By default we dont want to free the memory allocation after use..
       *free_after_use=0;
 
+
+      if (instance==0) { fprintf(stderr,"Instance is not allocated..\n"); return 0;  }
+
+      struct cache_item * cache = (struct cache_item *) instance->cache;
+      if (cache==0) { fprintf(stderr,"Cache is not allocated..\n"); return 0;  }
+
       if (!CACHING_ENABLED)
       {
         fprintf(stderr,"Caching deactivated..!\n");
@@ -639,7 +645,6 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
         return 0;
       }
 
-      struct cache_item * cache = (struct cache_item *) instance->cache;
 
 
        if (Find_CacheItem(instance,verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
