@@ -699,7 +699,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                    //one common memory buffer for every client...!
                    if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) && (ENABLE_SEPERATE_MALLOC_FOR_CHANGING_DYNAMIC_PAGES) )
                       {
-                        unsigned int size_to_allocate =  sizeof(char) * ( shared_context->content_size ) ;
+                        unsigned int size_to_allocate =  sizeof(char) * ( shared_context->MAX_content_size ) ;
 
                         if (size_to_allocate==0)
                          {
