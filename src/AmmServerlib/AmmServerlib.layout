@@ -22,8 +22,8 @@
 	<File name="directory_lists.h" open="1" top="0" tabpos="17">
 		<Cursor position="109" topLine="0" />
 	</File>
-	<File name="file_caching.c" open="1" top="1" tabpos="3">
-		<Cursor position="24033" topLine="526" />
+	<File name="file_caching.c" open="1" top="0" tabpos="3">
+		<Cursor position="30185" topLine="667" />
 	</File>
 	<File name="file_caching.h" open="1" top="0" tabpos="4">
 		<Cursor position="847" topLine="9" />
@@ -53,12 +53,12 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="6387" topLine="115" />
+		<Cursor position="6067" topLine="115" />
 	</File>
 	<File name="server_configuration.c" open="1" top="0" tabpos="24">
 		<Cursor position="9435" topLine="180" />
 	</File>
-	<File name="server_configuration.h" open="1" top="0" tabpos="25">
+	<File name="server_configuration.h" open="1" top="1" tabpos="25">
 		<Cursor position="1851" topLine="5" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="8">

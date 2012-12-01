@@ -4,6 +4,12 @@ cd src/AmmServerlib
 ./make
 cd ..
 
+
+cd AmmServerNULLlib
+./make
+cd ..
+
+
 cd MyURL
 ./make
 cd ..
