@@ -7,7 +7,7 @@ then
   rm $OUTPUT
 fi 
 
-CFLAGS="-s -O3 -fexpensive-optimizations" 
+CFLAGS="-s -Os -fexpensive-optimizations" 
 OURLIBRARIES="AmmServerlib/libAmmServerlib.a" 
 LIBRARIES="-pthread -lrt -lz"
 

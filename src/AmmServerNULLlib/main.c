@@ -36,7 +36,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 char * AmmServer_Version()
 {
-  return (char*) "NoVersion";
+  return 0;
 }
 
 
@@ -47,7 +47,7 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
 
 struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
 {
-  fprintf(stderr,"Binding Null AmmarServer v%s to %s:%u\n",(char *) AmmServer_Version(),ip,port);
+  fprintf(stderr,"Binding Null AmmarServer to %s:%u\n",ip,port);
  
   return 0;
 }

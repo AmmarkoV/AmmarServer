@@ -19,7 +19,8 @@ cd ..
 cd ..
 
 if [ -e "src/ammarserver" ]; then
-echo "Success creating ammarserver executable.." 
+  echo "Success creating ammarserver executable.." 
+  strip src/ammarserver
 else
   echo "Error : Compilation of ammarserver executable failed..!" 
 fi
