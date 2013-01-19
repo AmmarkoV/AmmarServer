@@ -36,8 +36,8 @@ char * AmmServer_Version()
 int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
   if (!instance) { return 0; }
-  DestroyCache(instance);
   StopHTTPServer(instance);
+  DestroyCache(instance);
 
   if (instance->threads_pool!=0) { free(instance->threads_pool); instance->threads_pool=0; }
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }

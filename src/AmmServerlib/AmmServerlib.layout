@@ -53,16 +53,16 @@
 		<Cursor position="351" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="6067" topLine="115" />
+		<Cursor position="1133" topLine="28" />
 	</File>
 	<File name="server_configuration.c" open="1" top="0" tabpos="24">
-		<Cursor position="9435" topLine="180" />
+		<Cursor position="9435" topLine="185" />
 	</File>
-	<File name="server_configuration.h" open="1" top="1" tabpos="25">
+	<File name="server_configuration.h" open="1" top="0" tabpos="25">
 		<Cursor position="1851" topLine="5" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="8">
-		<Cursor position="32912" topLine="795" />
+		<Cursor position="36348" topLine="895" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="9">
 		<Cursor position="69" topLine="0" />

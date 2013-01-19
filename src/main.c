@@ -320,7 +320,7 @@ void close_dynamic_content()
 
 void termination_handler (int signum)
      {
-        fprintf(stderr,"Terminating AmmarServer.. ");
+        fprintf(stderr,"Terminating AmmarServer.. \n");
         close_dynamic_content();
         AmmServer_Stop(default_server);
         fprintf(stderr,"done\n");

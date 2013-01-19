@@ -918,10 +918,12 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
      Thats why we force the socket close which in turn terminates the server thread..
   */
   if ( (instance->stop_server==2)||(instance->stop_server==0)) { fprintf(stderr,"Server has stopped working on its own..\n"); return 1;}
+  fprintf(stderr,"Force closing bind socket... ");
+  close(instance->serversock);
 
   instance->stop_server=1;
   fprintf(stderr,"Waiting for Server to stop.. ");
-  close(instance->serversock);
+
   while (instance->stop_server!=2)
     {
         fprintf(stderr,".");
