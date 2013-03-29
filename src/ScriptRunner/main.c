@@ -133,8 +133,15 @@ void execute(char * command,char * param)
     if (strcmp(param,"up")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"up\" -1\" ");    } else
     if (strcmp(param,"middle")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"middle\" -1\" ");  } else
     if (strcmp(param,"down")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"down\" -1\" ");  }
-
   }
+
+
+  if (strcmp(command,"hand")==0)
+  {
+    if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" "); }
+  }
+
+
 
   if ( strlen(commandToRun)!=0 )
    {
