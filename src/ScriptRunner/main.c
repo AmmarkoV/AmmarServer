@@ -130,6 +130,8 @@ void execute(char * command,char * param)
     if (strcmp(param,"down")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"down\" -1\" ");  }
     if (strcmp(param,"left")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"left\" -1\" ");  }
     if (strcmp(param,"up")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"up\" -1\" ");    }
+    if (strcmp(param,"middle")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"middle\" -1\" ");  }
+    if (strcmp(param,"center")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"center\" -1\" ");    }
   }
 
   if ( strlen(commandToRun)!=0 )
