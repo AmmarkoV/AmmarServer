@@ -215,6 +215,8 @@ struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
+char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
+
 #ifdef __cplusplus
 }
 #endif
