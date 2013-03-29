@@ -138,7 +138,14 @@ void execute(char * command,char * param)
 
   if (strcmp(command,"hand")==0)
   {
-    if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" "); }
+    if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" \" "); }
+  }
+
+
+  if (strcmp(command,"robot")==0)
+  {
+    if (strcmp(param,"wake")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" \" "); }
+    if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" \" "); }
   }
 
 
@@ -197,6 +204,18 @@ void * prepare_form_content_callback(char * content)
             free(handCommand);
           }
 
+
+
+         char * robotCommand = (char *) malloc ( 256 * sizeof(char) );
+         if (robotCommand!=0)
+          {
+            if ( _GET(default_server,&form,"robot",robotCommand,256) )
+             {
+               printf("%s <- robot command \n",robotCommand);
+               execute("robot",robotCommand);
+             }
+            free(robotCommand);
+          }
 
 
        }
