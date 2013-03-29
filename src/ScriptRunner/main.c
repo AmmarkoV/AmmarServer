@@ -138,14 +138,14 @@ void execute(char * command,char * param)
 
   if (strcmp(command,"hand")==0)
   {
-    if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" \" "); }
+    if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" -1 \" "); }
   }
 
 
   if (strcmp(command,"robot")==0)
   {
-    if (strcmp(param,"wake")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" \" "); }
-    if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" \" "); }
+    if (strcmp(param,"wake")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1 \" "); }
+    if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1 \" "); }
   }
 
 
