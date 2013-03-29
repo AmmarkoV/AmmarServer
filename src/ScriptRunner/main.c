@@ -150,10 +150,8 @@ void execute(char * command,char * param)
 //This function prepares the content of  form context , ( content )
 void * prepare_form_content_callback(char * content)
 {
-  //fprintf(stderr,"Sending back %s\n" , page );
   strncpy(content,page,pageLength);
   content[pageLength]=0;
-  //strcat(content,"\0");
   form.content_size=pageLength;
 
 
@@ -206,7 +204,6 @@ void init_dynamic_content()
 
 
   page=AmmServer_ReadFileToMemory("src/ScriptRunner/page.html",&pageLength);
-  fprintf(stderr,"page %s , pageLength %u \n",page , pageLength);
   if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { fprintf(stderr,"Failed adding form testing page\n"); }
 
