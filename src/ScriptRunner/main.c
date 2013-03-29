@@ -147,11 +147,23 @@ void execute(char * command,char * param)
     if (strcmp(param,"goarmatside")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_goArmAtSide.py"); }
   }
 
+  if (strcmp(command,"body")==0)
+  {
+    if (strcmp(param,"left")==0) { strcpy(commandToRun,"  "); } else
+    if (strcmp(param,"right")==0) { strcpy(commandToRun," "); } else
+    if (strcmp(param,"forward")==0) { strcpy(commandToRun," "); } else
+    if (strcmp(param,"back")==0) { strcpy(commandToRun,"  "); }
+  }
+
+
+
 
   if (strcmp(command,"robot")==0)
   { ///bin/bash -c \"
     if (strcmp(param,"wake")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1  "); } else
     if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); } else
+    if (strcmp(param,"closemic")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); } else
+    if (strcmp(param,"openmic")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); } else
     if (strcmp(param,"clearfloor")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_CLEARFLOOR'\" -1  "); } else
     if (strcmp(param,"bringobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_BRING'\" -1  "); } else
     if (strcmp(param,"learnobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_LEARN'\" -1  "); } else
@@ -212,6 +224,18 @@ void * prepare_form_content_callback(char * content)
                execute("hand",handCommand);
              }
             free(handCommand);
+          }
+
+
+         char * bodyCommand = (char *) malloc ( 256 * sizeof(char) );
+         if (bodyCommand !=0)
+          {
+            if ( _GET(default_server,&form,"body",bodyCommand ,256) )
+             {
+               printf("%s <- body command \n",bodyCommand );
+               execute("body",bodyCommand );
+             }
+            free(bodyCommand );
           }
 
 
