@@ -144,8 +144,9 @@ void execute(char * command,char * param)
 
   if (strcmp(command,"robot")==0)
   { ///bin/bash -c \"
-    if (strcmp(param,"wake")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1  "); }
-    if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); }
+    if (strcmp(param,"wake")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1  "); } else
+    if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); } else
+    if (strcmp(param,"clearfloor")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_CLEARFLOOR'\" -1  "); }
   }
 
 
