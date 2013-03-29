@@ -14,6 +14,11 @@ cd MyURL
 ./make
 cd ..
 
+
+cd ScriptRunner
+./make
+cd ..
+
 ./make
  
 cd ..
