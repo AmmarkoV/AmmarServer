@@ -1,5 +1,23 @@
 <html>
- <body>
+
+  <head>
+   <script type="text/javascript">
+   function makeUniqueURLs()
+   {  
+     var links = document.links;
+     var i = links.length;
+     var randomnumber=Math.floor(Math.random()*100000)
+     
+     while (i--) 
+     {
+       links[i].href = links[i].href+"&t="+randomnumber;
+     } 
+   }
+   </script>
+
+  </head>
+
+ <body onload="makeUniqueURLs();">
    <table>
     <tr>
       <td> 

@@ -70,6 +70,7 @@ struct AmmServer_Instance  * default_server=0;
 struct AmmServer_Instance  * admin_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
+struct AmmServer_RH_Context indexPage={0};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
@@ -101,6 +102,20 @@ unsigned int StringIsHTMLSafe(char * str)
 
 
 
+
+//This function prepares the content of  stats context , ( stats.content )
+void * prepare_index_content_callback(char * content)
+{
+  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+  strcat(content,"<html><head><title>Welcome</title>\
+                  <body><center><br><br><br>\
+                   <h1>The incredibly minimal WebInterface for Hobbit</h1><br><br>\
+                   <h3><a href=\"formtest.html\">Click Here to open Control Panel</a></h3>\
+                   <h3><a href=\"stats.html\">Click Here for stats (not ready yet)</a></h3>\
+                   </body></html>");
+  indexPage.content_size=strlen(content);
+  return 0;
+}
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_stats_content_callback(char * content)
@@ -270,31 +285,17 @@ void * prepare_form_content_callback(char * content)
 }
 
 
-//This function prepares the content of  form context , ( content )
-void * request_override_callback(char * content)
-{
-  // char requestHeader;
-  // struct HTTPRequest * request;
-  // void * request_override_callback;
-
-  //This does nothing for now :P
-  return 0;
-}
-
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
-
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { fprintf(stderr,"Failed adding stats page\n"); }
-
+  if (! AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
 
   page=AmmServer_ReadFileToMemory("src/ScriptRunner/page.html",&pageLength);
-  if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { fprintf(stderr,"Failed adding form testing page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
 
+  AmmServer_DoNOTCacheResourceHandler(default_server,&form);
  }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
