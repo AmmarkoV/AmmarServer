@@ -166,12 +166,14 @@ void * prepare_form_content_callback(char * content)
   form.content_size=pageLength;
 
 
-  char * headCommand = 0;
 
   if  ( form.GET_request != 0 )
     {
       if ( strlen(form.GET_request)>0 )
        {
+
+
+
          char * headCommand = (char *) malloc ( 256 * sizeof(char) );
          if (headCommand!=0)
           {
@@ -182,6 +184,21 @@ void * prepare_form_content_callback(char * content)
              }
             free(headCommand);
           }
+
+
+         char * handCommand = (char *) malloc ( 256 * sizeof(char) );
+         if (handCommand!=0)
+          {
+            if ( _GET(default_server,&form,"hand",handCommand,256) )
+             {
+               printf("%s <- hand command \n",handCommand);
+               execute("hand",handCommand);
+             }
+            free(handCommand);
+          }
+
+
+
        }
     }
 
