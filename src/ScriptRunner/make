@@ -1,0 +1,25 @@
+#!/bin/bash
+
+OUTPUT="scriptrunner"
+
+if [ -e $OUTPUT ]
+then
+  rm $OUTPUT
+fi 
+
+CFLAGS="-s -Os -fexpensive-optimizations" 
+OURLIBRARIES="../AmmServerlib/libAmmServerlib.a" 
+LIBRARIES="-pthread -lrt -lz"
+
+gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
+
+
+if [ -e $OUTPUT ]
+then
+  strip $OUTPUT
+  echo "Success.."
+else
+  echo "Failure.."
+fi
+
+exit 0
