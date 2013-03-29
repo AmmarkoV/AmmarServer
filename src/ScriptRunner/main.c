@@ -139,6 +139,7 @@ void execute(char * command,char * param)
   if (strcmp(command,"hand")==0)
   {
     if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" -1  "); } else
+    if (strcmp(param,"clear")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_SetEnableAll_false.py"); } else
     if (strcmp(param,"closegripper")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_closeGripper.py"); } else
     if (strcmp(param,"opengripper")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_openGripper.py"); }  else
     if (strcmp(param,"gohome")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_goHome.py"); } else
