@@ -184,8 +184,8 @@ void execute(char * command,char * param)
     if (strcmp(param,"openmic")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'F_ASR_ON'\" -1  "); } else
 
 
-    if (strcmp(param,"wake")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1\"  "); } else
-    if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1\"  "); } else
+    if (strcmp(param,"wake")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1  "); } else
+    if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); } else
     if (strcmp(param,"clearfloor")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_CLEARFLOOR'\" -1  "); } else
     if (strcmp(param,"bringobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_BRING'\" -1  "); } else
     if (strcmp(param,"learnobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_LEARN'\" -1  "); } else
