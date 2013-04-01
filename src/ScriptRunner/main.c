@@ -110,7 +110,7 @@ void * prepare_index_content_callback(char * content)
   strcat(content,"<html><head><title>Welcome</title>\
                   <body><center><br><br><br>\
                    <h1>The incredibly minimal WebInterface for Hobbit</h1><br><br>\
-                   <h3><a href=\"formtest.html\">Click Here to open Control Panel</a></h3>\
+                   <h3><a href=\"controlpanel.html\">Click Here to open Control Panel</a></h3>\
                    <h3><a href=\"stats.html\">Click Here for stats (not ready yet)</a></h3>\
                    </body></html>");
   indexPage.content_size=strlen(content);
@@ -292,8 +292,8 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
 
-  page=AmmServer_ReadFileToMemory("src/ScriptRunner/page.html",&pageLength);
-  if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+  page=AmmServer_ReadFileToMemory("src/ScriptRunner/controlpanel.html",&pageLength);
+  if (! AmmServer_AddResourceHandler(default_server,&form,"/controlpanel.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
 
   AmmServer_DoNOTCacheResourceHandler(default_server,&form);
  }
