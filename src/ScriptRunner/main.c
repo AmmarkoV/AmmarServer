@@ -107,12 +107,12 @@ unsigned int StringIsHTMLSafe(char * str)
 void * prepare_index_content_callback(char * content)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strcat(content,"<html><head><title>Welcome</title>\
+  strcpy(content,"<html><head><title>Welcome</title>\
                   <body><center><br><br><br>\
                    <h1>The incredibly minimal WebInterface for Hobbit</h1><br><br>\
                    <h3><a href=\"controlpanel.html\">Click Here to open Control Panel</a></h3>\
                    <h3><a href=\"stats.html\">Click Here for stats (not ready yet)</a></h3>\
-                   </body></html>");
+                   </body></html> ");
   indexPage.content_size=strlen(content);
   return 0;
 }
@@ -149,8 +149,7 @@ void execute(char * command,char * param)
     if (strcmp(param,"middle")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"middle\" -1\" ");  } else
     if (strcmp(param,"down")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"down\" -1\" ");  }
   }
-
-
+   else
   if (strcmp(command,"hand")==0)
   {
     if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" -1  "); } else
@@ -161,7 +160,7 @@ void execute(char * command,char * param)
     if (strcmp(param,"goalmosthome")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_goAlmostHome.py"); } else
     if (strcmp(param,"goarmatside")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_goArmAtSide.py"); }
   }
-
+   else
   if (strcmp(command,"body")==0)
   {
     if (strcmp(param,"left")==0) { strcpy(commandToRun,"  "); } else
@@ -169,8 +168,7 @@ void execute(char * command,char * param)
     if (strcmp(param,"forward")==0) { strcpy(commandToRun," "); } else
     if (strcmp(param,"back")==0) { strcpy(commandToRun,"  "); }
   }
-
-
+   else
   if (strcmp(command,"robot")==0)
   { ///bin/bash -c \"
 
@@ -190,9 +188,13 @@ void execute(char * command,char * param)
     if (strcmp(param,"bringobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_BRING'\" -1  "); } else
     if (strcmp(param,"learnobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_LEARN'\" -1  "); } else
     if (strcmp(param,"helpme")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'G_FALL'\" -1  "); }
+
   }
-
-
+   else
+  if (strcmp(command,"say")==0)
+  {
+     sprintf(commandToRun,"echo \"%s\" \n",param);
+  }
 
   if ( strlen(commandToRun)!=0 )
    {
@@ -271,6 +273,18 @@ void * prepare_form_content_callback(char * content)
                execute("robot",robotCommand);
              }
             free(robotCommand);
+          }
+
+
+         char * sayCommand = (char *) malloc ( 256 * sizeof(char) );
+         if (sayCommand!=0)
+          {
+            if ( _GET(default_server,&form,"say",sayCommand,256) )
+             {
+               printf("%s <- say command \n",sayCommand);
+               execute("say",sayCommand);
+             }
+            free(sayCommand);
           }
 
 
