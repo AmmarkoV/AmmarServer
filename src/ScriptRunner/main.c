@@ -197,7 +197,8 @@ void execute(char * command,char * param)
      if (strcmp(param,"test")==0) {  strcpy(internalString,"Θα σας κάνω μια έκπληξη , θα σταματήσω να δουλεύω σε ένα τυχαίο σημείο.!"); } else
                                   {  strcpy(internalString,param); }
 
-     sprintf(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SPEAK' \n params:\n - name: 'INFO'\n value: '%s'\" -1\n",internalString);
+     //rostopic pub /ActionSequence HobbitMsgs/Command "{command: 'C_SPEAK' , params: [ name: 'INFO' , value: 'lobbit' ] }" -1
+     sprintf(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_SPEAK' , params: [ {name: 'INFO' , value: '%s'} ] }\" -1\n",internalString);
   }
 
   if ( strlen(commandToRun)!=0 )
