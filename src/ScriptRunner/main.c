@@ -193,7 +193,11 @@ void execute(char * command,char * param)
    else
   if (strcmp(command,"say")==0)
   {
-     sprintf(commandToRun,"echo \"%s\" \n",param);
+     char internalString[1024]={0};
+     if (strcmp(param,"test")==0) {  strcpy(internalString,"Θα σας κάνω μια έκπληξη , θα σταματήσω να δουλεύω σε ένα τυχαίο σημείο.!"); } else
+                                  {  strcpy(internalString,param); }
+
+     sprintf(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'C_SPEAK'\" params: - {name: \"SPEAK\" value: \"%s\"} -1\n",internalString);
   }
 
   if ( strlen(commandToRun)!=0 )
@@ -219,82 +223,27 @@ void * prepare_form_content_callback(char * content)
   form.content_size=pageLength;
 
 
-
   if  ( form.GET_request != 0 )
     {
       if ( strlen(form.GET_request)>0 )
        {
-
-
-
-         char * headCommand = (char *) malloc ( 256 * sizeof(char) );
-         if (headCommand!=0)
+         char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
+         if (bufferCommand!=0)
           {
-            if ( _GET(default_server,&form,"head",headCommand,256) )
-             {
-               printf("%s <- head command \n",headCommand);
-               execute("head",headCommand);
-             }
-            free(headCommand);
+            if ( _GET(default_server,&form,"head",bufferCommand,256) )  { execute("head",bufferCommand);  } else
+            if ( _GET(default_server,&form,"hand",bufferCommand,256) )  { execute("hand",bufferCommand);  } else
+            if ( _GET(default_server,&form,"body",bufferCommand,256) )  { execute("body",bufferCommand);  } else
+            if ( _GET(default_server,&form,"robot",bufferCommand,256) ) { execute("robot",bufferCommand); } else
+            if ( _GET(default_server,&form,"say",bufferCommand,256) )   { execute("say",bufferCommand);   }
+
+            free(bufferCommand);
           }
-
-
-         char * handCommand = (char *) malloc ( 256 * sizeof(char) );
-         if (handCommand!=0)
-          {
-            if ( _GET(default_server,&form,"hand",handCommand,256) )
-             {
-               printf("%s <- hand command \n",handCommand);
-               execute("hand",handCommand);
-             }
-            free(handCommand);
-          }
-
-
-         char * bodyCommand = (char *) malloc ( 256 * sizeof(char) );
-         if (bodyCommand !=0)
-          {
-            if ( _GET(default_server,&form,"body",bodyCommand ,256) )
-             {
-               printf("%s <- body command \n",bodyCommand );
-               execute("body",bodyCommand );
-             }
-            free(bodyCommand );
-          }
-
-
-
-         char * robotCommand = (char *) malloc ( 256 * sizeof(char) );
-         if (robotCommand!=0)
-          {
-            if ( _GET(default_server,&form,"robot",robotCommand,256) )
-             {
-               printf("%s <- robot command \n",robotCommand);
-               execute("robot",robotCommand);
-             }
-            free(robotCommand);
-          }
-
-
-         char * sayCommand = (char *) malloc ( 256 * sizeof(char) );
-         if (sayCommand!=0)
-          {
-            if ( _GET(default_server,&form,"say",sayCommand,256) )
-             {
-               printf("%s <- say command \n",sayCommand);
-               execute("say",sayCommand);
-             }
-            free(sayCommand);
-          }
-
 
        }
     }
 
 
-
-
-  form.content_size=strlen(content);
+  //form.content_size=strlen(content);
   return 0;
 }
 
