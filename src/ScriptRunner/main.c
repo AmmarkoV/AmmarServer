@@ -100,7 +100,17 @@ unsigned int StringIsHTMLSafe(char * str)
   return 1;
 }
 
-
+void replaceChar(char * input , char findChar , char replaceWith)
+{
+  char * cur = input;
+  char * inputEnd = input+strlen(input);
+  while ( cur < inputEnd )
+  {
+     if (*cur == findChar ) { *cur = replaceWith; }
+     ++cur;
+  }
+  return ;
+}
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -197,6 +207,9 @@ void execute(char * command,char * param)
      char internalString[1024]={0};
      if (strcmp(param,"test")==0) {  strcpy(internalString,"Θα σας κάνω μια έκπληξη , θα σταματήσω να δουλεύω σε ένα τυχαίο σημείο.!"); } else
                                   {  strcpy(internalString,param); }
+
+
+     replaceChar(internalString,'+',' ');
 
      //rostopic pub /ActionSequence HobbitMsgs/Command "{command: 'C_SPEAK' , params: [ name: 'INFO' , value: 'lobbit' ] }" -1
      sprintf(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_SPEAK' , params: [ {name: 'INFO' , value: '%s'} ] }\" -1\n",internalString);
