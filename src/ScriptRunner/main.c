@@ -174,8 +174,9 @@ void execute(char * command,char * param)
 
     if (strcmp(param,"yes")==0) { strcpy(commandToRun,"rostopic pub /Event HobbitMsgs/Event \"event: 'G_YES'\" -1  "); } else
     if (strcmp(param,"no")==0) { strcpy(commandToRun,"rostopic pub /Event HobbitMsgs/Event \"event: 'G_NO'\" -1  "); } else
-    //if (strcmp(param,"ok")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'S_OK'\" -1  "); } else
     if (strcmp(param,"stop")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'C_STOP'\" -1  "); } else
+    if (strcmp(param,"cancel")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_SPEAK' , params: [ {name: 'CANCEL' , value: ''} ] }\" -1\n"); } else
+
     if (strcmp(param,"call")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'E_CALLHOBBIT'\" -1  "); } else
     if (strcmp(param,"settings")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'F_SETTINGS'\" -1  "); } else
     if (strcmp(param,"closemic")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'F_ASR_OFF'\" -1  "); } else
