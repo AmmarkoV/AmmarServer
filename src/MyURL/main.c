@@ -337,7 +337,8 @@ int main(int argc, char *argv[])
              //In other applications the programmer could use the main thread to do anything he likes..
              //The only caveat is that he would takeup more CPU time from the server and that he would have to poll
              //the AmmServer_Running() call once in a while to make sure everything is in order
-             usleep(10000);
+             //usleep(10000);
+             sleep(1);
            }
 
       //Delete dynamic content allocations and remove stats.html and formtest.html from the server

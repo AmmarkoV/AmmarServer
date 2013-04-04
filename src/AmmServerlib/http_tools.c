@@ -45,9 +45,28 @@ static char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "+/";
 
 
+
+/*
+red=$(printf "\033[31m")
+green=$(printf "\033[32m")
+yellow=$(printf "\033[33m")
+blue=$(printf "\033[34m")
+magenta=$(printf "\033[35m")
+cyan=$(printf "\033[36m")
+white=$(printf "\033[37m")
+normal=$(printf "\033[m")
+
+normalChars=$(printf "\033[0m")
+boldChars=$(printf "\033[1m")
+underlinedChars=$(printf "\033[4m")
+blinkingChars=$(printf "\033[5m")
+*/
+
+
 void error(char * msg)
 {
- fprintf(stderr,"ERROR MESSAGE : %s\n",msg);
+
+ fprintf(stderr,"\033[31mERROR MESSAGE : %s\n\033[0m",msg);
  return;
 }
 

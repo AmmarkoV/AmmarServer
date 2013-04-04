@@ -41,6 +41,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "file_caching.h"
 #include "server_configuration.h"
 
+#define THREAD_SLEEP_TIME_WHEN_OUR_THREAD_IS_NEXT 600
+#define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 20000
 
 
 struct PassToPreSpawnedThread
@@ -639,8 +641,8 @@ void * PreSpawnedThread(void * ptr)
            }
 
       if (instance->prespawn_turn_to_serve==i)
-            { usleep(10); /*It is our turn next so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
-               { usleep(1000); /*It is not our turn so lets chill for a WHOLE millisecond!..*/ }
+            { usleep(THREAD_SLEEP_TIME_WHEN_OUR_THREAD_IS_NEXT); /*It is our turn next so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
+               { usleep(THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS); /*It is not our turn so lets chill for more time..*/ }
   } // while the server doesn't stop..
 
   return 0;
