@@ -179,6 +179,12 @@ void execute(char * command,char * param)
     if (strcmp(param,"back")==0) { strcpy(commandToRun,"  "); }
   }
    else
+  if (strcmp(command,"bring")==0)
+  {
+    if (strcmp(param,"aspirin")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_BRING' , params: [ {name: 'Name' , value: 'ΑΣΠΙΡΊΝΗ'} ] }\" -1  "); } else
+    if (strcmp(param,"sugar")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_BRING' , params: [ {name: 'Name' , value: 'ΖΆΧΑΡΗ'} ] }\" -1  "); }
+  }
+   else
   if (strcmp(command,"robot")==0)
   { ///bin/bash -c \"
 
@@ -252,6 +258,7 @@ void * prepare_form_content_callback(char * content)
             if ( _GET(default_server,&form,"head",bufferCommand,256) )  { execute("head",bufferCommand);  } else
             if ( _GET(default_server,&form,"hand",bufferCommand,256) )  { execute("hand",bufferCommand);  } else
             if ( _GET(default_server,&form,"body",bufferCommand,256) )  { execute("body",bufferCommand);  } else
+            if ( _GET(default_server,&form,"bring",bufferCommand,256) )  { execute("bring",bufferCommand);  } else
             if ( _GET(default_server,&form,"robot",bufferCommand,256) ) { execute("robot",bufferCommand); } else
             if ( _GET(default_server,&form,"say",bufferCommand,256) )   { execute("say",bufferCommand);   }
 
