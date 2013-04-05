@@ -197,6 +197,10 @@ void execute(char * command,char * param)
     if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); } else
     if (strcmp(param,"clearfloor")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_CLEARFLOOR'\" -1  "); } else
     if (strcmp(param,"bringobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_BRING'\" -1  "); } else
+
+           //name: Name     value: ΑΣΠΙΡΊΝΗ
+
+
     if (strcmp(param,"learnobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_LEARN'\" -1  "); } else
     if (strcmp(param,"helpme")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'G_FALL'\" -1  "); }
 
