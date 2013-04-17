@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <signal.h>
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
@@ -284,26 +283,11 @@ void close_dynamic_content()
 }
 
 
-void termination_handler (int signum)
-     {
-        fprintf(stderr,"Terminating MyURL.. \n");
-        close_dynamic_content();
-        AmmServer_Stop(myurl_server);
-        fprintf(stderr,"done\n");
-        exit(0);
-     }
-
-
-
 
 int main(int argc, char *argv[])
 {
     printf("Ammar Server starting up\n");
-
-    if (signal(SIGINT, termination_handler) == SIG_ERR)   printf("Cannot handle SIGINT!\n");
-    if (signal(SIGHUP, termination_handler) == SIG_ERR)   printf("Cannot handle SIGHUP!\n");
-    if (signal(SIGTERM, termination_handler) == SIG_ERR)  printf("Cannot handle SIGTERM!\n");
-    if (signal(SIGKILL, termination_handler) == SIG_ERR)  printf("Cannot handle SIGKILL!\n");
+    AmmServer_RegisterTerminationSignal();
 
     char bindIP[MAX_INPUT_IP];
     strcpy(bindIP,"0.0.0.0");

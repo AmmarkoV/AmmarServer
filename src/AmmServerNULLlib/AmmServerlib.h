@@ -215,6 +215,8 @@ struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
+int AmmServer_RegisterTerminationSignal();
+
 #ifdef __cplusplus
 }
 #endif

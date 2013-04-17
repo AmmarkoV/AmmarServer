@@ -168,3 +168,10 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 { 
   return 0;
 }
+
+
+int AmmServer_RegisterTerminationSignal()
+{
+  return 0;
+}
+

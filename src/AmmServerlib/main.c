@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include "version.h"
 #include "AmmServerlib.h"
 #include "server_threads.h"
@@ -348,6 +349,27 @@ char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
   return buffer;
 }
 
+
+
+void AmmServer_GlobalTerminationHandler(int signum)
+{
+        fprintf(stderr,"Terminating AmmarServer.. \n");
+        close_dynamic_content();
+          GLOBAL_KILL_SERVER_SWITCH=1;
+        fprintf(stderr,"done\n");
+        exit(0);
+}
+
+
+int AmmServer_RegisterTerminationSignal()
+{
+  unsigned int failures=0;
+  if (signal(SIGINT, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { printf("AmmarServer cannot handle SIGINT!\n");  ++failures; }
+  if (signal(SIGHUP, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { printf("AmmarServer cannot handle SIGHUP!\n");  ++failures; }
+  if (signal(SIGTERM, AmmServer_GlobalTerminationHandler) == SIG_ERR) { printf("AmmarServer cannot handle SIGTERM!\n"); ++failures; }
+  if (signal(SIGKILL, AmmServer_GlobalTerminationHandler) == SIG_ERR) { printf("AmmarServer cannot handle SIGKILL!\n"); ++failures; }
+  return (failures==0);
+}
 
 
 

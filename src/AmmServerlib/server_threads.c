@@ -41,9 +41,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "file_caching.h"
 #include "server_configuration.h"
 
-#define THREAD_SLEEP_TIME_WHEN_OUR_THREAD_IS_NEXT 600
-#define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 20000
-
+unsigned int GLOBAL_KILL_SERVER_SWITCH = 0;
 
 struct PassToPreSpawnedThread
 {
@@ -614,7 +612,7 @@ void * PreSpawnedThread(void * ptr)
   struct PreSpawnedThread * prespawned_data;
   prespawned_data = (struct PreSpawnedThread *) &prespawned_pool[i];
 
-  while (instance->stop_server==0)
+  while ( (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
    {
       //fprintf(stderr,"Prespawned Thread %u waiting ( its %u's turn ) \n",i,prespawn_turn_to_serve);
           /*It is our turn!!*/
@@ -641,7 +639,7 @@ void * PreSpawnedThread(void * ptr)
            }
 
       if (instance->prespawn_turn_to_serve==i)
-            { usleep(THREAD_SLEEP_TIME_WHEN_OUR_THREAD_IS_NEXT); /*It is our turn next so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
+            { usleep(THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT); /*It is our turn next so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
                { usleep(THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS); /*It is not our turn so lets chill for more time..*/ }
   } // while the server doesn't stop..
 
@@ -678,8 +676,7 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
    //Please note that this must only get called from the main process/thread..
-
-  fprintf(stderr,"UsePreSpawnedThreadToServeNewClient instance pointing @ %p \n",instance);
+   fprintf(stderr,"UsePreSpawnedThreadToServeNewClient instance pointing @ %p \n",instance);
 
    struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
    struct PreSpawnedThread * prespawned_data=0;
@@ -821,7 +818,7 @@ void * HTTPServerThread (void * ptr)
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
   PreSpawnThreads(instance);
 
-  while (instance->stop_server==0)
+  while ( (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
   {
     fprintf(stderr,"\nServer Thread : Waiting for a new client\n");
     /* Wait for client connection */

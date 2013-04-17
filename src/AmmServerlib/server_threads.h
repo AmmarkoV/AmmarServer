@@ -9,7 +9,7 @@
 extern int CLIENT_THREADS_STARTED;
 extern int CLIENT_THREADS_STOPPED;
 extern struct HTTPRequest * http_requests_of_threads[MAX_CLIENT_THREADS];
-
+extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 struct PreSpawnedThread
 {

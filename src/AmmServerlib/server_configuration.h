@@ -3,6 +3,11 @@
 
 #include "AmmServerlib.h"
 
+//Prespawned threads sleep until its their time to serve , the next thread to serve is vigilant
+#define THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT 600
+//Other prespawned threads sleep for 20ms
+#define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 20000
+
 #define MAX_CLIENT_THREADS 150 //This is the maximum number of simultainious regular threads that serve incoming requests..!
 #define MAX_CLIENT_PRESPAWNED_THREADS 8 //This is the number of prespawned threads that run to reduce overall latency
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet

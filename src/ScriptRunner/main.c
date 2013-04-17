@@ -23,7 +23,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <signal.h>
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
@@ -186,8 +185,8 @@ void execute(char * command,char * param)
   }
    else
   if (strcmp(command,"robot")==0)
-  { ///bin/bash -c \"
-
+  {
+    ///bin/bash -c \"
     if (strcmp(param,"yes")==0) { strcpy(commandToRun,"rostopic pub /Event HobbitMsgs/Event \"event: 'G_YES'\" -1  "); } else
     if (strcmp(param,"no")==0) { strcpy(commandToRun,"rostopic pub /Event HobbitMsgs/Event \"event: 'G_NO'\" -1  "); } else
     if (strcmp(param,"stop")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'C_STOP'\" -1  "); } else
@@ -199,15 +198,11 @@ void execute(char * command,char * param)
     if (strcmp(param,"closemic")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'F_ASR_OFF'\" -1  "); } else
     if (strcmp(param,"openmic")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'F_ASR_ON'\" -1  "); } else
 
-
     if (strcmp(param,"hobbit")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1  "); } else
     if (strcmp(param,"wake")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1  "); } else
     if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); } else
     if (strcmp(param,"clearfloor")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_CLEARFLOOR'\" -1  "); } else
     if (strcmp(param,"bringobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_BRING'\" -1  "); } else
-
-           //name: Name     value: ΑΣΠΙΡΊΝΗ
-
 
     if (strcmp(param,"learnobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_LEARN'\" -1  "); } else
     if (strcmp(param,"helpme")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'G_FALL'\" -1  "); }
@@ -298,27 +293,10 @@ void close_dynamic_content()
 /*! Dynamic content code ..! END ------------------------*/
 
 
-
-void termination_handler (int signum)
-     {
-        fprintf(stderr,"Terminating AmmarServer.. \n");
-        close_dynamic_content();
-        AmmServer_Stop(default_server);
-        fprintf(stderr,"done\n");
-        exit(0);
-     }
-
-
-
 int main(int argc, char *argv[])
 {
     printf("Ammar Server %s starting up..\n",AmmServer_Version());
-
-    if (signal(SIGINT, termination_handler) == SIG_ERR)   printf("Cannot handle SIGINT!\n");
-    if (signal(SIGHUP, termination_handler) == SIG_ERR)   printf("Cannot handle SIGHUP!\n");
-    if (signal(SIGTERM, termination_handler) == SIG_ERR)  printf("Cannot handle SIGTERM!\n");
-    if (signal(SIGKILL, termination_handler) == SIG_ERR)  printf("Cannot handle SIGKILL!\n");
-
+    AmmServer_RegisterTerminationSignal();
 
     char bindIP[MAX_INPUT_IP];
     strcpy(bindIP,"0.0.0.0");
