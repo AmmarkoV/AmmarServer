@@ -262,14 +262,18 @@ int TransmitFileToSocket(
       } // End of having a remaining file to send
 
 
-      double time_to_serve_file_in_seconds = (double ) end_timer (&time_to_serve_file_s) / 1000000; // go to seconds
+      double time_to_serve_file_in_seconds = (double ) end_timer(&time_to_serve_file_s) / 1000000; // go to seconds
       double speed_in_Mbps= 0;
       if (time_to_serve_file_in_seconds>0)
        {
         speed_in_Mbps = ( double ) original_size_remaining /*Bytes Sent*/  /1048576;
         speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file_in_seconds;
         fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file_in_seconds);
+       } else
+       {
+        fprintf(stderr,"Spontaneous transmission(!)\n");
        }
+
       //End of timer code
 
 
