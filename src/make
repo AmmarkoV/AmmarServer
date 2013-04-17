@@ -1,5 +1,8 @@
 #!/bin/bash
 
+red=$(printf "\033[31m")
+green=$(printf "\033[32m") 
+normal=$(printf "\033[m")
 OUTPUT="ammarserver"
 
 if [ -e $OUTPUT ]
@@ -13,12 +16,15 @@ LIBRARIES="-pthread -lrt -lz"
 
 gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 
+
 if [ -e $OUTPUT ]
 then
-  echo "Success.."
+  strip $OUTPUT
+  echo "$green Success building $OUTPUT .. $normal"
 else
-  echo "Failure.."
+  echo "$red Failure building $OUTPUT .. $normal"
 fi
+
 
 
 

@@ -463,6 +463,8 @@ US 	unit separator 	%1F
 
 int FilenameStripperOk(char * filename)
 {
+   if (filename==0) { return 0; }
+
    //This function checks for paths to ensure that fopen will be handed a safe file path..!
    unsigned int length=strlen(filename);
    if (length==0) { return 0; }
