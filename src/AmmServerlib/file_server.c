@@ -185,7 +185,8 @@ int TransmitFileToSocket(
       }
 
     unsigned long lSize = ftell (pFile);
-    if ( (end_at_byte!=0) && (lSize<end_at_byte) ) { fprintf(stderr,"TODO: Handle  incorrect range request ( from %u to %u file 0 to %u ..!\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize); }
+    if ( (end_at_byte!=0) && (lSize<end_at_byte) )
+        { fprintf(stderr,"TODO: Handle  incorrect range request ( from %u to %u file 0 to %u ..!\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize); }
 
     fprintf(stderr,"Sending file %s , size %0.2f Kbytes\n",verified_filename,(double) lSize/1024);
 
@@ -201,7 +202,8 @@ int TransmitFileToSocket(
       if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
 
       //This is the file remaining to be sent..
-      unsigned long file_size_remaining = lSize-start_at_byte;
+      unsigned long original_size_remaining = lSize-start_at_byte;
+      unsigned long file_size_remaining = original_size_remaining;
       //We dont want the server to allocate a big enough space to reduce disk reading overheads
       //but we dont want to allocate huge portions of memory so we set a soft limit here
       unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB;
@@ -220,6 +222,10 @@ int TransmitFileToSocket(
           return 0;
         }
 
+
+      //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
+      struct time_snap time_to_serve_file_s;
+      start_timer (&time_to_serve_file_s);
 
       while ( file_size_remaining>0 )
       {
@@ -242,9 +248,6 @@ int TransmitFileToSocket(
           }
         }
 
-      //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
-      struct time_snap time_to_serve_file_s;
-      start_timer (&time_to_serve_file_s);
        //ACTUAL SENDING OF FILE -->
         int opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
         /* the whole file should now have reached our client .! */
@@ -254,22 +257,20 @@ int TransmitFileToSocket(
           file_size_remaining-=opres;
         }
 
-
-
        //ACTUAL SENDING OF FILE <--
-      double time_to_serve_file = (double ) end_timer (&time_to_serve_file_s) / 1000000; // go to seconds
+
+      } // End of having a remaining file to send
+
+
+      double time_to_serve_file_in_seconds = (double ) end_timer (&time_to_serve_file_s) / 1000000; // go to seconds
       double speed_in_Mbps= 0;
-      if (time_to_serve_file>0)
+      if (time_to_serve_file_in_seconds>0)
        {
-        speed_in_Mbps = ( double ) opres/1048576;
-        speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file;
-        fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file);
+        speed_in_Mbps = ( double ) original_size_remaining /*Bytes Sent*/  /1048576;
+        speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file_in_seconds;
+        fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file_in_seconds);
        }
       //End of timer code
-
-
-
-      }
 
 
       // terminate
