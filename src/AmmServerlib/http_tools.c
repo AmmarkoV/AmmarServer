@@ -465,6 +465,8 @@ int FilenameStripperOk(char * filename)
 {
    //This function checks for paths to ensure that fopen will be handed a safe file path..!
    unsigned int length=strlen(filename);
+   if (length==0) { return 0; }
+
    unsigned int i=length-1;
 
    unsigned int back_slashes_number=0;
