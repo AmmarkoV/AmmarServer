@@ -18,8 +18,8 @@ int  CHANGE_TO_UID=1500; //Non superuser system
 
 signed int CHANGE_PRIORITY=0;
 
-int varSocketTimeoutREAD_ms=10*1000;
-int varSocketTimeoutWRITE_ms=10*1000;
+int varSocketTimeoutREAD_ms=10 /*Seconds*/  *1000;
+int varSocketTimeoutWRITE_ms=10 /*Seconds*/ * 1000;
 
 //CACHE
 unsigned char CACHING_ENABLED=1;

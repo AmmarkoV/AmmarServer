@@ -3,8 +3,8 @@
 
 #include "AmmServerlib.h"
 
-//Prespawned threads sleep until its their time to serve , the next thread to serve is vigilant
-#define THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT 600
+//Prespawned threads sleep until its their time to serve , the next thread to serve is vigilant ( 0.7ms max delay )
+#define THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT 700
 //Other prespawned threads sleep for 20ms
 #define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 20000
 
