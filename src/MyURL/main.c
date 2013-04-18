@@ -55,6 +55,7 @@ struct URLDB
 
 
 struct AmmServer_Instance * myurl_server=0;
+struct AmmServer_RequestOverride_Context requestResolver={0};
 
 struct AmmServer_RH_Context create_url={0};
 struct AmmServer_RH_Context goto_url={0};
@@ -293,7 +294,13 @@ void * serve_goto_url_page(char * content)
    -----------------------------------------------------------
 */
 
-
+void resolveRequest(void * request)
+{
+  AmmServer_Warning("got a resolveRequest\n");
+  struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
+  struct HTTPRequest * rqst = rqstContext->request;
+  AmmServer_Warning("With URI : %s \n",rqst->resource);
+}
 
 
 
@@ -304,11 +311,15 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); }
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding create page\n"); }
+  if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding create page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&create_url);
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+  if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form testing page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&goto_url);
+
+  if (!AmmServer_AddRequestHandler(myurl_server,&requestResolver,"GET",&resolveRequest) )
+      { AmmServer_Warning("Failed adding request handler for testing page\n"); }
+
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

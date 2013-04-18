@@ -74,6 +74,13 @@ enum RHScenarios
    DIFFERENT_PAGE_FOR_EACH_CLIENT
 };
 
+struct AmmServer_RequestOverride_Context
+{
+   char requestHeader[64]; //Initial request ( GET , HEAD , CONNECT )
+   struct HTTPRequest * request;
+   void * request_override_callback;
+};
+
 
 struct AmmServer_RH_Context
 {
@@ -99,15 +106,9 @@ struct AmmServer_RH_Context
 
    char * POST_request;
    unsigned int POST_request_length;
+
 };
 
-
-struct AmmServer_RequestOverride_Context
-{
-   char requestHeader[64]; //Initial request ( GET , HEAD , CONNECT )
-   struct HTTPRequest * request;
-   void * request_override_callback;
-};
 
 
 struct AmmServer_Instance_Settings
@@ -152,6 +153,8 @@ struct AmmServer_Instance
     pthread_t * threads_pool;
 
 
+    struct AmmServer_RequestOverride_Context * clientRequestHandlerOverrideContext;
+
     unsigned int prespawn_turn_to_serve,prespawn_jobs_started,prespawn_jobs_finished;
     void * prespawned_pool; //Actually struct PreSpawnedThread * but declared as a void pointer here
 };
@@ -190,7 +193,7 @@ int AmmServer_Stop(struct AmmServer_Instance * instance);
 int AmmServer_Running(struct AmmServer_Instance * instance);
 
 
-int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * context,char * request_type,void * callback);
+int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,char * request_type,void * callback);
 
 int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback,unsigned int scenario);
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem);

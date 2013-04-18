@@ -176,15 +176,16 @@ int AmmServer_Running(struct AmmServer_Instance * instance)
 //This call , calls  callback every time a request hits the server..
 //The outer layer of the server can do interesting things with it :P
 //request_type is supposed to be GET , HEAD , POST , CONNECT , etc..
-int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * context,char * request_type,void * callback)
+int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,char * request_type,void * callback)
 {
-  if ( (context==0)||(request_type==0)||(callback==0) ) { return 0; }
-  strncpy( context->requestHeader , request_type , 64 /*limit declared on AmmServerlib.h*/) ;
-  context->request=0;
+  if ( (instance==0)||(RequestOverrideContext==0)||(request_type==0)||(callback==0) ) { return 0; }
+  strncpy( RequestOverrideContext->requestHeader , request_type , 64 /*limit declared on AmmServerlib.h*/) ;
+  RequestOverrideContext->request=0;
 
+  instance->clientRequestHandlerOverrideContext = RequestOverrideContext;
+  RequestOverrideContext->request_override_callback = callback;
 
-  // void * request_override_callback;
-  //TODO add the callback somewhere that makes sense!
+  AmmServer_Warning("AmmServer_AddRequestHandler could potentially be buggy\n");
 
   return 1;
 }

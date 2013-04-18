@@ -114,6 +114,32 @@ unsigned int ServerThreads_DropRootUID()
 }
 
 
+int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPRequest * output)
+{
+  warning("starting to callClientRequestHandler Callback ");
+  if ( instance->clientRequestHandlerOverrideContext == 0 )  { return 0; }
+  struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
+  if ( clientOverride->request_override_callback == 0 ) { return 0; }
+
+  clientOverride->request = output;
+
+
+  void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
+  DoCallback = clientOverride->request_override_callback;
+
+   warning("Doing callClientRequestHandler Callback ");
+   DoCallback(clientOverride);
+
+  //After getting back the override and whatnot , keep the client from using a potentially bad
+  //memory chunk
+  clientOverride->request = 0;
+
+  return 1;
+}
+
+
+
+
 
 /*
   -----------------------------------------------------------------
@@ -223,6 +249,11 @@ void * ServeClient(void * ptr)
 
 
    int result = AnalyzeHTTPRequest(instance,&output,incoming_request,total_header,webserver_root);
+   if (result)
+      { //If we use a client based request handler , call it now
+        callClientRequestHandler(instance,&output);
+      }
+
 
    if (!result)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
