@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -36,6 +37,44 @@ void ( *TerminationCallback) (  )=0 ;
 char * AmmServer_Version()
 {
   return FULLVERSION_STRING;
+}
+
+
+void AmmServer_Warning( const char *format , ... )
+{
+   unsigned int freeAtTheEnd=1;
+   unsigned int formatLength = 30+strlen(format);
+   char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
+   if (coloredFormat==0) { coloredFormat=format; freeAtTheEnd=0; }
+   strcpy(coloredFormat,YELLOW " Warning: ");
+   strcat(coloredFormat,format);
+   strcat(coloredFormat,NORMAL );
+
+   va_list arglist;
+   va_start( arglist, format );
+   vprintf( coloredFormat, arglist );
+   va_end( arglist );
+
+   if (freeAtTheEnd) free(coloredFormat);
+}
+
+
+void AmmServer_Error( const char *format , ... )
+{
+   unsigned int freeAtTheEnd=1;
+   unsigned int formatLength = 30+strlen(format);
+   char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
+   if (coloredFormat==0) { coloredFormat=format; freeAtTheEnd=0; }
+   strcpy(coloredFormat,RED " Error: ");
+   strcat(coloredFormat,format);
+   strcat(coloredFormat,NORMAL);
+
+   va_list arglist;
+   va_start( arglist, format );
+   vprintf( coloredFormat, arglist );
+   va_end( arglist );
+
+   if (freeAtTheEnd) free(coloredFormat);
 }
 
 

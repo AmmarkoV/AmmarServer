@@ -63,16 +63,17 @@ blinkingChars=$(printf "\033[5m")
 */
 
 
+
 void error(char * msg)
 {
- fprintf(stderr,"\033[31mERROR MESSAGE : %s\n\033[0m",msg);
+ fprintf(stderr,RED " ERROR MESSAGE : %s\n\033[0m" NORMAL,msg);
  return;
 }
 
 
 void warning(char * msg)
 {
- fprintf(stderr,"\033[33mWARNING MESSAGE : %s\n\033[0m",msg);
+ fprintf(stderr,YELLOW " WARNING MESSAGE : %s\n " NORMAL,msg);
  return;
 }
 

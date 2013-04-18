@@ -300,6 +300,8 @@ void init_dynamic_content()
 {
 
   indexPage=AmmServer_ReadFileToMemory("src/MyURL/myurl.html",&indexPageLength);
+  if (indexPage==0) { AmmServer_Error("Could not find Index Page file "); }
+
   if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding create page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&create_url);
 
