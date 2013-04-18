@@ -690,7 +690,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                             return cache_memory;
                           } else
                           {
-                           fprintf(stderr,"Request deserves fresh page , %u last gen, %u now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
+                           fprintf(stderr,"Request deserves fresh page , %u last gen, %lu now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
                           }
                    }
 
@@ -709,7 +709,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
                          {
                           fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
                           cache_memory = (char *) malloc( size_to_allocate );
-                          if (cache_memory!=0) { free_after_use=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
+                          if (cache_memory!=0) { *free_after_use=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
                                                { cache_memory=cache[*index].mem; } //Lets work with our default buffer till the end..!
                          }
                        }
@@ -747,7 +747,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
 
               /* We can and will serve back a cached version of the page..! */
              *filesize=*cache[*index].compressed_mem_filesize;
-             fprintf(stderr,"Cache Serving back a compressed buffer sized %u bytes\n",*filesize);
+             fprintf(stderr,"Cache Serving back a compressed buffer sized %lu bytes\n",*filesize);
 
              return cache[*index].compressed_mem;
            }
@@ -757,7 +757,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
              *compression_supported=0; // The response is not compressed..!
 
              *filesize=*cache[*index].filesize;
-             fprintf(stderr,"Cache Serving back a buffer sized %u bytes\n",*filesize);
+             fprintf(stderr,"Cache Serving back a buffer sized %lu bytes\n",*filesize);
 
              return cache_memory;
            }

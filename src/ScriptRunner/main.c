@@ -296,7 +296,7 @@ void close_dynamic_content()
 int main(int argc, char *argv[])
 {
     printf("Ammar Server %s starting up..\n",AmmServer_Version());
-    AmmServer_RegisterTerminationSignal();
+    AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
     char bindIP[MAX_INPUT_IP];
     strcpy(bindIP,"0.0.0.0");

@@ -28,6 +28,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "tools/http_tools.h"
 
+void ( *TerminationCallback) (  )=0 ;
+
+
 char * AmmServer_Version()
 {
   return FULLVERSION_STRING;
@@ -352,15 +355,17 @@ char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
 void AmmServer_GlobalTerminationHandler(int signum)
 {
         fprintf(stderr,"Terminating AmmarServer.. \n");
-        close_dynamic_content();
           GLOBAL_KILL_SERVER_SWITCH=1;
+        if (&TerminationCallback!=0) { TerminationCallback(); }
         fprintf(stderr,"done\n");
         exit(0);
 }
 
 
-int AmmServer_RegisterTerminationSignal()
+int AmmServer_RegisterTerminationSignal(void * callback)
 {
+  TerminationCallback = callback;
+
   unsigned int failures=0;
   if (signal(SIGINT, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { printf("AmmarServer cannot handle SIGINT!\n");  ++failures; }
   if (signal(SIGHUP, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { printf("AmmarServer cannot handle SIGHUP!\n");  ++failures; }

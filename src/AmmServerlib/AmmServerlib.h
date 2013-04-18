@@ -217,7 +217,7 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
 char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
 
-int AmmServer_RegisterTerminationSignal();
+int AmmServer_RegisterTerminationSignal(void * callback);
 
 #ifdef __cplusplus
 }
