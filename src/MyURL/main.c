@@ -37,6 +37,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 char service_root[128]="http://ammar.gr:8080/go";
 char db_file[128]="myurl.db";
 
+char indexPagePath[128]="src/MyURL/myurl.html";
 char * indexPage=0;
 unsigned int indexPageLength=0;
 
@@ -108,7 +109,7 @@ unsigned long hashURL(char *str)
 unsigned int allocateLinksIfNeeded()
 {
   unsigned int makeAnAllocation=0;
-  if (allocated_links>=MAX_LINKS)  { fprintf(stderr,"Reached constraint on links , will not commit more memory\n"); return 0;  }
+  if (allocated_links>=MAX_LINKS)  { AmmServer_Warning("Reached constraint on links , will not commit more memory\n"); return 0;  }
   if (loaded_links>=allocated_links)  { makeAnAllocation=1; }
 
   if (makeAnAllocation)
@@ -148,7 +149,7 @@ unsigned long Add_MyURL(char * LongURL,char * ShortURL,int saveit)
 
     if (saveit) { Append2MyURLDBFile(db_file,LongURL,ShortURL); }
    } else
-   { fprintf(stderr,"Could not allocate space for a new string \n "); /*To prevent race conditions.. --loaded_links;*/ return 0; }
+   { AmmServer_Warning("Could not allocate space for a new string \n "); /*To prevent race conditions.. --loaded_links;*/ return 0; }
 
   return 1;
 }
@@ -299,8 +300,8 @@ void * serve_goto_url_page(char * content)
 void init_dynamic_content()
 {
 
-  indexPage=AmmServer_ReadFileToMemory("src/MyURL/myurl.html",&indexPageLength);
-  if (indexPage==0) { AmmServer_Error("Could not find Index Page file "); }
+  indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
+  if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); }
 
   if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding create page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&create_url);
@@ -329,10 +330,10 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
 
-    if ( argc <1 ) { fprintf(stderr,"Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
+    if ( argc <1 ) { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else
      {
-        if (strlen(argv[1])>=MAX_INPUT_IP) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
+        if (strlen(argv[1])>=MAX_INPUT_IP) { AmmServer_Warning("Console argument for binding IP is too long..!\n"); } else
                                            { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
         port=atoi(argv[2]);
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
@@ -342,7 +343,7 @@ int main(int argc, char *argv[])
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     myurl_server = AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
-    if (!myurl_server) { fprintf(stderr,"Could not start myurl server\n"); exit(1); }
+    if (!myurl_server) { AmmServer_Error("Could not start myurl server\n"); exit(1); }
 
     if (LoadMyURLDBFile(db_file))
     {
@@ -363,8 +364,8 @@ int main(int argc, char *argv[])
       close_dynamic_content();
     } else
     {
-      fprintf(stderr,"Could not load the database file , so exiting..!\n");
-      fprintf(stderr,"!!!!!! If this is the first installation/run of the program please consider issuing `touch %s` to create an empty db file ..!!!!!!\n",db_file);
+      AmmServer_Error("Could not load the database file , so exiting..!\n");
+      AmmServer_Error("!!!!!! If this is the first installation/run of the program please consider issuing `touch %s` to create an empty db file ..!!!!!!\n",db_file);
     }
     //Stop the server and clean state
     AmmServer_Stop(myurl_server);

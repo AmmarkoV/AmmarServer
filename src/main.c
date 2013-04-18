@@ -283,19 +283,19 @@ void init_dynamic_content()
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { fprintf(stderr,"Failed adding stats page\n"); }
+     { AmmServer_Warning("Failed adding stats page\n"); }
 
   if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { fprintf(stderr,"Failed adding form testing page\n"); }
+     { AmmServer_Warning("Failed adding form testing page\n"); }
 
   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { fprintf(stderr,"Failed adding random testing page\n"); }
+     { AmmServer_Warning("Failed adding random testing page\n"); }
 
 
   if (ENABLE_CHAT_BOX)
   {
    if (!AmmServer_AddResourceHandler(default_server,&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-      { fprintf(stderr,"Failed adding chatbox page\n"); }
+      { AmmServer_Warning("Failed adding chatbox page\n"); }
 
      char chatlog_path[MAX_FILE_PATH]={0};
      strcpy(chatlog_path,webserver_root);
@@ -330,10 +330,10 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
 
-    if ( argc <1 ) { fprintf(stderr,"Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
+    if ( argc <1 ) { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else
      {
-        if (strlen(argv[1])>=MAX_INPUT_IP) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
+        if (strlen(argv[1])>=MAX_INPUT_IP) { AmmServer_Warning("Console argument for binding IP is too long..!\n"); } else
                                            { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
         port=atoi(argv[2]);
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
@@ -358,7 +358,7 @@ int main(int argc, char *argv[])
            bindIP,
            ADMIN_BINDING_PORT
          );
-       if (!admin_server) { fprintf(stderr,"Could not create admin server carying on though...");  }
+       if (!admin_server) { AmmServer_Warning("Could not create admin server carying on though...");  }
      }
 
     if (!default_server) { fprintf(stderr,"Closing everything.."); exit(1); }

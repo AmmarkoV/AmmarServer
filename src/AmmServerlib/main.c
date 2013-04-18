@@ -46,14 +46,21 @@ void AmmServer_Warning( const char *format , ... )
    unsigned int formatLength = 30+strlen(format);
    char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
    if (coloredFormat==0) { coloredFormat=format; freeAtTheEnd=0; }
-   strcpy(coloredFormat,YELLOW " Warning: ");
+   coloredFormat[0]=0;
+   strcpy(coloredFormat,YELLOW);
+   strcat(coloredFormat,"Warning: ");
    strcat(coloredFormat,format);
+   strcat(coloredFormat," \n ");
    strcat(coloredFormat,NORMAL );
 
    va_list arglist;
    va_start( arglist, format );
-   vprintf( coloredFormat, arglist );
+   vfprintf(stderr,coloredFormat, arglist );
    va_end( arglist );
+
+   fflush(stderr);
+
+   //Maybe log this somewhere ? , just saying
 
    if (freeAtTheEnd) free(coloredFormat);
 }
@@ -65,14 +72,21 @@ void AmmServer_Error( const char *format , ... )
    unsigned int formatLength = 30+strlen(format);
    char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
    if (coloredFormat==0) { coloredFormat=format; freeAtTheEnd=0; }
-   strcpy(coloredFormat,RED " Error: ");
+   coloredFormat[0]=0;
+   strcpy(coloredFormat,RED);
+   strcat(coloredFormat,"Error: ");
    strcat(coloredFormat,format);
+   strcat(coloredFormat," \n ");
    strcat(coloredFormat,NORMAL);
 
    va_list arglist;
    va_start( arglist, format );
-   vprintf( coloredFormat, arglist );
+   vfprintf(stderr,coloredFormat, arglist );
    va_end( arglist );
+
+   fflush(stderr);
+
+   //Maybe log this somewhere ? , just saying
 
    if (freeAtTheEnd) free(coloredFormat);
 }

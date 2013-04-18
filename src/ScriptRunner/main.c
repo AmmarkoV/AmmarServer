@@ -40,6 +40,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char admin_root[MAX_FILE_PATH]="admin_html/"; // <- change this to the directory that contains your content if you dont want to use the default admin_html dir..
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
+char controlPanelPage[MAX_FILE_PATH]="src/ScriptRunner/controlpanel.html";
 char * page=0;
 unsigned int pageLength=0;
 
@@ -278,7 +279,8 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
 
-  page=AmmServer_ReadFileToMemory("src/ScriptRunner/controlpanel.html",&pageLength);
+  page=AmmServer_ReadFileToMemory(controlPanelPage,&pageLength);
+  if (page==0) { AmmServer_Error("Could not find Control Panel Page file %s ",controlPanelPage); }
   if (! AmmServer_AddResourceHandler(default_server,&form,"/controlpanel.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
 
   AmmServer_DoNOTCacheResourceHandler(default_server,&form);
@@ -304,10 +306,10 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
 
-    if ( argc <1 ) { fprintf(stderr,"Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
+    if ( argc <1 ) { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else
      {
-        if (strlen(argv[1])>=MAX_INPUT_IP) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
+        if (strlen(argv[1])>=MAX_INPUT_IP) { AmmServer_Warning("Console argument for binding IP is too long..!\n"); } else
                                            { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
         port=atoi(argv[2]);
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
@@ -332,7 +334,7 @@ int main(int argc, char *argv[])
            bindIP,
            ADMIN_BINDING_PORT
          );
-       if (!admin_server) { fprintf(stderr,"Could not create admin server carying on though...");  }
+       if (!admin_server) { AmmServer_Warning("Could not create admin server carying on though...");  }
      }
 
     if (!default_server) { fprintf(stderr,"Closing everything.."); exit(1); }
