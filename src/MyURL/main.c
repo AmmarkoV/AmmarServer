@@ -294,12 +294,21 @@ void * serve_goto_url_page(char * content)
    -----------------------------------------------------------
 */
 
+//This is a custom resolver for requests
+//When a new message is received this gets called and depending on the resource requested
+//we camouflage the request in a way that we want to make urls more user friendly
+//so a request for /whatever is converted to /go?to=whatever in ourcase :) ( since we have a url shortner )
 void resolveRequest(void * request)
 {
-  AmmServer_Warning("got a resolveRequest\n");
   struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
   struct HTTPRequest * rqst = rqstContext->request;
   AmmServer_Warning("With URI : %s \n",rqst->resource);
+
+  if (strcmp("/index.html",rqst->resource)==0 ) { AmmServer_Warning("Detected Index Page (leaving it alone)"); }
+  if ( (strncmp("/go",rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { AmmServer_Warning("Detected Regular Go Page (leaving it alone)"); } else
+                                           {
+                                               AmmServer_Warning("Detected new kind of page , should make it /go?to=%s",rqst->resource);
+                                           }
 }
 
 

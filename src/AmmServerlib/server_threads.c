@@ -116,7 +116,6 @@ unsigned int ServerThreads_DropRootUID()
 
 int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPRequest * output)
 {
-  warning("starting to callClientRequestHandler Callback ");
   if ( instance->clientRequestHandlerOverrideContext == 0 )  { return 0; }
   struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
   if ( clientOverride->request_override_callback == 0 ) { return 0; }
@@ -127,8 +126,7 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPReq
   void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
   DoCallback = clientOverride->request_override_callback;
 
-   warning("Doing callClientRequestHandler Callback ");
-   DoCallback(clientOverride);
+  DoCallback(clientOverride);
 
   //After getting back the override and whatnot , keep the client from using a potentially bad
   //memory chunk
