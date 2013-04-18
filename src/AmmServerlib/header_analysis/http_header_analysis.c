@@ -244,13 +244,15 @@ int AnalyzeHTTPLineRequest(
       /*REFERRER AND REFERER ARE THE SAME CASE , THE RFC HAS THE MISPELLED VERSION OF THE WORD , BOTH OF THEM EXIST IN THE WILD :P*/
       if ( CheckHTTPHeaderCategory(request,request_length,"REFERRER:",&payload_start) )
           {
-            if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
+            //if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
+            freeString(&output->Referer);
             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Referer==0) { return 0; } else { return 1;}
           } else
       if ( CheckHTTPHeaderCategory(request,request_length,"REFERER:",&payload_start) ) // <- The spec Referrer string is wrong :P
           {
-            if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
+            //if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
+            freeString(&output->Referer);
             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Referer==0) { return 0; } else { return 1;}
           }
@@ -258,7 +260,8 @@ int AnalyzeHTTPLineRequest(
 
       if ( CheckHTTPHeaderCategory(request,request_length,"HOST:",&payload_start) )
           {
-            if (output->Host!=0) { free(output->Host); output->Host=0; }
+            //if (output->Host!=0) { free(output->Host); output->Host=0; }
+            freeString(&output->Referer);
             output->Host=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Host==0) { return 0; } else { return 1;}
           }
@@ -273,7 +276,8 @@ int AnalyzeHTTPLineRequest(
 
       if ( CheckHTTPHeaderCategory(request,request_length,"USER-AGENT:",&payload_start) )
           {
-            if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
+            //if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
+            freeString(&output->UserAgent);
             output->UserAgent=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->UserAgent==0) { return 0; } else { return 1;}
           }
@@ -281,7 +285,8 @@ int AnalyzeHTTPLineRequest(
 
       if ( CheckHTTPHeaderCategory(request,request_length,"COOKIE:",&payload_start) )
           {
-            if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
+            //if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
+            freeString(&output->Cookie);
             output->Cookie=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Cookie==0) { return 0; } else { return 1;}
           }
@@ -295,7 +300,8 @@ int AnalyzeHTTPLineRequest(
       //If-None-Match: "3e0f0d-1485-4c2646d587b7d"
       if ( CheckHTTPHeaderCategory(request,request_length,"IF-NONE-MATCH:",&payload_start) )
           {
-            if (output->ETag!=0) { free(output->ETag); output->ETag=0; }
+            //if (output->ETag!=0) { free(output->ETag); output->ETag=0; }
+            freeString(&output->ETag);
             output->ETag=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->ETag==0) { return 0; } else { return 1;}
           }

@@ -17,6 +17,7 @@ enum FileType
 };
 
 void error(char * msg);
+void warning(char * msg);
 
 char FileExistsAmmServ(char * filename);
 char DirectoryExistsAmmServ( char* dirpath );
@@ -46,5 +47,7 @@ int ReducePathSlashes_Inplace(char * filename);
 int FilenameStripperOk(char * filename);
 
 char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsigned int max_content);
+
+int freeString(char ** str);
 
 #endif // HTTP_TOOLS_H_INCLUDED

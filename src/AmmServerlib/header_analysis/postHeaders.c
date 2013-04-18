@@ -87,7 +87,8 @@ int AnalyzePOSTLineRequest(
 
          if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-TYPE:",&payload_start) )
           {
-            if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
+            freeString(&output->ContentType);
+            //if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
             output->ContentType=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->ContentType==0) { return 0; } else { return 1;}
           }

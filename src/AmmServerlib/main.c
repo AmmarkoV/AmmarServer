@@ -28,6 +28,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "tools/http_tools.h"
 
+//This is for calling back a client function after receiving
+//a sigkill or other signal , after using AmmServer_RegisterTerminationSignal
 void ( *TerminationCallback) (  )=0 ;
 
 
@@ -86,7 +88,7 @@ struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * c
   if (port!=0) { instance->settings.BINDING_PORT = port; }
 
   //This line explains configuration conflicts in a user understandable manner :p
-  EmmitPossibleConfigurationWarnings();
+  EmmitPossibleConfigurationWarnings(instance);
 
 
   InitializeCache( instance,

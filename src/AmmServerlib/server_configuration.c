@@ -44,7 +44,7 @@ char TemplatesInternalURI[MAX_RESOURCE]="_asvres_/";
 
 // ------------------------------------------------------------------------------------------------------
 
-int EmmitPossibleConfigurationWarnings()
+int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
 {
   fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST !FILE! requests , and couple them to dynamic content ..\n");
   fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
@@ -59,6 +59,12 @@ int EmmitPossibleConfigurationWarnings()
   fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
   fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
+
+
+  if (instance->settings.BINDING_PORT<=1000 )
+   {
+     warning("Please note that for binding ports below 1000 you need root privileges \nPlease also note that running this non hardened version as root is not recommended..\n");
+   }
 
 
   if (ENABLE_COMPRESSION)

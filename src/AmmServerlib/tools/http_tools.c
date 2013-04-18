@@ -65,8 +65,14 @@ blinkingChars=$(printf "\033[5m")
 
 void error(char * msg)
 {
-
  fprintf(stderr,"\033[31mERROR MESSAGE : %s\n\033[0m",msg);
+ return;
+}
+
+
+void warning(char * msg)
+{
+ fprintf(stderr,"\033[33mWARNING MESSAGE : %s\n\033[0m",msg);
  return;
 }
 
@@ -756,5 +762,20 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     close(sockfd);
   return 0;
 }
+
+
+
+int freeString(char ** str)
+{
+   if (*str!=0)
+      {
+         free(*str);
+         *str=0;
+         return 1;
+      }
+
+   return 0;
+}
+
 
 
