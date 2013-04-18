@@ -37,10 +37,13 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 char service_root[128]="http://ammar.gr:8080/go";
 char db_file[128]="myurl.db";
 
+char * indexPage=0;
+unsigned int indexPageLength=0;
 
 #define MAX_TO_SIZE 32
 #define MAX_LONG_URL_SIZE 1024
-#define MAX_LINKS 20000
+#define MAX_LINKS 200000
+#define LINK_ALLOCATION_STEP 5000
 
 
 struct URLDB
@@ -60,7 +63,8 @@ char * default_failed = (char*)"http://ammar.gr/myloader/vfile.php?i=f2166b56f91
 
 
 unsigned int loaded_links=0;
-struct URLDB links[MAX_LINKS]={{0}};
+unsigned int allocated_links=0;
+struct URLDB * links=0;
 
 
 int is_an_unsafe_str(char * input,unsigned int input_length)
@@ -100,9 +104,34 @@ unsigned long hashURL(char *str)
         return hash;
     }
 
+
+unsigned int allocateLinksIfNeeded()
+{
+  unsigned int makeAnAllocation=0;
+  if (allocated_links>=MAX_LINKS)  { fprintf(stderr,"Reached constraint on links , will not commit more memory\n"); return 0;  }
+  if (loaded_links>=allocated_links)  { makeAnAllocation=1; }
+
+  if (makeAnAllocation)
+  {
+      fprintf(stderr,"Reallocating -> %u records \n",allocated_links+LINK_ALLOCATION_STEP);
+      struct URLDB * newlinks = realloc(links, sizeof(struct URLDB) * (allocated_links+LINK_ALLOCATION_STEP) );
+      if (newlinks!=0)
+         {
+            links=newlinks;
+            memset(links+allocated_links,0,LINK_ALLOCATION_STEP);
+            allocated_links+=LINK_ALLOCATION_STEP;
+            return 1;
+         }
+  }
+
+  return 0;
+}
+
+
 unsigned long Add_MyURL(char * LongURL,char * ShortURL,int saveit)
 {
   if (loaded_links>=MAX_LINKS) { return 0; }
+  allocateLinksIfNeeded();
 
   unsigned int long_url_length = strlen(LongURL);
   if (long_url_length>=MAX_LONG_URL_SIZE) { return 0; }
@@ -200,14 +229,15 @@ char * Get_LongURL(char * ShortURL)
 //This function prepares the content of  the url creator context
 void * serve_create_url_page(char * content)
 {
-  memset(content,0,4096);
+  strncpy(content,indexPage,indexPageLength);
+  content[indexPageLength]=0;
+  create_url.content_size=indexPageLength;
 
-  strcpy(content,"<html><head><title>Welcome to MyURL</title></head><body><br><br><br><br><br><br><br><br><br><br><center><table border=5><tr><td><center><br><h2>Welcome to MyURL(<blink>Alpha</blink>)</h2><br>");
+  char val[132]={0};
+  sprintf(val , "%u",loaded_links);
+  AmmServer_ReplaceVarInMemoryFile(content,indexPageLength,"$NUMBER_OF_LINKS$",val);
 
-  strcat(content,"&nbsp;&nbsp;&nbsp;<form name=\"input\" action=\"go\" method=\"get\"> Long URL : <input type=\"text\" name=\"url\" /> Name: <input type=\"text\" name=\"to\"/>&nbsp;<input type=\"submit\" value=\"Submit\" /></form>&nbsp;&nbsp;&nbsp;");
 
-  strcat(content,"</center><br><br></td></tr></table></center></body></html>");
-  create_url.content_size=strlen(content);
   return 0;
 }
 
@@ -268,7 +298,9 @@ void * serve_goto_url_page(char * content)
 //This function adds a Resource Handler for the pages and their callback functions
 void init_dynamic_content()
 {
-  if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,4096,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding create page\n"); }
+
+  indexPage=AmmServer_ReadFileToMemory("src/MyURL/myurl.html",&indexPageLength);
+  if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding create page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&create_url);
 
   if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { fprintf(stderr,"Failed adding form testing page\n"); }

@@ -315,7 +315,37 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 }
 
 
+int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value)
+{
+  if (page==0) { fprintf(stderr,"Replacing var in empty page\n"); return 0; }
+  if (var==0) { fprintf(stderr,"Given an empty variable to replace\n",page); return 0; }
 
+  unsigned int varLength = strlen(var);
+  unsigned int valueLength = strlen(value);
+  if (varLength>pageLength) { fprintf(stderr,"This variable is larger than the whole page\n"); return 0; }
+  if (varLength<valueLength) { fprintf(stderr,"This variable payload is larger than the variable, this is not implemented yet\n"); return 0; }
+
+  char * location = strstr(page,var);
+  if (location == 0 ) { return 0; }
+  char * scanEnd = location+valueLength;
+  char * locationEnd = location+varLength;
+  char * curValue = value;
+
+  while (location<scanEnd)
+  {
+    *location = *curValue;
+    ++location;
+    ++curValue;
+  }
+
+  while (location<locationEnd)
+  {
+    *location = ' ';
+    ++location;
+  }
+
+  return 1;
+}
 
 
 char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )

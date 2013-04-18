@@ -215,6 +215,7 @@ struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
+int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value);
 char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
 
 int AmmServer_RegisterTerminationSignal(void * callback);
