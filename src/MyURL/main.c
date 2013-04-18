@@ -189,7 +189,8 @@ int LoadMyURLDBFile(char * filename)
            fscanf (pFile, "%s\n", ShortURL);
            Add_MyURL(LongURL,ShortURL,0 /*We dont want to reappend it :P*/);
            ++i;
-           fprintf(stderr,"%u - Loaded Keyword %s \n",i,ShortURL);
+           //This spams :P , we dont need it
+           //fprintf(stderr,"%u - Loaded Keyword %s \n",i,ShortURL);
         }
      fclose (pFile);
      return 1;
