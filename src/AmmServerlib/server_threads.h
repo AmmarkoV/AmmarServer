@@ -3,7 +3,7 @@
 
 #include <netinet/in.h>
 
-#include "http_header_analysis.h"
+#include "header_analysis/http_header_analysis.h"
 #include "server_configuration.h"
 
 extern int CLIENT_THREADS_STARTED;

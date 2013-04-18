@@ -32,13 +32,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <pthread.h>
 
-#include "directory_lists.h"
+#include "tools/directory_lists.h"
 #include "server_threads.h"
 #include "file_server.h"
-#include "client_list.h"
-#include "http_header_analysis.h"
-#include "http_tools.h"
-#include "file_caching.h"
+#include "cache/client_list.h"
+#include "header_analysis/http_header_analysis.h"
+#include "tools/http_tools.h"
+#include "cache/file_caching.h"
 #include "server_configuration.h"
 
 unsigned int GLOBAL_KILL_SERVER_SWITCH = 0;
@@ -807,13 +807,15 @@ void * HTTPServerThread (void * ptr)
   //If we managed to bind we return success! so that the parent thread can continue with its work..
   context->keep_var_on_stack=2;
 
-
-  if ( listen(serversock,MAX_CLIENT_THREADS) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
+  //MAX_CLIENT_THREADS <- this could also be used instead of MAX_CLIENTS_LISTENING_FOR
+  //I am trying a larger listen queue to hold incoming connections regardless of the serving threads
+  //so that they will be used later
+  if ( listen(serversock,MAX_CLIENTS_LISTENING_FOR /*MAX_CLIENT_THREADS*/) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
            { error("Server Thread : Failed to listen on server socket"); instance->server_running=0; return 0; }
 
 
 
-  //If we made it this far , it means we got ourselfs the port we wanted and we can start serving requests , but before we do that..
+  //If we made it this far , it means we got ourselves the port we wanted and we can start serving requests , but before we do that..
   //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
   PreSpawnThreads(instance);

@@ -8,7 +8,9 @@
 //Other prespawned threads sleep for 20ms
 #define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 20000
 
+
 #define MAX_CLIENT_THREADS 150 //This is the maximum number of simultainious regular threads that serve incoming requests..!
+#define MAX_CLIENTS_LISTENING_FOR 550 //This should always be larger than MAX_CLIENT_THREADS
 #define MAX_CLIENT_PRESPAWNED_THREADS 8 //This is the number of prespawned threads that run to reduce overall latency
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
 

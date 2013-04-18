@@ -51,34 +51,26 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="InputParser/InputParser_C.h" />
-		<Unit filename="client_list.c">
+		<Unit filename="cache/client_list.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="client_list.h" />
-		<Unit filename="directory_lists.c">
+		<Unit filename="cache/client_list.h" />
+		<Unit filename="cache/file_caching.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="directory_lists.h" />
-		<Unit filename="file_caching.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="file_caching.h" />
+		<Unit filename="cache/file_caching.h" />
 		<Unit filename="file_server.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="file_server.h" />
-		<Unit filename="http_header_analysis.c">
+		<Unit filename="header_analysis/http_header_analysis.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="http_header_analysis.h" />
-		<Unit filename="http_tools.c">
+		<Unit filename="header_analysis/http_header_analysis.h" />
+		<Unit filename="header_analysis/postHeaders.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="http_tools.h" />
-		<Unit filename="logs.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="logs.h" />
+		<Unit filename="header_analysis/postHeaders.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -90,10 +82,22 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="server_threads.h" />
-		<Unit filename="time_provider.c">
+		<Unit filename="tools/directory_lists.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="time_provider.h" />
+		<Unit filename="tools/directory_lists.h" />
+		<Unit filename="tools/http_tools.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/http_tools.h" />
+		<Unit filename="tools/logs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/logs.h" />
+		<Unit filename="tools/time_provider.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/time_provider.h" />
 		<Unit filename="version.h" />
 		<Extensions>
 			<envvars />

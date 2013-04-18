@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "http_tools.h"
+#include "tools/http_tools.h"
 #include "InputParser/InputParser_C.h"
 
 
@@ -39,7 +39,7 @@ char ErrorLog[MAX_FILE_PATH]="error.log";
 
 
 char TemplatesInternalURI[MAX_RESOURCE]="_asvres_/";
-//Please note that the file server limits filenames _asvres_/filename.jpg is OK
+//Please note that the file server limits the filenames _asvres_/filename.jpg is OK
 //a filename like _asvres_/filenamemplampla.jpg will return a 404
 
 // ------------------------------------------------------------------------------------------------------

@@ -33,11 +33,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "version.h"
 #include "file_server.h"
-#include "file_caching.h"
-#include "http_header_analysis.h"
-#include "http_tools.h"
+#include "cache/file_caching.h"
+#include "header_analysis/http_header_analysis.h"
+#include "tools/http_tools.h"
 #include "server_configuration.h"
-#include "time_provider.h"
+#include "tools/time_provider.h"
 
 /*
    This file contains the main routine called most of the time , i.e. SendFile..!

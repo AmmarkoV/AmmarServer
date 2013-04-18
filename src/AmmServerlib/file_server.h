@@ -1,7 +1,7 @@
 #ifndef FILE_SERVER_H_INCLUDED
 #define FILE_SERVER_H_INCLUDED
 
-#include "http_header_analysis.h"
+#include "header_analysis/http_header_analysis.h"
 
 
 unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root);

@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "AmmServerlib.h"
-#include "server_configuration.h"
+#include "../AmmServerlib.h"
+#include "../server_configuration.h"
 #include "file_caching.h"
-#include "http_tools.h"
-#include "time_provider.h"
+#include "../tools/http_tools.h"
+#include "../tools/time_provider.h"
 
 #if ENABLE_COMPRESSION
 #include <zlib.h>

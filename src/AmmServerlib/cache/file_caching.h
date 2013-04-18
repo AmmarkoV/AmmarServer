@@ -1,9 +1,9 @@
 #ifndef FILE_CACHING_H_INCLUDED
 #define FILE_CACHING_H_INCLUDED
 
-#include "AmmServerlib.h"
+#include "../AmmServerlib.h"
 
-#include "http_header_analysis.h"
+#include "../header_analysis/http_header_analysis.h"
 
 #include <sys/stat.h>
 #include <time.h>

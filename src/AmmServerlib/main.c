@@ -24,9 +24,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "AmmServerlib.h"
 #include "server_threads.h"
-#include "file_caching.h"
+#include "cache/file_caching.h"
 #include "version.h"
-#include "http_tools.h"
+#include "tools/http_tools.h"
 
 char * AmmServer_Version()
 {
@@ -54,8 +54,6 @@ struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * c
   fprintf(stderr,"\n\nDISCLAIMER : \n");
   fprintf(stderr,"Please note that this server version is not thoroughly\n");
   fprintf(stderr," pen-tested so it is not meant for production deployment..\n");
-
-  fprintf(stderr," \n\n This is the instances branch of the project which at the momment has VERY serious issues..\n");
 
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");

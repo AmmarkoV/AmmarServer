@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "logs.h"
-#include "server_configuration.h"
+#include "../server_configuration.h"
 
 //This is a sample Apache access.log entry
 //184.82.219.85 - - [05/Feb/2012:07:28:19 +0200] "GET /~ammar/guard_dog_project/blogs/index.php/2010/02/22/video-room-test?blog=1 HTTP/1.0" 301 528 "-" "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0)"

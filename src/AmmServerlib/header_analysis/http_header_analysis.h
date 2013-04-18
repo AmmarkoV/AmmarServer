@@ -1,7 +1,7 @@
 #ifndef HTTP_HEADER_ANALYSIS_H_INCLUDED
 #define HTTP_HEADER_ANALYSIS_H_INCLUDED
 
-#include "AmmServerlib.h"
+#include "../AmmServerlib.h"
 
 int FreeHTTPRequest(struct HTTPRequest * output);
 int HTTPRequestComplete(char * request,unsigned int request_length);
