@@ -38,8 +38,8 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 //should really clear the code below though first and then keep only one of a kind
 char service_filename_noslash[5]="go";
 char service_filename[5]="/go";
-char service_root[128]="http://ammar.gr:8080/go";
-char service_root_withoutfilename[128]="http://ammar.gr:8080/";
+char service_root[128]="http://myurl.ammar.gr/go";
+char service_root_withoutfilename[128]="http://myurl.ammar.gr/";
 //---------------------------------------------------------------
 
 char db_file[128]="myurl.db";
