@@ -34,7 +34,14 @@ char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the dire
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
+//It is retarded to have all these different strings for the same thing
+//should really clear the code below though first and then keep only one of a kind
+char service_filename_noslash[5]="go";
+char service_filename[5]="/go";
 char service_root[128]="http://ammar.gr:8080/go";
+char service_root_withoutfilename[128]="http://ammar.gr:8080/";
+//---------------------------------------------------------------
+
 char db_file[128]="myurl.db";
 
 char indexPagePath[128]="src/MyURL/myurl.html";
@@ -267,7 +274,9 @@ void * serve_goto_url_page(char * content)
                     } else
                     {
                       Add_MyURL(url,to,1 /*We want to save it to disk..!*/);
-                      sprintf(content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready <a target=\"_new\" href=\"%s?to=%s\">%s?to=%s</a><br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root,to,service_root,to);
+                      sprintf(content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready \
+                              <a target=\"_new\" href=\"%s%s\">%s%s</a> \
+                              <br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root_withoutfilename,to,service_root_withoutfilename, to);
                     }
                   } else
                 {
@@ -302,13 +311,30 @@ void resolveRequest(void * request)
 {
   struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
   struct HTTPRequest * rqst = rqstContext->request;
-  AmmServer_Warning("With URI : %s \n",rqst->resource);
+  AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
 
-  if (strcmp("/index.html",rqst->resource)==0 ) { AmmServer_Warning("Detected Index Page (leaving it alone)"); }
-  if ( (strncmp("/go",rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { AmmServer_Warning("Detected Regular Go Page (leaving it alone)"); } else
-                                           {
-                                               AmmServer_Warning("Detected new kind of page , should make it /go?to=%s",rqst->resource);
-                                           }
+  if (strcmp("/favicon.ico",rqst->resource)==0 ) { AmmServer_Warning("Detected favicon Page (leaving it alone)"); } else
+  if (strcmp("/index.html",rqst->resource)==0 ) { AmmServer_Warning("Detected Index Page (leaving it alone)");  } else
+  if (strcmp("/",rqst->resource)==0 ) { AmmServer_Warning("Detected Index Page (leaving it alone)");  } else
+  if ( (strncmp(service_filename,rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { AmmServer_Warning("Detected Regular Go Page (leaving it alone)"); } else
+         {
+             if (rqst->resource==0) { AmmServer_Warning("Request doesnt have a valid resource "); return;  }
+
+             unsigned int newlength = strlen(rqst->resource) + 10;
+             if ( (newlength>MAX_TO_SIZE) || (newlength>MAX_QUERY) )
+               { AmmServer_Warning("Request (%u) is larger than limit of to fields %u ",newlength,MAX_TO_SIZE); }
+
+             AmmServer_Warning("Detected new kind of page , should make it /go?to=%s",rqst->resource+1);
+             //For now they are static if (rqst->GETquery!=0) { free(rqst->GETquery); rqst->GETquery=0; }
+             //rqst->GETquery = ( char * ) malloc (sizeof(char) * newlength);
+             sprintf(rqst->GETquery,"to=%s",rqst->resource+1 /* +1 To avoid the slash / */);
+
+             //if (rqst->resource!=0) { free(rqst->resource); rqst->resource=0; }
+             //rqst->resource = ( char * ) malloc (sizeof(char) * 4); //+3 chars + nulltermination
+             sprintf(rqst->resource,"%s",service_filename);
+             sprintf(rqst->verified_local_resource,"%s%s",webserver_root,service_filename_noslash);
+             AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
+          }
 }
 
 
