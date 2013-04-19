@@ -49,7 +49,7 @@ char * indexPage=0;
 unsigned int indexPageLength=0;
 
 #define MAX_TO_SIZE 32
-#define MAX_LONG_URL_SIZE 1024
+#define MAX_LONG_URL_SIZE 2048
 #define MAX_LINKS 200000
 #define LINK_ALLOCATION_STEP 5000
 
