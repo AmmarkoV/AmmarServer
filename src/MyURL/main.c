@@ -141,6 +141,8 @@ unsigned int allocateLinksIfNeeded()
 //This returns true if URLDB is sorted and false if not!
 int isURLDBSorted()
 {
+  if (loaded_links==0) { return 1; }
+  if (loaded_links==1) { return 1; }
   int i=1;
     while ( i < loaded_links )
     {
@@ -150,6 +152,16 @@ int isURLDBSorted()
   return 1;
 }
 
+int printURLDB()
+{
+  int i=0;
+    while ( i < loaded_links )
+    {
+      fprintf(stderr,"%u - %s - %s\n",links[i].shortURLHash,links[i].shortURL,links[i].longURL);
+      ++i;
+    }
+  return 1;
+}
 
 void sort(struct URLDB * arr,unsigned int beg,unsigned int end)
 {
@@ -164,6 +176,7 @@ void sort(struct URLDB * arr,unsigned int beg,unsigned int end)
          if ((arr[l].shortURLHash == piv) )
           {//SWAP
              --r;
+             fprintf(stderr,"Swapping %s (%u) with %s (%u) \n",arr[l].shortURL,l,arr[r].shortURL,r);
              t=arr[l]; arr[l]=arr[r]; arr[r]=t;
              //swap(&arr[l], &arr[--r]);
           } else
@@ -174,6 +187,7 @@ void sort(struct URLDB * arr,unsigned int beg,unsigned int end)
       else
       {//SWAP
         --r;
+        fprintf(stderr,"Swapping %s (%u) with %s (%u) \n",arr[l].shortURL,l,arr[r].shortURL,r);
         t=arr[l]; arr[l]=arr[r]; arr[r]=t;
         //swap(&arr[l], &arr[--r]);
       }
@@ -181,6 +195,7 @@ void sort(struct URLDB * arr,unsigned int beg,unsigned int end)
 
     //SWAP
     --l;
+    fprintf(stderr,"Swapping %s (%u) with %s (%u) \n",arr[l].shortURL,l,arr[beg].shortURL,beg);
     t=arr[l]; arr[l]=arr[beg]; arr[beg]=t;
     //swap(&arr[--l], &arr[beg]);
 
@@ -237,9 +252,13 @@ unsigned long Add_MyURL(char * longURL,char * shortURL,int saveit)
   unsigned int sort_url_length = strlen(shortURL);
   if (sort_url_length>=MAX_TO_SIZE) { return 0; }
 
-  //pthread_mutex_lock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  pthread_mutex_lock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  //it might not seem like it but here we are doing two seperate operations
+  //first we give our_index the loaded_links value , and then we increment loaded_links
+  //of course this is a potential race condition where two threads assign themselves the same link
+  //and we have an empty record after that , solved using a lock protection
   unsigned int our_index=loaded_links++;
-  //pthread_mutex_unlock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  pthread_mutex_unlock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
 
   links[our_index].longURL = ( char * ) malloc (sizeof(char) * (long_url_length+1) );  //+1 for null termination
   if ( links[our_index].longURL == 0 ) { AmmServer_Warning("Could not allocate space for a new string \n "); return 0; }
@@ -525,14 +544,17 @@ int main(int argc, char *argv[])
       if ( !isURLDBSorted() )
         {
            //Sort list here and repost
+           printURLDB();
            AmmServer_Warning("URLDB is not sorted Sorting it now..!\n");
            sort(links,0,loaded_links);
 
            ReWriteMyURLDBFile("newdb",links,loaded_links);
-           if ( !isURLDBSorted() ) { AmmServer_Warning("Could not sort URLDB ..! :( , exiting \n"); /*return 1;*/ } else
+           if ( !isURLDBSorted() ) { AmmServer_Warning("Could not sort URLDB ..! :( , exiting \n"); /*return 1;*/
+                                     printURLDB();
+                                   } else
                                    {
                                      AmmServer_Success("Sorted URLDB \n");
-                                     if ( ReWriteMyURLDBFile("newdb",links,loaded_links) )
+                                     if ( ReWriteMyURLDBFile("newdb",links,loaded_links-1) )
                                      {
                                         AmmServer_Success("Saved as a newdb file \n");
                                      }
