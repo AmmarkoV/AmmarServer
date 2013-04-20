@@ -46,6 +46,7 @@ char * default_failed = (char*)"http://myurl.ammar.gr/error.html";
 
 char db_file[128]="myurl.db";
 pthread_mutex_t db_fileLock;
+pthread_mutex_t db_addIDLock;
 
 char indexPagePath[128]="src/MyURL/myurl.html";
 char * indexPage=0;
@@ -66,8 +67,9 @@ struct AmmServer_RH_Context goto_url={0};
 
 struct URLDB
 {
-  char * long_url;
-  unsigned long short_url;
+  char * longURL;
+  char * shortURL;
+  unsigned long shortURLHash;
 };
 
 
@@ -94,7 +96,7 @@ int is_an_unsafe_str(char * input,unsigned int input_length)
    -----------------------------------------------------------
 */
 
-int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL);
+int Append2MyURLDBFile(char * filename,char * longURL,char * shortURL);
 
 unsigned long hashURL(char *str)
     {
@@ -136,43 +138,138 @@ unsigned int allocateLinksIfNeeded()
   return 0;
 }
 
-
-unsigned long Add_MyURL(char * LongURL,char * ShortURL,int saveit)
+//This returns true if URLDB is sorted and false if not!
+int isURLDBSorted()
 {
+  int i=1;
+    while ( i < loaded_links )
+    {
+      if (links[i-1].shortURLHash>links[i].shortURLHash) { return 0; /*We got ourself a non sorted entry!*/ }
+      ++i;
+    }
+  return 1;
+}
+
+
+void sort(struct URLDB * arr,unsigned int beg,unsigned int end)
+{
+  struct URLDB t;
+  if (end > beg + 1)
+  {
+    int piv = arr[beg].shortURLHash , l = beg + 1, r = end;
+    while (l < r)
+    {
+      if (arr[l].shortURLHash <= piv)
+       {
+         if ((arr[l].shortURLHash == piv) )
+          {//SWAP
+             --r;
+             t=arr[l]; arr[l]=arr[r]; arr[r]=t;
+             //swap(&arr[l], &arr[--r]);
+          } else
+          {
+              l++;
+          }
+       }
+      else
+      {//SWAP
+        --r;
+        t=arr[l]; arr[l]=arr[r]; arr[r]=t;
+        //swap(&arr[l], &arr[--r]);
+      }
+    }
+
+    //SWAP
+    --l;
+    t=arr[l]; arr[l]=arr[beg]; arr[beg]=t;
+    //swap(&arr[--l], &arr[beg]);
+
+    sort(arr, beg, l);
+    sort(arr, r, end);
+    //<- recursive sort is small on code size , but stack-wise it is dangerous
+  }
+}
+
+unsigned int Find_longURL(char * shortURL,int * found)
+{
+  //TODO : Upgrade this to Binary Search
+  *found = 0;
+  unsigned long our_hash = hashURL(shortURL);
+  int i=0;
+  while ( i < loaded_links )
+   {
+     if (our_hash==links[i].shortURLHash)
+          {
+            *found = 1;
+            return i;
+          }
+      ++i;
+   }
+  return 0;
+}
+
+
+
+char * Get_longURL(char * shortURL)
+{
+  int found=0;
+  //We search for a longURL for this shortURL
+  unsigned int i = Find_longURL(shortURL,&found);
+  //If we find a longURL for this shortURL , we return it
+  if (found) {  return links[i].longURL; }
+  //If we didnt find one we return the defaul failure url
+  return default_failed;
+}
+
+
+
+unsigned long Add_MyURL(char * longURL,char * shortURL,int saveit)
+{
+  int shortURL_AlreadyExists=0;
+  Find_longURL(shortURL,&shortURL_AlreadyExists);
+  if (shortURL_AlreadyExists) { return 0; }
+
   if (loaded_links>=MAX_LINKS) { return 0; }
   allocateLinksIfNeeded();
 
-  unsigned int long_url_length = strlen(LongURL);
+  unsigned int long_url_length = strlen(longURL);
   if (long_url_length>=MAX_LONG_URL_SIZE) { return 0; }
+  unsigned int sort_url_length = strlen(shortURL);
+  if (sort_url_length>=MAX_TO_SIZE) { return 0; }
 
+  //pthread_mutex_lock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
   unsigned int our_index=loaded_links++;
-  unsigned long our_hash = hashURL(ShortURL);
+  //pthread_mutex_unlock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
 
-  links[our_index].short_url=our_hash;
-  links[our_index].long_url = ( char * ) malloc (sizeof(char) * (long_url_length+1) );
-  if (links[our_index].long_url != 0 )
-   {
-     strncpy(links[our_index].long_url,LongURL,long_url_length);
-     links[our_index].long_url[long_url_length]=0;  // null terminator :P
+  links[our_index].longURL = ( char * ) malloc (sizeof(char) * (long_url_length+1) );  //+1 for null termination
+  if ( links[our_index].longURL == 0 ) { AmmServer_Warning("Could not allocate space for a new string \n "); return 0; }
+  links[our_index].shortURL = ( char * ) malloc (sizeof(char) * (sort_url_length+1) ); //+1 for null termination
+  if ( links[our_index].shortURL == 0 ) { AmmServer_Warning("Could not allocate space for a new string \n "); return 0; }
 
-    if (saveit) { Append2MyURLDBFile(db_file,LongURL,ShortURL); }
-   } else
-   { AmmServer_Warning("Could not allocate space for a new string \n "); /*To prevent race conditions.. --loaded_links;*/ return 0; }
+  links[our_index].shortURLHash=hashURL(shortURL);
+
+  strncpy(links[our_index].longURL,longURL,long_url_length);
+  links[our_index].longURL[long_url_length]=0;  // null terminator :P
+
+  strncpy(links[our_index].shortURL,shortURL,sort_url_length);
+  links[our_index].shortURL[sort_url_length]=0;  // null terminator :P
+
+  if (saveit) { Append2MyURLDBFile(db_file,longURL,shortURL); }
 
   return 1;
 }
 
-int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
+int Append2MyURLDBFile(char * filename,char * longURL,char * shortURL)
 {
-    if  ((ShortURL==0)||(LongURL==0)) { return 0; }
+    if  ((shortURL==0)||(longURL==0)) { return 0; }
     pthread_mutex_lock (&db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
      int result = 0;
      FILE * pFile;
      pFile = fopen (filename,"a");
     if (pFile!=0)
     {
-     //LongURL , ShortURL have stripped the newline character so there is no danger in just plain adding them with a \n seperator..!
-     fprintf(pFile,"%s\n%s\n",LongURL,ShortURL);
+     //longURL , shortURL have stripped the newline character so there is no danger in just plain adding them with a \n seperator..!
+     fprintf(pFile,"%s\n%s\n",longURL,shortURL);
      fclose (pFile);
      result=1;
     }
@@ -180,27 +277,52 @@ int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
     return result;
 }
 
+
+int ReWriteMyURLDBFile(char * filename,struct URLDB * links,unsigned int loaded_links)
+{
+     pthread_mutex_lock (&db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+     int result = 0;
+     FILE * pFile;
+     pFile = fopen (filename,"w");
+     if (pFile!=0)
+      {
+        int i=0;
+        while (i<loaded_links)
+            {
+                if (  (links[i].longURL!=0) && (links[i].shortURL!=0) )
+                 {
+                  fprintf(pFile,"%s\n%s\n",links[i].longURL,links[i].shortURL);
+                 }
+                ++i;
+            }
+
+     fclose (pFile);
+     result=1;
+    }
+    pthread_mutex_unlock (&db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+    return result;
+}
+
+
 int LoadMyURLDBFile(char * filename)
 {
     FILE * pFile;
     pFile = fopen (filename,"r");
     if (pFile!=0)
     {
-       char LongURL[MAX_LONG_URL_SIZE]={0};
-       char ShortURL[MAX_TO_SIZE]={0};
+       char longURL[MAX_LONG_URL_SIZE]={0};
+       char shortURL[MAX_TO_SIZE]={0};
 
        unsigned int i=0;
        while (!feof(pFile))
         {
-           memset(LongURL,0,MAX_LONG_URL_SIZE);
-           memset(ShortURL,0,MAX_TO_SIZE);
+           memset(longURL,0,MAX_LONG_URL_SIZE);
+           memset(shortURL,0,MAX_TO_SIZE);
 
-           fscanf (pFile, "%s\n", LongURL);
-           fscanf (pFile, "%s\n", ShortURL);
-           Add_MyURL(LongURL,ShortURL,0 /*We dont want to reappend it :P*/);
+           fscanf (pFile, "%s\n", longURL);
+           fscanf (pFile, "%s\n", shortURL);
+           Add_MyURL(longURL,shortURL,0 /*We dont want to reappend it :P*/);
            ++i;
-           //This spams :P , we dont need it
-           //fprintf(stderr,"%u - Loaded Keyword %s \n",i,ShortURL);
         }
      fclose (pFile);
      return 1;
@@ -209,19 +331,6 @@ int LoadMyURLDBFile(char * filename)
     return 0;
 }
 
-
-char * Get_LongURL(char * ShortURL)
-{
-  unsigned long our_hash = hashURL(ShortURL);
-  int i=0;
-  while ( i < loaded_links )
-   {
-      if (our_hash==links[i].short_url) { return links[i].long_url; }
-      ++i;
-   }
-
-  return default_failed;
-}
 /*
    -----------------------------------------------------------
    -----------------------------------------------------------
@@ -238,7 +347,7 @@ char * Get_LongURL(char * ShortURL)
 void * serve_error_url_page(char * content)
 {
   memset(content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
-  sprintf(content,"<html><head><body><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></body></html>",service_root_withoutfilename);
+  sprintf(content,"<html><head><body><center><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></center></body></html>",service_root_withoutfilename);
   error_url.content_size=strlen(content);
   content[error_url.content_size]=0;
   return 0;
@@ -297,7 +406,7 @@ void * serve_goto_url_page(char * content)
          //If only to is set it means we have ourselves somewhere to go to!
          if ( _GET(myurl_server,&goto_url,"to",to,MAX_TO_SIZE) )
              {
-                sprintf(content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_LongURL(to));
+                sprintf(content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_longURL(to));
              }
     } else
     {
@@ -323,11 +432,11 @@ void resolveRequest(void * request)
   struct HTTPRequest * rqst = rqstContext->request;
   AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
 
-  if (strcmp("/favicon.ico",rqst->resource)==0 ) { AmmServer_Warning("Detected favicon Page (leaving it alone)"); } else
-  if (strcmp("/index.html",rqst->resource)==0 ) { AmmServer_Warning("Detected Index Page (leaving it alone)");  } else
-  if (strcmp("/error.html",rqst->resource)==0 ) { AmmServer_Warning("Detected Error Page (leaving it alone)");  } else
-  if (strcmp("/",rqst->resource)==0 ) { AmmServer_Warning("Detected Index Page (leaving it alone)");  } else
-  if ( (strncmp(service_filename,rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { AmmServer_Warning("Detected Regular Go Page (leaving it alone)"); } else
+  if (strcmp("/favicon.ico",rqst->resource)==0 ) { return; /*Client requested favicon.ico , no resolving to do */ } else
+  if (strcmp("/index.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  } else
+  if (strcmp("/error.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
+  if (strcmp("/",rqst->resource)==0 ) {  return; /*Client requested index.html , no resolving to do */  } else
+  if ( (strncmp(service_filename,rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { return; /*Client requested go , no resolving to do */  } else
          {
              if (rqst->resource==0) { AmmServer_Warning("Request doesnt have a valid resource "); return;  }
 
@@ -353,7 +462,6 @@ void resolveRequest(void * request)
 //This function adds a Resource Handler for the pages and their callback functions
 void init_dynamic_content()
 {
-
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); }
 
@@ -394,7 +502,7 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
 
-    if ( argc <1 ) { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
+    if ( argc <1 )   { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else
      {
         if (strlen(argv[1])>=MAX_INPUT_IP) { AmmServer_Warning("Console argument for binding IP is too long..!\n"); } else
@@ -406,6 +514,7 @@ int main(int argc, char *argv[])
    if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
 
     pthread_mutex_init(&db_fileLock,0);
+    pthread_mutex_init(&db_addIDLock,0);
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     myurl_server = AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
@@ -413,6 +522,25 @@ int main(int argc, char *argv[])
 
     if (LoadMyURLDBFile(db_file))
     {
+      if ( !isURLDBSorted() )
+        {
+           //Sort list here and repost
+           AmmServer_Warning("URLDB is not sorted Sorting it now..!\n");
+           sort(links,0,loaded_links);
+
+           ReWriteMyURLDBFile("newdb",links,loaded_links);
+           if ( !isURLDBSorted() ) { AmmServer_Warning("Could not sort URLDB ..! :( , exiting \n"); /*return 1;*/ } else
+                                   {
+                                     AmmServer_Success("Sorted URLDB \n");
+                                     if ( ReWriteMyURLDBFile("newdb",links,loaded_links) )
+                                     {
+                                        AmmServer_Success("Saved as a newdb file \n");
+                                     }
+                                   }
+        }
+
+
+
       //Create dynamic content allocations and associate context to the correct files
       init_dynamic_content();
 
@@ -437,6 +565,7 @@ int main(int argc, char *argv[])
     AmmServer_Stop(myurl_server);
 
     pthread_mutex_destroy(&db_fileLock);
+    pthread_mutex_destroy(&db_addIDLock);
 
     return 0;
 }
