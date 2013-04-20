@@ -39,24 +39,21 @@ char * AmmServer_Version()
   return FULLVERSION_STRING;
 }
 
-
-void AmmServer_Warning( const char *format , ... )
+void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
 {
    unsigned int freeAtTheEnd=1;
    unsigned int formatLength = 30+strlen(format);
    char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
    if (coloredFormat==0) { coloredFormat=format; freeAtTheEnd=0; }
    coloredFormat[0]=0;
-   strcpy(coloredFormat,YELLOW);
-   strcat(coloredFormat,"Warning: ");
+   strcpy(coloredFormat,color);
+   strcat(coloredFormat,label);
+   strcat(coloredFormat,": ");
    strcat(coloredFormat,format);
    strcat(coloredFormat," \n ");
    strcat(coloredFormat,NORMAL );
 
-   va_list arglist;
-   va_start( arglist, format );
-   vfprintf(stderr,coloredFormat, arglist );
-   va_end( arglist );
+   vfprintf(stderr,coloredFormat, *arglist );
 
    fflush(stderr);
 
@@ -65,30 +62,28 @@ void AmmServer_Warning( const char *format , ... )
    if (freeAtTheEnd) free(coloredFormat);
 }
 
+void AmmServer_Warning( const char *format , ... )
+{
+  va_list arglist;
+  va_start( arglist, format );
+  AmmServer_GeneralPrint(YELLOW,"Warning",format, &arglist );
+  va_end( arglist );
+}
 
 void AmmServer_Error( const char *format , ... )
 {
-   unsigned int freeAtTheEnd=1;
-   unsigned int formatLength = 30+strlen(format);
-   char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
-   if (coloredFormat==0) { coloredFormat=format; freeAtTheEnd=0; }
-   coloredFormat[0]=0;
-   strcpy(coloredFormat,RED);
-   strcat(coloredFormat,"Error: ");
-   strcat(coloredFormat,format);
-   strcat(coloredFormat," \n ");
-   strcat(coloredFormat,NORMAL);
+  va_list arglist;
+  va_start( arglist, format );
+  AmmServer_GeneralPrint(RED,"Error",format, &arglist );
+  va_end( arglist );
+}
 
-   va_list arglist;
-   va_start( arglist, format );
-   vfprintf(stderr,coloredFormat, arglist );
-   va_end( arglist );
-
-   fflush(stderr);
-
-   //Maybe log this somewhere ? , just saying
-
-   if (freeAtTheEnd) free(coloredFormat);
+void AmmServer_Success( const char *format , ... )
+{
+  va_list arglist;
+  va_start( arglist, format );
+  AmmServer_GeneralPrint(GREEN,"Success",format, &arglist );
+  va_end( arglist );
 }
 
 
@@ -453,10 +448,10 @@ int AmmServer_RegisterTerminationSignal(void * callback)
   TerminationCallback = callback;
 
   unsigned int failures=0;
-  if (signal(SIGINT, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { printf("AmmarServer cannot handle SIGINT!\n");  ++failures; }
-  if (signal(SIGHUP, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { printf("AmmarServer cannot handle SIGHUP!\n");  ++failures; }
-  if (signal(SIGTERM, AmmServer_GlobalTerminationHandler) == SIG_ERR) { printf("AmmarServer cannot handle SIGTERM!\n"); ++failures; }
-  if (signal(SIGKILL, AmmServer_GlobalTerminationHandler) == SIG_ERR) { printf("AmmarServer cannot handle SIGKILL!\n"); ++failures; }
+  if (signal(SIGINT, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { AmmServer_Warning("AmmarServer cannot handle SIGINT!\n");  ++failures; }
+  if (signal(SIGHUP, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { AmmServer_Warning("AmmarServer cannot handle SIGHUP!\n");  ++failures; }
+  if (signal(SIGTERM, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGTERM!\n"); ++failures; }
+  if (signal(SIGKILL, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGKILL!\n"); ++failures; }
   return (failures==0);
 }
 

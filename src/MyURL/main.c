@@ -45,7 +45,7 @@ char * default_failed = (char*)"http://myurl.ammar.gr/error.html";
 //---------------------------------------------------------------
 
 char db_file[128]="myurl.db";
-pthread_mutex_t * db_fileLock=0;
+pthread_mutex_t db_fileLock;
 
 char indexPagePath[128]="src/MyURL/myurl.html";
 char * indexPage=0;
@@ -164,7 +164,7 @@ unsigned long Add_MyURL(char * LongURL,char * ShortURL,int saveit)
 int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
 {
     if  ((ShortURL==0)||(LongURL==0)) { return 0; }
-    pthread_mutex_lock (db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+    pthread_mutex_lock (&db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
      int result = 0;
      FILE * pFile;
      pFile = fopen (filename,"a");
@@ -175,7 +175,7 @@ int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
      fclose (pFile);
      result=1;
     }
-    pthread_mutex_unlock (db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+    pthread_mutex_unlock (&db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
     return result;
 }
 
@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
     printf("Ammar Server starting up\n");
     AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
-    char bindIP[MAX_INPUT_IP];
+    char bindIP[MAX_INPUT_IP]={0};
     strcpy(bindIP,"0.0.0.0");
 
     unsigned int port=DEFAULT_BINDING_PORT;
@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
    if (argc>=3) { strncpy(webserver_root,argv[3],MAX_FILE_PATH); }
    if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
 
-    pthread_mutex_init (db_fileLock,0);
+    pthread_mutex_init(&db_fileLock,0);
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     myurl_server = AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
@@ -435,7 +435,7 @@ int main(int argc, char *argv[])
     //Stop the server and clean state
     AmmServer_Stop(myurl_server);
 
-    pthread_mutex_destroy(db_fileLock);
+    pthread_mutex_destroy(&db_fileLock);
 
     return 0;
 }
