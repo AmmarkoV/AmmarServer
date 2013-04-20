@@ -163,88 +163,6 @@ int printURLDB()
   return 1;
 }
 
-/*
-void sort(struct URLDB * arr,unsigned int beg,unsigned int end)
-{
-  struct URLDB t;
-  if (end > beg + 1)
-  {
-    int piv = arr[beg].shortURLHash , l = beg + 1, r = end;
-    while (l < r)
-    {
-      if (arr[l].shortURLHash <= piv)
-       {
-         if ((arr[l].shortURLHash == piv) )
-          {//SWAP
-             --r;
-             //fprintf(stderr,"Swapping %s (%u) with %s (%u) \n",arr[l].shortURL,l,arr[r].shortURL,r);
-             t=arr[l]; arr[l]=arr[r]; arr[r]=t;
-             //swap(&arr[l], &arr[--r]);
-          } else
-          {
-              l++;
-          }
-       }
-      else
-      {//SWAP
-        --r;
-        //fprintf(stderr,"Swapping %s (%u) with %s (%u) \n",arr[l].shortURL,l,arr[r].shortURL,r);
-        t=arr[l]; arr[l]=arr[r]; arr[r]=t;
-        //swap(&arr[l], &arr[--r]);
-      }
-    }
-
-    //SWAP
-    --l;
-    //fprintf(stderr,"Swapping %s (%u) with %s (%u) \n",arr[l].shortURL,l,arr[beg].shortURL,beg);
-    t=arr[l]; arr[l]=arr[beg]; arr[beg]=t;
-    //swap(&arr[--l], &arr[beg]);
-
-    sort(arr, beg, l);
-    sort(arr, r, end);
-    //<- recursive sort is small on code size , but stack-wise it is dangerous
-  }
-}
-
-//  quickSort
-// THIS DOES NOT WORK
-//  This public-domain C implementation by Darel Rex Finley.
-//
-//  * Returns YES if sort was successful, or NO if the nested
-//    pivots went too deep, in which case your array will have
-//    been re-ordered, but probably not sorted correctly.
-//
-//  * This function assumes it is called with valid parameters.
-//
-//  * Example calls:
-//    quickSort(&myArray[0],5); // sorts elements 0, 1, 2, 3, and 4
-//    quickSort(&myArray[3],5); // sorts elements 3, 4, 5, 6, and 7
-
-int quickSort(struct URLDB *arr, int elements)
-{
-  #define  MAX_LEVELS  1000
-
-  int  piv, beg[MAX_LEVELS], end[MAX_LEVELS], i=0, L, R ;
-
-  beg[0]=0; end[0]=elements;
-  while (i>=0)
-  {
-    L=beg[i]; R=end[i]-1;
-    if (L<R)
-    {
-      piv=arr[L].shortURLHash; if (i==MAX_LEVELS-1) return 0;
-      while (L<R)
-      {
-        while (arr[R].shortURLHash>=piv && L<R) R--; if (L<R) arr[L++]=arr[R];
-        while (arr[L].shortURLHash<=piv && L<R) L++; if (L<R) arr[R--]=arr[L];
-      }
-      arr[L].shortURLHash=piv; beg[i+1]=L+1; end[i+1]=end[i]; end[i++]=L;
-    }
-    else { i--; }
-  }
-  return 1;
-}
-*/
 
 /* qsort struct comparision function (price float field) ( See qsort call in main ) */
 int struct_cmp_urldb_items(const void *a, const void *b)
@@ -596,23 +514,24 @@ int main(int argc, char *argv[])
       if ( !isURLDBSorted() )
         {
            //Sort list here and repost
-           printURLDB();
+           //printURLDB();
            AmmServer_Warning("URLDB is not sorted Sorting it now..!\n");
-           //sort(links,0,loaded_links-1);
-           //quickSort(links,loaded_links);
-            qsort(links, loaded_links , sizeof(struct URLDB), struct_cmp_urldb_items);
+           qsort(links, loaded_links , sizeof(struct URLDB), struct_cmp_urldb_items);
 
-           ReWriteMyURLDBFile("newdb",links,loaded_links);
-           if ( !isURLDBSorted() ) { AmmServer_Warning("Could not sort URLDB ..! :( , exiting \n"); /*return 1;*/
-                                     printURLDB();
+           if ( !isURLDBSorted() ) { AmmServer_Warning("Could not sort URLDB ..! :( , exiting \n");
+                                     //printURLDB();
+                                     return 1;
                                    } else
                                    {
                                      AmmServer_Success("Sorted URLDB \n");
-                                     if ( ReWriteMyURLDBFile("newdb",links,loaded_links) )
+                                     if ( ReWriteMyURLDBFile(db_file,links,loaded_links) )
                                      {
-                                        AmmServer_Success("Saved as a newdb file \n");
+                                        AmmServer_Success("Saved db file \n");
                                      }
                                    }
+        } else
+        {
+          AmmServer_Success("Presorted URLDB \n");
         }
 
 
