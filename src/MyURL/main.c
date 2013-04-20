@@ -51,6 +51,7 @@ char indexPagePath[128]="src/MyURL/myurl.html";
 char * indexPage=0;
 unsigned int indexPageLength=0;
 
+#define DYNAMIC_PAGES_MEMORY_COMMITED 4096
 #define MAX_TO_SIZE 32
 #define MAX_LONG_URL_SIZE 2048
 #define MAX_LINKS 200000
@@ -236,10 +237,10 @@ char * Get_LongURL(char * ShortURL)
 //This function prepares the content of  the url creator context
 void * serve_error_url_page(char * content)
 {
-  memset(content,0,4096);
-  sprintf(content,"<html><head><body><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></body></html>",service_root_withoutfilename);
-  create_url.content_size=strlen(content);
-  content[create_url.content_size]=0;
+  memset(content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
+  sprintf(content,"<html><head><body><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></body></html>",service_root_withoutfilename);
+  error_url.content_size=strlen(content);
+  content[error_url.content_size]=0;
   return 0;
 }
 
@@ -265,7 +266,7 @@ void * serve_create_url_page(char * content)
 void * serve_goto_url_page(char * content)
 {
   //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
-  memset(content,0,4096);
+  memset(content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
 
   if  ( goto_url.GET_request != 0 )
     {
@@ -359,10 +360,10 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding create page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&create_url);
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form testing page\n"); }
+  if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form testing page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&goto_url);
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",webserver_root,4096,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
+  if (! AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&error_url);
 
 
