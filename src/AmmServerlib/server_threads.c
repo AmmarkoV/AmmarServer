@@ -622,7 +622,6 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
 void * PreSpawnedThread(void * ptr)
 {
-
   //We are a thread so lets retrieve our variables..
   struct PassToPreSpawnedThread * incoming_context = (struct PassToPreSpawnedThread *) ptr;
 

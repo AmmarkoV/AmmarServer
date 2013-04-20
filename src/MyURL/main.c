@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <pthread.h>
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
@@ -40,9 +41,11 @@ char service_filename_noslash[5]="go";
 char service_filename[5]="/go";
 char service_root[128]="http://myurl.ammar.gr/go";
 char service_root_withoutfilename[128]="http://myurl.ammar.gr/";
+char * default_failed = (char*)"http://myurl.ammar.gr/error.html";
 //---------------------------------------------------------------
 
 char db_file[128]="myurl.db";
+pthread_mutex_t * db_fileLock=0;
 
 char indexPagePath[128]="src/MyURL/myurl.html";
 char * indexPage=0;
@@ -53,22 +56,18 @@ unsigned int indexPageLength=0;
 #define MAX_LINKS 200000
 #define LINK_ALLOCATION_STEP 5000
 
+struct AmmServer_Instance * myurl_server=0;
+struct AmmServer_RequestOverride_Context requestResolver={0};
+
+struct AmmServer_RH_Context error_url={0};
+struct AmmServer_RH_Context create_url={0};
+struct AmmServer_RH_Context goto_url={0};
 
 struct URLDB
 {
   char * long_url;
   unsigned long short_url;
 };
-
-
-struct AmmServer_Instance * myurl_server=0;
-struct AmmServer_RequestOverride_Context requestResolver={0};
-
-struct AmmServer_RH_Context create_url={0};
-struct AmmServer_RH_Context goto_url={0};
-
-
-char * default_failed = (char*)"http://ammar.gr/myloader/vfile.php?i=f2166b56f919fa75345991e73448febc-notyet_new.ogg";
 
 
 unsigned int loaded_links=0;
@@ -165,17 +164,19 @@ unsigned long Add_MyURL(char * LongURL,char * ShortURL,int saveit)
 int Append2MyURLDBFile(char * filename,char * LongURL,char * ShortURL)
 {
     if  ((ShortURL==0)||(LongURL==0)) { return 0; }
-    FILE * pFile;
-    pFile = fopen (filename,"a");
+    pthread_mutex_lock (db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+     int result = 0;
+     FILE * pFile;
+     pFile = fopen (filename,"a");
     if (pFile!=0)
     {
      //LongURL , ShortURL have stripped the newline character so there is no danger in just plain adding them with a \n seperator..!
      fprintf(pFile,"%s\n%s\n",LongURL,ShortURL);
      fclose (pFile);
-     return 1;
+     result=1;
     }
-
-    return 0;
+    pthread_mutex_unlock (db_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+    return result;
 }
 
 int LoadMyURLDBFile(char * filename)
@@ -220,14 +221,10 @@ char * Get_LongURL(char * ShortURL)
 
   return default_failed;
 }
-
-
 /*
    -----------------------------------------------------------
    -----------------------------------------------------------
 */
-
-
 
 
 /*
@@ -235,6 +232,18 @@ char * Get_LongURL(char * ShortURL)
             This is the HTML page output of MyURL
    -----------------------------------------------------------
 */
+
+//This function prepares the content of  the url creator context
+void * serve_error_url_page(char * content)
+{
+  memset(content,0,4096);
+  sprintf(content,"<html><head><body><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></body></html>",service_root_withoutfilename);
+  create_url.content_size=strlen(content);
+  content[create_url.content_size]=0;
+  return 0;
+}
+
+
 
 //This function prepares the content of  the url creator context
 void * serve_create_url_page(char * content)
@@ -315,6 +324,7 @@ void resolveRequest(void * request)
 
   if (strcmp("/favicon.ico",rqst->resource)==0 ) { AmmServer_Warning("Detected favicon Page (leaving it alone)"); } else
   if (strcmp("/index.html",rqst->resource)==0 ) { AmmServer_Warning("Detected Index Page (leaving it alone)");  } else
+  if (strcmp("/error.html",rqst->resource)==0 ) { AmmServer_Warning("Detected Error Page (leaving it alone)");  } else
   if (strcmp("/",rqst->resource)==0 ) { AmmServer_Warning("Detected Index Page (leaving it alone)");  } else
   if ( (strncmp(service_filename,rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { AmmServer_Warning("Detected Regular Go Page (leaving it alone)"); } else
          {
@@ -352,6 +362,11 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,4096,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form testing page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&goto_url);
 
+  if (! AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",webserver_root,4096,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
+  AmmServer_DoNOTCacheResourceHandler(myurl_server,&error_url);
+
+
+
   if (!AmmServer_AddRequestHandler(myurl_server,&requestResolver,"GET",&resolveRequest) )
       { AmmServer_Warning("Failed adding request handler for testing page\n"); }
 
@@ -362,6 +377,7 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(myurl_server,&create_url,1);
     AmmServer_RemoveResourceHandler(myurl_server,&goto_url,1);
+    AmmServer_RemoveResourceHandler(myurl_server,&error_url,1);
 }
 
 
@@ -387,6 +403,8 @@ int main(int argc, char *argv[])
      }
    if (argc>=3) { strncpy(webserver_root,argv[3],MAX_FILE_PATH); }
    if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
+
+    pthread_mutex_init (db_fileLock,0);
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     myurl_server = AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
@@ -416,6 +434,8 @@ int main(int argc, char *argv[])
     }
     //Stop the server and clean state
     AmmServer_Stop(myurl_server);
+
+    pthread_mutex_destroy(db_fileLock);
 
     return 0;
 }
