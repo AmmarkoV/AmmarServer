@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <signal.h>
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
@@ -40,7 +41,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char admin_root[MAX_FILE_PATH]="admin_html/"; // <- change this to the directory that contains your content if you dont want to use the default admin_html dir..
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
-char controlPanelPage[MAX_FILE_PATH]="src/ScriptRunner/controlpanel.html";
 char * page=0;
 unsigned int pageLength=0;
 
@@ -160,15 +160,29 @@ void execute(char * command,char * param)
     if (strcmp(param,"down")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"down\" -1\" ");  }
   }
    else
+  if (strcmp(command,"rtd")==0)
+  {
+    if (strcmp(param,"home")==0) 		{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseHome.py"); 			} else
+    if (strcmp(param,"almosthome")==0) 		{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseAlmostHome.py");		} else
+    if (strcmp(param,"armatside")==0) 		{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseArmAtSide.py"); 		} else
+    if (strcmp(param,"cfaftergrasp")==0)	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseCFAfterGrasp.py"); 		} else
+    if (strcmp(param,"lowerlearn")==0) 		{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseLearn.py");			} else
+    if (strcmp(param,"tablepregrasp")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseTPregrasp.py"); 		} else
+    if (strcmp(param,"tablefinalgrasp")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseTFinalGrasp.py"); 		} else
+    if (strcmp(param,"trayprerelease")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PosePreReleaseInTray.py"); 	} else
+    if (strcmp(param,"trayrelease")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseReleaseInTray.py"); 		} else
+    if (strcmp(param,"clearfloorpregrasp")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseCFPregrasp.py"); 		} else
+    if (strcmp(param,"clearfloorfinalgrasp")==0){ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_POSES/RTD_PoseCFFinalGrasp.py"); 		} else
+    if (strcmp(param,"opengripper")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_COMMANDS/RTD_OpenGripper.py"); 		} else
+    if (strcmp(param,"closegripper")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_COMMANDS/RTD_CloseGripper.py"); 		} else
+    if (strcmp(param,"disableallaxis")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_COMMANDS/RTD_DisableAllAxis.py"); 		} else
+    if (strcmp(param,"graspfromtable")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_SCENARIOS/RTD_GraspFromTable.sh"); 		} else
+    if (strcmp(param,"graspfromfloor")==0) 	{ strcpy(commandToRun,"/home/hobbit/hobbit/ActionSequencer/src/RTD_SCENARIOS/RTD_GraspFromFloor.sh"); 		}
+  }
+   else
   if (strcmp(command,"hand")==0)
   {
-    if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" -1  "); } else
-    if (strcmp(param,"clear")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_SetEnableAll_false.py"); } else
-    if (strcmp(param,"closegripper")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_closeGripper.py"); } else
-    if (strcmp(param,"opengripper")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_openGripper.py"); }  else
-    if (strcmp(param,"gohome")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_goHome.py"); } else
-    if (strcmp(param,"goalmosthome")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_goAlmostHome.py"); } else
-    if (strcmp(param,"goarmatside")==0) { strcpy(commandToRun,"python /home/hobbit/hobbit/ActionSequencer/src/CommTest_goArmAtSide.py"); }
+    if (strcmp(param,"calibrate")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_ARM_REFERENCE'\" -1  "); }
   }
    else
   if (strcmp(command,"body")==0)
@@ -186,8 +200,8 @@ void execute(char * command,char * param)
   }
    else
   if (strcmp(command,"robot")==0)
-  {
-    ///bin/bash -c \"
+  { ///bin/bash -c \"
+
     if (strcmp(param,"yes")==0) { strcpy(commandToRun,"rostopic pub /Event HobbitMsgs/Event \"event: 'G_YES'\" -1  "); } else
     if (strcmp(param,"no")==0) { strcpy(commandToRun,"rostopic pub /Event HobbitMsgs/Event \"event: 'G_NO'\" -1  "); } else
     if (strcmp(param,"stop")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'C_STOP'\" -1  "); } else
@@ -199,11 +213,15 @@ void execute(char * command,char * param)
     if (strcmp(param,"closemic")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'F_ASR_OFF'\" -1  "); } else
     if (strcmp(param,"openmic")==0) { strcpy(commandToRun,"rostopic pub /Command HobbitMsgs/Command \"command: 'F_ASR_ON'\" -1  "); } else
 
+
     if (strcmp(param,"hobbit")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1  "); } else
     if (strcmp(param,"wake")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_WAKEUP'\" -1  "); } else
     if (strcmp(param,"sleep")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_SLEEP'\" -1  "); } else
     if (strcmp(param,"clearfloor")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_CLEARFLOOR'\" -1  "); } else
     if (strcmp(param,"bringobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_BRING'\" -1  "); } else
+
+           //name: Name     value: ΑΣΠΙΡΊΝΗ
+
 
     if (strcmp(param,"learnobject")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'C_LEARN'\" -1  "); } else
     if (strcmp(param,"helpme")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"command: 'G_FALL'\" -1  "); }
@@ -258,6 +276,7 @@ void * prepare_form_content_callback(char * content)
             if ( _GET(default_server,&form,"body",bufferCommand,256) )  { execute("body",bufferCommand);  } else
             if ( _GET(default_server,&form,"bring",bufferCommand,256) )  { execute("bring",bufferCommand);  } else
             if ( _GET(default_server,&form,"robot",bufferCommand,256) ) { execute("robot",bufferCommand); } else
+            if ( _GET(default_server,&form,"rtd",bufferCommand,256) ) { execute("rtd",bufferCommand); } else
             if ( _GET(default_server,&form,"say",bufferCommand,256) )   { execute("say",bufferCommand);   }
 
             free(bufferCommand);
@@ -279,8 +298,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
 
-  page=AmmServer_ReadFileToMemory(controlPanelPage,&pageLength);
-  if (page==0) { AmmServer_Error("Could not find Control Panel Page file %s ",controlPanelPage); }
+  page=AmmServer_ReadFileToMemory("src/ScriptRunner/controlpanel.html",&pageLength);
   if (! AmmServer_AddResourceHandler(default_server,&form,"/controlpanel.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
 
   AmmServer_DoNOTCacheResourceHandler(default_server,&form);
@@ -295,10 +313,27 @@ void close_dynamic_content()
 /*! Dynamic content code ..! END ------------------------*/
 
 
+
+void termination_handler (int signum)
+     {
+        fprintf(stderr,"Terminating AmmarServer.. \n");
+        close_dynamic_content();
+        AmmServer_Stop(default_server);
+        fprintf(stderr,"done\n");
+        exit(0);
+     }
+
+
+
 int main(int argc, char *argv[])
 {
     printf("Ammar Server %s starting up..\n",AmmServer_Version());
-    AmmServer_RegisterTerminationSignal(&close_dynamic_content);
+
+    if (signal(SIGINT, termination_handler) == SIG_ERR)   printf("Cannot handle SIGINT!\n");
+    if (signal(SIGHUP, termination_handler) == SIG_ERR)   printf("Cannot handle SIGHUP!\n");
+    if (signal(SIGTERM, termination_handler) == SIG_ERR)  printf("Cannot handle SIGTERM!\n");
+    if (signal(SIGKILL, termination_handler) == SIG_ERR)  printf("Cannot handle SIGKILL!\n");
+
 
     char bindIP[MAX_INPUT_IP];
     strcpy(bindIP,"0.0.0.0");
@@ -306,10 +341,10 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
 
-    if ( argc <1 ) { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
+    if ( argc <1 ) { fprintf(stderr,"Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else
      {
-        if (strlen(argv[1])>=MAX_INPUT_IP) { AmmServer_Warning("Console argument for binding IP is too long..!\n"); } else
+        if (strlen(argv[1])>=MAX_INPUT_IP) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
                                            { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
         port=atoi(argv[2]);
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
@@ -334,7 +369,7 @@ int main(int argc, char *argv[])
            bindIP,
            ADMIN_BINDING_PORT
          );
-       if (!admin_server) { AmmServer_Warning("Could not create admin server carying on though...");  }
+       if (!admin_server) { fprintf(stderr,"Could not create admin server carying on though...");  }
      }
 
     if (!default_server) { fprintf(stderr,"Closing everything.."); exit(1); }

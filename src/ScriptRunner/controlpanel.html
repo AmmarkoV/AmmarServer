@@ -4,6 +4,9 @@
   <head>
 	<title>Hobbinterface</title>
 	<style type="text/css">
+		table{
+			border-spacing: 5px 5px;
+		}
 		hr{
 			color: orange;
 			height: 0px;
@@ -18,7 +21,15 @@
 			left: -765px;
 			top: 26px;
 		}
-
+		.rtd{
+			border: 1px solid black;
+			background: #ffebc5;
+			padding: 20px;
+			border-radius: 10px;
+		}
+		.rtd a{
+			color: green;
+		}
 	</style>
    <script type="text/javascript">
    function makeUniqueURLs()
@@ -41,95 +52,86 @@
   <center>
 	<img src="header.png"/>
 	<img src="scissors.png" id="scissors"/>
-	<hr /><br/>
+	<hr />
 	
    <table id="content">
     <tr>
       <td> 
-        <strong>HEAD</strong><br>
-        <a href="controlpanel.html?head=left">  Head Left</a><br>
-        <a href="controlpanel.html?head=center">Head Center</a><br>
-        <a href="controlpanel.html?head=right"> Head Right</a><br><br>
+	<div class="rtd">
+        <strong>HEAD</strong><br/>
+        <a href="controlpanel.html?head=left">  Head Left</a><br/>
+        <a href="controlpanel.html?head=center">Head Center</a><br/>
+        <a href="controlpanel.html?head=right"> Head Right</a><br/><br/>
 
-        <a href="controlpanel.html?head=up">    Head Up</a><br>
-        <a href="controlpanel.html?head=middle">Head Middle</a><br>
-        <a href="controlpanel.html?head=down">  Head Down</a><br> 
+        <a href="controlpanel.html?head=up">    Head Up</a><br/>
+        <a href="controlpanel.html?head=middle">Head Middle</a><br/>
+        <a href="controlpanel.html?head=down">  Head Down</a><br/>
+	</div> <br/>
       </td>
-
-      <td width=40>&nbsp;</td>
-
-      <td> 
-        <strong>GENERIC</strong><br>
-
-        <a href="controlpanel.html?robot=yes"> Yes </a><br>
-        <a href="controlpanel.html?robot=no">  No </a><br>
-        <a href="controlpanel.html?robot=cancel"> Cancel </a><br>
-        <a href="controlpanel.html?robot=reward"> Reward </a><br>
-        <a href="controlpanel.html?robot=wake">  Hear My Name (C_WAKEUP) </a><br> 
-        <br>
-        
-        <a href="controlpanel.html?robot=stop"> Wake Up (C_STOP) </a><br>
-        <a href="controlpanel.html?robot=sleep">  Sleep </a><br> 
-        <a href="controlpanel.html?robot=openmic"> Open Mic </a><br>
-        <a href="controlpanel.html?robot=closemic">  Close Mic </a><br>
-        <a href="controlpanel.html?robot=call">  Call to Room </a><br>
-        <a href="controlpanel.html?robot=settings"> Settings </a><br> 
+      <td>
+	<div class="rtd">
+        <strong>GENERIC</strong><br/>
+        <a href="controlpanel.html?robot=yes"> Yes </a><br/>
+        <a href="controlpanel.html?robot=no">  No </a><br/>
+        <a href="controlpanel.html?robot=cancel"> Cancel </a><br/>
+        <a href="controlpanel.html?robot=reward"> Reward </a><br/>
+        <a href="controlpanel.html?robot=wake">  Hear My Name (C_WAKEUP) </a><br/> 
+	<br/>        
+        <a href="controlpanel.html?robot=stop"> Wake Up (C_STOP) </a><br/>
+        <a href="controlpanel.html?robot=sleep">  Sleep </a><br/> 
+        <a href="controlpanel.html?robot=openmic"> Open Mic </a><br/>
+        <a href="controlpanel.html?robot=closemic">  Close Mic </a><br/>
+        <a href="controlpanel.html?robot=call">  Call to Room </a><br/>
+        <a href="controlpanel.html?robot=settings"> Settings </a><br/> 
+	</div>
       </td>
-
-      <td width=40>&nbsp;</td>
-
-
       <td> 
-        <strong>BODY</strong><br>
-        <a href="controlpanel.html?base=left">  Move Left </a><br> 
-        <a href="controlpanel.html?base=right">  Move Right </a><br>
-        <a href="controlpanel.html?base=forward">  Move Forward </a><br>
-        <a href="controlpanel.html?base=back">  Move Back </a><br>
+	<div class="rtd">
+        <strong>BODY</strong><br/>
+        <a href="controlpanel.html?base=left">  Move Left </a><br/> 
+        <a href="controlpanel.html?base=right">  Move Right </a><br/>
+        <a href="controlpanel.html?base=forward">  Move Forward </a><br/>
+        <a href="controlpanel.html?base=back">  Move Back </a><br/>
+	</div><br/>
+	<div class="rtd">
+        <strong>COMMANDS</strong><br/>
+        <a href="controlpanel.html?robot=clearfloor">  Clear Floor </a><br/> 
+        <a href="controlpanel.html?bring=aspirin">  Bring Aspirin </a><br/> 
+        <a href="controlpanel.html?bring=sugar">  Bring Sugar </a><br/> 
+        <a href="controlpanel.html?robot=learnobject">  Learn Object </a><br/> 
+        <a href="controlpanel.html?robot=helpme">  Help me </a><br/> 
+        <a href="controlpanel.html?hand=calibrate">  Calibrate Hand</a><br/>
+        <a href="controlpanel.html?scenario=moveto1">Move To Start</a><br/>
+	</div>
       </td>
-
-      <td width=40>&nbsp;</td>
-
-
-
       <td> 
-        <strong>COMMANDS</strong><br>
-        <a href="controlpanel.html?robot=clearfloor">  Clear Floor </a><br> 
-        <a href="controlpanel.html?bring=aspirin">  Bring Aspirin </a><br> 
-        <a href="controlpanel.html?bring=sugar">  Bring Sugar </a><br> 
-        <a href="controlpanel.html?robot=learnobject">  Learn Object </a><br> 
-        <a href="controlpanel.html?robot=helpme">  Help me </a><br> 
-      </td>
-
-      <td width=40>&nbsp;</td>
-
-
-
-      <td> 
-        <strong>HAND</strong><br>
-        <a href="controlpanel.html?hand=calibrate">  Calibrate Hand</a><br>
-        <a href="controlpanel.html?hand=clear">  Clear All</a><br>
-        <br>
-        <a href="controlpanel.html?hand=opengripper">  Open Gripper</a><br>
-        <a href="controlpanel.html?hand=closegripper">  Close Gripper</a><br><br>
-        <a href="controlpanel.html?hand=gohome">  Go Home </a><br>
-        <a href="controlpanel.html?hand=goalmosthome">  Go Almost Home </a><br>
-        <a href="controlpanel.html?hand=goarmatside">  Go Arm at Side </a><br>
-        <!--a href="controlpanel.html?hand=gopregrasp">  Go Pre Grasp </a><br>
-        <a href="controlpanel.html?hand=gofinalgrasp">  Go Final Grasp </a><br>
-        <a href="controlpanel.html?hand=goarmatside">  Go Object To Tray </a><br--> 
-      </td>
-
-      <td width=40>&nbsp;</td>
-
-      <td> 
-        <strong>MOVETO</strong><br>
-        <a href="controlpanel.html?scenario=moveto1">Move To Start</a><br>
+	<div class="rtd">
+        <strong>READY TO DRINK POSES</strong><br/>
+        <a href="controlpanel.html?rtd=home">Pose Home</a><br/>
+        <a href="controlpanel.html?rtd=almosthome">Pose Almost Home</a><br/>
+        <a href="controlpanel.html?rtd=armatside">Pose Arm At Side</a><br/>
+        <a href="controlpanel.html?rtd=armatside">Pose Lower Learn</a><br/>
+        <a href="controlpanel.html?rtd=tablepregrasp">Pose Table Pregrasp</a><br/>
+        <a href="controlpanel.html?rtd=tablefinalgrasp">Pose Table Final Grasp</a><br/>
+        <a href="controlpanel.html?rtd=trayprerelease">Pose Tray Pre Release</a><br/>
+        <a href="controlpanel.html?rtd=trayrelease">Pose Tray Release</a><br/>
+        <a href="controlpanel.html?rtd=clearfloorpregrasp">Pose Clear Floor Pregrasp</a><br/>
+        <a href="controlpanel.html?rtd=clearfloorfinalgrasp">Pose Clear Floor Final Grasp</a><br/>
+        <a href="controlpanel.html?rtd=cfaftergrasp">Pose Clear Floor After Grasp</a><br/><br/>
+        <strong>READY TO DRINK COMMANDS</strong><br/>
+        <a href="controlpanel.html?rtd=opengripper">Open Gripper</a><br/>
+        <a href="controlpanel.html?rtd=closegripper">Close Gripper</a><br/>
+        <a href="controlpanel.html?rtd=closegripper">Disable All Axis</a><br/><br/>
+        <strong>READY TO DRINK SEQUENCES</strong><br/>
+        <a href="controlpanel.html?rtd=graspfromtable">Grasp From the Table</a><br/>
+        <a href="controlpanel.html?rtd=graspfromfloor">Grasp From the Floor</a><br/>
+	</div><br/>
       </td>
     </tr>
 
     <tr>
       <td colspan=10> 
-        <br><br> 
+        <br/><br/> 
         &nbsp;
       </td>
     </tr>
@@ -149,10 +151,11 @@
 	<br/>
 	<hr/><br/>
 
-	<a href="controlpanel.html?nothing=true"> <h1>Click here to refresh neutral url</h1></a>
+	<a href="controlpanel.html?nothing=true"> <h3>Click here to refresh neutral url</h3></a>
 
 
 
   </center> 
  </body>
 </html>
+
