@@ -57,8 +57,11 @@
    var joyImageCenterTop=joyImageCenterY-verticalDistance;
    var joyImageCenterBottom=joyImageCenterY+verticalDistance;
    
-   document.addEventListener('mousemove', onMouseMove, false)
+  // document.addEventListener('mousemove', onMouseMove, false)
 
+
+    //var canvas = document.getElementById("joypadCanvas");
+    //canvas.addEventListener("mousemove", onMouseMove, false);
 
  
 
@@ -83,13 +86,9 @@
 
    function moveJoystick()
     {   
-       var boxPos = document.getElementById("marker");
-       var joypadX = 0 + boxPos.style.left;
-       var joypadY = 0 + boxPos.style.top; 
-
-       //var joypadX = 0 + document.getElementById("marker").style.left;
-       //var joypadY = 0 + document.getElementById("marker").style.top; 
-
+     
+       var joypadX = 0 + mouseX;
+       var joypadY = 0 + mouseY;
        var joyX = 0 + mouseX;
        var joyY = 0 + mouseY;
 
@@ -104,9 +103,7 @@
 
        if  (joyY<joyImageCenterTop) { joyY=joyImageCenterTop; }
        if  (joyY<joyImageCenterBottom) { joyY=joyImageCenterBottom; }
-
-       document.getElementById("joystick").style.top=joyY+'px';  
-       document.getElementById("joystick").style.left=joyX+'px';   
+ 
 
        alert('Wanted to draw at '+joyX+','+joyY + ' Joypad at '+ joypadX + ',' + joypadY);
     }
@@ -162,14 +159,90 @@
            <div class="rtd">
             <center>
               <strong>MOVEMENT</strong><br/><br/>
-               <table id="joypad" background="joypad.png" width=160 height=160 onmouseover="moveJoystick();">
-                <tr>  
-                  <td> 
-                    <img id="marker" src="invisible.png" > 
-                    <img id="joystick" src="joybtn.png" >
-                  </td>
-                </tr>
-               </table> <br/>
+   
+    <!--  ------------------------------------------------------------------------------
+                    THIS IS THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
+           ------------------------------------------------------------------------------   -->
+<canvas id="joypadCanvas" width="160" height="160"></canvas>
+    <script>
+         var canvas = document.getElementById('joypadCanvas');
+         var context = canvas.getContext('2d');
+         var joypadObj = new Image();
+         var joystickObj = new Image();
+       
+
+
+     function clearCanvas()
+     {
+       var context = canvas.getContext('2d');
+       context.clearRect(0, 0, canvas.width, canvas.height); 
+     }
+ 
+      function getMousePos(canvas, evt) 
+    {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+
+      function drawJoystick(canvas, x ,y , imageObj) 
+      {
+        var context = canvas.getContext('2d'); 
+        clearCanvas(); 
+        context.drawImage(joypadObj,  0 ,0);
+        context.drawImage(joystickObj,  x ,y);
+      }
+ 
+      function init(imageObj) 
+    {
+        var padding = 10;
+        var canvas = document.getElementById('joypadCanvas');
+        var context = canvas.getContext('2d');
+        var mouseDown = false;
+
+        context.strokeStyle = '#444';
+        context.lineWidth = 2;
+
+        canvas.addEventListener('mousedown', function() {
+          mouseDown = true;
+        }, false);
+
+        canvas.addEventListener('mouseup', function() {
+          mouseDown = false;
+        }, false);
+
+        canvas.addEventListener('mousemove', function(evt) 
+        {
+          var mousePos = getMousePos(canvas, evt); 
+
+          var x = mousePos.x - padding;
+          var y = mousePos.y - padding; 
+          drawJoystick(canvas, x,y, imageObj);
+          if(mouseDown) 
+              {
+                 alert('Test '+x+','+y);
+                 mouseDown=false;
+              }
+           
+        }, false);
+
+
+      }
+
+
+       joypadObj.onload = function() { context.drawImage(joypadObj, 0, 0); init(this);  };
+       joypadObj.src = 'joypad.png';
+
+
+       joystickObj.onload = function() { context.drawImage(joystickObj, 52, 52); };
+       joystickObj.src = 'joybtn.png';
+
+
+
+                     </script>
+                <br/>
                 <a href="controlpanel.html?body=stop">STOP ALL MOVEMENT</a>
             </center>
            </div> 
@@ -213,7 +286,7 @@
         <a href="controlpanel.html?rtd=home">Pose Home</a><br/>
         <a href="controlpanel.html?rtd=almosthome">Pose Almost Home</a><br/>
         <a href="controlpanel.html?rtd=armatside">Pose Arm At Side</a><br/>
-        <a href="controlpanel.html?rtd=armatside">Pose Lower Learn</a><br/>
+        <a href="controlpanel.html?rtd=lowerlearn">Pose Lower Learn</a><br/>
         <a href="controlpanel.html?rtd=tablepregrasp">Pose Table Pregrasp</a><br/>
         <a href="controlpanel.html?rtd=tablefinalgrasp">Pose Table Final Grasp</a><br/>
         <a href="controlpanel.html?rtd=trayprerelease">Pose Tray Pre Release</a><br/>
