@@ -43,27 +43,17 @@
                         position:absolute;
                 }
 	</style>
-   <script type="text/javascript">
-   var mouseX = 0;
-   var mouseY = 0; 
-   var joyImageCenterX=215;
-   var joyImageCenterY=615;
-
-   var horizontalDistance = 80;
-   var verticalDistance = 80;
-
-   var joyImageCenterLeft=joyImageCenterX-horizontalDistance;
-   var joyImageCenterRight=joyImageCenterX+horizontalDistance;
-   var joyImageCenterTop=joyImageCenterY-verticalDistance;
-   var joyImageCenterBottom=joyImageCenterY+verticalDistance;
+   <script type="text/javascript">  
    
-  // document.addEventListener('mousemove', onMouseMove, false)
+   var centerX=51;
+   var centerY=54;
+   
+   var speedMultiplier=0.5;  
 
-
-    //var canvas = document.getElementById("joypadCanvas");
-    //canvas.addEventListener("mousemove", onMouseMove, false);
-
- 
+   var deadZoneLeft = 42;
+   var deadZoneUp = 39;
+   var deadZoneRight = 63;
+   var deadZoneDown = 63;
 
    function makeUniqueURLs()
    {  
@@ -76,37 +66,7 @@
        links[i].href = links[i].href+"&t="+randomnumber;
      } 
    }
-
-   function onMouseMove(e)
-   { //clientX clientY
-    mouseX = e.pageX;
-    mouseY = e.pageY; 
-   }
-
-
-   function moveJoystick()
-    {   
-     
-       var joypadX = 0 + mouseX;
-       var joypadY = 0 + mouseY;
-       var joyX = 0 + mouseX;
-       var joyY = 0 + mouseY;
-
-       if ( (joyX<10) || (joyY<10) )
-         {
-            joyX=joyImageCenterX;
-            joyY=joyImageCenterY ;
-         }
  
-       if  (joyX<joyImageCenterLeft) { joyX=joyImageCenterLeft; } else
-       if  (joyX>joyImageCenterRight) { joyX=joyImageCenterRight; }
-
-       if  (joyY<joyImageCenterTop) { joyY=joyImageCenterTop; }
-       if  (joyY<joyImageCenterBottom) { joyY=joyImageCenterBottom; }
- 
-
-       alert('Wanted to draw at '+joyX+','+joyY + ' Joypad at '+ joypadX + ',' + joypadY);
-    }
    </script>
 
   </head>
@@ -160,9 +120,9 @@
             <center>
               <strong>MOVEMENT</strong><br/><br/>
    
-    <!--  ------------------------------------------------------------------------------
-                    THIS IS THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
-           ------------------------------------------------------------------------------   -->
+<!--  ------------------------------------------------------------------------------
+      START OF:         THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
+      ------------------------------------------------------------------------------   -->
 <canvas id="joypadCanvas" width="160" height="160"></canvas>
     <script>
          var canvas = document.getElementById('joypadCanvas');
@@ -197,32 +157,28 @@
  
       function init(imageObj) 
     {
-        var padding = 10;
+        var padding = 30;
         var canvas = document.getElementById('joypadCanvas');
         var context = canvas.getContext('2d');
         var mouseDown = false;
-
-        context.strokeStyle = '#444';
-        context.lineWidth = 2;
-
-        canvas.addEventListener('mousedown', function() {
-          mouseDown = true;
-        }, false);
-
-        canvas.addEventListener('mouseup', function() {
-          mouseDown = false;
-        }, false);
+ 
+        canvas.addEventListener('mousedown', function() { mouseDown = true; }, false);
+        canvas.addEventListener('mouseup', function() { mouseDown = false; }, false);
 
         canvas.addEventListener('mousemove', function(evt) 
         {
           var mousePos = getMousePos(canvas, evt); 
 
-          var x = mousePos.x - padding;
-          var y = mousePos.y - padding; 
+          var x = 0 + mousePos.x - padding;
+          var y = 0 + mousePos.y - padding; 
+
+          var joyX = (x - centerX) * speedMultiplier;
+          var joyY = (y - centerY) * speedMultiplier;
+
           drawJoystick(canvas, x,y, imageObj);
           if(mouseDown) 
               {
-                 alert('Test '+x+','+y);
+                 alert('Mouse '+x+','+y+'\n Joy : '+joyX+','+joyY);
                  mouseDown=false;
               }
            
@@ -239,9 +195,12 @@
        joystickObj.onload = function() { context.drawImage(joystickObj, 52, 52); };
        joystickObj.src = 'joybtn.png';
 
+ </script>
 
+<!--  ------------------------------------------------------------------------------
+      END OF:           THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
+      ------------------------------------------------------------------------------   -->
 
-                     </script>
                 <br/>
                 <a href="controlpanel.html?body=stop">STOP ALL MOVEMENT</a>
             </center>
