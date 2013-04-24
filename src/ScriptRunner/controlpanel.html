@@ -50,7 +50,7 @@
    
    var speedMultiplier=0.5;  
    
-   var deadZoneSize = 4; 
+   var deadZoneSize = 6; 
    var deadZoneLeft = centerX-deadZoneSize;
    var deadZoneUp = centerY-deadZoneSize;
    var deadZoneRight = centerX+deadZoneSize;
@@ -208,8 +208,8 @@
           drawJoystick(canvas, x,y, imageObj);
            
           if ( 
-               ( ( x <= deadZoneLeft )||( x >= deadZoneRight ) ) &&
-               ( ( y <= deadZoneUp )||( y >= deadZoneBottom ) ) 
+               ( ( x <= deadZoneLeft )||( x >= deadZoneRight ) ) ||
+                ( ( y <= deadZoneUp )||( y >= deadZoneBottom ) ) 
              )    
 
           {
@@ -221,7 +221,7 @@
                  //alert('Mouse '+x+','+y+'\n Joy : '+joyX+','+joyY); 
                  drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(255,0,0)" );
                  var randomnumber=Math.floor(Math.random()*100000);
-                 httpGet("controlpanel.html?base=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
+                 httpGet("controlpanel.html?body=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
                  //mouseDown=false;
                   
               } else
@@ -286,10 +286,10 @@
 
 	<div class="rtd">
         <strong>BODY</strong><br/>
-        <a href="controlpanel.html?base=left">  Move Left </a><br/> 
-        <a href="controlpanel.html?base=right">  Move Right </a><br/>
-        <a href="controlpanel.html?base=forward">  Move Forward </a><br/>
-        <a href="controlpanel.html?base=back">  Move Back </a><br/>
+        <a href="controlpanel.html?body=left">  Move Left </a><br/> 
+        <a href="controlpanel.html?body=right">  Move Right </a><br/>
+        <a href="controlpanel.html?body=forward">  Move Forward </a><br/>
+        <a href="controlpanel.html?body=back">  Move Back </a><br/>
 	</div><br/>
 
 

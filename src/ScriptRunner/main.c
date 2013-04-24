@@ -144,6 +144,13 @@ void * prepare_stats_content_callback(char * content)
   return 0;
 }
 
+
+void joystick(float x , float y, unsigned int repeat)
+{
+   AmmServer_Warning("Joystick(%0.2f,%0.2f,%u)\n",x,y,repeat);
+}
+
+
 void execute(char * command,char * param)
 {
   fprintf(stderr,"Execute(%s,%s) \n",command,param);
@@ -273,7 +280,24 @@ void * prepare_form_content_callback(char * content)
           {
             if ( _GET(default_server,&form,"head",bufferCommand,256) )  { execute("head",bufferCommand);  } else
             if ( _GET(default_server,&form,"hand",bufferCommand,256) )  { execute("hand",bufferCommand);  } else
-            if ( _GET(default_server,&form,"body",bufferCommand,256) )  { execute("body",bufferCommand);  } else
+            if ( _GET(default_server,&form,"body",bufferCommand,256) )
+                 {
+                     if (strcmp(bufferCommand,"joystick")==0)
+                         {
+                             float x=0.0,y=0.0;
+                             char xString[256]={0};
+                             char yString[256]={0};
+
+                             if ( _GET(default_server,&form,"x",xString,256) ) { x=atof(xString); }
+                             if ( _GET(default_server,&form,"y",yString,256) ) { y=atof(yString); }
+
+                             joystick(x,y,0);
+                           //Parse joystick command
+                         } else
+                         {
+                           execute("body",bufferCommand);
+                         }
+                 } else
             if ( _GET(default_server,&form,"bring",bufferCommand,256) )  { execute("bring",bufferCommand);  } else
             if ( _GET(default_server,&form,"robot",bufferCommand,256) ) { execute("robot",bufferCommand); } else
             if ( _GET(default_server,&form,"rtd",bufferCommand,256) ) { execute("rtd",bufferCommand); } else
