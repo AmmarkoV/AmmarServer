@@ -49,11 +49,20 @@
    var centerY=54;
    
    var speedMultiplier=0.5;  
+   
+   var deadZoneSize = 4; 
+   var deadZoneLeft = centerX-deadZoneSize;
+   var deadZoneUp = centerY-deadZoneSize;
+   var deadZoneRight = centerX+deadZoneSize;
+   var deadZoneBottom = centerY+deadZoneSize;
 
-   var deadZoneLeft = 42;
-   var deadZoneUp = 39;
-   var deadZoneRight = 63;
-   var deadZoneDown = 63;
+   var limitLeft = 25;
+   var limitUp = 27;
+   var limitRight = 75;
+   var limitBottom = 78;
+ 
+   var ledX = 5;
+   var ledY = 5;
 
    function makeUniqueURLs()
    {  
@@ -66,6 +75,17 @@
        links[i].href = links[i].href+"&t="+randomnumber;
      } 
    }
+
+
+    function httpGet(theUrl)
+    {
+    var xmlHttp = null;
+
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, false );
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+    }
  
    </script>
 
@@ -154,6 +174,14 @@
         context.drawImage(joypadObj,  0 ,0);
         context.drawImage(joystickObj,  x ,y);
       }
+
+      function drawActiveStatus(canvas, x,y, width , height , color )
+      {
+        context.beginPath();
+        context.fillStyle = color;
+        context.fillRect(x, y, width, height);
+        context.strokeRect(x, y, width, height);
+      }
  
       function init(imageObj) 
     {
@@ -172,16 +200,43 @@
           var x = 0 + mousePos.x - padding;
           var y = 0 + mousePos.y - padding; 
 
-          var joyX = (x - centerX) * speedMultiplier;
-          var joyY = (y - centerY) * speedMultiplier;
-
+          if ( x < limitLeft )   { x = limitLeft; }
+          if ( x > limitRight )  { x = limitRight; }
+          if ( y < limitUp )     { y = limitUp; }
+          if ( y > limitBottom ) { y = limitBottom; } 
+          
           drawJoystick(canvas, x,y, imageObj);
-          if(mouseDown) 
-              {
-                 alert('Mouse '+x+','+y+'\n Joy : '+joyX+','+joyY);
-                 mouseDown=false;
-              }
            
+          if ( 
+               ( ( x <= deadZoneLeft )||( x >= deadZoneRight ) ) &&
+               ( ( y <= deadZoneUp )||( y >= deadZoneBottom ) ) 
+             )    
+
+          {
+           var joyX = (x - centerX) * speedMultiplier;
+           var joyY = (y - centerY) * speedMultiplier;
+
+           if(mouseDown) 
+              {
+                 //alert('Mouse '+x+','+y+'\n Joy : '+joyX+','+joyY); 
+                 drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(255,0,0)" );
+                 var randomnumber=Math.floor(Math.random()*100000);
+                 httpGet("controlpanel.html?base=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
+                 //mouseDown=false;
+                  
+              } else
+              {   
+                 drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(0,255,0)" );
+              } 
+          } else
+          {
+                 drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(0,0,255)" );
+                 mouseDown=false; 
+          }
+
+
+
+ 
         }, false);
 
 
