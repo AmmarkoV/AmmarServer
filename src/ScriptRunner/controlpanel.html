@@ -31,22 +31,42 @@
 		.rtd a{
 			color: green;
 		}
+  
+                 #marker
+                {
+                        
+			height: 1px;
+                }
 
-                 #joystick{
+                 #joystick
+                {
                         position:absolute;
                 }
 	</style>
    <script type="text/javascript">
    var mouseX = 0;
-   var mouseY = 0;
+   var mouseY = 0; 
+   var joyImageCenterX=215;
+   var joyImageCenterY=615;
+
+   var horizontalDistance = 80;
+   var verticalDistance = 80;
+
+   var joyImageCenterLeft=joyImageCenterX-horizontalDistance;
+   var joyImageCenterRight=joyImageCenterX+horizontalDistance;
+   var joyImageCenterTop=joyImageCenterY-verticalDistance;
+   var joyImageCenterBottom=joyImageCenterY+verticalDistance;
    
    document.addEventListener('mousemove', onMouseMove, false)
+
+
+ 
 
    function makeUniqueURLs()
    {  
      var links = document.links;
      var i = links.length;
-     var randomnumber=Math.floor(Math.random()*100000)
+     var randomnumber=Math.floor(Math.random()*100000);
      
      while (i--) 
      {
@@ -55,19 +75,40 @@
    }
 
    function onMouseMove(e)
-   {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+   { //clientX clientY
+    mouseX = e.pageX;
+    mouseY = e.pageY; 
    }
 
 
    function moveJoystick()
-    { 
-       joyX = mouseX + 1;
-       joyY = mouseY + 1 ;
+    {   
+       var boxPos = document.getElementById("marker");
+       var joypadX = 0 + boxPos.style.left;
+       var joypadY = 0 + boxPos.style.top; 
 
-       document.getElementById("joystick").style.top=joyY;  
-       document.getElementById("joystick").style.left=joyX;   
+       //var joypadX = 0 + document.getElementById("marker").style.left;
+       //var joypadY = 0 + document.getElementById("marker").style.top; 
+
+       var joyX = 0 + mouseX;
+       var joyY = 0 + mouseY;
+
+       if ( (joyX<10) || (joyY<10) )
+         {
+            joyX=joyImageCenterX;
+            joyY=joyImageCenterY ;
+         }
+ 
+       if  (joyX<joyImageCenterLeft) { joyX=joyImageCenterLeft; } else
+       if  (joyX>joyImageCenterRight) { joyX=joyImageCenterRight; }
+
+       if  (joyY<joyImageCenterTop) { joyY=joyImageCenterTop; }
+       if  (joyY<joyImageCenterBottom) { joyY=joyImageCenterBottom; }
+
+       document.getElementById("joystick").style.top=joyY+'px';  
+       document.getElementById("joystick").style.left=joyX+'px';   
+
+       alert('Wanted to draw at '+joyX+','+joyY + ' Joypad at '+ joypadX + ',' + joypadY);
     }
    </script>
 
@@ -121,14 +162,15 @@
            <div class="rtd">
             <center>
               <strong>MOVEMENT</strong><br/><br/>
-               <table background="joypad.png" width=160 height=160 onmouseover="moveJoystick();">
+               <table id="joypad" background="joypad.png" width=160 height=160 onmouseover="moveJoystick();">
                 <tr>  
-                  <td>
-                    <!--img src="joypad.png"-->
+                  <td> 
+                    <img id="marker" src="invisible.png" > 
                     <img id="joystick" src="joybtn.png" >
                   </td>
                 </tr>
-               </table>
+               </table> <br/>
+                <a href="controlpanel.html?body=stop">STOP ALL MOVEMENT</a>
             </center>
            </div> 
         </td>
