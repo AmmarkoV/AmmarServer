@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
-
-  <head>
+<html> 
+  <head> 
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>  
 	<title>Hobbinterface</title>
 	<style type="text/css">
 		table{
@@ -31,8 +31,17 @@
 		.rtd a{
 			color: green;
 		}
+
+                 #joystick{
+                        position:absolute;
+                }
 	</style>
    <script type="text/javascript">
+   var mouseX = 0;
+   var mouseY = 0;
+   
+   document.addEventListener('mousemove', onMouseMove, false)
+
    function makeUniqueURLs()
    {  
      var links = document.links;
@@ -44,6 +53,22 @@
        links[i].href = links[i].href+"&t="+randomnumber;
      } 
    }
+
+   function onMouseMove(e)
+   {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+   }
+
+
+   function moveJoystick()
+    { 
+       joyX = mouseX + 1;
+       joyY = mouseY + 1 ;
+
+       document.getElementById("joystick").style.top=joyY;  
+       document.getElementById("joystick").style.left=joyX;   
+    }
    </script>
 
   </head>
@@ -58,21 +83,64 @@
    <table id="content">
     <tr>
       <td> 
-	<div class="rtd">
-        <strong>HEAD</strong><br/>
-        <a href="controlpanel.html?head=left">  Head Left</a><br/>
-        <a href="controlpanel.html?head=center">Head Center</a><br/>
-        <a href="controlpanel.html?head=right"> Head Right</a><br/><br/>
 
-        <a href="controlpanel.html?head=up">    Head Up</a><br/>
-        <a href="controlpanel.html?head=middle">Head Middle</a><br/>
-        <a href="controlpanel.html?head=down">  Head Down</a><br/>
-	</div> <br/>
+       <!-- NESTED BOX START -->
+       <table>
+        <tr>
+         <td>
+
+	<div class="rtd">
+          <strong>HEAD</strong><br/>
+          <a href="controlpanel.html?head=left">  Head Left</a><br/>
+          <a href="controlpanel.html?head=center">Head Center</a><br/>
+          <a href="controlpanel.html?head=right"> Head Right</a><br/><br/>
+
+          <a href="controlpanel.html?head=up">    Head Up</a><br/>
+          <a href="controlpanel.html?head=middle">Head Middle</a><br/>
+          <a href="controlpanel.html?head=down">  Head Down</a><br/> <br/>
+	</div> 
+        </td>
+        <td>
+
+	<div class="rtd">
+        <strong>COMMANDS</strong><br/>
+        <a href="controlpanel.html?robot=clearfloor">  Clear Floor </a><br/> 
+        <a href="controlpanel.html?bring=aspirin">  Bring Aspirin </a><br/> 
+        <a href="controlpanel.html?bring=sugar">  Bring Sugar </a><br/> 
+        <a href="controlpanel.html?robot=learnobject">  Learn Object </a><br/> 
+        <a href="controlpanel.html?robot=helpme">  Help me </a><br/> 
+        <a href="controlpanel.html?scenario=moveto1">Move To Start</a><br/><br/>
+
+        <a href="controlpanel.html?hand=calibrate">  Calibrate Hand</a><br/>
+	</div>
+
+        </td>
+       </tr>
+       <tr>
+        <td colspan=2>
+           <div class="rtd">
+            <center>
+              <strong>MOVEMENT</strong><br/><br/>
+               <table background="joypad.png" width=160 height=160 onmouseover="moveJoystick();">
+                <tr>  
+                  <td>
+                    <!--img src="joypad.png"-->
+                    <img id="joystick" src="joybtn.png" >
+                  </td>
+                </tr>
+               </table>
+            </center>
+           </div> 
+        </td>
+       </tr>
+       </table> 
+       <!-- NESTED BOX END -->
       </td>
-      <td>
+      <td> 
+
 	<div class="rtd">
         <strong>GENERIC</strong><br/>
-        <a href="controlpanel.html?robot=yes"> Yes </a><br/>
+        <a href="controlpanel.html?robot=yes"> Yes </a> &nbsp; &nbsp; &nbsp; / &nbsp; &nbsp;
         <a href="controlpanel.html?robot=no">  No </a><br/>
         <a href="controlpanel.html?robot=cancel"> Cancel </a><br/>
         <a href="controlpanel.html?robot=reward"> Reward </a><br/>
@@ -85,8 +153,8 @@
         <a href="controlpanel.html?robot=call">  Call to Room </a><br/>
         <a href="controlpanel.html?robot=settings"> Settings </a><br/> 
 	</div>
-      </td>
-      <td> 
+
+
 	<div class="rtd">
         <strong>BODY</strong><br/>
         <a href="controlpanel.html?base=left">  Move Left </a><br/> 
@@ -94,17 +162,8 @@
         <a href="controlpanel.html?base=forward">  Move Forward </a><br/>
         <a href="controlpanel.html?base=back">  Move Back </a><br/>
 	</div><br/>
-	<div class="rtd">
-        <strong>COMMANDS</strong><br/>
-        <a href="controlpanel.html?robot=clearfloor">  Clear Floor </a><br/> 
-        <a href="controlpanel.html?bring=aspirin">  Bring Aspirin </a><br/> 
-        <a href="controlpanel.html?bring=sugar">  Bring Sugar </a><br/> 
-        <a href="controlpanel.html?robot=learnobject">  Learn Object </a><br/> 
-        <a href="controlpanel.html?robot=helpme">  Help me </a><br/> 
-        <a href="controlpanel.html?scenario=moveto1">Move To Start</a><br/><br/>
 
-        <a href="controlpanel.html?hand=calibrate">  Calibrate Hand</a><br/>
-	</div>
+
       </td>
       <td> 
 	<div class="rtd">
