@@ -148,6 +148,17 @@ void * prepare_stats_content_callback(char * content)
 void joystick(float x , float y, unsigned int repeat)
 {
    AmmServer_Warning("Joystick(%0.2f,%0.2f,%u)\n",x,y,repeat);
+
+   char commandToRun[1024]={0};
+    sprintf(commandToRun,
+           "rostopic pub /joy sensor_msgs/Joy \"{ axes: [ %0.2f , %0.2f , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] , buttons: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }\" -1"
+            ,x,y
+           );
+
+    int i=system(commandToRun);
+    if (i!=0) { AmmServer_Error("Command %s failed\n",commandToRun); } else
+               { AmmServer_Success("Command %s success\n",commandToRun); }
+
 }
 
 
@@ -194,11 +205,11 @@ void execute(char * command,char * param)
    else
   if (strcmp(command,"body")==0)
   {
-    if (strcmp(param,"left")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn -30'\""); } else
-    if (strcmp(param,"right")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn 30'\""); } else
-    if (strcmp(param,"forward")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Move 0.30'\""); } else
-    if (strcmp(param,"back")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Move -0.30'\""); }else
-    if (strcmp(param,"stop")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Stop'\""); }
+    if (strcmp(param,"left")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn -30'\" -1"); } else
+    if (strcmp(param,"right")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn 30'\" -1"); } else
+    if (strcmp(param,"forward")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Move 0.30'\" -1"); } else
+    if (strcmp(param,"back")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Move -0.30'\" -1"); }else
+    if (strcmp(param,"stop")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Stop'\" -1"); }
   }
    else
   if (strcmp(command,"bring")==0)
@@ -252,8 +263,8 @@ void execute(char * command,char * param)
   if ( strlen(commandToRun)!=0 )
    {
      i=system(commandToRun);
-     if (i!=0) { fprintf(stderr,"Command %s failed\n",commandToRun); } else
-               { fprintf(stderr,"Command %s success\n",commandToRun); }
+     if (i!=0) { AmmServer_Error("Command %s failed\n",commandToRun); } else
+               { AmmServer_Success("Command %s success\n",commandToRun); }
    } else
    {
      fprintf(stderr,"Execute with unknown command or parameter\n");
