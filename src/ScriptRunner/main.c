@@ -145,13 +145,13 @@ void * prepare_stats_content_callback(char * content)
 }
 
 
-void joystick(float x , float y, unsigned int repeat)
+void joystickExecute(float x , float y )
 {
-   AmmServer_Warning("Joystick(%0.2f,%0.2f,%u)\n",x,y,repeat);
+   AmmServer_Warning("Joystick(%0.2f,%0.2f)\n",x,y);
 
    char commandToRun[1024]={0};
     sprintf(commandToRun,
-           "rostopic pub /joy sensor_msgs/Joy \"{ axes: [ %0.2f , %0.2f , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] , buttons: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }\" -1"
+           "rostopic pub /joy sensor_msgs/Joy \"{ axes: [ %0.2f , %0.2f , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] , buttons: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }\" -1&"
             ,x,y
            );
 
@@ -209,7 +209,7 @@ void execute(char * command,char * param)
     if (strcmp(param,"right")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn 30'\" -1"); } else
     if (strcmp(param,"forward")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Move 0.30'\" -1"); } else
     if (strcmp(param,"back")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Move -0.30'\" -1"); }else
-    if (strcmp(param,"stop")==0) {  joystick(0.0,0.0,0);
+    if (strcmp(param,"stop")==0) {  joystickExecute(0.0,0.0);
                                     strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Stop'\" -1"); }
   }
    else
@@ -304,7 +304,7 @@ void * prepare_form_content_callback(char * content)
                              if ( _GET(default_server,&form,"x",xString,256) ) { x=atof(xString); } else { AmmServer_Warning("Could not find X coord"); }
                              if ( _GET(default_server,&form,"y",yString,256) ) { y=atof(yString); } else { AmmServer_Warning("Could not find Y coord"); }
 
-                             joystick(x,y,0);
+                             joystickExecute(x,y);
                            //Parse joystick command
                          } else
                          {

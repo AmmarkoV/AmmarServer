@@ -3,7 +3,8 @@
   <head> 
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>  
 	<title>Hobbinterface</title>
-	<style type="text/css">
+	<style type="text/css"> 
+ 
 		table{
 			border-spacing: 5px 5px;
 		}
@@ -28,10 +29,23 @@
 			border-radius: 10px;
                         line-height:200%;
 		}
-		.rtd a{
-			color: green;
-		}
-  
+		.rtd a{ color: green; }
+
+		.rtdFloating
+                {
+			border: 1px solid black;
+			background: #ffebc5;
+			padding: 20px;
+			border-radius: 10px;
+                        line-height:200%; 
+
+
+                        cursor: move;
+                        position: absolute;  
+                        visibility:hidden;
+		}   
+		.rtdFloating a{ color: green; }
+
                  #marker
                 {
                         
@@ -48,7 +62,7 @@
    var centerX=51;
    var centerY=54;
    
-   var speedMultiplier=0.02;  
+   var speedMultiplier=0.01;  
    
    var deadZoneSize = 6; 
    var deadZoneLeft = centerX-deadZoneSize;
@@ -72,11 +86,26 @@
      
      while (i--) 
      {
-       links[i].href = links[i].href+"&t="+randomnumber;
+       if (links[i].href.indexOf("javascript") == -1) 
+          { links[i].href = links[i].href+"&t="+randomnumber; }
      } 
    }
 
+    function refreshFeed()
+    {
+      document.getElementById("videoFeed").style.visibility='visible';
+    }
 
+    function makeFeedVisible()
+    {
+      document.getElementById("videoFeed").style.visibility='visible';
+    }
+
+    function makeFeedInvisible()
+    {
+      document.getElementById("videoFeed").style.visibility='hidden';
+    }
+ 
     function httpGet(theUrl)
     {
     var xmlHttp = null;
@@ -87,12 +116,48 @@
     return xmlHttp.responseText;
     }
  
+function allowDrop(ev)
+{
+ //ev.preventDefault();
+  return true;
+}
+
+function drag(ev)
+{
+ ev.dataTransfer.setData("Text",ev.target.id);
+}
+
+function drop(ev)
+{
+  ev.preventDefault();
+  var data=ev.dataTransfer.getData("Text");
+  ev.target.appendChild(document.getElementById(data));
+  return true;
+} 
+
    </script>
 
   </head>
+ <body onload="makeUniqueURLs();"> 
+        <div class="rtdFloating" id="videoFeed" draggable="true" ondrop="drop(event)" ondragover="allowDrop(event)" ondragstart="drag(event)" >
+            <table>
+              <tr>
+                <td width=300 ></td><td><a href="javascript:makeFeedInvisible();">x</a></td>
+              </tr>
+              <tr>
+                <td colspan=2> 
+                 <img src="feedNotReady.jpg" id="videoFeedImage"> <br/>
+                </td>
+              </tr>
+              <tr>
+               <td colspan=2>
+                 <a href="javascript:refreshFeed();">Refresh</a>   
+               </td>
+              </tr>
+           </table>
+	</div> 
 
- <body onload="makeUniqueURLs();">
-  
+
   <center>
 	<img src="header.png"/>
 	<img src="scissors.png" id="scissors"/>
@@ -300,6 +365,7 @@
         <a href="controlpanel.html?robot=closemic">  Close Mic </a><br/>
         <a href="controlpanel.html?robot=call">  Call to Room </a><br/>
         <a href="controlpanel.html?robot=settings"> Settings </a><br/> 
+        <a href="javascript:makeFeedVisible();">View</a>  / <a href="javascript:makeFeedInvisible();">Hide</a> the Camera<br/> 
 	</div>
 
 
