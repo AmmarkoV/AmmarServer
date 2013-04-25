@@ -314,12 +314,40 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
   if (var_val_length==0) { fprintf(stderr,"StripVariableFromGETorPOSTString called with a null output buf size\n");  return 0; }
   var_val[0]=0;
 
+  unsigned int var_id_length = strlen(var_id);
+
   fprintf(stderr,"StripVariableFromGETorPOSTString is slopilly implemented \n");
   /*! TODO : A decent implementation here..! , input is like "idname=idvalue&idname2=idvalue2&idname3=idvalue3" , var_id is the value we are looking for
              var_val is the payload which has space allocated as declared in var_val_length  */
 
   unsigned int input_length = strlen(input);
-  char * id_instance = strstr (input,var_id);
+
+  //This part of the code adds a ? or a & prefix to var_id and checks for any instances of this substring
+  char * FullVarID = (char*) malloc( ( var_id_length+2 ) * sizeof(char) );
+  if (FullVarID==0) { error("Could not allocate FullVarID"); return 0; }
+  FullVarID[0]='&';   FullVarID[1]=0; //Initialize first character
+  strcat(FullVarID,var_id);
+  FullVarID[var_id_length+1]=0;
+  //fprintf(stderr,"input=`%s` , VarID=`%s` , FullVarID=`%s`\n",input,var_id,FullVarID);
+  char * id_instance = strstr (input,FullVarID);
+  free(FullVarID);
+  FullVarID=0;
+  //---------------------
+
+  if (id_instance==0)
+   {
+     if (strncmp(input,var_id,var_id_length) ==0 )
+     {
+       //It is the first variable!
+       if (input[var_id_length]=='=')
+       {
+        fprintf(stderr,"It is the first variable\n",input,var_id,FullVarID);
+        id_instance=input;
+       }
+     }
+   }
+
+
   if (id_instance!=0)
    {
      fprintf(stderr,"Found var_id %s in GET/POST String \n",var_id);
