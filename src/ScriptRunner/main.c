@@ -194,10 +194,11 @@ void execute(char * command,char * param)
    else
   if (strcmp(command,"body")==0)
   {
-    if (strcmp(param,"left")==0) { strcpy(commandToRun,"  "); } else
-    if (strcmp(param,"right")==0) { strcpy(commandToRun," "); } else
-    if (strcmp(param,"forward")==0) { strcpy(commandToRun," "); } else
-    if (strcmp(param,"back")==0) { strcpy(commandToRun,"  "); }
+    if (strcmp(param,"left")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn -30'\""); } else
+    if (strcmp(param,"right")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn 30'\""); } else
+    if (strcmp(param,"forward")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_ms/String \"data: 'Move 0.30'\""); } else
+    if (strcmp(param,"back")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_ms/String \"data: 'Move -0.30'\""); }else
+    if (strcmp(param,"stop")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Stop'\""); }
   }
    else
   if (strcmp(command,"bring")==0)
