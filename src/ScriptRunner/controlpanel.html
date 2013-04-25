@@ -231,8 +231,11 @@
           } else
           {
                  drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(0,0,255)" );
+           if(mouseDown) 
+              {
                  var randomnumber=Math.floor(Math.random()*100000);
                  httpGet("controlpanel.html?body=joystick&x=0&y=0&t="+randomnumber);
+              }
                  mouseDown=false; 
           }
 
