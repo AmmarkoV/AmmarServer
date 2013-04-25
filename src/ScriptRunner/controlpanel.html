@@ -149,7 +149,10 @@
          var context = canvas.getContext('2d');
          var joypadObj = new Image();
          var joystickObj = new Image();
-       
+         var lastMouseX = 0;
+         var lastMouseY = 0;
+         var mouseDown = false;
+
 
 
      function clearCanvas()
@@ -183,29 +186,26 @@
         context.strokeRect(x, y, width, height);
       }
  
-      function init(imageObj) 
-    {
+
+
+     function joystickCallback(x,y)
+     {
         var padding = 30;
         var canvas = document.getElementById('joypadCanvas');
         var context = canvas.getContext('2d');
-        var mouseDown = false;
- 
-        canvas.addEventListener('mousedown', function() { mouseDown = true; }, false);
-        canvas.addEventListener('mouseup', function() { mouseDown = false; }, false);
 
-        canvas.addEventListener('mousemove', function(evt) 
-        {
-          var mousePos = getMousePos(canvas, evt); 
-
-          var x = 0 + mousePos.x - padding;
-          var y = 0 + mousePos.y - padding; 
-
+          x-=padding;  
+          y-=padding;  
+  
           if ( x < limitLeft )   { x = limitLeft; }
           if ( x > limitRight )  { x = limitRight; }
           if ( y < limitUp )     { y = limitUp; }
           if ( y > limitBottom ) { y = limitBottom; } 
           
-          drawJoystick(canvas, x,y, imageObj);
+          lastMouseX=x;
+          lastMouseY=y;
+
+          drawJoystick(canvas, x,y, joystickObj );
            
           if ( 
                ( ( x <= deadZoneLeft )||( x >= deadZoneRight ) ) ||
@@ -217,6 +217,7 @@
            var joyY = (y - centerY) * speedMultiplier;
            
            joyX = (-1) * joyX;
+           joyY = (-1) * joyY;
 
            if(mouseDown) 
               {
@@ -239,22 +240,35 @@
               }
                  mouseDown=false; 
           }
-
-
-
  
-        }, false);
+     }
 
 
-      }
 
 
-       joypadObj.onload = function() { context.drawImage(joypadObj, 0, 0); init(this);  };
+
+
+
+      function init() 
+    { 
+        canvas.addEventListener('mousedown', function() { mouseDown = true; joystickCallback(lastMouseX,lastMouseY); }, false);
+        canvas.addEventListener('mouseup', function() { mouseDown = false; }, false); 
+        canvas.addEventListener('mousemove', function(evt) 
+                                               { 
+                                                 var mousePos = getMousePos(canvas, evt);  
+                                                 joystickCallback(mousePos.x,mousePos.y); 
+                                               }, false); 
+    }
+
+
+       joypadObj.onload = function() { context.drawImage(joypadObj, 0, 0); };
        joypadObj.src = 'joypad.png';
 
 
        joystickObj.onload = function() { context.drawImage(joystickObj, 52, 52); };
        joystickObj.src = 'joybtn.png';
+
+       init();  
 
  </script>
 
