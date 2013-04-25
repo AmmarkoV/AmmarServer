@@ -215,6 +215,8 @@
           {
            var joyX = (x - centerX) * speedMultiplier;
            var joyY = (y - centerY) * speedMultiplier;
+           
+           joyX = (-1) * joyX;
 
            if(mouseDown) 
               {
@@ -222,8 +224,7 @@
                  drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(255,0,0)" );
                  var randomnumber=Math.floor(Math.random()*100000);
                  httpGet("controlpanel.html?body=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
-                 //mouseDown=false;
-                  
+                 mouseDown=false;  
               } else
               {   
                  drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(0,255,0)" );

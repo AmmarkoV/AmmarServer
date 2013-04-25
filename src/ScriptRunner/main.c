@@ -301,8 +301,8 @@ void * prepare_form_content_callback(char * content)
                              char xString[256]={0};
                              char yString[256]={0};
 
-                             if ( _GET(default_server,&form,"x",xString,256) ) { x=atof(xString); }
-                             if ( _GET(default_server,&form,"y",yString,256) ) { y=atof(yString); }
+                             if ( _GET(default_server,&form,"x",xString,256) ) { x=atof(xString); } else { AmmServer_Warning("Could not find X coord"); }
+                             if ( _GET(default_server,&form,"y",yString,256) ) { y=atof(yString); } else { AmmServer_Warning("Could not find Y coord"); }
 
                              joystick(x,y,0);
                            //Parse joystick command
