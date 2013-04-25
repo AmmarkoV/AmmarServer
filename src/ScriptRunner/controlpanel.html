@@ -193,9 +193,7 @@
         var padding = 30;
         var canvas = document.getElementById('joypadCanvas');
         var context = canvas.getContext('2d');
-
-          x-=padding;  
-          y-=padding;  
+        var joystickActiveSwitch = document.getElementById("joystickActiveSwitch").checked;
   
           if ( x < limitLeft )   { x = limitLeft; }
           if ( x > limitRight )  { x = limitRight; }
@@ -219,13 +217,13 @@
            joyX = (-1) * joyX;
            joyY = (-1) * joyY;
 
-           if(mouseDown) 
+           if ( (mouseDown) && (joystickActiveSwitch) )
               {
-                 //alert('Mouse '+x+','+y+'\n Joy : '+joyX+','+joyY); 
+                 //alert('Mouse '+x+','+y+'\n Joy : '+joyX+','+joyY);   
                  drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(255,0,0)" );
                  var randomnumber=Math.floor(Math.random()*100000);
                  httpGet("controlpanel.html?body=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
-                 mouseDown=false;  
+                 mouseDown=false; 
               } else
               {   
                  drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(0,255,0)" );
@@ -233,7 +231,7 @@
           } else
           {
                  drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(0,0,255)" );
-           if(mouseDown) 
+           if ( (mouseDown)&&(joystickActiveSwitch) )
               {
                  var randomnumber=Math.floor(Math.random()*100000);
                  httpGet("controlpanel.html?body=joystick&x=0&y=0&t="+randomnumber);
@@ -276,7 +274,8 @@
       END OF:           THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
       ------------------------------------------------------------------------------   -->
 
-                <br/>
+                <br/> 
+                <label><input id="joystickActiveSwitch" type="checkbox" >Joystick Active</label> <br/>
                 <a href="controlpanel.html?body=stop">STOP ALL MOVEMENT</a>
             </center>
            </div> 
