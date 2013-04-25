@@ -48,7 +48,7 @@
    var centerX=51;
    var centerY=54;
    
-   var speedMultiplier=0.05;  
+   var speedMultiplier=0.02;  
    
    var deadZoneSize = 6; 
    var deadZoneLeft = centerX-deadZoneSize;
@@ -82,7 +82,7 @@
     var xmlHttp = null;
 
     xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false );
+    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
     xmlHttp.send( null );
     return xmlHttp.responseText;
     }

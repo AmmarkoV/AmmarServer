@@ -182,6 +182,10 @@ enum AmmServStrSettings
 
 char * AmmServer_Version();
 
+void AmmServer_Warning( const char *format , ... );
+void AmmServer_Error( const char *format , ... );
+void AmmServer_Success( const char *format , ... );
+
 struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop(struct AmmServer_Instance * instance);
 int AmmServer_Running(struct AmmServer_Instance * instance);
@@ -214,6 +218,9 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int port);
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
+
+int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value);
+char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
 
 int AmmServer_RegisterTerminationSignal();
 
