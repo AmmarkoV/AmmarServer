@@ -145,7 +145,7 @@
     return xmlHttp.responseText;
     }
 
-     function joystickExecute(x,y)
+     function joystickExecute(joyX,joyY)
      {
         var randomnumber=Math.floor(Math.random()*100000);
         httpGet("controlpanel.html?body=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
