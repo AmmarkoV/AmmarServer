@@ -94,6 +94,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/logs.h" />
+		<Unit filename="tools/threadInitHelper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/threadInitHelper.h" />
 		<Unit filename="tools/time_provider.c">
 			<Option compilerVar="CC" />
 		</Unit>

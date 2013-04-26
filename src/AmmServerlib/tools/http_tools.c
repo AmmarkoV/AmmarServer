@@ -33,6 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 
 #include "http_tools.h"
+#include "logs.h"
 #include "../server_configuration.h"
 #include "../cache/file_caching.h"
 
@@ -44,37 +45,39 @@ static char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "0123456789"
 "+/";
 
-
-
-/*
-red=$(printf "\033[31m")
-green=$(printf "\033[32m")
-yellow=$(printf "\033[33m")
-blue=$(printf "\033[34m")
-magenta=$(printf "\033[35m")
-cyan=$(printf "\033[36m")
-white=$(printf "\033[37m")
-normal=$(printf "\033[m")
-
-normalChars=$(printf "\033[0m")
-boldChars=$(printf "\033[1m")
-underlinedChars=$(printf "\033[4m")
-blinkingChars=$(printf "\033[5m")
-*/
-
-
-
-void error(char * msg)
+unsigned int ServerThreads_DropRootUID()
 {
- fprintf(stderr,RED " ERROR MESSAGE : %s\n\033[0m" NORMAL,msg);
- return;
-}
+   if (ENABLE_DROPPING_UID_ALWAYS ) { /* We fall through and change UID , as a mandatory step.. */} else
+   if (ENABLE_DROPPING_ROOT_UID_IF_ROOT) { /*Check if we are root */
+                                           if (getuid()>=1000) { /*Non root id , we can skip dropping our UID with this configuration..*/ return 0; }
+                                           //If we fell through it means we are root and dropping root when root is enabled so the code that follows will alter our uid..
+                                         } else
+                                          { fprintf(stderr,"DropRootUID() not needed ..\n"); return 0; }
+
+   char command_to_get_uid[MAX_FILE_PATH]={0};
+   sprintf(command_to_get_uid,"id -u %s",USERNAME_UID_FOR_DAEMON);
 
 
-void warning(char * msg)
-{
- fprintf(stderr,YELLOW " WARNING MESSAGE : %s\n " NORMAL,msg);
- return;
+   FILE * fp  = popen(command_to_get_uid, "r");
+   if (fp == 0 ) { fprintf(stderr,"Failed to get our user id ( trying to drop root UID ) \n"); return 0; }
+
+   char output[101]={0};
+   /* Read the output a line at a time - output it. */
+     unsigned int i=0;
+     while (fgets(output,101 , fp) != 0) { ++i; /*fprintf(stderr,"\n\nline %u = %s \n",i,output);*/ break; }
+    /* close */
+     pclose(fp);
+
+   int non_root_uid = atoi(output);
+   if (non_root_uid<1000)
+      {
+        fprintf(stderr,"The user set in USERNAME_UID_FOR_DAEMON=\"%s\" is also root (his uid is %u)\n",USERNAME_UID_FOR_DAEMON,non_root_uid);
+        if (CHANGE_TO_UID<1000) { fprintf(stderr,"Our CHANGE_TO_UID value is also super user , setting a bogus non-root value..\n"); non_root_uid=1500; } else
+                                { non_root_uid=CHANGE_TO_UID; }
+      }
+
+   fprintf(stderr,"setuid(%u);\n",non_root_uid);
+   return setuid(non_root_uid); // Non Root UID :-P
 }
 
 char FileExistsAmmServ(char * filename)

@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "cache/file_caching.h"
 #include "version.h"
 #include "tools/http_tools.h"
+#include "tools/logs.h"
 
 //This is for calling back a client function after receiving
 //a sigkill or other signal , after using AmmServer_RegisterTerminationSignal
