@@ -148,7 +148,13 @@
      function joystickExecute(joyX,joyY)
      {
         var randomnumber=Math.floor(Math.random()*100000);
-        httpGet("controlpanel.html?body=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
+        if ( (joyX==0) && (joyY==0) ) 
+          {
+            httpGet("controlpanel.html?body=stop&t="+randomnumber); 
+          } else
+          {
+            httpGet("controlpanel.html?body=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber); 
+          }
      }
 
 
@@ -376,7 +382,7 @@ function drop(ev)
                 <a href="javascript:joystickExecute(-0.5,0);"><img class="turnControls" src="turnRight.png" id="turnRight"></a>
                 <br/> 
                 <label><input id="joystickActiveSwitch" type="checkbox" onchange='handleJoystickActiveSwitch(this);' >Joystick Active</label> <br/>
-                <a href="controlpanel.html?body=stop">STOP ALL MOVEMENT</a>
+                <a href="javascript:joystickExecute(0,0);">STOP ALL MOVEMENT</a>
             </center>
            </div> 
         </td>
