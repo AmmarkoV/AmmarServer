@@ -135,8 +135,7 @@
            }
     }
 
- 
-    function httpGet(theUrl)
+   function httpGet(theUrl)
     {
     var xmlHttp = null;
 
@@ -145,6 +144,14 @@
     xmlHttp.send( null );
     return xmlHttp.responseText;
     }
+
+     function joystickExecute(x,y)
+     {
+        var randomnumber=Math.floor(Math.random()*100000);
+        httpGet("controlpanel.html?body=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
+     }
+
+
  
 function allowDrop(ev)
 {
@@ -234,7 +241,7 @@ function drop(ev)
            <div class="rtd">
             <center>
               <strong>MOVEMENT</strong><br/><br/>
-              <a href="controlpanel.html?body=joystick&x=0.5&y=0"><img class="turnControls" src="turnLeft.png" id="turnLeft" ></a>
+              <a href="javascript:joystickExecute(0.5,0);"><img class="turnControls" src="turnLeft.png" id="turnLeft" ></a>
 <!--  ------------------------------------------------------------------------------
       START OF:         THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
       ------------------------------------------------------------------------------   -->
@@ -282,7 +289,6 @@ function drop(ev)
       }
  
 
-
      function joystickCallback(x,y)
      {
         var padding = 30;
@@ -315,9 +321,8 @@ function drop(ev)
            if ( (mouseDown) && (joystickActiveSwitch) )
               {
                  //alert('Mouse '+x+','+y+'\n Joy : '+joyX+','+joyY);   
-                 drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(255,0,0)" );
-                 var randomnumber=Math.floor(Math.random()*100000);
-                 httpGet("controlpanel.html?body=joystick&x="+joyX+'&y='+joyY+"&t="+randomnumber);
+                 drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(255,0,0)" ); 
+                 joystickExecute(joyX,joyY);
                  mouseDown=false; 
               } else
               {   
@@ -328,8 +333,7 @@ function drop(ev)
                  drawActiveStatus(canvas, ledX, ledY , ledX+5 , ledY+5 , "rgb(0,0,255)" );
            if ( (mouseDown)&&(joystickActiveSwitch) )
               {
-                 var randomnumber=Math.floor(Math.random()*100000);
-                 httpGet("controlpanel.html?body=joystick&x=0&y=0&t="+randomnumber);
+                 joystickExecute(0,0);
               }
                  mouseDown=false; 
           }
@@ -369,7 +373,7 @@ function drop(ev)
       END OF:           THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
       ------------------------------------------------------------------------------   -->
 
-                <a href="controlpanel.html?body=joystick&x=-0.5&y=0"><img class="turnControls" src="turnRight.png" id="turnRight"></a>
+                <a href="javascript:joystickExecute(-0.5,0);"><img class="turnControls" src="turnRight.png" id="turnRight"></a>
                 <br/> 
                 <label><input id="joystickActiveSwitch" type="checkbox" onchange='handleJoystickActiveSwitch(this);' >Joystick Active</label> <br/>
                 <a href="controlpanel.html?body=stop">STOP ALL MOVEMENT</a>
