@@ -46,6 +46,12 @@
 		}   
 		.rtdFloating a{ color: green; }
 
+
+		.turnControls
+                {
+                        visibility:hidden;
+                }
+
                  #marker
                 {
                         
@@ -105,6 +111,30 @@
     {
       document.getElementById("videoFeed").style.visibility='hidden';
     }
+
+    function makeTurnControlsVisible() 
+                               {
+                                       document.getElementById("turnLeft").style.visibility='visible';
+                                       document.getElementById("turnRight").style.visibility='visible';
+                               }
+
+    function makeTurnControlsInvisible() 
+                               {
+                                       document.getElementById("turnLeft").style.visibility='hidden';
+                                       document.getElementById("turnRight").style.visibility='hidden';
+                               }
+
+    function handleJoystickActiveSwitch(cb)
+    {
+       if (cb.checked)
+           {
+             makeTurnControlsVisible();
+           } else
+           {
+             makeTurnControlsInvisible();
+           }
+    }
+
  
     function httpGet(theUrl)
     {
@@ -204,7 +234,7 @@ function drop(ev)
            <div class="rtd">
             <center>
               <strong>MOVEMENT</strong><br/><br/>
-              <a href="controlpanel.html?body=joystick&x=0.5&y=0"><img src="turnLeft.png"></a>
+              <a href="controlpanel.html?body=joystick&x=0.5&y=0"><img class="turnControls" src="turnLeft.png" id="turnLeft" ></a>
 <!--  ------------------------------------------------------------------------------
       START OF:         THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
       ------------------------------------------------------------------------------   -->
@@ -339,9 +369,9 @@ function drop(ev)
       END OF:           THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
       ------------------------------------------------------------------------------   -->
 
-                <a href="controlpanel.html?body=joystick&x=-0.5&y=0"><img src="turnRight.png"></a>
+                <a href="controlpanel.html?body=joystick&x=-0.5&y=0"><img class="turnControls" src="turnRight.png" id="turnRight"></a>
                 <br/> 
-                <label><input id="joystickActiveSwitch" type="checkbox" >Joystick Active</label> <br/>
+                <label><input id="joystickActiveSwitch" type="checkbox" onchange='handleJoystickActiveSwitch(this);' >Joystick Active</label> <br/>
                 <a href="controlpanel.html?body=stop">STOP ALL MOVEMENT</a>
             </center>
            </div> 
