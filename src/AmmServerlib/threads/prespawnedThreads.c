@@ -98,19 +98,62 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 }
 
 
+inline void TrimPrespawnedCountersToPreventTruncation(struct AmmServer_Instance * instance)
+{
+  //Job Start Counter and Job Finished counter keeps rising and rising so we trim it every 1000 numbers
+  if ( (instance->prespawn_jobs_started>1000) &&
+        (instance->prespawn_jobs_finished>1000)  )
+         {
+             instance->prespawn_jobs_started-=1000;
+             instance->prespawn_jobs_finished-=1000;
+         }
+}
+
+
+
 int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
+    if (MAX_CLIENT_PRESPAWNED_THREADS==0)
+        {
+          fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n");
+          return 0;
+        }
+
    //Please note that this must only get called from the main process/thread..
    fprintf(stderr,"UsePreSpawnedThreadToServeNewClient instance pointing @ %p \n",instance);
 
    struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
    struct PreSpawnedThread * prespawned_data=0;
 
-   if (MAX_CLIENT_PRESPAWNED_THREADS==0) { fprintf(stderr,"PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n"); }
-   if (instance->prespawn_jobs_started<instance->prespawn_jobs_finished ) {  fprintf(stderr,"Prespawn jobs counters truncated (?) \n"); } else
+   //TrimPrespawnedCountersToPreventTruncation(instance);
+
+   /* This doesnt work as it was supposed to!
+   if ( instance->prespawn_jobs_started < instance->prespawn_jobs_finished )
+   {
+       warning("Prespawn jobs counters truncated (?) \n");
+       fprintf(stderr,"Prespawn Trunc Details ( start %u , end %u , max %u) \n",instance->prespawn_jobs_started,instance->prespawn_jobs_finished,MAX_CLIENT_PRESPAWNED_THREADS);
+    } else
+    */
    if (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
     {
         prespawned_data = &prespawned_pool[instance->prespawn_turn_to_serve];
+
+        //Attempt to find another prespawned context
+        if (prespawned_data->busy)
+         {
+            unsigned int i=0;
+            for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
+            {
+              prespawned_data = &prespawned_pool[i];
+              if (!prespawned_data->busy) { break; }
+            }
+         }
+
+        if (prespawned_data->busy)
+         {
+            fprintf(stderr,"Seems that the prespawned thread is still busy (  %u/%u ) ..\n",instance->prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
+            return 0;
+         }
 
         if (!prespawned_data->busy)
          {
@@ -127,10 +170,6 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
              instance->prespawn_turn_to_serve = instance->prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
 
              return 1;
-         } else
-         {
-            fprintf(stderr,"Seems that the prespaned thread %u/%u is still busy ..\n",instance->prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
-            return 0;
          }
     } else
     {

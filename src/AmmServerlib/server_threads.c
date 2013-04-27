@@ -659,7 +659,7 @@ void * HTTPServerThread (void * ptr)
             } else
            if (!SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,webserver_root,templates_root))
             {
-                fprintf(stderr,"Server Thread : Client failed, while handling him\n");
+                warning("Server Thread : Client failed, while handling him\n");
                 close(clientsock);
             }
       }

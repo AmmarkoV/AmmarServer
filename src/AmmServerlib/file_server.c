@@ -497,7 +497,9 @@ if (!header_only)
      if ( !TransmitFileToSocket(clientsock,verified_filename,start_at_byte,end_at_byte) )
       {
          fprintf(stderr,"Could not transmit file %s \n",verified_filename);
+         return 0;
       }
+      return 1;
   }
   //
 } //we also want a body with that header END

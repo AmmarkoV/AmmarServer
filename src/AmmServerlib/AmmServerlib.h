@@ -131,12 +131,9 @@ struct AmmServer_Instance
 {
     struct AmmServer_Instance_Settings settings;
 
-
-    //Cache Items..
-    unsigned long loaded_cache_items_Kbytes;
-    unsigned int loaded_cache_items;
-    void * cache; /*Actually struct cache_item * but declared as a void pointer here */
-
+    unsigned int prespawn_turn_to_serve;
+    unsigned int prespawn_jobs_started;
+    unsigned int prespawn_jobs_finished;
     int files_open;
 
     //Server state
@@ -145,18 +142,22 @@ struct AmmServer_Instance
     int pause_server;
     int stop_server;
 
+    //Cache Items..
+    unsigned long loaded_cache_items_Kbytes;
+    unsigned int loaded_cache_items;
+    void * cache; /*Actually struct cache_item * but declared as a void pointer here */
+
+
     //Thread holders..
-    int CLIENT_THREADS_STARTED;
-    int CLIENT_THREADS_STOPPED;
+    unsigned int CLIENT_THREADS_STARTED;
+    unsigned int CLIENT_THREADS_STOPPED;
 
     pthread_t server_thread_id;
     pthread_t * threads_pool;
 
+    void * prespawned_pool; //Actually struct PreSpawnedThread * but declared as a void pointer here
 
     struct AmmServer_RequestOverride_Context * clientRequestHandlerOverrideContext;
-
-    unsigned int prespawn_turn_to_serve,prespawn_jobs_started,prespawn_jobs_finished;
-    void * prespawned_pool; //Actually struct PreSpawnedThread * but declared as a void pointer here
 };
 
 
