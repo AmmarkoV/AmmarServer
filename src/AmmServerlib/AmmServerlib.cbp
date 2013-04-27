@@ -82,6 +82,18 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="server_threads.h" />
+		<Unit filename="threads/freshThreads.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/freshThreads.h" />
+		<Unit filename="threads/prespawnedThreads.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/prespawnedThreads.h" />
+		<Unit filename="threads/threadInitHelper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/threadInitHelper.h" />
 		<Unit filename="tools/directory_lists.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -94,10 +106,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/logs.h" />
-		<Unit filename="tools/threadInitHelper.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="tools/threadInitHelper.h" />
 		<Unit filename="tools/time_provider.c">
 			<Option compilerVar="CC" />
 		</Unit>

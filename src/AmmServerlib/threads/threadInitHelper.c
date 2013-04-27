@@ -1,5 +1,5 @@
 #include "threadInitHelper.h"
-#include "logs.h"
+#include "../tools/logs.h"
 
 int parent_InitThreadAndPassMessage(struct threadInitPayload * pld,unsigned int waitTime)
 {

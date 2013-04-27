@@ -12,6 +12,7 @@
 #define COMPILE_WITH_CLIENT_LIST 1
 
 
+extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 #define MAX_CLIENT_THREADS 150 //This is the maximum number of simultainious regular threads that serve incoming requests..!
 #define MAX_CLIENTS_LISTENING_FOR 550 //This should always be larger than MAX_CLIENT_THREADS
