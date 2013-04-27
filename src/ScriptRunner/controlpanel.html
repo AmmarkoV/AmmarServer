@@ -157,6 +157,13 @@
           }
      }
 
+    
+     function command(theCommand)
+     {
+       var randomnumber=Math.floor(Math.random()*100000);
+       httpGet("controlpanel.html?"+theCommand+"&t="+randomnumber); 
+     } 
+
 
  
 function allowDrop(ev)
@@ -217,13 +224,13 @@ function drop(ev)
 
 	<div class="rtd">
           <strong>HEAD</strong><br/>
-          <a href="controlpanel.html?head=left">  Head Left</a><br/>
-          <a href="controlpanel.html?head=center">Head Center</a><br/>
-          <a href="controlpanel.html?head=right"> Head Right</a><br/><br/>
+          <a href="javascript:command('head=left');">  Head Left</a><br/>
+          <a href="javascript:command('head=center');">Head Center</a><br/>
+          <a href="javascript:command('head=right');"> Head Right</a><br/><br/>
 
-          <a href="controlpanel.html?head=up">    Head Up</a><br/>
-          <a href="controlpanel.html?head=middle">Head Middle</a><br/>
-          <a href="controlpanel.html?head=down">  Head Down</a><br/> <br/>
+          <a href="javascript:command('head=up');">    Head Up</a><br/>
+          <a href="javascript:command('head=middle');">Head Middle</a><br/>
+          <a href="javascript:command('head=down');">  Head Down</a><br/> <br/>
 	</div> 
         </td>
         <td>
