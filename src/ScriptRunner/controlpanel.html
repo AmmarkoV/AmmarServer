@@ -84,16 +84,27 @@
    var ledX = 5;
    var ledY = 5;
 
+   function getCommandPartOfURL(str) 
+   {
+    return str.split('?')[1];
+   }
+
    function makeUniqueURLs()
    {  
      var links = document.links;
      var i = links.length;
-     var randomnumber=Math.floor(Math.random()*100000);
+     //Simple var randomnumber=Math.floor(Math.random()*100000);
      
      while (i--) 
      {
        if (links[i].href.indexOf("javascript") == -1) 
-          { links[i].href = links[i].href+"&t="+randomnumber; }
+          { 
+            //Simple links[i].href = links[i].href+"&t="+randomnumber; 
+            if (links[i].href.indexOf("controlpanel.html?") != -1) 
+              {
+                links[i].href = "javascript:command(\'"+getCommandPartOfURL(links[i].href)+"\');"; 
+              }
+          }
      } 
    }
 
@@ -209,7 +220,7 @@ function drop(ev)
 
 
   <center>
-	<img src="header.png"/>
+	<a href="controlpanel.html?nothing=true"> <img src="header.png" border=0/> </a>
 	<img src="scissors.png" id="scissors"/>
 	<hr />
 	
@@ -224,25 +235,29 @@ function drop(ev)
 
 	<div class="rtd">
           <strong>HEAD</strong><br/>
-          <a href="javascript:command('head=left');">  Head Left</a><br/>
-          <a href="javascript:command('head=center');">Head Center</a><br/>
-          <a href="javascript:command('head=right');"> Head Right</a><br/><br/>
+          <a href="controlpanel.html?head=left">  Head Left</a><br/>
+          <a href="controlpanel.html?head=center">Head Center</a><br/>
+          <a href="controlpanel.html?head=right"> Head Right</a> <br/>
 
-          <a href="javascript:command('head=up');">    Head Up</a><br/>
-          <a href="javascript:command('head=middle');">Head Middle</a><br/>
-          <a href="javascript:command('head=down');">  Head Down</a><br/> <br/>
+          <a href="controlpanel.html?head=up">    Head Up</a><br/>
+          <a href="controlpanel.html?head=middle">Head Middle</a><br/>
+          <a href="controlpanel.html?head=down">  Head Down</a><br/><br/> 
+
+          <a href="controlpanel.html?head=default">  Head Default</a><br/> 
+
 	</div> 
         </td>
         <td>
 
 	<div class="rtd">
         <strong>COMMANDS</strong><br/>
+        <a href="controlpanel.html?scenario=moveto1">Move To Start</a><br/>
         <a href="controlpanel.html?robot=clearfloor">  Clear Floor </a><br/> 
+        <a href="controlpanel.html?robot=learnobject">  Learn Object </a><br/> 
         <a href="controlpanel.html?bring=aspirin">  Bring Aspirin </a><br/> 
         <a href="controlpanel.html?bring=sugar">  Bring Sugar </a><br/> 
-        <a href="controlpanel.html?robot=learnobject">  Learn Object </a><br/> 
         <a href="controlpanel.html?robot=helpme">  Help me </a><br/> 
-        <a href="controlpanel.html?scenario=moveto1">Move To Start</a><br/><br/>
+        <br/>
 
         <a href="controlpanel.html?hand=calibrate">  Calibrate Hand</a><br/>
 	</div>
@@ -253,7 +268,7 @@ function drop(ev)
         <td colspan=2>
            <div class="rtd">
             <center>
-              <strong>MOVEMENT</strong><br/><br/>
+              <strong>MOVEMENT</strong><br/> 
               <a href="javascript:joystickExecute(0.5,0);"><img class="turnControls" src="turnLeft.png" id="turnLeft" ></a>
 <!--  ------------------------------------------------------------------------------
       START OF:         THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 

@@ -170,6 +170,11 @@ void execute(char * command,char * param)
 
   if (strcmp(command,"head")==0)
   {
+    if (strcmp(param,"default")==0)  {
+                                        execute("head","center");
+                                        execute("head","middle");
+                                        return;
+                                     } else
     if (strcmp(param,"right")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"right\" -1\" "); } else
     if (strcmp(param,"center")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"center\" -1\" ");    } else
     if (strcmp(param,"left")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"left\" -1\" ");  } else
