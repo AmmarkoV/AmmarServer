@@ -134,7 +134,7 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
        fprintf(stderr,"Prespawn Trunc Details ( start %u , end %u , max %u) \n",instance->prespawn_jobs_started,instance->prespawn_jobs_finished,MAX_CLIENT_PRESPAWNED_THREADS);
     } else
     */
-   if (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
+  // if (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
     {
         prespawned_data = &prespawned_pool[instance->prespawn_turn_to_serve];
 
@@ -171,10 +171,11 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
 
              return 1;
          }
-    } else
+    }
+    /* else
     {
         fprintf(stderr,"All prespawned threads are busy.. ( start %u , end %u , max %u) \n",instance->prespawn_jobs_started,instance->prespawn_jobs_finished,MAX_CLIENT_PRESPAWNED_THREADS);
-    }
+    }*/
   return 0;
 }
 
