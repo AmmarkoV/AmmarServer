@@ -162,7 +162,7 @@ void * ServeClient(void * ptr)
    incoming_request[0]=0;
    int total_header=0,opres=0;
    fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
-   while ( (!HTTPRequestComplete(incoming_request,total_header))&&(instance->server_running) )
+   while ( (!HTTPRequestComplete(incoming_request,total_header))&&(instance->server_running)&&(!close_connection) )
    { //Gather Header until http request contains two newlines..!
      opres=recv(clientsock,&incoming_request[total_header],MAX_HTTP_REQUEST_HEADER-total_header,0);
      if (opres<=0)

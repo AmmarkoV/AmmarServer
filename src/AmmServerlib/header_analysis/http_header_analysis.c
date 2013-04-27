@@ -63,7 +63,7 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
   if (request_length<2) { return 0; } // at least LF LF is expected :P
 
   fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
-  int i=request_length-1;
+  unsigned int i=request_length-1;
   while (i>1)
    {
       if ( request[i]==LF )
