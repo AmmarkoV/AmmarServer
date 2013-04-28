@@ -16,9 +16,9 @@ if [ -e $LIBNAME ]
 then
   rm $LIBNAME
 fi   
-
-# -O3 -fexpensive-optimizations
-CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native"
+ 
+#This fails on Siege tests -> CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native"
+CFLAGS="-g -pg"
 
 gcc -c $CFLAGS main.c -o main.o
 gcc -c $CFLAGS server_threads.c -o server_threads.o 

@@ -53,7 +53,6 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
     it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
 */
-
      char response[512]={0};
      switch (error_code)
      {
@@ -71,11 +70,11 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
      char reply_header[512]={0};
      sprintf(reply_header,"HTTP/1.1 %s\nServer: Ammarserver/%s\nContent-type: text/html\n",response,FULLVERSION_STRING);
      int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL); //Send preliminary header to minimize lag
-     if (opres<=0) { return 0; }
+     if (opres<=0) { warning("could not send error code date\n");  return 0; }
 
      GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-     if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
+     if (opres<=0) { warning("could not send error code date\n"); return 0; }
 
 
      return 1;

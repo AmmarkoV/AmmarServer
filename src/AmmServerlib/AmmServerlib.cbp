@@ -34,8 +34,10 @@
 				<Option compiler="gcc" />
 				<Option createDefFile="1" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
 					<Add option="-Wall" />
+					<Add option="-march=native -mtune=native" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
