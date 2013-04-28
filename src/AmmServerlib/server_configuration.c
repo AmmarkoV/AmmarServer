@@ -21,8 +21,8 @@ int  CHANGE_TO_UID=1500; //Non superuser system
 
 signed int CHANGE_PRIORITY=0;
 
-int varSocketTimeoutREAD_ms=5 /*Seconds*/  *1000;
-int varSocketTimeoutWRITE_ms=5 /*Seconds*/ * 1000;
+int varSocketTimeoutREAD_seconds=4 /*Seconds*/ ;
+int varSocketTimeoutWRITE_seconds=4 /*Seconds*/ ;
 
 //CACHE
 unsigned char CACHING_ENABLED=1;
@@ -92,8 +92,8 @@ static void ParseConfigString(struct AmmServer_Instance * instance,struct InputP
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"TIMEOUT"))
         {
             int timeout_value = InputParser_GetWordInt(ipc,1);
-            varSocketTimeoutREAD_ms = timeout_value*1000;
-            varSocketTimeoutWRITE_ms = timeout_value*1000;
+            varSocketTimeoutREAD_seconds = timeout_value;
+            varSocketTimeoutWRITE_seconds = timeout_value;
         } else
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"KEEPALIVE"))
         {

@@ -18,7 +18,7 @@ then
 fi   
 
 # -O3 -fexpensive-optimizations
-CFLAGS="-s -Os -fexpensive-optimizations"
+CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native"
 
 gcc -c $CFLAGS main.c -o main.o
 gcc -c $CFLAGS server_threads.c -o server_threads.o 

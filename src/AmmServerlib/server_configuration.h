@@ -54,8 +54,8 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 
 extern int CHANGE_PRIORITY;
 
-extern int varSocketTimeoutREAD_ms;
-extern int varSocketTimeoutWRITE_ms;
+extern int varSocketTimeoutREAD_seconds;
+extern int varSocketTimeoutWRITE_seconds;
 
 // ----------------- CACHE OPTIONS -----------------
 extern unsigned char CACHING_ENABLED;

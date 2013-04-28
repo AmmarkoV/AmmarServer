@@ -279,7 +279,7 @@ unsigned int Find_CacheItem(struct AmmServer_Instance * instance,char * resource
 
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
-  if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
+  if (cache==0) { warning("Cache hasn't been allocated yet\n"); return 0; }
 
   unsigned long file_we_are_looking_for = hash(resource);
   unsigned int i=0;
@@ -534,9 +534,12 @@ int RemoveDirectResource_CacheItem(struct AmmServer_Instance * instance,struct A
        context->MAX_content_size=0;
        if ((free_mem)&&(context->content!=0)) { free(context->content); context->content=0; }
 
-
        unsigned int index;
-       if (!Find_CacheItem(instance,context->resource_name,&index) ) { fprintf(stderr,"Error..\n"); return 0; }
+       if (!Find_CacheItem(instance,context->resource_name,&index) )
+          {
+            warning("Could not remove direct resource ( it does not exist ) ..\n");
+            return 0;
+          }
        return Remove_CacheItem(instance,index);
 }
 

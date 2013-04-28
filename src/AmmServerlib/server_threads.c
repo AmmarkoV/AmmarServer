@@ -46,10 +46,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-
-void * ServeClient(void * ptr);
-void * HTTPServerThread (void * ptr);
-
 int HTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
   if (instance==0) { return 0; } //We can't be running not even the instance is allocated..
@@ -134,24 +130,21 @@ void * ServeClient(void * ptr)
   fprintf(stderr,"ServeClient instance pointing @ %p \n",instance);
 
 
-  struct timeval timeout;
-  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_ms/1000; timeout.tv_usec = 0;
-  if (setsockopt (clientsock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Receive timeout \n"); }
-
-  timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_ms/1000; timeout.tv_usec = 0;
-  if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
-
-
-
-
-   //Now the real fun starts :P <- helpfull comment
-   unsigned int client_id=GetClientId("0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
-   if ( ClientIsBanned(client_id) )
-     {
+  //Now the real fun starts :P <- helpfull comment
+  unsigned int client_id=GetClientId("0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
+  if ( ClientIsBanned(client_id) )
+  {
          SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
-     } else
+  } else
 
   { /*!START OF CLIENT IS NOT ON IP-BANNED-LIST!*/
+
+  struct timeval timeout;
+  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
+  if (setsockopt (clientsock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); }
+
+  timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
+  if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); }
 
   char incoming_request[MAX_HTTP_REQUEST_HEADER+1]; //A 4K header is more than enough..!
 
@@ -160,9 +153,14 @@ void * ServeClient(void * ptr)
   while ( (!close_connection) && (instance->server_running) )
   {
    incoming_request[0]=0;
-   int total_header=0,opres=0;
+   int total_header=0;
+   int opres=0;
    fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
-   while ( (!HTTPRequestComplete(incoming_request,total_header))&&(instance->server_running)&&(!close_connection) )
+   while (
+            (!HTTPRequestComplete(incoming_request,total_header)) &&
+            (instance->server_running)&&
+            (!close_connection)
+          )
    { //Gather Header until http request contains two newlines..!
      opres=recv(clientsock,&incoming_request[total_header],MAX_HTTP_REQUEST_HEADER-total_header,0);
      if (opres<=0)
@@ -172,32 +170,31 @@ void * ServeClient(void * ptr)
         break;
       } else
       {
-       fprintf(stderr,"Got %u bytes \n",opres);
        total_header+=opres;
+       fprintf(stderr,"Got %u bytes ( %u total )\n",opres,total_header);
        if (total_header>=MAX_HTTP_REQUEST_HEADER)
         {
            fprintf(stderr,"The request would overflow , dropping client \n");
            opres=0;
            close_connection=1;
+           break;
         }
       }
    }
    fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
 
-  if (opres>0)
+  if ( (opres>0) && (!close_connection) )
   {
    fprintf(stderr,"Received request header \n");
    //fprintf(stderr,"Received %s \n",incoming_request);
    struct HTTPRequest output; // This should get free'ed once it isn't needed any more see FreeHTTPRequest call!
    memset(&output,0,sizeof(struct HTTPRequest));
 
-
    int result = AnalyzeHTTPRequest(instance,&output,incoming_request,total_header,webserver_root);
    if (result)
       { //If we use a client based request handler , call it now
         callClientRequestHandler(instance,&output);
       }
-
 
    if (!result)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
@@ -240,7 +237,6 @@ void * ServeClient(void * ptr)
 
               //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
               //TODO TODO TODO
-
 
               if (total_header>=MAX_QUERY*4)
               {
@@ -473,77 +469,6 @@ void * ServeClient(void * ptr)
 }
 
 
-unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,unsigned int starting_from)
-{
-    if (starting_from>=MAX_CLIENT_THREADS) { starting_from = starting_from % MAX_CLIENT_THREADS; }
-
-
-   fprintf(stderr,"FindAProperThreadID instance pointing @ %p \n",instance);//Clear instance..!
-    fprintf(stderr,"FindAProperThreadID thread pool pointing @ %p \n",instance->threads_pool);//Clear instance..!
-    while ( 1 )
-     {
-       while (starting_from<MAX_CLIENT_THREADS)
-         {
-            if ( instance->threads_pool[starting_from]==0 ) { return starting_from; }
-            ++starting_from;
-          }
-       starting_from=0;
-       fprintf(stderr,"Looped .. while finding a proper thread id..\n");
-     }
-
-    return starting_from;
-}
-
-
-int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
-{
-  fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
-
-  fprintf(stderr,"SpawnThreadToServeNewClient instance pointing @ %p \n",instance);
-
-  if (instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED >= MAX_CLIENT_THREADS)
-   {
-     //This needs a little thought.. it is not "nice" to drop clients  , on the other hand what`s the point on opening and
-     //maintaining an idle TCP/IP connection when we are on our limits thread-wise..
-     fprintf(stderr,"We are over the limit on clients served ( %u threads ) ..\nDropping client %s..!\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,inet_ntoa(client.sin_addr));
-     close(clientsock);
-     return 0;
-   }
-
-  //TODO : Here would be a good spot to query the client socket ip address in the client_list ..
-  //We may want to keep a client for opening too many connections or ban him early on , before going through the expense
-  //of creating a seperate thread for him..
-
-  struct PassToHTTPThread context;
-  memset(&context,0,sizeof(struct PassToHTTPThread));
-
-  context.clientsock=clientsock;
-  context.client=client;
-  context.clientlen=clientlen;
-  context.pre_spawned_thread = 0; // THIS IS A !!!NEW!!! THREAD , NOT A PRESPAWNED ONE
-  strncpy(context.webserver_root,webserver_root,MAX_FILE_PATH);
-  strncpy(context.templates_root,templates_root,MAX_FILE_PATH);
-
-  //I Have removed the lock here , so getting a thread_id is a little more complex ..
-  context.thread_id = instance->CLIENT_THREADS_STARTED++;
-  context.thread_id = FindAProperThreadID(instance,context.thread_id);
-
-  context.instance = instance;
-
-  context.keep_var_on_stack=1;
-
-
-  fprintf(stderr,"Spawning a new thread %u/%u to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS);
-  int retres = pthread_create(&instance->threads_pool[context.thread_id],0,ServeClient,(void*) &context);
-  usleep(2); //<- Give some time to the thread to startup
-  if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*usleep(1);*/ } } else // <- Keep PeerServerContext in stack for long enough :P
-                   { fprintf(stderr,"Could not create a new thread..\n "); }
-
-  if (retres!=0) { retres = 0; } else { retres = 1; }
-
-  return retres;
-}
-
 
 
 
@@ -583,7 +508,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
 
 
-void * HTTPServerThread (void * ptr)
+void * MainHTTPServerThread (void * ptr)
 {
 
   char webserver_root[MAX_FILE_PATH]="public_html/";
@@ -710,7 +635,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
   pthread_t server_thread_id;
-  int retres = pthread_create( &server_thread_id ,0,HTTPServerThread,(void*) &context);
+  int retres = pthread_create( &server_thread_id ,0,MainHTTPServerThread,(void*) &context);
   instance->server_thread_id = server_thread_id;
   //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
   if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ } }

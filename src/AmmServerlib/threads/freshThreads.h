@@ -23,4 +23,7 @@ struct PassToHTTPThread
      unsigned int thread_id;
 };
 
+unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,unsigned int starting_from);
+int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root);
+
 #endif // FRESHTHREADS_H_INCLUDED
