@@ -5,7 +5,7 @@
 
 #include "prespawnedThreads.h"
 #include "freshThreads.h"
-
+#include <pthread.h>
 #include "../AmmServerlib.h"
 
 
@@ -39,6 +39,10 @@ void * PreSpawnedThread(void * ptr)
 
   while ( (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
    {
+      //fprintf(stderr,"Thread %u is now waiting\n",prespawned_data->threadNum);
+      //pthread_cond_wait(&prespawned_data->condition_var,&prespawned_data->operation_mutex);
+      //fprintf(stderr,"Thread %u is now executing\n",prespawned_data->threadNum);
+
       //fprintf(stderr,"Prespawned Thread %u waiting ( its %u's turn ) \n",i,prespawn_turn_to_serve);
           /*It is our turn!!*/
           if (prespawned_data->busy) //Master thread considers us busy again , this means there is work to be done..!
@@ -61,6 +65,9 @@ void * PreSpawnedThread(void * ptr)
 
              prespawned_data->busy=0; // <- This signals we finished our task ..!
              ++instance->prespawn_jobs_finished;
+
+
+             //pthread_mutex_lock(&prespawned_data->operation_mutex);
            }
 
       if (instance->prespawn_turn_to_serve==i)
@@ -92,23 +99,16 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
       context.instance = instance;
       context.i_adapt = i;
       prespawned_data->busy=0; // We do this here (and not in the PreSpawnedThread ) to make sure a clean state is sure to be initialized , not having race conditions , locks etc...
+      prespawned_data->threadNum=i;
+
+      //pthread_mutex_init(&prespawned_data->operation_mutex,0);
+      //pthread_cond_init(&prespawned_data->condition_var,0);
+
+      //pthread_mutex_lock(&prespawned_data->operation_mutex);
       int retres = pthread_create(&prespawned_data->thread_id,0,PreSpawnedThread,(void*) &context );
       if ( retres==0 ) { while (context.i_adapt==i) { usleep(1); } } // <- Keep i value the same for long enough without locks
    }
 }
-
-
-inline void TrimPrespawnedCountersToPreventTruncation(struct AmmServer_Instance * instance)
-{
-  //Job Start Counter and Job Finished counter keeps rising and rising so we trim it every 1000 numbers
-  if ( (instance->prespawn_jobs_started>1000) &&
-        (instance->prespawn_jobs_finished>1000)  )
-         {
-             instance->prespawn_jobs_started-=1000;
-             instance->prespawn_jobs_finished-=1000;
-         }
-}
-
 
 
 int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
@@ -125,7 +125,6 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
    struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
    struct PreSpawnedThread * prespawned_data=0;
 
-   //TrimPrespawnedCountersToPreventTruncation(instance);
 
    /* This doesnt work as it was supposed to!
    if ( instance->prespawn_jobs_started < instance->prespawn_jobs_finished )
@@ -134,7 +133,7 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
        fprintf(stderr,"Prespawn Trunc Details ( start %u , end %u , max %u) \n",instance->prespawn_jobs_started,instance->prespawn_jobs_finished,MAX_CLIENT_PRESPAWNED_THREADS);
     } else
     */
-  // if (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
+  // if This doesnt work as it was supposed to : (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
     {
         prespawned_data = &prespawned_pool[instance->prespawn_turn_to_serve];
 
@@ -165,6 +164,10 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
              strncpy(prespawned_data->templates_root,templates_root,MAX_FILE_PATH);
              // The busy byte gets filled in last because it is what causes the client thread to wake up..!
              prespawned_data->busy=1;
+
+
+             //pthread_mutex_unlock(&prespawned_data->operation_mutex);
+             fprintf(stderr,"Thread %u is now unlocked\n",prespawned_data->threadNum);
 
              ++instance->prespawn_turn_to_serve;
              instance->prespawn_turn_to_serve = instance->prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..

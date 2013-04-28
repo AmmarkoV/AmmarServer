@@ -7,6 +7,8 @@
 
 struct PreSpawnedThread
 {
+    unsigned int threadNum;
+
     struct AmmServer_Instance * instance;
     pthread_t thread_id;
 
@@ -15,6 +17,9 @@ struct PreSpawnedThread
     unsigned int clientlen;
 
     char busy;
+
+    //pthread_mutex_t operation_mutex;
+	//pthread_cond_t  condition_var;
 
     char webserver_root[MAX_FILE_PATH];
     char templates_root[MAX_FILE_PATH];

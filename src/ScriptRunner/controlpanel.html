@@ -176,6 +176,12 @@
      } 
 
 
+function updateFormRandomNumber()
+    {
+       var randomnumber=Math.floor(Math.random()*100000);
+       document.getElementById("FormRandomField").value = randomnumber;
+    }
+
  
 function allowDrop(ev)
 {
@@ -477,7 +483,10 @@ function drop(ev)
     <tr>
       <td colspan=10><center>
        <form action="controlpanel.html" accept-charset="utf-8" >
-        Speech : <input type="text" name="say"> <input type="submit" value="Say It">
+        Speech : 
+         <input type="text" name="say"> 
+         <input id="FormRandomField" type="hidden" name="t" value="somethingRandomHere"> 
+         <input type="submit" value="Say It" onclick="updateFormRandomNumber()">
        </form></center>
       </td>
     </tr>
@@ -489,10 +498,8 @@ function drop(ev)
 	<br/>
 	<hr/><br/>
 
-	<a href="controlpanel.html?nothing=true"> <h3>Click here to refresh neutral url</h3></a>
-
-
-
+	<!-- a href="controlpanel.html?nothing=true"> <h3>Click here to refresh neutral url</h3></a -->
+ 
   </center> 
  </body>
 </html>

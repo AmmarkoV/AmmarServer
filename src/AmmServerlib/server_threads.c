@@ -182,7 +182,7 @@ void * ServeClient(void * ptr)
         }
       }
    }
-
+   fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
 
   if (opres>0)
   {
