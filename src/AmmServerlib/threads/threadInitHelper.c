@@ -1,15 +1,52 @@
 #include "threadInitHelper.h"
 #include "../tools/logs.h"
+#include <pthread.h>
+#include <stdio.h>
 
-int parent_InitThreadAndPassMessage(struct threadInitPayload * pld,unsigned int waitTime)
+#define SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE 10
+
+int parentKeepMessageOnStackUntilReadyOrTimeout(int * childSwitch,unsigned int maxWaitTime)
 {
-    if (pld==0) { warning("initThread called with invalid argument \n"); }
-    return 0;
+    usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
+    if (*childSwitch!=1) { return 1; }
+    usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
+    if (*childSwitch!=1) { return 1; }
+
+    unsigned int countSleepTime=0;
+    while (*childSwitch!=1)
+         {
+           usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
+           ++countSleepTime;
+           if (countSleepTime>maxWaitTime) { return 0; }
+         }
+
+    return 1;
 }
 
 
-int child_InitThreadAndPassMessage(struct threadInitPayload * pld,unsigned int waitTime)
+int parentKeepMessageOnStackUntilReady(int * childSwitch)
 {
-    if (pld==0) { warning("initThread called with invalid argument \n"); }
-    return 0;
+    usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
+    if (*childSwitch!=1) { return 1; }
+    usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
+    if (*childSwitch!=1) { return 1; }
+
+    while (*childSwitch!=1)
+         {
+           usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
+           fprintf(stderr,"?");
+         }
+
+    return 1;
 }
+
+
+void childFinishedWithParentMessage(int * childSwitch)
+{
+    *childSwitch=2;
+    return;
+}
+
+
+
+

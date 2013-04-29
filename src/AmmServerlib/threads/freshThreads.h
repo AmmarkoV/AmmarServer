@@ -7,6 +7,8 @@
 
 struct PassToHTTPThread
 {
+     volatile int keep_var_on_stack;
+
      struct AmmServer_Instance * instance;
 
      char ip[256];
@@ -14,7 +16,6 @@ struct PassToHTTPThread
      char templates_root[MAX_FILE_PATH];
 
      unsigned int port;
-     unsigned int keep_var_on_stack;
      int pre_spawned_thread;
 
      int clientsock;

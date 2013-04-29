@@ -5,14 +5,14 @@
 #include <string.h>
 
 #include "../server_threads.h"
+#include "threadInitHelper.h"
 
 unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,unsigned int starting_from)
 {
     if (starting_from>=MAX_CLIENT_THREADS) { starting_from = starting_from % MAX_CLIENT_THREADS; }
 
-
-   fprintf(stderr,"FindAProperThreadID instance pointing @ %p \n",instance);//Clear instance..!
-    fprintf(stderr,"FindAProperThreadID thread pool pointing @ %p \n",instance->threads_pool);//Clear instance..!
+  // fprintf(stderr,"FindAProperThreadID instance pointing @ %p \n",instance);//Clear instance..!
+  //  fprintf(stderr,"FindAProperThreadID thread pool pointing @ %p \n",instance->threads_pool);//Clear instance..!
     while ( 1 )
      {
        while (starting_from<MAX_CLIENT_THREADS)
@@ -34,6 +34,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
 
   fprintf(stderr,"SpawnThreadToServeNewClient instance pointing @ %p \n",instance);
+
 
   if (instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED >= MAX_CLIENT_THREADS)
    {
@@ -69,9 +70,26 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
   fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id);
   int retres = pthread_create(&instance->threads_pool[context.thread_id],0,ServeClient,(void*) &context);
+
   usleep(5); //<- Give some time to the thread to startup
-  if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*TODO : POTENTIAL BUG HERE ? THIS WAS OPTIMIZED OUT?*/ fprintf(stderr,"?"); usleep(1); } } else // <- Keep PeerServerContext in stack for long enough :P
-                   { fprintf(stderr,"Could not create a new thread..\n "); }
+  if ( retres==0 )
+     {
+       while (context.keep_var_on_stack==1)
+           {
+             /*TODO : POTENTIAL BUG HERE ? THIS WAS OPTIMIZED OUT?*/
+             fprintf(stderr,"?");
+             usleep(1);
+            }
+     } else // <- Keep PeerServerContext in stack for long enough :P
+     { warning("Could not create a new thread..\n "); }
+  /*
+  if ( retres==0 )
+    {
+      parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack);
+    } else // <- Keep PeerServerContext in stack for long enough :P
+    {
+     warning("Could not create a new thread..\n ");
+    }*/
 
   if (retres!=0) { retres = 0; } else { retres = 1; }
 

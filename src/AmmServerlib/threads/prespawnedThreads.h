@@ -7,6 +7,8 @@
 
 struct PreSpawnedThread
 {
+    volatile unsigned char busy;
+
     unsigned int threadNum;
 
     struct AmmServer_Instance * instance;
@@ -16,7 +18,6 @@ struct PreSpawnedThread
     struct sockaddr_in client;
     unsigned int clientlen;
 
-    volatile unsigned char busy;
 
     //pthread_mutex_t operation_mutex;
 	//pthread_cond_t  condition_var;

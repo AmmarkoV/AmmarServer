@@ -100,8 +100,14 @@ void * ServeClient(void * ptr)
   //! correct tracking of active threads , when something bad happens and we want to return , close_connection=1; is set
 
   fprintf(stderr,"New Serve Client call ..\n");
-  struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
+/*
+  struct PassToHTTPThread context;
+  memcpy(&context,(struct PassToHTTPThread *) ptr,sizeof(struct PassToHTTPThread));
+  context.keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
+*/
+
+  struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
 
   // In order for each thread to (in theory) be able to serve a different virtual website
   // we declare the webserver_root etc here and we copy the value from the thread spawning function
@@ -109,14 +115,8 @@ void * ServeClient(void * ptr)
   char webserver_root[MAX_FILE_PATH]="public_html/";
   char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
-
   strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
   strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
-
-//  char * spn = strstr (templates_root,webserver_root);
-//  if (spn==0) { /*templates_root is not the same path*/ }
-
-
   int pre_spawned_thread=context->pre_spawned_thread;
   int clientsock=context->clientsock;
   int thread_id = context->thread_id;
@@ -549,12 +549,12 @@ void * MainHTTPServerThread (void * ptr)
     {
       error("Server Thread : Error binding master port!\nThe server may already be running ..\n");
       instance->server_running=0;
-      context->keep_var_on_stack=2; //If we were not able to bind we still signal that we got the message so that parent thread can continue
+      childFinishedWithParentMessage(&context->keep_var_on_stack); //If we were not able to bind we still signal that we got the message so that parent thread can continue
       return 0;
     }
 
   //If we managed to bind we return success! so that the parent thread can continue with its work..
-  context->keep_var_on_stack=2;
+  childFinishedWithParentMessage(&context->keep_var_on_stack);
 
   //MAX_CLIENT_THREADS <- this could also be used instead of MAX_CLIENTS_LISTENING_FOR
   //I am trying a larger listen queue to hold incoming connections regardless of the serving threads
@@ -585,11 +585,17 @@ void * MainHTTPServerThread (void * ptr)
               // Nothing to do here , proceeding to the next incoming connection..
               // if we failed to use a pre spawned thread we will spawn a new one using the next call..!
             } else
-           if (!SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,webserver_root,templates_root))
+            if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,webserver_root,templates_root))
             {
-                warning("Server Thread : Client failed, while handling him\n");
+              // This request got served by a freshly spawned thread..!
+              // Nothing to do here , proceeding to the next incoming connection..
+              // if we failed then nothing can be done for this client
+            } else
+            {
+                warning("Server Thread : We dont have enough resources to serve client\n");
                 close(clientsock);
             }
+
       }
  }
   instance->server_running=0;
@@ -615,37 +621,41 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 
 
-
+  int retres=0;
   struct PassToHTTPThread context;
   memset(&context,0,sizeof(context));
 
-  strncpy(context.ip,ip,255);
-  strncpy(context.webserver_root,root_path,MAX_FILE_PATH);
-  strncpy(context.templates_root,templates_path,MAX_FILE_PATH);
+   strncpy(context.ip,ip,255);
+   strncpy(context.webserver_root,root_path,MAX_FILE_PATH);
+   strncpy(context.templates_root,templates_path,MAX_FILE_PATH);
 
-  context.port=port;
-  context.instance = instance; //Also pass instance on new thread..
-  context.keep_var_on_stack=1;
+   context.port=port;
+   context.instance = instance; //Also pass instance on new thread..
+   context.keep_var_on_stack=1;
 
-  instance->server_running=1;
-  instance->pause_server=0;
-  instance->stop_server=0;
+   instance->server_running=1;
+   instance->pause_server=0;
+   instance->stop_server=0;
 
 
-  fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
+   fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
 
 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
-  pthread_t server_thread_id;
-  int retres = pthread_create( &server_thread_id ,0,MainHTTPServerThread,(void*) &context);
-  instance->server_thread_id = server_thread_id;
-  //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
-  if ( retres==0 ) { while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ } }
-  //We flip the retres
-  if (retres!=0) retres = 0; else retres = 1;
+   pthread_t server_thread_id;
+   retres = pthread_create( &server_thread_id ,0,MainHTTPServerThread,(void*) &context);
+   instance->server_thread_id = server_thread_id;
+   //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
 
+   if ( retres==0 )
+     {
+         parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack);
+         //while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ }
+      }
 
+   //We flip the retres
+   if (retres!=0) retres = 0; else retres = 1;
 
    //After changing our priority , binding our port ( which could be 80 and could require superuser powers ) , it may be time to drop RootUID
    //There could be a user like www-run or something else that we could setuid to , but this isn't yet implemented...

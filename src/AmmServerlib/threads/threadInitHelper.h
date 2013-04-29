@@ -8,13 +8,8 @@
 #define THREAD_INITIALIZATION_FAILED 3
 
 
-struct threadInitPayload
-{
-   char initializationState;
-   void * payload;
-};
-
-
-int initThreadAndPassMessage(struct threadInitPayload *  pld,unsigned int waitTime);
+int parentKeepMessageOnStackUntilReadyOrTimeout(int * childSwitch,unsigned int maxWaitTime);
+int parentKeepMessageOnStackUntilReady(int * childSwitch);
+void childFinishedWithParentMessage(int * childSwitch);
 
 #endif // THREADINITHELPER_H_INCLUDED
