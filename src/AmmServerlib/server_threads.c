@@ -553,18 +553,15 @@ void * MainHTTPServerThread (void * ptr)
   server.sin_addr.s_addr = INADDR_ANY;
   server.sin_port = htons(context->port);
 
+  childFinishedWithParentMessage(&context->keep_var_on_stack); //If we were not able to bind we still signal that we got the message so that parent thread can continue
 
   //We bind to our port..!
   if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 )
     {
       error("Server Thread : Error binding master port!\nThe server may already be running ..\n");
       instance->server_running=0;
-      childFinishedWithParentMessage(&context->keep_var_on_stack); //If we were not able to bind we still signal that we got the message so that parent thread can continue
       return 0;
     }
-
-  //If we managed to bind we return success! so that the parent thread can continue with its work..
-  childFinishedWithParentMessage(&context->keep_var_on_stack);
 
   //MAX_CLIENT_THREADS <- this could also be used instead of MAX_CLIENTS_LISTENING_FOR
   //I am trying a larger listen queue to hold incoming connections regardless of the serving threads
