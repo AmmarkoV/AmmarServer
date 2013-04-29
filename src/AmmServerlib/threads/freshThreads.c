@@ -30,7 +30,8 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,unsigned i
 
 int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
-  fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
+
+  //fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
 
   fprintf(stderr,"SpawnThreadToServeNewClient instance pointing @ %p \n",instance);
 
@@ -66,10 +67,10 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   context.keep_var_on_stack=1;
 
 
-  fprintf(stderr,"Spawning a new thread %u/%u to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS);
+  fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id);
   int retres = pthread_create(&instance->threads_pool[context.thread_id],0,ServeClient,(void*) &context);
-  usleep(2); //<- Give some time to the thread to startup
-  if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*usleep(1);*/ } } else // <- Keep PeerServerContext in stack for long enough :P
+  usleep(5); //<- Give some time to the thread to startup
+  if ( retres==0 ) { while (context.keep_var_on_stack==1) { /*TODO : POTENTIAL BUG HERE ? THIS WAS OPTIMIZED OUT?*/ fprintf(stderr,"?"); usleep(1); } } else // <- Keep PeerServerContext in stack for long enough :P
                    { fprintf(stderr,"Could not create a new thread..\n "); }
 
   if (retres!=0) { retres = 0; } else { retres = 1; }

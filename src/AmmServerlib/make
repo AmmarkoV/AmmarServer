@@ -17,8 +17,8 @@ then
   rm $LIBNAME
 fi   
  
-#This fails on Siege tests -> CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native"
-CFLAGS="-g -pg"
+CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native"
+#These are debug + profiling settings -> CFLAGS="-g -pg"
 
 gcc -c $CFLAGS main.c -o main.o
 gcc -c $CFLAGS server_threads.c -o server_threads.o 

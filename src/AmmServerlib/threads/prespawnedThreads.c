@@ -44,6 +44,7 @@ void * PreSpawnedThread(void * ptr)
       //fprintf(stderr,"Thread %u is now executing\n",prespawned_data->threadNum);
 
       //fprintf(stderr,"Prespawned Thread %u waiting ( its %u's turn ) \n",i,prespawn_turn_to_serve);
+      //fprintf(stderr,"Prespawned Thread %u busy status %u \n",i,(unsigned int) prespawned_data->busy);
           /*It is our turn!!*/
           if (prespawned_data->busy) //Master thread considers us busy again , this means there is work to be done..!
           {
@@ -61,6 +62,7 @@ void * PreSpawnedThread(void * ptr)
               //ServeClient from this thread ( without forking..! )
               fprintf(stderr,"Prespawned thread %u/%u starting to serve new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
                 ServeClient((void *)  &context);
+              fprintf(stderr,"Prespawned thread %u/%u finished serving new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
               //---------------------------------------------------
 
              prespawned_data->busy=0; // <- This signals we finished our task ..!
@@ -135,7 +137,8 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
     */
   // if This doesnt work as it was supposed to : (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
     {
-        prespawned_data = &prespawned_pool[instance->prespawn_turn_to_serve];
+        if (instance->prespawn_turn_to_serve>=MAX_CLIENT_PRESPAWNED_THREADS) { instance->prespawn_turn_to_serve=0; }
+        prespawned_data = (struct PreSpawnedThread *)  &prespawned_pool[instance->prespawn_turn_to_serve];
 
         //Attempt to find another prespawned context
         if (prespawned_data->busy)
@@ -143,7 +146,7 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
             unsigned int i=0;
             for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
             {
-              prespawned_data = &prespawned_pool[i];
+              prespawned_data = (struct PreSpawnedThread *) &prespawned_pool[i];
               if (!prespawned_data->busy) { break; }
             }
          }
