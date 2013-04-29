@@ -29,7 +29,7 @@ void * PreSpawnedThread(void * ptr)
 
   if (instance==0) { fprintf(stderr,"Prespawned thread did not receive a valid instance context\n"); return 0; }
   //We will also spawn our own threads so lets prepare their variables..
-  struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
+  volatile struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
   memset(&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
 
 

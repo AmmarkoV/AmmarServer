@@ -46,6 +46,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 
+
+
 int HTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
   if (instance==0) { return 0; } //We can't be running not even the instance is allocated..
@@ -513,13 +515,14 @@ void * ServeClient(void * ptr)
 
 void * MainHTTPServerThread (void * ptr)
 {
+  struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
+  if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); /*We dont have a context , so we cant signal anything :P */ return 0; }
 
   char webserver_root[MAX_FILE_PATH]="public_html/";
   char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
-  struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
-  if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); /*We dont have a context , so we cant signal anything :P */ return 0; }
-
+  strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
+  strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
 
   unsigned int serverlen = sizeof(struct sockaddr_in),clientlen = sizeof(struct sockaddr_in);
   struct sockaddr_in server;
@@ -539,9 +542,6 @@ void * MainHTTPServerThread (void * ptr)
   server.sin_family = AF_INET;
   server.sin_addr.s_addr = INADDR_ANY;
   server.sin_port = htons(context->port);
-
-  strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
-  strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
 
 
   //We bind to our port..!
@@ -622,10 +622,14 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 
   int retres=0;
-  struct PassToHTTPThread context;
+  volatile struct PassToHTTPThread context;
   memset(&context,0,sizeof(context));
 
-   strncpy(context.ip,ip,255);
+   strncpy(context.ip,ip,MAX_IP_STRING_SIZE);
+
+   //We could only pass pointers :S
+   //context.webserver_root=root_path;
+   //context.templates_root=templates_path;
    strncpy(context.webserver_root,root_path,MAX_FILE_PATH);
    strncpy(context.templates_root,templates_path,MAX_FILE_PATH);
 

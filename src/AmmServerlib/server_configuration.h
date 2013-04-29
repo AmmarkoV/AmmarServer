@@ -22,6 +22,7 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 #define MAX_RESOURCE_SLASHES 15
 #define MAX_CONFIGURATION_FILE_LINE_SIZE 512
 #define MAX_FILE_PATH_EXTENSION_SIZE 128
+#define MAX_IP_STRING_SIZE 32
 
 #define MAX_CONTENT_TYPE 128
 #define MAX_FILE_READ_BLOCK_KB 1024 //1MB - How much KB is the max fread , malloc for serving files

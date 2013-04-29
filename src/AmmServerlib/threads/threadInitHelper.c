@@ -2,6 +2,7 @@
 #include "../tools/logs.h"
 #include <pthread.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #define SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE 10
 

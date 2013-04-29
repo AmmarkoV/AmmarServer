@@ -32,6 +32,8 @@
 				<Option object_output="obj/Release/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
+				<Option host_application="/home/ammar/Documents/Programming/AmmarServer/src/ammarserver" />
+				<Option run_host_application_in_terminal="1" />
 				<Option createDefFile="1" />
 				<Compiler>
 					<Add option="-fexpensive-optimizations" />
@@ -45,6 +47,11 @@
 				</Linker>
 			</Target>
 		</Build>
+		<Compiler>
+			<Add option="-fexpensive-optimizations" />
+			<Add option="-O3" />
+			<Add option="-march=native -mtune=native" />
+		</Compiler>
 		<Linker>
 			<Add option="-lrt" />
 		</Linker>

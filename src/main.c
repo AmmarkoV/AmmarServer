@@ -26,7 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-#define MAX_INPUT_IP 256
+#define MAX_INPUT_IP 32
 
 #define ENABLE_PASSWORD_PROTECTION 0
 #define ENABLE_CHAT_BOX 0
