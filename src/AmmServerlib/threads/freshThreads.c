@@ -58,6 +58,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
      return 0;
    }
 
+  //I Have removed the lock here , so getting a thread_id is a little more complex ..
   int foundAvailiableThreadID=0;
   unsigned int threadID = FindAProperThreadID(instance,&foundAvailiableThreadID);
 
@@ -80,18 +81,14 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   context.client=client;
   context.clientlen=clientlen;
   context.pre_spawned_thread = 0; // THIS IS A !!!NEW!!! THREAD , NOT A PRESPAWNED ONE
+  context.thread_id =threadID;
+  context.instance = instance;
 
   //We could only pass pointers here
   //context.webserver_root=webserver_root;
   //context.templates_root=templates_root;
   strncpy(context.webserver_root,webserver_root,MAX_FILE_PATH);
   strncpy(context.templates_root,templates_root,MAX_FILE_PATH);
-
-  //I Have removed the lock here , so getting a thread_id is a little more complex ..
-
-  context.thread_id =threadID;
-  context.instance = instance;
-
 
 
   fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id);
@@ -103,8 +100,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
        while (context.keep_var_on_stack==1)
            {
              /*TODO : POTENTIAL BUG HERE ? THIS WAS OPTIMIZED OUT?*/
-             fprintf(stderr,"?");
-             usleep(1);
+             //fprintf(stderr,"?"); //<- Without this it crashes
+             usleep(10);
             }
      } else // <- Keep PeerServerContext in stack for long enough :P
      { warning("Could not create a new thread..\n "); }

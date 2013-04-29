@@ -8,8 +8,8 @@
 #define THREAD_INITIALIZATION_FAILED 3
 
 
-int parentKeepMessageOnStackUntilReadyOrTimeout(int * childSwitch,unsigned int maxWaitTime);
-int parentKeepMessageOnStackUntilReady(int * childSwitch);
-void childFinishedWithParentMessage(int * childSwitch);
+int parentKeepMessageOnStackUntilReadyOrTimeout(volatile int * childSwitch,unsigned int maxWaitTime);
+int parentKeepMessageOnStackUntilReady(volatile int * childSwitch);
+void childFinishedWithParentMessage(volatile int * childSwitch);
 
 #endif // THREADINITHELPER_H_INCLUDED

@@ -27,7 +27,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-#define MAX_INPUT_IP 32
 
 #define ENABLE_PASSWORD_PROTECTION 0
 #define ENABLE_CHAT_BOX 0
@@ -377,7 +376,7 @@ int main(int argc, char *argv[])
     if (signal(SIGKILL, termination_handler) == SIG_ERR)  printf("Cannot handle SIGKILL!\n");
 
 
-    char bindIP[MAX_INPUT_IP];
+    char bindIP[MAX_IP_STRING_SIZE];
     strcpy(bindIP,"0.0.0.0");
 
     unsigned int port=DEFAULT_BINDING_PORT;
@@ -386,8 +385,8 @@ int main(int argc, char *argv[])
     if ( argc <1 ) { fprintf(stderr,"Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else
      {
-        if (strlen(argv[1])>=MAX_INPUT_IP) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
-                                           { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
+        if (strlen(argv[1])>=MAX_IP_STRING_SIZE) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
+                                           { strncpy(bindIP,argv[1],MAX_IP_STRING_SIZE); }
         port=atoi(argv[2]);
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
      }

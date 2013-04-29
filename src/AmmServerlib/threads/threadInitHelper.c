@@ -6,7 +6,7 @@
 
 #define SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE 10
 
-int parentKeepMessageOnStackUntilReadyOrTimeout(int * childSwitch,unsigned int maxWaitTime)
+int parentKeepMessageOnStackUntilReadyOrTimeout(volatile int * childSwitch,unsigned int maxWaitTime)
 {
     usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
     if (*childSwitch!=1) { return 1; }
@@ -25,7 +25,7 @@ int parentKeepMessageOnStackUntilReadyOrTimeout(int * childSwitch,unsigned int m
 }
 
 
-int parentKeepMessageOnStackUntilReady(int * childSwitch)
+int parentKeepMessageOnStackUntilReady(volatile int * childSwitch)
 {
     usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
     if (*childSwitch!=1) { return 1; }
@@ -34,17 +34,18 @@ int parentKeepMessageOnStackUntilReady(int * childSwitch)
 
     while (*childSwitch!=1)
          {
-           usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
            fprintf(stderr,"?");
+           usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
          }
 
     return 1;
 }
 
 
-void childFinishedWithParentMessage(int * childSwitch)
+void childFinishedWithParentMessage(volatile int * childSwitch)
 {
     *childSwitch=2;
+    if (*childSwitch!=2) { error("WTF , i just changed the child switch"); }
     return;
 }
 

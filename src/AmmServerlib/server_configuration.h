@@ -14,7 +14,7 @@
 
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
-#define MAX_CLIENT_THREADS 512 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
+#define MAX_CLIENT_THREADS 256 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
 #define MAX_CLIENTS_LISTENING_FOR 1000 //This should always be larger than MAX_CLIENT_THREADS
 #define MAX_CLIENT_PRESPAWNED_THREADS 16 //16 //8 //This is the number of prespawned threads that run to reduce overall latency
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
@@ -22,7 +22,6 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 #define MAX_RESOURCE_SLASHES 15
 #define MAX_CONFIGURATION_FILE_LINE_SIZE 512
 #define MAX_FILE_PATH_EXTENSION_SIZE 128
-#define MAX_IP_STRING_SIZE 32
 
 #define MAX_CONTENT_TYPE 128
 #define MAX_FILE_READ_BLOCK_KB 1024 //1MB - How much KB is the max fread , malloc for serving files

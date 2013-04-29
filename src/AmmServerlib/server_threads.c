@@ -125,32 +125,42 @@ void * ServeClient(void * ptr)
 
   struct AmmServer_Instance * instance = context->instance;
 
-  context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
 
-  fprintf(stderr,"Passing message to HTTP thread is done \n");
+  fprintf(stderr,"Now signaling we are ready (%u)\n",thread_id);
+  context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
+  fprintf(stderr,"Passing message to HTTP thread is done (%u)\n",thread_id);
+
   if (instance==0) { fprintf(stderr,"Serve Client called without a valid instance , it cannot continue \n"); return 0; }
   fprintf(stderr,"ServeClient instance pointing @ %p \n",instance);
 
 
-  //Now the real fun starts :P <- helpfull comment
+  //Now the real fun starts :P <- helpful comment
   unsigned int client_id=GetClientId("0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
   if ( ClientIsBanned(client_id) )
   {
          SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
   } else
-
   { /*!START OF CLIENT IS NOT ON IP-BANNED-LIST!*/
 
-  struct timeval timeout;
+  int errorSettingTimeouts = 0;
+  struct timeval timeout={0};
   timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
-  if (setsockopt (clientsock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); }
+  if (setsockopt (clientsock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); errorSettingTimeouts=1; }
 
   timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
-  if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); }
+  if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); errorSettingTimeouts=1; }
 
   char incoming_request[MAX_HTTP_REQUEST_HEADER+1]; //A 4K header is more than enough..!
 
   int close_connection=0;
+
+
+  if (errorSettingTimeouts)
+  {
+    warning("Could not set timeouts , this means something weird is going on , skipping everything");
+    close_connection=1;
+  }
+
 
   while ( (!close_connection) && (instance->server_running) )
   {

@@ -27,7 +27,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-#define MAX_INPUT_IP 32
 
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
@@ -485,7 +484,7 @@ int main(int argc, char *argv[])
     printf("Ammar Server starting up\n");
     AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
-    char bindIP[MAX_INPUT_IP]={0};
+    char bindIP[MAX_IP_STRING_SIZE]={0};
     strcpy(bindIP,"0.0.0.0");
 
     unsigned int port=DEFAULT_BINDING_PORT;
@@ -494,8 +493,8 @@ int main(int argc, char *argv[])
     if ( argc <1 )   { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else
      {
-        if (strlen(argv[1])>=MAX_INPUT_IP) { AmmServer_Warning("Console argument for binding IP is too long..!\n"); } else
-                                           { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
+        if (strlen(argv[1])>=MAX_IP_STRING_SIZE) { AmmServer_Warning("Console argument for binding IP is too long..!\n"); } else
+                                           { strncpy(bindIP,argv[1],MAX_IP_STRING_SIZE); }
         port=atoi(argv[2]);
         if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
      }
