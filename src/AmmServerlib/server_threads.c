@@ -181,7 +181,7 @@ void * ServeClient(void * ptr)
         }
       }
    }
-   fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
+  fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
 
   if ( (opres>0) && (!close_connection) )
   {
@@ -452,7 +452,9 @@ void * ServeClient(void * ptr)
 
   } /*!END OF CLIENT NOT IP-BANNED CODE !*/
 
+  fprintf(stderr,"Closing Socket ..");
   close(clientsock);
+  fprintf(stderr,"closed\n");
 
   if (!pre_spawned_thread)
    { //If we are running in a prespawned thread it is wrong to count this thread as a *dynamic* one that just stopped !
@@ -462,6 +464,7 @@ void * ServeClient(void * ptr)
      ++instance->CLIENT_THREADS_STOPPED;
 
      //We also only want to stop the thread if itsnot prespawned !
+     fprintf(stderr,"Exiting Thread\n");
      pthread_exit(0);
    }
 
