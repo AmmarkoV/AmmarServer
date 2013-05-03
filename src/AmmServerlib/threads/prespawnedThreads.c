@@ -31,8 +31,8 @@ void * PreSpawnedThread(void * ptr)
 
   if (instance==0) { fprintf(stderr,"Prespawned thread did not receive a valid instance context\n"); return 0; }
   //We will also spawn our own threads so lets prepare their variables..
-  volatile struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
-  memset((void*)&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
+  volatile struct PassToHTTPThread context={{0}}; // <-- This is the static copy of the context we will pass through
+  //memset((void*)&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
 
 
   struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
@@ -88,8 +88,8 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 
   if ( (instance==0)||(instance->prespawned_pool==0) ) { fprintf(stderr,"PreSpawnThreads called on an invalid instance..\n"); return; }
 
-  struct PassToPreSpawnedThread context;
-  memset(&context,0,sizeof(struct PassToPreSpawnedThread));
+  struct PassToPreSpawnedThread context={{0}};
+  //memset(&context,0,sizeof(struct PassToPreSpawnedThread));
 
   struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
   struct PreSpawnedThread * prespawned_data=0;

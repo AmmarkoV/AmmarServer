@@ -119,6 +119,8 @@ void * ServeClient(void * ptr)
      return 0;
    }
 
+
+
   // In order for each thread to (in theory) be able to serve a different virtual website
   // we declare the webserver_root etc here and we copy the value from the thread spawning function
   // This creates a little code clutter but it is for the best..!
@@ -132,7 +134,10 @@ void * ServeClient(void * ptr)
   int thread_id = context->thread_id;
 
   struct AmmServer_Instance * instance = context->instance;
-
+  if (!pre_spawned_thread)
+   {
+    instance->busy_threads_pool[thread_id]=1;
+   }
 
   fprintf(stderr,"Now signaling we are ready (%u)\n",thread_id);
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
@@ -151,7 +156,7 @@ void * ServeClient(void * ptr)
   { /*!START OF CLIENT IS NOT ON IP-BANNED-LIST!*/
 
   int errorSettingTimeouts = 0;
-  struct timeval timeout={0};
+  struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
   timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
   if (setsockopt (clientsock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); errorSettingTimeouts=1; }
 
@@ -481,6 +486,7 @@ void * ServeClient(void * ptr)
      //Clear thread id handler and we can gracefully exit..! ( LOCKLESS OPERATION)
      if (instance->threads_pool[thread_id]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",thread_id); }
      instance->threads_pool[thread_id]=0;
+     instance->busy_threads_pool[thread_id]=0;
      ++instance->CLIENT_THREADS_STOPPED;
 
      //We also only want to stop the thread if itsnot prespawned !
@@ -637,8 +643,8 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 
   int retres=0;
-  volatile struct PassToHTTPThread context;
-  memset((void*) &context,0,sizeof(context));
+  volatile struct PassToHTTPThread context={ { 0 } };
+  //memset((void*) &context,0,sizeof(context));
 
    strncpy((char*) context.ip,ip,MAX_IP_STRING_SIZE);
 

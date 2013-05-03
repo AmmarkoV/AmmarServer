@@ -26,7 +26,7 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
      {
        while (starting_from<MAX_CLIENT_THREADS)
          {
-            if ( instance->threads_pool[starting_from]==0 )
+            if  ( ( instance->threads_pool[starting_from]==0 ) && ( instance->busy_threads_pool[starting_from]==0 ) )
                  {
                    *success=1;
                    return starting_from;
@@ -73,8 +73,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //We may want to keep a client for opening too many connections or ban him early on , before going through the expense
   //of creating a seperate thread for him..
 
-  volatile struct PassToHTTPThread context;
-  memset((void*) &context,0,sizeof(struct PassToHTTPThread));
+  volatile struct PassToHTTPThread context={{0}};
+  //memset((void*) &context,0,sizeof(struct PassToHTTPThread));
 
   context.keep_var_on_stack=1;
 
@@ -93,7 +93,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
 
   fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);
-  int retres = pthread_create(&instance->threads_pool[context.thread_id],0,ServeClient,(void*) &context);
+
+  int retres = pthread_create(&instance->threads_pool[threadID],0,ServeClient,(void*) &context);
 
   #if WEIRD_THING_THAT_WORKS
   if ( retres==0 )
