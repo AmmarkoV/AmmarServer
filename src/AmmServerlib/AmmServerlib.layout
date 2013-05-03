@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="Release" />
+	<ActiveTarget name="Debug" />
 	<File name="AmmServerlib.h" open="1" top="0" tabpos="2">
-		<Cursor position="0" topLine="0" />
+		<Cursor position="3976" topLine="114" />
 	</File>
 	<File name="InputParser/InputParser_C.c" open="1" top="0" tabpos="9">
 		<Cursor position="0" topLine="0" />
@@ -16,14 +16,14 @@
 	<File name="cache/client_list.h" open="1" top="0" tabpos="25">
 		<Cursor position="0" topLine="0" />
 	</File>
-	<File name="cache/file_caching.c" open="1" top="1" tabpos="13">
-		<Cursor position="18806" topLine="387" />
+	<File name="cache/file_caching.c" open="1" top="0" tabpos="13">
+		<Cursor position="175" topLine="0" />
 	</File>
 	<File name="cache/file_caching.h" open="1" top="0" tabpos="14">
-		<Cursor position="846" topLine="13" />
+		<Cursor position="943" topLine="13" />
 	</File>
 	<File name="file_server.c" open="1" top="0" tabpos="3">
-		<Cursor position="0" topLine="0" />
+		<Cursor position="1203" topLine="0" />
 	</File>
 	<File name="file_server.h" open="1" top="0" tabpos="4">
 		<Cursor position="0" topLine="0" />
@@ -41,31 +41,31 @@
 		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="1">
-		<Cursor position="15508" topLine="0" />
+		<Cursor position="15569" topLine="412" />
 	</File>
 	<File name="server_configuration.c" open="1" top="0" tabpos="10">
-		<Cursor position="1069" topLine="0" />
+		<Cursor position="4076" topLine="75" />
 	</File>
 	<File name="server_configuration.h" open="1" top="0" tabpos="11">
-		<Cursor position="412" topLine="0" />
+		<Cursor position="1446" topLine="0" />
 	</File>
 	<File name="server_threads.c" open="1" top="0" tabpos="6">
-		<Cursor position="26629" topLine="615" />
+		<Cursor position="3538" topLine="99" />
 	</File>
 	<File name="server_threads.h" open="1" top="0" tabpos="7">
 		<Cursor position="0" topLine="0" />
 	</File>
-	<File name="threads/freshThreads.c" open="1" top="0" tabpos="29">
-		<Cursor position="3415" topLine="64" />
+	<File name="threads/freshThreads.c" open="1" top="1" tabpos="29">
+		<Cursor position="228" topLine="3" />
 	</File>
 	<File name="threads/freshThreads.h" open="1" top="0" tabpos="30">
 		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="threads/prespawnedThreads.c" open="1" top="0" tabpos="27">
-		<Cursor position="3668" topLine="50" />
+		<Cursor position="186" topLine="12" />
 	</File>
 	<File name="threads/prespawnedThreads.h" open="1" top="0" tabpos="28">
-		<Cursor position="0" topLine="0" />
+		<Cursor position="802" topLine="0" />
 	</File>
 	<File name="threads/threadInitHelper.c" open="1" top="0" tabpos="26">
 		<Cursor position="0" topLine="0" />
@@ -74,7 +74,7 @@
 		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="tools/http_tools.c" open="1" top="0" tabpos="19">
-		<Cursor position="0" topLine="0" />
+		<Cursor position="29185" topLine="670" />
 	</File>
 	<File name="tools/http_tools.h" open="1" top="0" tabpos="16">
 		<Cursor position="0" topLine="0" />

@@ -319,7 +319,7 @@ void close_dynamic_content()
 
 int main(int argc, char *argv[])
 {
-    printf("Ammar Server %s starting up..\n",AmmServer_Version());
+    printf("\nAmmar Server %s starting up..\n",AmmServer_Version());
     AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
 
@@ -404,6 +404,7 @@ int main(int argc, char *argv[])
 
     //Stop the server and clean state
     AmmServer_Stop(default_server);
+    printf("Ammar Server stopped\n");
 
     return 0;
 }

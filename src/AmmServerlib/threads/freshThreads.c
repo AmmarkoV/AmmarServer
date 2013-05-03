@@ -92,7 +92,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   strncpy((char *)context.templates_root,templates_root,MAX_FILE_PATH);
 
 
-  fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id);
+  fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);
   int retres = pthread_create(&instance->threads_pool[context.thread_id],0,ServeClient,(void*) &context);
 
   #if WEIRD_THING_THAT_WORKS

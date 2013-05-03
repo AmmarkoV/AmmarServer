@@ -112,6 +112,12 @@ void * ServeClient(void * ptr)
 */
 
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
+  if (context->keep_var_on_stack!=1)
+   {
+     warning("A bad sign , KeepVarOnStack is not properly set , this is a bug .. \n Will not serve request");
+     fprintf(stderr,"Bad new thread context is pointing to %p\n",context);
+     return 0;
+   }
 
   // In order for each thread to (in theory) be able to serve a different virtual website
   // we declare the webserver_root etc here and we copy the value from the thread spawning function
