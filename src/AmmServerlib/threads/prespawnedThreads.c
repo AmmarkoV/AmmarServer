@@ -6,6 +6,8 @@
 #include "prespawnedThreads.h"
 #include "freshThreads.h"
 #include <pthread.h>
+#include <unistd.h>
+#include "../server_threads.h"
 #include "../AmmServerlib.h"
 
 
@@ -30,7 +32,7 @@ void * PreSpawnedThread(void * ptr)
   if (instance==0) { fprintf(stderr,"Prespawned thread did not receive a valid instance context\n"); return 0; }
   //We will also spawn our own threads so lets prepare their variables..
   volatile struct PassToHTTPThread context; // <-- This is the static copy of the context we will pass through
-  memset(&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
+  memset((void*)&context,0,sizeof(struct PassToHTTPThread)); // We clear it out
 
 
   struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
@@ -55,8 +57,8 @@ void * PreSpawnedThread(void * ptr)
              context.client=prespawned_data->client;
              context.clientlen=prespawned_data->clientlen;
              context.pre_spawned_thread = 1; // THIS IS A !!!!PRE SPAWNED!!!! THREAD
-             strncpy(context.webserver_root,prespawned_data->webserver_root,MAX_FILE_PATH);
-             strncpy(context.templates_root,prespawned_data->templates_root,MAX_FILE_PATH);
+             strncpy((char *)context.webserver_root,prespawned_data->webserver_root,MAX_FILE_PATH);
+             strncpy((char *)context.templates_root,prespawned_data->templates_root,MAX_FILE_PATH);
              context.keep_var_on_stack=1;
 
               //ServeClient from this thread ( without forking..! )

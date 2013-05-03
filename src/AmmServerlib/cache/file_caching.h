@@ -39,6 +39,8 @@ struct cache_item
    unsigned int  year;
 };
 
+int AddNewMallocOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes);
+int AddFreeOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes);
 
 int CachedVersionExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index);
 

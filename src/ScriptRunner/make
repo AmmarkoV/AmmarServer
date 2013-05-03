@@ -13,7 +13,14 @@ fi
 
 CFLAGS="-s -Os -fexpensive-optimizations" 
 OURLIBRARIES="../AmmServerlib/libAmmServerlib.a" 
-LIBRARIES="-pthread -lrt -lz"
+LIBRARIES="-pthread -lrt"
+
+USELZ=`cat ../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
+if [ -n "$USELZ" ]
+then 
+ echo "$green Also Linking Lz $normal"
+ LIBRARIES="$LIBRARIES -lz"
+fi 
 
 gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 

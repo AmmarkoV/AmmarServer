@@ -38,11 +38,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "cache/client_list.h"
 #include "header_analysis/http_header_analysis.h"
 #include "tools/http_tools.h"
+#include "tools/logs.h"
 #include "cache/file_caching.h"
 #include "server_configuration.h"
 
 #include "threads/freshThreads.h"
 #include "threads/prespawnedThreads.h"
+#include "threads/threadInitHelper.h"
 
 
 
@@ -630,15 +632,15 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
   int retres=0;
   volatile struct PassToHTTPThread context;
-  memset(&context,0,sizeof(context));
+  memset((void*) &context,0,sizeof(context));
 
-   strncpy(context.ip,ip,MAX_IP_STRING_SIZE);
+   strncpy((char*) context.ip,ip,MAX_IP_STRING_SIZE);
 
    //We could only pass pointers :S
    //context.webserver_root=root_path;
    //context.templates_root=templates_path;
-   strncpy(context.webserver_root,root_path,MAX_FILE_PATH);
-   strncpy(context.templates_root,templates_path,MAX_FILE_PATH);
+   strncpy((char*) context.webserver_root,root_path,MAX_FILE_PATH);
+   strncpy((char*) context.templates_root,templates_path,MAX_FILE_PATH);
 
    context.port=port;
    context.instance = instance; //Also pass instance on new thread..

@@ -344,7 +344,7 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
        //It is the first variable!
        if (input[var_id_length]=='=')
        {
-        fprintf(stderr,"It is the first variable\n",input,var_id,FullVarID);
+        fprintf(stderr,"It is the first variable\n"); //,input,var_id,FullVarID
         id_instance=input;
        }
      }
@@ -407,8 +407,8 @@ int StripHTMLCharacters_Inplace(char * filename,int enable_security)
   unsigned int offset=0;
 
   //The following 2 lines of checks are kind of redundant but if we want all % symbols stripped they have to be here..
-  /*1*/   if (length==1) { if (filename[0]=='%') { filename[0]=(char) "_"; } }
-  /*2*/   if (length==2) { if (filename[0]=='%') { filename[0]=(char) "_"; } if (filename[1]=='%') { filename[1]= (char) "_"; }  }
+  /*1*/   if (length==1) { if (filename[0]=='%') { filename[0]=(char) '_'; } }
+  /*2*/   if (length==2) { if (filename[0]=='%') { filename[0]=(char) '_'; } if (filename[1]=='%') { filename[1]= (char) '_'; }  }
 
   //This line will return if the input is very small
   if (length<=2) { return 0; }
@@ -688,8 +688,9 @@ int encodeToBase64(char *src,unsigned s_len,char *dst,unsigned d_len)
   unsigned triad;
    for (triad = 0; triad < s_len; triad += 3)
    {
-     unsigned long int sr;
-     unsigned byte;
+
+     unsigned long int sr=0; //Den itan = 0
+     unsigned byte=0;         //Den itan = 0
 
      for (byte = 0; (byte<3)&&(triad+byte<s_len); ++byte)
         {

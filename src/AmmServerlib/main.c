@@ -38,7 +38,7 @@ void ( *TerminationCallback) (  )=0 ;
 
 char * AmmServer_Version()
 {
-  return FULLVERSION_STRING;
+  return (char*) FULLVERSION_STRING;
 }
 
 void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
@@ -46,7 +46,7 @@ void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_l
    unsigned int freeAtTheEnd=1;
    unsigned int formatLength = 30+strlen(format);
    char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
-   if (coloredFormat==0) { coloredFormat=format; freeAtTheEnd=0; }
+   if (coloredFormat==0) { coloredFormat=(char*) format; freeAtTheEnd=0; }
    coloredFormat[0]=0;
    strcpy(coloredFormat,color);
    strcat(coloredFormat,label);
@@ -369,7 +369,7 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value)
 {
   if (page==0) { fprintf(stderr,"Replacing var in empty page\n"); return 0; }
-  if (var==0) { fprintf(stderr,"Given an empty variable to replace\n",page); return 0; }
+  if (var==0) { fprintf(stderr,"Given an empty variable to replace\n"); return 0; }
 
   unsigned int varLength = strlen(var);
   unsigned int valueLength = strlen(value);
@@ -439,7 +439,8 @@ void AmmServer_GlobalTerminationHandler(int signum)
 {
         fprintf(stderr,"Terminating AmmarServer.. \n");
           GLOBAL_KILL_SERVER_SWITCH=1;
-        if (&TerminationCallback!=0) { TerminationCallback(); }
+        //&
+        if (TerminationCallback!=0) { TerminationCallback(); }
         fprintf(stderr,"done\n");
         exit(0);
 }

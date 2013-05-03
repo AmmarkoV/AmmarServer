@@ -4,6 +4,7 @@
 #include "../AmmServerlib.h"
 #include "../server_configuration.h"
 #include "file_caching.h"
+#include "../tools/logs.h"
 #include "../tools/http_tools.h"
 #include "../tools/time_provider.h"
 
@@ -19,6 +20,25 @@ struct cache_item * cache=0;*/
 //The cache consists of cache items.. Each cache item Gets Added and Removed with calls defined beneath..
 //The cache must be Created and then Destroyed because on program execution its pointer has no memory allocated for the content..!
 
+int WeCanCommitMoreMemoryForCaching(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
+{
+  if (MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
+  if (MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
+  return 1;
+}
+
+
+int AddNewMallocOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
+{
+  instance->loaded_cache_items_Kbytes+=(additional_mem_to_malloc_in_bytes/1024);
+  return 1;
+}
+
+int AddFreeOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
+{
+  instance->loaded_cache_items_Kbytes-=(additional_mem_to_malloc_in_bytes/1024);
+  return 1;
+}
 
 
 
@@ -54,25 +74,6 @@ Needless to say , this is our hash function..!
      ------------------------------------------------------------------
 */
 
-int WeCanCommitMoreMemoryForCaching(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
-{
-  if (MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
-  if (MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
-  return 1;
-}
-
-
-int AddNewMallocOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
-{
-  instance->loaded_cache_items_Kbytes+=(additional_mem_to_malloc_in_bytes/1024);
-  return 1;
-}
-
-int AddFreeOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
-{
-  instance->loaded_cache_items_Kbytes-=(additional_mem_to_malloc_in_bytes/1024);
-  return 1;
-}
 
 /*
 int compress2(Bytef * dest, uLongf * destLen, const Bytef * source, uLong sourceLen, int level);
@@ -132,11 +133,11 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
 
   unsigned long initial_compressed_buffer_filesize_estimation = compressBound( (uLongf) *cache[index].filesize); /*!ZLIB CALL!*/
 
-  if (!WeCanCommitMoreMemoryForCaching(initial_compressed_buffer_filesize_estimation)) { return 0; }
+  if (!WeCanCommitMoreMemoryForCaching(instance,initial_compressed_buffer_filesize_estimation)) { return 0; }
 
 
   //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
-  AddNewMallocToCacheCounter(initial_compressed_buffer_filesize_estimation);
+  AddNewMallocOpToCacheCounter(instance,initial_compressed_buffer_filesize_estimation);
   cache[index].compressed_mem = (char * ) malloc(sizeof (char) * ( initial_compressed_buffer_filesize_estimation ));
   //We dont need to clear this buffer , it is a waste of time .. It will get filled in one step , so lets conserve CPU time..
 
@@ -162,15 +163,15 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
      {
       char * better_fit = (char*) realloc ( cache[index].compressed_mem , *cache[index].compressed_mem_filesize );
       if (better_fit!=0) { cache[index].compressed_mem=better_fit;
-                           AddNewMallocToCacheCounter(*cache[index].compressed_mem_filesize); // We subtract the freed bytes as a second operation to take care of race conditions..!
-                           AddFreeOpToCacheCounter(initial_compressed_buffer_filesize_estimation);
+                           AddNewMallocOpToCacheCounter(instance,*cache[index].compressed_mem_filesize); // We subtract the freed bytes as a second operation to take care of race conditions..!
+                           AddFreeOpToCacheCounter(instance,initial_compressed_buffer_filesize_estimation);
                          }
      }
      //Finally , very important , never forget to mark the operation as successfull!
       return_value = 1;
      //-----------------------------
    } else
-  if ( Z_BUF_ERROR==res )  { fprintf(stderr,"Compressed buffer was not created , The created buffer ( %u bytes ) was not large enough to hold the compressed data.\n",initial_compressed_buffer_filesize_estimation); } else
+  if ( Z_BUF_ERROR==res )  { fprintf(stderr,"Compressed buffer was not created , The created buffer ( %lu bytes ) was not large enough to hold the compressed data.\n",initial_compressed_buffer_filesize_estimation); } else
   if ( Z_MEM_ERROR == res) { fprintf(stderr,"Compressed buffer was not created , Insufficient memory..\n"); } else
   if ( Z_STREAM_ERROR == res ) { fprintf(stderr,"Compressed buffer was not created , The compression level was not Z_DEFAULT_LEVEL, or was not between 0 and 9...\n"); }
 
@@ -178,7 +179,7 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
   if (!return_value)
   { //Compression failed so we will now free our buffers..!
 
-     AddFreeOpToCacheCounter(initial_compressed_buffer_filesize_estimation); //A failed return_value ( compression ) means we still have our initial buffer , so we free the initial number of bytes..!
+     AddFreeOpToCacheCounter(instance,initial_compressed_buffer_filesize_estimation); //A failed return_value ( compression ) means we still have our initial buffer , so we free the initial number of bytes..!
      free(cache[index].compressed_mem_filesize);
      free(cache[index].compressed_mem);
 

@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "../server_threads.h"
+#include "../tools/logs.h"
 #include "threadInitHelper.h"
 
 #define WEIRD_THING_THAT_WORKS 1
@@ -54,7 +55,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
    {
      //This needs a little thought.. it is not "nice" to drop clients  , on the other hand what`s the point on opening and
      //maintaining an idle TCP/IP connection when we are on our limits thread-wise..
-     fprintf(stderr,"We are over the limit on clients served ( %u threads ) ..\nDropping client %s..!\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,inet_ntoa(client.sin_addr));
+     fprintf(stderr,"We are over the limit on clients served ( %u threads ) ..\nDropping client..!\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED); //inet_ntoa(client.sin_addr)
      return 0;
    }
 
@@ -73,7 +74,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //of creating a seperate thread for him..
 
   volatile struct PassToHTTPThread context;
-  memset(&context,0,sizeof(struct PassToHTTPThread));
+  memset((void*) &context,0,sizeof(struct PassToHTTPThread));
 
   context.keep_var_on_stack=1;
 
@@ -87,8 +88,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //We could only pass pointers here
   //context.webserver_root=webserver_root;
   //context.templates_root=templates_root;
-  strncpy(context.webserver_root,webserver_root,MAX_FILE_PATH);
-  strncpy(context.templates_root,templates_root,MAX_FILE_PATH);
+  strncpy((char *)context.webserver_root,webserver_root,MAX_FILE_PATH);
+  strncpy((char *)context.templates_root,templates_root,MAX_FILE_PATH);
 
 
   fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id);

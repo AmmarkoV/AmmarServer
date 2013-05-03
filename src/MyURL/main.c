@@ -58,7 +58,7 @@ unsigned int indexPageLength=0;
 #define LINK_ALLOCATION_STEP 5000
 
 struct AmmServer_Instance * myurl_server=0;
-struct AmmServer_RequestOverride_Context requestResolver={0};
+struct AmmServer_RequestOverride_Context requestResolver={{0}};
 
 struct AmmServer_RH_Context error_url={0};
 struct AmmServer_RH_Context create_url={0};
@@ -156,7 +156,7 @@ int printURLDB()
   int i=0;
     while ( i < loaded_links )
     {
-      fprintf(stderr,"%u - %s - %s\n",links[i].shortURLHash,links[i].shortURL,links[i].longURL);
+      fprintf(stderr,"%lu - %s - %s\n",links[i].shortURLHash,links[i].shortURL,links[i].longURL);
       ++i;
     }
   return 1;
@@ -307,8 +307,11 @@ int LoadMyURLDBFile(char * filename)
            memset(longURL,0,MAX_LONG_URL_SIZE);
            memset(shortURL,0,MAX_TO_SIZE);
 
-           fscanf (pFile, "%s\n", longURL);
-           fscanf (pFile, "%s\n", shortURL);
+           int res = fscanf (pFile, "%s\n", longURL);
+           if (res!=2) { AmmServer_Warning("error (?) reading item line %u of file %s ",i,filename); }
+                res = fscanf (pFile, "%s\n", shortURL);
+           if (res!=2) { AmmServer_Warning("error (?) reading item line %u of file %s ",i,filename); }
+
            Add_MyURL(longURL,shortURL,0 /*We dont want to reappend it :P*/);
            ++i;
         }

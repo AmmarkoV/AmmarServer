@@ -3,6 +3,7 @@
 
 #include "AmmServerlib.h"
 
+
 //Prespawned threads sleep until its their time to serve , the next thread to serve is vigilant ( 0.7ms max delay )
 #define THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT 700
 //Other prespawned threads sleep for 20ms
@@ -14,9 +15,9 @@
 
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
-#define MAX_CLIENT_THREADS 256 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
-#define MAX_CLIENTS_LISTENING_FOR 1000 //This should always be larger than MAX_CLIENT_THREADS
-#define MAX_CLIENT_PRESPAWNED_THREADS 16 //16 //8 //This is the number of prespawned threads that run to reduce overall latency
+#define MAX_CLIENTS_LISTENING_FOR 500
+#define MAX_CLIENT_THREADS 256 //This is the maximum number of simultainious regular threads that serve incoming requests..!
+#define MAX_CLIENT_PRESPAWNED_THREADS 8 //This is the number of prespawned threads that run to reduce overall latency
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
 
 #define MAX_RESOURCE_SLASHES 15
@@ -76,7 +77,7 @@ extern char TemplatesInternalURI[MAX_RESOURCE];
 //Please note that the file server limits filenames _asvres_/filename.jpg is OK
 //a filename like _asvres_/filenamemplampla.jpg will return a 404
 
-int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance);
+int EmmitPossibleConfigurationWarnings();
 
 int LoadConfigurationFile(struct AmmServer_Instance * instance,char * conf_file);
 

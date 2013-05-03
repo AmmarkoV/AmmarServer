@@ -27,4 +27,7 @@ struct PreSpawnedThread
 };
 
 
+void PreSpawnThreads(struct AmmServer_Instance * instance);
+int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root);
+
 #endif // PRESPAWNEDTHREADS_H_INCLUDED

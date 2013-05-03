@@ -38,6 +38,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "tools/http_tools.h"
 #include "server_configuration.h"
 #include "tools/time_provider.h"
+#include "tools/logs.h"
 
 /*
    This file contains the main routine called most of the time , i.e. SendFile..!

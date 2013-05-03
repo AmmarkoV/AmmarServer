@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tools/http_tools.h"
+#include "tools/logs.h"
 #include "InputParser/InputParser_C.h"
 
 
