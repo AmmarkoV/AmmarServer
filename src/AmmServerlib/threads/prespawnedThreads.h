@@ -18,7 +18,6 @@ struct PreSpawnedThread
     struct sockaddr_in client;
     unsigned int clientlen;
 
-
     //pthread_mutex_t operation_mutex;
 	//pthread_cond_t  condition_var;
 

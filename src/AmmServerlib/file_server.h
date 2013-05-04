@@ -4,6 +4,13 @@
 #include "header_analysis/http_header_analysis.h"
 
 
+struct ResponseHeader
+{
+   int responseCode;
+   char URI[128];
+   char dateString[64];
+};
+
 unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root);
 unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verified_filename);
 unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verified_filename);

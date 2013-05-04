@@ -124,11 +124,6 @@ struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * c
   if (!instance->threads_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a thread pool\n",MAX_CLIENT_THREADS);  } else
                                {  memset(instance->threads_pool,0,sizeof(pthread_t)*MAX_CLIENT_THREADS); }
 
-  instance->busy_threads_pool = (pthread_t *) malloc( sizeof(int) * MAX_CLIENT_THREADS);
-  if (!instance->threads_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a thread pool\n",MAX_CLIENT_THREADS);  } else
-                               {  memset(instance->threads_pool,0,sizeof(int)*MAX_CLIENT_THREADS); }
-
-
 
   fprintf(stderr,"Initial AmmServer_Start thread pool pointing @ %p \n",instance->threads_pool);//Clear instance..!
 

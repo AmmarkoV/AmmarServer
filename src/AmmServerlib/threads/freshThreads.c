@@ -26,7 +26,7 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
      {
        while (starting_from<MAX_CLIENT_THREADS)
          {
-            if  ( ( instance->threads_pool[starting_from]==0 ) && ( instance->busy_threads_pool[starting_from]==0 ) )
+            if  (  instance->threads_pool[starting_from]==0  )
                  {
                    *success=1;
                    return starting_from;

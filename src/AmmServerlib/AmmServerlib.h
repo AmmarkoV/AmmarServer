@@ -155,7 +155,6 @@ struct AmmServer_Instance
 
     pthread_t server_thread_id;
     pthread_t * threads_pool;
-    int * busy_threads_pool;
 
     void * prespawned_pool; //Actually struct PreSpawnedThread * but declared as a void pointer here
 

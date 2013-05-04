@@ -134,10 +134,7 @@ void * ServeClient(void * ptr)
   int thread_id = context->thread_id;
 
   struct AmmServer_Instance * instance = context->instance;
-  if (!pre_spawned_thread)
-   {
-    instance->busy_threads_pool[thread_id]=1;
-   }
+
 
   fprintf(stderr,"Now signaling we are ready (%u)\n",thread_id);
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
@@ -486,7 +483,6 @@ void * ServeClient(void * ptr)
      //Clear thread id handler and we can gracefully exit..! ( LOCKLESS OPERATION)
      if (instance->threads_pool[thread_id]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",thread_id); }
      instance->threads_pool[thread_id]=0;
-     instance->busy_threads_pool[thread_id]=0;
      ++instance->CLIENT_THREADS_STOPPED;
 
      //We also only want to stop the thread if itsnot prespawned !
