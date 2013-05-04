@@ -19,6 +19,8 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define WARN_ABOUT_INCORRECTLY_ALLOCATED_STACK_STRINGS 1
+
 
 char _ipc_ver[]=" 0.356 written from scratch - 8/2/10 \0";
 
@@ -387,7 +389,7 @@ unsigned char InputParser_WordCompareNoCase(struct InputParserC * ipc,unsigned i
     if ( wordsize != InputParser_GetWordLength(ipc,num) ) { return 0; }
     /*if (  ipc->str_length <= ipc->tokenlist[num].token_start+wordsize ) { fprintf(stderr,"Erroneous input on InputParser_WordCompareNoCase leads out of array \n"); return 0; }*/
 
-    unsigned int i=0;
+    int i=0;
     for ( i=0; i<wordsize; i++ )
     {
       if (toupper(ipc->str[ipc->tokenlist[num].token_start+i])!=toupper(word[i])) { /*fprintf(stderr," returning fail ");*/  return 0; }
@@ -500,6 +502,44 @@ signed int InputParser_GetWordInt(struct InputParserC * ipc,unsigned int num)
     return Str2Int_internal(ipc->str,ipc->tokenlist[num].token_start,ipc->tokenlist[num].length);
 }
 
+
+/*
+   InputParser_GetWordFloat..
+   Same with InputParser_GetWord , if the result can be converted to a float number , it returns this number
+   else 0.0 is returned
+*/
+float InputParser_GetWordFloat(struct InputParserC * ipc,unsigned int num)
+{
+    if ( CheckWordNumOk(ipc,num) == 0 ) { return 0.0; }
+    if (ipc->tokenlist[num].length == 0 ) { return 0.0; }
+
+
+  float return_value=0.0;
+  //Our string is a "string_segment" , and its last character ( which will be temporary become null ) is last_char_of_string_segment
+  char * string_segment = ipc->str+ipc->tokenlist[num].token_start;
+  char * last_char_of_string_segment = string_segment + ipc->tokenlist[num].length;
+  char remember = 0;
+
+   if (ipc->tokenlist[num].token_start + ipc->tokenlist[num].length < ipc->str_length)
+   {
+    remember = *last_char_of_string_segment;
+    *last_char_of_string_segment = (char) 0; //Temporarily convert the string segment to a null terminated string
+   }
+   //else we are on the last part of the string so no reason to do the whole 0 remember thing..
+
+    sscanf(string_segment,"%f",&return_value);
+
+
+   if (ipc->tokenlist[num].token_start + ipc->tokenlist[num].length < ipc->str_length)
+   {
+    *last_char_of_string_segment = remember; //Restore string..
+   }
+
+
+  return return_value;
+}
+
+
 /*
    InputParser_GetChar..
    Returns total length of token (num)..!
@@ -519,6 +559,20 @@ unsigned int InputParser_GetWordLength(struct InputParserC * ipc,unsigned int nu
 */
 int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcopy)
 {
+
+   if (keepcopy==0)
+    {
+      #if WARN_ABOUT_INCORRECTLY_ALLOCATED_STACK_STRINGS
+      fprintf(stderr,"Please note that feeding input parser with strings allocated on the stack it is generally a good idea to enable keepcopy\n");
+      fprintf(stderr,"For example passing here a string allocated as  char* hello = \"hello!\"; might lead to a segFault ( i.e. when calling InputParser_GetWordFloat ) \n");
+      fprintf(stderr,"The correct way for allocating a string with in place processing is char hello[] = \"hello!\"; \n");
+      fprintf(stderr,"Valgrind classifies these errors as \"Bad permissions for mapped region at address\" \n");
+      #endif
+    }
+
+
+
+
 
   if (CheckIPCOk(ipc)==0) { return 0; }
   if  ( inpt == 0 ) return 0; /* NULL INPUT -> NULL OUTPUT*/

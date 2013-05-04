@@ -103,6 +103,7 @@ unsigned int InputParser_GetWord(struct InputParserC * ipc,unsigned int num,char
 unsigned int InputParser_GetUpcaseWord(struct InputParserC * ipc,unsigned int num,char * wheretostore,unsigned int storagesize);
 unsigned int InputParser_GetLowercaseWord(struct InputParserC * ipc,unsigned int num,char * wheretostore,unsigned int storagesize);
 signed int InputParser_GetWordInt(struct InputParserC * ipc,unsigned int num);
+float InputParser_GetWordFloat(struct InputParserC * ipc,unsigned int num);
 unsigned int InputParser_GetWordLength(struct InputParserC * ipc,unsigned int num);
 
 int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcopy);
