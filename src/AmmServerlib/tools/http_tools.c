@@ -767,11 +767,10 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     their_addr.sin_port = htons(port);
     their_addr.sin_addr = *((struct in_addr *)he->h_addr);
     // zero the rest of the struct
-    memset(&(their_addr.sin_zero), '\0', 8);
+    memset(&(their_addr.sin_zero), 0 , 8); // '\0'
 
    if(connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1) { error("Could not connect the created socket \n");  return 0; } else
                                                                                          { printf("Starting Request for filename %s \n",filename); }
-
 
 
     struct timeval timeout;

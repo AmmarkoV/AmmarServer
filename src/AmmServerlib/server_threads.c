@@ -209,8 +209,8 @@ void * ServeClient(void * ptr)
   {
    fprintf(stderr,"Received request header \n");
    //fprintf(stderr,"Received %s \n",incoming_request);
-   struct HTTPRequest output; // This should get free'ed once it isn't needed any more see FreeHTTPRequest call!
-   memset(&output,0,sizeof(struct HTTPRequest));
+   struct HTTPRequest output={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPRequest call!
+   //memset(&output,0,sizeof(struct HTTPRequest));
 
    int result = AnalyzeHTTPRequest(instance,&output,incoming_request,total_header,webserver_root);
    if (result)
