@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../AmmServerlib/AmmServerlib.h"
 
-#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+#define DEFAULT_BINDING_PORT 8081  // <--- Change this to 80 if you want to bind to the default http port..!
 
 char webserver_root[MAX_FILE_PATH]="src/MyLoader/htmlData/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -56,10 +56,18 @@ void * prepare_stats_content_callback(char * content)
 }
 
 //This function could alter the content of the URI requested and then return 1
-void * request_override_callback(char * content)
+void request_override_callback(void * request)
 {
-  //This is deactivated for this simple example
-  return 0;
+  struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
+  struct HTTPRequest * rqst = rqstContext->request;
+  AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
+
+  if (strcmp("/favicon.ico",rqst->resource)==0 ) { return; /*Client requested favicon.ico , no resolving to do */ } else
+  if (strcmp("/error.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
+  if (strcmp("/",rqst->resource)==0 ) {  return; /*Client requested index.html , no resolving to do */  } else
+  if (strcmp("/random.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  }
+
+  return;
 }
 
 

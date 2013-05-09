@@ -3,8 +3,8 @@
 	<Workspace title="Workspace">
 		<Project filename="src/AmmServerlib/AmmServerlib.cbp" />
 		<Project filename="src/SimpleTemplate/SimpleTemplate.cbp" />
-		<Project filename="src/MyURL/MyURL.cbp" />
 		<Project filename="src/MyLoader/MyLoader.cbp" />
+		<Project filename="src/MyURL/MyURL.cbp" />
 		<Project filename="src/AmmarServer.cbp" />
 		<Project filename="src/ScriptRunner/ScriptRunner.cbp" />
 	</Workspace>

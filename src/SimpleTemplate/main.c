@@ -74,10 +74,10 @@ void * prepare_stats_content_callback(char * content)
 }
 
 //This function could alter the content of the URI requested and then return 1
-void * request_override_callback(char * content)
+void request_override_callback(void * request)
 {
-  //This is deactivated for this simple example
-  return 0;
+  struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
+  return;
 }
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
