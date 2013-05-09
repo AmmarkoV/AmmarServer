@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-#define USE_BINARY_SEARCH 1
+#define USE_BINARY_SEARCH 0
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -465,6 +465,7 @@ void resolveRequest(void * request)
   if (strcmp("/favicon.ico",rqst->resource)==0 ) { return; /*Client requested favicon.ico , no resolving to do */ } else
   if (strcmp("/index.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  } else
   if (strcmp("/error.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
+  if (strcmp("/myurl.png",rqst->resource)==0 )  { return; /*Client requested myurl.png , no resolving to do */  } else
   if (strcmp("/",rqst->resource)==0 ) {  return; /*Client requested index.html , no resolving to do */  } else
   if ( (strncmp(service_filename,rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { return; /*Client requested go , no resolving to do */  } else
          {
