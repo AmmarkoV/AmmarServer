@@ -174,7 +174,7 @@ int struct_cmp_urldb_items(const void *a, const void *b)
 
 
 
-unsigned int Find_longURL(char * shortURL,int * found)
+unsigned int Find_longURLSerial(char * shortURL,int * found)
 {
   //TODO : Upgrade this to Binary Search
   *found = 0;
@@ -192,7 +192,31 @@ unsigned int Find_longURL(char * shortURL,int * found)
   return 0;
 }
 
+//Binary Search
+unsigned int Find_longURL(char * shortURL,int * found)
+{
+  *found = 0;
+  unsigned long our_hash = hashURL(shortURL);
+  unsigned int beg=0,mid=0,fin=loaded_links;
+  while ( beg <= fin )
+   {
+     mid=(unsigned int) (fin-beg)/2;
+     if (our_hash==links[mid].shortURLHash)
+          {
+            *found = 1;
+            return mid;
+          } else
+     if (our_hash<links[mid].shortURLHash) { fin=mid-1; } else
+                                           { beg=mid+1; }
+   }
 
+  //TODO : Remove this in the future -------------
+  AmmServer_Warning("Hm.. Binary Search could not find result,  lets use serial ( this should be removed in the future )\n");
+  return Find_longURLSerial(shortURL,found);
+  //----------------------------------------
+
+  return 0;
+}
 
 char * Get_longURL(char * shortURL)
 {
