@@ -196,11 +196,15 @@ unsigned int Find_longURLSerial(char * shortURL,int * found)
 unsigned int Find_longURL(char * shortURL,int * found)
 {
   *found = 0;
+  if (shortURL=0) { return 0; }
+  if (loaded_links=0) { return 0; }
+
   unsigned long our_hash = hashURL(shortURL);
   unsigned int beg=0,mid=0,fin=loaded_links;
   while ( beg <= fin )
    {
      mid=(unsigned int) (fin-beg)/2;
+     if (mid >= loaded_links) { AmmServer_Error("Binary Search overflowed\n"); break; } else
      if (our_hash==links[mid].shortURLHash)
           {
             *found = 1;
@@ -332,9 +336,9 @@ int LoadMyURLDBFile(char * filename)
            memset(shortURL,0,MAX_TO_SIZE);
 
            int res = fscanf (pFile, "%s\n", longURL);
-           if (res!=2) { AmmServer_Warning("error (?) reading item line %u of file %s ",i,filename); }
+           if (res!=1) { AmmServer_Warning("error (?) reading longURL (%s) item line %u of file %s ",longURL,i,filename); }
                 res = fscanf (pFile, "%s\n", shortURL);
-           if (res!=2) { AmmServer_Warning("error (?) reading item line %u of file %s ",i,filename); }
+           if (res!=1) { AmmServer_Warning("error (?) reading shortURL (%s) item line %u of file %s ",shortURL,i,filename); }
 
            Add_MyURL(longURL,shortURL,0 /*We dont want to reappend it :P*/);
            ++i;
