@@ -1,0 +1,8 @@
+#!/bin/bash
+# I clear the terminal to make easier debugging between different starts of the program
+clear
+
+# Start AmmarServer
+src/MyLoader/myloader
+
+exit 0
