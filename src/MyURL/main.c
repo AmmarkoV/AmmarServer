@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-
+#define USE_BINARY_SEARCH 0
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -174,7 +174,7 @@ int struct_cmp_urldb_items(const void *a, const void *b)
 
 
 
-unsigned int Find_longURLSerial(char * shortURL,int * found)
+inline unsigned int Find_longURLSerial(char * shortURL,int * found)
 {
   //TODO : Upgrade this to Binary Search
   *found = 0;
@@ -193,17 +193,18 @@ unsigned int Find_longURLSerial(char * shortURL,int * found)
 }
 
 //Binary Search
-unsigned int Find_longURL(char * shortURL,int * found)
+inline unsigned int Find_longURL(char * shortURL,int * found)
 {
+  #if USE_BINARY_SEARCH
   *found = 0;
   if (shortURL=0) { return 0; }
   if (loaded_links=0) { return 0; }
 
   unsigned long our_hash = hashURL(shortURL);
-  unsigned int beg=0,mid=0,fin=loaded_links;
+  unsigned int beg=0,mid=0,fin=loaded_links-1;
   while ( beg <= fin )
    {
-     mid=(unsigned int) (fin-beg)/2;
+     mid=(unsigned int) beg + ( (fin-beg)/2 );
      if (mid >= loaded_links) { AmmServer_Error("Binary Search overflowed\n"); break; } else
      if (our_hash==links[mid].shortURLHash)
           {
@@ -218,6 +219,9 @@ unsigned int Find_longURL(char * shortURL,int * found)
   AmmServer_Warning("Hm.. Binary Search could not find result,  lets use serial ( this should be removed in the future )\n");
   return Find_longURLSerial(shortURL,found);
   //----------------------------------------
+  #else // USE_BINARY_SEARCH
+   return Find_longURLSerial(shortURL,found);
+  #endif
 
   return 0;
 }
