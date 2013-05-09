@@ -8,12 +8,18 @@ cd ..
 cd AmmServerNULLlib
 ./make
 cd ..
-
+ 
+cd SimpleTemplate
+./make
+cd ..
 
 cd MyURL
 ./make
 cd ..
-
+ 
+cd MyLoader
+./make
+cd ..
 
 cd ScriptRunner
 ./make
