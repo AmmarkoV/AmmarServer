@@ -16,10 +16,13 @@
 
 make
 
+if [ -d "InputParser_C_Tester" ]
+then
 echo "Compiling Tester.."
 cd InputParser_C_Tester
-./make
+ make
 cd ..
+fi
 
 echo "Done.."
 exit 0

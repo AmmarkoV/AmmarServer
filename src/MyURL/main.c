@@ -465,7 +465,7 @@ void resolveRequest(void * request)
   if (strcmp("/favicon.ico",rqst->resource)==0 ) { return; /*Client requested favicon.ico , no resolving to do */ } else
   if (strcmp("/index.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  } else
   if (strcmp("/error.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
-  if (strcmp("/myurl.png",rqst->resource)==0 )  { return; /*Client requested myurl.png , no resolving to do */  } else
+  if (strcmp("/myurl.png",rqst->resource)==0 )   { return; /*Client requested myurl.png , no resolving to do */  } else
   if (strcmp("/",rqst->resource)==0 ) {  return; /*Client requested index.html , no resolving to do */  } else
   if ( (strncmp(service_filename,rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { return; /*Client requested go , no resolving to do */  } else
          {
@@ -584,10 +584,6 @@ int main(int argc, char *argv[])
          while (AmmServer_Running(myurl_server))
            {
              //Main thread should just sleep and let the background threads do the hard work..!
-             //In other applications the programmer could use the main thread to do anything he likes..
-             //The only caveat is that he would takeup more CPU time from the server and that he would have to poll
-             //the AmmServer_Running() call once in a while to make sure everything is in order
-             //usleep(10000);
              sleep(1);
            }
 
