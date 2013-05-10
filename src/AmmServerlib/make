@@ -33,11 +33,12 @@ gcc -c $CFLAGS server_configuration.c -o server_configuration.o
 gcc -c $CFLAGS tools/time_provider.c -o time_provider.o 
 gcc -c $CFLAGS InputParser/InputParser_C.c -o InputParser_C.o 
 gcc -c $CFLAGS tools/logs.c -o logs.o 
+gcc -c $CFLAGS hashmap/hashmap.c -o hashmap.o
 gcc -c $CFLAGS threads/freshThreads.c -o freshThreads.o 
 gcc -c $CFLAGS threads/prespawnedThreads.c -o prespawnedThreads.o 
 gcc -c $CFLAGS threads/threadInitHelper.c -o threadInitHelper.o 
 
-PARTS_OF_LIB="main.o server_threads.o http_tools.o client_list.o file_server.o http_header_analysis.o postHeaders.o file_caching.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
+PARTS_OF_LIB="main.o server_threads.o http_tools.o client_list.o file_server.o http_header_analysis.o postHeaders.o file_caching.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o hashmap.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
 
 ar  rcs $LIBNAME $PARTS_OF_LIB
 

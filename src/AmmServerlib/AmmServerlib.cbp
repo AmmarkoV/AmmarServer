@@ -72,6 +72,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="file_server.h" />
+		<Unit filename="hashmap/hashmap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="hashmap/hashmap.h" />
 		<Unit filename="header_analysis/http_header_analysis.c">
 			<Option compilerVar="CC" />
 		</Unit>

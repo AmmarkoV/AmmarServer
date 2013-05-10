@@ -8,6 +8,9 @@
 #include "../tools/http_tools.h"
 #include "../tools/time_provider.h"
 
+
+#include "../hashmap/hashmap.h"
+
 #if ENABLE_COMPRESSION
 #include <zlib.h>
 #endif
@@ -40,29 +43,6 @@ int AddFreeOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long a
   return 1;
 }
 
-
-
-
-/*! djb2
-This algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c. another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i]; the magic of number 33 (why it works better than many other constants, prime or not) has never been adequately explained.
-Needless to say , this is our hash function..!
-*/
-    static unsigned long hash(char *str)
-    {
-        if (str==0) return 0;
-        if (str[0]==0) return 0;
-
-        unsigned long hash = 5381; //<- magic
-        int c=1;
-
-        while (c != 0)
-        {
-            c = *str++;
-            hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-        }
-
-        return hash;
-    }
 
 
 /*
@@ -282,7 +262,7 @@ unsigned int Find_CacheItem(struct AmmServer_Instance * instance,char * resource
 
   if (cache==0) { warning("Cache hasn't been allocated yet\n"); return 0; }
 
-  unsigned long file_we_are_looking_for = hash(resource);
+  unsigned long file_we_are_looking_for = hashFunction(resource);
   unsigned int i=0;
 
   for (i=0; i<instance->loaded_cache_items; i++)
@@ -311,7 +291,7 @@ int Create_CacheItem(struct AmmServer_Instance * instance,char * resource,unsign
   if (MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
   *index=instance->loaded_cache_items++;
 
-  cache[*index].filename_hash = hash(resource);
+  cache[*index].filename_hash = hashFunction(resource);
   return 1;
 }
 
