@@ -22,13 +22,21 @@ This Repository contains :
 -  The AmmarServer library with which you can build your own highly optimized 
 and fully customizable web service..
 
--  A simple (but extensible) webserver demo
+-  A template for starting to build your own webserver which is very well documented
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/SimpleTemplate/main.c
+   You can run it by issuing ./run_ammarserver from root directory 
+
+-  A simple (but extensible) webserver demo showcasing some dynamic pages
    https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c
    You can run it by issuing ./run_ammarserver from root directory 
 
--  A URL Shortner service like tinyurl , bitly etc..
+-  A URL Shortner service like tinyurl , bitly , goo.gl etc..
    https://github.com/AmmarkoV/AmmarServer/blob/master/src/MyURL/main.c
    You can run it by issuing ./run_myurl from root directory 
+
+-  A File Uploader service based on MyLoader , currently under construction..
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/MyLoader/main.c
+   You can run it by issuing ./run_myloader from root directory 
 
 -------------------------------------------------------------------------------------------------
 

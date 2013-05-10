@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
-#define USE_BINARY_SEARCH 0
+#define USE_BINARY_SEARCH 1
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -73,6 +73,7 @@ struct URLDB
 
 
 unsigned int loaded_links=0;
+unsigned int sorted_links=0;
 unsigned int allocated_links=0;
 struct URLDB * links=0;
 
@@ -143,11 +144,14 @@ int isURLDBSorted()
   if (loaded_links==0) { return 1; }
   if (loaded_links==1) { return 1; }
   int i=1;
+  sorted_links=0;
     while ( i < loaded_links )
     {
-      if (links[i-1].shortURLHash>links[i].shortURLHash) { return 0; /*We got ourself a non sorted entry!*/ }
+      if (links[i-1].shortURLHash>links[i].shortURLHash) { sorted_links=i-1; return 0; /*We got ourself a non sorted entry!*/ }
       ++i;
     }
+
+  sorted_links=loaded_links-1;
   return 1;
 }
 
@@ -208,22 +212,27 @@ inline unsigned int Find_longURL(char * shortURL,int * found)
   if (shortURL==0) { return 0; }
   if (loaded_links==0) { return 0; }
 
-  unsigned long our_hash = hashURL(shortURL);
-  unsigned int beg=0,mid=0,fin=loaded_links-1;
-  while ( beg <= fin )
+  if (sorted_links!=0)
+  {
+   unsigned long our_hash = hashURL(shortURL);
+   unsigned int binarySearchLastElement = sorted_links;
+   unsigned int beg=0,mid=0,fin=binarySearchLastElement-1;
+   while ( beg <= fin )
    {
      mid=(unsigned int) beg + ( (fin-beg)/2 );
-     if (mid >= loaded_links)
-        { AmmServer_Error("Binary Search overflowed ( beg %u mid %u fin %u ) , loaded_links %u \n",beg,mid,fin,loaded_links); break; } else
+     if (mid >= binarySearchLastElement)
+        { AmmServer_Error("Binary Search overflowed ( beg %u mid %u fin %u ) , binarySearchLastElement %u \n",beg,mid,fin,binarySearchLastElement); break; } else
      if (our_hash<links[mid].shortURLHash) { fin=mid-1; } else
      if (our_hash>links[mid].shortURLHash) { beg=mid+1; } else
                                            {
                                              *found = 1;
+                                             AmmServer_Success("Found %s using binary search\n",shortURL);
                                              return mid;
                                            }
    }
+  }
   //TODO : Remove this in the future -------------
-  AmmServer_Warning("Binary Search could not find result falling back to serial ( this should be removed in the future )\n");
+  AmmServer_Warning("Binary Search couldn't find result , extending search to unsorted list\n");
   return Find_longURLSerial(shortURL,found);
   //----------------------------------------
   #else // USE_BINARY_SEARCH
@@ -348,7 +357,7 @@ int LoadMyURLDBFile(char * filename)
 
            int res = fscanf (pFile, "%s\n", longURL);
            if (res!=1) { AmmServer_Warning("error (?) reading longURL (%s) item line %u of file %s ",longURL,i,filename); }
-                res = fscanf (pFile, "%s\n", shortURL);
+               res = fscanf (pFile, "%s\n", shortURL);
            if (res!=1) { AmmServer_Warning("error (?) reading shortURL (%s) item line %u of file %s ",shortURL,i,filename); }
 
            Add_MyURL(longURL,shortURL,0 /*We dont want to reappend it :P*/);
