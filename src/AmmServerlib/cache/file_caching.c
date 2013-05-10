@@ -276,7 +276,7 @@ int ChangeRequestIfInternalRequestIsAddressed(struct AmmServer_Instance * instan
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
 unsigned int Find_CacheItem(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
 {
-  fprintf(stderr,"Serial slow searching for resource in cache %s ..",resource);
+  fprintf(stderr,"Serial slow searching for resource in cache %s ..\n",resource);
 
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
