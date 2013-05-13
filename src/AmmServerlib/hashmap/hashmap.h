@@ -10,9 +10,10 @@ unsigned long hashFunction(char *str);
 
 struct hashMapEntry
 {
+  unsigned long keyHash;
   unsigned int keyLength;
   char * key;
-  unsigned long keyHash;
+  unsigned int payloadLength;
   void * payload;
 };
 
@@ -33,7 +34,7 @@ struct hashMap
 struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entryAllocationStep,void * clearItemFunction);
 void hashMap_Destroy(struct hashMap * hm);
 int hashMap_Sort(struct hashMap * hm);
-int hashMap_Add(struct hashMap * hm,char * key,void * val);
+int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength);
 void * hashMap_Get(struct hashMap * hm,char * key,int * found);
 void hashMap_Clear(struct hashMap * hm);
 int hashMap_ContainsKey(struct hashMap * hm,char * key);

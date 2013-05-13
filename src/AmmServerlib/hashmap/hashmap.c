@@ -59,8 +59,15 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
   }
 
   hm->clearItemCallbackFunction = clearItemFunction;
+  pthread_mutex_init(&hm->hm_addLock,0);
 
   return hm;
+}
+
+int hashMap_GetSize(struct hashMap * hm)
+{
+  if (!hashMap_IsOK(hm)) { return 0;}
+  return 0;
 }
 
 int hashMap_IsOK(struct hashMap * hm)
@@ -120,6 +127,8 @@ void hashMap_Destroy(struct hashMap * hm)
   free(hm->entries);
   hm->entries=0;
   hm->clearItemCallbackFunction=0;
+
+  pthread_mutex_destroy(&hm->hm_addLock);
   return ;
 }
 
@@ -142,21 +151,62 @@ int hashMap_Sort(struct hashMap * hm)
 
 
 
-int hashMap_Add(struct hashMap * hm,char * key,void * val)
+int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength)
 {
+  if (!hashMap_IsOK(hm)) { return 0; }
+  int clearToAdd=1;
+  pthread_mutex_lock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+
   if (hm->curNumberOfEntries >= hm->maxNumberOfEntries)
   {
     if  (!hashMap_Grow(hm,hm->entryAllocationStep))
     {
       error("Could not grow new hashmap for adding new values");
-      return 0;
+      clearToAdd = 0;
     }
   }
 
+  if (clearToAdd)
+  {
+    unsigned int our_index=hm->curNumberOfEntries++;
+    if (hm->entries[our_index].key!=0) { warning("While Adding a new key to hashmap , entry was not clean"); }
+    hm->entries[our_index].key = (char *) malloc(sizeof(char) * (strlen(key)+1) );
+    if (hm->entries[our_index].key == 0)
+         {
+           free(hm->entries[our_index].key);
+           hm->entries[our_index].key=0;
+           --hm->curNumberOfEntries;
+           pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+           warning("While Adding a new key to hashmap , couldnt allocate key");
+           return 0;
+         }
+    hm->entries[our_index].keyLength = strlen(key);
+    hm->entries[our_index].keyHash = hashFunction(key);
 
+    if (valLength==0)
+    {
+      //We store and serve direct pointers! :)
+      hm->entries[our_index].payload = val;
+      hm->entries[our_index].payloadLength = 0;
+    } else
+    {
+      hm->entries[our_index].payload = (void *) malloc(sizeof(char) * (valLength) );
+      if (hm->entries[our_index].key == 0)
+      {
+        free(hm->entries[our_index].key);
+        hm->entries[our_index].key=0;
+        --hm->curNumberOfEntries;
+         warning("While Adding a new key to hashmap , couldnt allocate payload");
+        pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+      }
+      memcpy(hm->entries[our_index].payload,val,valLength);
+      hm->entries[our_index].payloadLength = valLength;
+    }
 
-  //TODO ADD STUFF HERE :P
-  return 0;
+  }
+
+   pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  return 1;
 }
 
 void * hashMap_Get(struct hashMap * hm,char * key,int * found)
@@ -200,10 +250,4 @@ int hashMap_ContainsValue(struct hashMap * hm,void * val)
   return 0;
 }
 
-
-int hashMap_GetSize(struct hashMap * hm)
-{
-  if (!hashMap_IsOK(hm)) { return 0;}
-  return 0;
-}
 
