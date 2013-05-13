@@ -1,3 +1,6 @@
+#include <stdlib.h>     /* qsort */
+
+
 #include "hashmap.h"
 #include "../tools/logs.h"
 
@@ -23,7 +26,6 @@ unsigned long hashFunction(char *str)
     }
 
 
-
 int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
 {
   struct hashMapEntry * newentries = realloc(hm->entries , sizeof(struct hashMapEntry) * ( hm->maxNumberOfEntries + growthSize ) );
@@ -40,7 +42,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
   return 0;
 }
 
-struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entryAllocationStep)
+struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAllocationStep,void * clearItemFunction)
 {
   struct hashMap * hm = (struct hashMap *)  malloc(sizeof(struct hashMap));
   if (hm==0)  { error("Could not allocate a new hashmap"); return 0; }
@@ -56,6 +58,8 @@ struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entry
     return 0;
   }
 
+  hm->clearItemCallbackFunction = clearItemFunction;
+
   return hm;
 }
 
@@ -67,21 +71,76 @@ int hashMap_IsOK(struct hashMap * hm)
     return 1;
 }
 
-
-struct hashMap * hashMap_Clone(struct hashMap * hm)
+int hashMap_IsSorted(struct hashMap * hm)
 {
-  return 0;
+  if (!hashMap_IsOK(hm)) { return 0; }
+  int i=1;
+    while ( i < hm->curNumberOfEntries )
+    {
+      if (hm->entries[i-1].keyHash > hm->entries[i].keyHash)
+         { return 0; /*We got ourself a non sorted entry!*/ }
+      ++i;
+    }
+  return 1;
 }
+
 
 void hashMap_Clear(struct hashMap * hm)
 {
+  if (!hashMap_IsOK(hm)) { return; }
+  void ( *hashMapClearCallback) ( void * )=0 ;
+  hashMapClearCallback = hm->clearItemCallbackFunction;
+  unsigned int i=0;
+  unsigned int entryNumber = hm->curNumberOfEntries;
+
+  hm->curNumberOfEntries = 0;
+
+  while (i < entryNumber)
+  {
+    hm->entries[i].keyHash=0;
+    hm->entries[i].keyLength=0;
+    hashMapClearCallback(hm->entries[i].payload);
+    if (hm->entries[i].key!=0)
+    {
+      free(hm->entries[i].key);
+      hm->entries[i].key=0;
+    }
+    ++i;
+  }
+
   return;
 }
 
 void hashMap_Destroy(struct hashMap * hm)
 {
+  if (!hashMap_IsOK(hm)) { return; }
+  hashMap_Clear(hm);
+
+  hm->maxNumberOfEntries=0;
+  free(hm->entries);
+  hm->entries=0;
+  hm->clearItemCallbackFunction=0;
   return ;
 }
+
+
+/* qsort struct comparision function (price float field) ( See qsort call in main ) */
+int cmpHashTableItems(const void *a, const void *b)
+{
+    struct hashMapEntry *ia = (struct hashMapEntry *)a;
+    struct hashMapEntry *ib = (struct hashMapEntry *)b;
+
+    return (ia->keyHash > ib->keyHash);
+}
+
+int hashMap_Sort(struct hashMap * hm)
+{
+  if (!hashMap_IsOK(hm)) { return 0; }
+  qsort( hm->entries , hm->curNumberOfEntries , sizeof(struct hashMapEntry), cmpHashTableItems);
+  return 1;
+}
+
+
 
 int hashMap_Add(struct hashMap * hm,char * key,void * val)
 {
@@ -94,9 +153,9 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val)
     }
   }
 
+
+
   //TODO ADD STUFF HERE :P
-
-
   return 0;
 }
 

@@ -1,6 +1,10 @@
 #ifndef HASHMAP_H_INCLUDED
 #define HASHMAP_H_INCLUDED
 
+
+
+#include <pthread.h>
+
 unsigned long hashFunction(char *str);
 
 
@@ -19,13 +23,16 @@ struct hashMap
   unsigned int curNumberOfEntries;
   unsigned int entryAllocationStep;
   struct hashMapEntry * entries;
+
+  void * clearItemCallbackFunction;
+  pthread_mutex_t hm_addLock;
 };
 
 
 
-struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entryAllocationStep);
-struct hashMap * hashMap_Clone(struct hashMap * hm);
+struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entryAllocationStep,void * clearItemFunction);
 void hashMap_Destroy(struct hashMap * hm);
+int hashMap_Sort(struct hashMap * hm);
 int hashMap_Add(struct hashMap * hm,char * key,void * val);
 void * hashMap_Get(struct hashMap * hm,char * key,int * found);
 void hashMap_Clear(struct hashMap * hm);
