@@ -1,4 +1,6 @@
+#include <stdio.h>     /* files */
 #include <stdlib.h>     /* qsort */
+#include <string.h>     /* memset */
 
 
 #include "hashmap.h"
@@ -64,12 +66,6 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
   return hm;
 }
 
-int hashMap_GetSize(struct hashMap * hm)
-{
-  if (!hashMap_IsOK(hm)) { return 0;}
-  return 0;
-}
-
 int hashMap_IsOK(struct hashMap * hm)
 {
     if (hm == 0)  { return 0; }
@@ -77,6 +73,13 @@ int hashMap_IsOK(struct hashMap * hm)
     if (hm->maxNumberOfEntries == 0)  { return 0; }
     return 1;
 }
+
+int hashMap_GetSize(struct hashMap * hm)
+{
+  if (!hashMap_IsOK(hm)) { return 0;}
+  return 0;
+}
+
 
 int hashMap_IsSorted(struct hashMap * hm)
 {
@@ -249,5 +252,70 @@ int hashMap_ContainsValue(struct hashMap * hm,void * val)
   }
   return 0;
 }
+
+
+
+
+int hashMap_SaveToFile(struct hashMap * hm,char * filename)
+{
+  if (!hashMap_IsOK(hm)) { return 0;}
+  pthread_mutex_lock (&hm->hm_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  int result = 0;
+  FILE * pFile=0;
+  pFile = fopen (filename,"wb");
+  unsigned int zero=0;
+  if (pFile!=0)
+   {
+    int i=0;
+
+    char uintsize=sizeof(hm->entries[0].keyLength);
+    fwrite(&uintsize,1,1,pFile);
+    fwrite(&hm->curNumberOfEntries,sizeof(unsigned int),1, pFile);
+    fwrite(&hm->entryAllocationStep,sizeof(unsigned int),1, pFile);
+     while (i<hm->curNumberOfEntries)
+       {
+         if  ( (hm->entries[i].keyLength!=0)&&(hm->entries[i].key!=0) )
+           {
+            fwrite(&hm->entries[i].keyLength,sizeof(unsigned int),1, pFile);
+            fwrite(hm->entries[i].key,sizeof(char),hm->entries[i].keyLength, pFile);
+           } else
+           { fwrite(&zero,sizeof(unsigned int),1, pFile); }
+
+         if  ( (hm->entries[i].payloadLength!=0)&&(hm->entries[i].payload!=0) )
+           {
+            fwrite(&hm->entries[i].payloadLength,sizeof(unsigned int),1, pFile);
+            fwrite(hm->entries[i].payload,sizeof(char),hm->entries[i].payloadLength, pFile);
+           } else
+           { fwrite(&zero,sizeof(unsigned int),1, pFile); }
+
+         ++i;
+       }
+
+     fclose (pFile);
+     result=1;
+    }
+  pthread_mutex_unlock (&hm->hm_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  return result;
+}
+
+
+int hashMap_LoadToFile(struct hashMap * hm,char * filename)
+{
+    FILE * pFile;
+    pFile = fopen (filename,"rb");
+    if (pFile!=0)
+    {
+      //TODO IMPLEMENT!
+     fclose (pFile);
+     return 1;
+    }
+
+    return 0;
+}
+
+
+
+
+
 
 

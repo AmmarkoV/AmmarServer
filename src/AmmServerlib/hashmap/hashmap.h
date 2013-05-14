@@ -27,6 +27,7 @@ struct hashMap
 
   void * clearItemCallbackFunction;
   pthread_mutex_t hm_addLock;
+  pthread_mutex_t hm_fileLock;
 };
 
 
@@ -40,5 +41,8 @@ void hashMap_Clear(struct hashMap * hm);
 int hashMap_ContainsKey(struct hashMap * hm,char * key);
 int hashMap_ContainsValue(struct hashMap * hm,void * val);
 int hashMap_GetSize(struct hashMap * hm);
+
+int hashMap_LoadToFile(struct hashMap * hm,char * filename);
+int hashMap_SaveToFile(struct hashMap * hm,char * filename);
 
 #endif // HASHMAP_H_INCLUDED
