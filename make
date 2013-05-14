@@ -3,8 +3,7 @@
 cd src/AmmServerlib
 ./make
 cd ..
-
-
+ 
 cd AmmServerNULLlib
 ./make
 cd ..
@@ -24,6 +23,11 @@ cd ..
 cd ScriptRunner
 ./make
 cd ..
+
+cd src/UnitTests
+./make
+cd ..
+
 
 ./make
  

@@ -1,0 +1,4 @@
+#!/bin/bash
+gcc testHashMap.c ../AmmServerlib/hashmap/hashmap.c -o testHashMap
+
+exit 0

@@ -4,7 +4,6 @@
 
 
 #include "hashmap.h"
-#include "../tools/logs.h"
 
 /*! djb2
 This algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c. another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i]; the magic of number 33 (why it works better than many other constants, prime or not) has never been adequately explained.
@@ -39,7 +38,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
        return 1;
      } else
      {
-       warning("Could not grow hashMap (running out of memory?)");
+       fprintf(stderr,"Could not grow hashMap (running out of memory?)");
      }
   return 0;
 }
@@ -47,7 +46,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
 struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAllocationStep,void * clearItemFunction)
 {
   struct hashMap * hm = (struct hashMap *)  malloc(sizeof(struct hashMap));
-  if (hm==0)  { error("Could not allocate a new hashmap"); return 0; }
+  if (hm==0)  { fprintf(stderr,"Could not allocate a new hashmap"); return 0; }
 
   memset(hm,0,sizeof(struct hashMap));
 
@@ -55,7 +54,7 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
 
   if (!hashMap_Grow(hm,initialEntries) )
   {
-    error("Could not grow new hashmap for the first time");
+    fprintf(stderr,"Could not grow new hashmap for the first time");
     free(hm);
     return 0;
   }
@@ -164,7 +163,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
   {
     if  (!hashMap_Grow(hm,hm->entryAllocationStep))
     {
-      error("Could not grow new hashmap for adding new values");
+      fprintf(stderr,"Could not grow new hashmap for adding new values");
       clearToAdd = 0;
     }
   }
@@ -172,7 +171,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
   if (clearToAdd)
   {
     unsigned int our_index=hm->curNumberOfEntries++;
-    if (hm->entries[our_index].key!=0) { warning("While Adding a new key to hashmap , entry was not clean"); }
+    if (hm->entries[our_index].key!=0) {fprintf(stderr,"While Adding a new key to hashmap , entry was not clean"); }
     hm->entries[our_index].key = (char *) malloc(sizeof(char) * (strlen(key)+1) );
     if (hm->entries[our_index].key == 0)
          {
@@ -180,7 +179,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
            hm->entries[our_index].key=0;
            --hm->curNumberOfEntries;
            pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
-           warning("While Adding a new key to hashmap , couldnt allocate key");
+           fprintf(stderr,"While Adding a new key to hashmap , couldnt allocate key");
            return 0;
          }
     hm->entries[our_index].keyLength = strlen(key);
@@ -199,7 +198,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
         free(hm->entries[our_index].key);
         hm->entries[our_index].key=0;
         --hm->curNumberOfEntries;
-         warning("While Adding a new key to hashmap , couldnt allocate payload");
+         fprintf(stderr,"While Adding a new key to hashmap , couldnt allocate payload");
         pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
       }
       memcpy(hm->entries[our_index].payload,val,valLength);
@@ -220,7 +219,7 @@ void * hashMap_Get(struct hashMap * hm,char * key,int * found)
   unsigned long keyHash = hashFunction(key);
   while ( i < hm->curNumberOfEntries )
   {
-    if ( hm->entries[i].keyHash == keyHash ) { *found=1; return i; }
+    if ( hm->entries[i].keyHash == keyHash ) { *found=1; return hm->entries[i].payload; }
     ++i;
   }
   return 0;
