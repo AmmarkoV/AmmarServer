@@ -15,6 +15,7 @@ struct hashMapEntry
   char * key;
   unsigned int payloadLength;
   void * payload;
+  unsigned int hits;
 };
 
 

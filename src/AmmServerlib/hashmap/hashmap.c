@@ -245,7 +245,12 @@ int hashMap_GetIndex(struct hashMap * hm,char * key,int * found)
   unsigned long keyHash = hashFunction(key);
   while ( i < hm->curNumberOfEntries )
   {
-    if ( hm->entries[i].keyHash == keyHash ) { *found=1; return i; }
+    if ( hm->entries[i].keyHash == keyHash )
+         {
+          ++hm->entries[i].hits;
+          *found=1;
+          return i;
+         }
     ++i;
   }
   return 0;
