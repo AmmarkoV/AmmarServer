@@ -211,7 +211,9 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
   return 1;
 }
 
-void * hashMap_Get(struct hashMap * hm,char * key,int * found)
+
+
+int hashMap_GetIndex(struct hashMap * hm,char * key,int * found)
 {
   *found=0;
   if (!hashMap_IsOK(hm)) { return 0;}
@@ -219,11 +221,21 @@ void * hashMap_Get(struct hashMap * hm,char * key,int * found)
   unsigned long keyHash = hashFunction(key);
   while ( i < hm->curNumberOfEntries )
   {
-    if ( hm->entries[i].keyHash == keyHash ) { *found=1; return hm->entries[i].payload; }
+    if ( hm->entries[i].keyHash == keyHash ) { *found=1; return i; }
     ++i;
   }
   return 0;
 }
+
+
+void * hashMap_Get(struct hashMap * hm,char * key,int * found)
+{
+  int i = hashMap_GetIndex(hm,key,found);
+  if (*found) {  return hm->entries[i].payload; }
+  return 0;
+}
+
+
 
 
 int hashMap_ContainsKey(struct hashMap * hm,char * key)

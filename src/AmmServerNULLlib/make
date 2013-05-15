@@ -3,8 +3,7 @@
 red=$(printf "\033[31m")
 green=$(printf "\033[32m") 
 normal=$(printf "\033[m")
-
-echo "Compiling libAmmServerlib.a null version / Author : Ammar Qammaz"  
+ 
 LIBNAME="libAmmServerlib.a"
 
 if [ -e $LIBNAME ]
@@ -25,9 +24,9 @@ rm $PARTS_OF_LIB
 
 if [ -e $LIBNAME ]
 then
-  echo "$green Success building $LIBNAME .. $normal"
+  echo "$green Success building Null $LIBNAME .. $normal"
 else
-  echo "$red Failure building $LIBNAME .. $normal"
+  echo "$red Failure building Null $LIBNAME .. $normal"
 fi
 
 
