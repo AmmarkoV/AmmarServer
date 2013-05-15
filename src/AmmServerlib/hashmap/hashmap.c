@@ -103,9 +103,10 @@ void hashMap_Clear(struct hashMap * hm)
   void ( *hashMapClearCallback) ( void * )=0 ;
   hashMapClearCallback = hm->clearItemCallbackFunction;
   unsigned int i=0;
-  unsigned int entryNumber = hm->maxNumberOfEntries; //cur
+  unsigned int entryNumber = hm->curNumberOfEntries; //cur
 
   hm->curNumberOfEntries = 0;
+  fprintf(stderr,"hashMap_Clear with %u ( %u max ) entries \n", i , entryNumber ,  hm->maxNumberOfEntries );
 
   while (i < entryNumber)
   {
@@ -114,15 +115,19 @@ void hashMap_Clear(struct hashMap * hm)
          { hashMapClearCallback(hm->entries[i].payload); } else
     //If payload is not just a pointer ( length != 0 )  , free it
     if (hm->entries[i].payloadLength!=0)
-         { free(hm->entries[i].payload); hm->entries[i].payload=0; }
+         {
+           //fprintf(stderr,"Clearing %u/%u entry payload\n", i , entryNumber );
+           free(hm->entries[i].payload);
+           hm->entries[i].payload=0;
+         }
 
 
     if (hm->entries[i].key!=0)
     {
+      //fprintf(stderr,"Clearing %u/%u entry key\n", i , entryNumber );
       free(hm->entries[i].key);
       hm->entries[i].key=0;
     }
-
 
     hm->entries[i].keyHash=0;
     hm->entries[i].keyLength=0;
@@ -138,10 +143,10 @@ void hashMap_Destroy(struct hashMap * hm)
 {
   if (hm==0) { return ; }
 
-  hm->maxNumberOfEntries=0;
   if ( hm->entries != 0)
   {
    hashMap_Clear(hm);
+   hm->maxNumberOfEntries=0;
    free(hm->entries);
    hm->entries=0;
   }
