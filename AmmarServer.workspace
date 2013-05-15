@@ -2,6 +2,7 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="src/AmmServerlib/AmmServerlib.cbp" />
+		<Project filename="src/UnitTests/UnitTests.cbp" />
 		<Project filename="src/SimpleTemplate/SimpleTemplate.cbp" />
 		<Project filename="src/MyLoader/MyLoader.cbp" />
 		<Project filename="src/MyURL/MyURL.cbp" />

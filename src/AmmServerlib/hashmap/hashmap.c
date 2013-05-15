@@ -33,7 +33,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
   if (newentries!=0)
      {
        hm->entries=newentries;
-       memset(newentries+hm->maxNumberOfEntries,0,growthSize);
+       memset(newentries+hm->maxNumberOfEntries,0,growthSize * sizeof(struct hashMapEntry));
        hm->maxNumberOfEntries += growthSize;
        return 1;
      } else
@@ -50,7 +50,10 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
 
   memset(hm,0,sizeof(struct hashMap));
 
+  hm->entries=0;
   hm->entryAllocationStep=entryAllocationStep;
+  hm->maxNumberOfEntries=0;
+  hm->curNumberOfEntries=0;
 
   if (!hashMap_Grow(hm,initialEntries) )
   {
@@ -100,20 +103,31 @@ void hashMap_Clear(struct hashMap * hm)
   void ( *hashMapClearCallback) ( void * )=0 ;
   hashMapClearCallback = hm->clearItemCallbackFunction;
   unsigned int i=0;
-  unsigned int entryNumber = hm->curNumberOfEntries;
+  unsigned int entryNumber = hm->maxNumberOfEntries; //cur
 
   hm->curNumberOfEntries = 0;
 
   while (i < entryNumber)
   {
-    hm->entries[i].keyHash=0;
-    hm->entries[i].keyLength=0;
-    hashMapClearCallback(hm->entries[i].payload);
+    //Clear the payload , if we have a callback function for that use it
+    if (hm->clearItemCallbackFunction != 0 )
+         { hashMapClearCallback(hm->entries[i].payload); } else
+    //If payload is not just a pointer ( length != 0 )  , free it
+    if (hm->entries[i].payloadLength!=0)
+         { free(hm->entries[i].payload); hm->entries[i].payload=0; }
+
+
     if (hm->entries[i].key!=0)
     {
       free(hm->entries[i].key);
       hm->entries[i].key=0;
     }
+
+
+    hm->entries[i].keyHash=0;
+    hm->entries[i].keyLength=0;
+
+
     ++i;
   }
 
@@ -122,14 +136,17 @@ void hashMap_Clear(struct hashMap * hm)
 
 void hashMap_Destroy(struct hashMap * hm)
 {
-  if (!hashMap_IsOK(hm)) { return; }
-  hashMap_Clear(hm);
+  if (hm==0) { return ; }
 
   hm->maxNumberOfEntries=0;
-  free(hm->entries);
-  hm->entries=0;
+  if ( hm->entries != 0)
+  {
+   hashMap_Clear(hm);
+   free(hm->entries);
+   hm->entries=0;
+  }
   hm->clearItemCallbackFunction=0;
-
+  free(hm);
   pthread_mutex_destroy(&hm->hm_addLock);
   return ;
 }
@@ -170,6 +187,8 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
 
   if (clearToAdd)
   {
+    if (hm->entries==0) { fprintf(stderr,"While Adding a new key to hashmap , entries not allocated"); return 0; }
+
     unsigned int our_index=hm->curNumberOfEntries++;
     if (hm->entries[our_index].key!=0) {fprintf(stderr,"While Adding a new key to hashmap , entry was not clean"); }
     hm->entries[our_index].key = (char *) malloc(sizeof(char) * (strlen(key)+1) );

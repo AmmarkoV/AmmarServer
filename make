@@ -63,9 +63,9 @@ cd ..
 fi
 
 # Unit Tests go in the end so that everything else is already there
-if [ -d src/UnitTests ]
+if [ -d UnitTests ]
 then 
-cd src/UnitTests
+cd UnitTests
 ./make
 cd ..
 fi
