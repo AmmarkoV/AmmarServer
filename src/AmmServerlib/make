@@ -11,13 +11,14 @@ cd ..
 
 echo "Compiling libAmmServerlib.a / Author : Ammar Qammaz"  
 LIBNAME="libAmmServerlib.a"
+SOLIBNAME="libAmmServerlib.so"
 
 if [ -e $LIBNAME ]
 then
   rm $LIBNAME
 fi   
  
-CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native"
+CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native -fPIC"
 #These are debug + profiling settings -> CFLAGS="-g -pg"
 
 gcc -c $CFLAGS main.c -o main.o
@@ -40,17 +41,25 @@ gcc -c $CFLAGS threads/threadInitHelper.c -o threadInitHelper.o
 
 PARTS_OF_LIB="main.o server_threads.o http_tools.o client_list.o file_server.o http_header_analysis.o postHeaders.o file_caching.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o hashmap.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
 
-ar  rcs $LIBNAME $PARTS_OF_LIB
+ar rcs $LIBNAME $PARTS_OF_LIB
+
+g++ -shared $CFLAGS -fPIC $PARTS_OF_LIB -o $SOLIBNAME  
 
 rm $PARTS_OF_LIB
 
 if [ -e $LIBNAME ]
 then
-  echo "$green Success building $LIBNAME .. $normal"
+  echo "$green Success building static AmmarServer $LIBNAME .. $normal"
 else
-  echo "$red Failure building $LIBNAME .. $normal"
+  echo "$red Failure building static AmmarServer $LIBNAME .. $normal"
 fi
 
 
+if [ -e $SOLIBNAME ]
+then
+  echo "$green Success building dynamic AmmarServer $SOLIBNAME .. $normal"
+else
+  echo "$red Failure building dynamic AmmarServer $SOLIBNAME .. $normal"
+fi
 
 exit 0

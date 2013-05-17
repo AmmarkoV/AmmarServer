@@ -10,11 +10,11 @@ int main(int argc, char *argv[])
   if (hm == 0) { fprintf(stderr,"Could not create a new hashMap\n"); return 1; }
 
   char keyStr[128]={0};
-  unsigned int i=0;
+  unsigned long i=0;
   while (i<10000)
    {
-      sprintf(keyStr,"%u",i);
-      hashMap_Add(hm,keyStr,i,0);
+      sprintf(keyStr,"%lu",i);
+      hashMap_Add(hm,keyStr,(void*) i,0);
       ++i;
    }
 
@@ -23,11 +23,11 @@ int main(int argc, char *argv[])
   i=0;
   while (i<10000)
    {
-      sprintf(keyStr,"%u",i);
+      sprintf(keyStr,"%lu",i);
       hashMap_GetIndex(hm,keyStr,&found);
       if (!found)
        {
-         fprintf(stderr,"Could not find %u\n",i);
+         fprintf(stderr,"Could not find %lu\n",i);
        }
       ++i;
    }
