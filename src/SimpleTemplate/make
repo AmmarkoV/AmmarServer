@@ -4,7 +4,8 @@ red=$(printf "\033[31m")
 green=$(printf "\033[32m") 
 normal=$(printf "\033[m")
 
-
+USE_DYNAMIC_LINKING=""
+USE_SYSTEM_DYNAMIC_LIBRARY=""
 OUTPUT="simpletemplate"
 
 if [ -e $OUTPUT ]
@@ -12,8 +13,7 @@ then
   rm $OUTPUT
 fi 
 
-CFLAGS="-s -Os -fexpensive-optimizations" 
-OURLIBRARIES="../AmmServerlib/libAmmServerlib.a" 
+CFLAGS="-s -Os -fexpensive-optimizations"  
 LIBRARIES="-pthread -lrt"
 
 USELZ=`cat ../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
@@ -22,6 +22,25 @@ then
  echo "$green Also Linking Lz $normal"
  LIBRARIES="$LIBRARIES -lz"
 fi 
+
+#Make a link to the main AmmarServer Lib , or maybe we could link to a system wide
+#libAmmServerlib.so
+if [ -n "$USE_SYSTEM_DYNAMIC_LIBRARY" ]
+then 
+ OURLIBRARIES="/usr/lib/ammarserver/libAmmServerlib.so" 
+else
+if [ -n "$USE_DYNAMIC_LINKING" ]
+then 
+ if [ ! -e libAmmServerlib.so ]
+  then
+   ln -s ../AmmServerlib/libAmmServerlib.so
+ fi
+ OURLIBRARIES="libAmmServerlib.so"  
+else
+ OURLIBRARIES="../AmmServerlib/libAmmServerlib.a"  
+fi
+fi
+# -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
 gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 
