@@ -21,7 +21,7 @@ echo "---------------------------------"
 if [ -d AmmServerlib ]
 then 
 cd AmmServerlib
-./make
+./make $@
 cd ..
 fi
  
@@ -29,7 +29,7 @@ fi
 if [ -d AmmServerNULLlib ]
 then 
 cd AmmServerNULLlib
-./make
+./make $@
 cd ..
 fi
  
@@ -37,28 +37,28 @@ fi
 if [ -d MyURL ]
 then 
 cd SimpleTemplate
-./make
+./make $@
 cd ..
 fi
 
 if [ -d MyURL ]
 then 
 cd MyURL
-./make
+./make $@
 cd ..
 fi 
 
 if [ -d MyLoader ]
 then 
 cd MyLoader
-./make
+./make $@
 cd ..
 fi
 
 if [ -d ScriptRunner ]
 then 
 cd ScriptRunner
-./make
+./make $@
 cd ..
 fi
 
@@ -66,12 +66,12 @@ fi
 if [ -d UnitTests ]
 then 
 cd UnitTests
-./make
+./make $@
 cd ..
 fi
 
 
-./make
+./make $@
 cd ..
 
 if [ -e "src/ammarserver" ]; then
