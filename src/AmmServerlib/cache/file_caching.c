@@ -8,10 +8,7 @@
 #include "../tools/http_tools.h"
 #include "../tools/time_provider.h"
 
-
 #include "../hashmap/hashmap.h"
-
-
 
 /*
 unsigned long instance->instance->loaded_cache_items_Kbytes=0;
@@ -234,8 +231,8 @@ int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned 
   fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) instance->loaded_cache_items_Kbytes/1048576 ,  MAX_CACHE_SIZE_IN_MB);
 
   //first to clear this cache item
+  /* We clear everything using memset ! */
   memset((void*) &cache[*index],0,sizeof(struct cache_item));
-
 
   if (!cache_LoadResourceFromDisk(instance,filename,index))
    {
@@ -245,12 +242,6 @@ int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned 
        *index=0;
        return 0;
    }
-
-/* We clear everything using memset !
-  cache[*index].hits = 0;
-  cache[*index].prepare_mem_callback=0; // No callback for this file..
-  cache[*index].context=0;
-  cache[*index].doNOTCache=0;*/
 
    //Save modification time..! These are not used yet.. !
    if (last_modification!=0)
