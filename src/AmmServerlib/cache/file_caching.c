@@ -10,6 +10,8 @@
 
 #include "../hashmap/hashmap.h"
 
+#define USE_HASHMAP_IN_CACHE 0
+
 /*
 unsigned long instance->instance->loaded_cache_items_Kbytes=0;
 unsigned int instance->loaded_cache_items=0;
@@ -118,6 +120,19 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
 
   unsigned long file_we_are_looking_for = hashFunction(resource);
   unsigned int i=0;
+  int found=0;
+
+  #if USE_HASHMAP_IN_CACHE
+  struct hashMap * hm = (struct hashMap *) instance->cacheHashMap;
+  i=hashMap_GetULong(hm,resource,&found);
+  if (found)
+    {
+      warning("HashMap Found \n");
+      fprintf(stderr,"HashMap Found %u \n",i);
+      *index=i;
+      return 1;
+    }
+  #endif
 
   for (i=0; i<instance->loaded_cache_items; i++)
    {
@@ -142,8 +157,20 @@ int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,un
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
+
+
   if (MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
   *index=instance->loaded_cache_items++;
+
+  #if USE_HASHMAP_IN_CACHE
+  struct hashMap * hm = (struct hashMap *) instance->cacheHashMap;
+  if (hm==0) { fprintf(stderr,"CacheHashMap hasn't been allocated yet\n"); return 0; }
+  if ( hashMap_Add(hm,resource,(void *) index,0) )
+  {
+    warning("hashMap_Add adding New Resource to HashMap\n");
+    fprintf(stderr,"hashMap_Add adding %s \n",resource);
+  }
+  #endif
 
   cache[*index].filename_hash = hashFunction(resource);
   return 1;
@@ -392,6 +419,8 @@ int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seper
      if (instance->cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
      memset(instance->cache , 0 , cache_memory_size);
    }
+
+   instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
 
    return 1;
 }

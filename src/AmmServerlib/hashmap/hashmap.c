@@ -265,6 +265,12 @@ void * hashMap_Get(struct hashMap * hm,char * key,int * found)
 }
 
 
+unsigned long hashMap_GetULong(struct hashMap * hm,char * key,int * found)
+{
+   unsigned long retval = (unsigned long) hashMap_Get(hm,key,found);
+   return retval;
+}
+
 
 
 int hashMap_ContainsKey(struct hashMap * hm,char * key)

@@ -147,7 +147,7 @@ struct AmmServer_Instance
     unsigned long loaded_cache_items_Kbytes;
     unsigned int loaded_cache_items;
     void * cache; /*Actually struct cache_item * but declared as a void pointer here */
-
+    void * cacheHashMap;
 
     //Thread holders..
     unsigned int CLIENT_THREADS_STARTED;

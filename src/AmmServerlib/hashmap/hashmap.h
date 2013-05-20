@@ -39,6 +39,7 @@ int hashMap_Sort(struct hashMap * hm);
 int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength);
 int hashMap_GetIndex(struct hashMap * hm,char * key,int * found);
 void * hashMap_Get(struct hashMap * hm,char * key,int * found);
+unsigned long hashMap_GetULong(struct hashMap * hm,char * key,int * found);
 void hashMap_Clear(struct hashMap * hm);
 int hashMap_ContainsKey(struct hashMap * hm,char * key);
 int hashMap_ContainsValue(struct hashMap * hm,void * val);
