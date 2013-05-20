@@ -19,13 +19,12 @@ int main(int argc, char *argv[])
    }
 
 
-  int found=0;
+  unsigned long index=0;
   i=0;
   while (i<10000)
    {
       sprintf(keyStr,"%lu",i);
-      hashMap_GetIndex(hm,keyStr,&found);
-      if (!found)
+      if (!hashMap_FindIndex(hm,keyStr,&index))
        {
          fprintf(stderr,"Could not find %lu\n",i);
        }

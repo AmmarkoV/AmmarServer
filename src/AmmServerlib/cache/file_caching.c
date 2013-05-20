@@ -119,18 +119,18 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
   if (cache==0) { warning("Cache hasn't been allocated yet\n"); return 0; }
 
   unsigned long file_we_are_looking_for = hashFunction(resource);
-  unsigned int i=0;
-  int found=0;
+  unsigned long i=0;
 
   #if USE_HASHMAP_IN_CACHE
-  struct hashMap * hm = (struct hashMap *) instance->cacheHashMap;
-  i=hashMap_GetULong(hm,resource,&found);
-  if (found)
+  if ( hashMap_GetULong((struct hashMap *) instance->cacheHashMap,resource,&i); )
     {
       warning("HashMap Found \n");
-      fprintf(stderr,"HashMap Found %u \n",i);
+      fprintf(stderr,"HashMap Found %lu \n",i);
       *index=i;
       return 1;
+    }else
+    {
+      return 0;
     }
   #endif
 
@@ -141,7 +141,7 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
         ++cache[i].hits;
         if (cache[i].filesize!=0)
          { //Filesize gets pulled directly from the client.. For this reason we want to check if the client has allocated a value to prevent the possible segfault
-          fprintf(stderr,"..found it here %u , %u hits , %0.2f Kbytes\n",i,cache[i].hits,(double) (*cache[i].filesize/1024) );
+          fprintf(stderr,"..found it here %lu , %u hits , %0.2f Kbytes\n",i,cache[i].hits,(double) (*cache[i].filesize/1024) );
          }
         *index=i;
         return 1;
@@ -163,13 +163,11 @@ int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,un
   *index=instance->loaded_cache_items++;
 
   #if USE_HASHMAP_IN_CACHE
-  struct hashMap * hm = (struct hashMap *) instance->cacheHashMap;
-  if (hm==0) { fprintf(stderr,"CacheHashMap hasn't been allocated yet\n"); return 0; }
-  if ( hashMap_Add(hm,resource,(void *) index,0) )
-  {
+   if ( hashMap_Add((struct hashMap *) instance->cacheHashMap ,resource,(void *) index,0) )
+   {
     warning("hashMap_Add adding New Resource to HashMap\n");
     fprintf(stderr,"hashMap_Add adding %s \n",resource);
-  }
+   }
   #endif
 
   cache[*index].filename_hash = hashFunction(resource);
@@ -420,7 +418,10 @@ int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seper
      memset(instance->cache , 0 , cache_memory_size);
    }
 
+
+   #if USE_HASHMAP_IN_CACHE
    instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
+   #endif // USE_HASHMAP_IN_CACHE
 
    return 1;
 }
@@ -450,6 +451,12 @@ int cache_Destroy(struct AmmServer_Instance * instance)
    cache = 0;
    instance->loaded_cache_items=0;
    instance->loaded_cache_items_Kbytes=0;
+
+
+   #if USE_HASHMAP_IN_CACHE
+   hashMap_Destroy((struct hashMap *) instance->cacheHashMap);
+   instance->cacheHashMap=0;
+   #endif // USE_HASHMAP_IN_CACHE
 
    return 1;
 }

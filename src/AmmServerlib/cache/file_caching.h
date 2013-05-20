@@ -41,8 +41,6 @@ struct cache_item
 
 
 int freeMallocIfNeeded(char * mem,unsigned char free_is_needed);
-
-
 int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,char * templates_root);
 
 int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification);

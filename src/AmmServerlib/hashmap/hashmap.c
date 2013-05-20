@@ -86,7 +86,7 @@ int hashMap_GetSize(struct hashMap * hm)
 int hashMap_IsSorted(struct hashMap * hm)
 {
   if (!hashMap_IsOK(hm)) { return 0; }
-  int i=1;
+  unsigned int i=1;
     while ( i < hm->curNumberOfEntries )
     {
       if (hm->entries[i-1].keyHash > hm->entries[i].keyHash)
@@ -106,7 +106,7 @@ void hashMap_Clear(struct hashMap * hm)
   unsigned int entryNumber = hm->curNumberOfEntries; //cur
 
   hm->curNumberOfEntries = 0;
-  fprintf(stderr,"hashMap_Clear with %u ( %u max ) entries \n", i , entryNumber ,  hm->maxNumberOfEntries );
+  fprintf(stderr,"hashMap_Clear with %u , %u ( %u max ) entries \n", i , entryNumber ,  hm->maxNumberOfEntries );
 
   while (i < entryNumber)
   {
@@ -237,19 +237,18 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
 
 
 
-int hashMap_GetIndex(struct hashMap * hm,char * key,int * found)
+int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index)
 {
-  *found=0;
   if (!hashMap_IsOK(hm)) { return 0;}
-  unsigned int i=0;
+  unsigned long i=0;
   unsigned long keyHash = hashFunction(key);
   while ( i < hm->curNumberOfEntries )
   {
     if ( hm->entries[i].keyHash == keyHash )
          {
           ++hm->entries[i].hits;
-          *found=1;
-          return i;
+          *index = i;
+          return 1;
          }
     ++i;
   }
@@ -257,18 +256,19 @@ int hashMap_GetIndex(struct hashMap * hm,char * key,int * found)
 }
 
 
-void * hashMap_Get(struct hashMap * hm,char * key,int * found)
+int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload)
 {
-  int i = hashMap_GetIndex(hm,key,found);
-  if (*found) {  return hm->entries[i].payload; }
+  unsigned long i=0;
+  if (hashMap_FindIndex(hm,key,&i)) {  payload = hm->entries[i].payload; return 1; }
   return 0;
 }
 
 
-unsigned long hashMap_GetULong(struct hashMap * hm,char * key,int * found)
+int hashMap_GetULongPayload(struct hashMap * hm,char * key,unsigned long * payload)
 {
-   unsigned long retval = (unsigned long) hashMap_Get(hm,key,found);
-   return retval;
+  unsigned long i=0;
+  if (hashMap_FindIndex(hm,key,&i)) {  *payload = (unsigned long) hm->entries[i].payload; return 1; }
+  return 0;
 }
 
 
