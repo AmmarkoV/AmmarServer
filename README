@@ -10,6 +10,11 @@ so if you issue sudo apt-get install build-essential  ( assuming a Debian/Ubuntu
 To perform a compilation you just need to issue 
 ./make from the root directory
 it is a bash script that will start making evertyhing 
+You can also supply dynamic , or system as arguments in order to change linking behaviour
+For example "./make system" or "./make dynamic"
+
+./make system will only work if you first run ./make and then sudo ./install.sh so that /usr/lib/ammarserver will get populated .
+After that subsequent ./make system calls will work using the AmmarServer dynamic library located at /usr/lib/ammarserver 
 
 To update your version of the project you can use the provided script that updates directly from github
 It will remove any changes you have made to any of the files in the repository   

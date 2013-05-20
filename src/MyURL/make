@@ -8,6 +8,17 @@ USE_DYNAMIC_LINKING=""
 USE_SYSTEM_DYNAMIC_LIBRARY=""
 OUTPUT="myurl"
 
+for arg in $@; do 
+ if [ "$arg" = "dynamic" ]
+  then
+   USE_DYNAMIC_LINKING="1"
+  fi  
+ if [ "$arg" = "system" ]
+  then
+   USE_SYSTEM_DYNAMIC_LIBRARY="1"
+  fi  
+done
+
 if [ -e $OUTPUT ]
 then
   rm $OUTPUT
