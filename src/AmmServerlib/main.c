@@ -93,7 +93,7 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
   if (!instance) { return 0; }
   StopHTTPServer(instance);
-  DestroyCache(instance);
+  cache_Destroy(instance);
 
   if (instance->threads_pool!=0) { free(instance->threads_pool); instance->threads_pool=0; }
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
@@ -143,7 +143,7 @@ struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * c
   EmmitPossibleConfigurationWarnings(instance);
 
 
-  InitializeCache( instance,
+  cache_Initialize( instance,
                    /*These are the file cache settings , file caching is the mechanism that holds dynamic content and
                      speeds up file serving by not accessing the whole disk drive subsystem ..*/
                    MAX_SEPERATE_CACHE_ITEMS , /*Seperate items*/
@@ -207,14 +207,14 @@ int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct Amm
     {
        context->content = (char*) malloc( sizeof(char) * allocate_mem_bytes );
     }
-  return AddDirectResource_As_CacheItem(instance,context);
+  return cache_AddMemoryBlock(instance,context);
 }
 
 
 int AmmServer_PreCacheFile(struct AmmServer_Instance * instance,char * filename)
 {
   unsigned int index=0;
-  return AddFile_As_CacheItem(instance,filename,&index,0);
+  return cache_AddFile(instance,filename,&index,0);
 }
 
 
@@ -224,7 +224,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
     strcpy(resource_name,context->web_root_path);
     strcat(resource_name,context->resource_name);
 
-    if (! AddDoNOTCache_CacheItem(instance,resource_name) )
+    if (! cache_AddDoNOTCacheRuleForResource(instance,resource_name) )
      {
        fprintf(stderr,"Could not set AmmServer_DoNOTCacheResourceHandler for resource %s\n",resource_name);
        return 0;
@@ -236,7 +236,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
 
 int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name)
 {
-    if (! AddDoNOTCache_CacheItem(instance,resource_name) )
+    if (! cache_AddDoNOTCacheRuleForResource(instance,resource_name) )
      {
        fprintf(stderr,"Could not set AmmServer_DoNOTCacheResource for resource %s\n",resource_name);
        return 0;
@@ -247,7 +247,7 @@ int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * res
 
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
-  return RemoveDirectResource_CacheItem(instance,context,free_mem);
+  return cache_RemoveContextAndResource(instance,context,free_mem);
 }
 
 

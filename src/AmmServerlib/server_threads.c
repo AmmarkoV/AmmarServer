@@ -307,7 +307,7 @@ void * ServeClient(void * ptr)
       //we have checked output.verified_local_resource for .. , weird ascii characters etc, so it should be safe for usage from now on..!
 
       //There are some virtual files we want to re-route to their real path..!
-      if (ChangeRequestIfInternalRequestIsAddressed(instance,servefile,templates_root) )
+      if (cache_ChangeRequestIfTemplateRequested(instance,servefile,templates_root) )
       { //Skip disk access times for checking for directories and other stuff..!
         //We know that the resource is a file from our cache indexes..!
           resource_is_a_directory=0;
@@ -317,7 +317,7 @@ void * ServeClient(void * ptr)
 
       //STEP 0 : Check with cache!
       unsigned int index=0;
-      if (CachedVersionExists(instance,servefile,&index) )
+      if (cache_ResourceExists(instance,servefile,&index) )
       { //Skip disk access times for checking for directories and other stuff..!
         //We know that the resource is a file from our cache indexes..!
         //Bonus points we now have the index id of the cached instance of the file for future use..

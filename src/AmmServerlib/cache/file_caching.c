@@ -53,7 +53,7 @@ int AddFreeOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long a
 
 
 
-int ChangeRequestIfInternalRequestIsAddressed(struct AmmServer_Instance * instance,char * request,char * templates_root)
+int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,char * templates_root)
 {
   if (!ENABLE_INTERNAL_RESOURCES_RESOLVE)  { return 0; }
   //The role of request caching is to intercept incoming requests and if they are referring
@@ -62,7 +62,7 @@ int ChangeRequestIfInternalRequestIsAddressed(struct AmmServer_Instance * instan
   //If the request was indeed a change request returns 1 else 0
   if ( strlen(request)>strlen(TemplatesInternalURI)+64 )
    {
-       fprintf(stderr,"\nWARNING : Skipping ChangeRequestIfInternalRequestIsAddressed due to a very large request\n");
+       fprintf(stderr,"\nWARNING : Skipping cache_ChangeRequestIfTemplateRequested due to a very large request\n");
        return 0;
    }
 
@@ -92,6 +92,14 @@ int ChangeRequestIfInternalRequestIsAddressed(struct AmmServer_Instance * instan
 }
 
 
+int freeMallocIfNeeded(char * mem,unsigned char free_is_needed)
+{
+    if ( (free_is_needed)&&(mem!=0) ) { free(mem); return 1; }
+    return 0;
+}
+
+
+
 /*
  --------------------------------------------------------------------------------------
  --------------------------------------------------------------------------------------
@@ -103,7 +111,7 @@ int ChangeRequestIfInternalRequestIsAddressed(struct AmmServer_Instance * instan
 */
 
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
-unsigned int Find_CacheItem(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
+unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
 {
   fprintf(stderr,"Serial slow searching for resource in cache %s ..\n",resource);
 
@@ -133,7 +141,7 @@ unsigned int Find_CacheItem(struct AmmServer_Instance * instance,char * resource
 
 /*This is the Create Index Function , Nothing is sorted so we just append our cache item list with another one..
   Also for now only the hash is used to retrieve it ( talk about a sloppy implementation ) */
-int Create_CacheItem(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
+int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
@@ -145,9 +153,9 @@ int Create_CacheItem(struct AmmServer_Instance * instance,char * resource,unsign
 }
 
 /*This is the Destroy Index Function , it isn't implemented , as one can see.. */
-int Destroy_CacheItem(unsigned int * index)
+int cache_DestroyResource(unsigned int * index)
 {
-  fprintf(stderr,"Destroy_CacheItem(%u) hasn't been implemented yet\n",*index);
+  fprintf(stderr,"cache_DestroyResource(%u) hasn't been implemented yet\n",*index);
   return 0;
 }
 
@@ -159,9 +167,8 @@ int Destroy_CacheItem(unsigned int * index)
 */
 
 
-int LoadFileFromDisk_For_CacheItem(struct AmmServer_Instance * instance,char *filename,unsigned int * index)
+int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filename,unsigned int * index)
 {
-
   /*Now we will do the following things
     1) Open the file and find how large it is
     2) Allocate a large enough chunk of memory
@@ -218,9 +225,9 @@ int LoadFileFromDisk_For_CacheItem(struct AmmServer_Instance * instance,char *fi
 }
 
 
-int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification)
+int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification)
 {
-  if (!Create_CacheItem(instance,filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
+  if (!cache_CreateResource(instance,filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
 
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
@@ -230,11 +237,11 @@ int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,un
   memset((void*) &cache[*index],0,sizeof(struct cache_item));
 
 
-  if (!LoadFileFromDisk_For_CacheItem(instance,filename,index))
+  if (!cache_LoadResourceFromDisk(instance,filename,index))
    {
        fprintf(stderr,"Could not read file %s into memory\n",filename);
        fprintf(stderr,"Erasing index from memory\n");
-       Destroy_CacheItem(index);
+       cache_DestroyResource(index);
        *index=0;
        return 0;
    }
@@ -263,7 +270,7 @@ int AddFile_As_CacheItem(struct AmmServer_Instance * instance,char * filename,un
 
 
 
-int AddDirectResource_As_CacheItem(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
+int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
 {
   if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
    {
@@ -283,7 +290,7 @@ int AddDirectResource_As_CacheItem(struct AmmServer_Instance * instance,struct A
   ReducePathSlashes_Inplace(full_filename);
 
   unsigned int index=0;
-  if (! Create_CacheItem(instance,full_filename,&index) ) { return 0; }
+  if (! cache_CreateResource(instance,full_filename,&index) ) { return 0; }
 
   cache[index].context = context;
   cache[index].mem = context->content;
@@ -298,16 +305,16 @@ int AddDirectResource_As_CacheItem(struct AmmServer_Instance * instance,struct A
 }
 
 
-int AddDoNOTCache_CacheItem(struct AmmServer_Instance * instance,char * filename)
+int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,char * filename)
 {
    struct cache_item * cache = (struct cache_item *) instance->cache;
    unsigned int index=0;
-   if (Find_CacheItem(instance,filename,&index))  { cache[index].doNOTCache=1; }
+   if (cache_FindResource(instance,filename,&index))  { cache[index].doNOTCache=1; }
     else
      {
        //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
-       if (!Create_CacheItem(instance,filename,&index) ) { return 0; }
-       if (Find_CacheItem(instance,filename,&index)) { cache[index].doNOTCache=1; } else
+       if (!cache_CreateResource(instance,filename,&index) ) { return 0; }
+       if (cache_FindResource(instance,filename,&index)) { cache[index].doNOTCache=1; } else
                                              { return 0; } //Could not set doNOTCache..!
      }
    return 1;
@@ -316,7 +323,7 @@ int AddDoNOTCache_CacheItem(struct AmmServer_Instance * instance,char * filename
 
 
 
-int Remove_CacheItem(struct AmmServer_Instance * instance,unsigned int index)
+int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index)
 {
     struct cache_item * cache = (struct cache_item *) instance->cache;
     unsigned int i = index;
@@ -359,21 +366,21 @@ int Remove_CacheItem(struct AmmServer_Instance * instance,unsigned int index)
 }
 
 
-int RemoveDirectResource_CacheItem(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
+int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
        context->MAX_content_size=0;
        if ((free_mem)&&(context->content!=0)) { free(context->content); context->content=0; }
 
        unsigned int index;
-       if (!Find_CacheItem(instance,context->resource_name,&index) )
+       if (!cache_FindResource(instance,context->resource_name,&index) )
           {
             warning("Could not remove direct resource ( it does not exist ) ..\n");
             return 0;
           }
-       return Remove_CacheItem(instance,index);
+       return cache_RemoveResource(instance,index);
 }
 
-unsigned int GetHashForCacheItem(struct AmmServer_Instance * instance,unsigned int index)
+unsigned int cache_GetHashOfResource(struct AmmServer_Instance * instance,unsigned int index)
 {
     struct cache_item * cache = (struct cache_item *) instance->cache;
     return cache[index].filename_hash;
@@ -381,7 +388,7 @@ unsigned int GetHashForCacheItem(struct AmmServer_Instance * instance,unsigned i
 
 
 
-int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
+int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
 {
    MAX_CACHE_SIZE_IN_MB=max_total_allocation_MB;
    MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=max_allocation_per_entry_MB;
@@ -398,7 +405,7 @@ int InitializeCache(struct AmmServer_Instance * instance,unsigned int max_sepera
    return 1;
 }
 
-int DestroyCache(struct AmmServer_Instance * instance)
+int cache_Destroy(struct AmmServer_Instance * instance)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
   fprintf(stderr,"Destroying cache..\n");
@@ -416,7 +423,7 @@ int DestroyCache(struct AmmServer_Instance * instance)
    unsigned int i=0;
    for (i=0; i<instance->loaded_cache_items; i++)
    {
-      Remove_CacheItem(instance,i);
+      cache_RemoveResource(instance,i);
    }
 
    free(cache);
@@ -433,7 +440,7 @@ int DestroyCache(struct AmmServer_Instance * instance)
   ----------------------------------------------------------------------------------------------------------------------
   ----------------------------------------------------------------------------------------------------------------------
 
-     This ( CheckForCachedVersionOfThePage ) is the most heavily used and complex call in this file , it is what the file server
+     This ( cache_GetResource ) is the most heavily used and complex call in this file , it is what the file server
      calls when a new file is requested.. and it both serves ready cache items but also creates them if we need them..
                  It also has to deal with calling the callback function for dynamic content
 
@@ -441,20 +448,14 @@ int DestroyCache(struct AmmServer_Instance * instance)
   ----------------------------------------------------------------------------------------------------------------------
 */
 
-int CachedVersionExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index)
+int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index)
 {
-    if (Find_CacheItem(instance,verified_filename,index)) { return 1; }
-    return 0;
-}
-
-int FreeCachedMemoryAllocation(char * mem,unsigned char free_is_needed)
-{
-    if ( (free_is_needed)&&(mem!=0) ) { free(mem); return 1; }
+    if (cache_FindResource(instance,verified_filename,index)) { return 1; }
     return 0;
 }
 
 
-char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported,unsigned char * free_after_use)
+char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported,unsigned char * free_after_use)
 {
      //By default we dont want to free the memory allocation after use..
       *free_after_use=0;
@@ -473,8 +474,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
       }
 
 
-
-       if (Find_CacheItem(instance,verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
+       if (cache_FindResource(instance,verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
         {
            //Initially we would like to work with the memory block allocated when the dynamic call
            //was first registered..
@@ -600,7 +600,7 @@ char * CheckForCachedVersionOfThePage(struct AmmServer_Instance * instance,struc
         } else
         {
            /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
-           if ( AddFile_As_CacheItem(instance,verified_filename,index,last_modification) )
+           if ( cache_AddFile(instance,verified_filename,index,last_modification) )
             {
               *compression_supported=0;
               *filesize=*cache[*index].filesize; //We return the filesize after the operation..

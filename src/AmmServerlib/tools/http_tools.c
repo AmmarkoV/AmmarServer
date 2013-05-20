@@ -732,15 +732,15 @@ int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,cha
   unsigned int unused=0;
   //TODO : This code can become much better and avoid re making all the strings again and again and again..
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.html"); ReducePathSlashes_Inplace(indexfile);
-  if ((Find_CacheItem(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+  if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((Find_CacheItem(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+  if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm");   ReducePathSlashes_Inplace(indexfile); // <- TODO : notice that i can just change the extension to reduce copying around
-  if ((Find_CacheItem(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+  if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((Find_CacheItem(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+  if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.php");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((Find_CacheItem(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+  if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
 
   indexfile[0]=0;
   return 0;
