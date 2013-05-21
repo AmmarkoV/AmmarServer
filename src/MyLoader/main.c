@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
          );
 
 
-    if (!default_server) { fprintf(stderr,"Closing everything.."); exit(1); }
+    if (!default_server) { AmmServer_Error("Could not start server , shutting down everything.."); exit(1); }
 
     //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
@@ -133,6 +133,6 @@ int main(int argc, char *argv[])
 
     //Stop the server and clean state
     AmmServer_Stop(default_server);
-    printf("Ammar Server stopped\n");
+    AmmServer_Warning("Ammar Server stopped\n");
     return 0;
 }

@@ -349,6 +349,7 @@ int main(int argc, char *argv[])
            webserver_root,
            templates_root
          );
+    if (!default_server) { AmmServer_Error("Could not start server , shutting down everything.."); exit(1); }
 
     if (ENABLE_ADMIN_PAGE)
      {
@@ -360,7 +361,6 @@ int main(int argc, char *argv[])
        if (!admin_server) { AmmServer_Warning("Could not create admin server carying on though...");  }
      }
 
-    if (!default_server) { fprintf(stderr,"Closing everything.."); exit(1); }
 
 
     //If we want password protection ( variable defined in the start of this file ) we will have to set a username and a password
@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
 
     //Stop the server and clean state
     AmmServer_Stop(default_server);
-    printf("Ammar Server stopped\n");
+    AmmServer_Warning("Ammar Server stopped\n");
 
     return 0;
 }
