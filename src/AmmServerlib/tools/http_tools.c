@@ -109,7 +109,6 @@ int GetContentTypeForExtension(char * theextension,char * content_type)
 {
 //TODO: This should be replaced with an extension hashmap with binary search going on to strcpy the correct content-type..!
 
-
 //http://www.iana.org/assignments/media-types/image/index.html
 if (strcmp(theextension,"GIF")==0)  { strcpy(content_type,"image/gif"); return 1; } else
 if (strcmp(theextension,"PNG")==0)  { strcpy(content_type,"image/png"); return 1; } else
@@ -121,6 +120,8 @@ if (strcmp(theextension,"DIB")==0)  { strcpy(content_type,"image/dib"); return 1
 if (strcmp(theextension,"RLE")==0)  { strcpy(content_type,"image/rle"); return 1; } else
 if (strcmp(theextension,"J2C")==0)  { strcpy(content_type,"image/j2c"); return 1; } else
 if (strcmp(theextension,"ICO")==0)  { strcpy(content_type,"image/ico"); return 1; } else
+if (strcmp(theextension,"PPM")==0)  { strcpy(content_type,"image/ppm"); return 1; } else
+if (strcmp(theextension,"PNM")==0)  { strcpy(content_type,"image/pnm"); return 1; } else
 if (strcmp(theextension,"SVG")==0)  { strcpy(content_type,"image/svg+xml"); return 1; } else
 
 //http://www.iana.org/assignments/media-types/application/index.html
@@ -166,7 +167,6 @@ fprintf(stderr,"Could not find extension type for extension %s \n",theextension)
 
 int GetExtentionType(char * theextension)
 {
-
  //Crude and fast lookup
  if (theextension[0]=='t') { return TEXT; } else
  if (theextension[0]=='i') { return IMAGE; } else
@@ -174,10 +174,6 @@ int GetExtentionType(char * theextension)
  if ((theextension[0]=='a')&&(theextension[1]=='u')) { return AUDIO; } else
  if ((theextension[0]=='a')&&(theextension[1]=='p')) { return EXECUTABLE; }
  //this is made to be used when generating a dynamic directory list to show the appropriate icons..!
-
-
- //fprintf(stderr,"GetExtentionType(%s)\n",theextension);
- //fprintf(stderr,"No file type\n",theextension);
  return NO_FILETYPE;
 }
 
