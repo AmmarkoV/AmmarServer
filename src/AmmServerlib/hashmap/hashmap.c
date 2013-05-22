@@ -195,12 +195,10 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
     if (hm->entries==0) { fprintf(stderr,"While Adding a new key to hashmap , entries not allocated"); return 0; }
 
     unsigned int our_index=hm->curNumberOfEntries++;
-    if (hm->entries[our_index].key!=0) {fprintf(stderr,"While Adding a new key to hashmap , entry was not clean"); }
+    if (hm->entries[our_index].key!=0) {fprintf(stderr,"While Adding a new key to hashmap , entry was not clean"); free(hm->entries[our_index].key); }
     hm->entries[our_index].key = (char *) malloc(sizeof(char) * (strlen(key)+1) );
     if (hm->entries[our_index].key == 0)
          {
-           free(hm->entries[our_index].key);
-           hm->entries[our_index].key=0;
            --hm->curNumberOfEntries;
            pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
            fprintf(stderr,"While Adding a new key to hashmap , couldnt allocate key");
@@ -208,6 +206,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
          }
     hm->entries[our_index].keyLength = strlen(key);
     hm->entries[our_index].keyHash = hashFunction(key);
+    strncpy(hm->entries[our_index].key , key , hm->entries[our_index].keyLength);
 
     if (valLength==0)
     {
@@ -222,12 +221,14 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
         free(hm->entries[our_index].key);
         hm->entries[our_index].key=0;
         --hm->curNumberOfEntries;
-         fprintf(stderr,"While Adding a new key to hashmap , couldnt allocate payload");
+         fprintf(stderr,"While Adding a new key to hashmap , couldn't allocate payload");
         pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
       }
       memcpy(hm->entries[our_index].payload,val,valLength);
       hm->entries[our_index].payloadLength = valLength;
     }
+
+    fprintf(stderr,"Added %s => %p ( %u ) \n",hm->entries[our_index].key,hm->entries[our_index].payload,hm->entries[our_index].payload);
 
   }
 
@@ -347,6 +348,8 @@ int hashMap_SaveToFile(struct hashMap * hm,char * filename)
 
 int hashMap_LoadToFile(struct hashMap * hm,char * filename)
 {
+    fprintf(stderr,"Not Ready\n");
+    return 0;
     FILE * pFile;
     pFile = fopen (filename,"rb");
     if (pFile!=0)

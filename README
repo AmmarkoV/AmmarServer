@@ -48,6 +48,10 @@ and fully customizable web service..
 -------------------------------------------------------------------------------------------------
 
 
-AmmarServer is also Used in :
+AmmarServer is also an integral part , providing network connectivity and used in the following projects :
 V4L2ToHTTP : https://github.com/AmmarkoV/V4L2ToHTTP/
-RoboVision    : https://github.com/AmmarkoV/RoboVision/
+RoboVision    : https://github.com/AmmarkoV/RoboVision/ 
+FlashySlideshows : https://github.com/AmmarkoV/FlashySlideshows/
+RGBDAcquisition : https://github.com/AmmarkoV/RGBDAcquisition
+
+

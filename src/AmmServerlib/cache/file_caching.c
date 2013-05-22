@@ -122,7 +122,7 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
   unsigned long i=0;
 
   #if USE_HASHMAP_IN_CACHE
-  if ( hashMap_GetULong((struct hashMap *) instance->cacheHashMap,resource,&i); )
+  if ( hashMap_GetULongPayload((struct hashMap *) instance->cacheHashMap,resource,&i) )
     {
       warning("HashMap Found \n");
       fprintf(stderr,"HashMap Found %lu \n",i);
@@ -163,7 +163,9 @@ int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,un
   *index=instance->loaded_cache_items++;
 
   #if USE_HASHMAP_IN_CACHE
-   if ( hashMap_Add((struct hashMap *) instance->cacheHashMap ,resource,(void *) index,0) )
+  void * indexPTR=0;
+  indexPTR = *index;
+   if ( hashMap_Add((struct hashMap *) instance->cacheHashMap ,resource,indexPTR,0) )
    {
     warning("hashMap_Add adding New Resource to HashMap\n");
     fprintf(stderr,"hashMap_Add adding %s \n",resource);
