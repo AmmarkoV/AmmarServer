@@ -122,6 +122,7 @@ if (strcmp(theextension,"J2C")==0)  { strcpy(content_type,"image/j2c"); return 1
 if (strcmp(theextension,"ICO")==0)  { strcpy(content_type,"image/ico"); return 1; } else
 if (strcmp(theextension,"PPM")==0)  { strcpy(content_type,"image/ppm"); return 1; } else
 if (strcmp(theextension,"PNM")==0)  { strcpy(content_type,"image/pnm"); return 1; } else
+if (strcmp(theextension,"RAW")==0)  { strcpy(content_type,"image/raw"); return 1; } else
 if (strcmp(theextension,"SVG")==0)  { strcpy(content_type,"image/svg+xml"); return 1; } else
 
 //http://www.iana.org/assignments/media-types/application/index.html
