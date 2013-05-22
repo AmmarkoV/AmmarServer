@@ -221,7 +221,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
         free(hm->entries[our_index].key);
         hm->entries[our_index].key=0;
         --hm->curNumberOfEntries;
-         fprintf(stderr,"While Adding a new key to hashmap , couldn't allocate payload");
+        fprintf(stderr,"While Adding a new key to hashmap , couldn't allocate payload");
         pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
       }
       memcpy(hm->entries[our_index].payload,val,valLength);
@@ -236,6 +236,13 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
   return 1;
 }
 
+
+int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val)
+{
+  void * valPTRForm=0;
+  valPTRForm = val;
+  return hashMap_Add(hm,key,valPTRForm,0);
+}
 
 
 int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index)

@@ -37,6 +37,7 @@ struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entry
 void hashMap_Destroy(struct hashMap * hm);
 int hashMap_Sort(struct hashMap * hm);
 int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength);
+int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val);
 int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index);
 int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload);
 int hashMap_GetULongPayload(struct hashMap * hm,char * key,unsigned long * payload);
