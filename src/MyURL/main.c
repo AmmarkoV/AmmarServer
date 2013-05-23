@@ -426,17 +426,17 @@ void * serve_error_url_page(char * content)
 }
 
 
+/*
+
+
+
+
+*/
+
 
 //This function prepares the content of  the url creator context
 void * serve_create_url_page(char * content)
 {
-  char captcha[MAX_LONG_URL_SIZE]={0};
-  if ( _GET(myurl_server,&create_url,"captcha",captcha,MAX_LONG_URL_SIZE) )
-   {
-       fprintf(stderr,"Captcha submited %s \n",captcha);
-   }
-
-
   strncpy(content,indexPage,indexPageLength);
   content[indexPageLength]=0;
   create_url.content_size=indexPageLength;
@@ -444,7 +444,6 @@ void * serve_create_url_page(char * content)
   char val[132]={0};
   sprintf(val , "%u",loaded_links);
   AmmServer_ReplaceVarInMemoryFile(content,indexPageLength,"$NUMBER_OF_LINKS$",val);
-
 
   return 0;
 }
@@ -460,9 +459,18 @@ void * serve_goto_url_page(char * content)
     {
         char url[MAX_LONG_URL_SIZE]={0};
         char to[MAX_TO_SIZE]={0};
+        char captcha[MAX_LONG_URL_SIZE]={0};
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
         if ( _GET(myurl_server,&goto_url,"url",url,MAX_LONG_URL_SIZE) )
              {
+
+               if ( _GET(myurl_server,&goto_url,"captcha",captcha,MAX_LONG_URL_SIZE) )
+                { fprintf(stderr,"Captcha submited %s \n",captcha); }
+
+               if (strcmp(captcha,"ammarserver+ftw")!=0 )
+                {
+                 strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>");
+                } else
                if ( _GET(myurl_server,&goto_url,"to",to,MAX_TO_SIZE) )
                 {
                   //Assigning a (short)to to a (long)url

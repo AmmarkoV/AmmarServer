@@ -72,6 +72,11 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="cache/file_compression.h" />
+		<Unit filename="captcha.h" />
+		<Unit filename="captcha/captcha.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="captcha/captcha.h" />
 		<Unit filename="file_server.c">
 			<Option compilerVar="CC" />
 		</Unit>
