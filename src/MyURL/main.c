@@ -463,7 +463,6 @@ void * serve_goto_url_page(char * content)
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
         if ( _GET(myurl_server,&goto_url,"url",url,MAX_LONG_URL_SIZE) )
              {
-
                if ( _GET(myurl_server,&goto_url,"captcha",captcha,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha submited %s \n",captcha); }
 

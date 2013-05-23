@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
  <meta http-equiv="content-type" 
@@ -13,9 +14,22 @@
         background-repeat: no-repeat;
         background-position: 180px,100px; 
       }
- </style>                   
+ </style>
+
+
+ <script type="text/javascript">   
+  var randomnumber=Math.floor(Math.random()*100000);
+
+   function makeCaptchaID()
+   {   
+     document.getElementById("captchaPIC").src = "captcha.jpg?id="+randomnumber;
+     document.getElementById("captchaID").value = randomnumber;
+   }
+  </script>
+
+                   
 </head>                    
-<body>
+<body onload="makeCaptchaID();" >
 <br><br><br><br>
 <center>
  <table border="0">
@@ -43,7 +57,9 @@
             <tr>      
               <td colspan=3>
                <center><br>
-                 <img src="captcha.jpg?id=12345" alt="Please type this in the box below" width=220>
+                 <a href="javascript:makeCaptchaID();">
+                  <img id="captchaPIC" src="captcha.jpg" alt="Please type this in the box below" width=220>
+                 </a>
                </center>
               </td>
             </tr>
@@ -52,6 +68,7 @@
               <td><center><input placeholder="Type in the above" name="captcha" type="text"></center></td>
               <td></td>
             </tr>
+            <input id="captchaID" name="captchaID" type="hidden" value="">
 
             <tr>      
               <td></td>
