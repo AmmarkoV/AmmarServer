@@ -56,6 +56,7 @@ unsigned int indexPageLength=0;
 #define MAX_LONG_URL_SIZE 2048
 #define MAX_LINKS 200000
 #define LINK_ALLOCATION_STEP 5000
+#define REGROUP_AFTER_X_UNSORTED_LINKS 1000
 
 struct AmmServer_Instance * myurl_server=0;
 struct AmmServer_RequestOverride_Context requestResolver={{0}};
@@ -254,47 +255,6 @@ char * Get_longURL(char * shortURL)
 }
 
 
-
-unsigned long Add_MyURL(char * longURL,char * shortURL,int saveit)
-{
-  int shortURL_AlreadyExists=0;
-  Find_longURL(shortURL,&shortURL_AlreadyExists);
-  if (shortURL_AlreadyExists) { return 0; }
-
-  if (loaded_links>=MAX_LINKS) { return 0; }
-  allocateLinksIfNeeded();
-
-  unsigned int long_url_length = strlen(longURL);
-  if (long_url_length>=MAX_LONG_URL_SIZE) { return 0; }
-  unsigned int sort_url_length = strlen(shortURL);
-  if (sort_url_length>=MAX_TO_SIZE) { return 0; }
-
-  pthread_mutex_lock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
-  //it might not seem like it but here we are doing two seperate operations
-  //first we give our_index the loaded_links value , and then we increment loaded_links
-  //of course this is a potential race condition where two threads assign themselves the same link
-  //and we have an empty record after that , solved using a lock protection
-  unsigned int our_index=loaded_links++;
-  pthread_mutex_unlock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
-
-  links[our_index].longURL = ( char * ) malloc (sizeof(char) * (long_url_length+1) );  //+1 for null termination
-  if ( links[our_index].longURL == 0 ) { AmmServer_Warning("Could not allocate space for a new string \n "); return 0; }
-  links[our_index].shortURL = ( char * ) malloc (sizeof(char) * (sort_url_length+1) ); //+1 for null termination
-  if ( links[our_index].shortURL == 0 ) { AmmServer_Warning("Could not allocate space for a new string \n "); return 0; }
-
-  links[our_index].shortURLHash=hashURL(shortURL);
-
-  strncpy(links[our_index].longURL,longURL,long_url_length);
-  links[our_index].longURL[long_url_length]=0;  // null terminator :P
-
-  strncpy(links[our_index].shortURL,shortURL,sort_url_length);
-  links[our_index].shortURL[sort_url_length]=0;  // null terminator :P
-
-  if (saveit) { Append2MyURLDBFile(db_file,longURL,shortURL); }
-
-  return 1;
-}
-
 int Append2MyURLDBFile(char * filename,char * longURL,char * shortURL)
 {
     if  ((shortURL==0)||(longURL==0)) { return 0; }
@@ -340,6 +300,78 @@ int ReWriteMyURLDBFile(char * filename,struct URLDB * links,unsigned int loaded_
 }
 
 
+
+int ResortDB(char * db_file,struct URLDB * links,unsigned int loaded_links)
+{
+  if ( !isURLDBSorted() )
+        {
+           AmmServer_Warning("URLDB is not sorted Sorting it now..!\n");
+           qsort(links, loaded_links , sizeof(struct URLDB), struct_cmp_urldb_items);
+
+           if ( !isURLDBSorted() ) { AmmServer_Warning("Could not sort URLDB ..! :( , exiting \n");
+                                     return 0;
+                                   } else
+                                   {
+                                     AmmServer_Success("Sorted URLDB \n");
+                                     if ( ReWriteMyURLDBFile(db_file,links,loaded_links) )
+                                     {
+                                        AmmServer_Success("Saved db file \n");
+                                     }
+                                   }
+        } else
+        {
+          AmmServer_Success("Presorted URLDB \n");
+        }
+   return 1;
+}
+
+
+unsigned long Add_MyURL(char * longURL,char * shortURL,int saveit)
+{
+  int shortURL_AlreadyExists=0;
+  Find_longURL(shortURL,&shortURL_AlreadyExists);
+  if (shortURL_AlreadyExists) { return 0; }
+
+  if (loaded_links>=MAX_LINKS) { return 0; }
+  allocateLinksIfNeeded();
+
+  unsigned int long_url_length = strlen(longURL);
+  if (long_url_length>=MAX_LONG_URL_SIZE) { return 0; }
+  unsigned int sort_url_length = strlen(shortURL);
+  if (sort_url_length>=MAX_TO_SIZE) { return 0; }
+
+  pthread_mutex_lock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  //it might not seem like it but here we are doing two seperate operations
+  //first we give our_index the loaded_links value , and then we increment loaded_links
+  //of course this is a potential race condition where two threads assign themselves the same link
+  //and we have an empty record after that , solved using a lock protection
+  unsigned int our_index=loaded_links++;
+  pthread_mutex_unlock (&db_addIDLock); // LOCK PROTECTED OPERATION -------------------------------------------
+
+  links[our_index].longURL = ( char * ) malloc (sizeof(char) * (long_url_length+1) );  //+1 for null termination
+  if ( links[our_index].longURL == 0 ) { AmmServer_Warning("Could not allocate space for a new string \n "); return 0; }
+  links[our_index].shortURL = ( char * ) malloc (sizeof(char) * (sort_url_length+1) ); //+1 for null termination
+  if ( links[our_index].shortURL == 0 ) { AmmServer_Warning("Could not allocate space for a new string \n "); return 0; }
+
+  links[our_index].shortURLHash=hashURL(shortURL);
+
+  strncpy(links[our_index].longURL,longURL,long_url_length);
+  links[our_index].longURL[long_url_length]=0;  // null terminator :P
+
+  strncpy(links[our_index].shortURL,shortURL,sort_url_length);
+  links[our_index].shortURL[sort_url_length]=0;  // null terminator :P
+
+  if (saveit) { Append2MyURLDBFile(db_file,longURL,shortURL); }
+
+  if ( REGROUP_AFTER_X_UNSORTED_LINKS <= loaded_links-sorted_links )
+  {
+      ResortDB(db_file,links,loaded_links);
+  }
+
+  return 1;
+}
+
+
 int LoadMyURLDBFile(char * filename)
 {
     FILE * pFile;
@@ -370,6 +402,7 @@ int LoadMyURLDBFile(char * filename)
     return 0;
 }
 
+
 /*
    -----------------------------------------------------------
    -----------------------------------------------------------
@@ -397,6 +430,13 @@ void * serve_error_url_page(char * content)
 //This function prepares the content of  the url creator context
 void * serve_create_url_page(char * content)
 {
+  char captcha[MAX_LONG_URL_SIZE]={0};
+  if ( _GET(myurl_server,&create_url,"captcha",captcha,MAX_LONG_URL_SIZE) )
+   {
+       fprintf(stderr,"Captcha submited %s \n",captcha);
+   }
+
+
   strncpy(content,indexPage,indexPageLength);
   content[indexPageLength]=0;
   create_url.content_size=indexPageLength;
@@ -475,6 +515,7 @@ void resolveRequest(void * request)
   if (strcmp("/index.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  } else
   if (strcmp("/error.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
   if (strcmp("/myurl.png",rqst->resource)==0 )   { return; /*Client requested myurl.png , no resolving to do */  } else
+  if (strcmp("/captcha.jpg",rqst->resource)==0 )   { return; /*Client requested captcha.jpg , no resolving to do */  } else
   if (strcmp("/",rqst->resource)==0 ) {  return; /*Client requested index.html , no resolving to do */  } else
   if ( (strncmp(service_filename,rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { return; /*Client requested go , no resolving to do */  } else
          {
@@ -562,30 +603,8 @@ int main(int argc, char *argv[])
 
     if (LoadMyURLDBFile(db_file))
     {
-      if ( !isURLDBSorted() )
-        {
-           //Sort list here and repost
-           //printURLDB();
-           AmmServer_Warning("URLDB is not sorted Sorting it now..!\n");
-           qsort(links, loaded_links , sizeof(struct URLDB), struct_cmp_urldb_items);
-
-           if ( !isURLDBSorted() ) { AmmServer_Warning("Could not sort URLDB ..! :( , exiting \n");
-                                     //printURLDB();
-                                     return 1;
-                                   } else
-                                   {
-                                     AmmServer_Success("Sorted URLDB \n");
-                                     if ( ReWriteMyURLDBFile(db_file,links,loaded_links) )
-                                     {
-                                        AmmServer_Success("Saved db file \n");
-                                     }
-                                   }
-        } else
-        {
-          AmmServer_Success("Presorted URLDB \n");
-        }
-
-
+      //Try to enforce beeing sorted ,if we fail there is no point in going on , since binary search will fail
+      if ( !ResortDB(db_file,links,loaded_links) ) { return 1; }
 
       //Create dynamic content allocations and associate context to the correct files
       init_dynamic_content();

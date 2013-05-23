@@ -11,7 +11,7 @@
 
 
 #define COMPILE_WITH_CLIENT_LIST 1
-
+#define COMPILE_WITH_CAPTCHA_SUPPORT 1
 
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 

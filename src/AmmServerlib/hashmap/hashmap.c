@@ -10,21 +10,21 @@ This algorithm (k=33) was first reported by dan bernstein many years ago in comp
 Needless to say , this is our hash function..!
 */
 unsigned long hashFunction(char *str)
-    {
-        if (str==0) return 0;
-        if (str[0]==0) return 0;
+{
+ if (str==0) return 0;
+ if (str[0]==0) return 0;
 
-        unsigned long hash = 5381; //<- magic
-        int c=1;
+ unsigned long hash = 5381; //<- magic
+ int c=1;
 
-        while (c != 0)
+ while (c != 0)
         {
             c = *str++;
             hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
         }
 
-        return hash;
-    }
+ return hash;
+}
 
 
 int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)

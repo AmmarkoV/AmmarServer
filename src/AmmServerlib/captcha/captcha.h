@@ -1,0 +1,6 @@
+#ifndef CAPTCHA_H_INCLUDED
+#define CAPTCHA_H_INCLUDED
+
+
+
+#endif // CAPTCHA_H_INCLUDED

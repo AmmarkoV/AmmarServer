@@ -132,8 +132,7 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
     {
       return 0;
     }
-  #endif
-
+  #else
   for (i=0; i<instance->loaded_cache_items; i++)
    {
      if ( cache[i].filename_hash == file_we_are_looking_for )
@@ -147,8 +146,9 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
         return 1;
       }
    }
+  #endif
 
-  return 0;
+ return 0;
 }
 
 /*This is the Create Index Function , Nothing is sorted so we just append our cache item list with another one..
@@ -168,9 +168,12 @@ int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,un
     warning("hashMap_AddULong adding New Resource to HashMap");
     fprintf(stderr,"hashMap_AddULong adding %s \n",resource);
    }
+  #else
+    cache[*index].filename_hash = hashFunction(resource);
   #endif
 
-  cache[*index].filename_hash = hashFunction(resource);
+
+
   return 1;
 }
 
@@ -420,7 +423,7 @@ int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seper
 
 
    #if USE_HASHMAP_IN_CACHE
-   instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
+    instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
    #endif // USE_HASHMAP_IN_CACHE
 
    return 1;
@@ -454,8 +457,8 @@ int cache_Destroy(struct AmmServer_Instance * instance)
 
 
    #if USE_HASHMAP_IN_CACHE
-   hashMap_Destroy((struct hashMap *) instance->cacheHashMap);
-   instance->cacheHashMap=0;
+    hashMap_Destroy((struct hashMap *) instance->cacheHashMap);
+    instance->cacheHashMap=0;
    #endif // USE_HASHMAP_IN_CACHE
 
    return 1;
@@ -486,7 +489,6 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
 {
      //By default we dont want to free the memory allocation after use..
       *free_after_use=0;
-
 
       if (instance==0) { fprintf(stderr,"Instance is not allocated..\n"); return 0;  }
 
