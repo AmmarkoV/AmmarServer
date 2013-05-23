@@ -27,8 +27,7 @@ gcc -c $CFLAGS tools/http_tools.c -o http_tools.o
 gcc -c $CFLAGS cache/client_list.c -o client_list.o 
 gcc -c $CFLAGS file_server.c -o file_server.o 
 gcc -c $CFLAGS header_analysis/http_header_analysis.c -o http_header_analysis.o  
-gcc -c $CFLAGS header_analysis/postHeaders.c -o postHeaders.o  
-gcc -c $CFLAGS captcha/captcha.c -o captcha.o  
+gcc -c $CFLAGS header_analysis/postHeaders.c -o postHeaders.o   
 gcc -c $CFLAGS cache/file_caching.c -o file_caching.o  
 gcc -c $CFLAGS cache/file_compression.c -o file_compression.o  
 gcc -c $CFLAGS tools/directory_lists.c -o directory_lists.o
@@ -41,7 +40,7 @@ gcc -c $CFLAGS threads/freshThreads.c -o freshThreads.o
 gcc -c $CFLAGS threads/prespawnedThreads.c -o prespawnedThreads.o 
 gcc -c $CFLAGS threads/threadInitHelper.c -o threadInitHelper.o 
 
-PARTS_OF_LIB="main.o server_threads.o http_tools.o client_list.o file_server.o http_header_analysis.o postHeaders.o captcha.o file_caching.o file_compression.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o hashmap.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
+PARTS_OF_LIB="main.o server_threads.o http_tools.o client_list.o file_server.o http_header_analysis.o postHeaders.o file_caching.o file_compression.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o hashmap.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
 
 ar rcs $LIBNAME $PARTS_OF_LIB
 

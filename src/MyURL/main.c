@@ -460,9 +460,12 @@ void * serve_goto_url_page(char * content)
         char url[MAX_LONG_URL_SIZE]={0};
         char to[MAX_TO_SIZE]={0};
         char captcha[MAX_LONG_URL_SIZE]={0};
+        char captchaID[MAX_LONG_URL_SIZE]={0};
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
         if ( _GET(myurl_server,&goto_url,"url",url,MAX_LONG_URL_SIZE) )
              {
+               if ( _GET(myurl_server,&goto_url,"captchaID",captchaID,MAX_LONG_URL_SIZE) )
+                { fprintf(stderr,"Captcha ID submited %s \n",captchaID); }
                if ( _GET(myurl_server,&goto_url,"captcha",captcha,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha submited %s \n",captcha); }
 
@@ -483,7 +486,7 @@ void * serve_goto_url_page(char * content)
                               <a target=\"_new\" href=\"%s%s\">%s%s</a> \
                               <br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root_withoutfilename,to,service_root_withoutfilename, to);
                     }
-                  } else
+                } else
                 {
                  //No Point in a url without a to , here we could probably generate a random to !
                  strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Error creating a new url</h2></body></html>");
