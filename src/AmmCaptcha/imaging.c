@@ -44,6 +44,7 @@ int bitBltImage(struct Image * target , unsigned int targetX,unsigned int target
  char * sourcePixelsEnd     = sourcePixelsLineEnd + ((height-1) * sourceWidthStep);
  char * sourcePixels = sourcePixelsStart;
 
+ char * srcR, * srcG, * srcB , * tarR , * tarG , * tarB;
  do
  {
    if (targetPixels>=targetPixelsLineEnd)
@@ -59,9 +60,18 @@ int bitBltImage(struct Image * target , unsigned int targetX,unsigned int target
 
    if (targetPixels < targetPixelsEnd)
    {
-    *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
-    *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
-    *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
+    srcR=sourcePixels;  srcG=sourcePixels+1;  srcB=sourcePixels+2;
+
+    if ( (*srcR!=255) || (*srcG!=255) || (*srcB!=255) )
+    {
+     *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
+     *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
+     *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
+    } else
+    {
+      sourcePixels+=3;
+      targetPixels+=3;
+    }
    }
  }
  while (targetPixels < targetPixelsEnd);
