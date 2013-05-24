@@ -4,6 +4,7 @@
 #include <string.h>
 #include "imaging.h"
 
+#define READ_CREATES_A_NEW_PIXEL_BUFFER 1
 #define PPMREADBUFLEN 256
 
 
@@ -22,14 +23,51 @@ struct Image * createImage(unsigned int width,unsigned int height,unsigned int d
           memset(img->pixels,255,sizeof(char) * width * height * depth );
       }
   }
-
   return img;
 }
 
 int bitBltImage(struct Image * target , unsigned int targetX,unsigned int targetY ,
                 struct Image * source , unsigned int sourceX,unsigned int sourceY ,  unsigned int width , unsigned int height )
 {
- return 0;
+ if ( (target==0)||(source==0) ) { return 0; }
+ if ( (target->pixels==0)||(source->pixels==0) ) { return 0; }
+
+ unsigned int targetWidthStep = target->width * 3;
+ char * targetPixelsStart   = target->pixels + ( (targetX*3) + targetY * targetWidthStep );
+ char * targetPixelsLineEnd = targetPixelsStart + (width*3);
+ char * targetPixelsEnd     = targetPixelsLineEnd + ((height-1) * targetWidthStep );
+ char * targetPixels = targetPixelsStart;
+
+ unsigned int sourceWidthStep = source->width * 3;
+ char * sourcePixelsStart   = source->pixels + ( (sourceX*3) + sourceY * sourceWidthStep);
+ char * sourcePixelsLineEnd = sourcePixelsStart  + (width*3);
+ char * sourcePixelsEnd     = sourcePixelsLineEnd + ((height-1) * sourceWidthStep);
+ char * sourcePixels = sourcePixelsStart;
+
+ do
+ {
+   if (targetPixels>=targetPixelsLineEnd)
+   {
+      targetPixelsStart+=targetWidthStep;
+      targetPixelsLineEnd+=targetWidthStep;
+      targetPixels=targetPixelsStart;
+
+      sourcePixelsStart+=sourceWidthStep;
+      sourcePixelsLineEnd+=sourceWidthStep;
+      sourcePixels=sourcePixelsStart;
+   }
+
+   if (targetPixels < targetPixelsEnd)
+   {
+    *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
+    *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
+    *targetPixels=*sourcePixels; ++targetPixels; ++sourcePixels;
+   }
+ }
+ while (targetPixels < targetPixelsEnd);
+
+
+ return 1;
 }
 
 int ReadPPM(char * filename,struct Image * pic,char read_only_header)
