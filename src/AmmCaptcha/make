@@ -1,0 +1,45 @@
+#!/bin/bash
+  
+red=$(printf "\033[31m")
+green=$(printf "\033[32m") 
+normal=$(printf "\033[m")
+ 
+LIBNAME="libAmmCaptcha.a"
+SOLIBNAME="libAmmCaptcha.so"
+
+if [ -e $LIBNAME ]
+then
+  rm $LIBNAME
+fi   
+
+# -O3 -fexpensive-optimizations
+CFLAGS="-s"
+
+PARTS_OF_LIB="main.o imaging.o jpgInput.o img_warp.o "
+gcc -c $CFLAGS main.c -o main.o 
+gcc -c $CFLAGS imaging.c -o imaging.o 
+gcc -c $CFLAGS jpgInput.c -o jpgInput.o 
+gcc -c $CFLAGS img_warp.c -o img_warp.o 
+imaging.c
+gcc -shared main.c imaging.c jpgInput.c img_warp.c -fPIC -L. -ljpeg -o $SOLIBNAME
+
+ar  rcs $LIBNAME $PARTS_OF_LIB
+
+rm $PARTS_OF_LIB
+
+if [ -e $LIBNAME ]
+then
+  echo "$green Success building static AmmCaptcha $LIBNAME .. $normal"
+else
+  echo "$red Failure building static AmmCaptcha $LIBNAME .. $normal"
+fi
+
+
+if [ -e $SOLIBNAME ]
+then
+  echo "$green Success building dynamic AmmCaptcha $SOLIBNAME .. $normal"
+else
+  echo "$red Failure building dynamic AmmCaptcha $SOLIBNAME .. $normal"
+fi
+
+exit 0

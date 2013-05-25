@@ -146,7 +146,7 @@ int ReadPPM(struct Image * pic,char * filename,char read_only_header)
 
       #if READ_CREATES_A_NEW_PIXEL_BUFFER
 	    pic->pixels = (unsigned char * ) malloc(pic->height * pic->width * 3 * sizeof(char));
-	    pic->image_size = pic->height * pic->width * 3 * sizeof(char);
+	    pic->imageSize = pic->height * pic->width * 3 * sizeof(char);
 	  #endif
 
 

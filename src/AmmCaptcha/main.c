@@ -5,7 +5,10 @@
 #include "img_warp.h"
 #include "jpgInput.h"
 
+
 unsigned int fontX = 19 , fontY = 22;
+struct Image fontRAW={0};
+
 
 int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  unsigned int y , char * str)
 {
@@ -27,11 +30,28 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
   return 1;
 }
 
+
+char * AmmCaptcha_getCaptchaFrame(unsigned int captchaID, unsigned int * frameLength)
+{
+  struct Image * captcha = createImage(300,60,3);
+  RenderString(captcha,&fontRAW, 10 ,  20, "AmmarServer FTW");
+
+  char * retFrame = fontRAW.pixels;
+  *frameLength = fontRAW.imageSize;
+  free(captcha);
+}
+
+int AmmCaptcha_initialize(char * font)
+{
+  if (font==0) { return ReadPPM(&fontRAW,"font.ppm",0); } else
+               { return ReadPPM(&fontRAW,font,0); }
+  return 0;
+}
+
+
 int testAmmCaptcha()
 {
     struct Image * captcha = createImage(300,60,3);
-    struct Image fontRAW={0};
-    ReadPPM(&fontRAW,"font.ppm",0);
 
 
     RenderString(captcha,&fontRAW, 10 ,  20, "AmmarServer FTW");

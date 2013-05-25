@@ -34,6 +34,9 @@
 				</Linker>
 			</Target>
 		</Build>
+		<Linker>
+			<Add option="-ljpeg" />
+		</Linker>
 		<Unit filename="AmmCaptcha.h" />
 		<Unit filename="imaging.c">
 			<Option compilerVar="CC" />

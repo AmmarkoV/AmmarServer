@@ -7,7 +7,7 @@ struct Image
   unsigned int width;
   unsigned int height;
   unsigned int depth;
-  unsigned int image_size;
+  unsigned int imageSize;
 };
 
 struct Image * createImage(unsigned int width,unsigned int height,unsigned int depth);
