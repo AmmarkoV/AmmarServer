@@ -25,11 +25,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <pthread.h>
 #include "../AmmServerlib/AmmServerlib.h"
+#include "../AmmCaptcha/AmmCaptcha.h"
 
 #define MAX_BINDING_PORT 65534
 #define USE_BINARY_SEARCH 1
 
-#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+#define DEFAULT_BINDING_PORT 8081  // <--- Change this to 80 if you want to bind to the default http port..!
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -64,6 +65,7 @@ struct AmmServer_RequestOverride_Context requestResolver={{0}};
 struct AmmServer_RH_Context error_url={0};
 struct AmmServer_RH_Context create_url={0};
 struct AmmServer_RH_Context goto_url={0};
+struct AmmServer_RH_Context captcha_url={0};
 
 struct URLDB
 {
@@ -426,6 +428,30 @@ void * serve_error_url_page(char * content)
 }
 
 
+void * serve_captcha_page(char * content)
+{
+  unsigned long frameLength = 50 * 1024 * 1024; //30KB more than enough
+  char * captchaFrame = (char *) malloc(sizeof(char) * frameLength);
+  if (captchaFrame!=0)
+  {
+   AmmCaptcha_getCaptchaFrame(123,captchaFrame,&frameLength);
+   fprintf(stderr,"Copying back %u bytes of captcha.jpg \n",frameLength);
+   strncpy(content,captchaFrame,frameLength);
+   fprintf(stderr,"Survived , marking frameLength as %u \n",frameLength);
+   captcha_url.content_size=frameLength;
+   free(captchaFrame);
+  } else
+  {
+   fprintf(stderr,"Could not allocate frame for captcha image ( size %u ) \n",frameLength);
+   return 0;
+  }
+
+
+
+  return 1;
+}
+
+
 /*
 
 
@@ -565,6 +591,9 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&error_url);
 
+  if (! AmmServer_AddResourceHandler(myurl_server,&captcha_url,"/captcha.jpg",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
+  AmmServer_DoNOTCacheResourceHandler(myurl_server,&captcha_url);
+
 
 
   if (!AmmServer_AddRequestHandler(myurl_server,&requestResolver,"GET",&resolveRequest) )
@@ -592,6 +621,9 @@ int main(int argc, char *argv[])
 
     unsigned int port=DEFAULT_BINDING_PORT;
 
+
+    if (!AmmCaptcha_initialize("src/AmmCaptcha/font.ppm"))
+        { AmmServer_Error("Could not initialize Captcha System"); }
 
     if ( argc <1 )   { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else

@@ -45,7 +45,7 @@ struct Image * copyImage(struct Image * source)
 
 
 
-int freeImage(struct Image * source)
+int destroyImage(struct Image * source)
 {
   if (source==0 ) { return 0; }
   if (source->pixels!=0) { free(source->pixels); source->pixels=0; }

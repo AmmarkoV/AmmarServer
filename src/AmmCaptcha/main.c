@@ -12,6 +12,9 @@ struct Image fontRAW={0};
 
 int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  unsigned int y , char * str)
 {
+  if ( (frame==0)||(font==0) ) { return 0;}
+  if ( (frame->pixels==0)||(font->pixels==0) ) { return 0;}
+
   unsigned int i=0;
   unsigned int iLen=strlen(str);
   unsigned int drift=10 , column = 35;
@@ -31,14 +34,16 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
 }
 
 
-char * AmmCaptcha_getCaptchaFrame(unsigned int captchaID, unsigned int * frameLength)
+int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
   struct Image * captcha = createImage(300,60,3);
   RenderString(captcha,&fontRAW, 10 ,  20, "AmmarServer FTW");
-
-  char * retFrame = fontRAW.pixels;
-  *frameLength = fontRAW.imageSize;
-  free(captcha);
+  WriteJPEGFile(captcha,"captcha.jpg");
+  WriteJPEGMemory(captcha,mem,mem_size);
+  fprintf(stderr,"Survived WriteJPEG");
+  destroyImage(captcha);
+  fprintf(stderr,"Survived destroyImage");
+  return 1;
 }
 
 int AmmCaptcha_initialize(char * font)

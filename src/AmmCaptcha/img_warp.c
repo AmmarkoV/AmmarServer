@@ -32,6 +32,6 @@ int warpImage(struct Image * target , unsigned int posX,unsigned int posY , sign
  char * targetPixels = targetPixelsStart;
 
  struct Image * copy = copyImage(target);
- freeImage(copy);
+ destroyImage(copy);
 
 }
