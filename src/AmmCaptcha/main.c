@@ -37,7 +37,7 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
   struct Image * captcha = createImage(300,60,3);
-  RenderString(captcha,&fontRAW, 10 ,  20, "AmmarServer FTW");
+  RenderString(captcha,&fontRAW, 10 ,  20, "ammarServer ftw");
   WriteJPEGFile(captcha,"captcha.jpg");
   WriteJPEGMemory(captcha,mem,mem_size);
   fprintf(stderr,"Survived WriteJPEG");

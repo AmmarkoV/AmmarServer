@@ -32,7 +32,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_CAPTCHA_JPG_SIZE 10 * 1024 //10KB more than enough
 
-#define DEFAULT_BINDING_PORT 8081  // <--- Change this to 80 if you want to bind to the default http port..!
+#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -438,20 +438,9 @@ void * serve_captcha_page(char * content)
   {
    AmmCaptcha_getCaptchaFrame(123,captchaFrame,&frameLength);
    fprintf(stderr,"Copying back %lu bytes of captcha.jpg , max is %u \n",frameLength,captcha_url.MAX_content_size);
-   strncpy(content,captchaFrame,frameLength);
+   memcpy(content,captchaFrame,sizeof(char) * frameLength);
    fprintf(stderr,"Survived , marking frameLength as %lu \n",frameLength);
    captcha_url.content_size=frameLength;
-
-
-   FILE *fd=0;
-   fd = fopen("captcha2.jpg","wb");
-    if (fd!=0)
-	{
-     fwrite(captchaFrame, 1, frameLength, fd);
-     fflush(fd);
-     fclose(fd);
-	}
-
 
    free(captchaFrame);
   } else
