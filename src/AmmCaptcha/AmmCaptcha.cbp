@@ -35,6 +35,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="imaging.h" />
+		<Unit filename="img_warp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="img_warp.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>

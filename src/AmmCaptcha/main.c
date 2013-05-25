@@ -43,6 +43,10 @@ int main()
 
     RenderString(captcha,&fontRAW, 0 ,  120, "AmmarServer FTW");
 
+    warpImage(captcha,  40, 120 ,  60 , 150);
+
+
+
     WritePPM("captcha.ppm",captcha);
 
     return 0;

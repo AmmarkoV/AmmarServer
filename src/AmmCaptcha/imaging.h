@@ -11,6 +11,9 @@ struct Image
 };
 
 struct Image * createImage(unsigned int width,unsigned int height,unsigned int depth);
+struct Image * copyImage(struct Image * source);
+int freeImage(struct Image * source);
+
 
 int bitBltImage(struct Image * target , unsigned int targetX,unsigned int targetY ,
                 struct Image * source , unsigned int sourceX,unsigned int sourceY ,  unsigned int width , unsigned int height );

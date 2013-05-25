@@ -114,6 +114,7 @@ if (strcmp(theextension,"GIF")==0)  { strcpy(content_type,"image/gif"); return 1
 if (strcmp(theextension,"PNG")==0)  { strcpy(content_type,"image/png"); return 1; } else
 if (strcmp(theextension,"JPG")==0)  { strcpy(content_type,"image/jpg"); return 1; } else
 if (strcmp(theextension,"JPEG")==0) { strcpy(content_type,"image/jpg"); return 1; } else
+if (strcmp(theextension,"WEBP")==0) { strcpy(content_type,"image/webp"); return 1; } else
 if (strcmp(theextension,"BMP")==0)  { strcpy(content_type,"image/bmp"); return 1; } else
 if (strcmp(theextension,"TIFF")==0) { strcpy(content_type,"image/tiff"); return 1; } else
 if (strcmp(theextension,"DIB")==0)  { strcpy(content_type,"image/dib"); return 1; } else
@@ -135,6 +136,7 @@ if (strcmp(theextension,"AVI")==0) { strcpy(content_type,"video/mp4"); return 1;
 if (strcmp(theextension,"MPEG4")==0) { strcpy(content_type,"video/mp4"); return 1; } else
 if (strcmp(theextension,"MPEG")==0) { strcpy(content_type,"video/mp4"); return 1; } else
 if (strcmp(theextension,"MP4")==0) { strcpy(content_type,"video/mp4"); return 1; } else
+if (strcmp(theextension,"WEBM")==0) { strcpy(content_type,"image/webm"); return 1; } else
 if (strcmp(theextension,"MKV")==0) { strcpy(content_type,"video/mkv"); return 1; } else
 if (strcmp(theextension,"3GP")==0) { strcpy(content_type,"video/3gp"); return 1; } else
 if (strcmp(theextension,"H263")==0) { strcpy(content_type,"video/h263"); return 1; } else

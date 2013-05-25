@@ -26,6 +26,34 @@ struct Image * createImage(unsigned int width,unsigned int height,unsigned int d
   return img;
 }
 
+
+
+struct Image * copyImage(struct Image * source)
+{
+  struct Image * img = (struct Image *) malloc(sizeof(struct Image));
+  if (img != 0)
+  {
+      memcpy(img , source , sizeof (struct Image));
+      img->pixels = (unsigned char *) malloc(sizeof(char) * source->width * source->height * source->depth );
+      if (img->pixels!=0)
+      {
+          memcpy(img->pixels,source->pixels,sizeof(char) * source->width * source->height * source->depth );
+      }
+  }
+  return img;
+}
+
+
+
+int freeImage(struct Image * source)
+{
+  if (source==0 ) { return 0; }
+  if (source->pixels!=0) { free(source->pixels); source->pixels=0; }
+  free(source);
+  return 1;
+}
+
+
 int bitBltImage(struct Image * target , unsigned int targetX,unsigned int targetY ,
                 struct Image * source , unsigned int sourceX,unsigned int sourceY ,  unsigned int width , unsigned int height )
 {
@@ -75,10 +103,15 @@ int bitBltImage(struct Image * target , unsigned int targetX,unsigned int target
    }
  }
  while (targetPixels < targetPixelsEnd);
-
-
  return 1;
 }
+
+
+
+
+
+
+
 
 int ReadPPM(char * filename,struct Image * pic,char read_only_header)
 {
