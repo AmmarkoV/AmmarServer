@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "imaging.h"
+#include "img_warp.h"
+#include "jpgInput.h"
 
 unsigned int fontX = 19 , fontY = 22;
 
@@ -25,29 +27,33 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
   return 1;
 }
 
-int main()
+int testAmmCaptcha()
 {
-    struct Image * captcha = createImage(640,480,3);
+    struct Image * captcha = createImage(300,60,3);
     struct Image fontRAW={0};
-    ReadPPM("font.ppm",&fontRAW,0);
+    ReadPPM(&fontRAW,"font.ppm",0);
 
 
+    RenderString(captcha,&fontRAW, 10 ,  20, "AmmarServer FTW");
+
+   /*
     RenderString(captcha,&fontRAW, 0 ,  30, "abcdefghijklmnopqrstuvwxyz");
     RenderString(captcha,&fontRAW, 0 ,  50, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     RenderString(captcha,&fontRAW, 0 ,  70, "0123456789");
 
     RenderString(captcha,&fontRAW, 0 ,  90, "ABCDTest123");
 
-    RenderString(captcha,&fontRAW, 0 ,  120, "012345Test123");
+    RenderString(captcha,&fontRAW, 0 ,  120, "012345Test123");*/
 
 
-    RenderString(captcha,&fontRAW, 0 ,  120, "AmmarServer FTW");
 
     warpImage(captcha,  40, 120 ,  60 , 150);
 
 
+    WriteJPEGFile(captcha,"captcha.jpg");
 
-    WritePPM("captcha.ppm",captcha);
+
+    WritePPM(captcha,"captcha.ppm");
 
     return 0;
 }

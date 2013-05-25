@@ -113,7 +113,7 @@ int bitBltImage(struct Image * target , unsigned int targetX,unsigned int target
 
 
 
-int ReadPPM(char * filename,struct Image * pic,char read_only_header)
+int ReadPPM(struct Image * pic,char * filename,char read_only_header)
 {
     FILE *pf=0;
     pf = fopen(filename,"rb");
@@ -165,7 +165,7 @@ int ReadPPM(char * filename,struct Image * pic,char read_only_header)
   return 0;
 }
 
-int WritePPM(char * filename,struct Image * pic)
+int WritePPM(struct Image * pic,char * filename)
 {
 
     FILE *fd=0;
