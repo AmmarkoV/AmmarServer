@@ -30,6 +30,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define MAX_BINDING_PORT 65534
 #define USE_BINARY_SEARCH 1
 
+#define MAX_CAPTCHA_JPG_SIZE 10 * 1024 //10KB more than enough
+
 #define DEFAULT_BINDING_PORT 8081  // <--- Change this to 80 if you want to bind to the default http port..!
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
@@ -430,23 +432,33 @@ void * serve_error_url_page(char * content)
 
 void * serve_captcha_page(char * content)
 {
-  unsigned long frameLength = 50 * 1024 * 1024; //30KB more than enough
+  unsigned long frameLength = MAX_CAPTCHA_JPG_SIZE; //10KB more than enough
   char * captchaFrame = (char *) malloc(sizeof(char) * frameLength);
   if (captchaFrame!=0)
   {
    AmmCaptcha_getCaptchaFrame(123,captchaFrame,&frameLength);
-   fprintf(stderr,"Copying back %u bytes of captcha.jpg \n",frameLength);
+   fprintf(stderr,"Copying back %lu bytes of captcha.jpg , max is %u \n",frameLength,captcha_url.MAX_content_size);
    strncpy(content,captchaFrame,frameLength);
-   fprintf(stderr,"Survived , marking frameLength as %u \n",frameLength);
+   fprintf(stderr,"Survived , marking frameLength as %lu \n",frameLength);
    captcha_url.content_size=frameLength;
+
+
+   FILE *fd=0;
+   fd = fopen("captcha2.jpg","wb");
+    if (fd!=0)
+	{
+     fwrite(captchaFrame, 1, frameLength, fd);
+     fflush(fd);
+     fclose(fd);
+	}
+
+
    free(captchaFrame);
   } else
   {
    fprintf(stderr,"Could not allocate frame for captcha image ( size %u ) \n",frameLength);
    return 0;
   }
-
-
 
   return 1;
 }
@@ -591,7 +603,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&error_url);
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&captcha_url,"/captcha.jpg",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
+  if (! AmmServer_AddResourceHandler(myurl_server,&captcha_url,"/captcha.jpg",webserver_root,MAX_CAPTCHA_JPG_SIZE,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&captcha_url);
 
 
