@@ -52,8 +52,6 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
   struct Image * captcha = createImage(300,60,3);
-
-  //"ammarServer ftw"
   RenderString(captcha,&fontRAW, 10 ,  20, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
   //WriteJPEGFile(captcha,"captcha.jpg");
   WriteJPEGMemory(captcha,mem,mem_size);
@@ -62,6 +60,26 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
   fprintf(stderr,"Survived destroyImage");
   return 1;
 }
+
+
+int AmmCaptcha_copyCaptchaJPEGImageWithCopy(unsigned int captchaID, char *mem,unsigned long * mem_size)
+{
+  unsigned long frameLength = *mem_size; //10KB more than enough
+  char * captchaFrame = (char *) malloc(sizeof(char) * frameLength);
+  if (captchaFrame!=0)
+  {
+   AmmCaptcha_getCaptchaFrame(captchaID,captchaFrame,&frameLength);
+   fprintf(stderr,"Copying back %lu bytes of captcha.jpg\n",frameLength);
+   memcpy(mem,captchaFrame,sizeof(char) * frameLength);
+   fprintf(stderr,"Survived , marking frameLength as %lu \n",frameLength);
+   *mem_size=frameLength;
+   free(captchaFrame);
+  } else
+  {
+   fprintf(stderr,"Could not allocate frame for captcha image ( size %lu ) \n",frameLength);
+  }
+}
+
 
 int AmmCaptcha_loadDictionary(char * dictFilename)
 {
@@ -94,6 +112,13 @@ int AmmCaptcha_initialize(char * font,char * dictFilename)
 
 
   return AmmCaptcha_loadDictionary(dictFilename);
+}
+
+
+int AmmCaptcha_destroy()
+{
+  hashMap_Destroy(captchaStrings);
+  destroyImage(&fontRAW);
 }
 
 

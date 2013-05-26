@@ -25,14 +25,19 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <pthread.h>
 #include "../AmmServerlib/AmmServerlib.h"
-#include "../AmmCaptcha/AmmCaptcha.h"
 
-#define MAX_BINDING_PORT 65534
+
+#define ENABLE_CAPTCHA_SYSTEM 1
 #define USE_BINARY_SEARCH 1
-
+#define MAX_BINDING_PORT 65534
 #define MAX_CAPTCHA_JPG_SIZE 10 * 1024 //10KB more than enough
-
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+
+
+#if ENABLE_CAPTCHA_SYSTEM
+#include "../AmmCaptcha/AmmCaptcha.h"
+#endif
+
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented or removed in stable release..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -61,7 +66,6 @@ unsigned int indexPageLength=0;
 #define LINK_ALLOCATION_STEP 5000
 #define REGROUP_AFTER_X_UNSORTED_LINKS 1000
 
-#define ENABLE_CAPTCHA_SYSTEM 1
 
 struct AmmServer_Instance * myurl_server=0;
 struct AmmServer_RequestOverride_Context requestResolver={{0}};
@@ -431,40 +435,19 @@ void * serve_error_url_page(char * content)
   return 0;
 }
 
-
+//This overrides serves back the captcha using AmmCaptch!
 void * serve_captcha_page(char * content)
 {
+  #if ENABLE_CAPTCHA_SYSTEM
+  char captchaIDStr[MAX_LONG_URL_SIZE]={0};
+  if ( _GET(myurl_server,&captcha_url,"id",captchaIDStr,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaIDStr); }
+  unsigned int captchaID = atoi(captchaIDStr);
 
-  char captchaID[MAX_LONG_URL_SIZE]={0};
-  if ( _GET(myurl_server,&captcha_url,"id",captchaID,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaID); }
-  unsigned int captchaID_Uint = atoi(captchaID);
-
-  unsigned long frameLength = MAX_CAPTCHA_JPG_SIZE; //10KB more than enough
-  char * captchaFrame = (char *) malloc(sizeof(char) * frameLength);
-  if (captchaFrame!=0)
-  {
-   AmmCaptcha_getCaptchaFrame(captchaID_Uint,captchaFrame,&frameLength);
-   fprintf(stderr,"Copying back %lu bytes of captcha.jpg , max is %lu \n",frameLength,captcha_url.MAX_content_size);
-   memcpy(content,captchaFrame,sizeof(char) * frameLength);
-   fprintf(stderr,"Survived , marking frameLength as %lu \n",frameLength);
-   captcha_url.content_size=frameLength;
-
-   free(captchaFrame);
-  } else
-  {
-   fprintf(stderr,"Could not allocate frame for captcha image ( size %lu ) \n",frameLength);
-  }
-
+  captcha_url.content_size=captcha_url.MAX_content_size;
+  AmmCaptcha_getCaptchaFrame(captchaID,content,&captcha_url.content_size);
+  #endif
   return 0;
 }
-
-
-/*
-
-
-
-
-*/
 
 
 //This function prepares the content of  the url creator context
@@ -493,18 +476,18 @@ void * serve_goto_url_page(char * content)
         char url[MAX_LONG_URL_SIZE]={0};
         char to[MAX_TO_SIZE]={0};
         char captchaReply[MAX_LONG_URL_SIZE]={0};
-        char captchaID[MAX_LONG_URL_SIZE]={0};
+        char captchaIDStr[MAX_LONG_URL_SIZE]={0};
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
         if ( _GET(myurl_server,&goto_url,"url",url,MAX_LONG_URL_SIZE) )
              {
                #if ENABLE_CAPTCHA_SYSTEM
-               if ( _GET(myurl_server,&goto_url,"captchaID",captchaID,MAX_LONG_URL_SIZE) )
-                { fprintf(stderr,"Captcha ID submited %s \n",captchaID); }
+               if ( _GET(myurl_server,&goto_url,"captchaID",captchaIDStr,MAX_LONG_URL_SIZE) )
+                { fprintf(stderr,"Captcha ID submited %s \n",captchaIDStr); }
                if ( _GET(myurl_server,&goto_url,"captcha",captchaReply,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha submited %s \n",captchaReply); }
 
-               unsigned int captchaID_Uint = atoi(captchaID);
-               if ( ! AmmCaptcha_isReplyCorrect(captchaID_Uint , captchaReply) )
+               unsigned int captchaID = atoi(captchaIDStr);
+               if ( ! AmmCaptcha_isReplyCorrect(captchaID , captchaReply) )
                 {
                  strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>");
                 } else
@@ -633,9 +616,11 @@ int main(int argc, char *argv[])
 
     unsigned int port=DEFAULT_BINDING_PORT;
 
+  #if ENABLE_CAPTCHA_SYSTEM
     AmmServer_Warning("Initializing captcha system\n");
     if (!AmmCaptcha_initialize("src/AmmCaptcha/font.ppm","src/AmmCaptcha/ourDictionaryCaptcha.txt"))
         { AmmServer_Error("Could not initialize Captcha System"); }
+  #endif
 
     if ( argc <1 )   { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
     if ( argc <= 2 ) {  } else
@@ -678,6 +663,9 @@ int main(int argc, char *argv[])
     }
     //Stop the server and clean state
     AmmServer_Stop(myurl_server);
+    #if ENABLE_CAPTCHA_SYSTEM
+     AmmCaptcha_destroy();
+    #endif // ENABLE_CAPTCHA_SYSTEM
 
     pthread_mutex_destroy(&db_fileLock);
     pthread_mutex_destroy(&db_addIDLock);

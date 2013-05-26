@@ -272,6 +272,8 @@ int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index)
 
 char * hashMap_GetKeyAtIndex(struct hashMap * hm,unsigned int index)
 {
+  if (!hashMap_IsOK(hm)) { return 0;}
+  if (index >= hm->curNumberOfEntries ) { return 0; }
   return hm->entries[index].key;
 }
 
