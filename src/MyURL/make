@@ -25,7 +25,7 @@ then
 fi 
 
 CFLAGS="-s -Os -fexpensive-optimizations"  
-LIBRARIES="-pthread -lrt"
+LIBRARIES="-pthread -lm -lrt -ljpeg"
 
 USELZ=`cat ../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
 if [ -n "$USELZ" ]
@@ -52,6 +52,8 @@ else
 fi
 fi
 # -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+
+OURLIBRARIES="$OURLIBRARIES ../AmmCaptcha/libAmmCaptcha.a"  
 
 gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 

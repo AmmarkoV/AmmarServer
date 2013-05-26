@@ -20,7 +20,7 @@ gcc -c $CFLAGS main.c -o main.o
 gcc -c $CFLAGS imaging.c -o imaging.o 
 gcc -c $CFLAGS jpgInput.c -o jpgInput.o 
 gcc -c $CFLAGS img_warp.c -o img_warp.o 
-imaging.c
+
 gcc -shared main.c imaging.c jpgInput.c img_warp.c -fPIC -L. -ljpeg -o $SOLIBNAME
 
 ar  rcs $LIBNAME $PARTS_OF_LIB

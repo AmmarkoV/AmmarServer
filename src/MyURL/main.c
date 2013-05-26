@@ -437,7 +437,7 @@ void * serve_captcha_page(char * content)
   if (captchaFrame!=0)
   {
    AmmCaptcha_getCaptchaFrame(123,captchaFrame,&frameLength);
-   fprintf(stderr,"Copying back %lu bytes of captcha.jpg , max is %u \n",frameLength,captcha_url.MAX_content_size);
+   fprintf(stderr,"Copying back %lu bytes of captcha.jpg , max is %lu \n",frameLength,captcha_url.MAX_content_size);
    memcpy(content,captchaFrame,sizeof(char) * frameLength);
    fprintf(stderr,"Survived , marking frameLength as %lu \n",frameLength);
    captcha_url.content_size=frameLength;
@@ -445,11 +445,10 @@ void * serve_captcha_page(char * content)
    free(captchaFrame);
   } else
   {
-   fprintf(stderr,"Could not allocate frame for captcha image ( size %u ) \n",frameLength);
-   return 0;
+   fprintf(stderr,"Could not allocate frame for captcha image ( size %lu ) \n",frameLength);
   }
 
-  return 1;
+  return 0;
 }
 
 
