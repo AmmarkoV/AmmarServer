@@ -61,6 +61,8 @@ unsigned int indexPageLength=0;
 #define LINK_ALLOCATION_STEP 5000
 #define REGROUP_AFTER_X_UNSORTED_LINKS 1000
 
+#define ENABLE_CAPTCHA_SYSTEM 1
+
 struct AmmServer_Instance * myurl_server=0;
 struct AmmServer_RequestOverride_Context requestResolver={{0}};
 
@@ -432,11 +434,16 @@ void * serve_error_url_page(char * content)
 
 void * serve_captcha_page(char * content)
 {
+
+  char captchaID[MAX_LONG_URL_SIZE]={0};
+  if ( _GET(myurl_server,&captcha_url,"id",captchaID,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaID); }
+  unsigned int captchaID_Uint = atoi(captchaID);
+
   unsigned long frameLength = MAX_CAPTCHA_JPG_SIZE; //10KB more than enough
   char * captchaFrame = (char *) malloc(sizeof(char) * frameLength);
   if (captchaFrame!=0)
   {
-   AmmCaptcha_getCaptchaFrame(123,captchaFrame,&frameLength);
+   AmmCaptcha_getCaptchaFrame(captchaID_Uint,captchaFrame,&frameLength);
    fprintf(stderr,"Copying back %lu bytes of captcha.jpg , max is %lu \n",frameLength,captcha_url.MAX_content_size);
    memcpy(content,captchaFrame,sizeof(char) * frameLength);
    fprintf(stderr,"Survived , marking frameLength as %lu \n",frameLength);
@@ -485,20 +492,24 @@ void * serve_goto_url_page(char * content)
     {
         char url[MAX_LONG_URL_SIZE]={0};
         char to[MAX_TO_SIZE]={0};
-        char captcha[MAX_LONG_URL_SIZE]={0};
+        char captchaReply[MAX_LONG_URL_SIZE]={0};
         char captchaID[MAX_LONG_URL_SIZE]={0};
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
         if ( _GET(myurl_server,&goto_url,"url",url,MAX_LONG_URL_SIZE) )
              {
+               #if ENABLE_CAPTCHA_SYSTEM
                if ( _GET(myurl_server,&goto_url,"captchaID",captchaID,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha ID submited %s \n",captchaID); }
-               if ( _GET(myurl_server,&goto_url,"captcha",captcha,MAX_LONG_URL_SIZE) )
-                { fprintf(stderr,"Captcha submited %s \n",captcha); }
+               if ( _GET(myurl_server,&goto_url,"captcha",captchaReply,MAX_LONG_URL_SIZE) )
+                { fprintf(stderr,"Captcha submited %s \n",captchaReply); }
 
-               if (strcmp(captcha,"ammarserver+ftw")!=0 )
+               unsigned int captchaID_Uint = atoi(captchaID);
+               if ( ! AmmCaptcha_isReplyCorrect(captchaID_Uint , captchaReply) )
                 {
                  strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>");
                 } else
+               #endif
+
                if ( _GET(myurl_server,&goto_url,"to",to,MAX_TO_SIZE) )
                 {
                   //Assigning a (short)to to a (long)url
@@ -591,9 +602,10 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&error_url);
 
+  #if ENABLE_CAPTCHA_SYSTEM
   if (! AmmServer_AddResourceHandler(myurl_server,&captcha_url,"/captcha.jpg",webserver_root,MAX_CAPTCHA_JPG_SIZE,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&captcha_url);
-
+  #endif
 
 
   if (!AmmServer_AddRequestHandler(myurl_server,&requestResolver,"GET",&resolveRequest) )
@@ -621,8 +633,8 @@ int main(int argc, char *argv[])
 
     unsigned int port=DEFAULT_BINDING_PORT;
 
-
-    if (!AmmCaptcha_initialize("src/AmmCaptcha/font.ppm"))
+    AmmServer_Warning("Initializing captcha system\n");
+    if (!AmmCaptcha_initialize("src/AmmCaptcha/font.ppm","src/AmmCaptcha/ourDictionaryCaptcha.txt"))
         { AmmServer_Error("Could not initialize Captcha System"); }
 
     if ( argc <1 )   { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else

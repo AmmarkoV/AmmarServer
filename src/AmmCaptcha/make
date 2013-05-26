@@ -42,4 +42,19 @@ else
   echo "$red Failure building dynamic AmmCaptcha $SOLIBNAME .. $normal"
 fi
 
+if [ -e ourDictionaryCaptcha.txt ]
+then
+ rm ourDictionaryCaptcha.txt
+fi
+
+#In master system ./keepOnlyStringsBetweenSize.sh 4 8 dictionaryCaptcha.txt <dictionary.txt
+shuf dictionaryCaptcha.txt > ourDictionaryCaptcha.txt
+if [ -e ourDictionaryCaptcha.txt ]
+then
+ echo "$green Created Shuffled dictionary instance for our installation $normal"
+else
+ echo "$red Could not create a shuffled dictionary instance for our installation $normal"
+  echo "Check if you have shuf installed , You could do manually using the default an suffled dictionary although it might make the captcha protection easy to  bypass cp dictionaryCaptcha.txt > ourDictionaryCaptcha.txt"
+fi
+
 exit 0

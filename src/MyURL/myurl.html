@@ -18,10 +18,11 @@
 
 
  <script type="text/javascript">   
-  var randomnumber=Math.floor(Math.random()*100000);
+   var randomnumber=Math.floor(Math.random()*100000);
 
    function makeCaptchaID()
    {   
+     var randomnumber=Math.floor(Math.random()*100000); 
      document.getElementById("captchaPIC").src = "captcha.jpg?id="+randomnumber;
      document.getElementById("captchaID").value = randomnumber;
    }
@@ -54,14 +55,16 @@
               <td> <span id="Footnote"> &larr; Your easy to remember alias here</td>
             </tr>
 
-            <tr>      
-              <td colspan=3>
+            <tr>     
+              <td></td>  
+              <td>
                <center><br>
                  <a href="javascript:makeCaptchaID();">
                   <img id="captchaPIC" src="captcha.jpg" alt="Please type this in the box below" width=220>
                  </a>
                </center>
               </td>
+              <td></td> 
             </tr>
             <tr>      
               <td></td>

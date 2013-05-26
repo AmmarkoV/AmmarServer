@@ -39,12 +39,14 @@ int hashMap_Sort(struct hashMap * hm);
 int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength);
 int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val);
 int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index);
+char * hashMap_GetKeyAtIndex(struct hashMap * hm,unsigned int index);
 int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload);
 int hashMap_GetULongPayload(struct hashMap * hm,char * key,unsigned long * payload);
 void hashMap_Clear(struct hashMap * hm);
 int hashMap_ContainsKey(struct hashMap * hm,char * key);
 int hashMap_ContainsValue(struct hashMap * hm,void * val);
-int hashMap_GetSize(struct hashMap * hm);
+int hashMap_GetMaxNumberOfEntries(struct hashMap * hm);
+int hashMap_GetCurrentNumberOfEntries(struct hashMap * hm);
 
 int hashMap_LoadToFile(struct hashMap * hm,char * filename);
 int hashMap_SaveToFile(struct hashMap * hm,char * filename);

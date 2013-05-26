@@ -76,10 +76,16 @@ int hashMap_IsOK(struct hashMap * hm)
     return 1;
 }
 
-int hashMap_GetSize(struct hashMap * hm)
+int hashMap_GetCurrentNumberOfEntries(struct hashMap * hm)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
-  return 0;
+  return hm->curNumberOfEntries;
+}
+
+int hashMap_GetMaxNumberOfEntries(struct hashMap * hm)
+{
+  if (!hashMap_IsOK(hm)) { return 0;}
+  return hm->maxNumberOfEntries;
 }
 
 
@@ -228,7 +234,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
       hm->entries[our_index].payloadLength = valLength;
     }
 
-    fprintf(stderr,"Added %s => %p ( %u ) \n",hm->entries[our_index].key,hm->entries[our_index].payload,hm->entries[our_index].payload);
+    //fprintf(stderr,"Added %s => %p ( %u ) \n",hm->entries[our_index].key,hm->entries[our_index].payload,hm->entries[our_index].payload);
 
   }
 
@@ -261,6 +267,12 @@ int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index)
     ++i;
   }
   return 0;
+}
+
+
+char * hashMap_GetKeyAtIndex(struct hashMap * hm,unsigned int index)
+{
+  return hm->entries[index].key;
 }
 
 

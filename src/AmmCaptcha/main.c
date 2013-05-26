@@ -5,10 +5,11 @@
 #include "img_warp.h"
 #include "jpgInput.h"
 
+#include "../AmmServerlib/hashmap/hashmap.h"
 
 unsigned int fontX = 19 , fontY = 22;
 struct Image fontRAW={0};
-
+struct hashMap * captchaStrings=0;
 
 int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  unsigned int y , char * str)
 {
@@ -33,12 +34,28 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
   return 1;
 }
 
+unsigned int convertExternalIDToInternal(unsigned int captchaID)
+{
+    return captchaID % hashMap_GetCurrentNumberOfEntries(captchaStrings);
+}
+
+
+int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
+{
+   if ( strcmp(reply,hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID))) == 0 )
+   {
+     return 1;
+   }
+   return 0;
+}
 
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
   struct Image * captcha = createImage(300,60,3);
-  RenderString(captcha,&fontRAW, 10 ,  20, "ammarServer ftw");
-  WriteJPEGFile(captcha,"captcha.jpg");
+
+  //"ammarServer ftw"
+  RenderString(captcha,&fontRAW, 10 ,  20, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
+  //WriteJPEGFile(captcha,"captcha.jpg");
   WriteJPEGMemory(captcha,mem,mem_size);
   fprintf(stderr,"Survived WriteJPEG");
   destroyImage(captcha);
@@ -46,11 +63,37 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
   return 1;
 }
 
-int AmmCaptcha_initialize(char * font)
+int AmmCaptcha_loadDictionary(char * dictFilename)
 {
-  if (font==0) { return ReadPPM(&fontRAW,"font.ppm",0); } else
-               { return ReadPPM(&fontRAW,font,0); }
-  return 0;
+ captchaStrings = hashMap_Create(32889,1000,0);
+ if (captchaStrings==0) { fprintf(stderr,"Could not loadDictionary %s \n",dictFilename); return 0; }
+ FILE *fd=0;
+ fd = fopen(dictFilename,"r");
+ if (fd!=0)
+ {
+  char str[100]={0};
+  while (!feof(fd))
+  {
+    fscanf (fd, "%s", str);
+    hashMap_Add(captchaStrings,str,0,0);
+  }
+  fclose(fd);
+  return 1;
+ }
+ return 0;
+}
+
+
+
+int AmmCaptcha_initialize(char * font,char * dictFilename)
+{
+  int retres=0;
+  if (font==0) { retres=ReadPPM(&fontRAW,"font.ppm",0); } else
+               { retres=ReadPPM(&fontRAW,font,0); }
+  if (!retres) { fprintf(stderr,"Could not read font for captcha system\n"); return 0; }
+
+
+  return AmmCaptcha_loadDictionary(dictFilename);
 }
 
 
