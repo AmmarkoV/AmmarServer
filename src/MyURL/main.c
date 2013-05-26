@@ -242,7 +242,7 @@ inline unsigned int Find_longURL(char * shortURL,int * found)
                                            }
    }
   }
-  //TODO : Remove this in the future -------------
+  //TODO : Remove this message in the future -------------
   AmmServer_Warning("Binary Search couldn't find result , extending search to unsorted list\n");
   return Find_longURLSerial(shortURL,found);
   //----------------------------------------

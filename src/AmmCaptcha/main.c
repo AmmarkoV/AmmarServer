@@ -53,6 +53,10 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
 {
   struct Image * captcha = createImage(300,60,3);
   RenderString(captcha,&fontRAW, 10 ,  20, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
+
+  //Apply Swirling effect!
+  //coolPHPWave(captcha, 11,12,5,14);
+
   //WriteJPEGFile(captcha,"captcha.jpg");
   WriteJPEGMemory(captcha,mem,mem_size);
   fprintf(stderr,"Survived WriteJPEG");
