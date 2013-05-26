@@ -7,6 +7,7 @@
 #define READ_CREATES_A_NEW_PIXEL_BUFFER 1
 #define PPMREADBUFLEN 256
 
+#define DISPLAY_DEBUG_INFO 0
 
 struct Image * createImage(unsigned int width,unsigned int height,unsigned int depth)
 {
@@ -57,7 +58,9 @@ int destroyImage(struct Image * source)
 int bitBltImage(struct Image * target , unsigned int targetX,unsigned int targetY ,
                 struct Image * source , unsigned int sourceX,unsigned int sourceY ,  unsigned int width , unsigned int height )
 {
+ #if DISPLAY_DEBUG_INFO
  fprintf(stderr,"bitBlt!(src %u,%u , target %u,%u  , width %u , height %u )\n",sourceX,sourceY,targetX,targetY,width,height);
+ #endif
 
  //Check Images are initialized
  if ( (target==0)||(source==0) ) { return 0; }
@@ -78,8 +81,9 @@ int bitBltImage(struct Image * target , unsigned int targetX,unsigned int target
 
  if ( (width==0)||(height==0) ) { return 0; }
 
+ #if DISPLAY_DEBUG_INFO
  fprintf(stderr,"bitBlt will be executed with width %u , height %u \n",width,height);
-
+ #endif
 
  unsigned int targetWidthStep = target->width * 3;
  char * targetPixelsStart   = (char*) target->pixels + ( (targetX*3) + targetY * targetWidthStep );
@@ -128,7 +132,13 @@ int bitBltImage(struct Image * target , unsigned int targetX,unsigned int target
 }
 
 
+int bitBltImageRotated(struct Image * target , unsigned int targetCenterX,unsigned int targetCenterY , float rotation ,
+                       struct Image * source , unsigned int sourceX,unsigned int sourceY ,  unsigned int width , unsigned int height )
+{
 
+
+
+}
 
 
 

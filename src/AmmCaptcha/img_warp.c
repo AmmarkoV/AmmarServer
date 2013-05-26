@@ -56,23 +56,32 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
  if (target->pixels==0)  { return 0; }
 
  float scale=1.0;
+ float sinPart;
+ float res;
  unsigned int randThree= 1+ rand()%3;
  unsigned int randTwo= 1+ rand()%2;
- unsigned int xp = scale * periodX * randThree;
- unsigned int k= rand()%100;
+ float xp = scale * periodX * randThree;
+ unsigned int k= (unsigned int) rand()%100;
  unsigned int i=0;
+
  for (i=0; i<(target->width*scale); i++)
  {
-  bitBltImage(target, i-1 , (unsigned int) sin(k+i/xp)  * scale * amplitudeX ,
+  sinPart = (float) (k+i);
+  sinPart = (float) sinPart/xp;
+  res = (float) sin(sinPart)  * (float) scale * (float) amplitudeX;
+  bitBltImage(target, i-1 , (unsigned int) res ,
               target , i, 0 , 1  , (unsigned int) target->height * scale);
  }
 
 
- unsigned int yp = scale * periodY * randTwo;
- k= rand()%100;
+ float yp = scale * periodY * randTwo;
+ k= (unsigned int) rand()%100;
  for (i=0; i<(target->height*scale); i++)
  {
-  bitBltImage(target, (unsigned int) sin(k+i/yp)  * scale * amplitudeY , i-1 ,
+  sinPart = (float) (k+i);
+  sinPart = (float) sinPart/yp;
+  res = (float) sin(sinPart) * scale * amplitudeY;
+  bitBltImage(target, (unsigned int) res , i-1 ,
               target , 0 , i , (unsigned int) target->width * scale , 1 );
  }
 

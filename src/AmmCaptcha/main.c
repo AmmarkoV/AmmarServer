@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "imaging.h"
 #include "img_warp.h"
 #include "jpgInput.h"
@@ -27,7 +28,7 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
     if ( (str[i]>='0') && (str[i]<='9') )  {  drift=str[i]-'0';  column = 35;  }
     bitBltImage(frame,x,y,font, column , drift*fontY , fontX , fontY );
 
-    x+=fontX-2;
+    x+=fontX-3;
     ++i;
   }
 
@@ -51,11 +52,11 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
-  struct Image * captcha = createImage(300,60,3);
+  struct Image * captcha = createImage(300,70,3);
   RenderString(captcha,&fontRAW, 10 ,  20, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
 
   //Apply Swirling effect!
-  //coolPHPWave(captcha, 11,12,5,14);
+  coolPHPWave(captcha, 11,12,5,14);
 
   //WriteJPEGFile(captcha,"captcha.jpg");
   WriteJPEGMemory(captcha,mem,mem_size);
@@ -114,7 +115,7 @@ int AmmCaptcha_initialize(char * font,char * dictFilename)
                { retres=ReadPPM(&fontRAW,font,0); }
   if (!retres) { fprintf(stderr,"Could not read font for captcha system\n"); return 0; }
 
-
+  srand (time(NULL));
   return AmmCaptcha_loadDictionary(dictFilename);
 }
 
@@ -122,17 +123,24 @@ int AmmCaptcha_initialize(char * font,char * dictFilename)
 int AmmCaptcha_destroy()
 {
   hashMap_Destroy(captchaStrings);
-  destroyImage(&fontRAW);
+
+  //Font RAW is a stack variable , do not destroy it!
+  //destroyImage(&fontRAW);
+  if(fontRAW.pixels!=0) { free(fontRAW.pixels); fontRAW.pixels=0; }
 }
 
 
 int testAmmCaptcha()
 {
-    struct Image * captcha = createImage(300,60,3);
+    AmmCaptcha_initialize("font.ppm","ourDictionaryCaptcha.txt");
 
+    struct Image * captcha = createImage(300,70,3);
 
-    RenderString(captcha,&fontRAW, 10 ,  20, "AmmarServer FTW");
+    RenderString(captcha,&fontRAW, 0 ,  20, "AmmarServer FTW");
+    WritePPM(captcha,"captcha.ppm");
+
     coolPHPWave(captcha, 11,12,5,14);
+    WriteJPEGFile(captcha,"captcha.jpg");
 
    /*
     RenderString(captcha,&fontRAW, 0 ,  30, "abcdefghijklmnopqrstuvwxyz");
@@ -145,13 +153,11 @@ int testAmmCaptcha()
 
 
 
-    warpImage(captcha,  40, 120 ,  60 , 150);
+    //warpImage(captcha,  40, 120 ,  60 , 150);
 
 
-    WriteJPEGFile(captcha,"captcha.jpg");
 
-
-    WritePPM(captcha,"captcha.ppm");
+    AmmCaptcha_destroy();
 
     return 0;
 }
