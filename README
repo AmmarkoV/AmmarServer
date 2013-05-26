@@ -7,7 +7,8 @@ https://github.com/AmmarkoV/AmmarServer/wiki
 The projects build dependencies are the gcc compiler , pthreads and pretty basic things 
 so if you issue sudo apt-get install build-essential  ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
 
-Newer versions also support compression , so you might want to also apt-get liblzma-dev if you enable ENABLE_COMPRESSION at server_configuration.h
+Newer versions also support compression , so you might want to also apt-get install liblzma-dev if you enable ENABLE_COMPRESSION at server_configuration.h
+MyURL needs libjpeg in order to serve captchas , so to add it sudo apt-get install libjpeg-dev
 
 To perform a compilation you just need to issue 
 ./make from the root directory
