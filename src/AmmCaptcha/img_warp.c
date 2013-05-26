@@ -1,6 +1,6 @@
 #include "imaging.h"
 #include <math.h>
-
+#include <stdlib.h>     /* srand, rand */
 /*
  * 1.0 +----+----+----+----+
  *     |    |    |    |    |
@@ -14,26 +14,28 @@
  *    0.0       0.5       1.0
 */
 
+#define ABS(num1)  ( (num1) >=0 ? (num1) : (-1*num1) )
+#define ABSDIFF(num1,num2)  ( (num1-num2) >=0 ? (num1-num2) : (num2 - num1) )
 
 int warpImage(struct Image * target , unsigned int posX,unsigned int posY , signed int warpDeltaX,signed int warpDeltaY )
 {
  if (target==0)  { return 0; }
  if (target->pixels==0)  { return 0; }
 
- unsigned int dimX = abs(warpDeltaX-posX); dimX=dimX*dimX;
- unsigned int dimY = abs(warpDeltaY-posY); dimY=dimY*dimY;
+ unsigned int dimX = ABS(warpDeltaX-posX); dimX=dimX*dimX;
+ unsigned int dimY = ABS(warpDeltaY-posY); dimY=dimY*dimY;
  unsigned int distance = sqrt( dimX + dimY );
 
- unsigned int width  , height ;
+ unsigned int width =0  , height =0;
  unsigned int targetWidthStep = target->width * 3;
- char * targetPixelsStart   = target->pixels + ( (posX*3) + posY * targetWidthStep );
+ char * targetPixelsStart   = (char*) target->pixels + ( (posX*3) + posY * targetWidthStep );
  char * targetPixelsLineEnd = targetPixelsStart + (width*3);
  char * targetPixelsEnd     = targetPixelsLineEnd + ((height-1) * targetWidthStep );
  char * targetPixels = targetPixelsStart;
 
  struct Image * copy = copyImage(target);
  destroyImage(copy);
-
+ return 1;
 }
 
 
@@ -53,8 +55,6 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
  if (target==0)  { return 0; }
  if (target->pixels==0)  { return 0; }
 
- //struct Image * copy = copyImage(target);
-
  float scale=1.0;
  unsigned int randThree= 1+ rand()%3;
  unsigned int randTwo= 1+ rand()%2;
@@ -63,22 +63,20 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
  unsigned int i=0;
  for (i=0; i<(target->width*scale); i++)
  {
-  bitBltImage(target, i-1 , sin(k+i/xp)  * scale * amplitudeX ,
-              target , i, 0 , 1  , target->height * scale);
+  bitBltImage(target, i-1 , (unsigned int) sin(k+i/xp)  * scale * amplitudeX ,
+              target , i, 0 , 1  , (unsigned int) target->height * scale);
  }
 
 
- unsigned int yp = scale * periodY * randThree;
+ unsigned int yp = scale * periodY * randTwo;
  k= rand()%100;
  for (i=0; i<(target->height*scale); i++)
  {
-  bitBltImage(target, sin(k+i/yp)  * scale * amplitudeY , i-1 ,
-              target , 0 , i , target->width * scale , 1 );
+  bitBltImage(target, (unsigned int) sin(k+i/yp)  * scale * amplitudeY , i-1 ,
+              target , 0 , i , (unsigned int) target->width * scale , 1 );
  }
 
-
-// destroyImage(copy);
-
+ return 1;
 }
 
 /*

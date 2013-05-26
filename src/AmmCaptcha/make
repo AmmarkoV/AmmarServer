@@ -15,13 +15,14 @@ fi
 # -O3 -fexpensive-optimizations
 CFLAGS="-s"
 
-PARTS_OF_LIB="main.o imaging.o jpgInput.o img_warp.o "
+PARTS_OF_LIB="main.o imaging.o jpgInput.o img_warp.o hashmap.o"
 gcc -c $CFLAGS main.c -o main.o 
 gcc -c $CFLAGS imaging.c -o imaging.o 
 gcc -c $CFLAGS jpgInput.c -o jpgInput.o 
 gcc -c $CFLAGS img_warp.c -o img_warp.o 
+gcc -c $CFLAGS ../AmmServerlib/hashmap/hashmap.c -o hashmap.o 
 
-gcc -shared main.c imaging.c jpgInput.c img_warp.c -fPIC -L. -ljpeg -o $SOLIBNAME
+gcc -shared main.c imaging.c jpgInput.c img_warp.c ../AmmServerlib/hashmap/hashmap.c -fPIC -L. -ljpeg -o $SOLIBNAME
 
 ar  rcs $LIBNAME $PARTS_OF_LIB
 

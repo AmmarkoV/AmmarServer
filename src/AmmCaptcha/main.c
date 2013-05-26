@@ -132,6 +132,7 @@ int testAmmCaptcha()
 
 
     RenderString(captcha,&fontRAW, 10 ,  20, "AmmarServer FTW");
+    coolPHPWave(captcha, 11,12,5,14);
 
    /*
     RenderString(captcha,&fontRAW, 0 ,  30, "abcdefghijklmnopqrstuvwxyz");

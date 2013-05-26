@@ -57,22 +57,43 @@ int destroyImage(struct Image * source)
 int bitBltImage(struct Image * target , unsigned int targetX,unsigned int targetY ,
                 struct Image * source , unsigned int sourceX,unsigned int sourceY ,  unsigned int width , unsigned int height )
 {
+ fprintf(stderr,"bitBlt!(src %u,%u , target %u,%u  , width %u , height %u )\n",sourceX,sourceY,targetX,targetY,width,height);
+
+ //Check Images are initialized
  if ( (target==0)||(source==0) ) { return 0; }
  if ( (target->pixels==0)||(source->pixels==0) ) { return 0; }
 
+ //Check Coordinates for src / target are not out of bounds
+ if ( (targetX>=target->width)|| (targetY>=target->height) ) { return 0; }
+ if ( (sourceX>=source->width)|| (sourceY>=source->height) ) { return 0; }
+
+ //Check width , height and scale it accordingly
+ if ( (width==0)||(height==0) ) { return 0; }
+
+ if (targetX+width>=target->width) { width = target->width - targetX;  }
+ if (targetY+height>=target->height) { height = target->height - targetY;  }
+
+ if (sourceX+width>=source->width) { width = source->width - sourceX;  }
+ if (sourceY+height>=source->height) { height = source->height - sourceY;  }
+
+ if ( (width==0)||(height==0) ) { return 0; }
+
+ fprintf(stderr,"bitBlt will be executed with width %u , height %u \n",width,height);
+
+
  unsigned int targetWidthStep = target->width * 3;
- char * targetPixelsStart   = target->pixels + ( (targetX*3) + targetY * targetWidthStep );
+ char * targetPixelsStart   = (char*) target->pixels + ( (targetX*3) + targetY * targetWidthStep );
  char * targetPixelsLineEnd = targetPixelsStart + (width*3);
  char * targetPixelsEnd     = targetPixelsLineEnd + ((height-1) * targetWidthStep );
  char * targetPixels = targetPixelsStart;
 
  unsigned int sourceWidthStep = source->width * 3;
- char * sourcePixelsStart   = source->pixels + ( (sourceX*3) + sourceY * sourceWidthStep);
+ char * sourcePixelsStart   = (char*) source->pixels + ( (sourceX*3) + sourceY * sourceWidthStep);
  char * sourcePixelsLineEnd = sourcePixelsStart  + (width*3);
  char * sourcePixelsEnd     = sourcePixelsLineEnd + ((height-1) * sourceWidthStep);
  char * sourcePixels = sourcePixelsStart;
 
- char * srcR, * srcG, * srcB , * tarR , * tarG , * tarB;
+ char * srcR, * srcG, * srcB;
  do
  {
    if (targetPixels>=targetPixelsLineEnd)

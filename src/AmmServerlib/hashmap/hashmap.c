@@ -246,7 +246,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
 int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val)
 {
   void * valPTRForm=0;
-  valPTRForm = val;
+  valPTRForm = (void *) val;
   return hashMap_Add(hm,key,valPTRForm,0);
 }
 
