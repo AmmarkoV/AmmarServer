@@ -41,7 +41,8 @@ int warpImage(struct Image * target , unsigned int posX,unsigned int posY , sign
 
 
 /**
- * This is the PHP script from Jose Rodriguez , currently used as a swirling mechanism , it is GPLv3 as this project :)
+ * This is a C version of the PHP script from Jose Rodriguez ,
+ * currently used as a swirling mechanism , it is GPLv3 as this project :)
  *
  * @author  Jose Rodriguez <jose.rodriguez@exec.cl>
  * @license GPLv3
@@ -87,37 +88,4 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
 
  return 1;
 }
-
-/*
-
-    public $Yperiod    = 12;
-    public $Yamplitude = 14;
-    public $Xperiod    = 11;
-    public $Xamplitude = 5;
-   FROM -> cool-php-captcha-0.3.1
-//bool imagecopy ( resource $dst_im , resource $src_im , int $dst_x , int $dst_y , int $src_x , int $src_y , int $src_w , int $src_h )
-
-    protected function WaveImage() {
-        // X-axis wave generation
-        $xp = $this->scale*$this->Xperiod*rand(1,3);
-        $k = rand(0, 100);
-        for ($i = 0; $i < ($this->width*$this->scale); $i++) {
-            imagecopy($this->im, $this->im,
-                $i-1, sin($k+$i/$xp) * ($this->scale*$this->Xamplitude),
-                $i, 0, 1, $this->height*$this->scale);
-        }
-
-        // Y-axis wave generation
-        $k = rand(0, 100);
-        $yp = $this->scale*$this->Yperiod*rand(1,2);
-        for ($i = 0; $i < ($this->height*$this->scale); $i++) {
-            imagecopy($this->im, $this->im,
-                sin($k+$i/$yp) * ($this->scale*$this->Yamplitude), $i-1,
-                0, $i, $this->width*$this->scale, 1);
-        }
-    }
-
-
-
-
-*/
+ 
