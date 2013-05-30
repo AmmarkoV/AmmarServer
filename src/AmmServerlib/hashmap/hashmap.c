@@ -180,7 +180,6 @@ int hashMap_Sort(struct hashMap * hm)
 }
 
 
-
 int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength)
 {
   if (!hashMap_IsOK(hm)) { return 0; }
@@ -267,6 +266,22 @@ int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index)
     ++i;
   }
   return 0;
+}
+
+
+int hashmap_SwapRecords(struct hashMap * hm , unsigned int index1,unsigned int index2)
+{
+  if (!hashMap_IsOK(hm)) { return 0;}
+  if (index1 >= hm->curNumberOfEntries ) { return 0; }
+  if (index2 >= hm->curNumberOfEntries ) { return 0; }
+
+  struct hashMapEntry * buf= (struct hashMapEntry *) malloc(sizeof(struct hashMapEntry));
+  if (buf==0) { return 0; }
+  memcpy(buf,                   &hm->entries[index1] , sizeof(struct hashMapEntry));
+  memcpy(&hm->entries[index1] , &hm->entries[index2] , sizeof(struct hashMapEntry));
+  memcpy(&hm->entries[index2] , buf                 , sizeof(struct hashMapEntry));
+  free(buf);
+  return 1;
 }
 
 

@@ -45,6 +45,9 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 {
    if ( strcmp(reply,hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID))) == 0 )
    {
+     //We have a winner!! , Lets make this captchaID invalid!
+     unsigned int randomString = rand()%hashMap_GetCurrentNumberOfEntries(captchaStrings);
+     hashmap_SwapRecords(captchaStrings,convertExternalIDToInternal(captchaID),randomString);
      return 1;
    }
    return 0;
