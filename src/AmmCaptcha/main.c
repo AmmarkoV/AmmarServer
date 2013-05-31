@@ -6,6 +6,12 @@
 #include "img_warp.h"
 #include "jpgInput.h"
 
+//Difficulty For Crackers ++ , DDOS Problems ++
+#define RANDOMIZE_AFTER_FAILED_ATTEMPT 1
+//This is "potentially dangerous" for a DDos attack that might constantly invalidate captchaIDs
+//changing the actual IDs for  2/32889 every time
+
+
 #include "../AmmServerlib/hashmap/hashmap.h"
 
 unsigned int fontX = 19 , fontY = 22;
@@ -50,6 +56,12 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
      hashmap_SwapRecords(captchaStrings,convertExternalIDToInternal(captchaID),randomString);
      return 1;
    }
+
+   #if RANDOMIZE_AFTER_FAILED_ATTEMPT
+     unsigned int randomString = rand()%hashMap_GetCurrentNumberOfEntries(captchaStrings);
+     hashmap_SwapRecords(captchaStrings,convertExternalIDToInternal(captchaID),randomString);
+   #endif // RANDOMIZE_AFTER_FAILED_ATTEMPT
+
    return 0;
 }
 
