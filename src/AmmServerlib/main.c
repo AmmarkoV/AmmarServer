@@ -192,11 +192,11 @@ int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmS
 
 int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback,unsigned int scenario)
 {
-   if ( context->content!=0 ) { fprintf(stderr,"Context in AmmServer_AddResourceHandler for %s appears to have an already initialized memory part\n",resource_name); }
+   if ( context->requestContext.content!=0 ) { fprintf(stderr,"Context in AmmServer_AddResourceHandler for %s appears to have an already initialized memory part\n",resource_name); }
    memset(context,0,sizeof(struct AmmServer_RH_Context));
    strncpy(context->web_root_path,web_root,MAX_FILE_PATH);
    strncpy(context->resource_name,resource_name,MAX_RESOURCE);
-   context->MAX_content_size=allocate_mem_bytes;
+   context->requestContext.MAX_content_size=allocate_mem_bytes;
    context->prepare_content_callback=callback;
    context->callback_every_x_msec=callback_every_x_msec;
    context->last_callback=0; //This is important because a random value here will screw up things with callback_every_x_msec..
@@ -205,7 +205,7 @@ int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct Amm
 
    if ( allocate_mem_bytes>0 )
     {
-       context->content = (char*) malloc( sizeof(char) * allocate_mem_bytes );
+       context->requestContext.content = (char*) malloc( sizeof(char) * allocate_mem_bytes );
     }
   return cache_AddMemoryBlock(instance,context);
 }
@@ -262,27 +262,27 @@ int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_typ
 }
 
 
-int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequestContext * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-  if  (  ( context->POST_request !=0 ) && ( context->POST_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
+  if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
    {
-     return StripVariableFromGETorPOSTString(context->POST_request,var_id_IN,var_value_OUT,max_var_value_OUT);
+     return StripVariableFromGETorPOSTString(rqst->POST_request,var_id_IN,var_value_OUT,max_var_value_OUT);
    } else
    { fprintf(stderr,"AmmServer_POSTArg failed , called with incorrect parameters..\n"); }
   return 0;
 }
 
-int AmmServer_GETArg(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_GETArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequestContext * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-  if  (  ( context->GET_request !=0 ) && ( context->GET_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
+  if  (  ( rqst->GET_request !=0 ) && ( rqst->GET_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
    {
-     return StripVariableFromGETorPOSTString(context->GET_request,var_id_IN,var_value_OUT,max_var_value_OUT);
+     return StripVariableFromGETorPOSTString(rqst->GET_request,var_id_IN,var_value_OUT,max_var_value_OUT);
    } else
    { fprintf(stderr,"AmmServer_GETArg failed , called with incorrect parameters..\n"); }
   return 0;
 }
 
-int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequestContext * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   fprintf(stderr,"AmmServer_FILES failed , called with incorrect parameters..\n");
   return 0;
@@ -290,19 +290,19 @@ int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_RH_Con
 
 /*User friendly aliases of the above calls.. :P */
 
-int _POST(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _POST(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequestContext * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_POSTArg(instance,context,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_POSTArg(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
-int _GET(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequestContext * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_GETArg(instance,context,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_GETArg(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
-int _FILES(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequestContext * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_FILES(instance,context,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_FILES(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
 

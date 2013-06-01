@@ -426,52 +426,52 @@ int LoadMyURLDBFile(char * filename)
 */
 
 //This function prepares the content of  the url creator context
-void * serve_error_url_page(char * content)
+void * serve_error_url_page(struct AmmServer_DynamicRequestContext  * rqst)
 {
-  memset(content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
-  sprintf(content,"<html><head><body><center><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></center></body></html>",service_root_withoutfilename);
-  error_url.content_size=strlen(content);
-  content[error_url.content_size]=0;
+  memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
+  sprintf(rqst->content,"<html><head><body><center><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></center></body></html>",service_root_withoutfilename);
+  rqst->content_size=strlen(rqst->content);
+  rqst->content[rqst->content_size]=0;
   return 0;
 }
 
 //This overrides serves back the captcha using AmmCaptch!
-void * serve_captcha_page(char * content)
+void * serve_captcha_page(struct AmmServer_DynamicRequestContext  * rqst)
 {
   #if ENABLE_CAPTCHA_SYSTEM
   char captchaIDStr[MAX_LONG_URL_SIZE]={0};
   if ( _GET(myurl_server,&captcha_url,"id",captchaIDStr,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaIDStr); }
   unsigned int captchaID = atoi(captchaIDStr);
 
-  captcha_url.content_size=captcha_url.MAX_content_size;
-  AmmCaptcha_getCaptchaFrame(captchaID,content,&captcha_url.content_size);
+  rqst->content_size=rqst->MAX_content_size;
+  AmmCaptcha_getCaptchaFrame(captchaID,rqst->content,&rqst->content_size);
   #endif
   return 0;
 }
 
 
 //This function prepares the content of  the url creator context
-void * serve_create_url_page(char * content)
+void * serve_create_url_page(struct AmmServer_DynamicRequestContext  * rqst)
 {
-  strncpy(content,indexPage,indexPageLength);
-  content[indexPageLength]=0;
-  create_url.content_size=indexPageLength;
+  strncpy(rqst->content,indexPage,indexPageLength);
+  rqst->content[indexPageLength]=0;
+  rqst->content_size=indexPageLength;
 
   char val[132]={0};
   sprintf(val , "%u",loaded_links);
-  AmmServer_ReplaceVarInMemoryFile(content,indexPageLength,"$NUMBER_OF_LINKS$",val);
+  AmmServer_ReplaceVarInMemoryFile(rqst->content,indexPageLength,"$NUMBER_OF_LINKS$",val);
 
   return 0;
 }
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * serve_goto_url_page(char * content)
+void * serve_goto_url_page(struct AmmServer_DynamicRequestContext  * rqst)
 {
   //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
-  memset(content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
+  memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
 
-  if  ( goto_url.GET_request != 0 )
+  if  ( rqst->GET_request != 0 )
     {
         char url[MAX_LONG_URL_SIZE]={0};
         char to[MAX_TO_SIZE]={0};
@@ -481,48 +481,48 @@ void * serve_goto_url_page(char * content)
         if ( _GET(myurl_server,&goto_url,"url",url,MAX_LONG_URL_SIZE) )
              {
                #if ENABLE_CAPTCHA_SYSTEM
-               if ( _GET(myurl_server,&goto_url,"captchaID",captchaIDStr,MAX_LONG_URL_SIZE) )
+               if ( _GET(myurl_server,rqst,"captchaID",captchaIDStr,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha ID submited %s \n",captchaIDStr); }
-               if ( _GET(myurl_server,&goto_url,"captcha",captchaReply,MAX_LONG_URL_SIZE) )
+               if ( _GET(myurl_server,rqst,"captcha",captchaReply,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha submited %s \n",captchaReply); }
 
                unsigned int captchaID = atoi(captchaIDStr);
                if ( ! AmmCaptcha_isReplyCorrect(captchaID , captchaReply) )
                 {
-                 strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>");
+                 strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>");
                 } else
                #endif
 
-               if ( _GET(myurl_server,&goto_url,"to",to,MAX_TO_SIZE) )
+               if ( _GET(myurl_server,rqst,"to",to,MAX_TO_SIZE) )
                 {
                   //Assigning a (short)to to a (long)url
                   if ( (is_an_unsafe_str(to,strlen(to))) || (is_an_unsafe_str(url,strlen(url)) ) ) //There should be an internal length of the get argument instead of strlen!
                     {
-                      sprintf(content,"<html><body>Bad Strings provided..</body></html>");
+                      sprintf(rqst->content,"<html><body>Bad Strings provided..</body></html>");
                     } else
                     {
                       Add_MyURL(url,to,1 /*We want to save it to disk..!*/);
-                      sprintf(content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready \
+                      sprintf(rqst->content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready \
                               <a target=\"_new\" href=\"%s%s\">%s%s</a> \
                               <br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root_withoutfilename,to,service_root_withoutfilename, to);
                     }
                 } else
                 {
                  //No Point in a url without a to , here we could probably generate a random to !
-                 strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Error creating a new url</h2></body></html>");
+                 strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Error creating a new url</h2></body></html>");
                 }
              } else
          //If only to is set it means we have ourselves somewhere to go to!
-         if ( _GET(myurl_server,&goto_url,"to",to,MAX_TO_SIZE) )
+         if ( _GET(myurl_server,rqst,"to",to,MAX_TO_SIZE) )
              {
-                sprintf(content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_longURL(to));
+                sprintf(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_longURL(to));
              }
     } else
     {
-      strcpy(content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to go to .. </body></html>");
+      strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to go to .. </body></html>");
     }
 
-  goto_url.content_size=strlen(content);
+  rqst->content_size=strlen(rqst->content);
   return 0;
 }
 

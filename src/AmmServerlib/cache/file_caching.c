@@ -312,8 +312,8 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
   if (! cache_CreateResource(instance,full_filename,&index) ) { return 0; }
 
   cache[index].context = context;
-  cache[index].mem = context->content;
-  cache[index].filesize = &context->content_size;
+  cache[index].mem = context->requestContext.content;
+  cache[index].filesize = &context->requestContext.content_size;
   cache[index].compressed_mem_filesize=0;
   cache[index].compressed_mem=0;
 
@@ -387,8 +387,8 @@ int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index
 
 int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
-       context->MAX_content_size=0;
-       if ((free_mem)&&(context->content!=0)) { free(context->content); context->content=0; }
+       context->requestContext.MAX_content_size=0;
+       if ((free_mem)&&(context->requestContext.content!=0)) { free(context->requestContext.content); context->requestContext.content=0; }
 
        unsigned int index;
        if (!cache_FindResource(instance,context->resource_name,&index) )
@@ -561,7 +561,7 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
                    //one common memory buffer for every client...!
                    if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) && (ENABLE_SEPERATE_MALLOC_FOR_CHANGING_DYNAMIC_PAGES) )
                       {
-                        unsigned int size_to_allocate =  sizeof(char) * ( shared_context->MAX_content_size ) ;
+                        unsigned int size_to_allocate =  sizeof(char) * ( shared_context->requestContext.MAX_content_size ) ;
 
                         if (size_to_allocate==0)
                          {
@@ -586,13 +586,13 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
 
 
                    /*If we have GET or POST request variables , lets pass them through to our shared context.. */
-                   shared_context->GET_request = request->GETquery;
-                   if (shared_context->GET_request!=0) { shared_context->GET_request_length = strlen(shared_context->GET_request); } else
-                                                        { shared_context->GET_request_length = 0; }
+                   shared_context->requestContext.GET_request = request->GETquery;
+                   if (shared_context->requestContext.GET_request!=0) { shared_context->requestContext.GET_request_length = strlen(shared_context->requestContext.GET_request); } else
+                                                        { shared_context->requestContext.GET_request_length = 0; }
 
-                   shared_context->POST_request = request->POSTquery;
-                   if (shared_context->POST_request!=0) { shared_context->POST_request_length = strlen(shared_context->POST_request); } else
-                                                         { shared_context->POST_request_length = 0; }
+                   shared_context->requestContext.POST_request = request->POSTquery;
+                   if (shared_context->requestContext.POST_request!=0) { shared_context->requestContext.POST_request_length = strlen(shared_context->requestContext.POST_request); } else
+                                                         { shared_context->requestContext.POST_request_length = 0; }
 
                    //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                    DoCallback(cache_memory);

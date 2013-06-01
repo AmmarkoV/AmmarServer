@@ -113,33 +113,33 @@ void replaceChar(char * input , char findChar , char replaceWith)
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_index_content_callback(char * content)
+void * prepare_index_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strcpy(content,"<html><head><title>Welcome</title>\
+  strcpy(rqst->content,"<html><head><title>Welcome</title>\
                   <body><center><br><br><br>\
                    <h1>The incredibly minimal WebInterface for Hobbit</h1><br><br>\
                    <h3><a href=\"controlpanel.html\">Click Here to open Control Panel</a></h3>\
                    <h3><a href=\"stats.html\">Click Here for stats (not ready yet)</a></h3>\
                    </body></html> ");
-  indexPage.content_size=strlen(content);
+  rqst->content_size=strlen(rqst->content);
   return 0;
 }
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(char * content)
+void * prepare_stats_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
+  sprintf(rqst->content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
                     tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-  strcat(content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
-  strcat(content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
-  strcat(content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
-  strcat(content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
-  stats.content_size=strlen(content);
+  strcat(rqst->content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
+  strcat(rqst->content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
+  strcat(rqst->content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
+  strcat(rqst->content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
+  rqst->content_size=strlen(rqst->content);
   return 0;
 }
 
@@ -281,16 +281,16 @@ void execute(char * command,char * param)
 
 
 //This function prepares the content of  form context , ( content )
-void * prepare_form_content_callback(char * content)
+void * prepare_form_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
 {
-  strncpy(content,page,pageLength);
-  content[pageLength]=0;
-  form.content_size=pageLength;
+  strncpy(rqst->content,page,pageLength);
+  rqst->content[pageLength]=0;
+  rqst->content_size=pageLength;
 
 
-  if  ( form.GET_request != 0 )
+  if  ( rqst->GET_request != 0 )
     {
-      if ( strlen(form.GET_request)>0 )
+      if ( strlen(rqst->GET_request)>0 )
        {
          char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
          if (bufferCommand!=0)

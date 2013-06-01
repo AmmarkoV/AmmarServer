@@ -98,13 +98,13 @@ unsigned int StringIsHTMLSafe(char * str)
 
 
 
-void * prepare_chatbox_content_callback(char * content)
+void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(content,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=700 height=500>This Browser does not support frames</iframe><br><hr><br>");
+  sprintf(rqst->content,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=700 height=500>This Browser does not support frames</iframe><br><hr><br>");
 
 
   char chatlog_path[MAX_FILE_PATH]={0};
@@ -113,9 +113,9 @@ void * prepare_chatbox_content_callback(char * content)
 
    unsigned int default_post_form = 1;
 
-   if ( chatbox.POST_request != 0 )
+   if ( rqst->POST_request != 0 )
     {
-      if ( strlen(chatbox.POST_request)>0 )
+      if ( strlen(rqst->POST_request)>0 )
        {
          char * username = (char *) malloc ( 256 * sizeof(char) );
          char * comment = (char *) malloc ( 1024 * sizeof(char) );
@@ -134,10 +134,10 @@ void * prepare_chatbox_content_callback(char * content)
                     fprintf(chatlog,"%s : %s <br>",username,comment);
                     fclose(chatlog);
 
-                    strcat(content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
-                    strcat(content,"  Username: <input type=\"text\" name=\"user\" readonly=\"readonly\" value =\"");
-                    strcat(content,username);
-                    strcat(content,"\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
+                    strcat(rqst->content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
+                    strcat(rqst->content,"  Username: <input type=\"text\" name=\"user\" readonly=\"readonly\" value =\"");
+                    strcat(rqst->content,username);
+                    strcat(rqst->content,"\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
                     default_post_form=0;
                   }
                }
@@ -151,81 +151,83 @@ void * prepare_chatbox_content_callback(char * content)
 
   if (default_post_form)
     {
-      strcat(content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
-      strcat(content,"Username: <input type=\"text\" name=\"user\" />");
-      strcat(content,"Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
+      strcat(rqst->content,"<form name=\"input\" action=\"chatbox.html\" method=\"post\">");
+      strcat(rqst->content,"Username: <input type=\"text\" name=\"user\" />");
+      strcat(rqst->content,"Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Send\" /></form><br>\n");
      }
 
-  strcat(content,"</center></body></html>");
-  chatbox.content_size=strlen(content);
+  strcat(rqst->content,"</center></body></html>");
+  rqst->content_size=strlen(rqst->content);
   return 0;
 }
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(char * content)
+void * prepare_stats_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
+  sprintf(rqst->content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
                     tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-  strcat(content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
-  strcat(content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L46\">Dynamic content code label in ammarserver main.c</a><br>\n");
-  strcat(content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
-  strcat(content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
-  stats.content_size=strlen(content);
+  strcat(rqst->content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
+  strcat(rqst->content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L46\">Dynamic content code label in ammarserver main.c</a><br>\n");
+  strcat(rqst->content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
+  strcat(rqst->content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
+  rqst->content_size=strlen(rqst->content);
   return 0;
 }
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * prepare_random_content_callback(char * content)
+void * prepare_random_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strcpy(content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>");
+  strcpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>");
 
   char hex[10]={0};
   unsigned int i=0;
   for (i=0; i<1024; i++)
     {
         sprintf(hex, "%x ", rand()%256 );
-        strcat(content,hex);
+        strcat(rqst->content,hex);
     }
 
-  strcat(content,"</body></html>");
+  strcat(rqst->content,"</body></html>");
 
-  random_chars.content_size=strlen(content);
+  rqst->content_size=strlen(rqst->content);
   return 0;
 }
 
 
 
 //This function prepares the content of  form context , ( content )
-void * prepare_form_content_callback(char * content)
+void * prepare_form_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
 {
 
-  strcpy(content,"<html><body>");
-  strcat(content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Submit\" /></form>");
-  strcat(content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
-  strcat(content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car &nbsp; ");
-  strcat(content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form><br><br><br>");
+  strcpy(rqst->content,"<html><body>");
+  strcat(rqst->content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Submit\" /></form>");
+  strcat(rqst->content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
+  strcat(rqst->content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car &nbsp; ");
+  strcat(rqst->content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form><br><br><br>");
 
 
 
-   if ( form.POST_request != 0 )
+   if ( rqst->POST_request != 0 )
     {
-      if ( strlen(form.POST_request)>0 )
+      if ( strlen(rqst->POST_request)>0 )
        {
-         strcat(content,"<hr>POST REQUEST dynamically added here : <br><i>"); strcat(content, form.POST_request); strcat(content,"</i><hr>");
+         strcat(rqst->content,"<hr>POST REQUEST dynamically added here : <br><i>");
+         strcat(rqst->content, rqst->POST_request);
+         strcat(rqst->content,"</i><hr>");
 
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
             if ( _POST(default_server,&form,"user",username,256) )
              {
-               strcat(content,"GOT A POST USERNAME !!!  : "); strcat(content,username); strcat(content," ! ! <br>");
+               strcat(rqst->content,"GOT A POST USERNAME !!!  : "); strcat(rqst->content,username); strcat(rqst->content," ! ! <br>");
              }
             free(username);
           }
@@ -233,18 +235,18 @@ void * prepare_form_content_callback(char * content)
     }
 
 
-  if  ( form.GET_request != 0 )
+  if  ( rqst->GET_request != 0 )
     {
-      if ( strlen(form.GET_request)>0 )
+      if ( strlen(rqst->GET_request)>0 )
        {
-         strcat(content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(content, form.GET_request ); strcat(content,"</i><hr>");
+         strcat(rqst->content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(rqst->content, rqst->GET_request ); strcat(rqst->content,"</i><hr>");
 
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
             if ( _GET(default_server,&form,"user",username,256) )
              {
-               strcat(content,"GOT A GET USERNAME !!!  : "); strcat(content,username); strcat(content," ! ! <br>");
+               strcat(rqst->content,"GOT A GET USERNAME !!!  : "); strcat(rqst->content,username); strcat(rqst->content," ! ! <br>");
              }
             free(username);
           }
@@ -252,10 +254,10 @@ void * prepare_form_content_callback(char * content)
     }
 
 
-  strcat(content,"</body></html>");
+  strcat(rqst->content,"</body></html>");
 
 
-  form.content_size=strlen(content);
+  rqst->content_size=strlen(rqst->content);
   return 0;
 }
 
