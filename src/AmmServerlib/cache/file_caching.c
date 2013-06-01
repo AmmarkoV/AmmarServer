@@ -602,6 +602,7 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
                      rqst->content=cache_memory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                      DoCallback(rqst);
+                     *filesize = rqst->content_size;
                      free(rqst);
                     }
 
