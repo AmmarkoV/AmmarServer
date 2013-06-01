@@ -144,6 +144,34 @@ void * ServeClient(void * ptr)
   fprintf(stderr,"ServeClient instance pointing @ %p \n",instance);
 
 
+  //Lets find out who we are talking to , and if we want to deny him service or not..!
+  socklen_t len=0;
+  struct sockaddr_storage addr;
+  char ipstr[INET6_ADDRSTRLEN]; ipstr[0]=0;
+  int port=0;
+
+  len = sizeof addr;
+  if ( getpeername(context->clientsock, (struct sockaddr*)&addr, &len) == 0 )
+ {
+  // deal with both IPv4 and IPv6:
+  if (addr.ss_family == AF_INET)
+  {
+    struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+    port = ntohs(s->sin_port);
+    inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
+  } else
+  { // AF_INET6
+    struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+    port = ntohs(s->sin6_port);
+    inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
+  }
+  fprintf(stderr,"Peer IP address: %s , port %d \n", ipstr,port);
+ } else
+ {
+   warning("Could not get peer name..!"); //This could be a reason to drop this connection!
+ }
+
+
   //Now the real fun starts :P <- helpful comment
   clientID client_id=clientList_GetClientId(instance->clientList,"0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
   if ( clientList_isClientBanned(instance->clientList,client_id) )
