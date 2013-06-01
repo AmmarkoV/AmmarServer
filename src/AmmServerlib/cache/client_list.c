@@ -1,7 +1,12 @@
 #include "client_list.h"
+#include "../hashmap/hashmap.h"
+
 #include <stdio.h>
 
-unsigned int GetClientId(char * ip)
+#define COMPILE_WITH_CLIENT_LIST 1
+struct hashMap * userList=0;
+
+unsigned int clientList_GetClientId(char * ip)
 {
   #if COMPILE_WITH_CLIENT_LIST
    fprintf(stderr,"GetClientId(%s) not implemented\n",ip);
@@ -11,8 +16,7 @@ unsigned int GetClientId(char * ip)
   #endif
 }
 
-
-int ClientIsBanned(unsigned int client_id)
+int clientList_isClientBanned(clientID client_id)
 {
   #if COMPILE_WITH_CLIENT_LIST
    fprintf(stderr,"ClientIsBanned(%u) not implemented\n",client_id);
@@ -22,8 +26,7 @@ int ClientIsBanned(unsigned int client_id)
   #endif
 }
 
-
-int AllowClientToUseResource(unsigned int client_id,char * resource)
+int clientList_isClientAllowedToUseResource(clientID client_id,char * resource)
 {
   #if COMPILE_WITH_CLIENT_LIST
   fprintf(stderr,"AllowClientToUseResource(%u,%s) not implemented\n",client_id,resource);
@@ -34,7 +37,7 @@ int AllowClientToUseResource(unsigned int client_id,char * resource)
 }
 
 
-int ClientStoppedUsingResource(unsigned int client_id,char * resource)
+int clientList_signalClientStoppedUsingResource(clientID client_id,char * resource)
 {
   #if COMPILE_WITH_CLIENT_LIST
    fprintf(stderr,"ClientStoppedUsingResource(%u,%s) not implemented\n",client_id,resource);
@@ -43,3 +46,24 @@ int ClientStoppedUsingResource(unsigned int client_id,char * resource)
    return 1;
   #endif // COMPILE_WITH_CLIENT_LIST
 }
+
+
+int clientList_initialize()
+{
+  #if COMPILE_WITH_CLIENT_LIST
+   return 1;
+  #else
+   return 1;
+  #endif // COMPILE_WITH_CLIENT_LIST
+}
+
+
+int clientList_close()
+{
+  #if COMPILE_WITH_CLIENT_LIST
+   return 1;
+  #else
+   return 1;
+  #endif // COMPILE_WITH_CLIENT_LIST
+}
+
