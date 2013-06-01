@@ -306,6 +306,13 @@ int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequestC
 }
 
 
+int AmmServer_SignalCountAsBadRequest(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequestContext * rqst)
+{
+
+   return 0;
+}
+
+
 /*
 The following calls are not implemented yet
 
