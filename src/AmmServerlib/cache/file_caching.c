@@ -581,7 +581,7 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
                    /*Do callback here*/
                    shared_context->callback_cooldown=0;
                    shared_context->last_callback = now;
-                   void ( *DoCallback) ( char * )=0 ;
+                   void ( *DoCallback) ( struct AmmServer_DynamicRequestContext * )=0 ;
                    DoCallback = cache[*index].prepare_mem_callback;
 
 
@@ -594,8 +594,18 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
                    if (shared_context->requestContext.POST_request!=0) { shared_context->requestContext.POST_request_length = strlen(shared_context->requestContext.POST_request); } else
                                                          { shared_context->requestContext.POST_request_length = 0; }
 
-                   //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
-                   DoCallback(cache_memory);
+
+                   struct AmmServer_DynamicRequestContext * rqst = (struct AmmServer_DynamicRequestContext * ) malloc(sizeof(struct AmmServer_DynamicRequestContext));
+                   if (rqst!=0)
+                    {
+                     memcpy(rqst->content , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequestContext ));
+                     rqst->content=cache_memory;
+                     //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
+                     DoCallback(rqst);
+                     free(rqst);
+                    }
+
+
                   //This means we can call the callback to prepare the memory content..! END
                    CreateCompressedVersionofDynamicContent(instance,*index);
                 }
