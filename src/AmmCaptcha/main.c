@@ -68,7 +68,7 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
   struct Image * captcha = createImage(300,70,3);
-  RenderString(captcha,&fontRAW, 10 ,  20, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
+  RenderString(captcha,&fontRAW, 0 + rand()%200 ,  rand()%40, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
 
   //Apply Swirling effect!
   coolPHPWave(captcha, 11,12,5,14);
