@@ -75,30 +75,36 @@ enum RHScenarios
 };
 
 
-struct AmmServer_RH_Context
+struct AmmServer_DynamicRequestContext
 {
-
-   unsigned int RH_Scenario;
-
-
-   unsigned long MAX_content_size;
-   unsigned long content_size;
-
-   unsigned int last_callback;
-   unsigned int callback_every_x_msec;
-   char callback_cooldown;
-   void * prepare_content_callback;
-
-   char web_root_path[MAX_FILE_PATH];
-   char resource_name[MAX_RESOURCE];
-
    char * content;
+   unsigned long content_size;
+   unsigned long MAX_content_size;
 
    char * GET_request;
    unsigned int GET_request_length;
 
    char * POST_request;
    unsigned int POST_request_length;
+
+};
+
+
+struct AmmServer_RH_Context
+{
+
+   unsigned int RH_Scenario;
+
+   unsigned int last_callback;
+   unsigned int callback_every_x_msec;
+   char callback_cooldown;
+
+   void * prepare_content_callback;
+
+   char web_root_path[MAX_FILE_PATH];
+   char resource_name[MAX_RESOURCE];
+
+   struct AmmServer_DynamicRequestContext requestContext;
 };
 
 
