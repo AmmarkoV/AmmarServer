@@ -145,8 +145,8 @@ void * ServeClient(void * ptr)
 
 
   //Now the real fun starts :P <- helpful comment
-  clientID client_id=clientList_GetClientId("0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
-  if ( clientList_isClientBanned(client_id) )
+  clientID client_id=clientList_GetClientId(instance->clientList,"0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
+  if ( clientList_isClientBanned(instance->clientList,client_id) )
   {
          SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
   } else
@@ -226,7 +226,7 @@ void * ServeClient(void * ptr)
       close_connection=1;
    }
       else
-   if (!clientList_isClientAllowedToUseResource(client_id,output.resource))
+   if (!clientList_isClientAllowedToUseResource(instance->clientList,client_id,output.resource))
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
@@ -466,7 +466,7 @@ void * ServeClient(void * ptr)
    } // Not a Bad request END
 
 
-    clientList_signalClientStoppedUsingResource(client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
+    clientList_signalClientStoppedUsingResource(instance->clientList,client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
     if (!FreeHTTPRequest(&output)) { fprintf(stderr,"WARNING: Could not Free HTTP request , please check FIELDS_TO_CLEAR_FROM_HTTP_REQUEST (%u).. \n",FIELDS_TO_CLEAR_FROM_HTTP_REQUEST); }
   }
 
@@ -636,7 +636,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
                                          { fprintf(stderr,"Changed priority to %i \n",CHANGE_PRIORITY); } }
   //-------------------------------------------------------------------------------------------------------------
 
-
+  instance->clientList = clientList_initialize();
 
   int retres=0;
   volatile struct PassToHTTPThread context={ { 0 } };
@@ -711,6 +711,8 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
         usleep(10000);
     }
   fprintf(stderr," .. done \n");
+
+  clientList_close(instance->clientList);
 
   return (instance->stop_server==2);
 }

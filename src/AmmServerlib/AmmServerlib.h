@@ -149,6 +149,7 @@ struct AmmServer_Instance
     void * cache; /*Actually struct cache_item * but declared as a void pointer here */
     void * cacheHashMap;
 
+    void * clientList;
     //Thread holders..
     unsigned int CLIENT_THREADS_STARTED;
     unsigned int CLIENT_THREADS_STOPPED;
