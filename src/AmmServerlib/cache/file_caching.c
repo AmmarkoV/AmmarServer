@@ -525,6 +525,10 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
            /*We want to serve a cached version of the file START*/
            if ( dynamicRequest_ContentAvailiable(instance,*index) )
            {
+             if (!dynamicRequest_serveContent(instance,request,cache[*index].context))
+             {
+               warning("Could not perform dynamicRequest_serveContent\n");
+             }
 
             //serveDynamicContent(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported,unsigned char * free_after_use)
            }

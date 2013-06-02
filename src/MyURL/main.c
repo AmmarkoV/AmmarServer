@@ -440,7 +440,7 @@ void * serve_captcha_page(struct AmmServer_DynamicRequestContext  * rqst)
 {
   #if ENABLE_CAPTCHA_SYSTEM
   char captchaIDStr[MAX_LONG_URL_SIZE]={0};
-  if ( _GET(myurl_server,&captcha_url,"id",captchaIDStr,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaIDStr); }
+  if ( _GET(myurl_server,rqst,"id",captchaIDStr,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaIDStr); }
   unsigned int captchaID = atoi(captchaIDStr);
 
   rqst->content_size=rqst->MAX_content_size;

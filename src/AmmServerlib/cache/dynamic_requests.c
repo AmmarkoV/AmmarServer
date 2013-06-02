@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dynamic_requests.h"
 #include "file_caching.h"
 
@@ -10,18 +13,46 @@ int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsig
 char * dynamicRequest_serveContent
            (struct AmmServer_Instance * instance,
             struct HTTPRequest * request,
-            int test
+            struct AmmServer_RH_Context * shared_context
           )
 {
-    /*
   struct cache_item * cache = (struct cache_item *) instance->cache;
-             //Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
-             //if cache[*index].prepare_mem_callback is set then it means we will have to call it first to load data in cache[*index].mem
-             if (cache[*index].prepare_mem_callback!=0)
-              {
-                //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
-                //So we bail out and emmit an error message..!
-                if ( (cache_memory==0) || (cache[*index].filesize==0) )
+
+
+  //Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
+
+
+  if (shared_context->prepare_content_callback==0)
+  {
+    fprintf(stderr,"No dynamic request content registered\n");
+    return 0;
+  }
+
+  //if cache[*index].prepare_mem_callback is set then it means we will have to call it first to load data in cache[*index].mem
+
+/*
+  //Before doing callback we might want to allocate a different response space dedicated to this callback instead to using
+  //one common memory buffer for every client...!
+  if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) && (ENABLE_SEPERATE_MALLOC_FOR_CHANGING_DYNAMIC_PAGES) )
+                      {
+                        unsigned int size_to_allocate =  sizeof(char) * ( shared_context->requestContext.MAX_content_size ) ;
+
+                        if (size_to_allocate==0)
+                         {
+                          fprintf(stderr,"BUG : We should allocate additional space for this request.. Unfortunately it appears to be zero.. \n ");
+                         }
+                         else
+                         {
+                          fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
+                          cache_memory = (char *) malloc( size_to_allocate );
+                          if (cache_memory!=0) { *free_after_use=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
+                                               { cache_memory=cache[*index].mem; } //Lets work with our default buffer till the end..!
+                         }
+                       }
+
+  //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
+  //So we bail out and emmit an error message..!
+  if ( (cache_memory==0) || (cache[*index].filesize==0) )
                 {
                   fprintf(stderr,"Not going to call callback function with an empty buffer..!\n");
                 } else
@@ -49,24 +80,7 @@ char * dynamicRequest_serveContent
                    }
 
 
-                   //Before doing callback we might want to allocate a different response space dedicated to this callback instead to using
-                   //one common memory buffer for every client...!
-                   if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) && (ENABLE_SEPERATE_MALLOC_FOR_CHANGING_DYNAMIC_PAGES) )
-                      {
-                        unsigned int size_to_allocate =  sizeof(char) * ( shared_context->requestContext.MAX_content_size ) ;
 
-                        if (size_to_allocate==0)
-                         {
-                          fprintf(stderr,"BUG : We should allocate additional space for this request.. Unfortunately it appears to be zero.. \n ");
-                         }
-                         else
-                         {
-                          fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
-                          cache_memory = (char *) malloc( size_to_allocate );
-                          if (cache_memory!=0) { *free_after_use=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
-                                               { cache_memory=cache[*index].mem; } //Lets work with our default buffer till the end..!
-                         }
-                       }
 
 
 

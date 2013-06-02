@@ -295,9 +295,9 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequestContext  * r
          char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
          if (bufferCommand!=0)
           {
-            if ( _GET(default_server,&form,"head",bufferCommand,256) )  { execute("head",bufferCommand);  } else
-            if ( _GET(default_server,&form,"hand",bufferCommand,256) )  { execute("hand",bufferCommand);  } else
-            if ( _GET(default_server,&form,"body",bufferCommand,256) )
+            if ( _GET(default_server,rqst,"head",bufferCommand,256) )  { execute("head",bufferCommand);  } else
+            if ( _GET(default_server,rqst,"hand",bufferCommand,256) )  { execute("hand",bufferCommand);  } else
+            if ( _GET(default_server,rqst,"body",bufferCommand,256) )
                  {
                      if (strcmp(bufferCommand,"joystick")==0)
                          {
@@ -305,8 +305,8 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequestContext  * r
                              char xString[256]={0};
                              char yString[256]={0};
 
-                             if ( _GET(default_server,&form,"x",xString,256) ) { x=atof(xString); } else { AmmServer_Warning("Could not find X coord"); }
-                             if ( _GET(default_server,&form,"y",yString,256) ) { y=atof(yString); } else { AmmServer_Warning("Could not find Y coord"); }
+                             if ( _GET(default_server,rqst,"x",xString,256) ) { x=atof(xString); } else { AmmServer_Warning("Could not find X coord"); }
+                             if ( _GET(default_server,rqst,"y",yString,256) ) { y=atof(yString); } else { AmmServer_Warning("Could not find Y coord"); }
 
                              joystickExecute(x,y);
                            //Parse joystick command
@@ -315,10 +315,10 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequestContext  * r
                            execute("body",bufferCommand);
                          }
                  } else
-            if ( _GET(default_server,&form,"bring",bufferCommand,256) )  { execute("bring",bufferCommand);  } else
-            if ( _GET(default_server,&form,"robot",bufferCommand,256) ) { execute("robot",bufferCommand); } else
-            if ( _GET(default_server,&form,"rtd",bufferCommand,256) ) { execute("rtd",bufferCommand); } else
-            if ( _GET(default_server,&form,"say",bufferCommand,256) )   { execute("say",bufferCommand);   }
+            if ( _GET(default_server,rqst,"bring",bufferCommand,256) )  { execute("bring",bufferCommand);  } else
+            if ( _GET(default_server,rqst,"robot",bufferCommand,256) ) { execute("robot",bufferCommand); } else
+            if ( _GET(default_server,rqst,"rtd",bufferCommand,256) ) { execute("rtd",bufferCommand); } else
+            if ( _GET(default_server,rqst,"say",bufferCommand,256) )   { execute("say",bufferCommand);   }
 
             free(bufferCommand);
           }

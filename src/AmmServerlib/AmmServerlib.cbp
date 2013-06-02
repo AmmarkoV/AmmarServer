@@ -64,6 +64,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="cache/client_list.h" />
+		<Unit filename="cache/dynamic_requests.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cache/dynamic_requests.h" />
 		<Unit filename="cache/file_caching.c">
 			<Option compilerVar="CC" />
 		</Unit>
