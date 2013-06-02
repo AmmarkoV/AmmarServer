@@ -35,9 +35,9 @@ char * dynamicRequest_serveContent
     return 0;
   }
 
-  //if cache[*index].prepare_mem_callback is set then it means we will have to call it first to load data in cache[*index].mem
+  char * cacheMemory=0; // <- this will hold the resulting page
 
-  char * cache_memory=0;
+
   //Before doing callback we might want to allocate a different response space dedicated to this callback instead to using
   //one common memory buffer for every client...!
   if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) )
@@ -49,15 +49,15 @@ char * dynamicRequest_serveContent
      else
      {
       fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
-      cache_memory = (char *) malloc( size_to_allocate );
-      if (cache_memory!=0) { *freeContentAfterUsingIt=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
-                           { cache_memory=shared_context->requestContext.content; } //Lets work with our default buffer till the end..!
+      cacheMemory = (char *) malloc( size_to_allocate );
+      if (cacheMemory!=0) { *freeContentAfterUsingIt=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
+                           { cacheMemory=shared_context->requestContext.content; } //Lets work with our default buffer till the end..!
      }
     }
 
   //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
   //So we bail out and emmit an error message..!
-  if ( (cache_memory==0) || (shared_context->requestContext.content_size==0) )
+  if ( (cacheMemory==0) || (shared_context->requestContext.content_size==0) )
     {
      fprintf(stderr,"Not going to call callback function with an empty buffer..!\n");
     } else
@@ -82,13 +82,12 @@ char * dynamicRequest_serveContent
          *compression_supported=0;
          shared_context->callback_cooldown=1;
         // *memSize=*cache[*index].filesize;
-         return cache_memory;
+         return cacheMemory;
         } else
         {
          fprintf(stderr,"Request deserves fresh page , %u last gen, %lu now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
         }
       }
-
 
        //Do callback here
        shared_context->callback_cooldown=0;
@@ -106,12 +105,11 @@ char * dynamicRequest_serveContent
        if (shared_context->requestContext.POST_request!=0) { shared_context->requestContext.POST_request_length = strlen(shared_context->requestContext.POST_request); } else
                                                            { shared_context->requestContext.POST_request_length = 0; }
 
-
         struct AmmServer_DynamicRequest * rqst = (struct AmmServer_DynamicRequest * ) malloc(sizeof(struct AmmServer_DynamicRequest));
         if (rqst!=0)
                     {
                      memcpy(rqst->content , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
-                     rqst->content=cache_memory;
+                     rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                      warning("Callbacks , are currently broken Doing Callback\n");
                      DoCallback(rqst);
@@ -119,9 +117,8 @@ char * dynamicRequest_serveContent
                      free(rqst);
                     }
 
-
-                  //This means we can call the callback to prepare the memory content..! END
-                   CreateCompressedVersionofDynamicContent(instance,*index);
+      //This means we can call the callback to prepare the memory content..! END
+      CreateCompressedVersionofDynamicContent(instance,*index);
    }
 
 
