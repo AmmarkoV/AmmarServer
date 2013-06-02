@@ -498,50 +498,53 @@ char * cache_GetResource(
                         )
 {
  //By default we dont want to free the memory allocation after use..
-      *freeContentAfterUsingIt=0;
+ *freeContentAfterUsingIt=0;
 
-      if (instance==0) { fprintf(stderr,"Instance is not allocated..\n"); return 0;  }
+ if (instance==0) { error("Instance is not allocated..\n"); return 0;  }
+ if (request==0)  { error("Request is not allocated..\n"); return 0;  }
 
-      struct cache_item * cache = (struct cache_item *) instance->cache;
-      if (cache==0) { fprintf(stderr,"Cache is not allocated..\n"); return 0;  }
+ struct cache_item * cache = (struct cache_item *) instance->cache;
+ if (cache==0) { error("Cache is not allocated..\n"); return 0;  }
 
-      if (!CACHING_ENABLED)
-      {
-        fprintf(stderr,"Caching deactivated..!\n");
-        *compressionSupported=0;
-        return 0;
-      }
+ if (!CACHING_ENABLED)
+ {
+  fprintf(stderr,"Caching deactivated..!\n");
+  *compressionSupported=0;
+  return 0;
+ }
 
+//This can be avoided by adding an index as a parameter to this function call
+if (cache_FindResource(instance,verified_filename,index))
+ {
+  //Initially we would like to work with the memory block allocated when the dynamic call
+  //was first registered..
+   char * cache_memory = cache[*index].mem;
 
-       if (cache_FindResource(instance,verified_filename,index)) //This can be avoided by adding an index as a parameter to this function call
-        {
-           //Initially we would like to work with the memory block allocated when the dynamic call
-           //was first registered..
-           char * cache_memory = cache[*index].mem;
+   //if doNOTCache is set and this is a real file..
+   fprintf(stderr,"Found Resource in our cache : \n");
+   fprintf(stderr,"index = %u\n",*index);
+   fprintf(stderr,"doNotCache = %u \n",cache[*index].doNOTCache);
+   fprintf(stderr,"mem_callback = %p \n",cache[*index].prepare_mem_callback);
 
-           //if doNOTCache is set and this is a real file..
-           fprintf(stderr,"index = %u\n",*index);
-           fprintf(stderr,"doNotCache = %u \n",cache[*index].doNOTCache);
-           fprintf(stderr,"mem_callback = %p \n",cache[*index].prepare_mem_callback);
-
-           if ((cache[*index].doNOTCache)&&(cache[*index].prepare_mem_callback==0))
-            {
-              fprintf(stderr,"We do not want to serve a cached version of this file..\n");
-              *compressionSupported=0;
-              return 0;
-            }  else
-         {
-           /*We want to serve a cached version of the file START*/
-           if ( dynamicRequest_ContentAvailiable(instance,*index) )
+   if ( (cache[*index].doNOTCache)&& //If we forbid caching
+        (cache[*index].prepare_mem_callback==0)) //And we don't have a dynamic page to load!
+    {
+     fprintf(stderr,"We do not want to serve a cached version of this file..\n");
+     *compressionSupported=0;
+     return 0;
+    }  else
+     //We are allowed to search/use the cache!
+    {
+      //We want to check if a dynamic content is availiable  for this file
+     if ( dynamicRequest_ContentAvailiable(instance,*index) )
            {
              unsigned long memSize=0;
              char * mem = dynamicRequest_serveContent(instance,request,cache[*index].context,&memSize,compressionSupported,freeContentAfterUsingIt);
              if ( (mem==0) || (memSize==0) )
              {
-               warning("Could not perform dynamicRequest_serveContent\n");
+               warning("Could not perform dynamicRequest_serveContent , hope there is a regular fallback file , or we will probably 404 \n");
+               return 0;
              }
-
-            //serveDynamicContent(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported,unsigned char * free_after_use)
            }
 
 

@@ -39,7 +39,7 @@ struct AmmServer_RH_Context stats={0};
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
+void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);

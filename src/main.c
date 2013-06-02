@@ -98,7 +98,7 @@ unsigned int StringIsHTMLSafe(char * str)
 
 
 
-void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
+void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
@@ -163,7 +163,7 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequestContext  
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
+void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
@@ -181,7 +181,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequestContext  * 
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * prepare_random_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
+void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   strcpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>");
@@ -203,7 +203,7 @@ void * prepare_random_content_callback(struct AmmServer_DynamicRequestContext  *
 
 
 //This function prepares the content of  form context , ( content )
-void * prepare_form_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
+void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
 
   strcpy(rqst->content,"<html><body>");

@@ -113,7 +113,7 @@ void replaceChar(char * input , char findChar , char replaceWith)
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_index_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
+void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   strcpy(rqst->content,"<html><head><title>Welcome</title>\
@@ -127,7 +127,7 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequestContext  * 
 }
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
+void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
@@ -281,7 +281,7 @@ void execute(char * command,char * param)
 
 
 //This function prepares the content of  form context , ( content )
-void * prepare_form_content_callback(struct AmmServer_DynamicRequestContext  * rqst)
+void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   strncpy(rqst->content,page,pageLength);
   rqst->content[pageLength]=0;

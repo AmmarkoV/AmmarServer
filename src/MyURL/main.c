@@ -426,7 +426,7 @@ int LoadMyURLDBFile(char * filename)
 */
 
 //This function prepares the content of  the url creator context
-void * serve_error_url_page(struct AmmServer_DynamicRequestContext  * rqst)
+void * serve_error_url_page(struct AmmServer_DynamicRequest  * rqst)
 {
   memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
   sprintf(rqst->content,"<html><head><body><center><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></center></body></html>",service_root_withoutfilename);
@@ -436,7 +436,7 @@ void * serve_error_url_page(struct AmmServer_DynamicRequestContext  * rqst)
 }
 
 //This overrides serves back the captcha using AmmCaptch!
-void * serve_captcha_page(struct AmmServer_DynamicRequestContext  * rqst)
+void * serve_captcha_page(struct AmmServer_DynamicRequest  * rqst)
 {
   #if ENABLE_CAPTCHA_SYSTEM
   char captchaIDStr[MAX_LONG_URL_SIZE]={0};
@@ -451,7 +451,7 @@ void * serve_captcha_page(struct AmmServer_DynamicRequestContext  * rqst)
 
 
 //This function prepares the content of  the url creator context
-void * serve_create_url_page(struct AmmServer_DynamicRequestContext  * rqst)
+void * serve_create_url_page(struct AmmServer_DynamicRequest  * rqst)
 {
   strncpy(rqst->content,indexPage,indexPageLength);
   rqst->content[indexPageLength]=0;
@@ -466,7 +466,7 @@ void * serve_create_url_page(struct AmmServer_DynamicRequestContext  * rqst)
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * serve_goto_url_page(struct AmmServer_DynamicRequestContext  * rqst)
+void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
 {
   //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
   memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);

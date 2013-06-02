@@ -12,7 +12,8 @@ int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsig
 }
 
 char * dynamicRequest_serveContent
-           (struct AmmServer_Instance * instance,
+          (
+            struct AmmServer_Instance * instance,
             struct HTTPRequest * request,
             struct AmmServer_RH_Context * shared_context ,
             unsigned long * memSize,
@@ -92,7 +93,7 @@ char * dynamicRequest_serveContent
        //Do callback here
        shared_context->callback_cooldown=0;
        shared_context->last_callback = now;
-       void ( *DoCallback) ( struct AmmServer_DynamicRequestContext * )=0 ;
+       void ( *DoCallback) ( struct AmmServer_DynamicRequest * )=0 ;
        DoCallback = shared_context->prepare_content_callback;
 
 
@@ -106,10 +107,10 @@ char * dynamicRequest_serveContent
                                                            { shared_context->requestContext.POST_request_length = 0; }
 
 
-        struct AmmServer_DynamicRequestContext * rqst = (struct AmmServer_DynamicRequestContext * ) malloc(sizeof(struct AmmServer_DynamicRequestContext));
+        struct AmmServer_DynamicRequest * rqst = (struct AmmServer_DynamicRequest * ) malloc(sizeof(struct AmmServer_DynamicRequest));
         if (rqst!=0)
                     {
-                     memcpy(rqst->content , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequestContext ));
+                     memcpy(rqst->content , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
                      rqst->content=cache_memory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                      warning("Callbacks , are currently broken Doing Callback\n");
