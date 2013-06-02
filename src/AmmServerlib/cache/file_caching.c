@@ -486,10 +486,19 @@ int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_fi
 }
 
 
-char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported,unsigned char * free_after_use)
+char * cache_GetResource(
+                          struct AmmServer_Instance * instance,
+                          struct HTTPRequest * request,
+                          char * verified_filename,
+                          unsigned int * index,
+                          unsigned long *filesize,
+                          struct stat * last_modification,
+                          unsigned char * compressionSupported,
+                          unsigned char * freeContentAfterUsingIt
+                        )
 {
-     //By default we dont want to free the memory allocation after use..
-      *free_after_use=0;
+ //By default we dont want to free the memory allocation after use..
+      *freeContentAfterUsingIt=0;
 
       if (instance==0) { fprintf(stderr,"Instance is not allocated..\n"); return 0;  }
 
@@ -499,7 +508,7 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
       if (!CACHING_ENABLED)
       {
         fprintf(stderr,"Caching deactivated..!\n");
-        *compression_supported=0;
+        *compressionSupported=0;
         return 0;
       }
 
@@ -518,14 +527,16 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
            if ((cache[*index].doNOTCache)&&(cache[*index].prepare_mem_callback==0))
             {
               fprintf(stderr,"We do not want to serve a cached version of this file..\n");
-              *compression_supported=0;
+              *compressionSupported=0;
               return 0;
             }  else
          {
            /*We want to serve a cached version of the file START*/
            if ( dynamicRequest_ContentAvailiable(instance,*index) )
            {
-             if (!dynamicRequest_serveContent(instance,request,cache[*index].context))
+             unsigned long memSize=0;
+             char * mem = dynamicRequest_serveContent(instance,request,cache[*index].context,&memSize,compressionSupported,freeContentAfterUsingIt);
+             if ( (mem==0) || (memSize==0) )
              {
                warning("Could not perform dynamicRequest_serveContent\n");
              }
@@ -538,9 +549,9 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
 
 
            /*We want to serve a cached version of the file START*/
-           if ( (cache[*index].compressed_mem!=0) && (*compression_supported!=0) && (ENABLE_COMPRESSION) )
+           if ( (cache[*index].compressed_mem!=0) && (*compressionSupported!=0) && (ENABLE_COMPRESSION) )
            {
-             *compression_supported=1; // The response is compressed ( already set but in the future it may need to distinguish differnet compression schemes!..!
+             *compressionSupported=1; // The response is compressed ( already set but in the future it may need to distinguish differnet compression schemes!..!
 
               /* We can and will serve back a cached version of the page..! */
              *filesize=*cache[*index].compressed_mem_filesize;
@@ -551,7 +562,7 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
                else
            if (cache_memory!=0)
            {
-             *compression_supported=0; // The response is not compressed..!
+             *compressionSupported=0; // The response is not compressed..!
 
              *filesize=*cache[*index].filesize;
              fprintf(stderr,"Cache Serving back a buffer sized %lu bytes\n",*filesize);
@@ -566,7 +577,7 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
            /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
            if ( cache_AddFile(instance,verified_filename,index,last_modification) )
             {
-              *compression_supported=0;
+              *compressionSupported=0;
               *filesize=*cache[*index].filesize; //We return the filesize after the operation..
               return cache[*index].mem; //because cache_memory hasn't been declared here..
             }
@@ -574,9 +585,9 @@ char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest
        //If we are here we are unlocky , our file wasn't in cache and to make things worse we also failed to load it so
        //regular file sending it as it is ..!
 
-       *compression_supported=0;
+       *compressionSupported=0;
        *filesize=0;
-       fprintf(stderr,"Cache could not find file %s , filesize %u , compression support %u \n",verified_filename,(unsigned int) *filesize,*compression_supported);
+       fprintf(stderr,"Cache could not find file %s , filesize %u , compression support %u \n",verified_filename,(unsigned int) *filesize,*compressionSupported);
 
        return 0;
 }

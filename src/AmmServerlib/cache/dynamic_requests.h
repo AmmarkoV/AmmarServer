@@ -7,7 +7,10 @@ int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsig
 char * dynamicRequest_serveContent
            (struct AmmServer_Instance * instance,
             struct HTTPRequest * request,
-            struct AmmServer_RH_Context * shared_context
+            struct AmmServer_RH_Context * shared_context,
+            unsigned long * memSize,
+            unsigned char * compression_supported,
+            unsigned char * freeContentAfterUsingIt
           );
 
 

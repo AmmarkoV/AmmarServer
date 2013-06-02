@@ -58,8 +58,16 @@ int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_fi
 int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB);
 int cache_Destroy(struct AmmServer_Instance * instance);
 
-char * cache_GetResource(struct AmmServer_Instance * instance,struct HTTPRequest * request,char * verified_filename,unsigned int * index,unsigned long *filesize,struct stat * last_modification,unsigned char * compression_supported,unsigned char * free_after_use);
-
+char * cache_GetResource(
+                          struct AmmServer_Instance * instance,
+                          struct HTTPRequest * request,
+                          char * verified_filename,
+                          unsigned int * index,
+                          unsigned long *filesize,
+                          struct stat * last_modification,
+                          unsigned char * compressionSupported,
+                          unsigned char * freeContentAfterUsingIt
+                        );
 
 
 #endif // FILE_CACHING_H_INCLUDED
