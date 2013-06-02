@@ -8,6 +8,7 @@ char * dynamicRequest_serveContent
            (struct AmmServer_Instance * instance,
             struct HTTPRequest * request,
             struct AmmServer_RH_Context * shared_context,
+            unsigned int index,
             unsigned long * memSize,
             unsigned char * compression_supported,
             unsigned char * freeContentAfterUsingIt

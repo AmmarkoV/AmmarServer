@@ -11,7 +11,6 @@
 #include "../hashmap/hashmap.h"
 #include "dynamic_requests.h"
 
-#define USE_HASHMAP_IN_CACHE 0
 
 /*
 unsigned long instance->instance->loaded_cache_items_Kbytes=0;
@@ -122,7 +121,6 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
   unsigned long file_we_are_looking_for = hashFunction(resource);
   unsigned long i=0;
 
-  #if USE_HASHMAP_IN_CACHE
   if ( hashMap_GetULongPayload((struct hashMap *) instance->cacheHashMap,resource,&i) )
     {
       warning("HashMap Found");
@@ -133,22 +131,6 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
     {
       return 0;
     }
-  #else
-  for (i=0; i<instance->loaded_cache_items; i++)
-   {
-     if ( cache[i].filename_hash == file_we_are_looking_for )
-      {
-        ++cache[i].hits;
-        if (cache[i].filesize!=0)
-         { //Filesize gets pulled directly from the client.. For this reason we want to check if the client has allocated a value to prevent the possible segfault
-          fprintf(stderr,"..found it here %lu , %u hits , %0.2f Kbytes\n",i,cache[i].hits,(double) (*cache[i].filesize/1024) );
-         }
-        *index=i;
-        return 1;
-      }
-   }
-  #endif
-
  return 0;
 }
 
@@ -163,15 +145,11 @@ int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,un
   if (MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
   *index=instance->loaded_cache_items++;
 
-  #if USE_HASHMAP_IN_CACHE
    if ( hashMap_AddULong((struct hashMap *) instance->cacheHashMap ,resource,(unsigned long) *index) )
    {
     warning("hashMap_AddULong adding New Resource to HashMap");
     fprintf(stderr,"hashMap_AddULong adding %s \n",resource);
    }
-  #else
-    cache[*index].filename_hash = hashFunction(resource);
-  #endif
 
 
 
@@ -229,10 +207,10 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
   fprintf(stderr,"File %s has %u bytes cached with index %u \n",filename,(unsigned int ) lSize,*index);
   fclose(pFile);
   // file has been cached , so time to fill in its details..
-  cache[*index].mem = buffer;
-  if ( cache[*index].filesize!= 0 ) { free (cache[*index].filesize); cache[*index].filesize=0; }
-  cache[*index].filesize = (unsigned long * ) malloc(sizeof (unsigned long));
-  *cache[*index].filesize = lSize;
+  cache[*index].content = buffer;
+  if ( cache[*index].contentSize!= 0 ) { free (cache[*index].contentSize); cache[*index].contentSize=0; }
+  cache[*index].contentSize = (unsigned long * ) malloc(sizeof (unsigned long));
+  *cache[*index].contentSize = lSize;
 
   /*This could be a good place to make the gzipped version of the buffer..!*/
    char content_type_str[128]={0};
@@ -240,11 +218,11 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
     {
         //This will fill content_type with a value from enum FileType ( declared at http_tools.h )
         //if the value is TEXT we are good to go :P
-        cache[*index].content_type =  GetExtentionType(content_type_str);
+        cache[*index].contentTypeID =  GetExtentionType(content_type_str);
     }
 
-  cache[*index].compressed_mem_filesize=0;
-  cache[*index].compressed_mem=0;
+  cache[*index].compressedContentSize=0;
+  cache[*index].compressedContent=0;
   if (!CreateCompressedVersionofStaticContent(instance,*index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
 
   return 1;
@@ -276,13 +254,13 @@ int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned 
    if (last_modification!=0)
    {
     struct tm * ptm = gmtime ( &last_modification->st_mtime ); //This is not a particularly thread safe call , must add a mutex or something here..!
-    cache[*index].hour=ptm->tm_hour;
-    cache[*index].minute=ptm->tm_min;
-    cache[*index].second=ptm->tm_sec;
-    cache[*index].wday=ptm->tm_wday;
-    cache[*index].day=ptm->tm_mday;
-    cache[*index].month=ptm->tm_mon;
-    cache[*index].year=EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year;
+    cache[*index].modification.hour=ptm->tm_hour;
+    cache[*index].modification.minute=ptm->tm_min;
+    cache[*index].modification.second=ptm->tm_sec;
+    cache[*index].modification.wday=ptm->tm_wday;
+    cache[*index].modification.day=ptm->tm_mday;
+    cache[*index].modification.month=ptm->tm_mon;
+    cache[*index].modification.year=EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year;
    }
 
   return 1;
@@ -312,14 +290,13 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
   unsigned int index=0;
   if (! cache_CreateResource(instance,full_filename,&index) ) { return 0; }
 
-  cache[index].context = context;
-  cache[index].mem = context->requestContext.content;
-  cache[index].filesize = &context->requestContext.content_size;
-  cache[index].compressed_mem_filesize=0;
-  cache[index].compressed_mem=0;
+  cache[index].dynamicRequest = context;
+  cache[index].content = context->requestContext.content;
+  cache[index].contentSize = &context->requestContext.content_size;
+  cache[index].compressedContent=0;
+  cache[index].compressedContentSize=0;
 
-  cache[index].hits = 0;
-  cache[index].prepare_mem_callback = context->prepare_content_callback;
+  cache[index].dynamicRequestCallbackFunction = context->dynamicRequestCallbackFunction;
 
   return 1;
 }
@@ -329,12 +306,12 @@ int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,char
 {
    struct cache_item * cache = (struct cache_item *) instance->cache;
    unsigned int index=0;
-   if (cache_FindResource(instance,filename,&index))  { cache[index].doNOTCache=1; }
+   if (cache_FindResource(instance,filename,&index))  { cache[index].doNOTCacheRule=1; }
     else
      {
        //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
        if (!cache_CreateResource(instance,filename,&index) ) { return 0; }
-       if (cache_FindResource(instance,filename,&index)) { cache[index].doNOTCache=1; } else
+       if (cache_FindResource(instance,filename,&index)) { cache[index].doNOTCacheRule=1; } else
                                              { return 0; } //Could not set doNOTCache..!
      }
    return 1;
@@ -347,40 +324,40 @@ int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index
 {
     struct cache_item * cache = (struct cache_item *) instance->cache;
     unsigned int i = index;
-    if ( cache[i].prepare_mem_callback !=0)
+    if ( cache[i].dynamicRequestCallbackFunction !=0)
      {
         //This cache item is "dynamic content" as a result
         //it has its own memory handler , so we just dereference it..
-        cache[i].prepare_mem_callback=0;
-        cache[i].mem=0;
-        cache[i].filesize=0;
+        cache[i].dynamicRequestCallbackFunction=0;
+        cache[i].content=0;
+        cache[i].contentSize=0;
      }
        else
      {
-      if ( cache[i].mem != 0 )
+      if ( cache[i].content != 0 )
        {
-          free(cache[i].mem);
-          cache[i].mem=0;
-          if ( cache[i].filesize != 0 ) { AddFreeOpToCacheCounter(instance,*cache[i].filesize); } //If we have a filesize we subtract it from the cache malloc counter
+          free(cache[i].content);
+          cache[i].content=0;
+          if ( cache[i].contentSize != 0 ) { AddFreeOpToCacheCounter(instance,*cache[i].contentSize); } //If we have a filesize we subtract it from the cache malloc counter
        }
-      if ( cache[i].filesize != 0 )
+      if ( cache[i].contentSize != 0 )
        {
-          free(cache[i].filesize);
-          cache[i].filesize=0;
+          free(cache[i].contentSize);
+          cache[i].contentSize=0;
        }
      }
 
      //Compressed mem is not controlled by the callback so we can deallocate it at our convinience (not inside the if then else scope )!
-      if ( cache[i].compressed_mem != 0 )
+      if ( cache[i].compressedContent != 0 )
        {
-          free(cache[i].compressed_mem);
-          cache[i].compressed_mem=0;
-          if ( cache[i].filesize != 0 ) { AddFreeOpToCacheCounter(instance,*cache[i].compressed_mem_filesize); } //If we have a filesize we subtract it from the cache malloc counter
+          free(cache[i].compressedContent);
+          cache[i].compressedContent=0;
+          if ( cache[i].contentSize != 0 ) { AddFreeOpToCacheCounter(instance,*cache[i].compressedContentSize); } //If we have a filesize we subtract it from the cache malloc counter
        }
-      if ( cache[i].compressed_mem_filesize != 0 )
+      if ( cache[i].compressedContentSize != 0 )
        {
-          free(cache[i].compressed_mem_filesize);
-          cache[i].compressed_mem_filesize=0;
+          free(cache[i].compressedContentSize);
+          cache[i].compressedContentSize=0;
        }
    return 0;
 }
@@ -400,10 +377,9 @@ int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct A
        return cache_RemoveResource(instance,index);
 }
 
-unsigned int cache_GetHashOfResource(struct AmmServer_Instance * instance,unsigned int index)
+unsigned long cache_GetHashOfResource(struct AmmServer_Instance * instance,unsigned int index)
 {
-    struct cache_item * cache = (struct cache_item *) instance->cache;
-    return cache[index].filename_hash;
+    return  hashMap_GetHashAtIndex(instance->cacheHashMap,index);
 }
 
 
@@ -423,9 +399,7 @@ int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seper
    }
 
 
-   #if USE_HASHMAP_IN_CACHE
     instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
-   #endif // USE_HASHMAP_IN_CACHE
 
    return 1;
 }
@@ -457,10 +431,8 @@ int cache_Destroy(struct AmmServer_Instance * instance)
    instance->loaded_cache_items_Kbytes=0;
 
 
-   #if USE_HASHMAP_IN_CACHE
     hashMap_Destroy((struct hashMap *) instance->cacheHashMap);
     instance->cacheHashMap=0;
-   #endif // USE_HASHMAP_IN_CACHE
 
    return 1;
 }
@@ -518,16 +490,16 @@ if (cache_FindResource(instance,verified_filename,index))
  {
   //Initially we would like to work with the memory block allocated when the dynamic call
   //was first registered..
-   char * cache_memory = cache[*index].mem;
+   char * cache_memory = cache[*index].content;
 
    //if doNOTCache is set and this is a real file..
    fprintf(stderr,"Found Resource in our cache : \n");
    fprintf(stderr,"index = %u\n",*index);
-   fprintf(stderr,"doNotCache = %u \n",cache[*index].doNOTCache);
-   fprintf(stderr,"mem_callback = %p \n",cache[*index].prepare_mem_callback);
+   fprintf(stderr,"doNotCache = %u \n",cache[*index].doNOTCacheRule);
+   fprintf(stderr,"mem_callback = %p \n",cache[*index].dynamicRequestCallbackFunction);
 
-   if ( (cache[*index].doNOTCache)&& //If we forbid caching
-        (cache[*index].prepare_mem_callback==0)) //And we don't have a dynamic page to load!
+   if ( (cache[*index].doNOTCacheRule)&& //If we forbid caching
+        (cache[*index].dynamicRequestCallbackFunction==0)) //And we don't have a dynamic page to load!
     {
      fprintf(stderr,"We do not want to serve a cached version of this file..\n");
      *compressionSupported=0;
@@ -539,12 +511,14 @@ if (cache_FindResource(instance,verified_filename,index))
      if ( dynamicRequest_ContentAvailiable(instance,*index) )
            {
              unsigned long memSize=0;
-             char * mem = dynamicRequest_serveContent(instance,request,cache[*index].context,&memSize,compressionSupported,freeContentAfterUsingIt);
+             char * mem = dynamicRequest_serveContent(instance,request,cache[*index].dynamicRequest ,*index,&memSize,compressionSupported,freeContentAfterUsingIt);
              if ( (mem==0) || (memSize==0) )
              {
                warning("Could not perform dynamicRequest_serveContent , hope there is a regular fallback file , or we will probably 404 \n");
                return 0;
              }
+
+             fprintf(stderr,"dynamicRequest_ContentAvailiable produced %lu bytes of usable content ",memSize);
            }
 
 
@@ -552,22 +526,22 @@ if (cache_FindResource(instance,verified_filename,index))
 
 
            /*We want to serve a cached version of the file START*/
-           if ( (cache[*index].compressed_mem!=0) && (*compressionSupported!=0) && (ENABLE_COMPRESSION) )
+           if ( (cache[*index].compressedContent!=0) && (*compressionSupported!=0) && (ENABLE_COMPRESSION) )
            {
              *compressionSupported=1; // The response is compressed ( already set but in the future it may need to distinguish differnet compression schemes!..!
 
               /* We can and will serve back a cached version of the page..! */
-             *filesize=*cache[*index].compressed_mem_filesize;
+             *filesize=*cache[*index].compressedContentSize;
              fprintf(stderr,"Cache Serving back a compressed buffer sized %lu bytes\n",*filesize);
 
-             return cache[*index].compressed_mem;
+             return cache[*index].compressedContent;
            }
                else
            if (cache_memory!=0)
            {
              *compressionSupported=0; // The response is not compressed..!
 
-             *filesize=*cache[*index].filesize;
+             *filesize=*cache[*index].contentSize;
              fprintf(stderr,"Cache Serving back a buffer sized %lu bytes\n",*filesize);
 
              return cache_memory;
@@ -581,8 +555,8 @@ if (cache_FindResource(instance,verified_filename,index))
            if ( cache_AddFile(instance,verified_filename,index,last_modification) )
             {
               *compressionSupported=0;
-              *filesize=*cache[*index].filesize; //We return the filesize after the operation..
-              return cache[*index].mem; //because cache_memory hasn't been declared here..
+              *filesize=*cache[*index].contentSize; //We return the filesize after the operation..
+              return cache[*index].content; //because cache_memory hasn't been declared here..
             }
         }
        //If we are here we are unlocky , our file wasn't in cache and to make things worse we also failed to load it so

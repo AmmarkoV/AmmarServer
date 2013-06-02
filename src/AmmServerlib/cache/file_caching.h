@@ -4,32 +4,15 @@
 #include "../AmmServerlib.h"
 
 #include "../header_analysis/http_header_analysis.h"
+#include "../tools/http_tools.h"
 
 #include <sys/stat.h>
 #include <time.h>
 
-struct cache_item
+
+
+struct timestamp
 {
-   //TODO: add this to the checks to avoid hash collisions -> char filename[MAX_FILE_PATH];
-   //it will have negative performance effect though :P
-
-   struct AmmServer_RH_Context * context;
-
-   unsigned long filename_hash;
-   unsigned int hits;
-
-   unsigned long * filesize;
-   char * mem;
-
-   int content_type; /*AS Declared in http_tools int GetContentType(char * filename,char * content_type) */
-   unsigned long * compressed_mem_filesize;
-   char * compressed_mem;
-
-   void * prepare_mem_callback;
-
-   unsigned char doNOTCache;
-
-   /*Modification time..!*/
    unsigned char hour;
    unsigned char minute;
    unsigned char second;
@@ -37,6 +20,28 @@ struct cache_item
    unsigned char day;
    unsigned char month;
    unsigned int  year;
+};
+
+
+
+struct cache_item
+{
+   //If this is set it means this is a dynamic request item
+   void * dynamicRequestCallbackFunction;
+   struct AmmServer_RH_Context * dynamicRequest;
+
+   unsigned char doNOTCacheRule;
+
+   char * content;
+   unsigned long * contentSize;
+
+   char * compressedContent;
+   unsigned long * compressedContentSize;
+
+   contentType contentTypeID; /*AS Declared in http_tools int GetContentType(char * filename,char * content_type) */
+
+   /*Modification time..!*/
+   struct timestamp modification;
 };
 
 
@@ -49,7 +54,7 @@ int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,char
 int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem);
 
 
-unsigned int cache_GetHashOfResource(struct AmmServer_Instance * instance,unsigned int index);
+unsigned long cache_GetHashOfResource(struct AmmServer_Instance * instance,unsigned int index);
 
 unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index);
 int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index);

@@ -41,6 +41,7 @@ int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val);
 int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index);
 int hashmap_SwapRecords(struct hashMap * hm , unsigned int index1,unsigned int index2);
 char * hashMap_GetKeyAtIndex(struct hashMap * hm,unsigned int index);
+unsigned long hashMap_GetHashAtIndex(struct hashMap * hm,unsigned int index);
 int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload);
 int hashMap_GetULongPayload(struct hashMap * hm,char * key,unsigned long * payload);
 void hashMap_Clear(struct hashMap * hm);

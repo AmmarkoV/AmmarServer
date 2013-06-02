@@ -4,9 +4,9 @@
 
 #include "../AmmServerlib.h"
 
+typedef unsigned int contentType;
 
-
-enum FileType
+enum contentTypeEnumerator
 {
     NO_FILETYPE=0,
     RESERVED, //This to prevent some functions that return 1 get used the wrong way :P

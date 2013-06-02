@@ -43,17 +43,17 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
 
 
   //Todo check file type , if it is jpg , zip etc it doesnt need compression..!
-  if ( cache[index].content_type!=TEXT ) { fprintf(stderr,"The content is not text , so we wont go in the trouble of compressing it..\n"); return 0; }
+  if ( cache[index].contentTypeID!=TEXT ) { fprintf(stderr,"The content is not text , so we wont go in the trouble of compressing it..\n"); return 0; }
   //If it is css html etc compression would be very nice..
 
   int return_value = 0;
 
-  if ( (cache[index].filesize==0)||(cache[index].mem==0) )
+  if ( (cache[index].contentSize==0)||(cache[index].content==0) )
      {
        fprintf(stderr,"Cannot create Compressed content for non-existant buffer..!\n");
        return 0;
      }
-  if (*cache[index].filesize==0)
+  if (*cache[index].contentSize==0)
      {
        fprintf(stderr,"Cannot create Compressed content for existant but empty buffer ..!\n");
        return 0;
@@ -61,9 +61,9 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
 
   //We free compressed buffers outside of the ENABLE_COMPRESSION precompiler selector , aftere the next 2 steps we have a clean state and so we are ready to allocate
   //memory for the compressed content
-  if (cache[index].compressed_mem!=0) { free(cache[index].compressed_mem); cache[index].compressed_mem=0;
-                                        if (cache[index].compressed_mem_filesize!=0) { AddFreeOpToCacheCounter(instance,*cache[index].compressed_mem_filesize); }  }
-  if (cache[index].compressed_mem_filesize!=0) { free(cache[index].compressed_mem_filesize); cache[index].compressed_mem_filesize=0; }
+  if (cache[index].compressedContent!=0) { free(cache[index].compressedContent); cache[index].compressedContent=0;
+                                        if (cache[index].compressedContentSize!=0) { AddFreeOpToCacheCounter(instance,*cache[index].compressedContentSize); }  }
+  if (cache[index].compressedContentSize!=0) { free(cache[index].compressedContentSize); cache[index].compressedContentSize=0; }
 
 
   #if ENABLE_COMPRESSION

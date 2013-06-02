@@ -365,11 +365,11 @@ unsigned long SendFile
       /*OK We have a cached buffer on this page BUT a good question to ask is the following..
         Is it a regular file we are talking about , or a dynamic page ? */
 
-      if (cache[index].prepare_mem_callback!=0)
+      if (cache[index].dynamicRequestCallbackFunction!=0)
               {
                 /*It seems we have ourselves a dynamic page..! Are we on a callback cooldown ? */
                 /*The only built in way to serve a not modified response is if the request is too soon ( callback_every_x_msec callback cooldown ) ! */
-                struct AmmServer_RH_Context * shared_context = cache[index].context;
+                struct AmmServer_RH_Context * shared_context = cache[index].dynamicRequest;
                 if ( shared_context->callback_cooldown ) { ok_to_serve_not_modified=1; } else // <- the dynamic page is still fresh.. so lets serve not modified..!
                                                          { ok_to_serve_not_modified=0; } // <- the dynamic page has expired is dynamic so it can't be cached
               } else
@@ -379,7 +379,7 @@ unsigned long SendFile
               }
 
       //The application might want the file to always be served as a fresh one..
-      if ( cache[index].doNOTCache ) { ok_to_serve_not_modified = 0; } /*We have written orders that we want this file to NEVER get cached.. EVER :P */
+      if ( cache[index].doNOTCacheRule ) { ok_to_serve_not_modified = 0; } /*We have written orders that we want this file to NEVER get cached.. EVER :P */
       if (force_error_code!=0) { ok_to_serve_not_modified = 0; } /*We want 404 etc messages to remain 404 :P , no point in serving 404 and then 304 ( that the 404 didn't change )*/
 
       if (ok_to_serve_not_modified)
@@ -446,7 +446,7 @@ unsigned long SendFile
 if (!header_only)
  {
   if ( (cached_buffer!=0) && //If we haven't got a buffer cached.. AND
-        ( (!cache[index].doNOTCache) /*If we dont forbid caching */ || ( (cache[index].doNOTCache)&&(cache[index].prepare_mem_callback!=0) ) /*Or we forbid caching but we are talking about a dynamic page*/)
+        ( (!cache[index].doNOTCacheRule) /*If we dont forbid caching */ || ( (cache[index].doNOTCacheRule)&&(cache[index].dynamicRequestCallbackFunction!=0) ) /*Or we forbid caching but we are talking about a dynamic page*/)
      ) // its ok to serve a cached file..
    { /*!Serve cached file !*/
      //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files

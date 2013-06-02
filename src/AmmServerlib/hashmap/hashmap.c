@@ -302,6 +302,13 @@ char * hashMap_GetKeyAtIndex(struct hashMap * hm,unsigned int index)
 }
 
 
+unsigned long hashMap_GetHashAtIndex(struct hashMap * hm,unsigned int index)
+{
+  if (!hashMap_IsOK(hm)) { return 0;}
+  if (index >= hm->curNumberOfEntries ) { return 0; }
+  return hm->entries[index].keyHash;
+}
+
 int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload)
 {
   unsigned long i=0;

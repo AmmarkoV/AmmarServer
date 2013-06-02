@@ -197,7 +197,7 @@ int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct Amm
    strncpy(context->web_root_path,web_root,MAX_FILE_PATH);
    strncpy(context->resource_name,resource_name,MAX_RESOURCE);
    context->requestContext.MAX_content_size=allocate_mem_bytes;
-   context->prepare_content_callback=callback;
+   context->dynamicRequestCallbackFunction=callback;
    context->callback_every_x_msec=callback_every_x_msec;
    context->last_callback=0; //This is important because a random value here will screw up things with callback_every_x_msec..
    context->callback_cooldown=0;

@@ -8,7 +8,7 @@
 int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsigned int index)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
-  return (cache[index].prepare_mem_callback!=0);
+  return (cache[index].dynamicRequestCallbackFunction!=0);
 }
 
 char * dynamicRequest_serveContent
@@ -16,12 +16,13 @@ char * dynamicRequest_serveContent
             struct AmmServer_Instance * instance,
             struct HTTPRequest * request,
             struct AmmServer_RH_Context * shared_context ,
+            unsigned int index,
             unsigned long * memSize,
             unsigned char * compression_supported,
             unsigned char * freeContentAfterUsingIt
           )
 {
-  warning("Dynamic requests are disabled until further notice \n");
+  error("Dynamic requests are disabled until further notice .. \n");
   return 0;
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
@@ -29,7 +30,7 @@ char * dynamicRequest_serveContent
   //Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
 
 
-  if (shared_context->prepare_content_callback==0)
+  if (shared_context->dynamicRequestCallbackFunction==0)
   {
     fprintf(stderr,"No dynamic request content registered\n");
     return 0;
@@ -44,20 +45,19 @@ char * dynamicRequest_serveContent
     {
      unsigned int size_to_allocate =  sizeof(char) * ( shared_context->requestContext.MAX_content_size ) ;
      if (size_to_allocate==0)
-     { fprintf(stderr,"BUG : We should allocate additional space for this request.. Unfortunately it appears to be zero.. \n ");
-     }
+     { warning("BUG : We should allocate additional space for this request.. Unfortunately it appears to be zero.. \n "); }
      else
      {
       fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
       cacheMemory = (char *) malloc( size_to_allocate );
       if (cacheMemory!=0) { *freeContentAfterUsingIt=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
-                           { cacheMemory=shared_context->requestContext.content; } //Lets work with our default buffer till the end..!
+                          { cacheMemory=shared_context->requestContext.content; } //Lets work with our default buffer till the end..!
      }
     }
 
   //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
   //So we bail out and emmit an error message..!
-  if ( (cacheMemory==0) || (shared_context->requestContext.content_size==0) )
+  if ( (cacheMemory==0) || (shared_context->requestContext.MAX_content_size==0) )
     {
      fprintf(stderr,"Not going to call callback function with an empty buffer..!\n");
     } else
@@ -81,7 +81,7 @@ char * dynamicRequest_serveContent
          //The request came too fast.. We will serve our existing file..!
          *compression_supported=0;
          shared_context->callback_cooldown=1;
-        // *memSize=*cache[*index].filesize;
+         *memSize=shared_context->requestContext.content_size;
          return cacheMemory;
         } else
         {
@@ -93,7 +93,7 @@ char * dynamicRequest_serveContent
        shared_context->callback_cooldown=0;
        shared_context->last_callback = now;
        void ( *DoCallback) ( struct AmmServer_DynamicRequest * )=0 ;
-       DoCallback = shared_context->prepare_content_callback;
+       DoCallback = shared_context->dynamicRequestCallbackFunction;
 
 
        //If we have GET or POST request variables , lets pass them through to our shared context..
@@ -109,19 +109,28 @@ char * dynamicRequest_serveContent
         if (rqst!=0)
                     {
                      memcpy(rqst->content , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
+
+                     fprintf(stderr,"Request for a maximum of %u characters ( %u ) \n",rqst->MAX_content_size , shared_context->requestContext.MAX_content_size );
+
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                      warning("Callbacks , are currently broken Doing Callback\n");
                      DoCallback(rqst);
+                     *memSize = rqst->content_size;
                      fprintf(stderr,"After callback we got back %u bytes\n",rqst->content_size);
                      free(rqst);
+
+
+                     //This means we can call the callback to prepare the memory content..! END
+                     //CreateCompressedVersionofDynamicContent(instance,index);
+                    } else
+                    {
+                      error("Could not allocate enough memory to make the request \n");
                     }
 
-      //This means we can call the callback to prepare the memory content..! END
-      CreateCompressedVersionofDynamicContent(instance,*index);
    }
 
 
- return 0;
+ return cacheMemory;
 
 }
