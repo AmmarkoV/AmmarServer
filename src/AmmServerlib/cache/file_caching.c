@@ -12,34 +12,8 @@
 #include "dynamic_requests.h"
 
 
-/*
-unsigned long instance->instance->loaded_cache_items_Kbytes=0;
-unsigned int instance->loaded_cache_items=0;
-struct cache_item * cache=0;*/
 //The cache consists of cache items.. Each cache item Gets Added and Removed with calls defined beneath..
 //The cache must be Created and then Destroyed because on program execution its pointer has no memory allocated for the content..!
-
-int WeCanCommitMoreMemoryForCaching(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
-{
-  if (MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
-  if (MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
-  return 1;
-}
-
-
-int AddNewMallocOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
-{
-  instance->loaded_cache_items_Kbytes+=(additional_mem_to_malloc_in_bytes/1024);
-  return 1;
-}
-
-int AddFreeOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
-{
-  instance->loaded_cache_items_Kbytes-=(additional_mem_to_malloc_in_bytes/1024);
-  return 1;
-}
-
-
 
 /*
      INDEXING for the cache
@@ -49,8 +23,6 @@ int AddFreeOpToCacheCounter(struct AmmServer_Instance * instance,unsigned long a
      are implemented here
      ------------------------------------------------------------------
 */
-
-
 
 int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,char * templates_root)
 {
@@ -95,6 +67,61 @@ int freeMallocIfNeeded(char * mem,unsigned char free_is_needed)
 {
     if ( (free_is_needed)&&(mem!=0) ) { free(mem); return 1; }
     return 0;
+}
+
+
+
+int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
+{
+   MAX_CACHE_SIZE_IN_MB=max_total_allocation_MB;
+   MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=max_allocation_per_entry_MB;
+   MAX_SEPERATE_CACHE_ITEMS=max_seperate_items;
+
+   unsigned int cache_memory_size = sizeof(struct cache_item) * (MAX_SEPERATE_CACHE_ITEMS+1);
+  if (instance->cache==0)
+   {
+     instance->cache = (struct cache_item *) malloc(cache_memory_size);
+     if (instance->cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
+     memset(instance->cache , 0 , cache_memory_size);
+   }
+
+
+    instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
+
+   return 1;
+}
+
+int cache_Destroy(struct AmmServer_Instance * instance)
+{
+  struct cache_item * cache = (struct cache_item *) instance->cache;
+  fprintf(stderr,"Destroying cache..\n");
+
+//   if (!DestroyVariableCache()) { fprintf(stderr,"Failed destroying Variable Cache\n"); }
+
+   if (cache==0)
+    {
+       fprintf(stderr,"Cache already destroyed \n");
+       instance->loaded_cache_items=0;
+       instance->loaded_cache_items_Kbytes=0;
+      return 1;
+    }
+
+   unsigned int i=0;
+   for (i=0; i<instance->loaded_cache_items; i++)
+   {
+      cache_RemoveResource(instance,i);
+   }
+
+   free(cache);
+   cache = 0;
+   instance->loaded_cache_items=0;
+   instance->loaded_cache_items_Kbytes=0;
+
+
+    hashMap_Destroy((struct hashMap *) instance->cacheHashMap);
+    instance->cacheHashMap=0;
+
+   return 1;
 }
 
 
@@ -189,7 +216,7 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
   //lSize now holds the size of the file..
 
   //We check if the file size is ok with our configuration limits
-  if (!WeCanCommitMoreMemoryForCaching(instance,lSize)) { fclose(pFile); return 0; }
+  if (!instance_WeCanCommitMoreMemory(instance,lSize)) { fclose(pFile); return 0; }
 
   //We are ok with the file size , we will now rewind the file to start reading it from the beginning..!
   rewind (pFile);
@@ -197,7 +224,7 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
   char * buffer = (char*) malloc ( sizeof(char) * (lSize));
   if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory to cache this file..!\n"); fclose(pFile); return 0;  }
   //We have allocated the new memory chunk so we will update our loaded cache counter..!
-  AddNewMallocOpToCacheCounter(instance,lSize);
+  instance_CountNewMallocOP(instance,lSize);
 
   // copy the file into the buffer:
   size_t result;
@@ -292,7 +319,7 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
 
   cache[index].dynamicRequest = context;
   cache[index].content = context->requestContext.content;
-  cache[index].contentSize = &context->requestContext.content_size;
+  cache[index].contentSize = &context->requestContext.contentSize;
   cache[index].compressedContent=0;
   cache[index].compressedContentSize=0;
 
@@ -338,7 +365,7 @@ int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index
        {
           free(cache[i].content);
           cache[i].content=0;
-          if ( cache[i].contentSize != 0 ) { AddFreeOpToCacheCounter(instance,*cache[i].contentSize); } //If we have a filesize we subtract it from the cache malloc counter
+          if ( cache[i].contentSize != 0 ) { instance_CountFreeOP(instance,*cache[i].contentSize); } //If we have a filesize we subtract it from the cache malloc counter
        }
       if ( cache[i].contentSize != 0 )
        {
@@ -352,7 +379,7 @@ int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index
        {
           free(cache[i].compressedContent);
           cache[i].compressedContent=0;
-          if ( cache[i].contentSize != 0 ) { AddFreeOpToCacheCounter(instance,*cache[i].compressedContentSize); } //If we have a filesize we subtract it from the cache malloc counter
+          if ( cache[i].contentSize != 0 ) { instance_CountFreeOP(instance,*cache[i].compressedContentSize); } //If we have a filesize we subtract it from the cache malloc counter
        }
       if ( cache[i].compressedContentSize != 0 )
        {
@@ -365,7 +392,7 @@ int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index
 
 int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
-       context->requestContext.MAX_content_size=0;
+       context->requestContext.MAXcontentSize=0;
        if ((free_mem)&&(context->requestContext.content!=0)) { free(context->requestContext.content); context->requestContext.content=0; }
 
        unsigned int index;
@@ -382,60 +409,6 @@ unsigned long cache_GetHashOfResource(struct AmmServer_Instance * instance,unsig
     return  hashMap_GetHashAtIndex(instance->cacheHashMap,index);
 }
 
-
-
-int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
-{
-   MAX_CACHE_SIZE_IN_MB=max_total_allocation_MB;
-   MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=max_allocation_per_entry_MB;
-   MAX_SEPERATE_CACHE_ITEMS=max_seperate_items;
-
-   unsigned int cache_memory_size = sizeof(struct cache_item) * (MAX_SEPERATE_CACHE_ITEMS+1);
-  if (instance->cache==0)
-   {
-     instance->cache = (struct cache_item *) malloc(cache_memory_size);
-     if (instance->cache == 0) { fprintf(stderr,"Unable to allocate initial cache memory\n"); return 0; }
-     memset(instance->cache , 0 , cache_memory_size);
-   }
-
-
-    instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
-
-   return 1;
-}
-
-int cache_Destroy(struct AmmServer_Instance * instance)
-{
-  struct cache_item * cache = (struct cache_item *) instance->cache;
-  fprintf(stderr,"Destroying cache..\n");
-
-//   if (!DestroyVariableCache()) { fprintf(stderr,"Failed destroying Variable Cache\n"); }
-
-   if (cache==0)
-    {
-       fprintf(stderr,"Cache already destroyed \n");
-       instance->loaded_cache_items=0;
-       instance->loaded_cache_items_Kbytes=0;
-      return 1;
-    }
-
-   unsigned int i=0;
-   for (i=0; i<instance->loaded_cache_items; i++)
-   {
-      cache_RemoveResource(instance,i);
-   }
-
-   free(cache);
-   cache = 0;
-   instance->loaded_cache_items=0;
-   instance->loaded_cache_items_Kbytes=0;
-
-
-    hashMap_Destroy((struct hashMap *) instance->cacheHashMap);
-    instance->cacheHashMap=0;
-
-   return 1;
-}
 
 
 /*

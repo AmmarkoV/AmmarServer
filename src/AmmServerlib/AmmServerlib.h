@@ -89,12 +89,12 @@ struct AmmServer_DynamicRequest
    unsigned int headerResponse;
 
    char * content;
-   unsigned long content_size;
-   unsigned long MAX_content_size;
+   unsigned long contentSize;
+   unsigned long MAXcontentSize;
 
    char * compressedContent;
    unsigned long compressedContentSize;
-   unsigned long MAX_compressedContentSize;
+   unsigned long MAXcompressedContentSize;
 
    char * GET_request;
    unsigned int GET_request_length;

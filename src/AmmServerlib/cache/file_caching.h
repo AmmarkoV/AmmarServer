@@ -30,17 +30,22 @@ struct cache_item
    void * dynamicRequestCallbackFunction;
    struct AmmServer_RH_Context * dynamicRequest;
 
+   //The whole cache item might be just a rule like do not cache
    unsigned char doNOTCacheRule;
 
+   //in case we are talking about a regular system file ( dynamicRequest == 0 )
+   //content should be in the next field
    char * content;
    unsigned long * contentSize;
 
+   //if we are talking about a regular file that has been compressed content
+   //should be stored in the next fields
    char * compressedContent;
    unsigned long * compressedContentSize;
 
    contentType contentTypeID; /*AS Declared in http_tools int GetContentType(char * filename,char * content_type) */
 
-   /*Modification time..!*/
+   //Modification time..!
    struct timestamp modification;
 };
 

@@ -74,6 +74,12 @@ extern char TemplatesInternalURI[MAX_RESOURCE];
 //Please note that the file server limits filenames _asvres_/filename.jpg is OK
 //a filename like _asvres_/filenamemplampla.jpg will return a 404
 
+
+int instance_WeCanCommitMoreMemory(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes);
+int instance_CountNewMallocOP(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes);
+int instance_CountFreeOP(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes);
+
+
 int EmmitPossibleConfigurationWarnings();
 
 int LoadConfigurationFile(struct AmmServer_Instance * instance,char * conf_file);

@@ -48,6 +48,33 @@ char TemplatesInternalURI[MAX_RESOURCE]="_asvres_/";
 
 // ------------------------------------------------------------------------------------------------------
 
+
+
+int instance_WeCanCommitMoreMemory(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
+{
+  if (MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
+  if (MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
+  return 1;
+}
+
+
+int instance_CountNewMallocOP(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
+{
+  instance->loaded_cache_items_Kbytes+=(additional_mem_to_malloc_in_bytes/1024);
+  return 1;
+}
+
+int instance_CountFreeOP(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
+{
+  instance->loaded_cache_items_Kbytes-=(additional_mem_to_malloc_in_bytes/1024);
+  return 1;
+}
+
+
+
+
+
+
 int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
 {
   fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST !FILE! requests , and couple them to dynamic content ..\n");

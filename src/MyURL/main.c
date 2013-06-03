@@ -430,8 +430,8 @@ void * serve_error_url_page(struct AmmServer_DynamicRequest  * rqst)
 {
   memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
   sprintf(rqst->content,"<html><head><body><center><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></center></body></html>",service_root_withoutfilename);
-  rqst->content_size=strlen(rqst->content);
-  rqst->content[rqst->content_size]=0;
+  rqst->contentSize=strlen(rqst->content);
+  rqst->content[rqst->contentSize]=0;
   return 0;
 }
 
@@ -443,8 +443,8 @@ void * serve_captcha_page(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(myurl_server,rqst,"id",captchaIDStr,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaIDStr); }
   unsigned int captchaID = atoi(captchaIDStr);
 
-  rqst->content_size=rqst->MAX_content_size;
-  AmmCaptcha_getCaptchaFrame(captchaID,rqst->content,&rqst->content_size);
+  rqst->contentSize=rqst->MAXcontentSize;
+  AmmCaptcha_getCaptchaFrame(captchaID,rqst->content,&rqst->contentSize);
   #endif
   return 0;
 }
@@ -455,7 +455,7 @@ void * serve_create_url_page(struct AmmServer_DynamicRequest  * rqst)
 {
   strncpy(rqst->content,indexPage,indexPageLength);
   rqst->content[indexPageLength]=0;
-  rqst->content_size=indexPageLength;
+  rqst->contentSize=indexPageLength;
 
   char val[132]={0};
   sprintf(val , "%u",loaded_links);
@@ -522,7 +522,7 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
       strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to go to .. </body></html>");
     }
 
-  rqst->content_size=strlen(rqst->content);
+  rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 

@@ -43,7 +43,7 @@ char * dynamicRequest_serveContent
   //one common memory buffer for every client...!
   if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) )
     {
-     unsigned int size_to_allocate =  sizeof(char) * ( shared_context->requestContext.MAX_content_size ) ;
+     unsigned int size_to_allocate =  sizeof(char) * ( shared_context->requestContext.MAXcontentSize ) ;
      if (size_to_allocate==0)
      { warning("BUG : We should allocate additional space for this request.. Unfortunately it appears to be zero.. \n "); }
      else
@@ -57,7 +57,7 @@ char * dynamicRequest_serveContent
 
   //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
   //So we bail out and emmit an error message..!
-  if ( (cacheMemory==0) || (shared_context->requestContext.MAX_content_size==0) )
+  if ( (cacheMemory==0) || (shared_context->requestContext.MAXcontentSize==0) )
     {
      fprintf(stderr,"Not going to call callback function with an empty buffer..!\n");
     } else
@@ -81,7 +81,7 @@ char * dynamicRequest_serveContent
          //The request came too fast.. We will serve our existing file..!
          *compression_supported=0;
          shared_context->callback_cooldown=1;
-         *memSize=shared_context->requestContext.content_size;
+         *memSize=shared_context->requestContext.contentSize;
          return cacheMemory;
         } else
         {
@@ -110,14 +110,14 @@ char * dynamicRequest_serveContent
                     {
                      memcpy(rqst->content , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
 
-                     fprintf(stderr,"Request for a maximum of %u characters ( %u ) \n",rqst->MAX_content_size , shared_context->requestContext.MAX_content_size );
+                     fprintf(stderr,"Request for a maximum of %u characters ( %u ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
 
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                      warning("Callbacks , are currently broken Doing Callback\n");
                      DoCallback(rqst);
-                     *memSize = rqst->content_size;
-                     fprintf(stderr,"After callback we got back %u bytes\n",rqst->content_size);
+                     *memSize = rqst->contentSize;
+                     fprintf(stderr,"After callback we got back %u bytes\n",rqst->contentSize);
                      free(rqst);
 
 

@@ -122,7 +122,7 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
                    <h3><a href=\"controlpanel.html\">Click Here to open Control Panel</a></h3>\
                    <h3><a href=\"stats.html\">Click Here for stats (not ready yet)</a></h3>\
                    </body></html> ");
-  rqst->content_size=strlen(rqst->content);
+  rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
@@ -139,7 +139,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
   strcat(rqst->content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
   strcat(rqst->content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
   strcat(rqst->content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
-  rqst->content_size=strlen(rqst->content);
+  rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
@@ -285,7 +285,7 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   strncpy(rqst->content,page,pageLength);
   rqst->content[pageLength]=0;
-  rqst->content_size=pageLength;
+  rqst->contentSize=pageLength;
 
 
   if  ( rqst->GET_request != 0 )
