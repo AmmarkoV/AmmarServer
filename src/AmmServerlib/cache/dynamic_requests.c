@@ -23,7 +23,7 @@ char * dynamicRequest_serveContent
           )
 {
   error("Dynamic requests are disabled until further notice .. \n");
-  return 0;
+  //return 0;
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
 
@@ -51,8 +51,12 @@ char * dynamicRequest_serveContent
       fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
       cacheMemory = (char *) malloc( size_to_allocate );
       if (cacheMemory!=0) { *freeContentAfterUsingIt=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
-                          { cacheMemory=shared_context->requestContext.content; } //Lets work with our default buffer till the end..!
+                          { error("Could not allocate enough memory for responding to this request"); } //Lets work with our default buffer till the end..!
      }
+    } else
+   if ( (shared_context->RH_Scenario == SAME_PAGE_FOR_ALL_CLIENTS ) )
+    {
+       cacheMemory = cacheMemory=shared_context->requestContext.content;
     }
 
   //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
@@ -89,12 +93,14 @@ char * dynamicRequest_serveContent
         }
       }
 
+        fprintf(stderr,"Internal mem_callback = %p \n",shared_context->dynamicRequestCallbackFunction);
        //Do callback here
        shared_context->callback_cooldown=0;
        shared_context->last_callback = now;
        void ( *DoCallback) ( struct AmmServer_DynamicRequest * )=0 ;
        DoCallback = shared_context->dynamicRequestCallbackFunction;
 
+       fprintf(stderr,"Trying to adjust GET_request length \n");
 
        //If we have GET or POST request variables , lets pass them through to our shared context..
        shared_context->requestContext.GET_request = request->GETquery;
@@ -105,10 +111,12 @@ char * dynamicRequest_serveContent
        if (shared_context->requestContext.POST_request!=0) { shared_context->requestContext.POST_request_length = strlen(shared_context->requestContext.POST_request); } else
                                                            { shared_context->requestContext.POST_request_length = 0; }
 
+       fprintf(stderr,"Survived adjusting GET_request length \n");
+
         struct AmmServer_DynamicRequest * rqst = (struct AmmServer_DynamicRequest * ) malloc(sizeof(struct AmmServer_DynamicRequest));
         if (rqst!=0)
                     {
-                     memcpy(rqst->content , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
+                     memcpy(rqst , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
 
                      fprintf(stderr,"Request for a maximum of %u characters ( %u ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
 
@@ -119,7 +127,6 @@ char * dynamicRequest_serveContent
                      *memSize = rqst->contentSize;
                      fprintf(stderr,"After callback we got back %u bytes\n",rqst->contentSize);
                      free(rqst);
-
 
                      //This means we can call the callback to prepare the memory content..! END
                      //CreateCompressedVersionofDynamicContent(instance,index);

@@ -492,6 +492,10 @@ if (cache_FindResource(instance,verified_filename,index))
              }
 
              fprintf(stderr,"dynamicRequest_ContentAvailiable produced %lu bytes of usable content ",memSize);
+             *compressionSupported=0;
+             *filesize = memSize;
+             return mem;
+
            }
 
 

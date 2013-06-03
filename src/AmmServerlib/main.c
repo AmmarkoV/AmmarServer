@@ -190,7 +190,16 @@ int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmS
 }
 
 
-int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback,unsigned int scenario)
+int AmmServer_AddResourceHandler
+     ( struct AmmServer_Instance * instance,
+       struct AmmServer_RH_Context * context,
+       char * resource_name ,
+       char * web_root,
+       unsigned int allocate_mem_bytes,
+       unsigned int callback_every_x_msec,
+       void * callback,
+       unsigned int scenario
+    )
 {
    if ( context->requestContext.content!=0 ) { fprintf(stderr,"Context in AmmServer_AddResourceHandler for %s appears to have an already initialized memory part\n",resource_name); }
    memset(context,0,sizeof(struct AmmServer_RH_Context));
