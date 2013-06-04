@@ -98,18 +98,57 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPReq
 
 */
 
+
+#define HTTP_POST_GROWTH_STEP_REQUEST_HEADER 512/*KB*/*1024
+#define MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
+
+char * ReceiveHTTPHeader(struct AmmServer_Instance * instance)
+{
+ int opres=0;
+ unsigned int incomingRequestLength = 0 ;
+ unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
+ char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength) );
+
+ if (incomingRequest==0) { return 0; }
+
+ fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
+ while (
+        (!HTTPRequestComplete(incomingRequest,incomingRequestLength)) &&
+        (instance->server_running)&&
+        (!close_connection)
+       )
+ {
+  //Gather Header until http request contains two newlines..!
+  if ( HTTPRequestIsPOST(incomingRequest,incomingRequestLength ) )
+    {
+
+    }
+
+
+  opres=recv(clientsock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-total_header,0);
+  if (opres<=0) { return 0;   /*TODO : Check opres here..!*/ } else
+    {
+      incomingRequestLength+=opres;
+      fprintf(stderr,"Got %u bytes ( %u total )\n",opres,incomingRequestLength);
+      if (incomingRequestLength>=MAXincomingRequestLength)
+      {
+       fprintf(stderr,"The request would overflow , dropping client \n");
+       return 0;
+      }
+    }
+  }
+  fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
+  return 1;
+}
+
+
+
 void * ServeClient(void * ptr)
 {
   //! One thing to remember is that we shouldnt return anywhere BUT the end of this function to keep
   //! correct tracking of active threads , when something bad happens and we want to return , close_connection=1; is set
 
   fprintf(stderr,"New Serve Client call ..\n");
-
-/*
-  struct PassToHTTPThread context;
-  memcpy(&context,(struct PassToHTTPThread *) ptr,sizeof(struct PassToHTTPThread));
-  context.keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
-*/
 
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
   if (context->keep_var_on_stack!=1)
@@ -118,8 +157,6 @@ void * ServeClient(void * ptr)
      fprintf(stderr,"Bad new thread context is pointing to %p\n",context);
      return 0;
    }
-
-
 
   // In order for each thread to (in theory) be able to serve a different virtual website
   // we declare the webserver_root etc here and we copy the value from the thread spawning function
@@ -205,6 +242,7 @@ void * ServeClient(void * ptr)
    incoming_request[0]=0;
    int total_header=0;
    int opres=0;
+
    fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
    while (
             (!HTTPRequestComplete(incoming_request,total_header)) &&

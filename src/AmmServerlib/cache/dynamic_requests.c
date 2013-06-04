@@ -18,7 +18,7 @@ char * dynamicRequest_serveContent
             struct AmmServer_RH_Context * shared_context ,
             unsigned int index,
             unsigned long * memSize,
-            unsigned char * compression_supported,
+            unsigned char * compressionSupported,
             unsigned char * freeContentAfterUsingIt
           )
 {
@@ -83,7 +83,7 @@ char * dynamicRequest_serveContent
        if ( now-shared_context->last_callback < shared_context-> callback_every_x_msec )
         {
          //The request came too fast.. We will serve our existing file..!
-         *compression_supported=0;
+         *compressionSupported=0;
          shared_context->callback_cooldown=1;
          *memSize=shared_context->requestContext.contentSize;
          return cacheMemory;
@@ -122,7 +122,6 @@ char * dynamicRequest_serveContent
 
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
-                     warning("Callbacks , are currently broken Doing Callback\n");
                      DoCallback(rqst);
                      *memSize = rqst->contentSize;
                      fprintf(stderr,"After callback we got back %u bytes\n",rqst->contentSize);

@@ -490,6 +490,7 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
                if ( ! AmmCaptcha_isReplyCorrect(captchaID , captchaReply) )
                 {
                  strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>");
+                 AmmServer_SignalCountAsBadClientBehaviour(myurl_server,rqst);
                 } else
                #endif
 

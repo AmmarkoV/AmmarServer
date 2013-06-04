@@ -102,6 +102,8 @@ struct AmmServer_DynamicRequest
    char * POST_request;
    unsigned int POST_request_length;
 
+
+   unsigned int clientID;
 };
 
 
@@ -236,7 +238,7 @@ int _POST (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest 
 int _GET  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
-int AmmServer_SignalCountAsBadRequest(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst);
+int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst);
 
 int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context);
 int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name);

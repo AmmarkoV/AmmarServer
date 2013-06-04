@@ -315,7 +315,7 @@ int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest 
 }
 
 
-int AmmServer_SignalCountAsBadRequest(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst)
+int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst)
 {
 
    return 0;

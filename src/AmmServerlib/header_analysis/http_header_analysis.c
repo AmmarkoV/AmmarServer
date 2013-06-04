@@ -78,6 +78,18 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
    return 0;
 }
 
+
+int HTTPRequestIsPOST(char * request , unsigned int requestLength)
+{
+  if (requestLength<4) { return 0; }
+  if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T'))
+  {
+    return 1;
+  }
+  return 0;
+}
+
+
 inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root)
 {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }

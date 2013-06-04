@@ -53,6 +53,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
+struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
 
 
@@ -75,6 +76,28 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
+
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+  strcpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>");
+
+  char hex[10]={0};
+  unsigned int i=0;
+  for (i=0; i<1024; i++)
+    {
+        sprintf(hex, "%x ", rand()%256 );
+        strcat(rqst->content,hex);
+    }
+
+  strcat(rqst->content,"</body></html>");
+
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
 //This function could alter the content of the URI requested and then return 1
 void request_override_callback(void * request)
 {
@@ -89,6 +112,10 @@ void init_dynamic_content()
 
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding stats page\n"); }
+
+   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     { AmmServer_Warning("Failed adding random testing page\n"); }
+
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

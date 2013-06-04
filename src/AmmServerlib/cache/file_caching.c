@@ -142,15 +142,12 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
   fprintf(stderr,"Serial slow searching for resource in cache %s ..\n",resource);
 
   struct cache_item * cache = (struct cache_item *) instance->cache;
-
   if (cache==0) { warning("Cache hasn't been allocated yet\n"); return 0; }
 
-  unsigned long file_we_are_looking_for = hashFunction(resource);
   unsigned long i=0;
 
   if ( hashMap_GetULongPayload((struct hashMap *) instance->cacheHashMap,resource,&i) )
     {
-      warning("HashMap Found");
       fprintf(stderr,"HashMap Found %lu \n",i);
       *index=i;
       return 1;
@@ -212,8 +209,7 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
   /*We have opened the file.. */
 
   if ( fseek (pFile , 0 , SEEK_END)!=0 ) { fprintf(stderr,"Could not find file size to cache client..!\nUnable to serve client\n"); fclose(pFile); return 0; }
-  unsigned long lSize = ftell (pFile);
-  //lSize now holds the size of the file..
+  unsigned long lSize = ftell (pFile); //lSize now holds the size of the file..
 
   //We check if the file size is ok with our configuration limits
   if (!instance_WeCanCommitMoreMemory(instance,lSize)) { fclose(pFile); return 0; }
@@ -227,8 +223,7 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
   instance_CountNewMallocOP(instance,lSize);
 
   // copy the file into the buffer:
-  size_t result;
-  result = fread (buffer,1,lSize,pFile);
+  size_t result = fread (buffer,1,lSize,pFile);
   if (result != lSize) { fprintf(stderr,"Reading error , while filling in newly allocated cache item %s \n",filename); free (buffer); fclose (pFile); return 0; }
 
   fprintf(stderr,"File %s has %u bytes cached with index %u \n",filename,(unsigned int ) lSize,*index);
@@ -250,7 +245,8 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
 
   cache[*index].compressedContentSize=0;
   cache[*index].compressedContent=0;
-  if (!CreateCompressedVersionofStaticContent(instance,*index)) {  fprintf(stderr,"Could not create a gzipped version of the file..\n"); }
+  if (!CreateCompressedVersionofStaticContent(instance,*index))
+     {  fprintf(stderr,"Did not create a gzipped version of the file..\n"); }
 
   return 1;
 }
@@ -333,15 +329,23 @@ int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,char
 {
    struct cache_item * cache = (struct cache_item *) instance->cache;
    unsigned int index=0;
-   if (cache_FindResource(instance,filename,&index))  { cache[index].doNOTCacheRule=1; }
-    else
+   if (cache_FindResource(instance,filename,&index))
      {
-       //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
-       if (!cache_CreateResource(instance,filename,&index) ) { return 0; }
-       if (cache_FindResource(instance,filename,&index)) { cache[index].doNOTCacheRule=1; } else
-                                             { return 0; } //Could not set doNOTCache..!
+       cache[index].doNOTCacheRule=1;
+       return 1;
      }
-   return 1;
+    else
+     { //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
+       if (cache_CreateResource(instance,filename,&index) )
+       {
+        if (cache_FindResource(instance,filename,&index))
+         {
+          cache[index].doNOTCacheRule=1;
+          return 1;
+         }
+       }
+     }
+   return 0;
 }
 
 
@@ -495,11 +499,7 @@ if (cache_FindResource(instance,verified_filename,index))
              *compressionSupported=0;
              *filesize = memSize;
              return mem;
-
            }
-
-
-
 
 
            /*We want to serve a cached version of the file START*/
