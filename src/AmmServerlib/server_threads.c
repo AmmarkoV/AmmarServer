@@ -98,6 +98,53 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPReq
 
 */
 
+int setSocketTimeouts(int clientSock)
+{
+ int errorSettingTimeouts = 1;
+ struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
+ timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
+ if (setsockopt (clientSock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); errorSettingTimeouts=0; }
+
+ timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
+ if (setsockopt (clientSock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); errorSettingTimeouts=0; }
+
+ return errorSettingTimeouts;
+}
+
+
+
+clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int clientSock)
+{
+  //Lets find out who we are talking to , and if we want to deny him service or not..!
+  socklen_t len=0;
+  struct sockaddr_storage addr;
+  char ipstr[INET6_ADDRSTRLEN]; ipstr[0]=0;
+  int port=0;
+
+  len = sizeof addr;
+  if ( getpeername(clientSock, (struct sockaddr*)&addr, &len) == 0 )
+ {
+  // deal with both IPv4 and IPv6:
+  if (addr.ss_family == AF_INET)
+  {
+    struct sockaddr_in *s = (struct sockaddr_in *)&addr;
+    port = ntohs(s->sin_port);
+    inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
+  } else
+  { // AF_INET6
+    struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
+    port = ntohs(s->sin6_port);
+    inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
+  }
+  fprintf(stderr,"Peer IP address: %s , port %d \n", ipstr,port);
+ } else
+ {
+   warning("Could not get peer name..!"); //This could be a reason to drop this connection!
+   return 0;
+ }
+
+ return  clientList_GetClientId(instance->clientList,"0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
+}
 
 
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
@@ -107,8 +154,8 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
  unsigned int incomingRequestLength = 0 ;
  unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
  char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength) );
-
- if (incomingRequest==0) { return 0; }
+ if (incomingRequest==0) { error("Could not allocate enough "); return 0; }
+ incomingRequest[0]=0;
 
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
@@ -117,13 +164,13 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
        )
  {
   //Gather Header until http request contains two newlines..!
+
   if ( HTTPRequestIsPOST(incomingRequest,incomingRequestLength ) )
     {
       //void* realloc (void* ptr, size_t size);
       //#define HTTP_POST_GROWTH_STEP_REQUEST_HEADER 512/*KB*/*1024
       //#define MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
     }
-
 
   opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
   if (opres<=0) { return 0;   /*TODO : Check opres here..!*/ } else
@@ -139,7 +186,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
   }
   fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
   *headerLength=incomingRequestLength;
-  return incomingRequestLength;
+  return incomingRequest;
 }
 
 
@@ -181,98 +228,37 @@ void * ServeClient(void * ptr)
   if (instance==0) { fprintf(stderr,"Serve Client called without a valid instance , it cannot continue \n"); return 0; }
   fprintf(stderr,"ServeClient instance pointing @ %p \n",instance);
 
-
-  //Lets find out who we are talking to , and if we want to deny him service or not..!
-  socklen_t len=0;
-  struct sockaddr_storage addr;
-  char ipstr[INET6_ADDRSTRLEN]; ipstr[0]=0;
-  int port=0;
-
-  len = sizeof addr;
-  if ( getpeername(context->clientsock, (struct sockaddr*)&addr, &len) == 0 )
- {
-  // deal with both IPv4 and IPv6:
-  if (addr.ss_family == AF_INET)
-  {
-    struct sockaddr_in *s = (struct sockaddr_in *)&addr;
-    port = ntohs(s->sin_port);
-    inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
-  } else
-  { // AF_INET6
-    struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
-    port = ntohs(s->sin6_port);
-    inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
-  }
-  fprintf(stderr,"Peer IP address: %s , port %d \n", ipstr,port);
- } else
- {
-   warning("Could not get peer name..!"); //This could be a reason to drop this connection!
- }
-
-
+  clientID client_id = findOutClientIDOfPeer(instance ,clientsock);
   //Now the real fun starts :P <- helpful comment
-  clientID client_id=clientList_GetClientId(instance->clientList,"0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
+
   if ( clientList_isClientBanned(instance->clientList,client_id) )
   {
-         SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
+    SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
   } else
   { /*!START OF CLIENT IS NOT ON IP-BANNED-LIST!*/
 
-  int errorSettingTimeouts = 0;
-  struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
-  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
-  if (setsockopt (clientsock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); errorSettingTimeouts=1; }
-
-  timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
-  if (setsockopt (clientsock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); errorSettingTimeouts=1; }
-
-  char incoming_request[MAX_HTTP_REQUEST_HEADER+1]; //A 4K header is more than enough..!
-
-  int close_connection=0;
+   int close_connection=0;
 
 
-  if (errorSettingTimeouts)
-  {
+   if (!setSocketTimeouts(clientsock))
+   {
     warning("Could not set timeouts , this means something weird is going on , skipping everything");
     close_connection=1;
-  }
+   }
+
+
+  char * incoming_request=0;
+  unsigned long total_header=0;
 
 
   while ( (!close_connection) && (instance->server_running) )
   {
-   incoming_request[0]=0;
-   int total_header=0;
-   int opres=0;
+   if ( incoming_request!=0 ) { free(incoming_request); incoming_request=0; }
 
-   fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
-   while (
-            (!HTTPRequestComplete(incoming_request,total_header)) &&
-            (instance->server_running)&&
-            (!close_connection)
-          )
-   { //Gather Header until http request contains two newlines..!
-     opres=recv(clientsock,&incoming_request[total_header],MAX_HTTP_REQUEST_HEADER-total_header,0);
-     if (opres<=0)
-      {
-        //TODO : Check opres here..!
-        close_connection=1; // Close_connection controls the receive "keep-alive" loop
-        break;
-      } else
-      {
-       total_header+=opres;
-       fprintf(stderr,"Got %u bytes ( %u total )\n",opres,total_header);
-       if (total_header>=MAX_HTTP_REQUEST_HEADER)
-        {
-           fprintf(stderr,"The request would overflow , dropping client \n");
-           opres=0;
-           close_connection=1;
-           break;
-        }
-      }
-   }
-  fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
+   incoming_request = ReceiveHTTPHeader(instance,clientsock,&total_header);
+   if (incoming_request==0) { close_connection=1; }
 
-  if ( (opres>0) && (!close_connection) )
+  if ( !close_connection )
   {
    fprintf(stderr,"Received request header \n");
    //fprintf(stderr,"Received %s \n",incoming_request);
@@ -537,13 +523,20 @@ void * ServeClient(void * ptr)
     if (!FreeHTTPRequest(&output)) { fprintf(stderr,"WARNING: Could not Free HTTP request , please check FIELDS_TO_CLEAR_FROM_HTTP_REQUEST (%u).. \n",FIELDS_TO_CLEAR_FROM_HTTP_REQUEST); }
   }
 
+
+  if ( incoming_request!=0 ) { free(incoming_request); incoming_request=0; }
   } // Keep-Alive loop  ( not closing socket )
+
+  //We are done with request!
 
   } /*!END OF CLIENT NOT IP-BANNED CODE !*/
 
   fprintf(stderr,"Closing Socket ..");
   close(clientsock);
   fprintf(stderr,"closed\n");
+
+
+
 
   if (!pre_spawned_thread)
    { //If we are running in a prespawned thread it is wrong to count this thread as a *dynamic* one that just stopped !
