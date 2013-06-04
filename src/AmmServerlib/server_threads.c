@@ -99,11 +99,10 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPReq
 */
 
 
-#define HTTP_POST_GROWTH_STEP_REQUEST_HEADER 512/*KB*/*1024
-#define MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
 
-char * ReceiveHTTPHeader(struct AmmServer_Instance * instance)
+char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
 {
+ *headerLength=0;
  int opres=0;
  unsigned int incomingRequestLength = 0 ;
  unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
@@ -114,18 +113,19 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance)
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
         (!HTTPRequestComplete(incomingRequest,incomingRequestLength)) &&
-        (instance->server_running)&&
-        (!close_connection)
+        (instance->server_running)
        )
  {
   //Gather Header until http request contains two newlines..!
   if ( HTTPRequestIsPOST(incomingRequest,incomingRequestLength ) )
     {
-
+      //void* realloc (void* ptr, size_t size);
+      //#define HTTP_POST_GROWTH_STEP_REQUEST_HEADER 512/*KB*/*1024
+      //#define MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
     }
 
 
-  opres=recv(clientsock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-total_header,0);
+  opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
   if (opres<=0) { return 0;   /*TODO : Check opres here..!*/ } else
     {
       incomingRequestLength+=opres;
@@ -138,7 +138,8 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance)
     }
   }
   fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
-  return 1;
+  *headerLength=incomingRequestLength;
+  return incomingRequestLength;
 }
 
 

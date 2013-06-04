@@ -478,7 +478,7 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
         char captchaReply[MAX_LONG_URL_SIZE]={0};
         char captchaIDStr[MAX_LONG_URL_SIZE]={0};
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
-        if ( _GET(myurl_server,&goto_url,"url",url,MAX_LONG_URL_SIZE) )
+        if ( _GET(myurl_server,rqst,"url",url,MAX_LONG_URL_SIZE) )
              {
                #if ENABLE_CAPTCHA_SYSTEM
                if ( _GET(myurl_server,rqst,"captchaID",captchaIDStr,MAX_LONG_URL_SIZE) )
