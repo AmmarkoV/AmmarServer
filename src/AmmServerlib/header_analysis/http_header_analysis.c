@@ -31,7 +31,78 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define CR 13
 #define LF 10
 
-int FreeHTTPRequest(struct HTTPRequest * output)
+
+
+
+
+char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
+{
+ *headerLength=0;
+ int opres=0;
+ unsigned int incomingRequestLength = 0 ;
+ unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
+ char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength) );
+ if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
+ incomingRequest[0]=0;
+
+ fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
+ while (
+        (!HTTPHeaderComplete(incomingRequest,incomingRequestLength)) &&
+        (instance->server_running)
+       )
+ {
+  //Gather Header until http request contains two newlines..!
+  opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
+  if (opres<=0) { free(incomingRequest); return 0;   /*TODO : Check opres here..!*/ } else
+    {
+      incomingRequestLength+=opres;
+      fprintf(stderr,"Got %u bytes ( %u total )\n",opres,incomingRequestLength);
+      if (incomingRequestLength>=MAXincomingRequestLength)
+      {
+         //We filled our buffer , if we have a POST request there is a different limit
+         //so that we can upload files
+         if ( ( HTTPHeaderIsPOST(incomingRequest,incomingRequestLength ) ) && ( ENABLE_POST ) )
+          {
+            unsigned long oldLimit = MAXincomingRequestLength;
+            if (MAXincomingRequestLength < MAX_HTTP_POST_REQUEST_HEADER )
+            {
+              MAXincomingRequestLength += HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
+              if (MAXincomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
+                   { MAXincomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
+
+
+              char  * largerRequest = (char * )  realloc (incomingRequest, MAXincomingRequestLength );
+              if ( incomingRequest != largerRequest ) { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength); }
+                                                        else
+                                                      {
+                                                        fprintf(stderr,"The request would overflow POST limit , dropping client \n");
+                                                        free(incomingRequest);
+                                                        return 0;
+                                                      }
+            }
+          } else
+          {
+            fprintf(stderr,"The request would overflow , dropping client \n");
+            free(incomingRequest);
+            return 0;
+          }
+      }
+    }
+  }
+  fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
+  *headerLength=incomingRequestLength;
+  return incomingRequest;
+}
+
+
+
+
+
+
+
+
+
+int FreeHTTPHeader(struct HTTPHeader * output)
 {
 /* Getting a consistent segfault on the raspberry pi The last console line is
    ->  Freeing HTTP Request : ETag *** glibc detected *** src/ammarserver: free(): invalid next size (fast): 0x01ad7ac8 *** */
@@ -49,13 +120,13 @@ int FreeHTTPRequest(struct HTTPRequest * output)
    ++fields_I_try_to_clean; if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
 
    ++fields_I_try_to_clean; if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
-   //FIELDS_TO_CLEAR_FROM_HTTP_REQUEST is a way to remember to add things here every time I add a new field..!
+   //FIELDS_TO_CLEAR_FROM_HTTP_HEADER is a way to remember to add things here every time I add a new field..!
 
-    if (FIELDS_TO_CLEAR_FROM_HTTP_REQUEST!=fields_I_try_to_clean) { return 0; }
+    if (FIELDS_TO_CLEAR_FROM_HTTP_HEADER!=fields_I_try_to_clean) { return 0; }
     return 1;
 }
 
-int HTTPRequestComplete(char * request,unsigned int request_length)
+int HTTPHeaderComplete(char * request,unsigned int request_length)
 {
   /*  This call returns 1 when we find two subsequent newline characters
       which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
@@ -79,7 +150,7 @@ int HTTPRequestComplete(char * request,unsigned int request_length)
 }
 
 
-int HTTPRequestIsPOST(char * request , unsigned int requestLength)
+int HTTPHeaderIsPOST(char * request , unsigned int requestLength)
 {
   if (requestLength<4) { return 0; }
   if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T'))
@@ -90,7 +161,7 @@ int HTTPRequestIsPOST(char * request , unsigned int requestLength)
 }
 
 
-inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root)
+inline int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
 {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }
      // The firs line should contain the message type so .. lets see..!
@@ -167,7 +238,7 @@ inline int ProcessFirstHTTPLine(struct HTTPRequest * output,char * request,unsig
 }
 
 
-inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,struct HTTPRequest * output,char * request,unsigned int request_length,unsigned int * payload_pos)
+inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length,unsigned int * payload_pos)
 {
 
         unsigned int payload_start = *payload_pos;
@@ -195,7 +266,7 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 
 int AnalyzeHTTPLineRequest(
                             struct AmmServer_Instance * instance,
-                            struct HTTPRequest * output,
+                            struct HTTPHeader * output,
                             char * request,
                             unsigned int request_length,
                             unsigned int lines_gathered,
@@ -204,7 +275,7 @@ int AnalyzeHTTPLineRequest(
 {
   /*
       This call fills in the output variable according to the line data held in the request string..!
-      it is made to be called internally by AnalyzeHTTPRequest
+      it is made to be called internally by AnalyzeHTTPHeader
   */
 
   //fprintf(stderr,"Analyzing HTTP Request : Line %u , `%s` \n",lines_gathered,request);
@@ -328,14 +399,14 @@ int AnalyzeHTTPLineRequest(
   return 1;
 }
 
-int AnalyzeHTTPRequest(struct AmmServer_Instance * instance,struct HTTPRequest * output,char * request,unsigned int request_length, char * webserver_root)
+int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
 {
   /*
       This call fills in the output variable according by subsequent calls to the AnalyzeHTTPLineRequest function
       the code here just serves as a line parser for AnalyzeHTTPLineRequest
   */
 
-  memset(output,0,sizeof(struct HTTPRequest)); // Clear output http request
+  memset(output,0,sizeof(struct HTTPHeader)); // Clear output http request
   output->requestType=NONE; // invalidate current output data..!
   output->range_start=0;
   output->range_end=0;

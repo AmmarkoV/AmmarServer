@@ -269,7 +269,7 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void * request_override_callback(char * content)
 {
   // char requestHeader;
-  // struct HTTPRequest * request;
+  // struct HTTPHeader * request;
   // void * request_override_callback;
 
   //This does nothing for now :P

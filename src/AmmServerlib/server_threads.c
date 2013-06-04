@@ -60,7 +60,7 @@ int HTTPServerIsRunning(struct AmmServer_Instance * instance)
 
 
 
-int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPRequest * output)
+int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output)
 {
   if ( instance->clientRequestHandlerOverrideContext == 0 )  { return 0; }
   struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
@@ -147,49 +147,6 @@ clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int client
 }
 
 
-char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
-{
- *headerLength=0;
- int opres=0;
- unsigned int incomingRequestLength = 0 ;
- unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
- char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength) );
- if (incomingRequest==0) { error("Could not allocate enough "); return 0; }
- incomingRequest[0]=0;
-
- fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
- while (
-        (!HTTPRequestComplete(incomingRequest,incomingRequestLength)) &&
-        (instance->server_running)
-       )
- {
-  //Gather Header until http request contains two newlines..!
-
-  if ( HTTPRequestIsPOST(incomingRequest,incomingRequestLength ) )
-    {
-      //void* realloc (void* ptr, size_t size);
-      //#define HTTP_POST_GROWTH_STEP_REQUEST_HEADER 512/*KB*/*1024
-      //#define MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
-    }
-
-  opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
-  if (opres<=0) { return 0;   /*TODO : Check opres here..!*/ } else
-    {
-      incomingRequestLength+=opres;
-      fprintf(stderr,"Got %u bytes ( %u total )\n",opres,incomingRequestLength);
-      if (incomingRequestLength>=MAXincomingRequestLength)
-      {
-       fprintf(stderr,"The request would overflow , dropping client \n");
-       return 0;
-      }
-    }
-  }
-  fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
-  *headerLength=incomingRequestLength;
-  return incomingRequest;
-}
-
-
 
 void * ServeClient(void * ptr)
 {
@@ -262,10 +219,10 @@ void * ServeClient(void * ptr)
   {
    fprintf(stderr,"Received request header \n");
    //fprintf(stderr,"Received %s \n",incoming_request);
-   struct HTTPRequest output={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPRequest call!
-   //memset(&output,0,sizeof(struct HTTPRequest));
+   struct HTTPHeader output={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
+   //memset(&output,0,sizeof(struct HTTPHeader));
 
-   int result = AnalyzeHTTPRequest(instance,&output,incoming_request,total_header,webserver_root);
+   int result = AnalyzeHTTPHeader(instance,&output,incoming_request,total_header,webserver_root);
    if (result)
       { //If we use a client based request handler , call it now
         callClientRequestHandler(instance,&output);
@@ -312,7 +269,6 @@ void * ServeClient(void * ptr)
 
               //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
               //TODO TODO TODO
-
               if (total_header>=MAX_QUERY*4)
               {
                  //Too large request .. We cannot handle it ..
@@ -520,7 +476,7 @@ void * ServeClient(void * ptr)
 
 
     clientList_signalClientStoppedUsingResource(instance->clientList,client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
-    if (!FreeHTTPRequest(&output)) { fprintf(stderr,"WARNING: Could not Free HTTP request , please check FIELDS_TO_CLEAR_FROM_HTTP_REQUEST (%u).. \n",FIELDS_TO_CLEAR_FROM_HTTP_REQUEST); }
+    if (!FreeHTTPHeader(&output)) { fprintf(stderr,"WARNING: Could not Free HTTP request , please check FIELDS_TO_CLEAR_FROM_HTTP_HEADER (%u).. \n",FIELDS_TO_CLEAR_FROM_HTTP_HEADER); }
   }
 
 

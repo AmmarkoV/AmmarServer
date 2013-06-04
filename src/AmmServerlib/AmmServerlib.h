@@ -38,7 +38,9 @@ enum TypesOfRequests
 #define MAX_FILE_PATH 1024
 
 
-struct HTTPRequest
+
+
+struct HTTPHeader
 {
    int  requestType; //See enum TypesOfRequests
    char resource[MAX_RESOURCE+1];
@@ -64,8 +66,16 @@ struct HTTPRequest
    //Languages etc here..!
 };
 /*! IMPORTANT @@@ */
-#define FIELDS_TO_CLEAR_FROM_HTTP_REQUEST 6
+#define FIELDS_TO_CLEAR_FROM_HTTP_HEADER 6
 /*! IMPORTANT @@@*/
+
+
+
+struct HTTPTransaction
+{
+
+};
+
 
 
 
@@ -78,7 +88,7 @@ enum RHScenarios
 struct AmmServer_RequestOverride_Context
 {
    char requestHeader[64]; //Initial request ( GET , HEAD , CONNECT )
-   struct HTTPRequest * request;
+   struct HTTPHeader * request;
    void * request_override_callback;
 };
 

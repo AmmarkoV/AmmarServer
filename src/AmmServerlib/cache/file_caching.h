@@ -70,7 +70,7 @@ int cache_Destroy(struct AmmServer_Instance * instance);
 
 char * cache_GetResource(
                           struct AmmServer_Instance * instance,
-                          struct HTTPRequest * request,
+                          struct HTTPHeader * request,
                           char * verified_filename,
                           unsigned int * index,
                           unsigned long *filesize,

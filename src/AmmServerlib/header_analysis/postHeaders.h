@@ -6,7 +6,7 @@
 
 int AnalyzePOSTLineRequest(
                             struct AmmServer_Instance * instance,
-                            struct HTTPRequest * output,
+                            struct HTTPHeader * output,
                             char * request,
                             unsigned int request_length,
                             unsigned int lines_gathered,

@@ -292,7 +292,7 @@ int TransmitFileToSocket(
 unsigned long SendFile
   (
     struct AmmServer_Instance * instance,
-    struct HTTPRequest * request,
+    struct HTTPHeader * request,
 
     int clientsock, // The socket that will be used to send the data
     char * verified_filename_pending_copy, // The filename to be served on the socket above

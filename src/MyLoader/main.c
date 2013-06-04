@@ -59,7 +59,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void request_override_callback(void * request)
 {
   struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
-  struct HTTPRequest * rqst = rqstContext->request;
+  struct HTTPHeader * rqst = rqstContext->request;
   AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
 
   if (strcmp("/favicon.ico",rqst->resource)==0 ) { return; /*Client requested favicon.ico , no resolving to do */ } else

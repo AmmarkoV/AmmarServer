@@ -437,7 +437,7 @@ int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_fi
 
 char * cache_GetResource(
                           struct AmmServer_Instance * instance,
-                          struct HTTPRequest * request,
+                          struct HTTPHeader * request,
                           char * verified_filename,
                           unsigned int * index,
                           unsigned long *filesize,
