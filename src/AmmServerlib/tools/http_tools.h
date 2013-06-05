@@ -3,6 +3,7 @@
 
 
 #include "../AmmServerlib.h"
+#include "../cache/client_list.h"
 
 typedef unsigned int contentType;
 
@@ -50,5 +51,8 @@ int FilenameStripperOk(char * filename);
 char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsigned int max_content);
 
 int freeString(char ** str);
+
+int setSocketTimeouts(int clientSock);
+clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int clientSock);
 
 #endif // HTTP_TOOLS_H_INCLUDED

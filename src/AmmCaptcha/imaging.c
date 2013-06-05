@@ -94,7 +94,7 @@ int bitBltImage(struct Image * target , unsigned int targetX,unsigned int target
  unsigned int sourceWidthStep = source->width * 3;
  char * sourcePixelsStart   = (char*) source->pixels + ( (sourceX*3) + sourceY * sourceWidthStep);
  char * sourcePixelsLineEnd = sourcePixelsStart  + (width*3);
- char * sourcePixelsEnd     = sourcePixelsLineEnd + ((height-1) * sourceWidthStep);
+ //char * sourcePixelsEnd     = sourcePixelsLineEnd + ((height-1) * sourceWidthStep);
  char * sourcePixels = sourcePixelsStart;
 
  char * srcR, * srcG, * srcB;
@@ -137,7 +137,7 @@ int bitBltImageRotated(struct Image * target , unsigned int targetCenterX,unsign
 {
 
 
-
+ return 0;
 }
 
 

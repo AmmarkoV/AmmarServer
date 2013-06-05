@@ -121,9 +121,9 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
          char * comment = (char *) malloc ( 1024 * sizeof(char) );
          if ((username!=0)&&(comment!=0))
           {
-            if ( _POST(default_server,&chatbox,"user",username,256) )
+            if ( _POST(default_server,rqst,"user",username,256) )
              {
-                if (! _POST(default_server,&chatbox,"comment",comment,1024) ) { fprintf(stderr,"Didn't find a comment \n"); }
+                if (! _POST(default_server,rqst,"comment",comment,1024) ) { fprintf(stderr,"Didn't find a comment \n"); }
 
                 if ((StringIsHTMLSafe(username))&&(StringIsHTMLSafe(comment)))
                 {
@@ -225,7 +225,7 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
-            if ( _POST(default_server,&form,"user",username,256) )
+            if ( _POST(default_server,rqst,"user",username,256) )
              {
                strcat(rqst->content,"GOT A POST USERNAME !!!  : "); strcat(rqst->content,username); strcat(rqst->content," ! ! <br>");
              }
@@ -244,7 +244,7 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
-            if ( _GET(default_server,&form,"user",username,256) )
+            if ( _GET(default_server,rqst,"user",username,256) )
              {
                strcat(rqst->content,"GOT A GET USERNAME !!!  : "); strcat(rqst->content,username); strcat(rqst->content," ! ! <br>");
              }

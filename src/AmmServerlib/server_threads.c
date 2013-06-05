@@ -35,7 +35,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "tools/directory_lists.h"
 #include "server_threads.h"
 #include "file_server.h"
-#include "cache/client_list.h"
 #include "header_analysis/http_header_analysis.h"
 #include "tools/http_tools.h"
 #include "tools/logs.h"
@@ -46,44 +45,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "threads/prespawnedThreads.h"
 #include "threads/threadInitHelper.h"
 
-
-
-
+#include "cache/client_list.h"
+#include "cache/dynamic_requests.h"
 
 int HTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
   if (instance==0) { return 0; } //We can't be running not even the instance is allocated..
   return instance->server_running;
 }
-
-
-
-
-
-int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output)
-{
-  if ( instance->clientRequestHandlerOverrideContext == 0 )  { return 0; }
-  struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
-  if ( clientOverride->request_override_callback == 0 ) { return 0; }
-
-  clientOverride->request = output;
-
-
-  void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
-  DoCallback = clientOverride->request_override_callback;
-
-  DoCallback(clientOverride);
-
-  //After getting back the override and whatnot , keep the client from using a potentially bad
-  //memory chunk
-  clientOverride->request = 0;
-
-  return 1;
-}
-
-
-
-
 
 /*
   -----------------------------------------------------------------
@@ -98,56 +67,6 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
 
 */
 
-int setSocketTimeouts(int clientSock)
-{
- int errorSettingTimeouts = 1;
- struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
- timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
- if (setsockopt (clientSock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); errorSettingTimeouts=0; }
-
- timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
- if (setsockopt (clientSock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); errorSettingTimeouts=0; }
-
- return errorSettingTimeouts;
-}
-
-
-
-clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int clientSock)
-{
-  //Lets find out who we are talking to , and if we want to deny him service or not..!
-  socklen_t len=0;
-  struct sockaddr_storage addr;
-  char ipstr[INET6_ADDRSTRLEN]; ipstr[0]=0;
-  int port=0;
-
-  len = sizeof addr;
-  if ( getpeername(clientSock, (struct sockaddr*)&addr, &len) == 0 )
- {
-  // deal with both IPv4 and IPv6:
-  if (addr.ss_family == AF_INET)
-  {
-    struct sockaddr_in *s = (struct sockaddr_in *)&addr;
-    port = ntohs(s->sin_port);
-    inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
-  } else
-  { // AF_INET6
-    struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
-    port = ntohs(s->sin6_port);
-    inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
-  }
-  fprintf(stderr,"Peer IP address: %s , port %d \n", ipstr,port);
- } else
- {
-   warning("Could not get peer name..!"); //This could be a reason to drop this connection!
-   return 0;
- }
-
- return  clientList_GetClientId(instance->clientList,"0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
-}
-
-
-
 void * ServeClient(void * ptr)
 {
   //! One thing to remember is that we shouldnt return anywhere BUT the end of this function to keep
@@ -160,7 +79,7 @@ void * ServeClient(void * ptr)
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
   if (context->keep_var_on_stack!=1)
    {
-     warning("A bad sign , KeepVarOnStack is not properly set , this is a bug .. \n Will not serve request");
+     warning("KeepVarOnStack is not properly set , this is a bug .. \n Will not serve request");
      fprintf(stderr,"Bad new thread context is pointing to %p\n",context);
      return 0;
    }
@@ -168,6 +87,9 @@ void * ServeClient(void * ptr)
 
   //This is the structure that holds all the state of the current ServeClient transaction
   struct HTTPTransaction transaction={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
+  struct AmmServer_Instance * instance = context->instance;
+  int close_connection=0; // <- if this is set it means Serve Client must stop
+
    //memset(&transaction.incomingHeader,0,sizeof(struct HTTPHeader));
   transaction.incomingHeader.headerRAW=0;
   transaction.incomingHeader.headerRAWSize=0;
@@ -175,33 +97,30 @@ void * ServeClient(void * ptr)
   // In order for each thread to (in theory) be able to serve a different virtual website
   // we declare the webserver_root etc here and we copy the value from the thread spawning function
   // This creates a little code clutter but it is for the best..!
-  int pre_spawned_thread=context->pre_spawned_thread;
-  int clientsock=context->clientsock;
-  int thread_id = context->thread_id;
-
-  struct AmmServer_Instance * instance = context->instance;
+  transaction.prespawnedThreadFlag=context->pre_spawned_thread;
+  transaction.clientSock=context->clientsock;
+  transaction.threadID = context->thread_id;
 
 
-  fprintf(stderr,"Now signaling we are ready (%u)\n",thread_id);
+
+  fprintf(stderr,"Now signaling we are ready (%u)\n",transaction.threadID);
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
-  fprintf(stderr,"Passing message to HTTP thread is done (%u)\n",thread_id);
+  fprintf(stderr,"Passing message to HTTP thread is done (%u)\n",transaction.threadID);
 
-  if (instance==0) { fprintf(stderr,"Serve Client called without a valid instance , it cannot continue \n"); return 0; }
-  fprintf(stderr,"ServeClient instance pointing @ %p \n",instance);
+  if (instance==0) { error("Serve Client called without a valid instance , stopping \n"); return 0; } else
+                   { fprintf(stderr,"ServeClient instance pointing @ %p \n",instance); }
 
-  clientID client_id = findOutClientIDOfPeer(instance ,clientsock);
+  clientID client_id = findOutClientIDOfPeer(instance ,transaction.clientSock);
   //Now the real fun starts :P <- helpful comment
 
   if ( clientList_isClientBanned(instance->clientList,client_id) )
   {
-    SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",instance->templates_root);
+    SendErrorCodeHeader(transaction.clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
   } else
   { /*!START OF CLIENT IS NOT ON IP-BANNED-LIST!*/
 
-   int close_connection=0;
 
-
-   if (!setSocketTimeouts(clientsock))
+   if (!setSocketTimeouts(transaction.clientSock))
    {
     warning("Could not set timeouts , this means something weird is going on , skipping everything");
     close_connection=1;
@@ -214,7 +133,7 @@ void * ServeClient(void * ptr)
   {
    if ( transaction.incomingHeader.headerRAW!=0 ) { free(transaction.incomingHeader.headerRAW); transaction.incomingHeader.headerRAW=0; }
 
-   transaction.incomingHeader.headerRAW = ReceiveHTTPHeader(instance,clientsock,&transaction.incomingHeader.headerRAWSize);
+   transaction.incomingHeader.headerRAW = ReceiveHTTPHeader(instance,transaction.clientSock,&transaction.incomingHeader.headerRAWSize);
    if (transaction.incomingHeader.headerRAW==0) { close_connection=1; }
 
   if ( !close_connection )
@@ -240,7 +159,7 @@ void * ServeClient(void * ptr)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       fprintf(stderr,"Bad Request!");
       char servefile[MAX_FILE_PATH]={0};
-      SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,instance->templates_root);
+      SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,400,0,0,0,instance->templates_root);
       close_connection=1;
    }
       else
@@ -248,17 +167,17 @@ void * ServeClient(void * ptr)
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
-     SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",instance->templates_root);
+     SendErrorCodeHeader(transaction.clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
      close_connection=1;
    } else
    if ((instance->settings.PASSWORD_PROTECTION)&&(!transaction.incomingHeader.authorized))
    {
-     SendAuthorizationHeader(clientsock,"AmmarServer authorization..!","authorization.html");
+     SendAuthorizationHeader(transaction.clientSock,"AmmarServer authorization..!","authorization.html");
 
      char reply_header[256]={0};
      strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
      strcat(reply_header,"and your host machine will be permenantly banned if you exceed the maximum number of incorrect login attempts..</h2></body></html>\n");
-     int opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
+     int opres=send(transaction.clientSock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
 
      if (opres<=0) { fprintf(stderr,"Error sending authorization needed message\n"); }
      close_connection=1;
@@ -348,16 +267,10 @@ void * ServeClient(void * ptr)
        }
 
       // STEP 2 : If we are sure that we dont have a directory then we have to find out accessing disk , could it be that our client wants a file ?
-      if (!resource_is_a_directory)
+      if ( (!resource_is_a_directory) && (FileExistsAmmServ(servefile)) )
        {
-         if (FileExistsAmmServ(servefile))
-         {
            resource_is_a_file=1;
-         }
        }
-
-
-
 
       // STEP 3 : If after these steps the resource turned out to be a directory , we cant serve raw directories , so we will either look for an index.html
       // and if an index file cannot be found we will generate a directory list and send that instead..!
@@ -385,7 +298,6 @@ void * ServeClient(void * ptr)
      if (generate_directory_list)
      {
        // We need to generate and serve a directory listing..!
-
        strncpy(servefile,instance->webserver_root,MAX_FILE_PATH);
        strncat(servefile,transaction.incomingHeader.resource,MAX_FILE_PATH);
        ReducePathSlashes_Inplace(servefile);
@@ -395,11 +307,11 @@ void * ServeClient(void * ptr)
        if (sendSize>0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
-          SendMemoryBlockAsFile(clientsock,reply_body,sendSize);
+          SendMemoryBlockAsFile(transaction.clientSock,reply_body,sendSize);
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
-          SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,404,0,0,0,instance->templates_root);
+          SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,404,0,0,0,instance->templates_root);
         }
        close_connection=1;
        we_can_send_result=0;
@@ -415,7 +327,7 @@ void * ServeClient(void * ptr)
      {
         fprintf(stderr,"404 not found..!!");
         char servefile[MAX_FILE_PATH]={0};
-        SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,404,0,0,0,instance->templates_root);
+        SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,404,0,0,0,instance->templates_root);
         close_connection=1;
         we_can_send_result=0;
      }
@@ -429,7 +341,7 @@ void * ServeClient(void * ptr)
        if ( !SendFile (
                         instance,
                         &transaction.incomingHeader,
-                        clientsock, // -- Client socket
+                        transaction.clientSock, // -- Client socket
                         servefile,  // -- Filename to be served
                         transaction.incomingHeader.range_start,  // -- In case of a range request , byte to start
                         transaction.incomingHeader.range_end,    // -- In case of a range request , byte to end
@@ -453,20 +365,20 @@ void * ServeClient(void * ptr)
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
        //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,instance->templates_root);
+       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,400,0,0,0,instance->templates_root);
        close_connection=1;
      } else
      if (transaction.incomingHeader.requestType==NONE)
      { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
        fprintf(stderr,"Weird unrecognized Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,instance->templates_root);
+       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,400,0,0,0,instance->templates_root);
        close_connection=1;
      } else
      { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
        fprintf(stderr,"Not Implemented Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,501,0,0,0,instance->templates_root);
+       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,501,0,0,0,instance->templates_root);
        close_connection=1;
      }
    } // Not a Bad request END
@@ -485,17 +397,17 @@ void * ServeClient(void * ptr)
   } /*!END OF CLIENT NOT IP-BANNED CODE !*/
 
   fprintf(stderr,"Closing Socket ..");
-  close(clientsock);
+  close(transaction.clientSock);
   fprintf(stderr,"closed\n");
 
 
 
 
-  if (!pre_spawned_thread)
+  if (!transaction.prespawnedThreadFlag)
    { //If we are running in a prespawned thread it is wrong to count this thread as a *dynamic* one that just stopped !
      //Clear thread id handler and we can gracefully exit..! ( LOCKLESS OPERATION)
-     if (instance->threads_pool[thread_id]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",thread_id); }
-     instance->threads_pool[thread_id]=0;
+     if (instance->threads_pool[transaction.threadID]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",transaction.threadID); }
+     instance->threads_pool[transaction.threadID]=0;
      ++instance->CLIENT_THREADS_STOPPED;
 
      //We also only want to stop the thread if itsnot prespawned !

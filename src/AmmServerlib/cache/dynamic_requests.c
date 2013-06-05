@@ -4,6 +4,8 @@
 #include "dynamic_requests.h"
 #include "file_caching.h"
 #include "../server_configuration.h"
+#include "../tools/logs.h"
+#include "../tools/time_provider.h"
 
 int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsigned int index)
 {
@@ -24,7 +26,7 @@ char * dynamicRequest_serveContent
 {
   error("Dynamic requests are disabled until further notice .. \n");
   //return 0;
-  struct cache_item * cache = (struct cache_item *) instance->cache;
+ // struct cache_item * cache = (struct cache_item *) instance->cache;
 
 
   //Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
@@ -56,7 +58,7 @@ char * dynamicRequest_serveContent
     } else
    if ( (shared_context->RH_Scenario == SAME_PAGE_FOR_ALL_CLIENTS ) )
     {
-       cacheMemory = cacheMemory=shared_context->requestContext.content;
+       cacheMemory =  shared_context->requestContext.content;
     }
 
   //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
@@ -117,7 +119,7 @@ char * dynamicRequest_serveContent
                     {
                      memcpy(rqst , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
 
-                     fprintf(stderr,"Request for a maximum of %u characters ( %u ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
+                     fprintf(stderr,"Request for a maximum of %u characters ( %lu ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
                      fprintf(stderr,"POST : %p , %u bytes\n",rqst->POST_request , rqst->POST_request_length );
                      fprintf(stderr,"GET : %p , %u bytes\n",rqst->GET_request , rqst->GET_request_length );
 
@@ -125,7 +127,7 @@ char * dynamicRequest_serveContent
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                      DoCallback(rqst);
                      *memSize = rqst->contentSize;
-                     fprintf(stderr,"After callback we got back %u bytes\n",rqst->contentSize);
+                     fprintf(stderr,"After callback we got back %lu bytes\n",rqst->contentSize);
                      free(rqst);
 
                      //This means we can call the callback to prepare the memory content..! END
@@ -141,3 +143,33 @@ char * dynamicRequest_serveContent
  return cacheMemory;
 
 }
+
+
+
+
+
+
+
+int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output)
+{
+  if ( instance->clientRequestHandlerOverrideContext == 0 )  { return 0; }
+  struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
+  if ( clientOverride->request_override_callback == 0 ) { return 0; }
+
+  clientOverride->request = output;
+
+
+  void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
+  DoCallback = clientOverride->request_override_callback;
+
+  DoCallback(clientOverride);
+
+  //After getting back the override and whatnot , keep the client from using a potentially bad
+  //memory chunk
+  clientOverride->request = 0;
+
+  return 1;
+}
+
+
+

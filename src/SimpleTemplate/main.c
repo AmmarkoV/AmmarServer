@@ -63,7 +63,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
-  fprintf(stderr,"Trying to write dynamic request to %p , max size %u \n",rqst->content , rqst->MAXcontentSize);
+  fprintf(stderr,"Trying to write dynamic request to %p , max size %lu \n",rqst->content , rqst->MAXcontentSize);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   sprintf(rqst->content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
@@ -101,7 +101,7 @@ void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function could alter the content of the URI requested and then return 1
 void request_override_callback(void * request)
 {
-  struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
+  //struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
   return;
 }
 

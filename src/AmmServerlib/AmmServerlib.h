@@ -202,7 +202,6 @@ struct AmmServer_Instance
 struct HTTPTransaction
 {
   struct AmmServer_Instance * instance;
-  int clientSock;
 
   struct HTTPHeader incomingHeader;
 
@@ -210,7 +209,10 @@ struct HTTPTransaction
   char * outgoingBody;
   unsigned int outgoingBodySize;
 
+  int clientSock;
   unsigned int clientListID;
+  unsigned int threadID;
+  int prespawnedThreadFlag;
 };
 
 
