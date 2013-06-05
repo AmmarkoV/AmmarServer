@@ -65,11 +65,13 @@ struct HTTPHeader
    char * Referer; //<-  *THIS SHOULD BE CLEARED AFTER USAGE*
    char * UserAgent;//<- *THIS SHOULD BE CLEARED AFTER USAGE*
    char * ContentType; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
+   char * ContentDisposition; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
+   char * boundary; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
    unsigned long ContentLength; //<- for POST requests
    //Languages etc here..!
 };
 /*! IMPORTANT @@@ */
-#define FIELDS_TO_CLEAR_FROM_HTTP_HEADER 6
+#define FIELDS_TO_CLEAR_FROM_HTTP_HEADER 8
 /*! IMPORTANT @@@*/
 
 
