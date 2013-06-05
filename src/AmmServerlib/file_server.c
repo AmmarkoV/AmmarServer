@@ -292,22 +292,21 @@ int TransmitFileToSocket(
 unsigned long SendFile
   (
     struct AmmServer_Instance * instance,
-    struct HTTPHeader * request,
-
-    int clientsock, // The socket that will be used to send the data
-    unsigned int resourceCacheID,
+    struct HTTPTransaction * transaction,
     char * verified_filename_pending_copy, // The filename to be served on the socket above
-
-    unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
-    unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
-    unsigned int force_error_code, // Instead of the file , serve an error code..!
-    unsigned char keepalive,       // Keep alive functionality
-    unsigned char compression_supported  // If gzip is supported try to use it!
-
-    //char * webserver_root,
-    //char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
-    )
+    unsigned int force_error_code
+  )
 {
+ int clientsock = transaction->clientSock;
+ unsigned int resourceCacheID=transaction->resourceCacheID;
+ unsigned long start_at_byte = transaction->incomingHeader.range_start;
+ unsigned long end_at_byte = transaction->incomingHeader.range_end;
+ unsigned char keepalive = transaction->incomingHeader.keepalive;
+ unsigned char compression_supported = transaction->incomingHeader.supports_compression ;
+
+
+  struct HTTPHeader * request = &transaction->incomingHeader;
+
   char verified_filename[MAX_FILE_PATH+1]={0};
   char reply_header[MAX_HTTP_RESPONSE_HEADER+1]={0};
 
@@ -521,14 +520,11 @@ if (request->requestType!=HEAD)
 unsigned long SendErrorFile
   (
     struct AmmServer_Instance * instance,
-    struct HTTPHeader * request,
-
-    int clientsock, // The socket that will be used to send the data
-    unsigned int errorCode, // Instead of the file , serve an error code..!
-    unsigned char keepalive       // Keep alive functionality
-    )
+    struct HTTPTransaction * transaction,
+    unsigned int errorCode
+  )
 {
-  return SendFile(instance,request,clientsock,0,0,0,errorCode,0,keepalive,0);
+  return SendFile(instance,transaction,0,errorCode);
 }
 
 

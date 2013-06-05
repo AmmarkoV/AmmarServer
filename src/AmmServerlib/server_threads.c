@@ -159,7 +159,7 @@ void * ServeClient(void * ptr)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       error("Bad Request!");
       //SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,0,400,0,0,0,instance->templates_root);
-      SendErrorFile(instance,&transaction.incomingHeader,transaction.clientSock,400,transaction.incomingHeader.keepalive);
+      SendErrorFile(instance,&transaction,400);
       close_connection=1;
    }
       else
@@ -311,8 +311,8 @@ void * ServeClient(void * ptr)
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
-          //SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,servefile,0,0,404,0,0,0,instance->templates_root);
-          SendErrorFile(instance,&transaction.incomingHeader,transaction.clientSock,404,transaction.incomingHeader.keepalive);
+          //SendFile(instance,&transaction,transaction.clientSock,0,servefile,0,0,404,0,0,0,instance->templates_root);
+          SendErrorFile(instance,&transaction,404);
         }
        close_connection=1;
        we_can_send_result=0;
@@ -327,8 +327,7 @@ void * ServeClient(void * ptr)
        else
      {
         fprintf(stderr,"404 not found..!!\n");
-        //SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,0,404,0,0,0,instance->templates_root);
-        SendErrorFile(instance,&transaction.incomingHeader,transaction.clientSock,404,transaction.incomingHeader.keepalive);
+        SendErrorFile(instance,&transaction,404);
 
         close_connection=1;
         we_can_send_result=0;
@@ -341,16 +340,10 @@ void * ServeClient(void * ptr)
       if (we_can_send_result) //This means that we have found a file to serve..!
       {
        if ( !SendFile (
-                        instance,
-                        &transaction.incomingHeader,
-                        transaction.clientSock, // -- Client socket
-                        transaction.resourceCacheID,
-                        servefile,  // -- Filename to be served
-                        transaction.incomingHeader.range_start,  // -- In case of a range request , byte to start
-                        transaction.incomingHeader.range_end,    // -- In case of a range request , byte to end
-                        0 /*DO NOT FORCE AN ERROR CODE , NORMAL SENDFILE*/ ,
-                        transaction.incomingHeader.keepalive,
-                        transaction.incomingHeader.supports_compression
+                         instance,
+                        &transaction,
+                         servefile,  // -- Filename to be served
+                         0 // <- We dont want to force an error code!
                       )
           )
          {
@@ -366,21 +359,18 @@ void * ServeClient(void * ptr)
      { //In case some of the security features of the server sensed a BAD! request we should log it..
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
        //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
-       //SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,0,400,0,0,0,instance->templates_root);
-       SendErrorFile(instance,&transaction.incomingHeader,transaction.clientSock,400,transaction.incomingHeader.keepalive);
+       SendErrorFile(instance,&transaction,400);
        close_connection=1;
      } else
      if (transaction.incomingHeader.requestType==NONE)
      { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
        fprintf(stderr,"Weird unrecognized Request!");
-       //SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,0,400,0,0,0,instance->templates_root);
-       SendErrorFile(instance,&transaction.incomingHeader,transaction.clientSock,400,transaction.incomingHeader.keepalive);
+       SendErrorFile(instance,&transaction,400);
        close_connection=1;
      } else
      { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
        warning("Not Implemented Request!\n");
-       //SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,0,501,0,0,0,instance->templates_root);
-       SendErrorFile(instance,&transaction.incomingHeader,transaction.clientSock,501,transaction.incomingHeader.keepalive);
+       SendErrorFile(instance,&transaction,501);
        close_connection=1;
      }
    } // Not a Bad request END

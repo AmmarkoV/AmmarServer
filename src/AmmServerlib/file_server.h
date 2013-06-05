@@ -18,32 +18,18 @@ unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verif
 unsigned long SendFile
   (
     struct AmmServer_Instance * instance,
-    struct HTTPHeader * request,
-
-    int clientsock, // The socket that will be used to send the data
-    unsigned int resourceCacheID,
+    struct HTTPTransaction * transaction,
     char * verified_filename_pending_copy, // The filename to be served on the socket above
-
-    unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
-    unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
-    unsigned int force_error_code, // Instead of the file , serve an error code..!
-    unsigned char keepalive,       // Keep alive functionality
-    unsigned char compression_supported  // If gzip is supported try to use it!
-
-    //char * webserver_root,
-    //char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
-    );
+    unsigned int force_error_code
+  );
 
 
 unsigned long SendErrorFile
   (
     struct AmmServer_Instance * instance,
-    struct HTTPHeader * request,
-
-    int clientsock, // The socket that will be used to send the data
-    unsigned int errorCode, // Instead of the file , serve an error code..!
-    unsigned char keepalive       // Keep alive functionality
-    );
+    struct HTTPTransaction * transaction,
+    unsigned int errorCode
+  );
 
 
 unsigned long SendMemoryBlockAsFile
