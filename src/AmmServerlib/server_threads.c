@@ -349,11 +349,10 @@ void * ServeClient(void * ptr)
                         transaction.incomingHeader.range_start,  // -- In case of a range request , byte to start
                         transaction.incomingHeader.range_end,    // -- In case of a range request , byte to end
                         0 /*DO NOT FORCE AN ERROR CODE , NORMAL SENDFILE*/ ,
-                        (transaction.incomingHeader.requestType==HEAD),
                         transaction.incomingHeader.keepalive,
-                        transaction.incomingHeader.supports_compression,
-                        instance->templates_root)
+                        transaction.incomingHeader.supports_compression
                       )
+          )
          {
            //We where unable to serve request , closing connections..\n
            fprintf(stderr,"We where unable to serve request , closing connections..\n");

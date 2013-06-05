@@ -301,12 +301,11 @@ unsigned long SendFile
     unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
     unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
     unsigned int force_error_code, // Instead of the file , serve an error code..!
-    unsigned char header_only,     // Only serve header ( HEAD instead of GET )
     unsigned char keepalive,       // Keep alive functionality
-    unsigned char compression_supported,  // If gzip is supported try to use it!
+    unsigned char compression_supported  // If gzip is supported try to use it!
 
     //char * webserver_root,
-    char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
+    //char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
     )
 {
   char verified_filename[MAX_FILE_PATH+1]={0};
@@ -328,12 +327,12 @@ unsigned long SendFile
   if (force_error_code!=0)
   {
     //We want to force a specific error_code!
-    if (! SendErrorCodeHeader(clientsock,force_error_code,verified_filename,templates_root) ) { fprintf(stderr,"Failed sending error code %u\n",force_error_code); return 0; }
+    if (! SendErrorCodeHeader(clientsock,force_error_code,verified_filename,instance->templates_root) ) { fprintf(stderr,"Failed sending error code %u\n",force_error_code); return 0; }
   } else
   if (!FilenameStripperOk(verified_filename))
   {
      //Unsafe filename , bad request :P
-     if (! SendErrorCodeHeader(clientsock,400,verified_filename,templates_root) ) { fprintf(stderr,"Failed sending error code 400\n"); return 0; }
+     if (! SendErrorCodeHeader(clientsock,400,verified_filename,instance->templates_root) ) { fprintf(stderr,"Failed sending error code 400\n"); return 0; }
      //verified_filename should now point to the template file for 400 messages
   } else
    {
@@ -409,7 +408,7 @@ unsigned long SendFile
               free(request->ETag); request->ETag=0;
 
               WeWantA200OK=0;
-              header_only=1;
+              request->requestType=HEAD;
            }
         }
      }
@@ -447,7 +446,7 @@ unsigned long SendFile
                  { if (!SendPart(clientsock,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
 
 
-if (!header_only)
+if (request->requestType!=HEAD)
  {
   if ( (cached_buffer!=0) && //If we haven't got a buffer cached.. AND
         ( (!cache[index].doNOTCacheRule) /*If we dont forbid caching */ || ( (cache[index].doNOTCacheRule)&&(cache[index].dynamicRequestCallbackFunction!=0) ) /*Or we forbid caching but we are talking about a dynamic page*/)
@@ -529,7 +528,7 @@ unsigned long SendErrorFile
     unsigned char keepalive       // Keep alive functionality
     )
 {
-  return SendFile(instance,request,clientsock,0,0,0,0,errorCode,0,keepalive,0,instance->templates_root);
+  return SendFile(instance,request,clientsock,0,0,0,errorCode,0,keepalive,0);
 }
 
 
