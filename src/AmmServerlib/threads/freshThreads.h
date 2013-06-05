@@ -17,10 +17,6 @@ struct PassToHTTPThread
      int clientsock;
      struct AmmServer_Instance * instance;
 
-     char ip[MAX_IP_STRING_SIZE];
-     char webserver_root[MAX_FILE_PATH];
-     char templates_root[MAX_FILE_PATH];
-
      int pre_spawned_thread;
 };
 

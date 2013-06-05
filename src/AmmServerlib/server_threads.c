@@ -152,9 +152,11 @@ void * ServeClient(void * ptr)
 {
   //! One thing to remember is that we shouldnt return anywhere BUT the end of this function to keep
   //! correct tracking of active threads , when something bad happens and we want to return , close_connection=1; is set
+  fprintf(stderr,"Serve Client called ..\n");
 
-  fprintf(stderr,"New Serve Client call ..\n");
 
+  // We first have to store the context variables we got through our struct PassToHTTPThread
+  // so we first need to do that
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
   if (context->keep_var_on_stack!=1)
    {
@@ -163,14 +165,16 @@ void * ServeClient(void * ptr)
      return 0;
    }
 
+
+  //This is the structure that holds all the state of the current ServeClient transaction
+  struct HTTPTransaction transaction={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
+   //memset(&transaction.incomingHeader,0,sizeof(struct HTTPHeader));
+  transaction.incomingHeader.headerRAW=0;
+  transaction.incomingHeader.headerRAWSize=0;
+
   // In order for each thread to (in theory) be able to serve a different virtual website
   // we declare the webserver_root etc here and we copy the value from the thread spawning function
   // This creates a little code clutter but it is for the best..!
-  char webserver_root[MAX_FILE_PATH]="public_html/";
-  char templates_root[MAX_FILE_PATH]="public_html/templates/";
-
-  strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
-  strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
   int pre_spawned_thread=context->pre_spawned_thread;
   int clientsock=context->clientsock;
   int thread_id = context->thread_id;
@@ -190,7 +194,7 @@ void * ServeClient(void * ptr)
 
   if ( clientList_isClientBanned(instance->clientList,client_id) )
   {
-    SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
+    SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",instance->templates_root);
   } else
   { /*!START OF CLIENT IS NOT ON IP-BANNED-LIST!*/
 
@@ -203,10 +207,7 @@ void * ServeClient(void * ptr)
     close_connection=1;
    }
 
-  struct HTTPTransaction transaction={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
-   //memset(&transaction.incomingHeader,0,sizeof(struct HTTPHeader));
-  transaction.incomingHeader.headerRAW=0;
-  transaction.incomingHeader.headerRAWSize=0;
+
 
 
   while ( (!close_connection) && (instance->server_running) )
@@ -222,16 +223,14 @@ void * ServeClient(void * ptr)
    transaction.incomingHeader.POSTrequest=0;
    transaction.incomingHeader.POSTrequestSize=0;
 
-   int result = AnalyzeHTTPHeader(instance,&transaction.incomingHeader,transaction.incomingHeader.headerRAW,transaction.incomingHeader.headerRAWSize,webserver_root);
+   int result = AnalyzeHTTPHeader(instance,&transaction.incomingHeader,transaction.incomingHeader.headerRAW,transaction.incomingHeader.headerRAWSize,instance->webserver_root);
    if (result)
       {
-        if (transaction.incomingHeader.requestType==POST)
+        if ( (transaction.incomingHeader.requestType==POST) && (ENABLE_POST) )
         {
            //If we have a POST request
            //Expand header to also receive the files uploaded
-           transaction.incomingHeader.headerRAWSize  = HTTPHeaderComplete(transaction.incomingHeader.headerRAW,transaction.incomingHeader.headerRAWSize);
-           fprintf(stderr,"Header Size  =  %u / %u \n",transaction.incomingHeader.headerRAWSize,transaction.incomingHeader.headerRAWSize);
-           transaction.incomingHeader.POSTrequestSize = transaction.incomingHeader.headerRAWSize;
+           AppendPOSTRequestToHTTPHeader(&transaction);
         }
         //If we use a client based request handler , call it now
         callClientRequestHandler(instance,&transaction.incomingHeader);
@@ -241,7 +240,7 @@ void * ServeClient(void * ptr)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       fprintf(stderr,"Bad Request!");
       char servefile[MAX_FILE_PATH]={0};
-      SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,templates_root);
+      SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,instance->templates_root);
       close_connection=1;
    }
       else
@@ -249,7 +248,7 @@ void * ServeClient(void * ptr)
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
-     SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
+     SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",instance->templates_root);
      close_connection=1;
    } else
    if ((instance->settings.PASSWORD_PROTECTION)&&(!transaction.incomingHeader.authorized))
@@ -314,7 +313,7 @@ void * ServeClient(void * ptr)
       //we have checked transaction.incomingHeader.verified_local_resource for .. , weird ascii characters etc, so it should be safe for usage from now on..!
 
       //There are some virtual files we want to re-route to their real path..!
-      if (cache_ChangeRequestIfTemplateRequested(instance,servefile,templates_root) )
+      if (cache_ChangeRequestIfTemplateRequested(instance,servefile,instance->templates_root) )
       { //Skip disk access times for checking for directories and other stuff..!
         //We know that the resource is a file from our cache indexes..!
           resource_is_a_directory=0;
@@ -365,7 +364,7 @@ void * ServeClient(void * ptr)
       if (resource_is_a_directory)
            {
              /*resource_is_a_directory means we got something like directory1/directory2/ so we should check for index file at the path given..! */
-             if ( FindIndexFile(instance,webserver_root,transaction.incomingHeader.resource,servefile) )
+             if ( FindIndexFile(instance,instance->webserver_root,transaction.incomingHeader.resource,servefile) )
                 {
                    /*servefile should contain a valid index file ,
                      lets make it look like it was a file we wanted all along :P! */
@@ -387,7 +386,7 @@ void * ServeClient(void * ptr)
      {
        // We need to generate and serve a directory listing..!
 
-       strncpy(servefile,webserver_root,MAX_FILE_PATH);
+       strncpy(servefile,instance->webserver_root,MAX_FILE_PATH);
        strncat(servefile,transaction.incomingHeader.resource,MAX_FILE_PATH);
        ReducePathSlashes_Inplace(servefile);
 
@@ -400,7 +399,7 @@ void * ServeClient(void * ptr)
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
-          SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,404,0,0,0,templates_root);
+          SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,404,0,0,0,instance->templates_root);
         }
        close_connection=1;
        we_can_send_result=0;
@@ -416,7 +415,7 @@ void * ServeClient(void * ptr)
      {
         fprintf(stderr,"404 not found..!!");
         char servefile[MAX_FILE_PATH]={0};
-        SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,404,0,0,0,templates_root);
+        SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,404,0,0,0,instance->templates_root);
         close_connection=1;
         we_can_send_result=0;
      }
@@ -438,7 +437,7 @@ void * ServeClient(void * ptr)
                         (transaction.incomingHeader.requestType==HEAD),
                         transaction.incomingHeader.keepalive,
                         transaction.incomingHeader.supports_compression,
-                        templates_root)
+                        instance->templates_root)
                       )
          {
            //We where unable to serve request , closing connections..\n
@@ -454,20 +453,20 @@ void * ServeClient(void * ptr)
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
        //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,templates_root);
+       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,instance->templates_root);
        close_connection=1;
      } else
      if (transaction.incomingHeader.requestType==NONE)
      { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
        fprintf(stderr,"Weird unrecognized Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,templates_root);
+       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,instance->templates_root);
        close_connection=1;
      } else
      { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
        fprintf(stderr,"Not Implemented Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,501,0,0,0,templates_root);
+       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,501,0,0,0,instance->templates_root);
        close_connection=1;
      }
    } // Not a Bad request END
@@ -508,29 +507,11 @@ void * ServeClient(void * ptr)
 }
 
 
-
-
-
 /*
-
   -----------------------------------------------------------------
   -----------------------------------------------------------------
           /\                                             /\
-          ||   NEW THREAD GENERATION AND SERVING         ||
-          ||                                             ||
-  -----------------------------------------------------------------
-  -----------------------------------------------------------------
- */
-
-
-
-
-/*
-
-  -----------------------------------------------------------------
-  -----------------------------------------------------------------
-          /\                                             /\
-          ||           PER CLIENT SERVING THREAD         ||
+          ||          THE MAIN SERVE CLIENT CALL         ||
           ||                                             ||
   -----------------------------------------------------------------
   -----------------------------------------------------------------
@@ -546,17 +527,11 @@ void * ServeClient(void * ptr)
 
 
 
-
 void * MainHTTPServerThread (void * ptr)
 {
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
   if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); /*We dont have a context , so we cant signal anything :P */ return 0; }
 
-  char webserver_root[MAX_FILE_PATH]="public_html/";
-  char templates_root[MAX_FILE_PATH]="public_html/templates/";
-
-  strncpy(webserver_root,context->webserver_root,MAX_FILE_PATH);
-  strncpy(templates_root,context->templates_root,MAX_FILE_PATH);
 
   unsigned int serverlen = sizeof(struct sockaddr_in),clientlen = sizeof(struct sockaddr_in);
   struct sockaddr_in server;
@@ -610,13 +585,13 @@ void * MainHTTPServerThread (void * ptr)
       {
            fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
 
-           if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,webserver_root,templates_root))
+           if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root))
             {
               // This request got served by a prespawned thread..!
               // Nothing to do here , proceeding to the next incoming connection..
               // if we failed to use a pre spawned thread we will spawn a new one using the next call..!
             } else
-            if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,webserver_root,templates_root))
+            if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root))
             {
               // This request got served by a freshly spawned thread..!
               // Nothing to do here , proceeding to the next incoming connection..
@@ -656,13 +631,13 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   volatile struct PassToHTTPThread context={ { 0 } };
   //memset((void*) &context,0,sizeof(context));
 
-   strncpy((char*) context.ip,ip,MAX_IP_STRING_SIZE);
+   //strncpy((char*) context.ip,ip,MAX_IP_STRING_SIZE);
 
    //We could only pass pointers :S
    //context.webserver_root=root_path;
    //context.templates_root=templates_path;
-   strncpy((char*) context.webserver_root,root_path,MAX_FILE_PATH);
-   strncpy((char*) context.templates_root,templates_path,MAX_FILE_PATH);
+   strncpy((char*) instance->webserver_root,root_path,MAX_FILE_PATH);
+   strncpy((char*) instance->templates_root,templates_path,MAX_FILE_PATH);
 
    context.port=port;
    context.instance = instance; //Also pass instance on new thread..
@@ -671,6 +646,8 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
    instance->server_running=1;
    instance->pause_server=0;
    instance->stop_server=0;
+   strncpy((char*) instance->webserver_root,root_path,MAX_FILE_PATH);
+   strncpy((char*) instance->templates_root,templates_path,MAX_FILE_PATH);
 
 
    fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);

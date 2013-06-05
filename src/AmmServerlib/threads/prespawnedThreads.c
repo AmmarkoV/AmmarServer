@@ -57,8 +57,6 @@ void * PreSpawnedThread(void * ptr)
              context.client=prespawned_data->client;
              context.clientlen=prespawned_data->clientlen;
              context.pre_spawned_thread = 1; // THIS IS A !!!!PRE SPAWNED!!!! THREAD
-             strncpy((char *)context.webserver_root,prespawned_data->webserver_root,MAX_FILE_PATH);
-             strncpy((char *)context.templates_root,prespawned_data->templates_root,MAX_FILE_PATH);
              context.keep_var_on_stack=1;
 
               //ServeClient from this thread ( without forking..! )

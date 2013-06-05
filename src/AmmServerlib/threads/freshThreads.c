@@ -88,8 +88,6 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //We could only pass pointers here
   //context.webserver_root=webserver_root;
   //context.templates_root=templates_root;
-  strncpy((char *)context.webserver_root,webserver_root,MAX_FILE_PATH);
-  strncpy((char *)context.templates_root,templates_root,MAX_FILE_PATH);
 
 
   fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);

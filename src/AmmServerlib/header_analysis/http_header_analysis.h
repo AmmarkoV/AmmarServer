@@ -4,6 +4,7 @@
 #include "../AmmServerlib.h"
 
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength);
+int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction);
 
 int FreeHTTPHeader(struct HTTPHeader * output);
 int HTTPHeaderComplete(char * request,unsigned int request_length);

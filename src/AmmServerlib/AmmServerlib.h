@@ -191,6 +191,9 @@ struct AmmServer_Instance
     void * prespawned_pool; //Actually struct PreSpawnedThread * but declared as a void pointer here
 
     struct AmmServer_RequestOverride_Context * clientRequestHandlerOverrideContext;
+
+    char webserver_root[MAX_FILE_PATH];
+    char templates_root[MAX_FILE_PATH];
 };
 
 
