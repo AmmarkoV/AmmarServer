@@ -21,6 +21,7 @@ unsigned long SendFile
     struct HTTPHeader * request,
 
     int clientsock, // The socket that will be used to send the data
+    unsigned int resourceCacheID,
     char * verified_filename_pending_copy, // The filename to be served on the socket above
 
     unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
@@ -32,6 +33,17 @@ unsigned long SendFile
 
     //char * webserver_root,
     char * templates_root // In case we fail to serve verified_filename_etc.. serve something from the templates..!
+    );
+
+
+unsigned long SendErrorFile
+  (
+    struct AmmServer_Instance * instance,
+    struct HTTPHeader * request,
+
+    int clientsock, // The socket that will be used to send the data
+    unsigned int errorCode, // Instead of the file , serve an error code..!
+    unsigned char keepalive       // Keep alive functionality
     );
 
 

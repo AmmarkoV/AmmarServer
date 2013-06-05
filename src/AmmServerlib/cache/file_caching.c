@@ -144,7 +144,7 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { warning("Cache hasn't been allocated yet\n"); return 0; }
 
-  unsigned long i=0;
+  unsigned long i=*index;
 
   if ( hashMap_GetULongPayload((struct hashMap *) instance->cacheHashMap,resource,&i) )
     {
@@ -438,6 +438,7 @@ int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_fi
 char * cache_GetResource(
                           struct AmmServer_Instance * instance,
                           struct HTTPHeader * request,
+                          unsigned int resourceCacheID,
                           char * verified_filename,
                           unsigned int * index,
                           unsigned long *filesize,
@@ -463,6 +464,7 @@ char * cache_GetResource(
  }
 
 //This can be avoided by adding an index as a parameter to this function call
+*index  =  resourceCacheID;
 if (cache_FindResource(instance,verified_filename,index))
  {
   //Initially we would like to work with the memory block allocated when the dynamic call

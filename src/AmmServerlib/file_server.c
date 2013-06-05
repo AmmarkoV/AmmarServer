@@ -295,6 +295,7 @@ unsigned long SendFile
     struct HTTPHeader * request,
 
     int clientsock, // The socket that will be used to send the data
+    unsigned int resourceCacheID,
     char * verified_filename_pending_copy, // The filename to be served on the socket above
 
     unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
@@ -359,7 +360,7 @@ unsigned long SendFile
   unsigned long cached_lSize=0;
   unsigned char cached_buffer_is_compressed = compression_supported;
   unsigned char free_cached_buffer_after_use=0;
-  char * cached_buffer = cache_GetResource(instance,request,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use);
+  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use);
 
   if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
@@ -516,6 +517,20 @@ if (!header_only)
  return 0;
 }
 
+
+
+unsigned long SendErrorFile
+  (
+    struct AmmServer_Instance * instance,
+    struct HTTPHeader * request,
+
+    int clientsock, // The socket that will be used to send the data
+    unsigned int errorCode, // Instead of the file , serve an error code..!
+    unsigned char keepalive       // Keep alive functionality
+    )
+{
+  return SendFile(instance,request,clientsock,0,0,0,0,errorCode,0,keepalive,0,instance->templates_root);
+}
 
 
 

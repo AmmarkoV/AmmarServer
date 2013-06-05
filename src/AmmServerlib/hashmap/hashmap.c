@@ -264,6 +264,18 @@ int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index)
   if (!hashMap_IsOK(hm)) { return 0;}
   unsigned long i=0;
   unsigned long keyHash = hashFunction(key);
+
+  //Maybe the index was the answer all along
+  if (*index< hm->curNumberOfEntries)
+  {
+    if ( hm->entries[*index].keyHash == keyHash )
+    {
+     ++hm->entries[*index].hits;
+     return 1;
+    }
+  }
+
+ //Stupid and slow serial search
   while ( i < hm->curNumberOfEntries )
   {
     if ( hm->entries[i].keyHash == keyHash )
@@ -319,7 +331,7 @@ int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload)
 
 int hashMap_GetULongPayload(struct hashMap * hm,char * key,unsigned long * payload)
 {
-  unsigned long i=0;
+  unsigned long i=*payload;
   if (hashMap_FindIndex(hm,key,&i)) {  *payload = (unsigned long) hm->entries[i].payload; return 1; }
   return 0;
 }

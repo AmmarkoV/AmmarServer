@@ -209,6 +209,8 @@ struct HTTPTransaction
   char * outgoingBody;
   unsigned int outgoingBodySize;
 
+  unsigned int resourceCacheID;
+
   int clientSock;
   unsigned int clientListID;
   unsigned int threadID;
