@@ -311,7 +311,10 @@ unsigned long SendFile
   char verified_filename[MAX_FILE_PATH+1]={0};
   char reply_header[MAX_HTTP_RESPONSE_HEADER+1]={0};
 
-  strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
+  if (verified_filename_pending_copy != 0)
+  {
+     strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
+  }
 
 
 /*!   Start sending the header first..!

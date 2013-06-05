@@ -157,9 +157,8 @@ void * ServeClient(void * ptr)
 
    if (!result)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
-      fprintf(stderr,"Bad Request!");
-      char servefile[MAX_FILE_PATH]={0};
-      SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,400,0,0,0,instance->templates_root);
+      error("Bad Request!");
+      SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,400,0,0,0,instance->templates_root);
       close_connection=1;
    }
       else
@@ -325,9 +324,8 @@ void * ServeClient(void * ptr)
       }
        else
      {
-        fprintf(stderr,"404 not found..!!");
-        char servefile[MAX_FILE_PATH]={0};
-        SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,404,0,0,0,instance->templates_root);
+        fprintf(stderr,"404 not found..!!\n");
+        SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,404,0,0,0,instance->templates_root);
         close_connection=1;
         we_can_send_result=0;
      }
@@ -364,21 +362,18 @@ void * ServeClient(void * ptr)
      { //In case some of the security features of the server sensed a BAD! request we should log it..
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
        //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
-       char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,400,0,0,0,instance->templates_root);
+       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,400,0,0,0,instance->templates_root);
        close_connection=1;
      } else
      if (transaction.incomingHeader.requestType==NONE)
      { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
        fprintf(stderr,"Weird unrecognized Request!");
-       char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,400,0,0,0,instance->templates_root);
+       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,400,0,0,0,instance->templates_root);
        close_connection=1;
      } else
      { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
-       fprintf(stderr,"Not Implemented Request!");
-       char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,servefile,0,0,501,0,0,0,instance->templates_root);
+       warning("Not Implemented Request!\n");
+       SendFile(instance,&transaction.incomingHeader,transaction.clientSock,0,0,0,501,0,0,0,instance->templates_root);
        close_connection=1;
      }
    } // Not a Bad request END
@@ -543,13 +538,6 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   volatile struct PassToHTTPThread context={ { 0 } };
   //memset((void*) &context,0,sizeof(context));
 
-   //strncpy((char*) context.ip,ip,MAX_IP_STRING_SIZE);
-
-   //We could only pass pointers :S
-   //context.webserver_root=root_path;
-   //context.templates_root=templates_path;
-   strncpy((char*) instance->webserver_root,root_path,MAX_FILE_PATH);
-   strncpy((char*) instance->templates_root,templates_path,MAX_FILE_PATH);
 
    context.port=port;
    context.instance = instance; //Also pass instance on new thread..
@@ -560,10 +548,10 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
    instance->stop_server=0;
    strncpy((char*) instance->webserver_root,root_path,MAX_FILE_PATH);
    strncpy((char*) instance->templates_root,templates_path,MAX_FILE_PATH);
+  //strncpy((char*) context.ip,ip,MAX_IP_STRING_SIZE);
 
 
    fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
-
 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
