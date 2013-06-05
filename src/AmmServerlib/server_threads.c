@@ -263,28 +263,17 @@ void * ServeClient(void * ptr)
 
       if ( ( output.requestType==POST ) && (ENABLE_POST) )
        {
+         fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
+         //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
+         //TODO TODO TODO
+         output.POSTrequest = incoming_request;
+         output.POSTrequestSize =  output.ContentLength;
 
-              fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
+         fprintf(stderr,"Found a POST query %u bytes long , %s \n",output.POSTrequestSize, output.POSTrequest);
+         warning("Will now pretend that we are a GET request for the rest of the page to be served nicely until I fix it :P\n");
 
-
-              //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
-              //TODO TODO TODO
-              if (total_header>=MAX_QUERY*4)
-              {
-                 //Too large request .. We cannot handle it ..
-                  char servefile[MAX_FILE_PATH]={0};
-                  SendFile(instance,&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
-                  fprintf(stderr,"Huge POST request ( header size %u , MAX_QUERY size %u )  , drowning it..\n",total_header,MAX_QUERY);
-                  close_connection=1;
-              } else
-              {
-                  strncpy(output.POSTquery,incoming_request,MAX_QUERY*4);
-                  fprintf(stderr,"Found a POST query , %s \n",output.POSTquery);
-                  fprintf(stderr,"Will now pretend that we are a GET request for the rest of the page to be served nicely\n");
-
-                  //Will now pretend that we are a GET request for the rest of the page to be served nicely
-                  output.requestType=GET;
-              }
+         //Will now pretend that we are a GET request for the rest of the page to be served nicely
+         output.requestType=GET;
        }
 
 

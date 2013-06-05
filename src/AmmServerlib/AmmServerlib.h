@@ -46,7 +46,10 @@ struct HTTPHeader
    char resource[MAX_RESOURCE+1];
    char verified_local_resource[MAX_FILE_PATH+1];
    char GETquery[MAX_QUERY+1];
-   char POSTquery[4*MAX_QUERY+1];
+
+   char * POSTrequest;
+   unsigned long POSTrequestSize;
+
    unsigned char authorized;
    unsigned char keepalive;
    unsigned char supports_compression;
@@ -71,9 +74,9 @@ struct HTTPHeader
 
 
 
-struct HTTPTransaction
+struct HTTPOutHeader
 {
-
+  unsigned int responseNumber;
 };
 
 
@@ -186,6 +189,21 @@ struct AmmServer_Instance
 };
 
 
+
+
+struct HTTPTransaction
+{
+  struct AmmServer_Instance * instance;
+  int clientSock;
+
+  struct HTTPHeader incomingHeader;
+
+  struct HTTPOutHeader outgoingHeader;
+  char * outgoingBody;
+  unsigned int outgoingBodySize;
+
+  unsigned int clientListID;
+};
 
 
 enum AmmServInfos
