@@ -78,7 +78,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    transaction->incomingHeader.POSTrequest=0;
    transaction->incomingHeader.POSTrequestSize=0;
 
-   int result = AnalyzeHTTPHeader(instance,&transaction->incomingHeader,transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize,instance->webserver_root);
+   int result = AnalyzeHTTPHeader(instance,transaction);
    if (result)
       {
         if ( (transaction->incomingHeader.requestType==POST) && (ENABLE_POST) )

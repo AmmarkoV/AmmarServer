@@ -413,8 +413,16 @@ int AnalyzeHTTPLineRequest(
   return 1;
 }
 
-int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
+//int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
+int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
+
+  struct HTTPHeader *output  = &transaction->incomingHeader;
+  char * request = transaction->incomingHeader.headerRAW;
+  unsigned int request_length = transaction->incomingHeader.headerRAWSize;
+  char * webserver_root = instance->webserver_root;
+
+
   /*
       This call fills in the output variable according by subsequent calls to the AnalyzeHTTPLineRequest function
       the code here just serves as a line parser for AnalyzeHTTPLineRequest
