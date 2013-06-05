@@ -103,7 +103,7 @@ int AnalyzePOSTLineRequest(
             return 1;
           }
 
-         //Scanning for the case that the line is -> Content-Length: This means a file has been appended
+         //Scanning for the case that the line is -> Content-Disposition: This means a file has been appended
          if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-DISPOSITION:",&payload_start) )
           {
             freeString(&output->ContentDisposition);

@@ -203,50 +203,56 @@ void * ServeClient(void * ptr)
     close_connection=1;
    }
 
-
-  char * incoming_request=0;
-  unsigned long total_header=0;
+  struct HTTPTransaction transaction={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
+   //memset(&transaction.incomingHeader,0,sizeof(struct HTTPHeader));
+  transaction.incomingHeader.headerRAW=0;
+  transaction.incomingHeader.headerRAWSize=0;
 
 
   while ( (!close_connection) && (instance->server_running) )
   {
-   if ( incoming_request!=0 ) { free(incoming_request); incoming_request=0; }
+   if ( transaction.incomingHeader.headerRAW!=0 ) { free(transaction.incomingHeader.headerRAW); transaction.incomingHeader.headerRAW=0; }
 
-   incoming_request = ReceiveHTTPHeader(instance,clientsock,&total_header);
-   if (incoming_request==0) { close_connection=1; }
+   transaction.incomingHeader.headerRAW = ReceiveHTTPHeader(instance,clientsock,&transaction.incomingHeader.headerRAWSize);
+   if (transaction.incomingHeader.headerRAW==0) { close_connection=1; }
 
   if ( !close_connection )
   {
    fprintf(stderr,"Received request header \n");
-   //fprintf(stderr,"Received %s \n",incoming_request);
-   struct HTTPHeader output={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
-   output.POSTrequest=0;
-   output.POSTrequestSize=0;
+   transaction.incomingHeader.POSTrequest=0;
+   transaction.incomingHeader.POSTrequestSize=0;
 
-   //memset(&output,0,sizeof(struct HTTPHeader));
-
-   int result = AnalyzeHTTPHeader(instance,&output,incoming_request,total_header,webserver_root);
+   int result = AnalyzeHTTPHeader(instance,&transaction.incomingHeader,transaction.incomingHeader.headerRAW,transaction.incomingHeader.headerRAWSize,webserver_root);
    if (result)
-      { //If we use a client based request handler , call it now
-        callClientRequestHandler(instance,&output);
+      {
+        if (transaction.incomingHeader.requestType==POST)
+        {
+           //If we have a POST request
+           //Expand header to also receive the files uploaded
+           transaction.incomingHeader.headerRAWSize  = HTTPHeaderComplete(transaction.incomingHeader.headerRAW,transaction.incomingHeader.headerRAWSize);
+           fprintf(stderr,"Header Size  =  %u / %u \n",transaction.incomingHeader.headerRAWSize,transaction.incomingHeader.headerRAWSize);
+           transaction.incomingHeader.POSTrequestSize = transaction.incomingHeader.headerRAWSize;
+        }
+        //If we use a client based request handler , call it now
+        callClientRequestHandler(instance,&transaction.incomingHeader);
       }
 
    if (!result)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       fprintf(stderr,"Bad Request!");
       char servefile[MAX_FILE_PATH]={0};
-      SendFile(instance,&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
+      SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,templates_root);
       close_connection=1;
    }
       else
-   if (!clientList_isClientAllowedToUseResource(instance->clientList,client_id,output.resource))
+   if (!clientList_isClientAllowedToUseResource(instance->clientList,client_id,transaction.incomingHeader.resource))
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
      SendErrorCodeHeader(clientsock,403 /*Forbidden*/,"403.html",templates_root);
      close_connection=1;
    } else
-   if ((instance->settings.PASSWORD_PROTECTION)&&(!output.authorized))
+   if ((instance->settings.PASSWORD_PROTECTION)&&(!transaction.incomingHeader.authorized))
    {
      SendAuthorizationHeader(clientsock,"AmmarServer authorization..!","authorization.html");
 
@@ -261,26 +267,26 @@ void * ServeClient(void * ptr)
      else
    { // Not a Bad request Start
 
-     if (!output.keepalive) { close_connection=1; } // Close_connection controls the receive "keep-alive" loop
+     if (!transaction.incomingHeader.keepalive) { close_connection=1; } // Close_connection controls the receive "keep-alive" loop
 
 
-      if ( ( output.requestType==POST ) && (ENABLE_POST) )
+      if ( ( transaction.incomingHeader.requestType==POST ) && (ENABLE_POST) )
        {
-         fprintf(stderr,"POST HEADER : \n %s \n",incoming_request);
+         fprintf(stderr,"POST HEADER : \n %s \n",transaction.incomingHeader.headerRAW);
          //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
          //TODO TODO TODO
-         output.POSTrequest = incoming_request;
-         output.POSTrequestSize =  output.ContentLength;
+         transaction.incomingHeader.POSTrequest = transaction.incomingHeader.headerRAW;
+         transaction.incomingHeader.POSTrequestSize =  transaction.incomingHeader.ContentLength;
 
-         fprintf(stderr,"Found a POST query %u bytes long , %s \n",output.POSTrequestSize, output.POSTrequest);
+         fprintf(stderr,"Found a POST query %u bytes long , %s \n",transaction.incomingHeader.POSTrequestSize, transaction.incomingHeader.POSTrequest);
          warning("Will now pretend that we are a GET request for the rest of the page to be served nicely until I fix it :P\n");
 
          //Will now pretend that we are a GET request for the rest of the page to be served nicely
-         output.requestType=GET;
+         transaction.incomingHeader.requestType=GET;
        }
 
 
-     if ( (output.requestType==GET)||(output.requestType==HEAD))
+     if ( (transaction.incomingHeader.requestType==GET)||(transaction.incomingHeader.requestType==HEAD))
      {
       char servefile[(MAX_FILE_PATH*2)+1]={0}; // Since we are strcat-ing the file on top of the webserver_root it is only logical to
       // reserve space for two MAX_FILE_PATHS they are a software security limitation ( system max_path is much larger ) so its not a problem anywhere..!
@@ -293,19 +299,19 @@ void * ServeClient(void * ptr)
       */
 
       // STEP 0 : Is the resource an obvious directory , or obvious file ? Check for it..!
-      if  (strcmp(output.resource,"/")==0) { resource_is_a_directory=1; }
+      if  (strcmp(transaction.incomingHeader.resource,"/")==0) { resource_is_a_directory=1; }
         else
-      if (strlen(output.resource)>0)
+      if (strlen(transaction.incomingHeader.resource)>0)
        {
-         if (output.resource[strlen(output.resource)-1]=='/')
+         if (transaction.incomingHeader.resource[strlen(transaction.incomingHeader.resource)-1]=='/')
            {
              resource_is_a_directory=1;
            }
        }
 
-      strncpy(servefile,output.verified_local_resource,MAX_FILE_PATH);
+      strncpy(servefile,transaction.incomingHeader.verified_local_resource,MAX_FILE_PATH);
       //servefile variable now contains just the verified_local_resource as generated by http_header_analysis.c
-      //we have checked output.verified_local_resource for .. , weird ascii characters etc, so it should be safe for usage from now on..!
+      //we have checked transaction.incomingHeader.verified_local_resource for .. , weird ascii characters etc, so it should be safe for usage from now on..!
 
       //There are some virtual files we want to re-route to their real path..!
       if (cache_ChangeRequestIfTemplateRequested(instance,servefile,templates_root) )
@@ -335,7 +341,7 @@ void * ServeClient(void * ptr)
 
            //If the resource had an  / in the string end we would have already come to the conclusion that this was a directory
            // so lets append the slash now on the request to help the code that follows work as intended
-           strcat(output.resource,"/");
+           strcat(transaction.incomingHeader.resource,"/");
            strcat(servefile,"/");
            fprintf(stderr,"TODO: this path is a little problematic because the web browser on the client will think\n");
            fprintf(stderr,"that we are on the / directory , a location field in the response header will clarify things\n");
@@ -359,7 +365,7 @@ void * ServeClient(void * ptr)
       if (resource_is_a_directory)
            {
              /*resource_is_a_directory means we got something like directory1/directory2/ so we should check for index file at the path given..! */
-             if ( FindIndexFile(instance,webserver_root,output.resource,servefile) )
+             if ( FindIndexFile(instance,webserver_root,transaction.incomingHeader.resource,servefile) )
                 {
                    /*servefile should contain a valid index file ,
                      lets make it look like it was a file we wanted all along :P! */
@@ -382,11 +388,11 @@ void * ServeClient(void * ptr)
        // We need to generate and serve a directory listing..!
 
        strncpy(servefile,webserver_root,MAX_FILE_PATH);
-       strncat(servefile,output.resource,MAX_FILE_PATH);
+       strncat(servefile,transaction.incomingHeader.resource,MAX_FILE_PATH);
        ReducePathSlashes_Inplace(servefile);
 
        char reply_body[MAX_DIRECTORY_LIST_RESPONSE_BODY+1]={0};
-       unsigned long sendSize = GenerateDirectoryPage(servefile,output.resource,reply_body,MAX_DIRECTORY_LIST_RESPONSE_BODY);
+       unsigned long sendSize = GenerateDirectoryPage(servefile,transaction.incomingHeader.resource,reply_body,MAX_DIRECTORY_LIST_RESPONSE_BODY);
        if (sendSize>0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
@@ -394,7 +400,7 @@ void * ServeClient(void * ptr)
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
-          SendFile(instance,&output,clientsock,servefile,0,0,404,0,0,0,templates_root);
+          SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,404,0,0,0,templates_root);
         }
        close_connection=1;
        we_can_send_result=0;
@@ -402,7 +408,7 @@ void * ServeClient(void * ptr)
         else
       if  (resource_is_a_file)
       {
-         //We have a specific request for a file ( output.resource )
+         //We have a specific request for a file ( transaction.incomingHeader.resource )
          fprintf(stderr,"It is a file request for %s ..!\n",servefile);
          we_can_send_result=1;
       }
@@ -410,7 +416,7 @@ void * ServeClient(void * ptr)
      {
         fprintf(stderr,"404 not found..!!");
         char servefile[MAX_FILE_PATH]={0};
-        SendFile(instance,&output,clientsock,servefile,0,0,404,0,0,0,templates_root);
+        SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,404,0,0,0,templates_root);
         close_connection=1;
         we_can_send_result=0;
      }
@@ -423,15 +429,15 @@ void * ServeClient(void * ptr)
       {
        if ( !SendFile (
                         instance,
-                        &output,
+                        &transaction.incomingHeader,
                         clientsock, // -- Client socket
                         servefile,  // -- Filename to be served
-                        output.range_start,  // -- In case of a range request , byte to start
-                        output.range_end,    // -- In case of a range request , byte to end
+                        transaction.incomingHeader.range_start,  // -- In case of a range request , byte to start
+                        transaction.incomingHeader.range_end,    // -- In case of a range request , byte to end
                         0 /*DO NOT FORCE AN ERROR CODE , NORMAL SENDFILE*/ ,
-                        (output.requestType==HEAD),
-                        output.keepalive,
-                        output.supports_compression,
+                        (transaction.incomingHeader.requestType==HEAD),
+                        transaction.incomingHeader.keepalive,
+                        transaction.incomingHeader.supports_compression,
                         templates_root)
                       )
          {
@@ -443,36 +449,36 @@ void * ServeClient(void * ptr)
      } else
      //It is not a valid GET / HEAD / POST request , so use the default handlers for Bad / Not Implemented requests..!
 
-     if (output.requestType==BAD)
+     if (transaction.incomingHeader.requestType==BAD)
      { //In case some of the security features of the server sensed a BAD! request we should log it..
        fprintf(stderr,"BAD predatory Request sensed by header analysis!");
        //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
+       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
-     if (output.requestType==NONE)
+     if (transaction.incomingHeader.requestType==NONE)
      { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
        fprintf(stderr,"Weird unrecognized Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&output,clientsock,servefile,0,0,400,0,0,0,templates_root);
+       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,400,0,0,0,templates_root);
        close_connection=1;
      } else
      { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
        fprintf(stderr,"Not Implemented Request!");
        char servefile[MAX_FILE_PATH]={0};
-       SendFile(instance,&output,clientsock,servefile,0,0,501,0,0,0,templates_root);
+       SendFile(instance,&transaction.incomingHeader,clientsock,servefile,0,0,501,0,0,0,templates_root);
        close_connection=1;
      }
    } // Not a Bad request END
 
 
-    clientList_signalClientStoppedUsingResource(instance->clientList,client_id,output.resource); // This in order for client_list to correctly track client behaviour..!
-    if (!FreeHTTPHeader(&output)) { fprintf(stderr,"WARNING: Could not Free HTTP request , please check FIELDS_TO_CLEAR_FROM_HTTP_HEADER (%u).. \n",FIELDS_TO_CLEAR_FROM_HTTP_HEADER); }
+    clientList_signalClientStoppedUsingResource(instance->clientList,client_id,transaction.incomingHeader.resource); // This in order for client_list to correctly track client behaviour..!
+    if (!FreeHTTPHeader(&transaction.incomingHeader)) { fprintf(stderr,"WARNING: Could not Free HTTP request , please check FIELDS_TO_CLEAR_FROM_HTTP_HEADER (%u).. \n",FIELDS_TO_CLEAR_FROM_HTTP_HEADER); }
   }
 
 
-  if ( incoming_request!=0 ) { free(incoming_request); incoming_request=0; }
+  if ( transaction.incomingHeader.headerRAW!=0 ) { free(transaction.incomingHeader.headerRAW); transaction.incomingHeader.headerRAW=0; }
   } // Keep-Alive loop  ( not closing socket )
 
   //We are done with request!

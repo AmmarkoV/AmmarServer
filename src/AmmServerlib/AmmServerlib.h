@@ -42,6 +42,9 @@ enum TypesOfRequests
 
 struct HTTPHeader
 {
+   char * headerRAW;
+   unsigned int headerRAWSize;
+
    int  requestType; //See enum TypesOfRequests
    char resource[MAX_RESOURCE+1];
    char verified_local_resource[MAX_FILE_PATH+1];

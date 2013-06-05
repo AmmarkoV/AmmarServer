@@ -47,7 +47,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
-        (!HTTPHeaderComplete(incomingRequest,incomingRequestLength)) &&
+        (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
         (instance->server_running)
        )
  {
@@ -144,8 +144,8 @@ int HTTPHeaderComplete(char * request,unsigned int request_length)
    {
       if ( request[i]==LF )
        {
-        if (i>=1) { if (( request[i-1]==LF )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return 1; }  } /* unix 2x new line sequence */
-        if (i>=3) { if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return 1; } } /* windows 2x new line sequence */
+        if (i>=1) { if (( request[i-1]==LF )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return i; }  } /* unix 2x new line sequence */
+        if (i>=3) { if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return i; } } /* windows 2x new line sequence */
        }
      --i;
    }
