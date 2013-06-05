@@ -220,6 +220,9 @@ void * ServeClient(void * ptr)
    fprintf(stderr,"Received request header \n");
    //fprintf(stderr,"Received %s \n",incoming_request);
    struct HTTPHeader output={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
+   output.POSTrequest=0;
+   output.POSTrequestSize=0;
+
    //memset(&output,0,sizeof(struct HTTPHeader));
 
    int result = AnalyzeHTTPHeader(instance,&output,incoming_request,total_header,webserver_root);

@@ -280,6 +280,7 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
 int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value);
 char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
+int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int memoryLength);
 
 int AmmServer_RegisterTerminationSignal(void * callback);
 

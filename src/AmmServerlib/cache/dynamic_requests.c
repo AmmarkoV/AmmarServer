@@ -118,6 +118,8 @@ char * dynamicRequest_serveContent
                      memcpy(rqst , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
 
                      fprintf(stderr,"Request for a maximum of %u characters ( %u ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
+                     fprintf(stderr,"POST : %p , %u bytes\n",rqst->POST_request , rqst->POST_request_length );
+                     fprintf(stderr,"GET : %p , %u bytes\n",rqst->GET_request , rqst->GET_request_length );
 
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!

@@ -452,6 +452,30 @@ char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
 }
 
 
+int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int memoryLength)
+{
+  if (memory==0) { fprintf(stderr,"Could not write null memory buffer\n"); return 0 ; }
+  FILE * pFile=0;
+  size_t result;
+
+  pFile = fopen ( filename , "wb" );
+  if (pFile==0) { fprintf(stderr,"Could not write file %s \n",filename); return 0; }
+
+  result = fwrite (memory,1,memoryLength,pFile);
+  if (result != memoryLength)
+     {
+       fprintf(stderr,"Could not write the whole file onto disk %s \n",filename);
+       fprintf(stderr,"We wrote %u / %u  \n",result,memoryLength);
+       fclose(pFile);
+       return 0;
+     }
+
+  // terminate
+  fclose (pFile);
+  return 1;
+}
+
+
 
 void AmmServer_GlobalTerminationHandler(int signum)
 {

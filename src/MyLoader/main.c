@@ -34,6 +34,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
+struct AmmServer_RH_Context uploadProcessor={0};
 
 struct AmmServer_RH_Context stats={0};
 
@@ -64,10 +65,30 @@ void request_override_callback(void * request)
 
   if (strcmp("/favicon.ico",rqst->resource)==0 ) { return; /*Client requested favicon.ico , no resolving to do */ } else
   if (strcmp("/error.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
+  if (strcmp("/upload.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
   if (strcmp("/",rqst->resource)==0 ) {  return; /*Client requested index.html , no resolving to do */  } else
   if (strcmp("/random.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  }
 
   return;
+}
+
+
+
+//This function prepares the content of  stats context , ( stats.content )
+void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
+{
+  AmmServer_WriteFileFromMemory("test.jpg",rqst->POST_request,rqst->POST_request_length);
+  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+  sprintf(rqst->content,"<html>\
+                           <head>\
+                             <title>Dynamic Content Enabled</title>\
+                           </head>\
+                           <body>Uploaded<br>\
+                           </body></html>");
+
+
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
 }
 
 
@@ -79,6 +100,10 @@ void init_dynamic_content()
 
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding stats page\n"); }
+
+  if (! AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     { AmmServer_Warning("Failed adding upload processor page\n"); }
+
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
