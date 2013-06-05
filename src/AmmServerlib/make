@@ -4,10 +4,12 @@ red=$(printf "\033[31m")
 green=$(printf "\033[32m") 
 normal=$(printf "\033[m")
 
+if [ -d "InputParser" ]
+then
 cd InputParser
 ./make
 cd ..
-
+fi
 
 echo "Compiling libAmmServerlib.a / Author : Ammar Qammaz"  
 LIBNAME="libAmmServerlib.a"
@@ -24,10 +26,10 @@ CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native -fPIC"
 gcc -c $CFLAGS main.c -o main.o
 gcc -c $CFLAGS server_threads.c -o server_threads.o 
 gcc -c $CFLAGS tools/http_tools.c -o http_tools.o 
-gcc -c $CFLAGS cache/client_list.c -o client_list.o 
 gcc -c $CFLAGS file_server.c -o file_server.o 
 gcc -c $CFLAGS header_analysis/http_header_analysis.c -o http_header_analysis.o  
 gcc -c $CFLAGS header_analysis/postHeaders.c -o postHeaders.o  
+gcc -c $CFLAGS cache/client_list.c -o client_list.o 
 gcc -c $CFLAGS cache/dynamic_requests.c -o dynamic_requests.o   
 gcc -c $CFLAGS cache/file_caching.c -o file_caching.o  
 gcc -c $CFLAGS cache/file_compression.c -o file_compression.o  
