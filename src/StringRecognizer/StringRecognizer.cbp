@@ -7,16 +7,19 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/StringRecognizer" prefix_auto="1" extension_auto="1" />
+				<Option output="StringRecognizer" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="httpHeader" />
+				<Option host_application=" " />
+				<Option run_host_application_in_terminal="0" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/StringRecognizer" prefix_auto="1" extension_auto="1" />
+				<Option output="StringRecognizer" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -31,6 +34,10 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../AmmServerlib/tools/fastStringParser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../AmmServerlib/tools/fastStringParser.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>

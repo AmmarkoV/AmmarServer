@@ -135,7 +135,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
 
   fprintf(fp,"#include <stdio.h>\n\n");
-  fprintf(fp,"int scanFor%s(char * str) \n{\n",functionName);
+  fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);
 
   unsigned int charA='A',charB='A',charC='A';
 
@@ -166,7 +166,6 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
          fprintf(fp,"     //%s; \n",fsp->contents[lastIndex].str);
          fprintf(fp,"     return %u; \n",lastIndex);
          fprintf(fp,"     break; \n");
-
        }
        // -------------------    THIRD CHARACTER      --------------------------
        ++charC;
@@ -192,33 +191,12 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
 
 
-
-/*
-  unsigned int character=0;
-  while ( character < fsp->longestStringLength )
-  {
-     fprintf(fp," switch (str[%u]) { \n",character);
-     char curChar='A';
-     while (curChar<='Z')
-     {
-       fprintf(fp,"  case '%c' : ",curChar);
-       fprintf(fp,"  break; \n");
-      ++curChar;
-     }
-    fprintf(fp,"}; \n");
-   ++character;
-  }
-*/
-
-
-
-
   fprintf(fp," return 0;\n");
   fprintf(fp,"}\n");
 
   fprintf(fp,"\n\nint main(int argc, char *argv[]) \n {\n");
   fprintf(fp,"  if (argc<1) { fprintf(stderr,\"No parameter\\n\"); return 1; }\n");
-  fprintf(fp,"  if ( scanFor%s(argv[0]) ) { fprintf(stderr,\"Found it\"); } \n  return 0; \n }\n",functionName);
+  fprintf(fp,"  if ( scanFor_%s(argv[0]) ) { fprintf(stderr,\"Found it\"); } \n  return 0; \n }\n",functionName);
 
 
   fclose(fp);
