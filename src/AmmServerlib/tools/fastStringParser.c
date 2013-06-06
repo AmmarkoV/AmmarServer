@@ -97,6 +97,35 @@ int fastStringParser_hasStringsWithCharAtIndex(struct fastStringParser * fsp,uns
 }
 
 
+int fastStringParser_hasStringsWith2CharsAtIndexes(struct fastStringParser * fsp,unsigned int index1, char character1,unsigned int index2, char character2 )
+{
+  unsigned int i=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    if ( (fsp->contents[i].str[index1]==character1) &&
+         (fsp->contents[i].str[index2]==character2) )
+         { return 1; }
+  }
+  return 0;
+}
+
+
+int fastStringParser_hasStringsWith3CharsAtIndexes(struct fastStringParser * fsp,unsigned int * resString, unsigned int index1, char character1,unsigned int index2, char character2 ,unsigned int index3, char character3 )
+{
+  unsigned int i=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    if ( (fsp->contents[i].str[index1]==character1) &&
+         (fsp->contents[i].str[index2]==character2) &&
+         (fsp->contents[i].str[index3]==character3) )
+         {
+          *resString = i ;
+          return 1; }
+  }
+  return 0;
+}
+
+
 int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 {
 
@@ -123,15 +152,15 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
     {
 
      // -------------------    SECOND CHARACTER      --------------------------
-     if (   fastStringParser_hasStringsWithCharAtIndex(fsp,1,charB)  )
+     if (  fastStringParser_hasStringsWith2CharsAtIndexes(fsp,0,charA,1,charB)  )
      {
      fprintf(fp,"   case \'%c\' : \n",charB);
      fprintf(fp,"   switch (str[2]) \n   { \n");
      while (charC <= 'Z')
      {
        // -------------------    THIRD CHARACTER      --------------------------
-       unsigned int lastIndex = fastStringParser_hasStringsWithCharAtIndex(fsp,2,charC);
-       if (  lastIndex != 0  )
+       unsigned int lastIndex = 0 ;
+       if (  fastStringParser_hasStringsWith3CharsAtIndexes(fsp,&lastIndex,0,charA,1,charB,2,charC) )
        {
          fprintf(fp,"     case \'%c\' : \n",charC);
          fprintf(fp,"     //%s; \n",fsp->contents[lastIndex].str);
