@@ -120,6 +120,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/directory_lists.h" />
+		<Unit filename="tools/fastStringParser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/fastStringParser.h" />
 		<Unit filename="tools/http_tools.c">
 			<Option compilerVar="CC" />
 		</Unit>
