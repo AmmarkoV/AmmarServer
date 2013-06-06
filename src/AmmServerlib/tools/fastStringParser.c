@@ -86,7 +86,7 @@ int fastStringParser_initializeHardCoded()
    return 1;
 }
 
-int fastStringParser_hasStringsWithCharAtIndex(struct fastStringParser * fsp,unsigned int index, char character)
+int fastStringParser_hasStringsWithCharAtIndex(struct fastStringParser * fsp,unsigned int index, char character )
 {
   unsigned int i=0;
   for (i=0; i<fsp->stringsLoaded; i++)
@@ -118,39 +118,39 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
    {
 
     fprintf(fp," case \'%c\' : \n",charA);
-    fprintf(fp," switch (str[1]) { \n");
+    fprintf(fp," switch (str[1]) \n  { \n");
     while (charB <= 'Z')
     {
 
      // -------------------    SECOND CHARACTER      --------------------------
      if (   fastStringParser_hasStringsWithCharAtIndex(fsp,1,charB)  )
      {
-     fprintf(fp," case \'%c\' : \n",charB);
-     fprintf(fp," switch (str[2]) { \n");
+     fprintf(fp,"   case \'%c\' : \n",charB);
+     fprintf(fp,"   switch (str[2]) \n   { \n");
      while (charC <= 'Z')
      {
        // -------------------    THIRD CHARACTER      --------------------------
        unsigned int lastIndex = fastStringParser_hasStringsWithCharAtIndex(fsp,2,charC);
        if (  lastIndex != 0  )
        {
-         fprintf(fp," case \'%c\' : \n",charC);
-         fprintf(fp," //%s; \n",fsp->contents[lastIndex].str);
-         fprintf(fp," return %u; \n",lastIndex);
-         fprintf(fp," break; \n");
+         fprintf(fp,"     case \'%c\' : \n",charC);
+         fprintf(fp,"     //%s; \n",fsp->contents[lastIndex].str);
+         fprintf(fp,"     return %u; \n",lastIndex);
+         fprintf(fp,"     break; \n");
 
        }
        // -------------------    THIRD CHARACTER      --------------------------
        ++charC;
      }
-     fprintf(fp,"}; \n");
-     fprintf(fp," break; \n");
+     fprintf(fp,"   }; \n");
+     fprintf(fp,"   break; \n");
      }
      // -------------------    SECOND CHARACTER      --------------------------
 
 
      ++charB;
     }
-    fprintf(fp,"}; \n");
+    fprintf(fp," }; \n");
     fprintf(fp," break; \n");
    }
    // -------------------    FIRST CHARACTER      --------------------------
