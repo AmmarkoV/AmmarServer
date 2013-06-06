@@ -350,7 +350,7 @@ void * ServeClient(void * ptr)
   struct AmmServer_Instance * instance = context->instance;
   int close_connection=0; // <- if this is set it means Serve Client must stop
 
-   //memset(&transaction->incomingHeader,0,sizeof(struct HTTPHeader));
+  //memset(&transaction->incomingHeader,0,sizeof(struct HTTPHeader));
   transaction.incomingHeader.headerRAW=0;
   transaction.incomingHeader.headerRAWSize=0;
 
@@ -360,8 +360,6 @@ void * ServeClient(void * ptr)
   transaction.prespawnedThreadFlag=context->pre_spawned_thread;
   transaction.clientSock=context->clientsock;
   transaction.threadID = context->thread_id;
-
-
 
   fprintf(stderr,"Now signaling we are ready (%u)\n",transaction.threadID);
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
@@ -535,8 +533,6 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   int retres=0;
   volatile struct PassToHTTPThread context={ { 0 } };
   //memset((void*) &context,0,sizeof(context));
-
-
    context.port=port;
    context.instance = instance; //Also pass instance on new thread..
    context.keep_var_on_stack=1;
@@ -550,7 +546,6 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 
    fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
-
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
    pthread_t server_thread_id;

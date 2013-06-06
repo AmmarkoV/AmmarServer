@@ -35,6 +35,9 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
 
 int GetDateString(char * output,char * label,unsigned int now,unsigned int dayofweek,unsigned int day,unsigned int month,unsigned int year,unsigned int hour,unsigned int minute,unsigned int second);
 
+int strToUpcase(char * strTarget , char * strSource , unsigned int strLength);
+
+int CheckHTTPHeaderCategoryAllCaps(char * lineCAPS,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start);
 int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start);
 int trim_last_empty_chars(char * input,unsigned int input_length);
 int seek_non_blank_char(char * input,char * input_end);

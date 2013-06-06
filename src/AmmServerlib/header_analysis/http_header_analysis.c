@@ -282,6 +282,7 @@ int AnalyzeHTTPLineRequest(
                             struct AmmServer_Instance * instance,
                             struct HTTPHeader * output,
                             char * request,
+                            char * requestUpcase,
                             unsigned int request_length,
                             unsigned int lines_gathered,
                             char * webserver_root
@@ -303,7 +304,7 @@ int AnalyzeHTTPLineRequest(
 
      if ((instance->settings.PASSWORD_PROTECTION)&&(instance->settings.BASE64PASSWORD!=0))
        { //Consider password protection header sections..!
-        if ( CheckHTTPHeaderCategory(request,request_length,"AUTHORIZATION:",&payload_start) )
+        if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"AUTHORIZATION:",&payload_start) )
            {
              return ProcessAuthorizationHTTPLine(instance,output,request,request_length,&payload_start);
            }
@@ -329,7 +330,7 @@ int AnalyzeHTTPLineRequest(
 
 
 
-      if ( CheckHTTPHeaderCategory(request,request_length,"RANGE:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"RANGE:",&payload_start) )
           {
              //Todo here : Fill in range_start and range_end
              output->range_start=0;
@@ -339,14 +340,14 @@ int AnalyzeHTTPLineRequest(
 
 
       /*REFERRER AND REFERER ARE THE SAME CASE , THE RFC HAS THE MISPELLED VERSION OF THE WORD , BOTH OF THEM EXIST IN THE WILD :P*/
-      if ( CheckHTTPHeaderCategory(request,request_length,"REFERRER:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"REFERRER:",&payload_start) )
           {
             //if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
             freeString(&output->Referer);
             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Referer==0) { return 0; } else { return 1;}
           } else
-      if ( CheckHTTPHeaderCategory(request,request_length,"REFERER:",&payload_start) ) // <- The spec Referrer string is wrong :P
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"REFERER:",&payload_start) ) // <- The spec Referrer string is wrong :P
           {
             //if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
             freeString(&output->Referer);
@@ -355,7 +356,7 @@ int AnalyzeHTTPLineRequest(
           }
        /*---------------------------------------------------------------------------------------------------------------------*/
 
-      if ( CheckHTTPHeaderCategory(request,request_length,"HOST:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"HOST:",&payload_start) )
           {
             //if (output->Host!=0) { free(output->Host); output->Host=0; }
             freeString(&output->Referer);
@@ -363,15 +364,15 @@ int AnalyzeHTTPLineRequest(
             if (output->Host==0) { return 0; } else { return 1;}
           }
 
-      if ( CheckHTTPHeaderCategory(request,request_length,"ACCEPT-ENCODING:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"ACCEPT-ENCODING:",&payload_start) )
           {
-            if ( CheckHTTPHeaderCategory(request,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
-                                                                                            { output->supports_compression=0;
+            if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
+                                                                                                         { output->supports_compression=0;
                                                                                               fprintf(stderr,"We found an accept-encoding header , but not the deflate method..\n"); }
           }
 
 
-      if ( CheckHTTPHeaderCategory(request,request_length,"USER-AGENT:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"USER-AGENT:",&payload_start) )
           {
             //if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
             freeString(&output->UserAgent);
@@ -380,7 +381,7 @@ int AnalyzeHTTPLineRequest(
           }
 
 
-      if ( CheckHTTPHeaderCategory(request,request_length,"COOKIE:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"COOKIE:",&payload_start) )
           {
             //if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
             freeString(&output->Cookie);
@@ -388,14 +389,14 @@ int AnalyzeHTTPLineRequest(
             if (output->Cookie==0) { return 0; } else { return 1;}
           }
 
-      if ( CheckHTTPHeaderCategory(request,request_length,"CONNECTION:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"CONNECTION:",&payload_start) )
           {
-            if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
+            if (CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
             return 0;
           }
 
       //If-None-Match: "3e0f0d-1485-4c2646d587b7d"
-      if ( CheckHTTPHeaderCategory(request,request_length,"IF-NONE-MATCH:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"IF-NONE-MATCH:",&payload_start) )
           {
             //if (output->ETag!=0) { free(output->ETag); output->ETag=0; }
             freeString(&output->ETag);
@@ -404,7 +405,7 @@ int AnalyzeHTTPLineRequest(
           }
 
       //If-Modified-Since: Thu, 14 Jun 2012 01:14:53 GMT
-      if ( CheckHTTPHeaderCategory(request,request_length,"IF-MODIFIED-SINCE:",&payload_start) )
+      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"IF-MODIFIED-SINCE:",&payload_start) )
           { fprintf(stderr,"304 Not Modified headers through dates not supported yet\n"); return 0; }
 
 
@@ -416,7 +417,6 @@ int AnalyzeHTTPLineRequest(
 //int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
 int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-
   struct HTTPHeader *output  = &transaction->incomingHeader;
   char * request = transaction->incomingHeader.headerRAW;
   unsigned int request_length = transaction->incomingHeader.headerRAWSize;
@@ -435,6 +435,7 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
   output->authorized=0;
 
   char line[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
+  char lineUpcase[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;
   while  ( (i<request_length)&&(i<MAX_HTTP_REQUEST_HEADER_LINE) )
    {
@@ -444,7 +445,8 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
         //We've got ourselves a new line!
         ++lines_gathered;
-        AnalyzeHTTPLineRequest(instance,output,line,strlen(line),lines_gathered,webserver_root);
+        strToUpcase(lineUpcase,line,strlen(line));
+        AnalyzeHTTPLineRequest(instance,output,line,lineUpcase,strlen(line),lines_gathered,webserver_root);
         line[0]=0; //line is "cleared" :P
         chars_gathered=0;
       }

@@ -531,7 +531,35 @@ int FilenameStripperOk(char * filename)
 }
 
 
-int stristr2Caps(char * str1,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
+int strToUpcase(char * strTarget , char * strSource , unsigned int strLength)
+{
+ int i=0;
+ while (i < strLength)
+ {
+   strTarget[i] = toupper( strSource[i] );
+   ++i;
+ }
+ return 1;
+}
+
+
+inline int stristr(char * str1CAPS,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
+{
+  if (str1_length<str2_length) { return 0; }
+  unsigned int str1_i=0,str2_i=0;
+  while (str1_i<str1_length)
+  {
+    if (str1CAPS[str1_i]==str2CAPS[str2_i]) { ++str2_i; } else
+                                            { str2_i=0; }
+
+    if (str2_i==str2_length)  { *pos_found=str1_i; return 1; }
+    ++str1_i;
+  }
+  return 0;
+}
+
+
+inline int stristr2Caps(char * str1,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
 {
   if (str1_length<str2_length) { return 0; }
   unsigned int str1_i=0,str2_i=0;
@@ -543,7 +571,6 @@ int stristr2Caps(char * str1,unsigned int str1_length,char * str2CAPS,unsigned i
     if (str2_i==str2_length)  { *pos_found=str1_i; return 1; }
     ++str1_i;
   }
-
   return 0;
 }
 
@@ -720,6 +747,10 @@ int encodeToBase64(char *src,unsigned s_len,char *dst,unsigned d_len)
 return 1;
 }
 
+int CheckHTTPHeaderCategoryAllCaps(char * lineCAPS,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start)
+{
+  return stristr(lineCAPS,line_length,potential_strCAPS,strlen(potential_strCAPS),payload_start);
+}
 
 int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start)
 {
@@ -734,12 +765,12 @@ int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,cha
   if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
   if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm");   ReducePathSlashes_Inplace(indexfile); // <- TODO : notice that i can just change the extension to reduce copying around
-  if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.php");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
-  if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+  //strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm");   ReducePathSlashes_Inplace(indexfile); // <- TODO : notice that i can just change the extension to reduce copying around
+  //if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+  //strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
+  //if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+  //strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.php");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
+  //if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
 
   indexfile[0]=0;
   return 0;
