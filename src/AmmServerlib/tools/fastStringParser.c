@@ -30,6 +30,13 @@ int fastStringParser_addString(struct fastStringParser * fsp, char * str)
 {
   unsigned int ourNum = fsp->stringsLoaded++;
   fsp->contents[ourNum].strLength=strlen(str);
+
+  if ( (ourNum==0) || (fsp->shortestStringLength<fsp->contents[ourNum].strLength) )
+      { fsp->shortestStringLength = fsp->contents[ourNum].strLength; }
+
+  if ( (ourNum==0) || (fsp->longestStringLength>fsp->contents[ourNum].strLength) )
+      { fsp->longestStringLength  = fsp->contents[ourNum].strLength; }
+
   fsp->contents[ourNum].str = (char *) malloc(sizeof(char) * (fsp->contents[ourNum].strLength+1) );
   if (fsp->contents[ourNum].str != 0 )
   {
@@ -63,21 +70,140 @@ int fastStringParser_initializeHardCoded()
    fspHTTPHeader = fastStringParser_initialize(20);
 
    fastStringParser_addString(fspHTTPHeader,"AUTHORIZATION:");
+   fastStringParser_addString(fspHTTPHeader,"ACCEPT-ENCODING:");
+   fastStringParser_addString(fspHTTPHeader,"COOKIE:");
+   fastStringParser_addString(fspHTTPHeader,"CONNECTION:");
+   fastStringParser_addString(fspHTTPHeader,"DEFLATE");
+   fastStringParser_addString(fspHTTPHeader,"HOST:");
+   fastStringParser_addString(fspHTTPHeader,"IF-NONE-MATCH:");
+   fastStringParser_addString(fspHTTPHeader,"IF-MODIFIED-SINCE:");
+   fastStringParser_addString(fspHTTPHeader,"KEEP-ALIVE");
    fastStringParser_addString(fspHTTPHeader,"RANGE:");
    fastStringParser_addString(fspHTTPHeader,"REFERRER:");
    fastStringParser_addString(fspHTTPHeader,"REFERER:");
-   fastStringParser_addString(fspHTTPHeader,"HOST:");
-   fastStringParser_addString(fspHTTPHeader,"ACCEPT-ENCODING:");
-   fastStringParser_addString(fspHTTPHeader,"DEFLATE");
    fastStringParser_addString(fspHTTPHeader,"USER-AGENT:");
-   fastStringParser_addString(fspHTTPHeader,"COOKIE:");
-   fastStringParser_addString(fspHTTPHeader,"CONNECTION:");
-   fastStringParser_addString(fspHTTPHeader,"KEEP-ALIVE");
-   fastStringParser_addString(fspHTTPHeader,"IF-NONE-MATCH:");
-   fastStringParser_addString(fspHTTPHeader,"IF-MODIFIED-SINCE:");
 
    return 1;
 }
+
+int fastStringParser_hasStringsWithCharAtIndex(struct fastStringParser * fsp,unsigned int index, char character)
+{
+  unsigned int i=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    if (fsp->contents[i].str[index]==character) { return 1; }
+  }
+  return 0;
+}
+
+
+int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
+{
+
+  char filenameWithExtension[1024]={0};
+  sprintf(filenameWithExtension,"%s.c",functionName);
+  FILE * fp = fopen(filenameWithExtension,"w");
+  if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
+
+  fprintf(fp,"#include <stdio.h>\n\n");
+  fprintf(fp,"int scanFor%s(char * str) \n{\n",functionName);
+
+  unsigned int charA='A',charB='A',charC='A';
+
+ fprintf(fp," switch (str[0]) { \n");
+  while (charA <= 'Z')
+  {
+   // -------------------    FIRST CHARACTER      --------------------------
+   if (   fastStringParser_hasStringsWithCharAtIndex(fsp,0,charA)  )
+   {
+
+    fprintf(fp," case \'%c\' : \n",charA);
+    fprintf(fp," switch (str[1]) { \n");
+    while (charB <= 'Z')
+    {
+
+     // -------------------    SECOND CHARACTER      --------------------------
+     if (   fastStringParser_hasStringsWithCharAtIndex(fsp,1,charB)  )
+     {
+     fprintf(fp," case \'%c\' : \n",charB);
+     fprintf(fp," switch (str[2]) { \n");
+     while (charC <= 'Z')
+     {
+       // -------------------    THIRD CHARACTER      --------------------------
+       unsigned int lastIndex = fastStringParser_hasStringsWithCharAtIndex(fsp,2,charC);
+       if (  lastIndex != 0  )
+       {
+         fprintf(fp," case \'%c\' : \n",charC);
+         fprintf(fp," //%s; \n",fsp->contents[lastIndex].str);
+         fprintf(fp," return %u; \n",lastIndex);
+         fprintf(fp," break; \n");
+
+       }
+       // -------------------    THIRD CHARACTER      --------------------------
+       ++charC;
+     }
+     fprintf(fp,"}; \n");
+     fprintf(fp," break; \n");
+     }
+     // -------------------    SECOND CHARACTER      --------------------------
+
+
+     ++charB;
+    }
+    fprintf(fp,"}; \n");
+    fprintf(fp," break; \n");
+   }
+   // -------------------    FIRST CHARACTER      --------------------------
+
+
+    ++charA;
+ }
+ fprintf(fp,"}; \n");
+
+
+
+
+
+/*
+  unsigned int character=0;
+  while ( character < fsp->longestStringLength )
+  {
+     fprintf(fp," switch (str[%u]) { \n",character);
+     char curChar='A';
+     while (curChar<='Z')
+     {
+       fprintf(fp,"  case '%c' : ",curChar);
+       fprintf(fp,"  break; \n");
+      ++curChar;
+     }
+    fprintf(fp,"}; \n");
+   ++character;
+  }
+*/
+
+
+
+
+  fprintf(fp," return 0;\n");
+  fprintf(fp,"}\n");
+
+  fprintf(fp,"\n\nint main(int argc, char *argv[]) \n {\n");
+  fprintf(fp,"  if (argc<1) { fprintf(stderr,\"No parameter\\n\"); return 1; }\n");
+  fprintf(fp,"  if ( scanFor%s(argv[0]) ) { fprintf(stderr,\"Found it\"); } \n  return 0; \n }\n",functionName);
+
+
+  fclose(fp);
+
+  return 1;
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -85,7 +211,7 @@ int fastStringParser_initializeHardCoded()
 struct fastStringParser * fastSTringParser_createRulesFromFile(char* filename,unsigned int totalStrings)
 {
   FILE * fp = fopen(filename,"r");
-  if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",filename); return 1; }
+  if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",filename); return 0; }
 
   struct fastStringParser *  fsp  = fastStringParser_initialize(totalStrings);
   if (fsp==0) { return 0; }
@@ -106,7 +232,7 @@ struct fastStringParser * fastSTringParser_createRulesFromFile(char* filename,un
          if (line[lineLength-2]==13) { line[lineLength-2]=0; --lineLength; }
         }
 
-    fprintf(stderr,"LINE : `%s`\n",line);
+    //fprintf(stderr,"LINE : `%s`\n",line);
     fastStringParser_addString(fsp,line);
   }
   fclose(fp);
