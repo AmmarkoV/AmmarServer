@@ -132,7 +132,7 @@ unsigned int fastStringParser_countStringsForNextChar(struct fastStringParser * 
   return res;
 }
 
-int addLevelSpaces(FILE * fp , unsigned int level)
+void addLevelSpaces(FILE * fp , unsigned int level)
 {
   int i=0;
   for (i=0; i<level*4; i++)
@@ -182,6 +182,7 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
 
       cArray[level]='A';
       cArray[level+1]=0;
+      //TODO: Add '-' character for strings like IF-MODIFIED-ETC
       while (cArray[level] <= 'Z')
        {
         if ( fastStringParser_hasStringsWithNConsecutiveChars(fsp,&resStringResultIndex,cArray,level+1)  )
@@ -209,8 +210,9 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
        //if (level==0) { fprintf(fp," case \'%c\' : \n",cArray[level]); }
 
        addLevelSpaces(fp , level);
-       fprintf(fp," return %u; ",resStringResultIndex);
-       fprintf(fp," //%s \n",fsp->contents[resStringResultIndex].str);
+       fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %u; } \n",fsp->contents[resStringResultIndex].str , resStringResultIndex );
+       //fprintf(fp," return %u; ",resStringResultIndex);
+       //fprintf(fp," //%s \n",fsp->contents[resStringResultIndex].str);
 
        //if (level==0) { fprintf(fp," break; \n"); }
      }
@@ -239,6 +241,9 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
 
   fprintf(fp,"#include <stdio.h>\n\n");
+
+  //TODO add an automatically generated enumerator here..
+
   fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);
 
      recursiveTraverser(fp,fsp,functionName,cArray,0);
