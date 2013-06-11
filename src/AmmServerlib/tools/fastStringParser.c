@@ -132,6 +132,15 @@ unsigned int fastStringParser_countStringsForNextChar(struct fastStringParser * 
   return res;
 }
 
+int addLevelSpaces(FILE * fp , unsigned int level)
+{
+  int i=0;
+  for (i=0; i<level*4; i++)
+  {
+    fprintf(fp," ");
+  }
+}
+
 
 int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char * Sequence,unsigned int seqLength)
 {
@@ -149,6 +158,7 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
     }
 
     if ( correct == seqLength ) {
+                                  addLevelSpaces(fp , seqLength);
                                   if (results>0) { fprintf(fp," else "); }
                                   fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %u; } \n",fsp->contents[i].str , i );
                                   ++results;
@@ -167,6 +177,7 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
   if ( nextLevelStrings>1 )
      {
       unsigned int cases=0;
+      addLevelSpaces(fp , level);
       fprintf(fp," switch (str[%u]) { \n",level);
 
       cArray[level]='A';
@@ -175,9 +186,11 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
        {
         if ( fastStringParser_hasStringsWithNConsecutiveChars(fsp,&resStringResultIndex,cArray,level+1)  )
         {
+          addLevelSpaces(fp , level);
           fprintf(fp," case \'%c\' : \n",cArray[level]);
            if ( level < ACTIVATED_LEVELS-1 ) { recursiveTraverser(fp,fsp,functionName,cArray,level+1); } else
                                              { printIfAllPossibleStrings(fp , fsp , cArray, level+1); }
+          addLevelSpaces(fp , level);
           fprintf(fp," break; \n");
           ++cases;
         }
@@ -186,15 +199,17 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
        cArray[level]=0;
 
 
-       if (cases==0) { fprintf(fp,"//nextLevelStrings were supposed to be non-zero"); }
+       if (cases==0) { fprintf(fp,"//BUG :  nextLevelStrings were supposed to be non-zero"); }
 
+       addLevelSpaces(fp , level);
        fprintf(fp,"}; \n");
      } else
      if ( nextLevelStrings==1 )
      {
        //if (level==0) { fprintf(fp," case \'%c\' : \n",cArray[level]); }
 
-       fprintf(fp," return %u; \n",resStringResultIndex);
+       addLevelSpaces(fp , level);
+       fprintf(fp," return %u; ",resStringResultIndex);
        fprintf(fp," //%s \n",fsp->contents[resStringResultIndex].str);
 
        //if (level==0) { fprintf(fp," break; \n"); }
