@@ -49,8 +49,6 @@ int fastStringParser_addString(struct fastStringParser * fsp, char * str)
   return 0;
 }
 
-
-
 struct fastStringParser *  fastStringParser_initialize(unsigned int totalStrings)
 {
    fspHTTPHeader = (struct fastStringParser * ) malloc(sizeof( struct fastStringParser ));
@@ -63,8 +61,6 @@ struct fastStringParser *  fastStringParser_initialize(unsigned int totalStrings
 
   return fspHTTPHeader;
 }
-
-
 
 int fastStringParser_initializeHardCoded()
 {
@@ -87,48 +83,10 @@ int fastStringParser_initializeHardCoded()
    return 1;
 }
 
-int fastStringParser_hasStringsWithCharAtIndex(struct fastStringParser * fsp,unsigned int index, char character )
-{
-  unsigned int i=0;
-  for (i=0; i<fsp->stringsLoaded; i++)
-  {
-    if (fsp->contents[i].str[index]==character) { return 1; }
-  }
-  return 0;
-}
-
-
-int fastStringParser_hasStringsWith2CharsAtIndexes(struct fastStringParser * fsp,unsigned int index1, char character1,unsigned int index2, char character2 )
-{
-  unsigned int i=0;
-  for (i=0; i<fsp->stringsLoaded; i++)
-  {
-    if ( (fsp->contents[i].str[index1]==character1) &&
-         (fsp->contents[i].str[index2]==character2) )
-         { return 1; }
-  }
-  return 0;
-}
-
-
-int fastStringParser_hasStringsWith3CharsAtIndexes(struct fastStringParser * fsp,unsigned int * resString, unsigned int index1, char character1,unsigned int index2, char character2 ,unsigned int index3, char character3 )
-{
-  unsigned int i=0;
-  for (i=0; i<fsp->stringsLoaded; i++)
-  {
-    if ( (fsp->contents[i].str[index1]==character1) &&
-         (fsp->contents[i].str[index2]==character2) &&
-         (fsp->contents[i].str[index3]==character3) )
-         {
-          *resString = i ;
-          return 1; }
-  }
-  return 0;
-}
-
 
 int fastStringParser_hasStringsWithNConsecutiveChars(struct fastStringParser * fsp,unsigned int * resStringResultIndex, char * Sequence,unsigned int seqLength)
 {
+  int res = 0;
   unsigned int i=0,count = 0,correct=0;
   for (i=0; i<fsp->stringsLoaded; i++)
   {
@@ -142,36 +100,21 @@ int fastStringParser_hasStringsWithNConsecutiveChars(struct fastStringParser * f
       ++str2;
     }
 
-    if ( correct == seqLength ) { *resStringResultIndex = i; return 1; }
+    if ( correct == seqLength ) { *resStringResultIndex = i; ++res; }
   }
-  return 0;
+  return res ;
 }
 
 
-int fastStringParser_countStringsForNextChar(struct fastStringParser * fsp,unsigned int * resStringResultIndex,char * Sequence,unsigned int seqLength)
+unsigned int fastStringParser_countStringsForNextChar(struct fastStringParser * fsp,unsigned int * resStringResultIndex,char * Sequence,unsigned int seqLength)
 {
  unsigned int res=0;
- unsigned int i=0,count = 0,correct=0;
-
  Sequence[seqLength]='A';
  while (Sequence[seqLength] <= 'Z')
- {
-  for (i=0; i<fsp->stringsLoaded; i++)
   {
-    char * str1 = fsp->contents[i].str;
-    char * str2 = Sequence;
-
-    correct=0;
-    for ( count=0; count<seqLength+1; count++ )
-    {
-      if (*str1==*str2) { ++correct; }
-      ++str1; ++str2;
-    }
-
-    if ( correct == seqLength ) { ++res; *resStringResultIndex=i; }
+   res+=fastStringParser_hasStringsWithNConsecutiveChars(fsp,resStringResultIndex,Sequence,seqLength+1);
+   ++Sequence[seqLength];
   }
-  ++Sequence[seqLength];
- }
   return res;
 }
 
@@ -179,12 +122,14 @@ int fastStringParser_countStringsForNextChar(struct fastStringParser * fsp,unsig
 
 int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionName,char * cArray,unsigned int level)
 {
-  if (level==3) { return 0; }
+  if (level>=3) { return 0; }
 
   unsigned int resStringResultIndex=0;
+  unsigned int nextLevelStrings=fastStringParser_countStringsForNextChar(fsp,&resStringResultIndex,cArray,level+1);
 
-     if ( fastStringParser_countStringsForNextChar(fsp,&resStringResultIndex,cArray,level+1)>1 )
+     if ( nextLevelStrings>1 )
      {
+       unsigned int cases=0;
        fprintf(fp," switch (str[%u]) { \n",level);
        while (cArray[level] <= 'Z')
        {
@@ -193,22 +138,27 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
           fprintf(fp," case \'%c\' : \n",cArray[level]);
            recursiveTraverser(fp,fsp,functionName,cArray,level+1);
           fprintf(fp," break; \n");
+          ++cases;
         }
-
         ++cArray[level];
        }
 
+       if (cases==0) { fprintf(fp,"//nextLevelStrings were supposed to be non-zero"); }
+
        fprintf(fp,"}; \n");
      } else
+     if ( nextLevelStrings==1 )
      {
-       if (level==0)
-        { fprintf(fp," case \'%c\' : \n",cArray[level]); }
+       //if (level==0) { fprintf(fp," case \'%c\' : \n",cArray[level]); }
 
        fprintf(fp," return %u; \n",resStringResultIndex);
        fprintf(fp," //%s \n",fsp->contents[resStringResultIndex].str);
 
-       if (level==0)
-       { fprintf(fp," break; \n"); }
+       //if (level==0) { fprintf(fp," break; \n"); }
+     }
+     else
+     {
+       fprintf(fp," //Error ( %s ) \n",fsp->contents[resStringResultIndex].str);
      }
 
  return 1;
@@ -233,7 +183,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp,"#include <stdio.h>\n\n");
   fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);
 
-  recursiveTraverser(fp,fsp,functionName,cArray,0);
+     recursiveTraverser(fp,fsp,functionName,cArray,0);
 
   fprintf(fp," return 0;\n");
   fprintf(fp,"}\n");
