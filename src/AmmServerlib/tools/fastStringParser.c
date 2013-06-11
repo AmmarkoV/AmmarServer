@@ -7,6 +7,7 @@
 struct fastStringParser * fspHTTPHeader = 0;
 
 #define MAXIMUM_LINE_LENGTH 1024
+#define MAXIMUM_LEVELS 123
 
 enum fpsHTTPHeaderCodes
 {
@@ -126,7 +127,114 @@ int fastStringParser_hasStringsWith3CharsAtIndexes(struct fastStringParser * fsp
 }
 
 
+int fastStringParser_hasStringsWithNConsecutiveChars(struct fastStringParser * fsp,unsigned int * resStringResultIndex, char * Sequence,unsigned int seqLength)
+{
+  unsigned int i=0,count = 0,correct=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    char * str1 = fsp->contents[i].str;
+    char * str2 = Sequence;
+    correct=0;
+    for ( count=0; count<seqLength; count++ )
+    {
+      if (*str1==*str2) { ++correct; }
+      ++str1;
+      ++str2;
+    }
+
+    if ( correct == seqLength ) { *resStringResultIndex = i; return 1; }
+  }
+  return 0;
+}
+
+
+int fastStringParser_countStringsForNextChar(struct fastStringParser * fsp,unsigned int * resStringResultIndex,char * Sequence,unsigned int seqLength)
+{
+ unsigned int res=0;
+ unsigned int i=0,count = 0,correct=0;
+
+ Sequence[seqLength]='A';
+ while (Sequence[seqLength] <= 'Z')
+ {
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    char * str1 = fsp->contents[i].str;
+    char * str2 = Sequence;
+
+    correct=0;
+    for ( count=0; count<seqLength+1; count++ )
+    {
+      if (*str1==*str2) { ++correct; }
+      ++str1; ++str2;
+    }
+
+    if ( correct == seqLength+1 ) { ++res; *resStringResultIndex=i; }
+  }
+  ++Sequence[seqLength];
+ }
+  return res;
+}
+
+
+
+int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionName,char * cArray,unsigned int level)
+{
+  if (level==3) { return 0; }
+
+  unsigned int resStringResultIndex=0;
+
+  fprintf(fp," switch (str[%u]) { \n",level);
+     if ( fastStringParser_countStringsForNextChar(fsp,&resStringResultIndex,cArray,level)>1 )
+     {
+       while (cArray[level] <= 'Z')
+       {
+        if ( fastStringParser_hasStringsWithNConsecutiveChars(fsp,&resStringResultIndex,cArray,level)  )
+        {
+          fprintf(fp," case \'%c\' : \n",cArray[level]);
+           recursiveTraverser(fp,fsp,functionName,cArray,level+1);
+          fprintf(fp," break; \n");
+        }
+
+        ++cArray[level];
+       }
+     } else
+     {
+       if (level==0)
+        { fprintf(fp," case \'%c\' : \n",cArray[level]); }
+
+       fprintf(fp," return %u \n",resStringResultIndex);
+
+       if (level==0)
+       { fprintf(fp," break; \n"); }
+     }
+
+    fprintf(fp,"}; \n");
+
+ return 1;
+}
+
+
+
+
 int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
+{
+
+  char filenameWithExtension[1024]={0};
+  sprintf(filenameWithExtension,"%s.c",functionName);
+  FILE * fp = fopen(filenameWithExtension,"w");
+  if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
+
+  char cArray[MAXIMUM_LEVELS]={0};
+  int i=0;
+  for (i=0; i<MAXIMUM_LEVELS; i++ ) { cArray[i]='A'; }
+
+  recursiveTraverser(fp,fsp,functionName,cArray,0);
+
+  return 1;
+}
+
+
+int export_C_ScannerNonRec(struct fastStringParser * fsp,char * functionName)
 {
 
   char filenameWithExtension[1024]={0};
@@ -137,54 +245,94 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp,"#include <stdio.h>\n\n");
   fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);
 
-  unsigned int charA='A',charB='A',charC='A';
+
+  unsigned int indexArray[MAXIMUM_LEVELS]={0};
+  char cArray[MAXIMUM_LEVELS]={0};
+  unsigned int i=0;
+  for (i=0; i<MAXIMUM_LEVELS; i++ ) { cArray[i]='A'; }
+  unsigned int res=0;
+
+
+/*
+  unsigned int level=0;
+  for ( level=0; level<3; level++)
+  {
+    fprintf(fp," switch (str[%u]) { \n",level);
+     if ( fastStringParser_countStringsForNextChar(fsp,cArray,1)>1 )
+     {
+     } else
+     {
+       fprintf(fp," case \'%c\' : \n",cArray[level]);
+       fprintf(fp," return %u \n");
+       fprintf(fp," break; \n");
+     }
+
+
+
+    fprintf(fp,"}; \n");
+  }
+
+*/
+
+
+
+
+
+
 
  fprintf(fp," switch (str[0]) { \n");
-  while (charA <= 'Z')
+  while (cArray[0] <= 'Z')
   {
    // -------------------    FIRST CHARACTER      --------------------------
-   if (   fastStringParser_hasStringsWithCharAtIndex(fsp,0,charA)  )
+   if ( fastStringParser_hasStringsWithNConsecutiveChars(fsp,&indexArray[0],cArray,1)  )
    {
-
-    fprintf(fp," case \'%c\' : \n",charA);
+    fprintf(fp," case \'%c\' : \n",cArray[0]);
     fprintf(fp," switch (str[1]) \n  { \n");
-    while (charB <= 'Z')
-    {
 
-     // -------------------    SECOND CHARACTER      --------------------------
-     if (  fastStringParser_hasStringsWith2CharsAtIndexes(fsp,0,charA,1,charB)  )
+
+    if ( fastStringParser_countStringsForNextChar(fsp,&indexArray[0],cArray,1)>1 )
+    {
+     while (cArray[1] <= 'Z')
      {
-     fprintf(fp,"   case \'%c\' : \n",charB);
+        // -------------------    SECOND CHARACTER      --------------------------
+     if (  fastStringParser_hasStringsWithNConsecutiveChars(fsp,&indexArray[1],cArray,2)  )
+     {
+     fprintf(fp,"   case \'%c\' : \n",cArray[1]);
      fprintf(fp,"   switch (str[2]) \n   { \n");
-     while (charC <= 'Z')
+    if ( fastStringParser_countStringsForNextChar(fsp,&indexArray[1],cArray,2)>1 )
+    {
+      while (cArray[2] <= 'Z')
      {
        // -------------------    THIRD CHARACTER      --------------------------
-       unsigned int lastIndex = 0 ;
-       if (  fastStringParser_hasStringsWith3CharsAtIndexes(fsp,&lastIndex,0,charA,1,charB,2,charC) )
+       if ( fastStringParser_hasStringsWithNConsecutiveChars(fsp,&indexArray[2],cArray,3) )
        {
-         fprintf(fp,"     case \'%c\' : \n",charC);
-         fprintf(fp,"     //%s; \n",fsp->contents[lastIndex].str);
-         fprintf(fp,"     return %u; \n",lastIndex);
+         fprintf(fp,"     case \'%c\' : \n",cArray[2]);
+         fprintf(fp,"     //%s; \n",fsp->contents[res].str);
+         fprintf(fp,"     return %u; \n",res);
          fprintf(fp,"     break; \n");
        }
        // -------------------    THIRD CHARACTER      --------------------------
-       ++charC;
+       ++cArray[2];
      }
+    }else
+    { fprintf(fp,"//Single 2nd level\n");  }
+
+
      fprintf(fp,"   }; \n");
      fprintf(fp,"   break; \n");
      }
      // -------------------    SECOND CHARACTER      --------------------------
-
-
-     ++charB;
+     ++cArray[1];
     }
+    } else
+    { fprintf(fp,"//Single\n");  }
+
+
     fprintf(fp," }; \n");
     fprintf(fp," break; \n");
    }
    // -------------------    FIRST CHARACTER      --------------------------
-
-
-    ++charA;
+    ++cArray[0];
  }
  fprintf(fp,"}; \n");
 
