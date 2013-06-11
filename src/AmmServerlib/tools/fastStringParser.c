@@ -100,7 +100,13 @@ int fastStringParser_hasStringsWithNConsecutiveChars(struct fastStringParser * f
       ++str2;
     }
 
-    if ( correct == seqLength ) { *resStringResultIndex = i; ++res; }
+
+    if ( correct == seqLength ) {  *resStringResultIndex = i; ++res;
+                                   fprintf(stderr,"Comparing %s with %s : ",Sequence,fsp->contents[i].str);
+                                   fprintf(stderr,"HIT\n");
+                                } else
+                                { /*fprintf(stderr,"MISS\n");*/ }
+
   }
   return res ;
 }
@@ -109,12 +115,17 @@ int fastStringParser_hasStringsWithNConsecutiveChars(struct fastStringParser * f
 unsigned int fastStringParser_countStringsForNextChar(struct fastStringParser * fsp,unsigned int * resStringResultIndex,char * Sequence,unsigned int seqLength)
 {
  unsigned int res=0;
+ Sequence[seqLength+1]=0;
  Sequence[seqLength]='A';
  while (Sequence[seqLength] <= 'Z')
   {
    res+=fastStringParser_hasStringsWithNConsecutiveChars(fsp,resStringResultIndex,Sequence,seqLength+1);
    ++Sequence[seqLength];
   }
+
+  Sequence[seqLength]=0;
+  fprintf(stderr,"%u strings with prefix %s ( length %u ) \n",res,Sequence,seqLength);
+
   return res;
 }
 
@@ -127,11 +138,14 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
   unsigned int resStringResultIndex=0;
   unsigned int nextLevelStrings=fastStringParser_countStringsForNextChar(fsp,&resStringResultIndex,cArray,level+1);
 
-     if ( nextLevelStrings>1 )
+  if ( nextLevelStrings>1 )
      {
-       unsigned int cases=0;
-       fprintf(fp," switch (str[%u]) { \n",level);
-       while (cArray[level] <= 'Z')
+      unsigned int cases=0;
+      fprintf(fp," switch (str[%u]) { \n",level);
+
+      cArray[level+1]=0;
+      cArray[level]='A';
+      while (cArray[level] <= 'Z')
        {
         if ( fastStringParser_hasStringsWithNConsecutiveChars(fsp,&resStringResultIndex,cArray,level+1)  )
         {
