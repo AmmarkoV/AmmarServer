@@ -8,6 +8,7 @@ struct fastStringParser * fspHTTPHeader = 0;
 
 #define MAXIMUM_LINE_LENGTH 1024
 #define MAXIMUM_LEVELS 123
+#define ACTIVATED_LEVELS 3
 
 enum fpsHTTPHeaderCodes
 {
@@ -101,7 +102,9 @@ int fastStringParser_hasStringsWithNConsecutiveChars(struct fastStringParser * f
     }
 
 
-    if ( correct == seqLength ) {  *resStringResultIndex = i; ++res;
+    if ( correct == seqLength ) {
+                                   *resStringResultIndex = i;
+                                   ++res;
                                    fprintf(stderr,"Comparing %s with %s : ",Sequence,fsp->contents[i].str);
                                    fprintf(stderr,"HIT\n");
                                 } else
@@ -130,32 +133,58 @@ unsigned int fastStringParser_countStringsForNextChar(struct fastStringParser * 
 }
 
 
+int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char * Sequence,unsigned int seqLength)
+{
+  unsigned int i=0,count=0 , correct = 0 , results =0 ;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    char * str1 = fsp->contents[i].str;
+    char * str2 = Sequence;
+    correct=0;
+    for ( count=0; count<seqLength; count++ )
+    {
+      if (*str1==*str2) { ++correct; }
+      ++str1;
+      ++str2;
+    }
+
+    if ( correct == seqLength ) {
+                                  if (results>0) { fprintf(fp," else "); }
+                                  fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %u; } \n",fsp->contents[i].str , i );
+                                  ++results;
+                                }
+  }
+  return 1;
+}
 
 int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionName,char * cArray,unsigned int level)
 {
-  if (level>=3) { return 0; }
+  if (level>=ACTIVATED_LEVELS) { return 0; }
 
   unsigned int resStringResultIndex=0;
-  unsigned int nextLevelStrings=fastStringParser_countStringsForNextChar(fsp,&resStringResultIndex,cArray,level+1);
+  unsigned int nextLevelStrings=fastStringParser_countStringsForNextChar(fsp,&resStringResultIndex,cArray,level);
 
   if ( nextLevelStrings>1 )
      {
       unsigned int cases=0;
       fprintf(fp," switch (str[%u]) { \n",level);
 
-      cArray[level+1]=0;
       cArray[level]='A';
+      cArray[level+1]=0;
       while (cArray[level] <= 'Z')
        {
         if ( fastStringParser_hasStringsWithNConsecutiveChars(fsp,&resStringResultIndex,cArray,level+1)  )
         {
           fprintf(fp," case \'%c\' : \n",cArray[level]);
-           recursiveTraverser(fp,fsp,functionName,cArray,level+1);
+           if ( level < ACTIVATED_LEVELS-1 ) { recursiveTraverser(fp,fsp,functionName,cArray,level+1); } else
+                                             { printIfAllPossibleStrings(fp , fsp , cArray, level+1); }
           fprintf(fp," break; \n");
           ++cases;
         }
         ++cArray[level];
        }
+       cArray[level]=0;
+
 
        if (cases==0) { fprintf(fp,"//nextLevelStrings were supposed to be non-zero"); }
 
@@ -191,7 +220,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
   char cArray[MAXIMUM_LEVELS]={0};
   int i=0;
-  for (i=0; i<MAXIMUM_LEVELS; i++ ) { cArray[i]='A'; }
+  for (i=0; i<MAXIMUM_LEVELS; i++ ) { cArray[i]=0;/*'A';*/ }
 
 
   fprintf(fp,"#include <stdio.h>\n\n");
