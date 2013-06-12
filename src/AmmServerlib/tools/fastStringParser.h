@@ -4,9 +4,8 @@
 
 struct fspString
 {
-  unsigned short letterFirstOccurance[128];
-  unsigned short letterLastOccurance[128];
   char * str;
+  char * strIDFriendly;
   unsigned int strLength;
 
 };
@@ -17,6 +16,9 @@ struct fastStringParser
   struct fspString * contents;
   unsigned int stringsLoaded;
   unsigned int MAXstringsLoaded;
+
+
+  char * functionName;
 
   unsigned int shortestStringLength;
   unsigned int longestStringLength;
