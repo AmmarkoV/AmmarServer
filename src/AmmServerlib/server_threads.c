@@ -333,7 +333,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
 void * ServeClient(void * ptr)
 {
-  fprintf(stderr,"Serve Client called ..\n");
+  //fprintf(stderr,"Serve Client called ..\n");
   // We first have to store the context variables we got through our struct PassToHTTPThread
   // so we first need to do that
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
@@ -393,9 +393,9 @@ void * ServeClient(void * ptr)
     }
   }
 
-  fprintf(stderr,"Closing Socket ..");
+  //fprintf(stderr,"Closing Socket ..");
   close(transaction.clientSock);
-  fprintf(stderr,"closed\n");
+  //fprintf(stderr,"closed\n");
 
   if (!transaction.prespawnedThreadFlag)
    { //If we are running in a prespawned thread it is wrong to count this thread as a *dynamic* one that just stopped !
@@ -405,7 +405,7 @@ void * ServeClient(void * ptr)
      ++instance->CLIENT_THREADS_STOPPED;
 
      //We also only want to stop the thread if itsnot prespawned !
-     fprintf(stderr,"Exiting Thread\n");
+     //fprintf(stderr,"Exiting Thread\n");
      pthread_exit(0);
    }
 
