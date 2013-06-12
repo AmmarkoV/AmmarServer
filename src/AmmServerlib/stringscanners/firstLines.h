@@ -18,6 +18,6 @@ enum {
 
 
 
-int scanFor_firstLines(char * str); 
+int scanFor_firstLines(char * str,unsigned int strLength); 
 
 #endif

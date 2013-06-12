@@ -20,6 +20,6 @@ enum {
 
 
 
-int scanFor_httpHeader(char * str); 
+int scanFor_httpHeader(char * str,unsigned int strLength); 
 
 #endif

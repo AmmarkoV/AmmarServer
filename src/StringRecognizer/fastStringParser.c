@@ -174,7 +174,8 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
     if ( correct == seqLength ) {
                                   addLevelSpaces(fp , seqLength);
                                   if (results>0) { fprintf(fp," else "); }
-                                  fprintf(fp," if ( strncasecmp(str,\"%s\",%u) == 0 ) { return %s_%s; } \n",
+                                  fprintf(fp," if ( (strLength >= %u )&& ( strncasecmp(str,\"%s\",%u) == 0 ) ) { return %s_%s; } \n",
+                                          strlen(fsp->contents[i].str),
                                           fsp->contents[i].str ,
                                           strlen(fsp->contents[i].str) ,
                                           fsp->functionName,
@@ -254,6 +255,8 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
      if ( nextLevelStrings==1 )
      {
        addLevelSpaces(fp , level);
+       fprintf(fp," if (strLength<%u) { return 0; } \n", strlen(fsp->contents[resStringResultIndex].str));
+       addLevelSpaces(fp , level);
        fprintf(fp," if ( strncasecmp(str,\"%s\",%u) == 0 ) { return %s_%s; } \n",
                    fsp->contents[resStringResultIndex].str ,
                    strlen(fsp->contents[resStringResultIndex].str),
@@ -291,7 +294,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp,"#ifndef %s_H_INCLUDED\n",fsp->functionName);
   fprintf(fp,"#define %s_H_INCLUDED\n\n\n",fsp->functionName);
       printAllEnumeratorItems(fp, fsp, functionName);
-  fprintf(fp,"\n\nint scanFor_%s(char * str); \n\n",functionName);
+  fprintf(fp,"\n\nint scanFor_%s(char * str,unsigned int strLength); \n\n",functionName);
   fprintf(fp,"#endif\n",fsp->functionName);
   fclose(fp);
 
@@ -312,8 +315,9 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp,"#include <ctype.h>\n");
   fprintf(fp,"#include \"%s.h\"\n\n",functionName);
 
-  fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);
+  fprintf(fp,"int scanFor_%s(char * str,unsigned int strLength) \n{\n",functionName);
 
+     fprintf(fp," if (strLength<%u) { return 0; } \n\n",fsp->shortestStringLength);
      recursiveTraverser(fp,fsp,functionName,cArray,0);
 
   fprintf(fp," return 0;\n");

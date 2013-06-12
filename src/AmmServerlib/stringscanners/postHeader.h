@@ -12,6 +12,6 @@ enum {
 
 
 
-int scanFor_postHeader(char * str); 
+int scanFor_postHeader(char * str,unsigned int strLength); 
 
 #endif

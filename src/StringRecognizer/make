@@ -18,7 +18,7 @@ CFLAGS="-s -Os -fexpensive-optimizations"
 LIBRARIES="-pthread -lrt"
  
   
-gcc  main.c ../AmmServerlib/tools/fastStringParser.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
+gcc  main.c fastStringParser.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 
   
 if [ -e $OUTPUT ]

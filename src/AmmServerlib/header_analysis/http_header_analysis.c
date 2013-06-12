@@ -181,7 +181,7 @@ inline int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsign
 {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }
 
-      unsigned int requestType  = scanFor_firstLines(request);
+      unsigned int requestType  = scanFor_firstLines(request,request_length);
       unsigned int s=3; //Initial position past GET/HEAD
 
       switch (requestType)
@@ -308,9 +308,7 @@ int AnalyzeHTTPLineRequest(
    {
      unsigned int payload_start = 0;
 
-
-
-     unsigned int requestType = scanFor_httpHeader(request);
+     unsigned int requestType = scanFor_httpHeader(request,request_length);
      //fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
      switch (requestType)
      {
