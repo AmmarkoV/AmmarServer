@@ -257,7 +257,7 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 {
 
         unsigned int payload_start = *payload_pos;
-        //fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
+        fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
         //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=`
         //TODO : this needs some thought , it can be improved!
         payload_start+=1;
@@ -283,7 +283,6 @@ int AnalyzeHTTPLineRequest(
                             struct AmmServer_Instance * instance,
                             struct HTTPHeader * output,
                             char * request,
-                            char * requestUpcase,
                             unsigned int request_length,
                             unsigned int lines_gathered,
                             char * webserver_root
@@ -306,6 +305,7 @@ int AnalyzeHTTPLineRequest(
 
 
      unsigned int requestType = scanFor_httpHeader(request);
+     fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
      switch (requestType)
      {
         case HTTPHEADER_AUTHORIZATION :
@@ -317,7 +317,7 @@ int AnalyzeHTTPLineRequest(
         break;
         case HTTPHEADER_ACCEPT_ENCODING :
          payload_start+=strlen("ACCEPT-ENCODING:");
-         if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
+         if ( CheckHTTPHeaderCategory(request,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
                                                                                                       { output->supports_compression=0;
          fprintf(stderr,"We found an accept-encoding header , but not the deflate method..\n"); }
         break;
@@ -329,7 +329,7 @@ int AnalyzeHTTPLineRequest(
         break;
         case HTTPHEADER_CONNECTION :
          payload_start+=strlen("CONNECTION:");
-         if (CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
+         if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
 
         break;
         case HTTPHEADER_HOST :
@@ -366,117 +366,6 @@ int AnalyzeHTTPLineRequest(
         break;
      };
 
-    return 1;
-
-
-
-
-     if ((instance->settings.PASSWORD_PROTECTION)&&(instance->settings.BASE64PASSWORD!=0))
-       { //Consider password protection header sections..!
-        if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"AUTHORIZATION:",&payload_start) )
-           {
-             return ProcessAuthorizationHTTPLine(instance,output,request,request_length,&payload_start);
-           }
-       }
-
-
-     if (output->requestType==POST)
-      {
-         //There is a seperate source file called postHeaders.c
-         //that deals with POST requests , so the next call outsources the job of parsing the next line
-         //to it !
-         int postResult = AnalyzePOSTLineRequest (
-                                                   instance,
-                                                   output,
-                                                   request,
-                                                   request_length,
-                                                   lines_gathered,
-                                                   webserver_root
-                                                 );
-         //If we the line is a POST line we have succesfully parsed it , if not we continue here
-         if (postResult!=0) { return postResult; }
-      }
-
-
-
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"RANGE:",&payload_start) )
-          {
-             //Todo here : Fill in range_start and range_end
-             output->range_start=0;
-             output->range_end=0;
-             return 0;
-          }
-
-
-      /*REFERRER AND REFERER ARE THE SAME CASE , THE RFC HAS THE MISPELLED VERSION OF THE WORD , BOTH OF THEM EXIST IN THE WILD :P*/
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"REFERRER:",&payload_start) )
-          {
-            //if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
-            freeString(&output->Referer);
-            output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->Referer==0) { return 0; } else { return 1;}
-          } else
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"REFERER:",&payload_start) ) // <- The spec Referrer string is wrong :P
-          {
-            //if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
-            freeString(&output->Referer);
-            output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->Referer==0) { return 0; } else { return 1;}
-          }
-       /*---------------------------------------------------------------------------------------------------------------------*/
-
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"HOST:",&payload_start) )
-          {
-            //if (output->Host!=0) { free(output->Host); output->Host=0; }
-            freeString(&output->Referer);
-            output->Host=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->Host==0) { return 0; } else { return 1;}
-          }
-
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"ACCEPT-ENCODING:",&payload_start) )
-          {
-            if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
-                                                                                                         { output->supports_compression=0;
-                                                                                              fprintf(stderr,"We found an accept-encoding header , but not the deflate method..\n"); }
-          }
-
-
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"USER-AGENT:",&payload_start) )
-          {
-            //if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
-            freeString(&output->UserAgent);
-            output->UserAgent=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->UserAgent==0) { return 0; } else { return 1;}
-          }
-
-
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"COOKIE:",&payload_start) )
-          {
-            //if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
-            freeString(&output->Cookie);
-            output->Cookie=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->Cookie==0) { return 0; } else { return 1;}
-          }
-
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"CONNECTION:",&payload_start) )
-          {
-            if (CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
-            return 0;
-          }
-
-      //If-None-Match: "3e0f0d-1485-4c2646d587b7d"
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"IF-NONE-MATCH:",&payload_start) )
-          {
-            //if (output->ETag!=0) { free(output->ETag); output->ETag=0; }
-            freeString(&output->ETag);
-            output->ETag=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->ETag==0) { return 0; } else { return 1;}
-          }
-
-      //If-Modified-Since: Thu, 14 Jun 2012 01:14:53 GMT
-      if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"IF-MODIFIED-SINCE:",&payload_start) )
-          { fprintf(stderr,"304 Not Modified headers through dates not supported yet\n"); return 0; }
-
 
    }
   //Todo check for keepalive header option here and output->keepalive=1;
@@ -503,6 +392,7 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
   output->range_end=0;
   output->authorized=0;
 
+  char * preciseLine;
   char line[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   char lineUpcase[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;
@@ -514,8 +404,12 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
         //We've got ourselves a new line!
         ++lines_gathered;
-        strToUpcase(lineUpcase,line,strlen(line));
-        AnalyzeHTTPLineRequest(instance,output,line,lineUpcase,strlen(line),lines_gathered,webserver_root);
+
+        preciseLine = line ;
+        if ( (*preciseLine==10) || (*preciseLine==13) ) { ++preciseLine; }
+
+        //strToUpcase(lineUpcase,line,strlen(line));
+        AnalyzeHTTPLineRequest(instance,output,preciseLine,strlen(preciseLine),lines_gathered,webserver_root);
         line[0]=0; //line is "cleared" :P
         chars_gathered=0;
       }

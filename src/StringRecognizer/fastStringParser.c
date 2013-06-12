@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 struct fastStringParser * fspHTTPHeader = 0;
 
@@ -206,8 +207,12 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
     if ( correct == seqLength ) {
                                   addLevelSpaces(fp , seqLength);
                                   if (results>0) { fprintf(fp," else "); }
-                                         fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %s_%s; } \n",fsp->contents[i].str , fsp->functionName,fsp->contents[i].strIDFriendly );
-                                        // fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %u; } \n",fsp->contents[i].str , i );
+                                  fprintf(fp," if ( strncasecmp(str,\"%s\",%u) == 0 ) { return %s_%s; } \n",
+                                          fsp->contents[i].str ,
+                                          strlen(fsp->contents[i].str) ,
+                                          fsp->functionName,
+                                          fsp->contents[i].strIDFriendly );
+
                                   ++results;
                                 }
   }
@@ -249,7 +254,7 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
      {
       unsigned int cases=0;
       addLevelSpaces(fp , level);
-      fprintf(fp," switch (str[%u]) { \n",level);
+      fprintf(fp," switch (toupper(str[%u])) { \n",level);
 
       cArray[level]='A';
       cArray[level+1]=0;
@@ -279,7 +284,11 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
      if ( nextLevelStrings==1 )
      {
        addLevelSpaces(fp , level);
-       fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %s_%s; } \n",fsp->contents[resStringResultIndex].str , fsp->functionName,fsp->contents[resStringResultIndex].strIDFriendly );
+       fprintf(fp," if ( strncasecmp(str,\"%s\",%u) == 0 ) { return %s_%s; } \n",
+                   fsp->contents[resStringResultIndex].str ,
+                   strlen(fsp->contents[resStringResultIndex].str),
+                   fsp->functionName,
+                   fsp->contents[resStringResultIndex].strIDFriendly );
      }
      else
      {
@@ -330,6 +339,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
   fprintf(fp,"#include <stdio.h>\n");
   fprintf(fp,"#include <string.h>\n");
+  fprintf(fp,"#include <ctype.h>\n");
   fprintf(fp,"#include \"%s.h\"\n\n",functionName);
 
   fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);
@@ -339,10 +349,11 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp," return 0;\n");
   fprintf(fp,"}\n");
 
+  /*
   fprintf(fp,"\n\nint main(int argc, char *argv[]) \n {\n");
   fprintf(fp,"  if (argc<1) { fprintf(stderr,\"No parameter\\n\"); return 1; }\n");
   fprintf(fp,"  if ( scanFor_%s(argv[0]) ) { fprintf(stderr,\"Found it\"); } \n  return 0; \n }\n",functionName);
-
+*/
 
   fclose(fp);
 

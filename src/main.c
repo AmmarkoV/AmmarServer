@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_BINDING_PORT 65534
 
-#define ENABLE_PASSWORD_PROTECTION 0
+#define ENABLE_PASSWORD_PROTECTION 1
 #define ENABLE_CHAT_BOX 0
 
 
