@@ -323,14 +323,6 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
 
 
-
-
-
-
-
-
-
-
 void * ServeClient(void * ptr)
 {
   //fprintf(stderr,"Serve Client called ..\n");
