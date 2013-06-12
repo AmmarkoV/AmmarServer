@@ -36,7 +36,12 @@ int scanFor_httpHeader(char * str)
  case 'I' : 
      switch (toupper(str[1])) { 
      case 'F' : 
- //Error ( AUTHORIZATION: ) 
+         switch (toupper(str[2])) { 
+         case '-' : 
+             if ( strncasecmp(str,"IF-NONE-MATCH:",14) == 0 ) { return HTTPHEADER_IF_NONE_MATCH; } 
+             else  if ( strncasecmp(str,"IF-MODIFIED-SINCE:",18) == 0 ) { return HTTPHEADER_IF_MODIFIED_SINCE; } 
+         break; 
+        }; 
      break; 
     }; 
  break; 

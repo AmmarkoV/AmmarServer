@@ -11,6 +11,9 @@ struct fastStringParser * fspHTTPHeader = 0;
 #define MAXIMUM_LEVELS 123
 #define ACTIVATED_LEVELS 3
 
+char acceptedChars[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
+
+
 enum fpsHTTPHeaderCodes
 {
   NO_STRING = 0 ,
@@ -28,6 +31,10 @@ enum fpsHTTPHeaderCodes
   IF_MODIFIED_SINCE
 
 };
+
+
+
+
 
 
 inline void convertTo_ENUM_ID(char *sPtr)
@@ -166,10 +173,13 @@ unsigned int fastStringParser_countStringsForNextChar(struct fastStringParser * 
  unsigned int res=0;
  Sequence[seqLength+1]=0;
  Sequence[seqLength]='A';
- while (Sequence[seqLength] <= 'Z')
-  {
+
+ unsigned int curCh=0;
+ while (curCh <= strlen(acceptedChars))
+ {
+   Sequence[seqLength] =  acceptedChars[curCh];
    res+=fastStringParser_hasStringsWithNConsecutiveChars(fsp,resStringResultIndex,Sequence,seqLength+1);
-   ++Sequence[seqLength];
+   ++curCh;
   }
 
   Sequence[seqLength]=0;
@@ -259,8 +269,10 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
       cArray[level]='A';
       cArray[level+1]=0;
       //TODO: Add '-' character for strings like IF-MODIFIED-ETC
-      while (cArray[level] <= 'Z')
+      unsigned int curCh=0;
+      while (curCh <= strlen(acceptedChars))
        {
+        cArray[level]=acceptedChars[curCh];
         if ( fastStringParser_hasStringsWithNConsecutiveChars(fsp,&resStringResultIndex,cArray,level+1)  )
         {
           addLevelSpaces(fp , level);
@@ -271,7 +283,8 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
           fprintf(fp," break; \n");
           ++cases;
         }
-        ++cArray[level];
+
+         ++curCh;
        }
        cArray[level]=0;
 

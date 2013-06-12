@@ -104,6 +104,14 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="server_threads.h" />
+		<Unit filename="stringscanners/httpHeader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/httpHeader.h" />
+		<Unit filename="stringscanners/postHeader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/postHeader.h" />
 		<Unit filename="threads/freshThreads.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -120,10 +128,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/directory_lists.h" />
-		<Unit filename="tools/fastStringParser.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="tools/fastStringParser.h" />
 		<Unit filename="tools/http_tools.c">
 			<Option compilerVar="CC" />
 		</Unit>

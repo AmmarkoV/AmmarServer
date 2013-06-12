@@ -407,8 +407,6 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
         preciseLine = line ;
         if ( (*preciseLine==10) || (*preciseLine==13) ) { ++preciseLine; }
-
-        //strToUpcase(lineUpcase,line,strlen(line));
         AnalyzeHTTPLineRequest(instance,output,preciseLine,strlen(preciseLine),lines_gathered,webserver_root);
         line[0]=0; //line is "cleared" :P
         chars_gathered=0;
