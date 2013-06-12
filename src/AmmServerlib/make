@@ -30,6 +30,7 @@ gcc -c $CFLAGS tools/directory_lists.c -o directory_lists.o
 gcc -c $CFLAGS tools/time_provider.c -o time_provider.o 
 gcc -c $CFLAGS tools/logs.c -o logs.o 
 gcc -c $CFLAGS stringscanners/httpHeader.c -o httpHeader.o 
+gcc -c $CFLAGS stringscanners/postHeader.c -o postHeader.o 
 gcc -c $CFLAGS file_server.c -o file_server.o 
 gcc -c $CFLAGS header_analysis/http_header_analysis.c -o http_header_analysis.o  
 gcc -c $CFLAGS header_analysis/postHeaders.c -o postHeaders.o  
@@ -44,7 +45,7 @@ gcc -c $CFLAGS threads/freshThreads.c -o freshThreads.o
 gcc -c $CFLAGS threads/prespawnedThreads.c -o prespawnedThreads.o 
 gcc -c $CFLAGS threads/threadInitHelper.c -o threadInitHelper.o 
 
-PARTS_OF_LIB="main.o server_threads.o http_tools.o httpHeader.o  client_list.o file_server.o http_header_analysis.o postHeaders.o dynamic_requests.o file_caching.o file_compression.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o hashmap.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
+PARTS_OF_LIB="main.o server_threads.o http_tools.o httpHeader.o postHeader.o  client_list.o file_server.o http_header_analysis.o postHeaders.o dynamic_requests.o file_caching.o file_compression.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o hashmap.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
 
 ar rcs $LIBNAME $PARTS_OF_LIB
 

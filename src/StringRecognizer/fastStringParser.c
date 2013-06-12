@@ -329,6 +329,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
 
   fprintf(fp,"#include <stdio.h>\n");
+  fprintf(fp,"#include <string.h>\n");
   fprintf(fp,"#include \"%s.h\"\n\n",functionName);
 
   fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);

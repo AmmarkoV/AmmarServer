@@ -106,15 +106,27 @@
 	<string.h>
 	"hashmap.h"
 
-1370428227 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/postHeaders.c
+1371040758 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.c
+	"http_header_analysis.h"
 	"postHeaders.h"
 	"../tools/http_tools.h"
+	"../server_configuration.h"
+	"../stringscanners/httpHeader.h"
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 
 1370355088 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/postHeaders.h
 	"../AmmServerlib.h"
+
+1371041863 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/httpHeader.h
+
+1370428227 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/postHeaders.c
+	"postHeaders.h"
+	"../tools/http_tools.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
 
 1367678320 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/InputParser/InputParser_C.c
 	"InputParser_C.h"
@@ -261,10 +273,4 @@
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
-
-1371038893 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/httpHeader.c
-	<stdio.h>
-	"httpHeader.h"
-
-1371038254 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/httpHeader.h
 
