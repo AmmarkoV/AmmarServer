@@ -371,6 +371,12 @@ int AnalyzeHTTPLineRequest(
      };
 
 
+     if (output->requestType==POST)
+     {
+        return AnalyzePOSTLineRequest(instance,output,request,request_length,lines_gathered,webserver_root );
+     }
+
+
    }
   //Todo check for keepalive header option here and output->keepalive=1;
   return 1;
