@@ -89,10 +89,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="header_analysis/http_header_analysis.h" />
-		<Unit filename="header_analysis/postHeaders.c">
+		<Unit filename="header_analysis/post_header_analysis.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="header_analysis/postHeaders.h" />
+		<Unit filename="header_analysis/post_header_analysis.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -104,6 +104,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="server_threads.h" />
+		<Unit filename="stringscanners/firstLines.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/firstLines.h" />
 		<Unit filename="stringscanners/httpHeader.c">
 			<Option compilerVar="CC" />
 		</Unit>
