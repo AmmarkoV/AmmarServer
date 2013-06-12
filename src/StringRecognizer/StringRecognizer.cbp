@@ -34,10 +34,10 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="../AmmServerlib/tools/fastStringParser.c">
+		<Unit filename="fastStringParser.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../AmmServerlib/tools/fastStringParser.h" />
+		<Unit filename="fastStringParser.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>

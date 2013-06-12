@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../AmmServerlib/tools/fastStringParser.h"
+#include "fastStringParser.h"
 
 
 int main(int argc, char *argv[])

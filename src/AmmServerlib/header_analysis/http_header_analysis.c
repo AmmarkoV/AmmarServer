@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "postHeaders.h"
 #include "../tools/http_tools.h"
 #include "../server_configuration.h"
+#include "../stringscanners/httpHeader.h"
 
 
 #include <stdio.h>
@@ -301,6 +302,27 @@ int AnalyzeHTTPLineRequest(
    } else
    {
      unsigned int payload_start = 0;
+
+
+
+     unsigned int requestType = scanFor_httpHeader(request);
+     switch (requestType)
+     {
+        case HTTPHEADER_AUTHORIZATION : break;
+        case HTTPHEADER_ACCEPT_ENCODING : break;
+        case HTTPHEADER_COOKIE : break;
+        case HTTPHEADER_CONNECTION : break;
+        case HTTPHEADER_HOST : break;
+        case HTTPHEADER_IF_NONE_MATCH : break;
+        case HTTPHEADER_IF_MODIFIED_SINCE : break;
+        case HTTPHEADER_RANGE : break;
+        case HTTPHEADER_REFERRER : break;
+        case HTTPHEADER_REFERER : break;
+     };
+
+
+
+
 
      if ((instance->settings.PASSWORD_PROTECTION)&&(instance->settings.BASE64PASSWORD!=0))
        { //Consider password protection header sections..!
