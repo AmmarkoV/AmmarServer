@@ -142,6 +142,31 @@ void addLevelSpaces(FILE * fp , unsigned int level)
 }
 
 
+inline void convertTo_ENUM_ID(char *sPtr)
+{
+  unsigned int source=0 , target=0 , holdIt=0;
+
+  while ( (sPtr[source] != 0 ) && (sPtr[target] != 0 ) )
+   {
+     sPtr[target] = toupper((unsigned char) sPtr[source]);
+
+     if  (sPtr[source]=='_')  {  } else
+     if  (sPtr[source]=='-')  { sPtr[target]='_'; } else
+     if  ( (sPtr[source]<'A') || (sPtr[source]>'Z' ) )
+            {
+              holdIt=1;
+              ++target;
+              sPtr[source]=sPtr[target];
+              ++target;
+            }
+
+    if (!holdIt) { ++source; ++target; }
+     holdIt=0;
+   }
+}
+
+
+
 int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char * Sequence,unsigned int seqLength)
 {
   unsigned int i=0,count=0 , correct = 0 , results =0 ;
@@ -166,6 +191,32 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
   }
   return 1;
 }
+
+
+
+int printAllEnumeratorItems(FILE * fp , struct fastStringParser * fsp,char * functionName)
+{
+  fprintf(fp,"enum { \n");
+  sprintf(enumStr,"%s_EMPTY=0,\n",functionName);
+  char enumStr[MAXIMUM_LINE_LENGTH]={0};
+  unsigned int i=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    sprintf(enumStr,"%s_%s",functionName,fsp->contents[i].str);
+    convertTo_ENUM_ID(enumStr);
+    fprintf(fp," %s,\n",enumStr);
+  }
+
+  sprintf(enumStr,"%s_END_OF_ITEMS\n",functionName);
+  convertTo_ENUM_ID(enumStr);
+  fprintf(fp," %s\n",enumStr);
+
+  fprintf(fp,"};\n\n");
+
+  return 1;
+}
+
+
 
 int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionName,char * cArray,unsigned int level)
 {
@@ -207,14 +258,8 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
      } else
      if ( nextLevelStrings==1 )
      {
-       //if (level==0) { fprintf(fp," case \'%c\' : \n",cArray[level]); }
-
        addLevelSpaces(fp , level);
        fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %u; } \n",fsp->contents[resStringResultIndex].str , resStringResultIndex );
-       //fprintf(fp," return %u; ",resStringResultIndex);
-       //fprintf(fp," //%s \n",fsp->contents[resStringResultIndex].str);
-
-       //if (level==0) { fprintf(fp," break; \n"); }
      }
      else
      {
@@ -243,6 +288,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp,"#include <stdio.h>\n\n");
 
   //TODO add an automatically generated enumerator here..
+  printAllEnumeratorItems(fp, fsp, functionName);
 
   fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);
 
