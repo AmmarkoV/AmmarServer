@@ -206,7 +206,8 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
     if ( correct == seqLength ) {
                                   addLevelSpaces(fp , seqLength);
                                   if (results>0) { fprintf(fp," else "); }
-                                  fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %u; } \n",fsp->contents[i].str , i );
+                                         fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %s_%s; } \n",fsp->contents[i].str , fsp->functionName,fsp->contents[i].strIDFriendly );
+                                        // fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %u; } \n",fsp->contents[i].str , i );
                                   ++results;
                                 }
   }
@@ -278,7 +279,7 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
      if ( nextLevelStrings==1 )
      {
        addLevelSpaces(fp , level);
-       fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %u; } \n",fsp->contents[resStringResultIndex].str , resStringResultIndex );
+       fprintf(fp," if ( strcmp(str,\"%s\") == 0 ) { return %s_%s; } \n",fsp->contents[resStringResultIndex].str , fsp->functionName,fsp->contents[resStringResultIndex].strIDFriendly );
      }
      else
      {
@@ -300,8 +301,26 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
 
   char filenameWithExtension[1024]={0};
-  sprintf(filenameWithExtension,"%s.c",functionName);
+
+
+  //PRINT OUT THE HEADER
+
+  sprintf(filenameWithExtension,"%s.h",functionName);
   FILE * fp = fopen(filenameWithExtension,"w");
+  if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
+
+  fprintf(fp,"#ifndef %s_H_INCLUDED\n",fsp->functionName);
+  fprintf(fp,"#define %s_H_INCLUDED\n\n\n",fsp->functionName);
+      printAllEnumeratorItems(fp, fsp, functionName);
+  fprintf(fp,"\n\nint scanFor_%s(char * str); \n\n",functionName);
+  fprintf(fp,"#endif\n",fsp->functionName);
+  fclose(fp);
+
+
+  //PRINT OUT THE MAIN FILE
+
+  sprintf(filenameWithExtension,"%s.c",functionName);
+  fp = fopen(filenameWithExtension,"w");
   if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
 
   char cArray[MAXIMUM_LEVELS]={0};
@@ -309,10 +328,8 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   for (i=0; i<MAXIMUM_LEVELS; i++ ) { cArray[i]=0;/*'A';*/ }
 
 
-  fprintf(fp,"#include <stdio.h>\n\n");
-
-  //TODO add an automatically generated enumerator here..
-  printAllEnumeratorItems(fp, fsp, functionName);
+  fprintf(fp,"#include <stdio.h>\n");
+  fprintf(fp,"#include \"%s.h\"\n\n",functionName);
 
   fprintf(fp,"int scanFor_%s(char * str) \n{\n",functionName);
 

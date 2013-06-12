@@ -1,0 +1,32 @@
+#!/bin/bash
+
+red=$(printf "\033[31m")
+green=$(printf "\033[32m") 
+normal=$(printf "\033[m")
+
+USE_DYNAMIC_LINKING=""
+USE_SYSTEM_DYNAMIC_LIBRARY=""
+OUTPUT="StringRecognizer"
+ 
+
+if [ -e $OUTPUT ]
+then
+  rm $OUTPUT
+fi 
+
+CFLAGS="-s -Os -fexpensive-optimizations"  
+LIBRARIES="-pthread -lrt"
+ 
+  
+gcc  main.c ../AmmServerlib/tools/fastStringParser.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
+
+  
+if [ -e $OUTPUT ]
+then
+  strip $OUTPUT
+  echo "$green Success building $OUTPUT .. $normal"
+else
+  echo "$red Failure building $OUTPUT .. $normal"
+fi
+
+exit 0
