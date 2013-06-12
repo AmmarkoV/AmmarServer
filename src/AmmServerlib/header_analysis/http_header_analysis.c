@@ -308,18 +308,57 @@ int AnalyzeHTTPLineRequest(
      unsigned int requestType = scanFor_httpHeader(request);
      switch (requestType)
      {
-        case HTTPHEADER_AUTHORIZATION : break;
-        case HTTPHEADER_ACCEPT_ENCODING : break;
-        case HTTPHEADER_COOKIE : break;
-        case HTTPHEADER_CONNECTION : break;
-        case HTTPHEADER_HOST : break;
-        case HTTPHEADER_IF_NONE_MATCH : break;
-        case HTTPHEADER_IF_MODIFIED_SINCE : break;
-        case HTTPHEADER_RANGE : break;
-        case HTTPHEADER_REFERRER : break;
-        case HTTPHEADER_REFERER : break;
+        case HTTPHEADER_AUTHORIZATION :
+         if ((instance->settings.PASSWORD_PROTECTION)&&(instance->settings.BASE64PASSWORD!=0))
+         {
+           payload_start+=strlen("AUTHORIZATION:");
+           return ProcessAuthorizationHTTPLine(instance,output,request,request_length,&payload_start);
+         }
+        break;
+        case HTTPHEADER_ACCEPT_ENCODING :
+         payload_start+=strlen("ACCEPT-ENCODING:");
+         if ( CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
+                                                                                                      { output->supports_compression=0;
+         fprintf(stderr,"We found an accept-encoding header , but not the deflate method..\n"); }
+        break;
+        case HTTPHEADER_COOKIE :
+         freeString(&output->Cookie);
+         output->Cookie=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+         if (output->Cookie==0) { return 0; } else { return 1;}
+        break;
+        case HTTPHEADER_CONNECTION :
+         if (CheckHTTPHeaderCategoryAllCaps(requestUpcase,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
+
+        break;
+        case HTTPHEADER_HOST :
+            freeString(&output->Referer);
+            output->Host=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+            if (output->Host==0) { return 0; } else { return 1;}
+        break;
+
+        case HTTPHEADER_IF_NONE_MATCH :
+            freeString(&output->ETag);
+            output->ETag=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+            if (output->ETag==0) { return 0; } else { return 1;}
+
+        break;
+        case HTTPHEADER_IF_MODIFIED_SINCE :
+            fprintf(stderr,"304 Not Modified headers through dates not supported yet\n"); return 0;
+        break;
+        case HTTPHEADER_RANGE :
+             //Todo here : Fill in range_start and range_end
+             output->range_start=0;
+             output->range_end=0;
+        break;
+        case HTTPHEADER_REFERRER :
+        case HTTPHEADER_REFERER :
+             freeString(&output->Referer);
+             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+             if (output->Referer==0) { return 0; } else { return 1;}
+        break;
      };
 
+    return 1;
 
 
 

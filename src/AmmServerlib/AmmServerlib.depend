@@ -262,3 +262,9 @@
 	<stdlib.h>
 	<string.h>
 
+1371038893 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/httpHeader.c
+	<stdio.h>
+	"httpHeader.h"
+
+1371038254 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/httpHeader.h
+
