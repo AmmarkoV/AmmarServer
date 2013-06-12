@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../tools/http_tools.h"
 #include "../server_configuration.h"
 #include "../stringscanners/httpHeader.h"
+#include "../stringscanners/firstLines.h"
 
 
 #include <stdio.h>
@@ -179,19 +180,30 @@ int HTTPHeaderIsPOST(char * request , unsigned int requestLength)
 inline int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
 {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }
+
+      unsigned int requestType  = scanFor_firstLines(request);
+      unsigned int s=3; //Initial position past GET/HEAD
+
+      switch (requestType)
+      {
+       case FIRSTLINES_GET     :  output->requestType=GET;     s=3; break ;
+       case FIRSTLINES_HEAD    :  output->requestType=HEAD;    s=4; break ;
+       case FIRSTLINES_POST    :  output->requestType=POST;    s=4; break ;
+       case FIRSTLINES_PUT     :  output->requestType=PUT;     s=3; break ;
+       case FIRSTLINES_DELETE  :  output->requestType=DELETE;  s=6; break ;
+       case FIRSTLINES_TRACE   :  output->requestType=TRACE;   s=5; break ;
+       case FIRSTLINES_OPTIONS :  output->requestType=OPTIONS; s=7; break ;
+       case FIRSTLINES_CONNECT :  output->requestType=CONNECT; s=7; break ;
+       case FIRSTLINES_PATCH   :  output->requestType=PATCH;   s=5; break ;
+      };
+
      // The firs line should contain the message type so .. lets see..!
      if (
-          ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T')) ||
-          ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D')) ||
-          ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T')) //POST REQUEST DOESNT REALLY BELONG HERE , BUT TO SAVE SPACE AND EFFORT IT IS TREATED LIKE GET/HEAD
+          (output->requestType==GET) ||
+          (output->requestType==HEAD) ||
+          (output->requestType==POST) //POST REQUEST DOESNT REALLY BELONG HERE , BUT TO SAVE SPACE AND EFFORT IT IS TREATED LIKE GET/HEAD
         )
        { // A GET or HEAD Request..!
-
-         unsigned int s=3; //Initial position past GET/HEAD
-         if ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T')) {  fprintf(stderr,"GET Request %s\n", request); output->requestType=GET; s=3; } else
-         if ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D')) {  fprintf(stderr,"HEAD Request %s\n", request); output->requestType=HEAD; s=4; }
-         if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T')) {  fprintf(stderr,"POST Request %s\n", request); output->requestType=POST; s=4; }
-
          while ( (request[s]==' ')&&(s<request_length) ) { ++s; }
          if (s>=request_length) { fprintf(stderr,"Error #1 with GET/HEAD request\n"); return 0;}
          unsigned int e=s;
@@ -240,16 +252,10 @@ inline int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsign
                 return 0;
               }
            }
+         return 1;
+       }
 
-       } else
-     if ((request[0]=='P')&&(request[1]=='U')&&(request[2]=='T'))                                                                             { /* A PUT Request..!     */ fprintf(stderr,"PUT Request %s\n", request);     output->requestType=PUT; } else
-     if ((request[0]=='D')&&(request[1]=='E')&&(request[2]=='L')&&(request[3]=='E')&&(request[4]=='T')&&(request[5]=='E'))                    { /* A DELETE Request..!  */ fprintf(stderr,"DELETE Request %s\n", request);  output->requestType=DELETE; } else
-     if ((request[0]=='T')&&(request[1]=='R')&&(request[2]=='A')&&(request[3]=='C')&&(request[4]=='E'))                                       { /* A TRACE Request..!   */ fprintf(stderr,"TRACE Request %s\n", request);   output->requestType=TRACE; } else
-     if ((request[0]=='O')&&(request[1]=='P')&&(request[2]=='T')&&(request[3]=='I')&&(request[4]=='O')&&(request[5]=='N')&&(request[6]=='S')) { /* A OPTIONS Request..! */ fprintf(stderr,"OPTIONS Request %s\n", request); output->requestType=OPTIONS; } else
-     if ((request[0]=='C')&&(request[1]=='O')&&(request[2]=='N')&&(request[3]=='N')&&(request[4]=='E')&&(request[5]=='C')&&(request[6]=='T')) { /* A CONNECT Request..! */ fprintf(stderr,"CONNECT Request %s\n", request); output->requestType=CONNECT; } else
-     if ((request[0]=='P')&&(request[1]=='A')&&(request[2]=='T')&&(request[3]=='C')&&(request[4]=='H'))                                       { /* A PATCH Request..!   */ fprintf(stderr,"PATCH Request %s\n", request);   output->requestType=PATCH; }
-
-  return 1;
+  return 0;
 }
 
 
@@ -257,7 +263,7 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 {
 
         unsigned int payload_start = *payload_pos;
-        fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
+        //fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
         //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=`
         //TODO : this needs some thought , it can be improved!
         payload_start+=1;
@@ -305,7 +311,7 @@ int AnalyzeHTTPLineRequest(
 
 
      unsigned int requestType = scanFor_httpHeader(request);
-     fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
+     //fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
      switch (requestType)
      {
         case HTTPHEADER_AUTHORIZATION :

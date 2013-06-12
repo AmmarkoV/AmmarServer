@@ -14,28 +14,6 @@ struct fastStringParser * fspHTTPHeader = 0;
 char acceptedChars[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
 
 
-enum fpsHTTPHeaderCodes
-{
-  NO_STRING = 0 ,
-  AUTHORIZATION ,
-  RANGE ,
-  REFERRER ,
-  REFERER ,
-  HOST,
-  ACCEPT_ENCODING ,
-  DEFLATE,
-  USER_AGENT,
-  COOKIE,
-  KEEP_ALIVE,
-  IF_NONE_MATCH ,
-  IF_MODIFIED_SINCE
-
-};
-
-
-
-
-
 
 inline void convertTo_ENUM_ID(char *sPtr)
 {
@@ -114,27 +92,6 @@ struct fastStringParser *  fastStringParser_initialize(unsigned int totalStrings
    if (fspHTTPHeader->contents== 0 ) { return 0; }
 
   return fspHTTPHeader;
-}
-
-int fastStringParser_initializeHardCoded()
-{
-   fspHTTPHeader = fastStringParser_initialize(20);
-
-   fastStringParser_addString(fspHTTPHeader,"AUTHORIZATION:");
-   fastStringParser_addString(fspHTTPHeader,"ACCEPT-ENCODING:");
-   fastStringParser_addString(fspHTTPHeader,"COOKIE:");
-   fastStringParser_addString(fspHTTPHeader,"CONNECTION:");
-   fastStringParser_addString(fspHTTPHeader,"DEFLATE");
-   fastStringParser_addString(fspHTTPHeader,"HOST:");
-   fastStringParser_addString(fspHTTPHeader,"IF-NONE-MATCH:");
-   fastStringParser_addString(fspHTTPHeader,"IF-MODIFIED-SINCE:");
-   fastStringParser_addString(fspHTTPHeader,"KEEP-ALIVE");
-   fastStringParser_addString(fspHTTPHeader,"RANGE:");
-   fastStringParser_addString(fspHTTPHeader,"REFERRER:");
-   fastStringParser_addString(fspHTTPHeader,"REFERER:");
-   fastStringParser_addString(fspHTTPHeader,"USER-AGENT:");
-
-   return 1;
 }
 
 
