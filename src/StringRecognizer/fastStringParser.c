@@ -121,8 +121,8 @@ int fastStringParser_hasStringsWithNConsecutiveChars(struct fastStringParser * f
     if ( correct == seqLength ) {
                                    *resStringResultIndex = i;
                                    ++res;
-                                   fprintf(stderr,"Comparing %s with %s : ",Sequence,fsp->contents[i].str);
-                                   fprintf(stderr,"HIT\n");
+                                   //fprintf(stderr,"Comparing %s with %s : ",Sequence,fsp->contents[i].str);
+                                   //fprintf(stderr,"HIT\n");
                                 } else
                                 { /*fprintf(stderr,"MISS\n");*/ }
 
@@ -146,7 +146,7 @@ unsigned int fastStringParser_countStringsForNextChar(struct fastStringParser * 
   }
 
   Sequence[seqLength]=0;
-  fprintf(stderr,"%u strings with prefix %s ( length %u ) \n",res,Sequence,seqLength);
+  //fprintf(stderr,"%u strings with prefix %s ( length %u ) \n",res,Sequence,seqLength);
 
   return res;
 }

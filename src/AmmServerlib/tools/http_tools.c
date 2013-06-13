@@ -37,6 +37,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../server_configuration.h"
 #include "../cache/file_caching.h"
 
+#include "../stringscanners/applicationFiles.h"
+#include "../stringscanners/imageFiles.h"
+#include "../stringscanners/textFiles.h"
+#include "../stringscanners/videoFiles.h"
+#include "../stringscanners/audioFiles.h"
+
 
 
 
