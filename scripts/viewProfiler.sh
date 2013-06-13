@@ -12,6 +12,6 @@ fi
 
 gprof src/$PROJECT_TO_VIEW > "$PROJECT_TO_VIEW"Profiling.txt
 
-cat "$PROJECT_TO_VIEW"Profiling.txt
+gedit "$PROJECT_TO_VIEW"Profiling.txt
  
 exit 0

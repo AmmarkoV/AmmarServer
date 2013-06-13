@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -325,21 +326,24 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
 void * ServeClient(void * ptr)
 {
+
+
+
   //fprintf(stderr,"Serve Client called ..\n");
   // We first have to store the context variables we got through our struct PassToHTTPThread
   // so we first need to do that
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
   if (context->keep_var_on_stack!=1)
    {
-     warning("KeepVarOnStack is not properly set , this is a bug .. \n Will not serve request");
+     error("KeepVarOnStack is not properly set , this is a bug .. \n Will not serve request");
      fprintf(stderr,"Bad new thread context is pointing to %p\n",context);
      return 0;
    }
 
 
   //This is the structure that holds all the state of the current ServeClient transaction
-  struct HTTPTransaction transaction={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
   struct AmmServer_Instance * instance = context->instance;
+  struct HTTPTransaction transaction={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
   int close_connection=0; // <- if this is set it means Serve Client must stop
 
   //memset(&transaction->incomingHeader,0,sizeof(struct HTTPHeader));
@@ -352,6 +356,22 @@ void * ServeClient(void * ptr)
   transaction.prespawnedThreadFlag=context->pre_spawned_thread;
   transaction.clientSock=context->clientsock;
   transaction.threadID = context->thread_id;
+
+
+  if (!transaction.prespawnedThreadFlag)
+   {
+     int i = pthread_detach(instance->threads_pool[transaction.threadID]);
+     if (i!=0)
+     {
+       switch (i)
+       {
+         case EINVAL : warning("While trying to detach thread , The implementation has detected that the value specified by thread does not refer to a joinable thread."); break;
+         case ESRCH : warning("While trying to detach thread , No thread could be found corresponding to that specified by the given thread ID."); break;
+       };
+     }
+   }
+
+
 
   fprintf(stderr,"Now signaling we are ready (%u)\n",transaction.threadID);
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
@@ -398,6 +418,7 @@ void * ServeClient(void * ptr)
 
      //We also only want to stop the thread if itsnot prespawned !
      //fprintf(stderr,"Exiting Thread\n");
+     //pthread_join(instance->threads_pool[transaction.threadID],0);
      pthread_exit(0);
    }
 
@@ -538,10 +559,24 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 
    fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
+   pthread_attr_init(&instance->attr);
+
+   size_t stacksize;
+   pthread_attr_getstacksize(&instance->attr, &stacksize);
+   error("Setting Stack Size");
+   fprintf(stderr,"pthread_attr_getstacksize(%u , %u MB )\n",stacksize, (stacksize/(1024*1024)) );
+
+   stacksize = 32 /*MB*/ * 1024 * 1024 ;
+   fprintf(stderr,"pthread_attr_setstacksize(%u , %u MB )\n",stacksize, (stacksize/(1024*1024)) );
+   pthread_attr_setstacksize(&instance->attr, stacksize);
+
+
+   pthread_attr_setdetachstate(&instance->attr, PTHREAD_CREATE_DETACHED );
+
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
    pthread_t server_thread_id;
-   retres = pthread_create( &server_thread_id ,0,MainHTTPServerThread,(void*) &context);
+   retres = pthread_create( &server_thread_id ,&instance->attr ,MainHTTPServerThread,(void*) &context);
    instance->server_thread_id = server_thread_id;
    //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
 
@@ -589,6 +624,8 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
   fprintf(stderr," .. done \n");
 
   clientList_close(instance->clientList);
+
+  pthread_attr_destroy(&instance->attr);
 
   return (instance->stop_server==2);
 }

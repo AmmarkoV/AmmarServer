@@ -88,7 +88,6 @@ int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
   fprintf(stderr,"TODO: Add detailed input header parsing\n");
   fprintf(stderr,"TODO: Improve directory listings ( add filesizes , dates etc ) \n");
   fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
-  fprintf(stderr,"TODO: Improve dynamic content handling ( coming from programs statically linked to the webserver ) ..\n");
   fprintf(stderr,"TODO: Add apache like logging capabilities\n");
 
 

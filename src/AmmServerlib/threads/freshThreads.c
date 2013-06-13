@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <errno.h>
 
 #include "../server_threads.h"
 #include "../tools/logs.h"
@@ -92,8 +94,9 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
   fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);
 
-  int retres = pthread_create(&instance->threads_pool[threadID],0,ServeClient,(void*) &context);
-
+  int retres = pthread_create(&instance->threads_pool[threadID],&instance->attr,ServeClient,(void*) &context);
+  //It appears that in certain high loads pthread_create stops creating new threads ..
+  //A good question is why..!
   #if WEIRD_THING_THAT_WORKS
   if ( retres==0 )
      {
@@ -104,7 +107,14 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
              usleep(10);
             }
      } else // <- Keep PeerServerContext in stack for long enough :P
-     { warning("Could not create a new thread..\n "); }
+     { warning("Could not create a new thread..\n ");
+       switch (retres)
+       {
+         case EAGAIN : warning("Insufficient resources to create another thread, or a system-imposed limit on the number of threads was encountered."); break;
+         case EINVAL : warning("Invalid settings in attr."); break ;
+         case EPERM  : warning("No permission to set the scheduling policy and parameters"); break ;
+       };
+     }
    #else
   if ( retres==0 )
     {
