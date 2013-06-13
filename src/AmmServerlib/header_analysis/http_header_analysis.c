@@ -318,6 +318,7 @@ int AnalyzeHTTPLineRequest(
            return ProcessAuthorizationHTTPLine(instance,output,request,request_length,&payload_start);
          }
         break;
+        //--------------------------------------------------------------
         case HTTPHEADER_ACCEPT_ENCODING :
             /*
          payload_start+=strlen("ACCEPT-ENCODING:");
@@ -328,24 +329,27 @@ int AnalyzeHTTPLineRequest(
                                                                                          }
            */
         break;
+        //--------------------------------------------------------------
         case HTTPHEADER_COOKIE :
          payload_start+=strlen("COOKIE:");
          freeString(&output->Cookie);
          output->Cookie=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
          if (output->Cookie==0) { return 0; } else { return 1;}
         break;
+        //--------------------------------------------------------------
         case HTTPHEADER_CONNECTION :
          payload_start+=strlen("CONNECTION:");
          if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
 
         break;
+        //--------------------------------------------------------------
         case HTTPHEADER_HOST :
             payload_start+=strlen("HOST:");
             freeString(&output->Referer);
             output->Host=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
             if (output->Host==0) { return 0; } else { return 1;}
         break;
-
+        //--------------------------------------------------------------
         case HTTPHEADER_IF_NONE_MATCH :
             payload_start+=strlen("IF-NONE-MATCH:");
             freeString(&output->ETag);
@@ -353,17 +357,20 @@ int AnalyzeHTTPLineRequest(
             if (output->ETag==0) { return 0; } else { return 1;}
 
         break;
+        //--------------------------------------------------------------
         case HTTPHEADER_IF_MODIFIED_SINCE :
             payload_start+=strlen("IF-MODIFIED-SINCE:");
             fprintf(stderr,"304 Not Modified headers through dates not supported yet\n"); return 0;
         break;
+        //--------------------------------------------------------------
         case HTTPHEADER_RANGE :
              //Todo here : Fill in range_start and range_end
              payload_start+=strlen("RANGE:");
              output->range_start=0;
              output->range_end=0;
         break;
-        case HTTPHEADER_REFERRER :
+        //--------------------------------------------------------------
+        case HTTPHEADER_REFERRER : //The same case as HTTPHEADER_REFERER
             payload_start+=strlen("REFERRER:");
         case HTTPHEADER_REFERER :
              if (HTTPHEADER_REFERER==requestType) {payload_start+=strlen("REFERER:");  }
@@ -371,6 +378,7 @@ int AnalyzeHTTPLineRequest(
              output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
              if (output->Referer==0) { return 0; } else { return 1;}
         break;
+        //--------------------------------------------------------------
      };
 
 
@@ -381,8 +389,8 @@ int AnalyzeHTTPLineRequest(
 
 
    }
-  //Todo check for keepalive header option here and output->keepalive=1;
-  return 1;
+
+  return 0;
 }
 
 //int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)

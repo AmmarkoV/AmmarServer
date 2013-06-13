@@ -1,6 +1,7 @@
 #include "post_header_analysis.h"
 
 #include "../tools/http_tools.h"
+#include "../stringscanners/postHeader.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -85,39 +86,43 @@ int AnalyzePOSTLineRequest(
 
          unsigned int payload_start = 0;
 
-         if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-TYPE:",&payload_start) )
+
+          unsigned int requestType = scanFor_httpHeader(request,request_length);
+          //fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
+          switch (requestType)
           {
-            freeString(&output->ContentType);
-            //if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
-            output->ContentType=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->ContentType==0) { fprintf(stderr,"Could not get Content Type\n"); return 0; }
-            char * boundary = strstr(request+payload_start,"boundary=");
-            if (boundary==0) { fprintf(stderr,"Could not found boundary in string %s \n",output->ContentType); return 0; }
-            boundary+=9;
-            fprintf(stderr,"Boundary = %s \n",boundary);
+            case POSTHEADER_CONTENT_TYPE :
+                 payload_start+=strlen("CONTENT-TYPE:");
+                 freeString(&output->ContentType);
+                 //if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
+                 output->ContentType=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+                 if (output->ContentType==0) { fprintf(stderr,"Could not get Content Type\n"); return 0; }
+                 char * boundary = strstr(request+payload_start,"boundary=");
+                 if (boundary==0) { fprintf(stderr,"Could not found boundary in string %s \n",output->ContentType); return 0; }
+                 boundary+=9;
+                 fprintf(stderr,"Boundary = %s \n",boundary);
 
-            freeString(&output->boundary);
-            output->boundary = GetNewStringFromHTTPHeaderFieldPayload(boundary,strlen(boundary));
-            if (output->boundary==0) { fprintf(stderr,"Could not get boundary\n"); return 0; }
+                 freeString(&output->boundary);
+                 output->boundary = GetNewStringFromHTTPHeaderFieldPayload(boundary,strlen(boundary));
+                 if (output->boundary==0) { fprintf(stderr,"Could not get boundary\n"); return 0; }
+                return 1;
+              break;
 
-            return 1;
-          }
+            case POSTHEADER_CONTENT_DISPOSITION :
+                payload_start+=strlen("CONTENT-DISPOSITION:");
+                freeString(&output->ContentDisposition);
+                output->ContentDisposition=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+                if (output->ContentDisposition==0) { fprintf(stderr,"Could not get Content Disposition\n"); return 0; }
+               return (output->ContentDisposition!=0);
+             break;
 
-         //Scanning for the case that the line is -> Content-Disposition: This means a file has been appended
-         if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-DISPOSITION:",&payload_start) )
-          {
-            freeString(&output->ContentDisposition);
-            output->ContentDisposition=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->ContentDisposition==0) { fprintf(stderr,"Could not get Content Disposition\n"); return 0; }
-            return (output->ContentDisposition!=0);
-          }
+            case POSTHEADER_CONTENT_LENGTH :
+                payload_start+=strlen("CONTENT-LENGTH:");
+                output->ContentLength = GetIntFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
+               return (output->ContentLength!=0);
+            break;
 
-         //Scanning for the case that the line is -> Content-Length: This means a file has been appended
-         if ( CheckHTTPHeaderCategory(request,request_length,"CONTENT-LENGTH:",&payload_start) )
-          {
-            output->ContentLength = GetIntFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            return (output->ContentLength!=0);
-          }
+          };
 
 
    return 0;
