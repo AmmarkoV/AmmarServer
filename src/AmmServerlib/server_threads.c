@@ -566,7 +566,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
    error("Setting Stack Size");
    fprintf(stderr,"pthread_attr_getstacksize(%u , %u MB )\n",stacksize, (stacksize/(1024*1024)) );
 
-   stacksize = 32 /*MB*/ * 1024 * 1024 ;
+   stacksize = 16 /*MB*/ * 1024 * 1024 ;
    fprintf(stderr,"pthread_attr_setstacksize(%u , %u MB )\n",stacksize, (stacksize/(1024*1024)) );
    pthread_attr_setstacksize(&instance->attr, stacksize);
 

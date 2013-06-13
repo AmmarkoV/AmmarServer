@@ -117,7 +117,21 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
   unsigned int theextensionLength = strlen(theextension);
   fprintf(stderr,"Resolving Extension %s , length %u\n",theextension,theextensionLength );
 
-  unsigned int ext=scanFor_imageFiles(theextension,theextensionLength);
+  //http://www.iana.org/assignments/media-types/text/index.html
+  unsigned int ext=scanFor_textFiles(theextension,theextensionLength);
+  switch (ext)
+  {
+    case TEXTFILES_HTML  :  strcpy(content_type,"text/html"); return 1; break;
+    case TEXTFILES_HTM   :  strcpy(content_type,"text/html"); return 1; break;
+    case TEXTFILES_CSS   :  strcpy(content_type,"text/css"); return 1; break;
+    case TEXTFILES_TXT   :  strcpy(content_type,"text/txt"); return 1; break;
+    case TEXTFILES_DOC   :  strcpy(content_type,"text/doc"); return 1; break;
+    case TEXTFILES_RTF   :  strcpy(content_type,"text/rtf"); return 1; break;
+    case TEXTFILES_ODF   :  strcpy(content_type,"text/odf"); return 1; break;
+    case TEXTFILES_ODT   :  strcpy(content_type,"text/odt"); return 1; break;
+  };
+
+  ext=scanFor_imageFiles(theextension,theextensionLength);
   switch (ext)
   {
    case IMAGEFILES_GIF  :  strcpy(content_type,"image/gif"); return 1; break;
@@ -135,18 +149,6 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
    case IMAGEFILES_PNM  :  strcpy(content_type,"image/pnm"); return 1; break;
    case IMAGEFILES_RAW  :  strcpy(content_type,"image/raw"); return 1; break;
    case IMAGEFILES_SVG  :  strcpy(content_type,"image/svg+xml"); return 1; break;
-  };
-
-//http://www.iana.org/assignments/media-types/application/index.html
-  ext=scanFor_applicationFiles(theextension,theextensionLength);
-  switch (ext)
-  {
-   case APPLICATIONFILES_EXE  :
-   case APPLICATIONFILES_DLL  :
-   case APPLICATIONFILES_SCR  :
-   case APPLICATIONFILES_CPL  :  strcpy(content_type,"application/exe"); return 1; break;
-   case APPLICATIONFILES_SWF  :  strcpy(content_type,"application/x-shockwave-flash"); return 1; break;
-   case APPLICATIONFILES_PDF  :  strcpy(content_type,"application/pdf"); return 1; break;
   };
 
 
@@ -179,19 +181,19 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
    case AUDIOFILES_AU    :  strcpy(content_type,"audio/au"); return 1; break;
   };
 
-//http://www.iana.org/assignments/media-types/text/index.html
-  ext=scanFor_textFiles(theextension,theextensionLength);
+
+//http://www.iana.org/assignments/media-types/application/index.html
+  ext=scanFor_applicationFiles(theextension,theextensionLength);
   switch (ext)
   {
-    case TEXTFILES_HTML  :  strcpy(content_type,"text/html"); return 1; break;
-    case TEXTFILES_HTM   :  strcpy(content_type,"text/html"); return 1; break;
-    case TEXTFILES_CSS   :  strcpy(content_type,"text/css"); return 1; break;
-    case TEXTFILES_TXT   :  strcpy(content_type,"text/txt"); return 1; break;
-    case TEXTFILES_DOC   :  strcpy(content_type,"text/doc"); return 1; break;
-    case TEXTFILES_RTF   :  strcpy(content_type,"text/rtf"); return 1; break;
-    case TEXTFILES_ODF   :  strcpy(content_type,"text/odf"); return 1; break;
-    case TEXTFILES_ODT   :  strcpy(content_type,"text/odt"); return 1; break;
+   case APPLICATIONFILES_EXE  :
+   case APPLICATIONFILES_DLL  :
+   case APPLICATIONFILES_SCR  :
+   case APPLICATIONFILES_CPL  :  strcpy(content_type,"application/exe"); return 1; break;
+   case APPLICATIONFILES_SWF  :  strcpy(content_type,"application/x-shockwave-flash"); return 1; break;
+   case APPLICATIONFILES_PDF  :  strcpy(content_type,"application/pdf"); return 1; break;
   };
+
 
  fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
  return 0;
