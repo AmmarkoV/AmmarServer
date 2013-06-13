@@ -319,10 +319,14 @@ int AnalyzeHTTPLineRequest(
          }
         break;
         case HTTPHEADER_ACCEPT_ENCODING :
+            /*
          payload_start+=strlen("ACCEPT-ENCODING:");
          if ( CheckHTTPHeaderCategory(request,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
-                                                                                                      { output->supports_compression=0;
-         fprintf(stderr,"We found an accept-encoding header , but not the deflate method..\n"); }
+                                                                                         {
+                                                                                           output->supports_compression=0;
+                                                                                           fprintf(stderr,"We found an accept-encoding header , but not the deflate method..\n");
+                                                                                         }
+           */
         break;
         case HTTPHEADER_COOKIE :
          payload_start+=strlen("COOKIE:");
@@ -401,6 +405,8 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
   output->range_end=0;
   output->authorized=0;
 
+  fprintf(stderr,"Started Analyzing Header\n");
+
   char * preciseLine;
   char line[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   char lineUpcase[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
@@ -428,6 +434,7 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
      ++i;
    }
+  fprintf(stderr,"Finished Analyzing Header\n");
 
   return 1;
 }
