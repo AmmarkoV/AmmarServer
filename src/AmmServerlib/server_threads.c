@@ -35,7 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "tools/directory_lists.h"
 #include "server_threads.h"
-#include "file_server.h"
+#include "network/file_server.h"
 #include "header_analysis/http_header_analysis.h"
 #include "tools/http_tools.h"
 #include "tools/logs.h"

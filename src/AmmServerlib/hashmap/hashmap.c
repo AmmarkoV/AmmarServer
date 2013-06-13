@@ -409,7 +409,7 @@ int hashMap_SaveToFile(struct hashMap * hm,char * filename)
   return result;
 }
 
-
+/*
 int hashMap_LoadToFile(struct hashMap * hm,char * filename)
 {
     fprintf(stderr,"Not Ready\n");
@@ -425,7 +425,7 @@ int hashMap_LoadToFile(struct hashMap * hm,char * filename)
 
     return 0;
 }
-
+*/
 
 
 
