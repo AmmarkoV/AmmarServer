@@ -113,62 +113,86 @@ char DirectoryExistsAmmServ( char* dirpath )
 
 int GetContentTypeForExtension(char * theextension,char * content_type)
 {
-//TODO: This should be replaced with an extension hashmap with binary search going on to strcpy the correct content-type..!
+ //http://www.iana.org/assignments/media-types/image/index.html
+ unsigned int theextensionLength = strlen(theextension);
 
-//http://www.iana.org/assignments/media-types/image/index.html
-if (strcmp(theextension,"GIF")==0)  { strcpy(content_type,"image/gif"); return 1; } else
-if (strcmp(theextension,"PNG")==0)  { strcpy(content_type,"image/png"); return 1; } else
-if (strcmp(theextension,"JPG")==0)  { strcpy(content_type,"image/jpg"); return 1; } else
-if (strcmp(theextension,"JPEG")==0) { strcpy(content_type,"image/jpg"); return 1; } else
-if (strcmp(theextension,"WEBP")==0) { strcpy(content_type,"image/webp"); return 1; } else
-if (strcmp(theextension,"BMP")==0)  { strcpy(content_type,"image/bmp"); return 1; } else
-if (strcmp(theextension,"TIFF")==0) { strcpy(content_type,"image/tiff"); return 1; } else
-if (strcmp(theextension,"DIB")==0)  { strcpy(content_type,"image/dib"); return 1; } else
-if (strcmp(theextension,"RLE")==0)  { strcpy(content_type,"image/rle"); return 1; } else
-if (strcmp(theextension,"J2C")==0)  { strcpy(content_type,"image/j2c"); return 1; } else
-if (strcmp(theextension,"ICO")==0)  { strcpy(content_type,"image/ico"); return 1; } else
-if (strcmp(theextension,"PPM")==0)  { strcpy(content_type,"image/ppm"); return 1; } else
-if (strcmp(theextension,"PNM")==0)  { strcpy(content_type,"image/pnm"); return 1; } else
-if (strcmp(theextension,"RAW")==0)  { strcpy(content_type,"image/raw"); return 1; } else
-if (strcmp(theextension,"SVG")==0)  { strcpy(content_type,"image/svg+xml"); return 1; } else
+  unsigned int ext=scanFor_imageFiles(theextension,theextensionLength);
+  switch (ext)
+  {
+   case IMAGEFILES_GIF  :  strcpy(content_type,"image/gif"); return 1; break;
+   case IMAGEFILES_PNG  :  strcpy(content_type,"image/png"); return 1; break;
+   case IMAGEFILES_JPG  :  strcpy(content_type,"image/jpg"); return 1; break;
+   case IMAGEFILES_JPEG :  strcpy(content_type,"image/jpg"); return 1; break;
+   case IMAGEFILES_WEBP :  strcpy(content_type,"image/webp"); return 1; break;
+   case IMAGEFILES_BMP  :  strcpy(content_type,"image/bmp"); return 1; break;
+   case IMAGEFILES_TIFF :  strcpy(content_type,"image/tiff"); return 1; break;
+   case IMAGEFILES_DIB  :  strcpy(content_type,"image/dib"); return 1; break;
+   case IMAGEFILES_RLE  :  strcpy(content_type,"image/rle"); return 1; break;
+   case IMAGEFILES_J2C  :  strcpy(content_type,"image/j2c"); return 1; break;
+   case IMAGEFILES_ICO  :  strcpy(content_type,"image/ico"); return 1; break;
+   case IMAGEFILES_PPM  :  strcpy(content_type,"image/ppm"); return 1; break;
+   case IMAGEFILES_PNM  :  strcpy(content_type,"image/pnm"); return 1; break;
+   case IMAGEFILES_RAW  :  strcpy(content_type,"image/raw"); return 1; break;
+   case IMAGEFILES_SVG  :  strcpy(content_type,"image/svg+xml"); return 1; break;
+  }
 
 //http://www.iana.org/assignments/media-types/application/index.html
-if ((strcmp(theextension,"EXE")==0)||(strcmp(theextension,"DLL")==0)||(strcmp(theextension,"CPL")==0)||(strcmp(theextension,"SCR")==0)) { strcpy(content_type,"application/exe"); return 1; } else
-if (strcmp(theextension,"SWF")==0)  { strcpy(content_type,"application/x-shockwave-flash"); return 1; } else
-if (strcmp(theextension,"PDF")==0) { strcpy(content_type,"application/pdf"); return 1; } else
+  ext=scanFor_applicationFiles(theextension,theextensionLength);
+  switch (ext)
+  {
+   case APPLICATIONFILES_EXE  :
+   case APPLICATIONFILES_DLL  :
+   case APPLICATIONFILES_SCR  :
+   case APPLICATIONFILES_CPL  :  strcpy(content_type,"application/exe"); return 1; break;
+   case APPLICATIONFILES_SWF  :  strcpy(content_type,"application/x-shockwave-flash"); return 1; break;
+   case APPLICATIONFILES_PDF  :  strcpy(content_type,"application/pdf"); return 1; break;
+  }
+
 
 //http://www.iana.org/assignments/media-types/video/index.html
-if (strcmp(theextension,"AVI")==0) { strcpy(content_type,"video/mp4"); return 1; } else
-if (strcmp(theextension,"MPEG4")==0) { strcpy(content_type,"video/mp4"); return 1; } else
-if (strcmp(theextension,"MPEG")==0) { strcpy(content_type,"video/mp4"); return 1; } else
-if (strcmp(theextension,"MP4")==0) { strcpy(content_type,"video/mp4"); return 1; } else
-if (strcmp(theextension,"WEBM")==0) { strcpy(content_type,"image/webm"); return 1; } else
-if (strcmp(theextension,"MKV")==0) { strcpy(content_type,"video/mkv"); return 1; } else
-if (strcmp(theextension,"3GP")==0) { strcpy(content_type,"video/3gp"); return 1; } else
-if (strcmp(theextension,"H263")==0) { strcpy(content_type,"video/h263"); return 1; } else
-if (strcmp(theextension,"H264")==0) { strcpy(content_type,"video/h264"); return 1; } else
-if (strcmp(theextension,"FLV")==0) { strcpy(content_type,"video/x-flv"); return 1; } else
+  ext=scanFor_videoFiles(theextension,theextensionLength);
+  switch (ext)
+  {
+   case VIDEOFILES_AVI      :  strcpy(content_type,"video/mp4"); return 1; break;
+   case VIDEOFILES_MPEG4    :  strcpy(content_type,"video/mp4"); return 1; break;
+   case VIDEOFILES_MPEG     :  strcpy(content_type,"video/mp4"); return 1; break;
+   case VIDEOFILES_MP4      :  strcpy(content_type,"video/mp4"); return 1; break;
+   case VIDEOFILES_WEBM     :  strcpy(content_type,"video/webm"); return 1; break;
+   case VIDEOFILES_MKV      :  strcpy(content_type,"video/mkv"); return 1; break;
+   case VIDEOFILES_3GP      :  strcpy(content_type,"video/3gp"); return 1; break;
+   case VIDEOFILES_H263     :  strcpy(content_type,"video/h263"); return 1; break;
+   case VIDEOFILES_H264     :  strcpy(content_type,"video/h264"); return 1; break;
+   case VIDEOFILES_FLV      :  strcpy(content_type,"video/x-flv"); return 1; break;
+  }
+
 
 //http://www.iana.org/assignments/media-types/audio/index.html
-if (strcmp(theextension,"MP3")==0) { strcpy(content_type,"audio/mp3"); return 1; } else
-if (strcmp(theextension,"WAV")==0) { strcpy(content_type,"audio/wav"); return 1; } else
-if (strcmp(theextension,"MID")==0) { strcpy(content_type,"audio/wav"); return 1; } else
-if (strcmp(theextension,"OGG")==0) { strcpy(content_type,"audio/ogg"); return 1; } else
-if (strcmp(theextension,"VOC")==0) { strcpy(content_type,"audio/voc"); return 1; } else
-if (strcmp(theextension,"AU")==0)  { strcpy(content_type,"audio/au"); return 1; } else
+  ext=scanFor_audioFiles(theextension,theextensionLength);
+  switch (ext)
+  {
+   case AUDIOFILES_MP3   :  strcpy(content_type,"audio/mp3"); return 1; break;
+   case AUDIOFILES_WAV   :  strcpy(content_type,"audio/wav"); return 1; break;
+   case AUDIOFILES_MID   :  strcpy(content_type,"audio/mid"); return 1; break;
+   case AUDIOFILES_OGG   :  strcpy(content_type,"audio/ogg"); return 1; break;
+   case AUDIOFILES_VOC   :  strcpy(content_type,"audio/voc"); return 1; break;
+   case AUDIOFILES_AU    :  strcpy(content_type,"audio/au"); return 1; break;
+  }
 
 //http://www.iana.org/assignments/media-types/text/index.html
-if (strcmp(theextension,"HTML")==0) { strcpy(content_type,"text/html"); return 1; } else
-if (strcmp(theextension,"HTM")==0) { strcpy(content_type,"text/html"); return 1; } else
-if (strcmp(theextension,"CSS")==0) { strcpy(content_type,"text/css"); return 1; } else
-if (strcmp(theextension,"TXT")==0) { strcpy(content_type,"text/txt"); return 1; } else
-if (strcmp(theextension,"DOC")==0) { strcpy(content_type,"text/doc"); return 1; } else
-if (strcmp(theextension,"RTF")==0) { strcpy(content_type,"text/rtf"); return 1; } else
-if (strcmp(theextension,"ODF")==0) { strcpy(content_type,"text/odf"); return 1; } else
-if (strcmp(theextension,"ODT")==0) { strcpy(content_type,"text/odt"); return 1; }
+  ext=scanFor_textFiles(theextension,theextensionLength);
+  switch (ext)
+  {
+    case TEXTFILES_HTML  :  strcpy(content_type,"text/html"); return 1; break;
+    case TEXTFILES_HTM   :  strcpy(content_type,"text/html"); return 1; break;
+    case TEXTFILES_CSS   :  strcpy(content_type,"text/css"); return 1; break;
+    case TEXTFILES_TXT   :  strcpy(content_type,"text/txt"); return 1; break;
+    case TEXTFILES_DOC   :  strcpy(content_type,"text/doc"); return 1; break;
+    case TEXTFILES_RTF   :  strcpy(content_type,"text/rtf"); return 1; break;
+    case TEXTFILES_ODF   :  strcpy(content_type,"text/odf"); return 1; break;
+    case TEXTFILES_ODT   :  strcpy(content_type,"text/odt"); return 1; break;
+  }
 
-fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
-
+ fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
  return 0;
 }
 
@@ -176,6 +200,9 @@ fprintf(stderr,"Could not find extension type for extension %s \n",theextension)
 
 int GetExtentionType(char * theextension)
 {
+ if (theextension==0) { return NO_FILETYPE; }
+ if (theextension[0]==0) { return NO_FILETYPE; }
+
  //Crude and fast lookup
  if (theextension[0]=='t') { return TEXT; } else
  if (theextension[0]=='i') { return IMAGE; } else
