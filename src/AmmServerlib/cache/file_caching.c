@@ -236,7 +236,7 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
 
   /*This could be a good place to make the gzipped version of the buffer..!*/
    char content_type_str[128]={0};
-   if ( GetContentType(filename,content_type_str) )
+   if ( GetContentType(filename,content_type_str,128) )
     {
         //This will fill content_type with a value from enum FileType ( declared at http_tools.h )
         //if the value is TEXT we are good to go :P

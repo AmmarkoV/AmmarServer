@@ -12,7 +12,7 @@ if the String Recognizer generator runs again..!
 
 int scanFor_postHeader(char * str,unsigned int strLength) 
 {
- if (strLength<20) { return 0; } 
+ if (strLength<13) { return 0; } 
 
  switch (toupper(str[0])) { 
  case 'C' : 

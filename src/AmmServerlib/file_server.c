@@ -93,7 +93,7 @@ unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verif
       strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
 
       fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
-      GetContentType(verified_filename,content_type);
+      GetContentType(verified_filename,content_type,MAX_CONTENT_TYPE);
 
       char reply_header[512]={0}; //Accept-Ranges: bytes\n
       sprintf(reply_header,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\n",success_code,FULLVERSION_STRING,content_type);
@@ -138,7 +138,7 @@ unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verif
       strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
 
       fprintf(stderr,"Sending File %s with authorization response code 200 OK\n",verified_filename);
-      GetContentType(verified_filename,content_type);
+      GetContentType(verified_filename,content_type,MAX_CONTENT_TYPE);
 
       char reply_header[512]={0}; //Accept-Ranges: bytes\n
       sprintf(reply_header,"HTTP/1.1 401 Unauthorized\nServer: Ammarserver/%s\nContent-type: %s\nWWW-Authenticate: Basic realm=\"%s\"\n",FULLVERSION_STRING,content_type,message);

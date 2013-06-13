@@ -25,7 +25,7 @@ char FileExistsAmmServ(char * filename);
 char DirectoryExistsAmmServ( char* dirpath );
 
 int GetExtentionType(char * theextension);
-int GetContentType(char * filename,char * content_type);
+int GetContentType(char * filename,char * contentType,unsigned int contentTypeLength);
 int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length);
 
 int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,char * directory,char * indexfile);

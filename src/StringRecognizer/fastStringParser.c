@@ -51,10 +51,10 @@ int fastStringParser_addString(struct fastStringParser * fsp, char * str)
   unsigned int ourNum = fsp->stringsLoaded++;
   fsp->contents[ourNum].strLength=strlen(str);
 
-  if ( (ourNum==0) || (fsp->shortestStringLength<fsp->contents[ourNum].strLength) )
+  if ( (ourNum==0) || (fsp->shortestStringLength > fsp->contents[ourNum].strLength) )
       { fsp->shortestStringLength = fsp->contents[ourNum].strLength; }
 
-  if ( (ourNum==0) || (fsp->longestStringLength>fsp->contents[ourNum].strLength) )
+  if ( (ourNum==0) || (fsp->longestStringLength < fsp->contents[ourNum].strLength) )
       { fsp->longestStringLength  = fsp->contents[ourNum].strLength; }
 
   fsp->contents[ourNum].str = (char *) malloc(sizeof(char) * (fsp->contents[ourNum].strLength+1) );
@@ -95,6 +95,9 @@ struct fastStringParser *  fastStringParser_initialize(unsigned int totalStrings
    fspHTTPHeader->stringsLoaded = 0;
    fspHTTPHeader->MAXstringsLoaded = totalStrings;
    fspHTTPHeader->contents = (struct fspString * ) malloc(sizeof( struct fspString )*fspHTTPHeader->MAXstringsLoaded);
+   fspHTTPHeader->shortestStringLength = 0;
+   fspHTTPHeader->longestStringLength = 0;
+
    if (fspHTTPHeader->contents== 0 ) { return 0; }
 
   return fspHTTPHeader;
