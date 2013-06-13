@@ -314,6 +314,14 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   for (i=0; i<MAXIMUM_LEVELS; i++ ) { cArray[i]=0;/*'A';*/ }
 
 
+  fprintf(fp,"/* \
+                 \nThis file was automatically generated using StringRecognizer\
+                 \nhttps://github.com/AmmarkoV/AmmarServer/tree/master/src/StringRecognizer\
+                 \nPlease note that changes you make here may be automatically overwritten \
+                 \nif the String Recognizer generator runs again..!\
+              \n */ \n\n");
+
+
   fprintf(fp,"#include <stdio.h>\n");
   fprintf(fp,"#include <string.h>\n");
   fprintf(fp,"#include <ctype.h>\n");
