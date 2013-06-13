@@ -34,6 +34,7 @@ unsigned long SendErrorFile
 
 unsigned long SendMemoryBlockAsFile
   (
+    char * filename,
     int clientsock, // The socket that will be used to send the data
     //char * path, // The filename to be served on the socket above
     char * mem, // The filename to be served on the socket above

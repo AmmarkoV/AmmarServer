@@ -426,6 +426,7 @@ unsigned long SendErrorFile
 
 unsigned long SendMemoryBlockAsFile
   (
+    char * filename,
     int clientsock, // The socket that will be used to send the data
     //char * path, // The filename to be served on the socket above
     char * mem, // The memory block body to be sent
@@ -433,7 +434,7 @@ unsigned long SendMemoryBlockAsFile
   )
 {
   char reply_header[MAX_HTTP_RESPONSE_HEADER+1]={0};
-  if (! SendSuccessCodeHeader(clientsock,200,"dir.html")) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+  if (! SendSuccessCodeHeader(clientsock,200,filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
   sprintf(reply_header,"Content-length: %u\n",(unsigned int) mem_block);
   strcat(reply_header,"Connection: close\n\n");
   //TODO : Location : path etc

@@ -77,10 +77,6 @@
 		</Unit>
 		<Unit filename="cache/file_compression.h" />
 		<Unit filename="captcha.h" />
-		<Unit filename="file_server.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="file_server.h" />
 		<Unit filename="hashmap/hashmap.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -96,6 +92,14 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="network/file_server.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network/file_server.h" />
+		<Unit filename="network/sendHTTPHeader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network/sendHTTPHeader.h" />
 		<Unit filename="server_configuration.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -298,7 +298,6 @@ int AnalyzeHTTPLineRequest(
       This call fills in the output variable according to the line data held in the request string..!
       it is made to be called internally by AnalyzeHTTPHeader
   */
-
   //fprintf(stderr,"Analyzing HTTP Request : Line %u , `%s` \n",lines_gathered,request);
 
   if (lines_gathered==1)

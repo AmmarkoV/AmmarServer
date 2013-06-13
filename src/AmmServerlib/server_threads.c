@@ -241,7 +241,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
        if (sendSize>0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
-          SendMemoryBlockAsFile(transaction->clientSock,reply_body,sendSize);
+          SendMemoryBlockAsFile("dir.html",transaction->clientSock,reply_body,sendSize);
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404

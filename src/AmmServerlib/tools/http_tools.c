@@ -549,17 +549,21 @@ int FilenameStripperOk(char * filename)
 
    while (i>0)
      {
-        //We have imposed a limit on slash number..!
-        if ( filename[i]=='/')  { ++back_slashes_number; }
-        if (back_slashes_number>MAX_RESOURCE_SLASHES)  { return 0; }
-
         //We only accept english strings
-        if ( filename[i]<' ')   { return 0; } else
-        if ( filename[i]=='\\')   { return 0; } else //Front slashes (escape characters ) denied completely.!
-        if ( filename[i]>'~')   { return 0; } else
+        if ( ( filename[i]<' ') || ( filename[i]>'~') )
+             { return 0; }
 
-        //We dont like /../ ... etc in paths..!
-        if ( ( filename[i-1]=='.')&&( filename[i]=='.') ) { return 0; }
+        //We have imposed a limit on slash number..!
+        switch (filename[i])
+        {
+          case '/' :  ++back_slashes_number;
+                      if (back_slashes_number>MAX_RESOURCE_SLASHES)  { return 0; }
+                      break;
+
+          case '\\' : return 0; break;
+          //We dont like /../ ... etc in paths..!
+          case '.' :   if ( filename[i-1]=='.') {return 0; } break;
+        };
 
         --i;
      }
