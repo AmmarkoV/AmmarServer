@@ -1,0 +1,20 @@
+#ifndef AUDIOFILES_H_INCLUDED
+#define AUDIOFILES_H_INCLUDED
+
+
+enum { 
+ AUDIOFILES_EMPTY=0,
+ AUDIOFILES_MP3,
+ AUDIOFILES_WAV,
+ AUDIOFILES_MID,
+ AUDIOFILES_OGG,
+ AUDIOFILES_VOC,
+ AUDIOFILES_AU,
+ AUDIOFILES_END_OF_ITEMS
+};
+
+
+
+int scanFor_audioFiles(char * str,unsigned int strLength); 
+
+#endif

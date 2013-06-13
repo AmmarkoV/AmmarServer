@@ -104,6 +104,14 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="server_threads.h" />
+		<Unit filename="stringscanners/applicationFiles.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/applicationFiles.h" />
+		<Unit filename="stringscanners/audioFiles.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/audioFiles.h" />
 		<Unit filename="stringscanners/firstLines.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -112,10 +120,22 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="stringscanners/httpHeader.h" />
+		<Unit filename="stringscanners/imageFiles.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/imageFiles.h" />
 		<Unit filename="stringscanners/postHeader.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="stringscanners/postHeader.h" />
+		<Unit filename="stringscanners/textFiles.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/textFiles.h" />
+		<Unit filename="stringscanners/videoFiles.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/videoFiles.h" />
 		<Unit filename="threads/freshThreads.c">
 			<Option compilerVar="CC" />
 		</Unit>

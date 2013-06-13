@@ -11,7 +11,7 @@ struct fastStringParser * fspHTTPHeader = 0;
 #define MAXIMUM_LEVELS 123
 #define ACTIVATED_LEVELS 3
 
-char acceptedChars[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ-_";
+char acceptedChars[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
 
 
 
@@ -25,13 +25,19 @@ inline void convertTo_ENUM_ID(char *sPtr)
 
      if  (sPtr[source]=='_')  {  } else
      if  (sPtr[source]=='-')  { sPtr[target]='_'; } else
-     if  ( (sPtr[source]<'A') || (sPtr[source]>'Z' ) )
-            {
-              holdIt=1;
-              ++target;
-              sPtr[source]=sPtr[target];
-              ++target;
-            }
+     if  (
+              ( (sPtr[source]>='A') && (sPtr[source]<='Z' ) )  ||
+              ( (sPtr[source]>='0') && (sPtr[source]<='9' ) )
+         )
+     {
+       //Will just copy those chars as they are
+     } else
+     {
+       holdIt=1;
+      ++target;
+      sPtr[source]=sPtr[target];
+      ++target;
+     }
 
     if (!holdIt) { ++source; ++target; }
      holdIt=0;
@@ -175,9 +181,9 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
                                   addLevelSpaces(fp , seqLength);
                                   if (results>0) { fprintf(fp," else "); }
                                   fprintf(fp," if ( (strLength >= %u )&& ( strncasecmp(str,\"%s\",%u) == 0 ) ) { return %s_%s; } \n",
-                                          strlen(fsp->contents[i].str),
+                                          (unsigned int) strlen(fsp->contents[i].str),
                                           fsp->contents[i].str ,
-                                          strlen(fsp->contents[i].str) ,
+                                          (unsigned int) strlen(fsp->contents[i].str) ,
                                           fsp->functionName,
                                           fsp->contents[i].strIDFriendly );
 
@@ -192,8 +198,6 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
 int printAllEnumeratorItems(FILE * fp , struct fastStringParser * fsp,char * functionName)
 {
   fprintf(fp,"enum { \n");
-  char enumStr[MAXIMUM_LINE_LENGTH]={0};
-
   fprintf(fp," %s_EMPTY=0,\n",fsp->functionName);
 
   unsigned int i=0;
@@ -255,11 +259,11 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
      if ( nextLevelStrings==1 )
      {
        addLevelSpaces(fp , level);
-       fprintf(fp," if (strLength<%u) { return 0; } \n", strlen(fsp->contents[resStringResultIndex].str));
+       fprintf(fp," if (strLength<%u) { return 0; } \n", (unsigned int ) strlen(fsp->contents[resStringResultIndex].str));
        addLevelSpaces(fp , level);
        fprintf(fp," if ( strncasecmp(str,\"%s\",%u) == 0 ) { return %s_%s; } \n",
                    fsp->contents[resStringResultIndex].str ,
-                   strlen(fsp->contents[resStringResultIndex].str),
+                   (unsigned int) strlen(fsp->contents[resStringResultIndex].str),
                    fsp->functionName,
                    fsp->contents[resStringResultIndex].strIDFriendly );
      }
@@ -295,7 +299,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp,"#define %s_H_INCLUDED\n\n\n",fsp->functionName);
       printAllEnumeratorItems(fp, fsp, functionName);
   fprintf(fp,"\n\nint scanFor_%s(char * str,unsigned int strLength); \n\n",functionName);
-  fprintf(fp,"#endif\n",fsp->functionName);
+  fprintf(fp,"#endif\n");
   fclose(fp);
 
 

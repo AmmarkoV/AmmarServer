@@ -261,7 +261,6 @@ inline int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsign
 
 inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length,unsigned int * payload_pos)
 {
-
         unsigned int payload_start = *payload_pos;
         //fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
         //It is an authorization line , typically like ->  `Authorization: Basic YWRtaW46YW1tYXI=`

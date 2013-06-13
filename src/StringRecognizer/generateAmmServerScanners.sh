@@ -1,26 +1,14 @@
 #!/bin/bash
 
-./StringRecognizer httpHeader
-gcc httpHeader.c -o httpHeaderScanner
 
-cp httpHeader.c ../AmmServerlib/stringscanners/
-cp httpHeader.h ../AmmServerlib/stringscanners/
+for item in httpHeader postHeader firstLines imageFiles textFiles audioFiles videoFiles applicationFiles; do
+    echo "Generating $item header"
+    ./StringRecognizer $item
+    gcc "$item.c" -o "$item-Scanner"
 
+    cp "$item.c" ../AmmServerlib/stringscanners/
+    cp "$item.h" ../AmmServerlib/stringscanners/
+done
 
-
-./StringRecognizer postHeader
-gcc postHeader.c -o postHeaderScanner
-
-cp postHeader.c ../AmmServerlib/stringscanners/
-cp postHeader.h ../AmmServerlib/stringscanners/
-
-
-
-./StringRecognizer firstLines
-gcc firstLines.c -o firstLinesScanner
-
-cp firstLines.c ../AmmServerlib/stringscanners/
-cp firstLines.h ../AmmServerlib/stringscanners/
-
-
+ 
 exit 0
