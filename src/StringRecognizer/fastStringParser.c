@@ -332,6 +332,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
   fprintf(fp,"int scanFor_%s(char * str,unsigned int strLength) \n{\n",functionName);
 
+     fprintf(fp," if (str==0) { return 0; } \n");
      fprintf(fp," if (strLength<%u) { return 0; } \n\n",fsp->shortestStringLength);
      recursiveTraverser(fp,fsp,functionName,cArray,0);
 

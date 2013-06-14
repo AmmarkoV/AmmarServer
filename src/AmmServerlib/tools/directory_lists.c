@@ -30,7 +30,9 @@ fprintf(stderr,"Generating path for directory %s \n",system_path);
 
 unsigned int mem_remaining=max_memory;
 
-char * starting="<html> <head><title>AmmarServer Directory listing</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr><table>\n";
+char * starting="<html><head>\
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\
+<title>AmmarServer Directory listing</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr><table>\n";
 strncpy(memory,starting,mem_remaining);
 mem_remaining-=strlen(starting);
 
@@ -58,7 +60,6 @@ while ((dp=readdir(dir)) != 0)
   {
     //TODO: remove // from requests.. of dp->d_name is like /filename.ext
     char *tmp = path_cat(client_path, dp->d_name);
-    fprintf(stderr,"FILE => %s \n",tmp);
 
     if ( (strcmp(dp->d_name,".")!=0) && (strcmp(dp->d_name,"..")!=0) )
     {
@@ -132,7 +133,7 @@ while ((dp=readdir(dir)) != 0)
   strncat(memory,ending,mem_remaining);
   mem_remaining-=strlen(ending);
 
-return max_memory-mem_remaining;
+  return max_memory-mem_remaining;
 
  closedir(dir);
  return 0;

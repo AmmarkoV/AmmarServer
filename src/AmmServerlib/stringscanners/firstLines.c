@@ -12,6 +12,7 @@ if the String Recognizer generator runs again..!
 
 int scanFor_firstLines(char * str,unsigned int strLength) 
 {
+ if (str==0) { return 0; } 
  if (strLength<3) { return 0; } 
 
  switch (toupper(str[0])) { 

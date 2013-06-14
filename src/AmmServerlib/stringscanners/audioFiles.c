@@ -12,6 +12,7 @@ if the String Recognizer generator runs again..!
 
 int scanFor_audioFiles(char * str,unsigned int strLength) 
 {
+ if (str==0) { return 0; } 
  if (strLength<2) { return 0; } 
 
  switch (toupper(str[0])) { 

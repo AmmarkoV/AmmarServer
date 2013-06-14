@@ -8,6 +8,8 @@ for item in httpHeader postHeader firstLines imageFiles textFiles audioFiles vid
 
     cp "$item.c" ../AmmServerlib/stringscanners/
     cp "$item.h" ../AmmServerlib/stringscanners/
+
+    rm "$item.c" "$item.h"
 done
 
  

@@ -76,7 +76,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="cache/file_compression.h" />
-		<Unit filename="captcha.h" />
 		<Unit filename="hashmap/hashmap.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -104,10 +103,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="server_configuration.h" />
-		<Unit filename="server_threads.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="server_threads.h" />
 		<Unit filename="stringscanners/applicationFiles.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -152,6 +147,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="threads/threadInitHelper.h" />
+		<Unit filename="threads/threadedServer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/threadedServer.h" />
 		<Unit filename="tools/directory_lists.c">
 			<Option compilerVar="CC" />
 		</Unit>

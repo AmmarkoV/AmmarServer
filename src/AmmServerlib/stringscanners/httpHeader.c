@@ -12,6 +12,7 @@ if the String Recognizer generator runs again..!
 
 int scanFor_httpHeader(char * str,unsigned int strLength) 
 {
+ if (str==0) { return 0; } 
  if (strLength<5) { return 0; } 
 
  switch (toupper(str[0])) { 

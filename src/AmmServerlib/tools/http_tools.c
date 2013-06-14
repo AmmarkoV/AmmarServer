@@ -121,34 +121,34 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
   unsigned int ext=scanFor_textFiles(theextension,theextensionLength);
   switch (ext)
   {
-    case TEXTFILES_HTML  :  strcpy(content_type,"text/html"); return 1; break;
-    case TEXTFILES_HTM   :  strcpy(content_type,"text/html"); return 1; break;
-    case TEXTFILES_CSS   :  strcpy(content_type,"text/css"); return 1; break;
-    case TEXTFILES_TXT   :  strcpy(content_type,"text/txt"); return 1; break;
-    case TEXTFILES_DOC   :  strcpy(content_type,"text/doc"); return 1; break;
-    case TEXTFILES_RTF   :  strcpy(content_type,"text/rtf"); return 1; break;
-    case TEXTFILES_ODF   :  strcpy(content_type,"text/odf"); return 1; break;
-    case TEXTFILES_ODT   :  strcpy(content_type,"text/odt"); return 1; break;
+    case TEXTFILES_HTML  :  strcpy(content_type,"text/html"); content_type[9]=0; return 1; break;
+    case TEXTFILES_HTM   :  strcpy(content_type,"text/html"); content_type[9]=0; return 1; break;
+    case TEXTFILES_CSS   :  strcpy(content_type,"text/css");  content_type[8]=0; return 1; break;
+    case TEXTFILES_TXT   :  strcpy(content_type,"text/txt");  content_type[8]=0; return 1; break;
+    case TEXTFILES_DOC   :  strcpy(content_type,"text/doc");  content_type[8]=0; return 1; break;
+    case TEXTFILES_RTF   :  strcpy(content_type,"text/rtf");  content_type[8]=0; return 1; break;
+    case TEXTFILES_ODF   :  strcpy(content_type,"text/odf");  content_type[8]=0; return 1; break;
+    case TEXTFILES_ODT   :  strcpy(content_type,"text/odt");  content_type[8]=0; return 1; break;
   };
 
   ext=scanFor_imageFiles(theextension,theextensionLength);
   switch (ext)
   {
-   case IMAGEFILES_GIF  :  strcpy(content_type,"image/gif"); return 1; break;
-   case IMAGEFILES_PNG  :  strcpy(content_type,"image/png"); return 1; break;
+   case IMAGEFILES_GIF  :  strcpy(content_type,"image/gif");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_PNG  :  strcpy(content_type,"image/png");  content_type[9]=0; return 1; break;
    case IMAGEFILES_JPG  :
-   case IMAGEFILES_JPEG :  strcpy(content_type,"image/jpg"); return 1; break;
-   case IMAGEFILES_WEBP :  strcpy(content_type,"image/webp"); return 1; break;
-   case IMAGEFILES_BMP  :  strcpy(content_type,"image/bmp"); return 1; break;
-   case IMAGEFILES_TIFF :  strcpy(content_type,"image/tiff"); return 1; break;
-   case IMAGEFILES_DIB  :  strcpy(content_type,"image/dib"); return 1; break;
-   case IMAGEFILES_RLE  :  strcpy(content_type,"image/rle"); return 1; break;
-   case IMAGEFILES_J2C  :  strcpy(content_type,"image/j2c"); return 1; break;
-   case IMAGEFILES_ICO  :  strcpy(content_type,"image/ico"); return 1; break;
-   case IMAGEFILES_PPM  :  strcpy(content_type,"image/ppm"); return 1; break;
-   case IMAGEFILES_PNM  :  strcpy(content_type,"image/pnm"); return 1; break;
-   case IMAGEFILES_RAW  :  strcpy(content_type,"image/raw"); return 1; break;
-   case IMAGEFILES_SVG  :  strcpy(content_type,"image/svg+xml"); return 1; break;
+   case IMAGEFILES_JPEG :  strcpy(content_type,"image/jpg");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_WEBP :  strcpy(content_type,"image/webp"); content_type[10]=0; return 1; break;
+   case IMAGEFILES_BMP  :  strcpy(content_type,"image/bmp");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_TIFF :  strcpy(content_type,"image/tiff"); content_type[10]=0; return 1; break;
+   case IMAGEFILES_DIB  :  strcpy(content_type,"image/dib");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_RLE  :  strcpy(content_type,"image/rle");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_J2C  :  strcpy(content_type,"image/j2c");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_ICO  :  strcpy(content_type,"image/ico");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_PPM  :  strcpy(content_type,"image/ppm");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_PNM  :  strcpy(content_type,"image/pnm");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_RAW  :  strcpy(content_type,"image/raw");  content_type[9]=0; return 1; break;
+   case IMAGEFILES_SVG  :  strcpy(content_type,"image/svg+xml"); content_type[13]=0; return 1; break;
   };
 
 
@@ -156,16 +156,16 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
   ext=scanFor_videoFiles(theextension,theextensionLength);
   switch (ext)
   {
-   case VIDEOFILES_AVI      :  strcpy(content_type,"video/mp4"); return 1; break;
-   case VIDEOFILES_MPEG4    :  strcpy(content_type,"video/mp4"); return 1; break;
-   case VIDEOFILES_MPEG     :  strcpy(content_type,"video/mp4"); return 1; break;
-   case VIDEOFILES_MP4      :  strcpy(content_type,"video/mp4"); return 1; break;
-   case VIDEOFILES_WEBM     :  strcpy(content_type,"video/webm"); return 1; break;
-   case VIDEOFILES_MKV      :  strcpy(content_type,"video/mkv"); return 1; break;
-   case VIDEOFILES_3GP      :  strcpy(content_type,"video/3gp"); return 1; break;
-   case VIDEOFILES_H263     :  strcpy(content_type,"video/h263"); return 1; break;
-   case VIDEOFILES_H264     :  strcpy(content_type,"video/h264"); return 1; break;
-   case VIDEOFILES_FLV      :  strcpy(content_type,"video/x-flv"); return 1; break;
+   case VIDEOFILES_AVI      :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
+   case VIDEOFILES_MPEG4    :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
+   case VIDEOFILES_MPEG     :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
+   case VIDEOFILES_MP4      :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
+   case VIDEOFILES_WEBM     :  strcpy(content_type,"video/webm");  content_type[10]=0; return 1; break;
+   case VIDEOFILES_MKV      :  strcpy(content_type,"video/mkv");   content_type[9]=0; return 1; break;
+   case VIDEOFILES_3GP      :  strcpy(content_type,"video/3gp");   content_type[9]=0; return 1; break;
+   case VIDEOFILES_H263     :  strcpy(content_type,"video/h263");  content_type[10]=0;return 1; break;
+   case VIDEOFILES_H264     :  strcpy(content_type,"video/h264");  content_type[10]=0;return 1; break;
+   case VIDEOFILES_FLV      :  strcpy(content_type,"video/x-flv"); content_type[11]=0; return 1; break;
   };
 
 
@@ -173,12 +173,12 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
   ext=scanFor_audioFiles(theextension,theextensionLength);
   switch (ext)
   {
-   case AUDIOFILES_MP3   :  strcpy(content_type,"audio/mp3"); return 1; break;
-   case AUDIOFILES_WAV   :  strcpy(content_type,"audio/wav"); return 1; break;
-   case AUDIOFILES_MID   :  strcpy(content_type,"audio/mid"); return 1; break;
-   case AUDIOFILES_OGG   :  strcpy(content_type,"audio/ogg"); return 1; break;
-   case AUDIOFILES_VOC   :  strcpy(content_type,"audio/voc"); return 1; break;
-   case AUDIOFILES_AU    :  strcpy(content_type,"audio/au"); return 1; break;
+   case AUDIOFILES_MP3   :  strcpy(content_type,"audio/mp3");   content_type[9]=0; return 1; break;
+   case AUDIOFILES_WAV   :  strcpy(content_type,"audio/wav");   content_type[9]=0; return 1; break;
+   case AUDIOFILES_MID   :  strcpy(content_type,"audio/mid");   content_type[9]=0; return 1; break;
+   case AUDIOFILES_OGG   :  strcpy(content_type,"audio/ogg");   content_type[9]=0; return 1; break;
+   case AUDIOFILES_VOC   :  strcpy(content_type,"audio/voc");   content_type[9]=0; return 1; break;
+   case AUDIOFILES_AU    :  strcpy(content_type,"audio/au");    content_type[8]=0; return 1; break;
   };
 
 
@@ -189,9 +189,9 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
    case APPLICATIONFILES_EXE  :
    case APPLICATIONFILES_DLL  :
    case APPLICATIONFILES_SCR  :
-   case APPLICATIONFILES_CPL  :  strcpy(content_type,"application/exe"); return 1; break;
-   case APPLICATIONFILES_SWF  :  strcpy(content_type,"application/x-shockwave-flash"); return 1; break;
-   case APPLICATIONFILES_PDF  :  strcpy(content_type,"application/pdf"); return 1; break;
+   case APPLICATIONFILES_CPL  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case APPLICATIONFILES_SWF  :  strcpy(content_type,"application/x-shockwave-flash");    content_type[29]=0; return 1; break;
+   case APPLICATIONFILES_PDF  :  strcpy(content_type,"application/pdf");                  content_type[15]=0; return 1; break;
   };
 
 
@@ -229,23 +229,20 @@ void convertToUpperCase(char *sPtr)
 int GetContentType(char * filename,char * contentType,unsigned int contentTypeLength)
 {
    //THIS HAS A BUG
-   unsigned int length=strlen(filename);
-   if (length==0) { return 0; }
-   unsigned int i=length-1;
+   fprintf(stderr,"GetContentType ( %s , %s , %u )\n",filename,contentType,contentTypeLength);
+   unsigned int filenameLength=strlen(filename);
+   if (filenameLength==0) { return 0; }
+   unsigned int i=filenameLength-1;
 
    while ((i>0)&&(filename[i]!='.')) { --i; }
    if (i==0) { return 0; } //<- could not find the content type..
-   if (i+1>=length) { return 0; } //<- found the dot at i BUT it is the last character so no extension is possible..!
+   if (i+1>=filenameLength) { return 0; } //<- found the dot at i BUT it is the last character so no extension is possible..!
 
-   char extension[MAX_FILE_PATH_EXTENSION_SIZE]={0};
    char * start_of_extension = &filename[i+1]; // do not include . ( dot )
 
-   //fprintf(stderr,"Extension for filename %s comes after character %u ( it is %s ) \n",filename,i,start_of_extension);
-
-   sprintf(extension,"%s",start_of_extension);
-   convertToUpperCase(extension);
-   int res=GetContentTypeForExtension(extension,contentType,contentTypeLength);
-   fprintf(stderr,"Extension ( %s ) hints content type %s\n",extension,contentType);
+   fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
+   int res=GetContentTypeForExtension(start_of_extension,contentType,contentTypeLength);
+   fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
 
   return res;
 }
