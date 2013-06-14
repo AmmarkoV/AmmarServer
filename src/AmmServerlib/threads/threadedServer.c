@@ -33,21 +33,22 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <pthread.h>
 
-#include "tools/directory_lists.h"
-#include "server_threads.h"
-#include "network/file_server.h"
-#include "header_analysis/http_header_analysis.h"
-#include "tools/http_tools.h"
-#include "tools/logs.h"
-#include "cache/file_caching.h"
-#include "server_configuration.h"
+#include "threadedServer.h"
 
-#include "threads/freshThreads.h"
-#include "threads/prespawnedThreads.h"
-#include "threads/threadInitHelper.h"
+#include "../tools/directory_lists.h"
+#include "../network/file_server.h"
+#include "../header_analysis/http_header_analysis.h"
+#include "../tools/http_tools.h"
+#include "../tools/logs.h"
+#include "../cache/file_caching.h"
+#include "../server_configuration.h"
 
-#include "cache/client_list.h"
-#include "cache/dynamic_requests.h"
+#include "../threads/freshThreads.h"
+#include "../threads/prespawnedThreads.h"
+#include "../threads/threadInitHelper.h"
+
+#include "../cache/client_list.h"
+#include "../cache/dynamic_requests.h"
 
 int HTTPServerIsRunning(struct AmmServer_Instance * instance)
 {

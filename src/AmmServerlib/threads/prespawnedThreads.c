@@ -7,7 +7,7 @@
 #include "freshThreads.h"
 #include <pthread.h>
 #include <unistd.h>
-#include "../server_threads.h"
+#include "../threads/threadedServer.h"
 #include "../AmmServerlib.h"
 
 

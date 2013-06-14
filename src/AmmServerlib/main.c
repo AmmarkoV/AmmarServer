@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include "version.h"
 #include "AmmServerlib.h"
-#include "server_threads.h"
+#include "threads/threadedServer.h"
 #include "threads/prespawnedThreads.h"
 #include "cache/file_caching.h"
 #include "version.h"

@@ -1,8 +1,8 @@
-#ifndef SERVER_THREADS_H_INCLUDED
-#define SERVER_THREADS_H_INCLUDED
+#ifndef THREADED_SERVER_H_INCLUDED
+#define THREADED_SERVER_H_INCLUDED
 
-#include "header_analysis/http_header_analysis.h"
-#include "server_configuration.h"
+#include "../header_analysis/http_header_analysis.h"
+#include "../server_configuration.h"
 
 void * ServeClient(void * ptr);
 

@@ -7,7 +7,7 @@
 #include <pthread.h>
 #include <errno.h>
 
-#include "../server_threads.h"
+#include "../threads/threadedServer.h"
 #include "../tools/logs.h"
 #include "threadInitHelper.h"
 

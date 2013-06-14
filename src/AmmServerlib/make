@@ -24,7 +24,12 @@ CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native -fPIC"
 #These are debug + profiling settings -> CFLAGS="-g -pg"
 
 gcc -c $CFLAGS main.c -o main.o
-gcc -c $CFLAGS server_threads.c -o server_threads.o 
+
+gcc -c $CFLAGS threads/threadedServer.c -o threadedServer.o 
+gcc -c $CFLAGS threads/freshThreads.c -o freshThreads.o 
+gcc -c $CFLAGS threads/prespawnedThreads.c -o prespawnedThreads.o 
+gcc -c $CFLAGS threads/threadInitHelper.c -o threadInitHelper.o 
+
 gcc -c $CFLAGS tools/http_tools.c -o http_tools.o 
 gcc -c $CFLAGS tools/directory_lists.c -o directory_lists.o
 gcc -c $CFLAGS tools/time_provider.c -o time_provider.o 
@@ -51,11 +56,8 @@ gcc -c $CFLAGS cache/file_compression.c -o file_compression.o
 gcc -c $CFLAGS server_configuration.c -o server_configuration.o  
 gcc -c $CFLAGS InputParser/InputParser_C.c -o InputParser_C.o 
 gcc -c $CFLAGS hashmap/hashmap.c -o hashmap.o
-gcc -c $CFLAGS threads/freshThreads.c -o freshThreads.o 
-gcc -c $CFLAGS threads/prespawnedThreads.c -o prespawnedThreads.o 
-gcc -c $CFLAGS threads/threadInitHelper.c -o threadInitHelper.o 
 
-PARTS_OF_LIB="main.o server_threads.o http_tools.o httpHeader.o postHeader.o firstLines.o audioFiles.o videoFiles.o textFiles.o imageFiles.o applicationFiles.o client_list.o file_server.o sendHTTPHeader.o http_header_analysis.o post_header_analysis.o dynamic_requests.o file_caching.o file_compression.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o hashmap.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
+PARTS_OF_LIB="main.o threadedServer.o http_tools.o httpHeader.o postHeader.o firstLines.o audioFiles.o videoFiles.o textFiles.o imageFiles.o applicationFiles.o client_list.o file_server.o sendHTTPHeader.o http_header_analysis.o post_header_analysis.o dynamic_requests.o file_caching.o file_compression.o directory_lists.o server_configuration.o time_provider.o InputParser_C.o logs.o hashmap.o freshThreads.o prespawnedThreads.o threadInitHelper.o"
 
 ar rcs $LIBNAME $PARTS_OF_LIB
 
