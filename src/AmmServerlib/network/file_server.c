@@ -60,6 +60,89 @@ int SendPart(int clientsock,char * message,unsigned int message_size)
 }
 
 
+inline int TransmitFileToSocketInternal(
+                                         FILE * pFile,
+                                         int clientsock,
+                                         unsigned long bytesToSend
+                                       )
+{
+    //We dont want the server to allocate a big enough space to reduce disk reading overheads
+    //but we dont want to allocate huge portions of memory so we set a soft limit here
+    unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB;
+    //Of course in case that the size to send is smaller than our limit we will commit a smaller amount of memory
+    if (bytesToSend < malloc_size) { malloc_size=bytesToSend; }
+
+    // allocate memory to contain the whole file:
+    size_t chunkToSend;
+    char * buffer = (char*) malloc ( sizeof(char) * (malloc_size));
+    char * rollingBuffer = buffer;
+    if (buffer == 0)
+        { error(" Could not allocate enough memory to serve file %s\n"); return 0; }
+
+
+      #if TIME_UPLOADS
+      //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
+      struct time_snap time_to_serve_file_s;
+      start_timer (&time_to_serve_file_s);
+      #endif
+
+      int opres=1; // <- This needs to be 1 so that the initial while statement won't fail
+      while ( bytesToSend>0 )
+      {
+        // copy the file into the buffer:
+        chunkToSend = fread (buffer,1,malloc_size,pFile);
+
+        if (chunkToSend != malloc_size)
+        {
+          if (!feof(pFile))
+          {  //If we reached the end of the file and thats why we read fewer bytes , and it is ok
+             //If we haven't reached the end of the file then we have encountered a read error!
+             fprintf(stderr,"Reading error %u while reading file \n",ferror(pFile));
+             free (buffer);
+             return 0;
+          }
+        }
+
+        rollingBuffer = buffer;
+        while ( (chunkToSend>0) && (opres>0) )
+        {
+           opres=send(clientsock,rollingBuffer,chunkToSend,MSG_WAITALL|MSG_NOSIGNAL);  //Send file parts as soon as we've got them
+           if (opres<=0) { fprintf(stderr,"Connection closed , while sending the whole file..!\n"); }
+                         {
+                           chunkToSend -= opres;
+                           bytesToSend-=opres;
+                           rollingBuffer += opres;
+                         }
+        }
+      } // End of having a remaining file to send
+
+
+      #if TIME_UPLOADS
+      double time_to_serve_file_in_seconds = (double ) end_timer(&time_to_serve_file_s) / 1000000; // go to seconds
+      double speed_in_Mbps= 0;
+      if (time_to_serve_file_in_seconds>0)
+       {
+        speed_in_Mbps = ( double ) bytesToSend /*Bytes Sent*/  /1048576;
+        speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file_in_seconds;
+        fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file_in_seconds);
+       } else
+       { fprintf(stderr,"Spontaneous transmission(!)\n"); }
+      //End of timer code
+      #endif
+
+      // terminate
+      free (buffer);
+      return 1;
+}
+
+
+
+
+
+
+
+
+
 int TransmitFileToSocket(
                             int clientsock,
                             char * verified_filename,
@@ -67,15 +150,14 @@ int TransmitFileToSocket(
                             unsigned long end_at_byte     // Optionally end at an offset ( resume download functionality )
                          )
 {
-    fprintf(stderr,"fopen(%s,\"rb\") , files open %u \n",verified_filename,files_open);
     FILE * pFile = fopen (verified_filename, "rb" );
-    if (pFile==0) { fprintf(stderr,"Could not open file %s\n",verified_filename); return 0;}
+    if (pFile==0) { fprintf(stderr,"Could not open file %s , files open %u \n",verified_filename,files_open); return 0;}
     ++files_open;
 
     // obtain file size:
     if ( fseek (pFile , 0 , SEEK_END)!=0 )
       {
-        fprintf(stderr,"Could not find file size..!\nUnable to serve client\n");
+        warning("Could not find file size..!\nUnable to serve client\n");
         fclose(pFile);
         --files_open;
         return 0;
@@ -94,91 +176,14 @@ int TransmitFileToSocket(
 
     rewind (pFile);
     if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
-
-    //This is the file remaining to be sent..
-    unsigned long original_size_remaining = lSize-start_at_byte;
-    unsigned long file_size_remaining = original_size_remaining;
-    //We dont want the server to allocate a big enough space to reduce disk reading overheads
-    //but we dont want to allocate huge portions of memory so we set a soft limit here
-    unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB;
-    //Of course in case that the size to send is smaller than our limit we will commit a smaller amount of memory
-    if (file_size_remaining < malloc_size) { malloc_size=file_size_remaining; }
-
-    // allocate memory to contain the whole file:
-    //TODO: make a smaller allocation and gradually serve the whole file :P
-    char * buffer = (char*) malloc ( sizeof(char) * (malloc_size));
-
-    if (buffer == 0)
-        {
-          fprintf(stderr," Could not allocate enough memory to serve file %s\n",verified_filename);
-          fclose (pFile);
-          --files_open;
-          return 0;
-        }
+    if (end_at_byte==0)   { end_at_byte=lSize-start_at_byte; }
 
 
-      //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
-      struct time_snap time_to_serve_file_s;
-      start_timer (&time_to_serve_file_s);
+    int res = TransmitFileToSocketInternal(pFile,clientsock,end_at_byte);
 
-      while ( file_size_remaining>0 )
-      {
-        // copy the file into the buffer:
-        size_t result;
-        result = fread (buffer,1,malloc_size,pFile);
-
-        if (result != malloc_size)
-        {
-         if (feof(pFile))
-          {
-             // Reached end of file , cool..!
-          }   else
-          {
-             fprintf(stderr,"Reading error %u while reading file %s",ferror(pFile),verified_filename);
-             free (buffer);
-             fclose (pFile);
-             --files_open;
-             return 0;
-          }
-        }
-
-       //ACTUAL SENDING OF FILE -->
-        int opres=send(clientsock,buffer,result,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-        /* the whole file should now have reached our client .! */
-        if (opres<=0) { fprintf(stderr,"Connection closed , while sending the whole file..!\n"); file_size_remaining=0; } else
-        {
-          if ((unsigned int) opres!=result) { fprintf(stderr,"TODO : Handle , failed sending the whole file..!\n"); }
-          file_size_remaining-=opres;
-        }
-
-       //ACTUAL SENDING OF FILE <--
-
-      } // End of having a remaining file to send
-
-
-      double time_to_serve_file_in_seconds = (double ) end_timer(&time_to_serve_file_s) / 1000000; // go to seconds
-      double speed_in_Mbps= 0;
-      if (time_to_serve_file_in_seconds>0)
-       {
-        speed_in_Mbps = ( double ) original_size_remaining /*Bytes Sent*/  /1048576;
-        speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file_in_seconds;
-        fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file_in_seconds);
-       } else
-       {
-        fprintf(stderr,"Spontaneous transmission(!)\n");
-       }
-
-      //End of timer code
-
-
-      // terminate
-      free (buffer);
-
-  fprintf(stderr,"Closing file handler for %s ( files open %u )\n",verified_filename,files_open);
-  --files_open;
-  fclose (pFile);
-
-  return 1;
+    --files_open;
+    fclose (pFile);
+  return res;
 }
 
 

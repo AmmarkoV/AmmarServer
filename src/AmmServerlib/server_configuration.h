@@ -9,6 +9,7 @@
 //Other prespawned threads sleep for 20ms
 #define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 25000
 
+#define TIME_UPLOADS 1
 
 #define COMPILE_WITH_CLIENT_LIST 1
 
