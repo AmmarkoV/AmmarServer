@@ -256,12 +256,12 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
    //fprintf(stderr,"yields %u\n",res);
    switch (res)
    {
-     case TEXT       :  sprintf(theimagepath,"fdoc.gif");    break;
-     case IMAGE      :  sprintf(theimagepath,"fpaint.gif");  break;
-     case VIDEO      :  sprintf(theimagepath,"fvideo.gif");  break;
-     case AUDIO      :  sprintf(theimagepath,"fmusic.gif");  break;
-     case EXECUTABLE :  sprintf(theimagepath,"fexe.gif");    break;
-     default         :  sprintf(theimagepath,"folder.gif");  break;
+     case TEXT       :  sprintf(theimagepath,"doc.gif");    break;
+     case IMAGE      :  sprintf(theimagepath,"img.gif");  break;
+     case VIDEO      :  sprintf(theimagepath,"vid.gif");  break;
+     case AUDIO      :  sprintf(theimagepath,"mus.gif");  break;
+     case EXECUTABLE :  sprintf(theimagepath,"exe.gif");    break;
+     default         :  sprintf(theimagepath,"dir.gif");  break;
    }
    if ( res == NO_FILETYPE ) { return 0; }
    return 1;

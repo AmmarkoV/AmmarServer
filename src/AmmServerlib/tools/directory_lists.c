@@ -63,6 +63,9 @@ while ((dp=readdir(dir)) != 0)
 
     if ( (strcmp(dp->d_name,".")!=0) && (strcmp(dp->d_name,"..")!=0) )
     {
+
+     //TODO: Realloc here if we are running out of space!
+
      //<img src=\"
      strncat(memory,tag_pre_image,mem_remaining);
      mem_remaining-=tag_pre_image_size;
@@ -112,7 +115,7 @@ while ((dp=readdir(dir)) != 0)
   strncat(memory,TemplatesInternalURI,mem_remaining);
   mem_remaining-=strlen(TemplatesInternalURI);
 
-  char * after_back="fback.gif\"></a></td><td><a href=\"#\" onclick=\"javascript:history.back()\">Back</a></tr>";
+  char * after_back="back.gif\"></a></td><td><a href=\"#\" onclick=\"javascript:history.back()\">Back</a></tr>";
   strncat(memory,after_back,mem_remaining);
   mem_remaining-=strlen(after_back);
 
@@ -124,7 +127,7 @@ while ((dp=readdir(dir)) != 0)
   strncat(memory,TemplatesInternalURI,mem_remaining);
   mem_remaining-=strlen(TemplatesInternalURI);
 
-  char * after_up="fup.gif\"></a></td><td><a href=\"#top\">Up</a></tr>\n";
+  char * after_up="up.gif\"></a></td><td><a href=\"#top\">Up</a></tr>\n";
   strncat(memory,after_up,mem_remaining);
   mem_remaining-=strlen(after_up);
 

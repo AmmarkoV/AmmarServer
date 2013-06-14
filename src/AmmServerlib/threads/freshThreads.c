@@ -94,7 +94,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
   fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);
 
-  int retres = pthread_create(&instance->threads_pool[threadID],&instance->attr,ServeClient,(void*) &context);
+  int retres = pthread_create(&instance->threads_pool[threadID],0/*&instance->attr*/,ServeClient,(void*) &context);
   //It appears that in certain high loads pthread_create stops creating new threads ..
   //A good question is why..!
   #if WEIRD_THING_THAT_WORKS

@@ -237,8 +237,10 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
        strncat(servefile,transaction->incomingHeader.resource,MAX_FILE_PATH);
        ReducePathSlashes_Inplace(servefile);
 
-       char reply_body[MAX_DIRECTORY_LIST_RESPONSE_BODY+1]={0};
-       unsigned long sendSize = GenerateDirectoryPage(servefile,transaction->incomingHeader.resource,reply_body,MAX_DIRECTORY_LIST_RESPONSE_BODY);
+       char * reply_body=(char*) malloc( sizeof(char) * (MAX_DIRECTORY_LIST_RESPONSE_BODY+1) );
+       unsigned long sendSize = 0;
+       if (reply_body!=0) { sendSize = GenerateDirectoryPage(servefile,transaction->incomingHeader.resource,reply_body,MAX_DIRECTORY_LIST_RESPONSE_BODY); }
+
        if (sendSize>0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
@@ -248,6 +250,9 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
           //If Directory listing disabled or directory is not ok send a 404
           SendErrorFile(instance,transaction,404);
         }
+
+        if (reply_body!=0) { free(reply_body); }
+
        return 0;
        we_can_send_result=0;
      }
@@ -560,24 +565,23 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
 
    fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
+   /*
    pthread_attr_init(&instance->attr);
-
    size_t stacksize;
    pthread_attr_getstacksize(&instance->attr, &stacksize);
    error("Setting Stack Size");
    fprintf(stderr,"pthread_attr_getstacksize(%u , %u MB )\n",stacksize, (stacksize/(1024*1024)) );
 
-   stacksize = 16 /*MB*/ * 1024 * 1024 ;
+   stacksize = 16  * 1024 * 1024 ;
    fprintf(stderr,"pthread_attr_setstacksize(%u , %u MB )\n",stacksize, (stacksize/(1024*1024)) );
    pthread_attr_setstacksize(&instance->attr, stacksize);
-
-
    pthread_attr_setdetachstate(&instance->attr, PTHREAD_CREATE_DETACHED );
+   */
 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
    pthread_t server_thread_id;
-   retres = pthread_create( &server_thread_id ,&instance->attr ,MainHTTPServerThread,(void*) &context);
+   retres = pthread_create( &server_thread_id , 0 /*&instance->attr*/ ,MainHTTPServerThread,(void*) &context);
    instance->server_thread_id = server_thread_id;
    //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
 
@@ -626,7 +630,7 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
 
   clientList_close(instance->clientList);
 
-  pthread_attr_destroy(&instance->attr);
+  //pthread_attr_destroy(&instance->attr);
 
   return (instance->stop_server==2);
 }

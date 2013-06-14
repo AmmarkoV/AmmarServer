@@ -116,7 +116,7 @@ inline int TransmitFileToSocketInternal(
                            bytesToSend -= opres;
                            rollingBuffer += opres;
                           }
-           fprintf(stderr,".");
+           //fprintf(stderr,".");
         }
       } // End of having a remaining file to send
 
@@ -126,7 +126,7 @@ inline int TransmitFileToSocketInternal(
       double speed_in_Mbps= 0;
       if (time_to_serve_file_in_seconds>0)
        {
-        speed_in_Mbps = ( double ) bytesToSendStart /*Bytes Sent*/  /1048576;
+        speed_in_Mbps = ( double ) ( (bytesToSendStart-bytesToSend) /*Bytes Sent*/  /1048576);
         speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file_in_seconds;
         fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file_in_seconds);
        } else
