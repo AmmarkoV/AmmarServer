@@ -139,8 +139,6 @@ int cache_Destroy(struct AmmServer_Instance * instance)
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
 unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
 {
-  fprintf(stderr,"Serial slow searching for resource in cache %s ..\n",resource);
-
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { warning("Cache hasn't been allocated yet\n"); return 0; }
 

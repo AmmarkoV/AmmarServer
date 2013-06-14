@@ -30,7 +30,7 @@ fprintf(stderr,"Generating path for directory %s \n",system_path);
 
 unsigned int mem_remaining=max_memory;
 
-char * starting="<html> <head><title>AmmarServer Directory listing..</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr><table>\n";
+char * starting="<html> <head><title>AmmarServer Directory listing</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr><table>\n";
 strncpy(memory,starting,mem_remaining);
 mem_remaining-=strlen(starting);
 
@@ -39,7 +39,7 @@ unsigned int tag_pre_image_size=strlen(tag_pre_image);
 char * tag_after_image="\">";
 unsigned int tag_after_image_size=strlen(tag_after_image);
 // Image Filename
-char image_file[128]={0};
+char image_file[512]={0};
 // Image Filename
 char * tag_pre_link="</td><td><a href=\"";
 unsigned int tag_pre_link_size=strlen(tag_pre_link);
@@ -58,6 +58,7 @@ while ((dp=readdir(dir)) != 0)
   {
     //TODO: remove // from requests.. of dp->d_name is like /filename.ext
     char *tmp = path_cat(client_path, dp->d_name);
+    fprintf(stderr,"FILE => %s \n",tmp);
 
     if ( (strcmp(dp->d_name,".")!=0) && (strcmp(dp->d_name,"..")!=0) )
     {
@@ -66,7 +67,7 @@ while ((dp=readdir(dir)) != 0)
      mem_remaining-=tag_pre_image_size;
 
      //Image Filename
-     GetExtensionImage(dp->d_name,image_file,128);
+     GetExtensionImage(dp->d_name,image_file,512);
      strncat(memory,TemplatesInternalURI,mem_remaining);
      mem_remaining-=strlen(TemplatesInternalURI);
 

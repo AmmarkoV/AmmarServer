@@ -63,11 +63,12 @@ int SendPart(int clientsock,char * message,unsigned int message_size)
 inline int TransmitFileToSocketInternal(
                                          FILE * pFile,
                                          int clientsock,
-                                         unsigned long bytesToSend
+                                         unsigned long bytesToSendStart
                                        )
 {
     //We dont want the server to allocate a big enough space to reduce disk reading overheads
     //but we dont want to allocate huge portions of memory so we set a soft limit here
+    unsigned long bytesToSend = bytesToSendStart;
     unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB;
     //Of course in case that the size to send is smaller than our limit we will commit a smaller amount of memory
     if (bytesToSend < malloc_size) { malloc_size=bytesToSend; }
@@ -107,7 +108,7 @@ inline int TransmitFileToSocketInternal(
         while ( (chunkToSend>0) && (opres>0) )
         {
            opres=send(clientsock,rollingBuffer,chunkToSend,MSG_WAITALL|MSG_NOSIGNAL);  //Send file parts as soon as we've got them
-           if (opres<=0) { fprintf(stderr,"Connection closed , while sending the whole file..!\n"); }
+           if (opres<=0) { warning("Connection closed , while sending the whole file..!\n"); }
                          {
                            chunkToSend -= opres;
                            bytesToSend-=opres;
@@ -122,7 +123,7 @@ inline int TransmitFileToSocketInternal(
       double speed_in_Mbps= 0;
       if (time_to_serve_file_in_seconds>0)
        {
-        speed_in_Mbps = ( double ) bytesToSend /*Bytes Sent*/  /1048576;
+        speed_in_Mbps = ( double ) bytesToSendStart /*Bytes Sent*/  /1048576;
         speed_in_Mbps = ( double ) speed_in_Mbps/time_to_serve_file_in_seconds;
         fprintf(stderr,"Current transmission rate = %0.2f Mbytes/sec , in %0.5f seconds\n",speed_in_Mbps,time_to_serve_file_in_seconds);
        } else
@@ -167,7 +168,7 @@ int TransmitFileToSocket(
     if ( (end_at_byte!=0) && (lSize<end_at_byte) )
         { fprintf(stderr,"TODO: Handle  incorrect range request ( from %u to %u file 0 to %u ..!\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize); }
 
-    fprintf(stderr,"Sending file %s , size %0.2f Kbytes\n",verified_filename,(double) lSize/1024);
+    fprintf(stderr,"Sending file %s , size %0.2f Kbytes , Open files %u \n",verified_filename,(double) lSize/1024,files_open);
 
     char reply_header[512];
     sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);

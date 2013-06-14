@@ -115,7 +115,7 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
 {
   //http://www.iana.org/assignments/media-types/image/index.html
   unsigned int theextensionLength = strlen(theextension);
-  fprintf(stderr,"Resolving Extension %s , length %u\n",theextension,theextensionLength );
+  fprintf(stderr,"Resolving Extension %s , length %u \n",theextension,theextensionLength );
 
   //http://www.iana.org/assignments/media-types/text/index.html
   unsigned int ext=scanFor_textFiles(theextension,theextensionLength);
@@ -228,6 +228,7 @@ void convertToUpperCase(char *sPtr)
 
 int GetContentType(char * filename,char * contentType,unsigned int contentTypeLength)
 {
+   //THIS HAS A BUG
    unsigned int length=strlen(filename);
    if (length==0) { return 0; }
    unsigned int i=length-1;
@@ -244,7 +245,7 @@ int GetContentType(char * filename,char * contentType,unsigned int contentTypeLe
    sprintf(extension,"%s",start_of_extension);
    convertToUpperCase(extension);
    int res=GetContentTypeForExtension(extension,contentType,contentTypeLength);
-   //fprintf(stderr,"Extension ( %s ) hints content type %s\n",extension,contentType);
+   fprintf(stderr,"Extension ( %s ) hints content type %s\n",extension,contentType);
 
   return res;
 }
@@ -252,19 +253,20 @@ int GetContentType(char * filename,char * contentType,unsigned int contentTypeLe
 
 int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length)
 {
-  // fprintf(stderr,"GetExtensionImage for %s ",filename);
+   fprintf(stderr,"GetExtensionImage for %s \n",filename);
    int res=GetContentType(filename,theimagepath,theimagepath_length);
+   fprintf(stderr,"GetExtentionType for %s \n",filename);
         res=GetExtentionType(theimagepath);
-  // fprintf(stderr,"yields %u\n",res);
-
-
-   if (res==TEXT)       { sprintf(theimagepath,"fdoc.gif");   } else
-   if (res==IMAGE)      { sprintf(theimagepath,"fpaint.gif"); } else
-   if (res==VIDEO)      { sprintf(theimagepath,"fvideo.gif"); } else
-   if (res==AUDIO)      { sprintf(theimagepath,"fmusic.gif"); } else
-   if (res==EXECUTABLE) { sprintf(theimagepath,"fexe.gif");   } else
-                        { sprintf(theimagepath,"folder.gif"); }
-
+   fprintf(stderr,"yields %u\n",res);
+   switch (res)
+   {
+     case TEXT       :  sprintf(theimagepath,"fdoc.gif");    break;
+     case IMAGE      :  sprintf(theimagepath,"fpaint.gif");  break;
+     case VIDEO      :  sprintf(theimagepath,"fvideo.gif");  break;
+     case AUDIO      :  sprintf(theimagepath,"fmusic.gif");  break;
+     case EXECUTABLE :  sprintf(theimagepath,"fexe.gif");    break;
+     default         :  sprintf(theimagepath,"folder.gif");  break;
+   }
    if ( res == NO_FILETYPE ) { return 0; }
    return 1;
 }
