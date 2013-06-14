@@ -88,7 +88,7 @@ inline int TransmitFileToSocketInternal(
       #endif
 
       int opres=1; // <- This needs to be 1 so that the initial while statement won't fail
-      while ( bytesToSend>0 )
+      while ( ( bytesToSend>0 ) && ( opres >=0 ) )
       {
         // copy the file into the buffer:
         chunkToSend = fread (buffer,1,malloc_size,pFile);
@@ -105,15 +105,18 @@ inline int TransmitFileToSocketInternal(
         }
 
         rollingBuffer = buffer;
-        while ( (chunkToSend>0) && (opres>0) )
+        opres=1; // <- This needs to be 1 so that the initial while statement won't fail
+        while ( (chunkToSend>0) && (opres>=0) )
         {
            opres=send(clientsock,rollingBuffer,chunkToSend,MSG_WAITALL|MSG_NOSIGNAL);  //Send file parts as soon as we've got them
-           if (opres<=0) { warning("Connection closed , while sending the whole file..!\n"); }
-                         {
+           if (opres == 0) {  /*Recepient stalling */ } else
+           if (opres < 0) { warning("Connection closed , while sending the whole file..!\n"); }
+                          {
                            chunkToSend -= opres;
-                           bytesToSend-=opres;
+                           bytesToSend -= opres;
                            rollingBuffer += opres;
-                         }
+                          }
+           fprintf(stderr,".");
         }
       } // End of having a remaining file to send
 

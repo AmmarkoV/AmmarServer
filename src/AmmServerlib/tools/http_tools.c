@@ -228,8 +228,7 @@ void convertToUpperCase(char *sPtr)
 
 int GetContentType(char * filename,char * contentType,unsigned int contentTypeLength)
 {
-   //THIS HAS A BUG
-   fprintf(stderr,"GetContentType ( %s , %s , %u )\n",filename,contentType,contentTypeLength);
+   //fprintf(stderr,"GetContentType ( %s , %s , %u )\n",filename,contentType,contentTypeLength);
    unsigned int filenameLength=strlen(filename);
    if (filenameLength==0) { return 0; }
    unsigned int i=filenameLength-1;
@@ -240,9 +239,9 @@ int GetContentType(char * filename,char * contentType,unsigned int contentTypeLe
 
    char * start_of_extension = &filename[i+1]; // do not include . ( dot )
 
-   fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
+   //fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
    int res=GetContentTypeForExtension(start_of_extension,contentType,contentTypeLength);
-   fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
+   //fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
 
   return res;
 }
@@ -250,11 +249,11 @@ int GetContentType(char * filename,char * contentType,unsigned int contentTypeLe
 
 int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length)
 {
-   fprintf(stderr,"GetExtensionImage for %s \n",filename);
+   //fprintf(stderr,"GetExtensionImage for %s \n",filename);
    int res=GetContentType(filename,theimagepath,theimagepath_length);
-   fprintf(stderr,"GetExtentionType for %s \n",filename);
+   //fprintf(stderr,"GetExtentionType for %s \n",filename);
         res=GetExtentionType(theimagepath);
-   fprintf(stderr,"yields %u\n",res);
+   //fprintf(stderr,"yields %u\n",res);
    switch (res)
    {
      case TEXT       :  sprintf(theimagepath,"fdoc.gif");    break;
