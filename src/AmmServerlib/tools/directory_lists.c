@@ -45,7 +45,7 @@ unsigned int tag_after_image_size=strlen(tag_after_image);
 // Image Filename
 char image_file[512]={0};
 // Image Filename
-char * tag_pre_link="</td><td><a href=\"";
+char * tag_pre_link="</td><td class=\"link\"><a href=\"";
 unsigned int tag_pre_link_size=strlen(tag_pre_link);
 char * tag_after_link="\">"; // target=\"_new\"
 unsigned int tag_after_link_size=strlen(tag_after_link);
@@ -54,12 +54,17 @@ char * tag_after_filename="</a></td></tr>\n";
 unsigned int tag_after_filename_size=strlen(tag_after_filename);
 
 
-char * tag_pre_filesize="</td><td>";
+char * tag_pre_filesize="</td><td class=\"size\">";
 unsigned int tag_pre_filesize_size=strlen(tag_pre_filesize);
 
 char * tag_after_filesize="</td></tr>\n";
 unsigned int tag_after_filesize_size=strlen(tag_after_filesize);
 
+char * tag_pre_date="</td><td class=\"date\">";
+unsigned int tag_pre_date_size=strlen(tag_pre_date);
+
+char * tag_after_date="</td></tr>\n";
+unsigned int tag_after_date_size=strlen(tag_after_date);
 
 struct stat st;
 struct dirent *dp={0};
@@ -122,9 +127,19 @@ while ((dp=readdir(dir)) != 0)
       strncat(memory,tag_pre_filesize,mem_remaining);
       mem_remaining-=tag_pre_filesize_size;
       strncat(memory,sizeStr,mem_remaining);
-      mem_remaining-=strlen(dp->d_name);
+      mem_remaining-=strlen(sizeStr);
       strncat(memory,tag_after_filesize,mem_remaining);
       mem_remaining-=tag_after_filesize_size;
+
+      strncat(memory,tag_pre_date,mem_remaining);
+      mem_remaining-=tag_pre_date_size;
+      strftime(sizeStr, 128, "%Y-%m-%d %H:%M:%S", localtime(&st.st_mtime ) );
+      strncat(memory,sizeStr,mem_remaining);
+      mem_remaining-=strlen(sizeStr);
+      strncat(memory,tag_after_date,mem_remaining);
+      mem_remaining-=tag_after_date_size;
+
+
      } else
      {
        fprintf(stderr,"Error stating file %s -> %s\n",fullpath,strerror(errno));
