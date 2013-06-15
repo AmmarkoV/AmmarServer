@@ -25,17 +25,21 @@ return result;
 }
 
 
-unsigned long GenerateDirectoryPage(char * system_path,char * client_path,char * memory,unsigned int max_memory)
+
+char * GenerateDirectoryPage(char * system_path,char * client_path,unsigned long * memoryUsed)
 {
 if (!ENABLE_DIRECTORY_LISTING) { return 0; }
 fprintf(stderr,"Generating path for directory %s \n",system_path);
 
-unsigned int mem_remaining=max_memory;
+*memoryUsed=INITIAL_DIRECTORY_LIST_RESPONSE_BODY+1;
+char * memory=(char*) malloc( sizeof(char) * ( *memoryUsed ) );
+
+unsigned int mem_remaining=*memoryUsed;
 
 char * starting="<html><head>\
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\
 <title>AmmarServer Directory listing</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr>\
-<table><tr><td></td><td>Filename</td><td>Byte Size</td><td> Modification Date</td></tr>\n";
+<table><tr><td></td><td>Filename</td><td>Byte Size</td><td>Modification Date</td></tr>\n";
 strncpy(memory,starting,mem_remaining);
 mem_remaining-=strlen(starting);
 
@@ -80,7 +84,34 @@ while ((dp=readdir(dir)) != 0)
     if ( (strcmp(dp->d_name,".")!=0) && (strcmp(dp->d_name,"..")!=0) )
     {
 
-     //TODO: Realloc here if we are running out of space!
+     //If we reached our memory limit we'll just stop serving and return what we already have with an error message in the end..
+     if (*memoryUsed>=MAX_DIRECTORY_LIST_RESPONSE_BODY)
+     {
+        closedir(dir);
+        strncat(memory,"</table><hr><h2>Error, reached memory limit</h2></body></html>",mem_remaining);
+        return memory;
+     }
+       else
+     // If we haven't reached the limit just check if we have enough memory for line , if we don't , reallocate a bigger chunk
+     if (mem_remaining < GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY)
+     {
+        warning("Growing directory list memory");
+        char * moreMemory= (int*) realloc (memory, sizeof(char) * ( *memoryUsed + GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY ) );
+        if (moreMemory==0)
+             {
+               closedir(dir);
+               strncat(memory,"</table><hr><h2>Error,  could not reallocate memory</h2></body></html>",mem_remaining);
+               return memory;
+             } else
+             {
+               memory = moreMemory;
+               *memoryUsed += GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY;
+               mem_remaining+= GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY;
+             }
+
+     }
+
+     //We should have enough memory to keep filling buffer
 
      //<img src=\"
      strncat(memory,tag_pre_image,mem_remaining);
@@ -114,32 +145,33 @@ while ((dp=readdir(dir)) != 0)
      strncat(memory,dp->d_name,mem_remaining);
      mem_remaining-=strlen(dp->d_name);
 
+     //Now lets try to get filesize and modification date using stat.h
      char * fullpath = path_cat(system_path,dp->d_name);
      if (fullpath!=0 )
      {
-     fprintf(stderr,"Trying to get extra info for %s\n",fullpath);
-     if ( stat(fullpath, &st) == 0 )
-     {
-      strncat(memory," ",mem_remaining);
-      mem_remaining-=1;
-      char sizeStr[128]={0};
-      sprintf(sizeStr,"%li",st.st_size);
+      if ( stat(fullpath, &st) == 0 )
+      {
+       strncat(memory," ",mem_remaining);
+       mem_remaining-=1;
+       char sizeStr[128]={0};
+       sprintf(sizeStr,"%li",st.st_size);
 
-      strncat(memory,tag_pre_filesize,mem_remaining);
-      mem_remaining-=tag_pre_filesize_size;
-      strncat(memory,sizeStr,mem_remaining);
-      mem_remaining-=strlen(sizeStr);
-      strncat(memory,tag_after_filesize,mem_remaining);
-      mem_remaining-=tag_after_filesize_size;
+       //Append FileSize information
+       strncat(memory,tag_pre_filesize,mem_remaining);
+       mem_remaining-=tag_pre_filesize_size;
+       strncat(memory,sizeStr,mem_remaining);
+       mem_remaining-=strlen(sizeStr);
+       strncat(memory,tag_after_filesize,mem_remaining);
+       mem_remaining-=tag_after_filesize_size;
 
-      strncat(memory,tag_pre_date,mem_remaining);
-      mem_remaining-=tag_pre_date_size;
-      strftime(sizeStr, 128, "%Y-%m-%d %H:%M:%S", localtime(&st.st_mtime ) );
-      strncat(memory,sizeStr,mem_remaining);
-      mem_remaining-=strlen(sizeStr);
-      strncat(memory,tag_after_date,mem_remaining);
-      mem_remaining-=tag_after_date_size;
-
+       //Append Modification Date information
+       strncat(memory,tag_pre_date,mem_remaining);
+       mem_remaining-=tag_pre_date_size;
+       strftime(sizeStr, 128, "%Y-%m-%d %H:%M:%S", localtime(&st.st_mtime ) );
+       strncat(memory,sizeStr,mem_remaining);
+       mem_remaining-=strlen(sizeStr);
+       strncat(memory,tag_after_date,mem_remaining);
+       mem_remaining-=tag_after_date_size;
 
      } else
      {
@@ -148,6 +180,7 @@ while ((dp=readdir(dir)) != 0)
       free(fullpath);
       fullpath=0;
      }
+     //---------------------------------
 
      //<br>
      strncat(memory,tag_after_filename,mem_remaining);
@@ -187,10 +220,8 @@ while ((dp=readdir(dir)) != 0)
   strncat(memory,ending,mem_remaining);
   mem_remaining-=strlen(ending);
 
-  return max_memory-mem_remaining;
-
  closedir(dir);
- return 0;
+ return memory;
 }
 
 

@@ -237,21 +237,19 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
        strncat(servefile,transaction->incomingHeader.resource,MAX_FILE_PATH);
        ReducePathSlashes_Inplace(servefile);
 
-       char * reply_body=(char*) malloc( sizeof(char) * (MAX_DIRECTORY_LIST_RESPONSE_BODY+1) );
        unsigned long sendSize = 0;
-       if (reply_body!=0) { sendSize = GenerateDirectoryPage(servefile,transaction->incomingHeader.resource,reply_body,MAX_DIRECTORY_LIST_RESPONSE_BODY); }
-
-       if (sendSize>0)
+       char * replyBody = GenerateDirectoryPage(servefile,transaction->incomingHeader.resource,&sendSize);
+       if (replyBody !=0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
-          SendMemoryBlockAsFile("dir.html",transaction->clientSock,reply_body,sendSize);
+          SendMemoryBlockAsFile("dir.html",transaction->clientSock,replyBody ,sendSize);
+          if (replyBody !=0) { free(replyBody ); }
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
           SendErrorFile(instance,transaction,404);
         }
 
-        if (reply_body!=0) { free(reply_body); }
 
        return 0;
        we_can_send_result=0;
