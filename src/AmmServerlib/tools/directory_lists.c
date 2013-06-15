@@ -39,7 +39,8 @@ unsigned int mem_remaining=*memoryUsed;
 char * starting="<html><head>\
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\
 <title>AmmarServer Directory listing</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr>\
-<table><tr><td></td><td>Filename</td><td>Byte Size</td><td>Modification Date</td></tr>\n";
+<!-- TODO : Add some clientside javascript search and sorting capabilities! :P -->\
+<table><tr><td></td><td><a href=\"#todo2\">Filename</a></td><td><a href=\"#todo3\">Byte Size</a></td><td><a href=\"#todo4\">Modification Date</a></td></tr>\n";
 strncpy(memory,starting,mem_remaining);
 mem_remaining-=strlen(starting);
 
