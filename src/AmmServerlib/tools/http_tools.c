@@ -113,9 +113,9 @@ char DirectoryExistsAmmServ( char* dirpath )
 
 int GetContentTypeForExtension(char * theextension,char * content_type,unsigned int contentTypeLength)
 {
-  //http://www.iana.org/assignments/media-types/image/index.html
+  //fprintf(stderr,"Resolving Extension %s , length %u \n",theextension,theextensionLength );
+
   unsigned int theextensionLength = strlen(theextension);
-  fprintf(stderr,"Resolving Extension %s , length %u \n",theextension,theextensionLength );
 
   //http://www.iana.org/assignments/media-types/text/index.html
   unsigned int ext=scanFor_textFiles(theextension,theextensionLength);
@@ -131,6 +131,7 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
     case TEXTFILES_ODT   :  strcpy(content_type,"text/odt");  content_type[8]=0; return 1; break;
   };
 
+  //http://www.iana.org/assignments/media-types/image/index.html
   ext=scanFor_imageFiles(theextension,theextensionLength);
   switch (ext)
   {
@@ -151,7 +152,6 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
    case IMAGEFILES_SVG  :  strcpy(content_type,"image/svg+xml"); content_type[13]=0; return 1; break;
   };
 
-
 //http://www.iana.org/assignments/media-types/video/index.html
   ext=scanFor_videoFiles(theextension,theextensionLength);
   switch (ext)
@@ -168,7 +168,6 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
    case VIDEOFILES_FLV      :  strcpy(content_type,"video/x-flv"); content_type[11]=0; return 1; break;
   };
 
-
 //http://www.iana.org/assignments/media-types/audio/index.html
   ext=scanFor_audioFiles(theextension,theextensionLength);
   switch (ext)
@@ -180,7 +179,6 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
    case AUDIOFILES_VOC   :  strcpy(content_type,"audio/voc");   content_type[9]=0; return 1; break;
    case AUDIOFILES_AU    :  strcpy(content_type,"audio/au");    content_type[8]=0; return 1; break;
   };
-
 
 //http://www.iana.org/assignments/media-types/application/index.html
   ext=scanFor_applicationFiles(theextension,theextensionLength);
@@ -194,7 +192,6 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
    case APPLICATIONFILES_PDF  :  strcpy(content_type,"application/pdf");                  content_type[15]=0; return 1; break;
   };
 
-
  fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
  return 0;
 }
@@ -202,16 +199,20 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
 
 
 int GetExtentionType(char * theextension)
-{
- if (theextension==0) { return NO_FILETYPE; }
- if (theextension[0]==0) { return NO_FILETYPE; }
+{ //Crude and fast lookup
+  if (theextension==0) { return NO_FILETYPE; }
+  switch (theextension[0])
+  {
+   case 0 : return NO_FILETYPE; break;
+   case 't' : return TEXT;      break;
+   case 'i' : return IMAGE;     break;
+   case 'v' : return VIDEO;     break;
+   case 'a' :
+              if (theextension[1]=='u') { return AUDIO; } else
+              if (theextension[1]=='p') { return EXECUTABLE; }
+              break;
 
- //Crude and fast lookup
- if (theextension[0]=='t') { return TEXT; } else
- if (theextension[0]=='i') { return IMAGE; } else
- if (theextension[0]=='v') { return VIDEO; } else
- if ((theextension[0]=='a')&&(theextension[1]=='u')) { return AUDIO; } else
- if ((theextension[0]=='a')&&(theextension[1]=='p')) { return EXECUTABLE; }
+  };
  //this is made to be used when generating a dynamic directory list to show the appropriate icons..!
  return NO_FILETYPE;
 }
