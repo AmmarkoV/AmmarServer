@@ -384,8 +384,8 @@ if (request->requestType!=HEAD)
        {
          //Content-Range: bytes 1000-3979/3980
          int endAtBytePrinted = end_at_byte;
-         if (endAtBytePrinted == 0 ) { end_at_byte = cached_lSize; }
-          sprintf(reply_header,"Content-Range: bytes %u-%u/%u\nContent-length: %u\n\n",start_at_byte,end_at_byte,cached_lSize,cached_lSize-start_at_byte);
+         if (endAtBytePrinted == 0 ) { endAtBytePrinted = cached_lSize; }
+          sprintf(reply_header,"Content-Range: bytes %u-%u/%u\nContent-length: %u\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
        } else
        {
          //This is the last header part , so we are appending an extra \n to mark the end of the header
