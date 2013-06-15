@@ -66,7 +66,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
          //so that we can upload files
          if ( ( HTTPHeaderIsPOST(incomingRequest,incomingRequestLength ) ) && ( ENABLE_POST ) )
           {
-            unsigned long oldLimit = MAXincomingRequestLength;
+            //unsigned long oldLimit = MAXincomingRequestLength;
             if (MAXincomingRequestLength < MAX_HTTP_POST_REQUEST_HEADER )
             {
               MAXincomingRequestLength += HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
@@ -284,11 +284,33 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 }
 
 
-inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned int * rangeStart,unsigned int * rangeEnd)
+inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned long * rangeStart,unsigned long * rangeEnd)
 {
- //bytes=0-1024
+ //Range: bytes=0-1024
  fprintf(stderr,"Got ProcessRangeHTTPLine %s , %u \n",request,requestLength);
- return 0;
+
+ int startOfStart=0;
+ int startOfEnd=0;
+ int dashPos=0;
+
+ int i=requestLength;
+ while (i>0)
+ {
+   if (request[i]=='-') {  startOfEnd=i+1; dashPos=i; } else
+   if (request[i]=='=') {  startOfStart=i+1; }
+   --i;
+ }
+
+ if ( (startOfStart==0) && (startOfEnd==0) ) { warning("Could not find range in range request"); return 0; }
+ if (startOfEnd>=requestLength-1 ) { /*This means we have a range like `Range: bytes=144687104-` i.e. Unknown ending*/ } else
+                                   { *rangeEnd = atoi(request+startOfEnd); }
+
+ request[dashPos]=0;
+ *rangeStart = atoi(request+startOfStart);
+ request[dashPos]='-';
+
+ fprintf(stderr,"Resolved Range is %lu to %lu\n",*rangeStart,*rangeEnd);
+ return 1;
 }
 
 

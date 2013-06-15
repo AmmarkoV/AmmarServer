@@ -368,7 +368,7 @@ if (request->requestType!=HEAD)
 
      }
 
-     if (cached_lSize==0) { fprintf(stderr,"Bug(?) detected , zero cache payload\n"); }
+     if (cached_lSize==0) { warning("Bug(?) detected , zero cache payload\n"); }
 
 
      if ( cached_buffer_is_compressed )
@@ -379,8 +379,18 @@ if (request->requestType!=HEAD)
      }
 
 
-     //This is the last header part , so we are appending an extra \n to mark the end of the header
-     sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
+    //Send Content Length , as a range , or as the whole file!
+      if ( (start_at_byte!=0) || (end_at_byte!=0) )
+       {
+         //Content-Range: bytes 1000-3979/3980
+         int endAtBytePrinted = end_at_byte;
+         if (endAtBytePrinted == 0 ) { end_at_byte = cached_lSize; }
+          sprintf(reply_header,"Content-Range: bytes %u-%u/%u\nContent-length: %u\n\n",start_at_byte,end_at_byte,cached_lSize,cached_lSize-start_at_byte);
+       } else
+       {
+         //This is the last header part , so we are appending an extra \n to mark the end of the header
+         sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
+       }
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
