@@ -284,6 +284,13 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 }
 
 
+inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned int * rangeStart,unsigned int * rangeEnd)
+{
+ //bytes=0-1024
+ fprintf(stderr,"Got ProcessRangeHTTPLine %s , %u \n",request,requestLength);
+ return 0;
+}
+
 
 int AnalyzeHTTPLineRequest(
                             struct AmmServer_Instance * instance,
@@ -367,9 +374,13 @@ int AnalyzeHTTPLineRequest(
              //Todo here : Fill in range_start and range_end
              payload_start+=strlen("RANGE:");
              fprintf(stderr,"Ranges not implemented yet! %s \n",request);
-             output->range_start=0;
-             output->range_end=0;
-             return 0;
+             if (!ProcessRangeHTTPLine(request+payload_start,request_length-payload_start,&output->range_start,&output->range_end))
+             {
+               output->range_start=0;
+               output->range_end=0;
+               return 0;
+             }
+             return 1;
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_REFERRER : //The same case as HTTPHEADER_REFERER
