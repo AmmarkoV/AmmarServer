@@ -5,6 +5,8 @@
 #include "../server_configuration.h"
 #include "directory_lists.h"
 #include "http_tools.h"
+#include <sys/stat.h>
+#include <errno.h>
 
 
 char * path_cat (const char *str1, char *str2)
@@ -52,6 +54,14 @@ char * tag_after_filename="</a></td></tr>\n";
 unsigned int tag_after_filename_size=strlen(tag_after_filename);
 
 
+char * tag_pre_filesize="</td><td>";
+unsigned int tag_pre_filesize_size=strlen(tag_pre_filesize);
+
+char * tag_after_filesize="</td></tr>\n";
+unsigned int tag_after_filesize_size=strlen(tag_after_filesize);
+
+
+struct stat st;
 struct dirent *dp={0};
 // enter existing path to directory below
 DIR *dir = opendir(system_path);
@@ -98,13 +108,38 @@ while ((dp=readdir(dir)) != 0)
      strncat(memory,dp->d_name,mem_remaining);
      mem_remaining-=strlen(dp->d_name);
 
+     char * fullpath = path_cat(system_path,dp->d_name);
+     if (fullpath!=0 )
+     {
+     fprintf(stderr,"Trying to get extra info for %s\n",fullpath);
+     if ( stat(fullpath, &st) == 0 )
+     {
+      strncat(memory," ",mem_remaining);
+      mem_remaining-=1;
+      char sizeStr[128]={0};
+      sprintf(sizeStr,"%li",st.st_size);
+
+      strncat(memory,tag_pre_filesize,mem_remaining);
+      mem_remaining-=tag_pre_filesize_size;
+      strncat(memory,sizeStr,mem_remaining);
+      mem_remaining-=strlen(dp->d_name);
+      strncat(memory,tag_after_filesize,mem_remaining);
+      mem_remaining-=tag_after_filesize_size;
+     } else
+     {
+       fprintf(stderr,"Error stating file %s -> %s\n",fullpath,strerror(errno));
+     }
+      free(fullpath);
+      fullpath=0;
+     }
+
      //<br>
      strncat(memory,tag_after_filename,mem_remaining);
      mem_remaining-=tag_after_filename_size;
     }
 
-    free(tmp);
-    tmp=0;
+    if (tmp!=0 ) { free(tmp); tmp=0; }
+
    }
 
   /* BACK BUTTON --------------------------------------------*/
