@@ -34,7 +34,8 @@ unsigned int mem_remaining=max_memory;
 
 char * starting="<html><head>\
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\
-<title>AmmarServer Directory listing</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr><table>\n";
+<title>AmmarServer Directory listing</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr>\
+<table><tr><td></td><td>Filename</td><td>Byte Size</td><td> Modification Date</td></tr>\n";
 strncpy(memory,starting,mem_remaining);
 mem_remaining-=strlen(starting);
 
@@ -50,14 +51,14 @@ unsigned int tag_pre_link_size=strlen(tag_pre_link);
 char * tag_after_link="\">"; // target=\"_new\"
 unsigned int tag_after_link_size=strlen(tag_after_link);
  // Filename
-char * tag_after_filename="</a></td></tr>\n";
+char * tag_after_filename="</a></td>\n";
 unsigned int tag_after_filename_size=strlen(tag_after_filename);
 
 
 char * tag_pre_filesize="</td><td class=\"size\">";
 unsigned int tag_pre_filesize_size=strlen(tag_pre_filesize);
 
-char * tag_after_filesize="</td></tr>\n";
+char * tag_after_filesize="</td>\n";
 unsigned int tag_after_filesize_size=strlen(tag_after_filesize);
 
 char * tag_pre_date="</td><td class=\"date\">";
