@@ -173,8 +173,21 @@ int TransmitFileToSocket(
 
     fprintf(stderr,"Sending file %s , size %0.2f Kbytes , Open files %u \n",verified_filename,(double) lSize/1024,files_open);
 
-    char reply_header[512];
-    sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
+    char reply_header[512]={0};
+    //THIS ALSO EXISTS IN THE Cached resource response CODE around line 395
+    if ( (start_at_byte!=0) || (end_at_byte!=0) )
+       {
+         //error(" TransmitFileToSocket Content-Range response");
+         //Content-Range: bytes 1000-3979/3980
+         int endAtBytePrinted = end_at_byte;
+         if (endAtBytePrinted == 0 ) { endAtBytePrinted = lSize; }
+          sprintf(reply_header,"Content-Range: bytes %u-%u/%u\nContent-length: %u\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);
+       } else
+       {
+         //error("TransmitFileToSocket Plain Content-Length ");
+         //This is the last header part , so we are appending an extra \n to mark the end of the header
+         sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
+       }
     if (!SendPart(clientsock,reply_header,strlen(reply_header))) { fprintf(stderr,"Failed sending Content-length @  SendFile ..!\n");  }
 
 
@@ -378,16 +391,18 @@ if (request->requestType!=HEAD)
         if (opres<=0) { fprintf(stderr,"Error sending Compression header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
 
-
+    //THIS ALSO EXISTS IN THE TransmitFileToSocket  CODE
     //Send Content Length , as a range , or as the whole file!
       if ( (start_at_byte!=0) || (end_at_byte!=0) )
        {
+         //error("Resource Content-Range response");
          //Content-Range: bytes 1000-3979/3980
          int endAtBytePrinted = end_at_byte;
          if (endAtBytePrinted == 0 ) { endAtBytePrinted = cached_lSize; }
           sprintf(reply_header,"Content-Range: bytes %u-%u/%u\nContent-length: %u\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
        } else
        {
+         //error("Resource Plain Content-Length ");
          //This is the last header part , so we are appending an extra \n to mark the end of the header
          sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
        }
