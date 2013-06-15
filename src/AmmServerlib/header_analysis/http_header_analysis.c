@@ -366,8 +366,10 @@ int AnalyzeHTTPLineRequest(
         case HTTPHEADER_RANGE :
              //Todo here : Fill in range_start and range_end
              payload_start+=strlen("RANGE:");
+             fprintf(stderr,"Ranges not implemented yet! %s \n",request);
              output->range_start=0;
              output->range_end=0;
+             return 0;
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_REFERRER : //The same case as HTTPHEADER_REFERER

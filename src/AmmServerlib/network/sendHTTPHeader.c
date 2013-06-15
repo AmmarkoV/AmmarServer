@@ -61,7 +61,7 @@ unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verif
       GetContentType(verified_filename,content_type,MAX_CONTENT_TYPE);
 
       char reply_header[512]={0}; //Accept-Ranges: bytes\n
-      sprintf(reply_header,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\n",success_code,FULLVERSION_STRING,content_type);
+      sprintf(reply_header,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\nAccept-Ranges: bytes\n",success_code,FULLVERSION_STRING,content_type);
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
