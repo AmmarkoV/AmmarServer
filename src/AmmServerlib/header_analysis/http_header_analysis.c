@@ -365,6 +365,12 @@ int AnalyzeHTTPLineRequest(
          payload_start+=strlen("IF-NONE-MATCH:");
          output->eTag=request+payload_start;
          output->eTagLength = request_length-payload_start;
+         //This is a hacky way to get past the space and " character -> IF-NONE_MATCH: "19392391932"
+         if (output->eTag[0]==' ') { ++output->eTag; --output->eTagLength; }
+         if (output->eTag[0]=='\"') { ++output->eTag; --output->eTagLength; }
+         if (output->eTag[output->eTagLength-1]=='\"') { --output->eTagLength; }
+         error("ETAG");
+         fprintf(stderr,"IFNONEMATCH (%s) Provides ETag (%s, %u length ) \n",request,output->eTag,output->eTagLength);
          return 1;
         break;
         //--------------------------------------------------------------

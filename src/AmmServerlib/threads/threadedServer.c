@@ -317,7 +317,11 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
         { fprintf(stderr,"WARNING: Could not Free HTTP request\n"); }
 
 
-  if ( transaction->incomingHeader.headerRAW!=0 ) { free(transaction->incomingHeader.headerRAW); transaction->incomingHeader.headerRAW=0; }
+  if ( transaction->incomingHeader.headerRAW!=0 )
+        {
+          free(transaction->incomingHeader.headerRAW);
+          transaction->incomingHeader.headerRAW=0;
+        }
 
   //We are done with request!
 

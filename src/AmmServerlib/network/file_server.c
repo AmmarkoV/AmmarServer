@@ -322,12 +322,13 @@ unsigned long SendFile
               sprintf(ETagSendChunk,"ETag: \"%u%u%u\" \n",cache_etag,start_at_byte,end_at_byte);
               if (!SendPart(clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
-              //The incoming ETag is no loger useful , so lets free it right here..
-              //request->eTag=0;
-
               WeWantA200OK=0;
               request->requestType=HEAD;
            }
+             else
+          {
+            warning("eTag Mismatch\n"); // <- for now mismatches are probably bugs
+          }
         }
      }
    }
