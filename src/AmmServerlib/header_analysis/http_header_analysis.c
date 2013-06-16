@@ -437,8 +437,9 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
   fprintf(stderr,"Started New Analyzing Header\n");
   char * startOfNewLine=request;
+  unsigned int newLineLength=0;
 
-  unsigned int i=0,chars_gathered=0,lines_gathered=0;
+  unsigned int i=0,lines_gathered=0;
   while  (
             (i<request_length) &&
             (i<MAX_HTTP_REQUEST_HEADER_LINES)
@@ -449,52 +450,28 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
         //If we reached a CR or LF character we might found a new line!
         case CR :
         case LF :
-                  if (chars_gathered>0)
+                  if (newLineLength>0)
                   {
                     //We've reached a new line! , lets process the previous one
                     ++lines_gathered;
-                    AnalyzeHTTPLineRequest(instance,output,startOfNewLine,chars_gathered,lines_gathered,webserver_root);
-                    chars_gathered=0;
+                    AnalyzeHTTPLineRequest(instance,output,startOfNewLine,newLineLength,lines_gathered,webserver_root);
+                    newLineLength=0;
 
-                    startOfNewLine = request+i+1;
+                    startOfNewLine = request+i+1; //+1 gets past current CR or LF
                     switch (*startOfNewLine)
                       { //Some hosts transmit CR LF so lets test for a second character
                         case CR :
-                        case LF : ++startOfNewLine; break;
+                        case LF : ++startOfNewLine; ++i; break;
                       };
                     break;
                   }
         default :
-                  ++chars_gathered;
+                  ++newLineLength;
                  break;
      };
 
      ++i;
    }
- /*
-   while  ( (i<request_length)&&(i<MAX_HTTP_REQUEST_HEADER_LINE) )
-   {
-     if  ( ((request[i]==CR)||(request[i]==LF)) && (chars_gathered>0) )
-      {
-        line[chars_gathered]=0;
-
-        //We've got ourselves a new line!
-        ++lines_gathered;
-
-        preciseLine = line ;
-        if ( (*preciseLine==10) || (*preciseLine==13) ) { ++preciseLine; }
-        AnalyzeHTTPLineRequest(instance,output,preciseLine,strlen(preciseLine),lines_gathered,webserver_root);
-        line[0]=0; //line is "cleared" :P
-        chars_gathered=0;
-      }
-        else
-      {
-        line[chars_gathered]=request[i];
-        ++chars_gathered;
-      }
-
-     ++i;
-   }*/
 
   return 1;
 }
