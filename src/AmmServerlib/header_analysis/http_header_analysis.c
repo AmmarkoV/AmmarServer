@@ -100,7 +100,6 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 
 int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction)
 {
-
  unsigned int incomingRequestLength = transaction->incomingHeader.headerRAWSize;
 
  transaction->incomingHeader.headerRAWSize  = HTTPHeaderComplete(transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize);
@@ -178,7 +177,7 @@ int HTTPHeaderIsPOST(char * request , unsigned int requestLength)
 }
 
 
-inline int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
+int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
 {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }
 
@@ -431,7 +430,7 @@ int AnalyzeHTTPLineRequest(
 //int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
 int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-  struct HTTPHeader *output  = &transaction->incomingHeader;
+  struct HTTPHeader * output  = &transaction->incomingHeader;
   char * request = transaction->incomingHeader.headerRAW;
   unsigned int request_length = transaction->incomingHeader.headerRAWSize;
   char * webserver_root = instance->webserver_root;
@@ -448,13 +447,46 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
   output->range_end=0;
   output->authorized=0;
 
-  fprintf(stderr,"Started Analyzing Header\n");
+  fprintf(stderr,"Started New Analyzing Header\n");
 
   char * preciseLine;
   char line[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   char lineUpcase[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;
   while  ( (i<request_length)&&(i<MAX_HTTP_REQUEST_HEADER_LINE) )
+   {
+     switch (request[i])
+     {
+        //If we reached a CR or LF character we might found a new line!
+        case CR :
+        case LF :
+                  if (chars_gathered>0)
+                  {
+                    line[chars_gathered]=0;
+                    //We've got ourselves a new line!
+                    ++lines_gathered;
+                    preciseLine = line ;
+                    switch (*preciseLine)
+                      { case CR :
+                        case LF : ++preciseLine;
+                                  break;
+                      };
+                    //if ( (*preciseLine==10) || (*preciseLine==13) ) { ++preciseLine; }
+                    AnalyzeHTTPLineRequest(instance,output,preciseLine,strlen(preciseLine),lines_gathered,webserver_root);
+                    line[0]=0; //line is "cleared" :P
+                    chars_gathered=0;
+                    break;
+                  }
+        default :
+                  line[chars_gathered]=request[i];
+                  ++chars_gathered;
+                 break;
+     };
+
+     ++i;
+   }
+ /*
+   while  ( (i<request_length)&&(i<MAX_HTTP_REQUEST_HEADER_LINE) )
    {
      if  ( ((request[i]==CR)||(request[i]==LF)) && (chars_gathered>0) )
       {
@@ -476,8 +508,7 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
       }
 
      ++i;
-   }
-  fprintf(stderr,"Finished Analyzing Header\n");
+   }*/
 
   return 1;
 }

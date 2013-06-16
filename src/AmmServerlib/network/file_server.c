@@ -255,6 +255,9 @@ unsigned long SendFile
       //if we are serving it with an offset , we must emmit a 206 OK header!
       if ( (start_at_byte!=0) || (end_at_byte!=0) )
        {
+         error("No checking on Range Provided is done , the underlying mechanisms are safe , but the header could potentially display wrong things ..");
+         error("We dont know the filesize yet so can't fix it here..");
+
          //Range Accepted 206 OK header
          if (! SendSuccessCodeHeader(clientsock,206,verified_filename)) { fprintf(stderr,"Failed sending Range Acknowledged success code \n"); return 0; }
        } else

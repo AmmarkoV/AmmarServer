@@ -24,7 +24,7 @@ char * dynamicRequest_serveContent
             unsigned char * freeContentAfterUsingIt
           )
 {
-  error("Dynamic requests are disabled until further notice .. \n");
+ // error("Dynamic requests are disabled until further notice .. \n");
   //return 0;
  // struct cache_item * cache = (struct cache_item *) instance->cache;
 
