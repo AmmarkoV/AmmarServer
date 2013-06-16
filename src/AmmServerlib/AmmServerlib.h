@@ -62,6 +62,8 @@ struct HTTPHeader
    unsigned long range_end;
 
    /*! IMPORTANT update FIELDS_TO_CLEAR_FROM_HTTP_REQUEST when I add something here.. */
+
+   //TODO : These all should just point at the correct place of the header , no new malloc / free complications needed
    char * ETag; //<-   *THIS SHOULD BE CLEARED AFTER USAGE*
    char * Cookie; //<-   *THIS SHOULD BE CLEARED AFTER USAGE*
    char * Host; //<-     *THIS SHOULD BE CLEARED AFTER USAGE*
