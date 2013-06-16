@@ -61,13 +61,20 @@ struct HTTPHeader
    unsigned long range_start;
    unsigned long range_end;
 
-   /*! IMPORTANT update FIELDS_TO_CLEAR_FROM_HTTP_REQUEST when I add something here.. */
+   //The next strings point directly on the header to keep memory usage on a minimum
+   //and performance on the maximum :P
+   char * cookie; //<-   *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   unsigned int cookieLength;
 
+   char * host; //<-     *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   unsigned int hostLength;
+
+   char * referer; //<-  *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   unsigned int refererLength;
+
+   /*! IMPORTANT update FIELDS_TO_CLEAR_FROM_HTTP_REQUEST when I add something here.. */
    //TODO : These all should just point at the correct place of the header , no new malloc / free complications needed
    char * ETag; //<-   *THIS SHOULD BE CLEARED AFTER USAGE*
-   char * Cookie; //<-   *THIS SHOULD BE CLEARED AFTER USAGE*
-   char * Host; //<-     *THIS SHOULD BE CLEARED AFTER USAGE*
-   char * Referer; //<-  *THIS SHOULD BE CLEARED AFTER USAGE*
    char * UserAgent;//<- *THIS SHOULD BE CLEARED AFTER USAGE*
    char * ContentType; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
    char * ContentDisposition; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
@@ -76,7 +83,7 @@ struct HTTPHeader
    //Languages etc here..!
 };
 /*! IMPORTANT @@@ */
-#define FIELDS_TO_CLEAR_FROM_HTTP_HEADER 8
+#define FIELDS_TO_CLEAR_FROM_HTTP_HEADER 5
 /*! IMPORTANT @@@*/
 
 

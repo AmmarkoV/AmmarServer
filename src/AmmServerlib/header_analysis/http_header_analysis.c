@@ -122,12 +122,6 @@ int FreeHTTPHeader(struct HTTPHeader * output)
 
    ++fields_I_try_to_clean; if (output->ETag !=0) { free(output->ETag); output->ETag=0; }
 
-   ++fields_I_try_to_clean; if (output->Cookie!=0) { free(output->Cookie); output->Cookie=0; }
-
-   ++fields_I_try_to_clean; if (output->Referer!=0) { free(output->Referer); output->Referer=0; }
-
-   ++fields_I_try_to_clean; if (output->Host!=0) { free(output->Host); output->Host=0; }
-
    ++fields_I_try_to_clean; if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
 
    ++fields_I_try_to_clean; if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
@@ -360,9 +354,9 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_COOKIE :
          payload_start+=strlen("COOKIE:");
-         freeString(&output->Cookie);
-         output->Cookie=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-         if (output->Cookie==0) { return 0; } else { return 1;}
+         output->cookie=request+payload_start;
+         output->cookieLength = request_length-payload_start;
+         return 1;
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_CONNECTION :
@@ -373,9 +367,9 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_HOST :
             payload_start+=strlen("HOST:");
-            freeString(&output->Referer);
-            output->Host=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->Host==0) { return 0; } else { return 1;}
+            output->host=request+payload_start;
+            output->hostLength=request_length-payload_start;
+            return 1;
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_IF_NONE_MATCH :
@@ -408,9 +402,9 @@ int AnalyzeHTTPLineRequest(
             payload_start+=strlen("REFERRER:");
         case HTTPHEADER_REFERER :
              if (HTTPHEADER_REFERER==requestType) {payload_start+=strlen("REFERER:");  }
-             freeString(&output->Referer);
-             output->Referer=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-             if (output->Referer==0) { return 0; } else { return 1;}
+             output->referer=request+payload_start;
+             output->refererLength=request_length-payload_start;
+             return 1;
         break;
         //--------------------------------------------------------------
      };
