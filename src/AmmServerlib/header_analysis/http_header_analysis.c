@@ -369,8 +369,9 @@ int AnalyzeHTTPLineRequest(
          if (output->eTag[0]==' ') { ++output->eTag; --output->eTagLength; }
          if (output->eTag[0]=='\"') { ++output->eTag; --output->eTagLength; }
          if (output->eTag[output->eTagLength-1]=='\"') { --output->eTagLength; }
-         error("ETAG");
-         fprintf(stderr,"IFNONEMATCH (%s) Provides ETag (%s, %u length ) \n",request,output->eTag,output->eTagLength);
+
+         //error("ETAG");
+         //fprintf(stderr,"IFNONEMATCH (%s) Provides ETag (%s, %u length ) \n",request,output->eTag,output->eTagLength);
          return 1;
         break;
         //--------------------------------------------------------------

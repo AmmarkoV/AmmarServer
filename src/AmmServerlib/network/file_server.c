@@ -309,9 +309,10 @@ unsigned long SendFile
        unsigned int cache_etag = cache_GetHashOfResource(instance,index);
        if ((request->eTag!=0)&&(cache_etag!=0))
         {
-          fprintf(stderr,"E-Tag is `%s` , local hash is `%u` \n",request->eTag,cache_etag);
           char LocalETag[40]={0};
-          sprintf(LocalETag,"\"%u%u%u\"",cache_etag,start_at_byte,end_at_byte);
+          sprintf(LocalETag,"%u%u%u",cache_etag,start_at_byte,end_at_byte);
+
+          //fprintf(stderr,"E-Tag is `%s` , local hash is `%s` \n",request->eTag,LocalETag);
           if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
            {
               fprintf(stderr,"The content matches our ETag , we will reply with 304 NOT MODIFIED! :) \n");
