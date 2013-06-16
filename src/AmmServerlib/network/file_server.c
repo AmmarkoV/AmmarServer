@@ -311,7 +311,7 @@ unsigned long SendFile
         {
           fprintf(stderr,"E-Tag is `%s` , local hash is `%u` \n",request->eTag,cache_etag);
           char LocalETag[40]={0};
-          sprintf(LocalETag,"\"%u\"",cache_etag);
+          sprintf(LocalETag,"\"%u%u%u\"",cache_etag,start_at_byte,end_at_byte);
           if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
            {
               fprintf(stderr,"The content matches our ETag , we will reply with 304 NOT MODIFIED! :) \n");
@@ -319,7 +319,7 @@ unsigned long SendFile
 
               //The Etag is mandatory on 304 messages..!
               char ETagSendChunk[128]={0};
-              sprintf(ETagSendChunk,"ETag: \"%u%u%u\" \n",cache_etag,start_at_byte,end_at_byte);
+              sprintf(ETagSendChunk,"ETag: \"%s\" \n",LocalETag);
               if (!SendPart(clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
               WeWantA200OK=0;
