@@ -436,12 +436,13 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
   output->authorized=0;
 
   fprintf(stderr,"Started New Analyzing Header\n");
+  char * startOfNewLine=request;
 
-  char * preciseLine;
-  char line[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
-  char lineUpcase[MAX_HTTP_REQUEST_HEADER_LINE+1]={0};
   unsigned int i=0,chars_gathered=0,lines_gathered=0;
-  while  ( (i<request_length)&&(i<MAX_HTTP_REQUEST_HEADER_LINE) )
+  while  (
+            (i<request_length) &&
+            (i<MAX_HTTP_REQUEST_HEADER_LINES)
+         )
    {
      switch (request[i])
      {
@@ -450,23 +451,20 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
         case LF :
                   if (chars_gathered>0)
                   {
-                    line[chars_gathered]=0;
-                    //We've got ourselves a new line!
+                    //We've reached a new line! , lets process the previous one
                     ++lines_gathered;
-                    preciseLine = line ;
-                    switch (*preciseLine)
-                      { case CR :
-                        case LF : ++preciseLine;
-                                  break;
-                      };
-                    //if ( (*preciseLine==10) || (*preciseLine==13) ) { ++preciseLine; }
-                    AnalyzeHTTPLineRequest(instance,output,preciseLine,strlen(preciseLine),lines_gathered,webserver_root);
-                    line[0]=0; //line is "cleared" :P
+                    AnalyzeHTTPLineRequest(instance,output,startOfNewLine,chars_gathered,lines_gathered,webserver_root);
                     chars_gathered=0;
+
+                    startOfNewLine = request+i+1;
+                    switch (*startOfNewLine)
+                      { //Some hosts transmit CR LF so lets test for a second character
+                        case CR :
+                        case LF : ++startOfNewLine; break;
+                      };
                     break;
                   }
         default :
-                  line[chars_gathered]=request[i];
                   ++chars_gathered;
                  break;
      };
