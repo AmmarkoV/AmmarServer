@@ -120,20 +120,9 @@ int FreeHTTPHeader(struct HTTPHeader * output)
 
    unsigned int fields_I_try_to_clean=0;
 
-   ++fields_I_try_to_clean; if (output->ETag !=0) { free(output->ETag); output->ETag=0; }
+     //This does nothing any more , to be removed
 
-   ++fields_I_try_to_clean; if (output->UserAgent!=0) { free(output->UserAgent); output->UserAgent=0; }
-
-   ++fields_I_try_to_clean; if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
-
-   ++fields_I_try_to_clean; if (output->ContentDisposition!=0) { free(output->ContentDisposition); output->ContentDisposition=0; }
-
-   ++fields_I_try_to_clean; if (output->boundary!=0) { free(output->boundary); output->boundary=0; }
-   //FIELDS_TO_CLEAR_FROM_HTTP_HEADER is a way to remember to add things here every time I add a new field..!
-
-
-    if (FIELDS_TO_CLEAR_FROM_HTTP_HEADER!=fields_I_try_to_clean) { return 0; }
-    return 1;
+   return 1;
 }
 
 int HTTPHeaderComplete(char * request,unsigned int request_length)
@@ -366,18 +355,17 @@ int AnalyzeHTTPLineRequest(
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_HOST :
-            payload_start+=strlen("HOST:");
-            output->host=request+payload_start;
-            output->hostLength=request_length-payload_start;
-            return 1;
+          payload_start+=strlen("HOST:");
+          output->host=request+payload_start;
+          output->hostLength=request_length-payload_start;
+          return 1;
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_IF_NONE_MATCH :
-            payload_start+=strlen("IF-NONE-MATCH:");
-            freeString(&output->ETag);
-            output->ETag=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-            if (output->ETag==0) { return 0; } else { return 1;}
-
+         payload_start+=strlen("IF-NONE-MATCH:");
+         output->eTag=request+payload_start;
+         output->eTagLength = request_length-payload_start;
+         return 1;
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_IF_MODIFIED_SINCE :

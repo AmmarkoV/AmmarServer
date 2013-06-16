@@ -307,23 +307,23 @@ unsigned long SendFile
       {
        //Check E-Tag here..!
        unsigned int cache_etag = cache_GetHashOfResource(instance,index);
-       if ((request->ETag!=0)&&(cache_etag!=0))
+       if ((request->eTag!=0)&&(cache_etag!=0))
         {
-          fprintf(stderr,"E-Tag is `%s` , local hash is `%u` \n",request->ETag,cache_etag);
+          fprintf(stderr,"E-Tag is `%s` , local hash is `%u` \n",request->eTag,cache_etag);
           char LocalETag[40]={0};
           sprintf(LocalETag,"\"%u\"",cache_etag);
-          if ( strcmp(request->ETag,LocalETag)==0 )
+          if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
            {
               fprintf(stderr,"The content matches our ETag , we will reply with 304 NOT MODIFIED! :) \n");
               SendNotModifiedHeader(clientsock);
 
               //The Etag is mandatory on 304 messages..!
               char ETagSendChunk[128]={0};
-              sprintf(ETagSendChunk,"ETag: \"%u\" \n",cache_etag);
+              sprintf(ETagSendChunk,"ETag: \"%u%u%u\" \n",cache_etag,start_at_byte,end_at_byte);
               if (!SendPart(clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
               //The incoming ETag is no loger useful , so lets free it right here..
-              free(request->ETag); request->ETag=0;
+              //request->eTag=0;
 
               WeWantA200OK=0;
               request->requestType=HEAD;
@@ -378,7 +378,7 @@ if (request->requestType!=HEAD)
      unsigned int  cache_etag = cache_GetHashOfResource(instance,index);
      if (cache_etag!=0)
      {
-        sprintf(reply_header,"ETag: \"%u\"\n",cache_etag);
+        sprintf(reply_header,"ETag: \"%u%u%u\"\n",cache_etag,start_at_byte,end_at_byte);
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 

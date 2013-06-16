@@ -93,12 +93,11 @@ int AnalyzePOSTLineRequest(
           {
             case POSTHEADER_CONTENT_TYPE :
                  payload_start+=strlen("CONTENT-TYPE:");
-                 freeString(&output->ContentType);
                  //if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
-                 output->ContentType=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-                 if (output->ContentType==0) { fprintf(stderr,"Could not get Content Type\n"); return 0; }
+                 output->contentType=request+payload_start;
+                 output->contentTypeLength=request_length-payload_start;
                  char * boundary = strstr(request+payload_start,"boundary=");
-                 if (boundary==0) { fprintf(stderr,"Could not found boundary in string %s \n",output->ContentType); return 0; }
+                 if (boundary==0) { fprintf(stderr,"Could not found boundary in string %s \n",output->contentType); return 0; }
                  boundary+=9;
                  fprintf(stderr,"Boundary = %s \n",boundary);
 
@@ -110,10 +109,9 @@ int AnalyzePOSTLineRequest(
 
             case POSTHEADER_CONTENT_DISPOSITION :
                 payload_start+=strlen("CONTENT-DISPOSITION:");
-                freeString(&output->ContentDisposition);
-                output->ContentDisposition=GetNewStringFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-                if (output->ContentDisposition==0) { fprintf(stderr,"Could not get Content Disposition\n"); return 0; }
-               return (output->ContentDisposition!=0);
+                output->contentDisposition=request+payload_start;
+                output->contentDispositionLength=request_length-payload_start;
+                return 1;
              break;
 
             case POSTHEADER_CONTENT_LENGTH :

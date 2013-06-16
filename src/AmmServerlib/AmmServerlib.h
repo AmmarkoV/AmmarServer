@@ -61,6 +61,9 @@ struct HTTPHeader
    unsigned long range_start;
    unsigned long range_end;
 
+
+   unsigned long ContentLength; //<- for POST requests
+
    //The next strings point directly on the header to keep memory usage on a minimum
    //and performance on the maximum :P
    char * cookie; //<-   *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
@@ -72,20 +75,22 @@ struct HTTPHeader
    char * referer; //<-  *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int refererLength;
 
-   /*! IMPORTANT update FIELDS_TO_CLEAR_FROM_HTTP_REQUEST when I add something here.. */
-   //TODO : These all should just point at the correct place of the header , no new malloc / free complications needed
-   char * ETag; //<-   *THIS SHOULD BE CLEARED AFTER USAGE*
-   char * UserAgent;//<- *THIS SHOULD BE CLEARED AFTER USAGE*
-   char * ContentType; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
-   char * ContentDisposition; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
-   char * boundary; //<- for POST requests *THIS SHOULD BE CLEARED AFTER USAGE*
-   unsigned long ContentLength; //<- for POST requests
-   //Languages etc here..!
-};
-/*! IMPORTANT @@@ */
-#define FIELDS_TO_CLEAR_FROM_HTTP_HEADER 5
-/*! IMPORTANT @@@*/
+   char * eTag; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   unsigned int eTagLength;
 
+   char * userAgent; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   unsigned int userAgentLength;
+
+   char * contentType; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   unsigned int contentTypeLength;
+
+   char * contentDisposition;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   unsigned int contentDispositionLength;
+
+   char * boundary;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   unsigned int boundaryLength;
+
+};
 
 
 struct HTTPOutHeader
