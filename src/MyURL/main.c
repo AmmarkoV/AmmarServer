@@ -638,7 +638,7 @@ int main(int argc, char *argv[])
     pthread_mutex_init(&db_addIDLock,0);
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
-    myurl_server = AmmServer_Start(bindIP,port,0,webserver_root,templates_root);
+    myurl_server = AmmServer_Start("myurl",bindIP,port,0,webserver_root,templates_root);
     if (!myurl_server) { AmmServer_Error("Could not start myurl server\n"); exit(1); }
 
     if (LoadMyURLDBFile(db_file))

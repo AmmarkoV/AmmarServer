@@ -36,6 +36,7 @@ enum TypesOfRequests
 #define MAX_QUERY 512
 #define MAX_RESOURCE 512
 #define MAX_FILE_PATH 1024
+#define MAX_INSTANCE_NAME_STRING 128
 
 
 
@@ -175,6 +176,7 @@ struct AmmServer_Instance_Settings
 
 struct AmmServer_Instance
 {
+    char instanceName[MAX_INSTANCE_NAME_STRING];
     struct AmmServer_Instance_Settings settings;
 
     unsigned int prespawn_turn_to_serve;
@@ -260,7 +262,7 @@ void AmmServer_Warning( const char *format , ... );
 void AmmServer_Error( const char *format , ... );
 void AmmServer_Success( const char *format , ... );
 
-struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
+struct AmmServer_Instance * AmmServer_Start(char * name ,char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 int AmmServer_Stop(struct AmmServer_Instance * instance);
 int AmmServer_Running(struct AmmServer_Instance * instance);
 

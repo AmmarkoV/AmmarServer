@@ -101,9 +101,10 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   return 1;
 }
 
-struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
+struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
+
 
 
   fprintf(stderr,"\n\nDISCLAIMER : \n");
@@ -125,7 +126,11 @@ struct AmmServer_Instance * AmmServer_Start(char * ip,unsigned int port,char * c
                                {  memset(instance->threads_pool,0,sizeof(pthread_t)*MAX_CLIENT_THREADS); }
 
 
-  fprintf(stderr,"Initial AmmServer_Start thread pool pointing @ %p \n",instance->threads_pool);//Clear instance..!
+  strcpy(instance->instanceName , name); // TODO: check for MAX_INSTANCE_NAME_STRING
+
+
+
+  fprintf(stderr,"Initial AmmServer_Start ( name %s ) thread pool pointing @ %p \n",instance->instanceName,instance->threads_pool);//Clear instance..!
 
   instance->prespawned_pool = (void *) malloc( sizeof(struct PreSpawnedThread) * MAX_CLIENT_PRESPAWNED_THREADS);
   if (!instance->prespawned_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_PRESPAWNED_THREADS);  }else

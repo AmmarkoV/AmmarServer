@@ -342,6 +342,7 @@ int main(int argc, char *argv[])
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     default_server = AmmServer_Start
         (
+           "ammarserver",
            bindIP,
            port,
            0, /*This means we don't want a specific configuration file*/
