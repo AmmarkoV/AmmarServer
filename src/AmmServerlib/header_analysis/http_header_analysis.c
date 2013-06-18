@@ -331,14 +331,12 @@ int AnalyzeHTTPLineRequest(
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_ACCEPT_ENCODING :
-            /*
          payload_start+=strlen("ACCEPT-ENCODING:");
          if ( CheckHTTPHeaderCategory(request,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
                                                                                          {
                                                                                            output->supports_compression=0;
-                                                                                           fprintf(stderr,"We found an accept-encoding header , but not the deflate method..\n");
+                                                                                          warning("We found an accept-encoding header , but not the deflate method..\n");
                                                                                          }
-           */
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_COOKIE :
@@ -369,8 +367,6 @@ int AnalyzeHTTPLineRequest(
          if (output->eTag[0]==' ') { ++output->eTag; --output->eTagLength; }
          if (output->eTag[0]=='\"') { ++output->eTag; --output->eTagLength; }
          if (output->eTag[output->eTagLength-1]=='\"') { --output->eTagLength; }
-
-         //error("ETAG");
          //fprintf(stderr,"IFNONEMATCH (%s) Provides ETag (%s, %u length ) \n",request,output->eTag,output->eTagLength);
          return 1;
         break;
@@ -404,7 +400,7 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
      };
 
-
+     //If we are a POST request also consider POST possibilities , implemented in post_header_analysis.c
      if (output->requestType==POST)
      {
         return AnalyzePOSTLineRequest(instance,output,request,request_length,lines_gathered,webserver_root );

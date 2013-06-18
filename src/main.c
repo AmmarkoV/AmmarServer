@@ -70,6 +70,7 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
+struct AmmServer_RH_Context gps={0};
 struct AmmServer_RH_Context random_chars={0};
 
 
@@ -263,6 +264,38 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 
+//This function prepares the content of  form context , ( content )
+void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+
+  char latitude[128]={0};
+  char longitude[128]={0};
+  char message[256]={0};
+
+ warning("New GPS message");
+ if ( rqst->GET_request != 0 )
+    {
+      if ( strlen(rqst->GET_request)>0 )
+       {
+         if ( _GET(default_server,rqst,"lat",latitude,128) )
+             {
+               fprintf(stderr,"Latitude : %s \n",latitude);
+             }
+         if ( _GET(default_server,rqst,"lon",longitude,128) )
+             {
+               fprintf(stderr,"Longitude : %s \n",longitude);
+             }
+         if ( _GET(default_server,rqst,"msg",message,256) )
+             {
+               fprintf(stderr,"Message : %s \n",message);
+             }
+       }
+    }
+
+  strcpy(rqst->content,"<html><body>Ack</body></html>");
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
 
 
 //This function prepares the content of  form context , ( content )
@@ -288,6 +321,9 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding form testing page\n"); }
 
   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding random testing page\n"); }
+
+  if (! AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding gps testing page\n"); }
+
 
 
   if (ENABLE_CHAT_BOX)

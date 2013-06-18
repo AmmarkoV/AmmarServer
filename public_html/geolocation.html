@@ -1,21 +1,39 @@
 <!DOCTYPE html>
 <html>
 <body>
-<p id="demo">Click the button to get your coordinates:</p>
-<button onclick="getLocation()">Try It</button>
+<p id="placeholder">Click the button to shout something! :</p>
+
+
+<input id="message" type="text" name="message">
+<button onclick="getLocation()">Shout</button><br><br>
+<input type="checkbox" name="autoRefresh"  onchange='handleJoystickActiveSwitch(this);' >Auto Refresh</input>
+
+
 
 <div id="mapholder"></div>
 
 <script>
-var x=document.getElementById("demo");
-function getLocation()
-  {
-  if (navigator.geolocation)
+var x=document.getElementById("placeholder");
+
+
+
+function httpGet(theUrl)
     {
-    navigator.geolocation.getCurrentPosition(showPosition,showError);
+    var xmlHttp = null;
+
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
     }
-  else{x.innerHTML="Geolocation is not supported by this browser.";}
-  }
+
+function command(theCommand)
+     {
+       var randomnumber=Math.floor(Math.random()*100000);
+       httpGet("gps.html?"+theCommand+"&t="+randomnumber); 
+     } 
+
+
 function showPosition(position)
   {
   x.innerHTML="Latitude: " + position.coords.latitude + 
@@ -29,8 +47,32 @@ function showPosition(position)
   +latlon+"&zoom=14&size=400x300&sensor=false";
   document.getElementById("mapholder").innerHTML="<img src='"+img_url+"'>";
 
+  
+  command("lat="+position.coords.latitude+"&lon="+position.coords.longitude+"&msg="+document.getElementById('message').value);
 
+
+ }
+
+ 
+function getLocation()
+  {
+  if (navigator.geolocation)
+    {
+    navigator.geolocation.getCurrentPosition(showPosition,showError);
+    }
+  else{x.innerHTML="Geolocation is not supported by this browser.";}
   }
+
+
+function autogetLocation(cb)
+{
+  if (cb.checked)
+  {
+    var interval = setInterval(getLocation, 1000);
+  }
+}
+
+
 function showError(error)
   {
   switch(error.code) 
