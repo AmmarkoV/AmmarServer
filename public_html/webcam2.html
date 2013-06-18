@@ -1,0 +1,93 @@
+<!doctype HTML>
+<html>
+<script>
+  var streaming = false;
+  var video        = document.querySelector('#video');
+  var cover        = document.querySelector('#cover');
+  var canvas       = document.querySelector('#canvas'); 
+  var photo        = document.querySelector('#photo');
+  var startbutton  = document.querySelector('#startbutton');
+  var width = 320;
+  var height = 0;
+
+function initCamera()
+{
+  navigator.getMedia = ( navigator.getUserMedia ||
+                         navigator.webkitGetUserMedia ||
+                         navigator.mozGetUserMedia ||
+                         navigator.msGetUserMedia);
+
+  navigator.getMedia(
+    {
+      video: true,
+      audio: false
+    },
+    function(stream) 
+     {
+      if (navigator.mozGetUserMedia) 
+        {
+          video.mozSrcObject = stream;
+        } else {
+        var vendorURL = window.URL || window.webkitURL;
+        video.src = vendorURL.createObjectURL(stream);
+      }
+      video.play();
+    },
+    function(err) 
+    {
+      console.log("An error occured! " + err);
+    }
+  );
+
+ video.addEventListener('canplay', drag , false);
+};
+
+
+function drag(ev)
+{  
+    if (!streaming) 
+    {
+      height = video.videoHeight / (video.videoWidth/width);
+      video.setAttribute('width', width);
+      video.setAttribute('height', height);
+      canvas.setAttribute('width', width);
+      canvas.setAttribute('height', height);
+      streaming = true;
+    }
+}
+
+
+function takepicture() 
+  {
+    var video        = document.querySelector('#video');
+    var cover        = document.querySelector('#cover');
+    var canvas       = document.querySelector('#canvas');
+    var photo        = document.querySelector('#photo');
+    var startbutton  = document.querySelector('#startbutton');
+    var width = 320;
+
+
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+    var data = canvas.toDataURL('image/png');
+    photo.setAttribute('src', data);
+  }
+
+
+ 
+</script>
+
+
+<body onload="initCamera();">
+
+
+<video id="video"></video>
+<button id="startbutton" onclick="takepicture();">Take photo</button>
+<canvas id="canvas"></canvas>
+<img src="http://placekitten.com/g/320/261" id="photo" alt="photo">
+
+
+
+</body>
+</html>
