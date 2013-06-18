@@ -1,0 +1,609 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  us/call  us/call  name    
+ 12.65      0.11     0.11                             ServeClient
+ 12.65      0.22     0.11   178690     0.62     1.27  SendFile
+  8.05      0.29     0.07  1071778     0.07     0.07  scanFor_httpHeader
+  8.05      0.36     0.07   178642     0.39     1.51  AnalyzeHTTPHeader
+  6.90      0.42     0.06   357203     0.17     0.17  FilenameStripperOk
+  5.75      0.47     0.05   535931     0.09     0.09  hashMap_GetULongPayload
+  5.75      0.52     0.05   178767     0.28     0.28  ReceiveHTTPHeader
+  5.75      0.57     0.05   178000     0.28     0.28  SpawnThreadToServeNewClient
+  4.60      0.61     0.04   178762     0.22     0.39  SendSuccessCodeHeader
+  3.45      0.64     0.03   356975     0.08     0.08  CheckHTTPHeaderCategory
+  2.30      0.66     0.02  1249850     0.02     0.16  AnalyzeHTTPLineRequest
+  2.30      0.68     0.02   178545     0.11     0.11  callClientRequestHandler
+  2.30      0.70     0.02   178493     0.11     0.11  ReducePathSlashes_Inplace
+  2.30      0.72     0.02                             GetTickCountAmmServ
+  2.30      0.74     0.02                             MainHTTPServerThread
+  2.30      0.76     0.02                             ServeClientKeepAliveLoop
+  1.15      0.77     0.01   178836     0.06     0.06  findOutClientIDOfPeer
+  1.15      0.78     0.01   178760     0.06     0.11  GetContentTypeForExtension
+  1.15      0.79     0.01   178742     0.06     0.06  scanFor_textFiles
+  1.15      0.80     0.01   178660     0.06     0.06  scanFor_firstLines
+  1.15      0.81     0.01   178599     0.06     0.06  GetDateString
+  1.15      0.82     0.01   178562     0.06     0.06  StripGETRequestQueryAndFragment
+  1.15      0.83     0.01   178534     0.06     0.06  StripHTMLCharacters_Inplace
+  1.15      0.84     0.01   178523     0.06     0.06  cache_ChangeRequestIfTemplateRequested
+  1.15      0.85     0.01                             CheckHTTPHeaderCategoryAllCaps
+  1.15      0.86     0.01                             dynamicRequest_serveContent
+  1.15      0.87     0.01                             scanFor_audioFiles
+  0.00      0.87     0.00   357072     0.00     0.00  hashMap_GetHashAtIndex
+  0.00      0.87     0.00   356974     0.00     0.00  cache_GetHashOfResource
+  0.00      0.87     0.00   178844     0.00     0.00  setSocketTimeouts
+  0.00      0.87     0.00   178796     0.00     0.00  dynamicRequest_ContentAvailiable
+  0.00      0.87     0.00   178792     0.00     0.00  clientList_isClientBanned
+  0.00      0.87     0.00   178767     0.00     0.00  GetContentType
+  0.00      0.87     0.00   178725     0.00     0.00  clientList_GetClientId
+  0.00      0.87     0.00   178686     0.00     0.00  hashMap_SaveToFile
+  0.00      0.87     0.00   178658     0.00     0.45  ProcessFirstHTTPLine
+  0.00      0.87     0.00   178630     0.00     0.00  clientList_isClientAllowedToUseResource
+  0.00      0.87     0.00   178629     0.00     0.09  cache_GetResource
+  0.00      0.87     0.00   178566     0.00     0.00  request_override_callback
+  0.00      0.87     0.00   178564     0.00     0.09  cache_FindResource
+  0.00      0.87     0.00   178557     0.00     0.09  cache_ResourceExists
+  0.00      0.87     0.00   178536     0.00     0.09  FindIndexFile
+  0.00      0.87     0.00   178455     0.00     0.00  warning
+  0.00      0.87     0.00   177974     0.00     0.00  UsePreSpawnedThreadToServeNewClient
+  0.00      0.87     0.00   177700     0.00     0.00  freeMallocIfNeeded
+  0.00      0.87     0.00   177278     0.00     0.00  clientList_signalClientStoppedUsingResource
+  0.00      0.87     0.00   177272     0.00     0.00  FreeHTTPHeader
+  0.00      0.87     0.00      732     0.00     0.00  InputParser_WordCompareNoCase
+  0.00      0.87     0.00      732     0.00     0.00  InputParser_WordCompareNoCaseAuto
+  0.00      0.87     0.00       81     0.00     0.00  InputParser_SeperateWords
+  0.00      0.87     0.00       77     0.00     0.00  AmmServer_RegisterTerminationSignal
+  0.00      0.87     0.00       14     0.00     0.00  InputParser_GetWordInt
+  0.00      0.87     0.00        5     0.00     0.00  hashMap_Add
+  0.00      0.87     0.00        5     0.00     0.00  hashMap_AddULong
+  0.00      0.87     0.00        4     0.00     0.00  AmmServer_AddResourceHandler
+  0.00      0.87     0.00        4     0.00     0.11  cache_AddMemoryBlock
+  0.00      0.87     0.00        2     0.00     0.00  AmmServer_GeneralPrint
+  0.00      0.87     0.00        2     0.00     0.00  AmmServer_RemoveResourceHandler
+  0.00      0.87     0.00        2     0.00     0.00  AmmServer_Warning
+  0.00      0.87     0.00        2     0.00     0.09  cache_RemoveContextAndResource
+  0.00      0.87     0.00        1     0.00     0.00  CreateCompressedVersionofStaticContent
+  0.00      0.87     0.00        1     0.00     0.00  EmmitPossibleConfigurationWarnings
+  0.00      0.87     0.00        1     0.00     0.00  GetExtentionType
+  0.00      0.87     0.00        1     0.00     0.00  InputParser_Create
+  0.00      0.87     0.00        1     0.00     0.00  InputParser_DefaultDelimeters
+  0.00      0.87     0.00        1     0.00     0.00  InputParser_Destroy
+  0.00      0.87     0.00        1     0.00     0.00  InputParser_GetWord
+  0.00      0.87     0.00        1     0.00     0.00  InputParser_SetDelimeter
+  0.00      0.87     0.00        1     0.00     0.00  LoadConfigurationFile
+  0.00      0.87     0.00        1     0.00     0.00  PreSpawnThreads
+  0.00      0.87     0.00        1     0.00     0.00  ServerThreads_DropRootUID
+  0.00      0.87     0.00        1     0.00     0.00  StartHTTPServer
+  0.00      0.87     0.00        1     0.00     0.00  TransmitFileToSocket
+  0.00      0.87     0.00        1     0.00     0.11  cache_AddFile
+  0.00      0.87     0.00        1     0.00     0.00  cache_Initialize
+  0.00      0.87     0.00        1     0.00     0.11  cache_LoadResourceFromDisk
+  0.00      0.87     0.00        1     0.00     0.00  childFinishedWithParentMessage
+  0.00      0.87     0.00        1     0.00     0.00  clientList_initialize
+  0.00      0.87     0.00        1     0.00     0.09  close_dynamic_content
+  0.00      0.87     0.00        1     0.00     0.00  end_timer
+  0.00      0.87     0.00        1     0.00     0.00  hashMap_Create
+  0.00      0.87     0.00        1     0.00     0.00  instance_CountNewMallocOP
+  0.00      0.87     0.00        1     0.00     0.00  instance_WeCanCommitMoreMemory
+  0.00      0.87     0.00        1     0.00     0.00  parentKeepMessageOnStackUntilReady
+  0.00      0.87     0.00        1     0.00     0.00  start_timer
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+ 
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this 
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 1.15% of 0.87 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     83.9    0.11    0.62                 ServeClient [1]
+                0.07    0.20  178642/178642      AnalyzeHTTPHeader [2]
+                0.11    0.12  178690/178690      SendFile [3]
+                0.05    0.00  178767/178767      ReceiveHTTPHeader [11]
+                0.02    0.00  178545/178545      callClientRequestHandler [15]
+                0.00    0.02  178536/178536      FindIndexFile [21]
+                0.00    0.02  178557/178557      cache_ResourceExists [22]
+                0.01    0.00  178836/178836      findOutClientIDOfPeer [23]
+                0.01    0.00  178523/178523      cache_ChangeRequestIfTemplateRequested [29]
+                0.00    0.00  178844/178844      setSocketTimeouts [42]
+                0.00    0.00  178792/178792      clientList_isClientBanned [44]
+                0.00    0.00  178630/178630      clientList_isClientAllowedToUseResource [48]
+                0.00    0.00  177278/177278      clientList_signalClientStoppedUsingResource [53]
+                0.00    0.00  177272/177272      FreeHTTPHeader [54]
+-----------------------------------------------
+                0.07    0.20  178642/178642      ServeClient [1]
+[2]     31.0    0.07    0.20  178642         AnalyzeHTTPHeader [2]
+                0.02    0.18 1249850/1249850     AnalyzeHTTPLineRequest [4]
+-----------------------------------------------
+                0.11    0.12  178690/178690      ServeClient [1]
+[3]     26.1    0.11    0.12  178690         SendFile [3]
+                0.04    0.03  178762/178762      SendSuccessCodeHeader [8]
+                0.03    0.00  178667/357203      FilenameStripperOk [9]
+                0.00    0.02  178629/178629      cache_GetResource [19]
+                0.00    0.00  357072/357072      hashMap_GetHashAtIndex [40]
+                0.00    0.00  356974/356974      cache_GetHashOfResource [41]
+                0.00    0.00  177700/177700      freeMallocIfNeeded [52]
+                0.00    0.00       1/1           TransmitFileToSocket [78]
+-----------------------------------------------
+                0.02    0.18 1249850/1249850     AnalyzeHTTPHeader [2]
+[4]     23.0    0.02    0.18 1249850         AnalyzeHTTPLineRequest [4]
+                0.00    0.08  178658/178658      ProcessFirstHTTPLine [5]
+                0.07    0.00 1071778/1071778     scanFor_httpHeader [6]
+                0.03    0.00  356975/356975      CheckHTTPHeaderCategory [13]
+                0.00    0.00  178448/178455      warning [50]
+-----------------------------------------------
+                0.00    0.08  178658/178658      AnalyzeHTTPLineRequest [4]
+[5]      9.2    0.00    0.08  178658         ProcessFirstHTTPLine [5]
+                0.03    0.00  178536/357203      FilenameStripperOk [9]
+                0.02    0.00  178489/178493      ReducePathSlashes_Inplace [16]
+                0.01    0.00  178660/178660      scanFor_firstLines [25]
+                0.01    0.00  178562/178562      StripGETRequestQueryAndFragment [27]
+                0.01    0.00  178534/178534      StripHTMLCharacters_Inplace [28]
+-----------------------------------------------
+                0.07    0.00 1071778/1071778     AnalyzeHTTPLineRequest [4]
+[6]      8.0    0.07    0.00 1071778         scanFor_httpHeader [6]
+-----------------------------------------------
+                                                 <spontaneous>
+[7]      8.0    0.02    0.05                 MainHTTPServerThread [7]
+                0.05    0.00  178000/178000      SpawnThreadToServeNewClient [12]
+                0.00    0.00  177974/177974      UsePreSpawnedThreadToServeNewClient [51]
+                0.00    0.00       1/1           childFinishedWithParentMessage [80]
+                0.00    0.00       1/1           PreSpawnThreads [75]
+-----------------------------------------------
+                0.04    0.03  178762/178762      SendFile [3]
+[8]      8.0    0.04    0.03  178762         SendSuccessCodeHeader [8]
+                0.01    0.01  178759/178760      GetContentTypeForExtension [14]
+                0.01    0.00  178599/178599      GetDateString [26]
+                0.00    0.00  178766/178767      GetContentType [45]
+-----------------------------------------------
+                0.03    0.00  178536/357203      ProcessFirstHTTPLine [5]
+                0.03    0.00  178667/357203      SendFile [3]
+[9]      6.9    0.06    0.00  357203         FilenameStripperOk [9]
+-----------------------------------------------
+                0.00    0.00       2/535931      cache_RemoveContextAndResource [35]
+                0.02    0.00  178610/535931      cache_ResourceExists [22]
+                0.02    0.00  178643/535931      cache_FindResource [20]
+                0.02    0.00  178676/535931      cache_GetResource [19]
+[10]     5.7    0.05    0.00  535931         hashMap_GetULongPayload [10]
+-----------------------------------------------
+                0.05    0.00  178767/178767      ServeClient [1]
+[11]     5.7    0.05    0.00  178767         ReceiveHTTPHeader [11]
+                0.00    0.00  178686/178686      hashMap_SaveToFile [47]
+-----------------------------------------------
+                0.05    0.00  178000/178000      MainHTTPServerThread [7]
+[12]     5.7    0.05    0.00  178000         SpawnThreadToServeNewClient [12]
+-----------------------------------------------
+                0.03    0.00  356975/356975      AnalyzeHTTPLineRequest [4]
+[13]     3.4    0.03    0.00  356975         CheckHTTPHeaderCategory [13]
+-----------------------------------------------
+                0.00    0.00       1/178760      cache_LoadResourceFromDisk [38]
+                0.01    0.01  178759/178760      SendSuccessCodeHeader [8]
+[14]     2.3    0.01    0.01  178760         GetContentTypeForExtension [14]
+                0.01    0.00  178742/178742      scanFor_textFiles [24]
+-----------------------------------------------
+                0.02    0.00  178545/178545      ServeClient [1]
+[15]     2.3    0.02    0.00  178545         callClientRequestHandler [15]
+                0.00    0.00  178566/178566      request_override_callback [49]
+-----------------------------------------------
+                0.00    0.00       4/178493      cache_AddMemoryBlock [33]
+                0.02    0.00  178489/178493      ProcessFirstHTTPLine [5]
+[16]     2.3    0.02    0.00  178493         ReducePathSlashes_Inplace [16]
+-----------------------------------------------
+                                                 <spontaneous>
+[17]     2.3    0.02    0.00                 GetTickCountAmmServ [17]
+-----------------------------------------------
+                                                 <spontaneous>
+[18]     2.3    0.02    0.00                 ServeClientKeepAliveLoop [18]
+-----------------------------------------------
+                0.00    0.02  178629/178629      SendFile [3]
+[19]     1.9    0.00    0.02  178629         cache_GetResource [19]
+                0.02    0.00  178676/535931      hashMap_GetULongPayload [10]
+                0.00    0.00       1/1           cache_AddFile [37]
+                0.00    0.00  178796/178796      dynamicRequest_ContentAvailiable [43]
+-----------------------------------------------
+                0.00    0.02  178564/178564      FindIndexFile [21]
+[20]     1.9    0.00    0.02  178564         cache_FindResource [20]
+                0.02    0.00  178643/535931      hashMap_GetULongPayload [10]
+-----------------------------------------------
+                0.00    0.02  178536/178536      ServeClient [1]
+[21]     1.9    0.00    0.02  178536         FindIndexFile [21]
+                0.00    0.02  178564/178564      cache_FindResource [20]
+-----------------------------------------------
+                0.00    0.02  178557/178557      ServeClient [1]
+[22]     1.9    0.00    0.02  178557         cache_ResourceExists [22]
+                0.02    0.00  178610/535931      hashMap_GetULongPayload [10]
+-----------------------------------------------
+                0.01    0.00  178836/178836      ServeClient [1]
+[23]     1.1    0.01    0.00  178836         findOutClientIDOfPeer [23]
+                0.00    0.00  178725/178725      clientList_GetClientId [46]
+-----------------------------------------------
+                0.01    0.00  178742/178742      GetContentTypeForExtension [14]
+[24]     1.1    0.01    0.00  178742         scanFor_textFiles [24]
+-----------------------------------------------
+                0.01    0.00  178660/178660      ProcessFirstHTTPLine [5]
+[25]     1.1    0.01    0.00  178660         scanFor_firstLines [25]
+-----------------------------------------------
+                0.01    0.00  178599/178599      SendSuccessCodeHeader [8]
+[26]     1.1    0.01    0.00  178599         GetDateString [26]
+-----------------------------------------------
+                0.01    0.00  178562/178562      ProcessFirstHTTPLine [5]
+[27]     1.1    0.01    0.00  178562         StripGETRequestQueryAndFragment [27]
+-----------------------------------------------
+                0.01    0.00  178534/178534      ProcessFirstHTTPLine [5]
+[28]     1.1    0.01    0.00  178534         StripHTMLCharacters_Inplace [28]
+-----------------------------------------------
+                0.01    0.00  178523/178523      ServeClient [1]
+[29]     1.1    0.01    0.00  178523         cache_ChangeRequestIfTemplateRequested [29]
+-----------------------------------------------
+                                                 <spontaneous>
+[30]     1.1    0.01    0.00                 CheckHTTPHeaderCategoryAllCaps [30]
+-----------------------------------------------
+                                                 <spontaneous>
+[31]     1.1    0.01    0.00                 dynamicRequest_serveContent [31]
+-----------------------------------------------
+                                                 <spontaneous>
+[32]     1.1    0.01    0.00                 scanFor_audioFiles [32]
+-----------------------------------------------
+                0.00    0.00       4/4           init_dynamic_content [34]
+[33]     0.0    0.00    0.00       4         cache_AddMemoryBlock [33]
+                0.00    0.00       4/178493      ReducePathSlashes_Inplace [16]
+                0.00    0.00       4/5           hashMap_Add [60]
+                0.00    0.00       4/5           hashMap_AddULong [61]
+                0.00    0.00       4/178455      warning [50]
+-----------------------------------------------
+                                                 <spontaneous>
+[34]     0.0    0.00    0.00                 init_dynamic_content [34]
+                0.00    0.00       4/4           cache_AddMemoryBlock [33]
+                0.00    0.00       4/4           AmmServer_AddResourceHandler [62]
+-----------------------------------------------
+                0.00    0.00       1/2           close_dynamic_content [39]
+                0.00    0.00       1/2           AmmServer_GlobalTerminationHandler [36]
+[35]     0.0    0.00    0.00       2         cache_RemoveContextAndResource [35]
+                0.00    0.00       2/535931      hashMap_GetULongPayload [10]
+                0.00    0.00       2/178455      warning [50]
+-----------------------------------------------
+                                                 <spontaneous>
+[36]     0.0    0.00    0.00                 AmmServer_GlobalTerminationHandler [36]
+                0.00    0.00       1/2           cache_RemoveContextAndResource [35]
+                0.00    0.00       1/1           close_dynamic_content [39]
+                0.00    0.00       1/2           AmmServer_RemoveResourceHandler [64]
+-----------------------------------------------
+                0.00    0.00       1/1           cache_GetResource [19]
+[37]     0.0    0.00    0.00       1         cache_AddFile [37]
+                0.00    0.00       1/1           cache_LoadResourceFromDisk [38]
+                0.00    0.00       1/5           hashMap_Add [60]
+                0.00    0.00       1/5           hashMap_AddULong [61]
+                0.00    0.00       1/178455      warning [50]
+-----------------------------------------------
+                0.00    0.00       1/1           cache_AddFile [37]
+[38]     0.0    0.00    0.00       1         cache_LoadResourceFromDisk [38]
+                0.00    0.00       1/178760      GetContentTypeForExtension [14]
+                0.00    0.00       1/1           instance_WeCanCommitMoreMemory [85]
+                0.00    0.00       1/1           instance_CountNewMallocOP [84]
+                0.00    0.00       1/178767      GetContentType [45]
+                0.00    0.00       1/1           CreateCompressedVersionofStaticContent [66]
+                0.00    0.00       1/1           GetExtentionType [68]
+-----------------------------------------------
+                0.00    0.00       1/1           AmmServer_GlobalTerminationHandler [36]
+[39]     0.0    0.00    0.00       1         close_dynamic_content [39]
+                0.00    0.00       1/2           cache_RemoveContextAndResource [35]
+                0.00    0.00       1/2           AmmServer_RemoveResourceHandler [64]
+-----------------------------------------------
+                0.00    0.00  357072/357072      SendFile [3]
+[40]     0.0    0.00    0.00  357072         hashMap_GetHashAtIndex [40]
+-----------------------------------------------
+                0.00    0.00  356974/356974      SendFile [3]
+[41]     0.0    0.00    0.00  356974         cache_GetHashOfResource [41]
+-----------------------------------------------
+                0.00    0.00  178844/178844      ServeClient [1]
+[42]     0.0    0.00    0.00  178844         setSocketTimeouts [42]
+-----------------------------------------------
+                0.00    0.00  178796/178796      cache_GetResource [19]
+[43]     0.0    0.00    0.00  178796         dynamicRequest_ContentAvailiable [43]
+-----------------------------------------------
+                0.00    0.00  178792/178792      ServeClient [1]
+[44]     0.0    0.00    0.00  178792         clientList_isClientBanned [44]
+-----------------------------------------------
+                0.00    0.00       1/178767      cache_LoadResourceFromDisk [38]
+                0.00    0.00  178766/178767      SendSuccessCodeHeader [8]
+[45]     0.0    0.00    0.00  178767         GetContentType [45]
+-----------------------------------------------
+                0.00    0.00  178725/178725      findOutClientIDOfPeer [23]
+[46]     0.0    0.00    0.00  178725         clientList_GetClientId [46]
+-----------------------------------------------
+                0.00    0.00  178686/178686      ReceiveHTTPHeader [11]
+[47]     0.0    0.00    0.00  178686         hashMap_SaveToFile [47]
+-----------------------------------------------
+                0.00    0.00  178630/178630      ServeClient [1]
+[48]     0.0    0.00    0.00  178630         clientList_isClientAllowedToUseResource [48]
+-----------------------------------------------
+                0.00    0.00  178566/178566      callClientRequestHandler [15]
+[49]     0.0    0.00    0.00  178566         request_override_callback [49]
+-----------------------------------------------
+                0.00    0.00       1/178455      cache_AddFile [37]
+                0.00    0.00       2/178455      cache_RemoveContextAndResource [35]
+                0.00    0.00       4/178455      cache_AddMemoryBlock [33]
+                0.00    0.00  178448/178455      AnalyzeHTTPLineRequest [4]
+[50]     0.0    0.00    0.00  178455         warning [50]
+-----------------------------------------------
+                0.00    0.00  177974/177974      MainHTTPServerThread [7]
+[51]     0.0    0.00    0.00  177974         UsePreSpawnedThreadToServeNewClient [51]
+-----------------------------------------------
+                0.00    0.00  177700/177700      SendFile [3]
+[52]     0.0    0.00    0.00  177700         freeMallocIfNeeded [52]
+-----------------------------------------------
+                0.00    0.00  177278/177278      ServeClient [1]
+[53]     0.0    0.00    0.00  177278         clientList_signalClientStoppedUsingResource [53]
+-----------------------------------------------
+                0.00    0.00  177272/177272      ServeClient [1]
+[54]     0.0    0.00    0.00  177272         FreeHTTPHeader [54]
+-----------------------------------------------
+                0.00    0.00     158/732         LoadConfigurationFile [74]
+                0.00    0.00     574/732         AmmServer_RegisterTerminationSignal [58]
+[55]     0.0    0.00    0.00     732         InputParser_WordCompareNoCase [55]
+-----------------------------------------------
+                0.00    0.00     158/732         LoadConfigurationFile [74]
+                0.00    0.00     574/732         AmmServer_RegisterTerminationSignal [58]
+[56]     0.0    0.00    0.00     732         InputParser_WordCompareNoCaseAuto [56]
+-----------------------------------------------
+                0.00    0.00      81/81          LoadConfigurationFile [74]
+[57]     0.0    0.00    0.00      81         InputParser_SeperateWords [57]
+-----------------------------------------------
+                0.00    0.00      77/77          LoadConfigurationFile [74]
+[58]     0.0    0.00    0.00      77         AmmServer_RegisterTerminationSignal [58]
+                0.00    0.00     574/732         InputParser_WordCompareNoCase [55]
+                0.00    0.00     574/732         InputParser_WordCompareNoCaseAuto [56]
+                0.00    0.00      13/14          InputParser_GetWordInt [59]
+                0.00    0.00       1/2           AmmServer_Warning [65]
+-----------------------------------------------
+                0.00    0.00       1/14          LoadConfigurationFile [74]
+                0.00    0.00      13/14          AmmServer_RegisterTerminationSignal [58]
+[59]     0.0    0.00    0.00      14         InputParser_GetWordInt [59]
+-----------------------------------------------
+                0.00    0.00       1/5           cache_AddFile [37]
+                0.00    0.00       4/5           cache_AddMemoryBlock [33]
+[60]     0.0    0.00    0.00       5         hashMap_Add [60]
+-----------------------------------------------
+                0.00    0.00       1/5           cache_AddFile [37]
+                0.00    0.00       4/5           cache_AddMemoryBlock [33]
+[61]     0.0    0.00    0.00       5         hashMap_AddULong [61]
+-----------------------------------------------
+                0.00    0.00       4/4           init_dynamic_content [34]
+[62]     0.0    0.00    0.00       4         AmmServer_AddResourceHandler [62]
+-----------------------------------------------
+                0.00    0.00       2/2           AmmServer_Warning [65]
+[63]     0.0    0.00    0.00       2         AmmServer_GeneralPrint [63]
+-----------------------------------------------
+                0.00    0.00       1/2           close_dynamic_content [39]
+                0.00    0.00       1/2           AmmServer_GlobalTerminationHandler [36]
+[64]     0.0    0.00    0.00       2         AmmServer_RemoveResourceHandler [64]
+-----------------------------------------------
+                0.00    0.00       1/2           AmmServer_AddRequestHandler [89]
+                0.00    0.00       1/2           AmmServer_RegisterTerminationSignal [58]
+[65]     0.0    0.00    0.00       2         AmmServer_Warning [65]
+                0.00    0.00       2/2           AmmServer_GeneralPrint [63]
+-----------------------------------------------
+                0.00    0.00       1/1           cache_LoadResourceFromDisk [38]
+[66]     0.0    0.00    0.00       1         CreateCompressedVersionofStaticContent [66]
+-----------------------------------------------
+                0.00    0.00       1/1           AmmServer_Start [107]
+[67]     0.0    0.00    0.00       1         EmmitPossibleConfigurationWarnings [67]
+-----------------------------------------------
+                0.00    0.00       1/1           cache_LoadResourceFromDisk [38]
+[68]     0.0    0.00    0.00       1         GetExtentionType [68]
+-----------------------------------------------
+                0.00    0.00       1/1           LoadConfigurationFile [74]
+[69]     0.0    0.00    0.00       1         InputParser_Create [69]
+                0.00    0.00       1/1           InputParser_DefaultDelimeters [70]
+-----------------------------------------------
+                0.00    0.00       1/1           InputParser_Create [69]
+[70]     0.0    0.00    0.00       1         InputParser_DefaultDelimeters [70]
+-----------------------------------------------
+                0.00    0.00       1/1           LoadConfigurationFile [74]
+[71]     0.0    0.00    0.00       1         InputParser_Destroy [71]
+-----------------------------------------------
+                0.00    0.00       1/1           LoadConfigurationFile [74]
+[72]     0.0    0.00    0.00       1         InputParser_GetWord [72]
+-----------------------------------------------
+                0.00    0.00       1/1           LoadConfigurationFile [74]
+[73]     0.0    0.00    0.00       1         InputParser_SetDelimeter [73]
+-----------------------------------------------
+                0.00    0.00       1/1           AmmServer_Start [107]
+[74]     0.0    0.00    0.00       1         LoadConfigurationFile [74]
+                0.00    0.00     158/732         InputParser_WordCompareNoCase [55]
+                0.00    0.00     158/732         InputParser_WordCompareNoCaseAuto [56]
+                0.00    0.00      81/81          InputParser_SeperateWords [57]
+                0.00    0.00      77/77          AmmServer_RegisterTerminationSignal [58]
+                0.00    0.00       1/1           InputParser_Create [69]
+                0.00    0.00       1/1           InputParser_SetDelimeter [73]
+                0.00    0.00       1/1           InputParser_Destroy [71]
+                0.00    0.00       1/1           InputParser_GetWord [72]
+                0.00    0.00       1/14          InputParser_GetWordInt [59]
+-----------------------------------------------
+                0.00    0.00       1/1           MainHTTPServerThread [7]
+[75]     0.0    0.00    0.00       1         PreSpawnThreads [75]
+-----------------------------------------------
+                0.00    0.00       1/1           StartHTTPServer [77]
+[76]     0.0    0.00    0.00       1         ServerThreads_DropRootUID [76]
+-----------------------------------------------
+                0.00    0.00       1/1           AmmServer_Start [107]
+[77]     0.0    0.00    0.00       1         StartHTTPServer [77]
+                0.00    0.00       1/1           clientList_initialize [81]
+                0.00    0.00       1/1           ServerThreads_DropRootUID [76]
+                0.00    0.00       1/1           parentKeepMessageOnStackUntilReady [86]
+-----------------------------------------------
+                0.00    0.00       1/1           SendFile [3]
+[78]     0.0    0.00    0.00       1         TransmitFileToSocket [78]
+                0.00    0.00       1/1           start_timer [87]
+                0.00    0.00       1/1           end_timer [82]
+-----------------------------------------------
+                0.00    0.00       1/1           AmmServer_Start [107]
+[79]     0.0    0.00    0.00       1         cache_Initialize [79]
+                0.00    0.00       1/1           hashMap_Create [83]
+-----------------------------------------------
+                0.00    0.00       1/1           MainHTTPServerThread [7]
+[80]     0.0    0.00    0.00       1         childFinishedWithParentMessage [80]
+-----------------------------------------------
+                0.00    0.00       1/1           StartHTTPServer [77]
+[81]     0.0    0.00    0.00       1         clientList_initialize [81]
+-----------------------------------------------
+                0.00    0.00       1/1           TransmitFileToSocket [78]
+[82]     0.0    0.00    0.00       1         end_timer [82]
+-----------------------------------------------
+                0.00    0.00       1/1           cache_Initialize [79]
+[83]     0.0    0.00    0.00       1         hashMap_Create [83]
+-----------------------------------------------
+                0.00    0.00       1/1           cache_LoadResourceFromDisk [38]
+[84]     0.0    0.00    0.00       1         instance_CountNewMallocOP [84]
+-----------------------------------------------
+                0.00    0.00       1/1           cache_LoadResourceFromDisk [38]
+[85]     0.0    0.00    0.00       1         instance_WeCanCommitMoreMemory [85]
+-----------------------------------------------
+                0.00    0.00       1/1           StartHTTPServer [77]
+[86]     0.0    0.00    0.00       1         parentKeepMessageOnStackUntilReady [86]
+-----------------------------------------------
+                0.00    0.00       1/1           TransmitFileToSocket [78]
+[87]     0.0    0.00    0.00       1         start_timer [87]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+
+Index by function name
+
+  [62] AmmServer_AddResourceHandler [7] MainHTTPServerThread [81] clientList_initialize
+  [63] AmmServer_GeneralPrint [75] PreSpawnThreads        [48] clientList_isClientAllowedToUseResource
+  [58] AmmServer_RegisterTerminationSignal [5] ProcessFirstHTTPLine [44] clientList_isClientBanned
+  [64] AmmServer_RemoveResourceHandler [11] ReceiveHTTPHeader [53] clientList_signalClientStoppedUsingResource
+  [65] AmmServer_Warning      [16] ReducePathSlashes_Inplace [39] close_dynamic_content
+   [2] AnalyzeHTTPHeader       [3] SendFile               [43] dynamicRequest_ContentAvailiable
+   [4] AnalyzeHTTPLineRequest  [8] SendSuccessCodeHeader  [31] dynamicRequest_serveContent
+  [13] CheckHTTPHeaderCategory [1] ServeClient            [82] end_timer
+  [30] CheckHTTPHeaderCategoryAllCaps [18] ServeClientKeepAliveLoop [23] findOutClientIDOfPeer
+  [66] CreateCompressedVersionofStaticContent [76] ServerThreads_DropRootUID [52] freeMallocIfNeeded
+  [67] EmmitPossibleConfigurationWarnings [12] SpawnThreadToServeNewClient [60] hashMap_Add
+   [9] FilenameStripperOk     [77] StartHTTPServer        [61] hashMap_AddULong
+  [21] FindIndexFile          [27] StripGETRequestQueryAndFragment [83] hashMap_Create
+  [54] FreeHTTPHeader         [28] StripHTMLCharacters_Inplace [40] hashMap_GetHashAtIndex
+  [45] GetContentType         [78] TransmitFileToSocket   [10] hashMap_GetULongPayload
+  [14] GetContentTypeForExtension [51] UsePreSpawnedThreadToServeNewClient [47] hashMap_SaveToFile
+  [26] GetDateString          [37] cache_AddFile          [84] instance_CountNewMallocOP
+  [68] GetExtentionType       [33] cache_AddMemoryBlock   [85] instance_WeCanCommitMoreMemory
+  [17] GetTickCountAmmServ    [29] cache_ChangeRequestIfTemplateRequested [86] parentKeepMessageOnStackUntilReady
+  [69] InputParser_Create     [20] cache_FindResource     [49] request_override_callback
+  [70] InputParser_DefaultDelimeters [41] cache_GetHashOfResource [32] scanFor_audioFiles
+  [71] InputParser_Destroy    [19] cache_GetResource      [25] scanFor_firstLines
+  [72] InputParser_GetWord    [79] cache_Initialize        [6] scanFor_httpHeader
+  [59] InputParser_GetWordInt [38] cache_LoadResourceFromDisk [24] scanFor_textFiles
+  [57] InputParser_SeperateWords [35] cache_RemoveContextAndResource [42] setSocketTimeouts
+  [73] InputParser_SetDelimeter [22] cache_ResourceExists [87] start_timer
+  [55] InputParser_WordCompareNoCase [15] callClientRequestHandler [50] warning
+  [56] InputParser_WordCompareNoCaseAuto [80] childFinishedWithParentMessage
+  [74] LoadConfigurationFile  [46] clientList_GetClientId
