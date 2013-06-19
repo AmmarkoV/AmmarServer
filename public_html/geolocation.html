@@ -6,8 +6,8 @@
 
 <input id="message" type="text" name="message">
 <button onclick="getLocation()">Shout</button><br><br>
-<input type="checkbox" name="autoRefresh"  onchange='handleJoystickActiveSwitch(this);' >Auto Refresh</input>
-
+<input type="checkbox" id="autoRefresh"  onchange='autogetLocation();' >Auto Refresh</input><br>
+<input type="checkbox" id="showMap" >Show Map</input>
 
 
 <div id="mapholder"></div>
@@ -40,13 +40,14 @@ function showPosition(position)
   "<br>Longitude: " + position.coords.longitude;	
 
 
+  if (document.getElementById("showMap").checked)
+  {
+   var latlon=position.coords.latitude+","+position.coords.longitude;
 
-  var latlon=position.coords.latitude+","+position.coords.longitude;
-
-  var img_url="http://maps.googleapis.com/maps/api/staticmap?center="
+   var img_url="http://maps.googleapis.com/maps/api/staticmap?center="
   +latlon+"&zoom=14&size=400x300&sensor=false";
   document.getElementById("mapholder").innerHTML="<img src='"+img_url+"'>";
-
+  }
   
   command("lat="+position.coords.latitude+"&lon="+position.coords.longitude+"&msg="+document.getElementById('message').value);
 
@@ -55,21 +56,31 @@ function showPosition(position)
 
  
 function getLocation()
-  {
+{
   if (navigator.geolocation)
     {
-    navigator.geolocation.getCurrentPosition(showPosition,showError);
+      navigator.geolocation.getCurrentPosition(showPosition,showError);
     }
   else{x.innerHTML="Geolocation is not supported by this browser.";}
-  }
+}
+
+function getLocationNotChecking()
+{
+  navigator.geolocation.getCurrentPosition(showPosition,showError); 
+}
+
 
 
 function autogetLocation(cb)
 {
-  if (cb.checked)
+  if (document.getElementById("autoRefresh").checked)
   {
-    var interval = setInterval(getLocation, 1000);
+    getLocationNotChecking();
+    //alert('Executed');
   }
+ 
+
+  setTimeout(autogetLocation, 1000);
 }
 
 
@@ -91,6 +102,9 @@ function showError(error)
       break;
     }
   }
+
+ 
+
 </script>
 </body>
 </html>
