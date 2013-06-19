@@ -15,8 +15,8 @@
 
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
-#define MAX_CLIENTS_LISTENING_FOR 512
-#define MAX_CLIENT_THREADS 512 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
+#define MAX_CLIENTS_LISTENING_FOR 5000 //C10K :P
+#define MAX_CLIENT_THREADS 3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
 #define MAX_CLIENT_PRESPAWNED_THREADS 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
 
