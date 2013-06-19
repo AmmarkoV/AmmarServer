@@ -272,7 +272,7 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
   char longitude[128]={0};
   char message[256]={0};
 
- warning("New GPS message");
+ AmmServer_Warning("New GPS message");
  if ( rqst->GET_request != 0 )
     {
       if ( strlen(rqst->GET_request)>0 )
