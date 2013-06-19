@@ -1,30 +1,44 @@
 <!DOCTYPE html>
 <html>
+
+<head>
+<meta charset="utf-8">
+<title>Geo Shout</title>
+ 
+</head>
+
 <body>
-<p id="placeholder">Click the button to shout something! :</p>
+<br><br><br>
+<center>
+<p id="placeholder">Click the button to shout something from your location! :</p>
 
 
 <input id="message" type="text" name="message">
 <button onclick="getLocation()">Shout</button><br><br>
 <input type="checkbox" id="autoRefresh"  onchange='autogetLocation();' >Auto Refresh</input><br>
-<input type="checkbox" id="showMap" >Show Map</input>
+<input type="checkbox" id="showMap" checked>Show Map</input><br><br>
 
 
-<div id="mapholder"></div>
+<iframe id="openMapHolder" width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://www.openstreetmap.org/export/embed.html?bbox=-12.2,34.5,29.1,64.6&amp;layer=mapnik" style="border: 1px solid black"></iframe><br /><small><a href="http://www.openstreetmap.org/?lat=49.55&amp;lon=8.450000000000001&amp;zoom=4&amp;layers=M&amp;mlat=35.60372&amp;mlon=25.13672">View Larger Map</a></small>
+
+
+<br> 
+</center>
+
+
+
 
 <script>
 var x=document.getElementById("placeholder");
-
-
-
+ 
 function httpGet(theUrl)
     {
-    var xmlHttp = null;
+      var xmlHttp = null;
 
-    xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
-    xmlHttp.send( null );
-    return xmlHttp.responseText;
+      xmlHttp = new XMLHttpRequest();
+      xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
+      xmlHttp.send( null );
+      return xmlHttp.responseText;
     }
 
 function command(theCommand)
@@ -44,11 +58,16 @@ function showPosition(position)
   {
    var latlon=position.coords.latitude+","+position.coords.longitude;
 
-   var img_url="http://maps.googleapis.com/maps/api/staticmap?center="
-  +latlon+"&zoom=14&size=400x300&sensor=false";
-  document.getElementById("mapholder").innerHTML="<img src='"+img_url+"'>";
+   var latFloat = parseFloat(position.coords.latitude);
+   var lonFloat = parseFloat(position.coords.longitude);
+
+   var boundBox=(lonFloat-0.02)+","+(latFloat-0.02)+","+(lonFloat+0.02) +","+(latFloat+0.02); 
+  
+   var osmString="http://www.openstreetmap.org/export/embed.html?bbox="+boundBox+"&layer=mapnik&marker="+latlon;
+   document.getElementById("openMapHolder").src=osmString; 
   }
   
+ 
   command("lat="+position.coords.latitude+"&lon="+position.coords.longitude+"&msg="+document.getElementById('message').value);
 
 
@@ -101,11 +120,9 @@ function showError(error)
       x.innerHTML="An unknown error occurred."
       break;
     }
-  }
-
- 
-
+  } 
 </script>
+
 </body>
 </html>
 
