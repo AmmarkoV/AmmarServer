@@ -54,6 +54,7 @@
 		</Compiler>
 		<Linker>
 			<Add option="-lrt" />
+			<Add option="-pthreads" />
 		</Linker>
 		<Unit filename="AmmServerlib.h" />
 		<Unit filename="InputParser/InputParser_C.c">

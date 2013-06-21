@@ -20,7 +20,8 @@ then
   rm $LIBNAME
 fi   
  
-CFLAGS="-s -O3 -fexpensive-optimizations -march=native -mtune=native -fPIC"
+#-march=native -mtune=native  <- doesnt compile in Raspberry pi with those
+CFLAGS="-s -O3 -fexpensive-optimizations -fPIC"
 #These are debug + profiling settings -> CFLAGS="-g -pg"
 
 gcc -c $CFLAGS main.c -o main.o
