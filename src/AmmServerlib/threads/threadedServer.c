@@ -595,8 +595,8 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
 
    if ( retres==0 )
      {
-         parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack);
-         //while (context.keep_var_on_stack==1) { usleep(1); /*wait;*/ }
+         //parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack); <-- This does not work on ARM devices , there is some problem
+         while (context.keep_var_on_stack==1) { usleep(100); /*wait;*/ fprintf(stderr,"."); } //<- it is ok to print a little stuff here , it only happens once
       }
 
    //We flip the retres
