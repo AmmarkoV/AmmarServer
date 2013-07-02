@@ -463,7 +463,7 @@ void * MainHTTPServerThread (void * ptr)
   struct sockaddr_in client;
 
   struct AmmServer_Instance * instance = context->instance;
-  if (instance==0) { fprintf(stderr,"Error , HTTPServerThread called with an invalid instance\n"); context->keep_var_on_stack=2;  return 0; }
+  if (instance==0) { error("HTTPServerThread called with an invalid instance\n"); context->keep_var_on_stack=2;  return 0; }
   fprintf(stderr,"HTTPServerThread instance pointing @ %p \n",instance);
 
   int serversock = socket(AF_INET, SOCK_STREAM, 0);
@@ -491,7 +491,11 @@ void * MainHTTPServerThread (void * ptr)
   //I am trying a larger listen queue to hold incoming connections regardless of the serving threads
   //so that they will be used later
   if ( listen(serversock,MAX_CLIENTS_LISTENING_FOR /*MAX_CLIENT_THREADS*/) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
-           { error("Server Thread : Failed to listen on server socket"); instance->server_running=0; return 0; }
+         {
+           error("Server Thread : Failed to listen on server socket");
+           instance->server_running=0;
+           return 0;
+         }
 
 
 
@@ -500,7 +504,7 @@ void * MainHTTPServerThread (void * ptr)
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
   PreSpawnThreads(instance);
 
-  while ( (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
+  while ( (instance->server_running) && (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
   {
     fprintf(stderr,"\nServer Thread : Waiting for a new client\n");
     /* Wait for client connection */
@@ -532,6 +536,7 @@ void * MainHTTPServerThread (void * ptr)
   instance->server_running=0;
   instance->stop_server=2;
 
+  warning("Server Stopped..");
   //It should already be closed so skipping this : close(serversock);
   pthread_exit(0);
   return 0;

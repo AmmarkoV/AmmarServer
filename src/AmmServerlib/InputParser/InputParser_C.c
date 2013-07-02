@@ -20,9 +20,11 @@
 */
 
 #define WARN_ABOUT_INCORRECTLY_ALLOCATED_STACK_STRINGS 1
-
+int warningsAboutIncorrectlyAllocatedStackIssued = 0;
 
 char _ipc_ver[]=" 0.356 written from scratch - 8/2/10 \0";
+
+
 
 char * InputParserC_Version()
 {
@@ -563,10 +565,14 @@ int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcop
    if (keepcopy==0)
     {
       #if WARN_ABOUT_INCORRECTLY_ALLOCATED_STACK_STRINGS
-      fprintf(stderr,"Please note that feeding input parser with strings allocated on the stack it is generally a good idea to enable keepcopy\n");
-      fprintf(stderr,"For example passing here a string allocated as  char* hello = \"hello!\"; might lead to a segFault ( i.e. when calling InputParser_GetWordFloat ) \n");
-      fprintf(stderr,"The correct way for allocating a string with in place processing is char hello[] = \"hello!\"; \n");
-      fprintf(stderr,"Valgrind classifies these errors as \"Bad permissions for mapped region at address\" \n");
+       if (warningsAboutIncorrectlyAllocatedStackIssued==0)
+        {
+         fprintf(stderr,"Please note that feeding input parser with strings allocated on the stack it is generally a good idea to enable keepcopy\n");
+         fprintf(stderr,"For example passing here a string allocated as  char* hello = \"hello!\"; might lead to a segFault ( i.e. when calling InputParser_GetWordFloat ) \n");
+         fprintf(stderr,"The correct way for allocating a string with in place processing is char hello[] = \"hello!\"; \n");
+         fprintf(stderr,"Valgrind classifies these errors as \"Bad permissions for mapped region at address\" \n");
+         ++warningsAboutIncorrectlyAllocatedStackIssued ;
+        }
       #endif
     }
 
