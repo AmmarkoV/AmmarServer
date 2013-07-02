@@ -173,7 +173,9 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
              fprintf(stderr,"Thread %u is now unlocked\n",prespawned_data->threadNum);
 
              ++instance->prespawn_turn_to_serve;
-             instance->prespawn_turn_to_serve = instance->prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
+             #if MAX_CLIENT_PRESPAWNED_THREADS > 0
+              instance->prespawn_turn_to_serve = instance->prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
+             #endif
 
              return 1;
          }
