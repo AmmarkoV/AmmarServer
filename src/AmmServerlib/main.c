@@ -170,7 +170,7 @@ struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int
 }
 
 
-/*struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char ** argv , char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
+struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char ** argv , char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
 {
    //First prepare some buffers with default values for all the arguments
    char serverName[MAX_FILE_PATH]="default";
@@ -178,7 +178,7 @@ struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int
    char templates_root[MAX_FILE_PATH]="public_html/templates/";
    char configuration_file[MAX_FILE_PATH]={0};
    char bindIP[MAX_IP_STRING_SIZE]="0.0.0.0";
-   unsigned int bindPort=DEFAULT_BINDING_PORT;
+   unsigned int bindPort=8080;
 
    //If we have arguments we change our buffers
    if (name!=0)           {  strcpy(serverName,name); }
@@ -186,7 +186,7 @@ struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int
    if (templates_root!=0) {  strcpy(templates_root,templates_root_path); }
    if (conf_file!=0)      { strcpy(configuration_file,conf_file); }
    if (ip!=0)             {  strcpy(bindIP,ip); }
-   if (bindPort!=0)       {  bindPort=port; }
+   if (port!=0)           {  bindPort=port; }
 
 
    //If we have a command line arguments we overwrite our buffers
@@ -201,7 +201,7 @@ struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int
   }
 
   return AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
-}*/
+}
 
 
 int AmmServer_Running(struct AmmServer_Instance * instance)
