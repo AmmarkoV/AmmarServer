@@ -10,5 +10,6 @@
 		<Project filename="src/MyURL/MyURL.cbp" />
 		<Project filename="src/AmmarServer.cbp" />
 		<Project filename="src/ScriptRunner/ScriptRunner.cbp" />
+		<Project filename="src/Services/GeoPosShare/GeoPosShare.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
