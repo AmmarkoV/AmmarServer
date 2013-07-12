@@ -170,6 +170,13 @@ struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int
 }
 
 
+struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char ** argv ,
+                                                                  char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
+{
+  return AmmServer_Start(name,ip,port,conf_file,web_root_path,templates_root_path);
+}
+
+
 int AmmServer_Running(struct AmmServer_Instance * instance)
 {
   return HTTPServerIsRunning(instance);
