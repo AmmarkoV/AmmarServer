@@ -27,7 +27,7 @@ fi
 CFLAGS="-s -Os -fexpensive-optimizations"  
 LIBRARIES="-pthread -lrt"
 
-USELZ=`cat ../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
+USELZ=`cat ../../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
 if [ -n "$USELZ" ]
 then 
  echo "$green Also Linking Lz $normal"
@@ -44,11 +44,11 @@ if [ -n "$USE_DYNAMIC_LINKING" ]
 then 
  if [ ! -e libAmmServerlib.so ]
   then
-   ln -s ../AmmServerlib/libAmmServerlib.so
+   ln -s ../../AmmServerlib/libAmmServerlib.so
  fi
  OURLIBRARIES="libAmmServerlib.so"  
 else
- OURLIBRARIES="../AmmServerlib/libAmmServerlib.a"  
+ OURLIBRARIES="../../AmmServerlib/libAmmServerlib.a"  
 fi
 fi
 # -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -

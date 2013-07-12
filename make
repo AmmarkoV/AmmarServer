@@ -53,12 +53,23 @@ cd ..
 fi
 
 # Mini Clients go afterwards ----------------
-if [ -d MyURL ]
+if [ -d Services/SimpleTemplate ]
 then 
-cd SimpleTemplate
+cd Services/SimpleTemplate
 ./make $@
 cd ..
+cd ..
 fi
+
+
+
+if [ -d Services/AmmarServer ]
+then 
+cd Services/AmmarServer
+./make $@
+cd ..
+cd ..
+fi 
 
 if [ -d Services/MyURL ]
 then 
@@ -76,10 +87,11 @@ cd ..
 cd ..
 fi
 
-if [ -d ScriptRunner ]
+if [ -d Services/ScriptRunner ]
 then 
-cd ScriptRunner
+cd Services/ScriptRunner
 ./make $@
+cd ..
 cd ..
 fi
 
@@ -102,10 +114,6 @@ cd ..
 fi
 
 
-
-#AmmarServer main executable in the end
-./make $@
-cd ..
 
 
 exit 0

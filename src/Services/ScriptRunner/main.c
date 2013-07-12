@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
-#include "../AmmServerlib/AmmServerlib.h"
+#include "../../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
 
@@ -339,7 +339,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
 
-  page=AmmServer_ReadFileToMemory("src/ScriptRunner/controlpanel.html",&pageLength);
+  page=AmmServer_ReadFileToMemory("src/Services/ScriptRunner/controlpanel.html",&pageLength);
   if (! AmmServer_AddResourceHandler(default_server,&form,"/controlpanel.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
 
   AmmServer_DoNOTCacheResourceHandler(default_server,&form);

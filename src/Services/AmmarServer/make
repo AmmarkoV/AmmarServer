@@ -6,7 +6,7 @@ normal=$(printf "\033[m")
 
 USE_DYNAMIC_LINKING=""
 USE_SYSTEM_DYNAMIC_LIBRARY=""
-OUTPUT="scriptrunner"
+OUTPUT="ammarserver"
 
 for arg in $@; do 
  if [ "$arg" = "dynamic" ]
@@ -18,7 +18,7 @@ for arg in $@; do
    USE_SYSTEM_DYNAMIC_LIBRARY="1"
   fi  
 done
-
+  
 if [ -e $OUTPUT ]
 then
   rm $OUTPUT
@@ -27,7 +27,8 @@ fi
 CFLAGS="-s -Os -fexpensive-optimizations"  
 LIBRARIES="-pthread -lrt"
 
-USELZ=`cat ../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
+
+USELZ=`cat ../../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
 if [ -n "$USELZ" ]
 then 
  echo "$green Also Linking Lz $normal"
@@ -44,18 +45,18 @@ if [ -n "$USE_DYNAMIC_LINKING" ]
 then 
  if [ ! -e libAmmServerlib.so ]
   then
-   ln -s ../AmmServerlib/libAmmServerlib.so
+   ln -s ../../AmmServerlib/libAmmServerlib.so
  fi
  OURLIBRARIES="libAmmServerlib.so"  
 else
- OURLIBRARIES="../AmmServerlib/libAmmServerlib.a"  
+ OURLIBRARIES="../../AmmServerlib/libAmmServerlib.a"  
 fi
 fi
 # -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
 gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 
-  
+
 if [ -e $OUTPUT ]
 then
   strip $OUTPUT
@@ -63,5 +64,33 @@ then
 else
   echo "$red Failure building $OUTPUT .. $normal"
 fi
+
+
+
+
+
+OUTPUT="ammarserverNULL"
+
+if [ -e $OUTPUT ]
+then
+  rm $OUTPUT
+fi 
+
+CFLAGS="-s -O3 -fexpensive-optimizations" 
+OURLIBRARIES="../../AmmServerNULLlib/libAmmServerlib.a" 
+LIBRARIES="-pthread -lrt -lz"
+
+gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
+
+if [ -e $OUTPUT ]
+then
+  echo "$green AmmServerNULLlib is synced to AmmServerlib.. $normal"
+  rm $OUTPUT
+else
+  echo "$red Failure , please update the AmmServerNULLlib to mirror the real AmmarServer API headers .. $normal"
+fi
+
+ 
+
 
 exit 0
