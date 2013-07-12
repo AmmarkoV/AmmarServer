@@ -50,10 +50,9 @@ and fully customizable web service..
    https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/MyLoader/main.c
    You can run it by issuing ./run_myloader from root directory 
 
--  A File Uploader service based on MyLoader , currently under construction..
+-  A Web Service that allows location sharing , currently under construction..
    https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/GeoPosShare/main.c
    You can run it by issuing ./run_geoposshare from root directory 
-
 
 
 -------------------------------------------------------------------------------------------------
