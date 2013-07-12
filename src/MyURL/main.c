@@ -623,22 +623,23 @@ int main(int argc, char *argv[])
         { AmmServer_Error("Could not initialize Captcha System"); }
   #endif
 
-    if ( argc <1 )   { AmmServer_Warning("Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
-    if ( argc <= 2 ) {  } else
-     {
-        if (strlen(argv[1])>=MAX_IP_STRING_SIZE) { AmmServer_Warning("Console argument for binding IP is too long..!\n"); } else
-                                           { strncpy(bindIP,argv[1],MAX_IP_STRING_SIZE); }
-        port=atoi(argv[2]);
-        if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
-     }
-   if (argc>=3) { strncpy(webserver_root,argv[3],MAX_FILE_PATH); }
-   if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
+
 
     pthread_mutex_init(&db_fileLock,0);
     pthread_mutex_init(&db_addIDLock,0);
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
-    myurl_server = AmmServer_Start("myurl",bindIP,port,0,webserver_root,templates_root);
+    myurl_server =  AmmServer_StartWithArgs(
+                                             "myurl",
+                                              argc,argv , //The internal server will use the arguments to change settings
+                                              //If you don't want this look at the AmmServer_Start call
+                                              bindIP,
+                                              port,
+                                              0, /*This means we don't want a specific configuration file*/
+                                              webserver_root,
+                                              templates_root
+                                              );
+
     if (!myurl_server) { AmmServer_Error("Could not start myurl server\n"); exit(1); }
 
     if (LoadMyURLDBFile(db_file))

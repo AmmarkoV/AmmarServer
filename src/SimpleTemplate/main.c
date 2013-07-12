@@ -139,15 +139,16 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
-    default_server = AmmServer_Start
-        (
-           "ScriptRunner",
-           bindIP,
-           port,
-           0, /*This means we don't want a specific configuration file*/
-           webserver_root,
-           templates_root
-         );
+    default_server = AmmServer_StartWithArgs(
+                                             "SimpleTemplate",
+                                              argc,argv , //The internal server will use the arguments to change settings
+                                              //If you don't want this look at the AmmServer_Start call
+                                              bindIP,
+                                              port,
+                                              0, /*This means we don't want a specific configuration file*/
+                                              webserver_root,
+                                              templates_root
+                                              );
 
 
     if (!default_server) { AmmServer_Error("Could not start server , shutting down everything.."); exit(1); }

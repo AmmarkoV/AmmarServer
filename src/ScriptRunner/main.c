@@ -382,27 +382,16 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
 
-    if ( argc <1 ) { fprintf(stderr,"Something weird is happening , argument zero should be executable path :S \n"); return 1; } else
-    if ( argc <= 2 ) {  } else
-     {
-        if (strlen(argv[1])>=MAX_IP_STRING_SIZE) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
-                                           { strncpy(bindIP,argv[1],MAX_IP_STRING_SIZE); }
-        port=atoi(argv[2]);
-        if (port>=MAX_BINDING_PORT) { port=DEFAULT_BINDING_PORT; }
-     }
-   if (argc>=3) { strncpy(webserver_root,argv[3],MAX_FILE_PATH); }
-   if (argc>=4) { strncpy(templates_root,argv[4],MAX_FILE_PATH); }
-
-    //Kick start AmmarServer , bind the ports , create the threads and get things going..!
-    default_server = AmmServer_Start
-        (
-           "scriptrunner",
-           bindIP,
-           port,
-           0, /*This means we don't want a specific configuration file*/
-           webserver_root,
-           templates_root
-         );
+    default_server = AmmServer_StartWithArgs(
+                                             "scriptrunner",
+                                              argc,argv , //The internal server will use the arguments to change settings
+                                              //If you don't want this look at the AmmServer_Start call
+                                              bindIP,
+                                              port,
+                                              0, /*This means we don't want a specific configuration file*/
+                                              webserver_root,
+                                              templates_root
+                                              );
 
     if (ENABLE_ADMIN_PAGE)
      {
