@@ -1,0 +1,15 @@
+#!/bin/bash
+# I clear the terminal to make easier debugging between different starts of the program
+clear
+
+STARTDIR=`pwd`
+#Switch to this directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+
+# Start AmmarServer
+src/Services/GeoPosShare/run_geoposshare $@
+
+cd "$STARTDIR"
+
+exit 0

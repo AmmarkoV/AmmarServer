@@ -35,20 +35,25 @@ This Repository contains :
 and fully customizable web service..
 
 -  A template for starting to build your own webserver which is very well documented
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/SimpleTemplate/main.c
-   You can run it by issuing ./run_ammarserver from root directory 
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/SimpleTemplate/main.c
+   You can run it by issuing ./run_simpleTemplate from root directory 
 
 -  A simple (but extensible) webserver demo showcasing some dynamic pages
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/main.c
    You can run it by issuing ./run_ammarserver from root directory 
 
 -  A URL Shortner service like tinyurl , bitly , goo.gl etc..
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/MyURL/main.c
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/MyURL/main.c
    You can run it by issuing ./run_myurl from root directory 
 
 -  A File Uploader service based on MyLoader , currently under construction..
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/MyLoader/main.c
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/MyLoader/main.c
    You can run it by issuing ./run_myloader from root directory 
+
+-  A File Uploader service based on MyLoader , currently under construction..
+   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/GeoPosShare/main.c
+   You can run it by issuing ./run_geoposshare from root directory 
+
 
 
 -------------------------------------------------------------------------------------------------
