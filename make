@@ -81,6 +81,16 @@ cd ScriptRunner
 cd ..
 fi
 
+if [ -d Services/GeoPosShare ]
+then 
+cd Services/GeoPosShare
+./make $@
+cd ..
+cd ..
+fi
+
+
+
 # Unit Tests go in the end so that everything else is already there
 if [ -d UnitTests ]
 then 
@@ -88,6 +98,8 @@ cd UnitTests
 ./make $@
 cd ..
 fi
+
+
 
 #AmmarServer main executable in the end
 ./make $@
