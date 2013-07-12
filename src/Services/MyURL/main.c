@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
-#include "../AmmServerlib/AmmServerlib.h"
+#include "../../AmmServerlib/AmmServerlib.h"
 
 
 #define ENABLE_CAPTCHA_SYSTEM 1
@@ -35,7 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
 #if ENABLE_CAPTCHA_SYSTEM
-#include "../AmmCaptcha/AmmCaptcha.h"
+#include "../../AmmCaptcha/AmmCaptcha.h"
 #endif
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -55,7 +55,7 @@ char db_file[128]="myurl.db";
 pthread_mutex_t db_fileLock;
 pthread_mutex_t db_addIDLock;
 
-char indexPagePath[128]="src/MyURL/myurl.html";
+char indexPagePath[128]="src/Services/MyURL/myurl.html";
 char * indexPage=0;
 unsigned int indexPageLength=0;
 

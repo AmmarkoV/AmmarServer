@@ -60,17 +60,19 @@ cd SimpleTemplate
 cd ..
 fi
 
-if [ -d MyURL ]
+if [ -d Services/MyURL ]
 then 
-cd MyURL
+cd Services/MyURL
 ./make $@
+cd ..
 cd ..
 fi 
 
-if [ -d MyLoader ]
+if [ -d Services/MyLoader ]
 then 
-cd MyLoader
+cd Services/MyLoader
 ./make $@
+cd ..
 cd ..
 fi
 

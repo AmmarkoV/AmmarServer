@@ -5,10 +5,10 @@
 		<Project filename="src/AmmServerlib/AmmServerlib.cbp" />
 		<Project filename="src/UnitTests/UnitTests.cbp" />
 		<Project filename="src/AmmCaptcha/AmmCaptcha.cbp" />
-		<Project filename="src/SimpleTemplate/SimpleTemplate.cbp" active="1" />
-		<Project filename="src/MyLoader/MyLoader.cbp" />
+		<Project filename="src/SimpleTemplate/SimpleTemplate.cbp" />
 		<Project filename="src/MyURL/MyURL.cbp" />
 		<Project filename="src/AmmarServer.cbp" />
+		<Project filename="src/Services/MyLoader/MyLoader.cbp" active="1" />
 		<Project filename="src/ScriptRunner/ScriptRunner.cbp" />
 		<Project filename="src/Services/GeoPosShare/GeoPosShare.cbp" />
 	</Workspace>
