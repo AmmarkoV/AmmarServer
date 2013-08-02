@@ -36,7 +36,12 @@ partitions and many other hacks which optimized things more and more..<br><br>At
 the webserver with the dynamic content it serves. Compiled php
 binaries offer a faster way to generate the content&nbsp; but this content is loosely tied with the server that actually sends it. <br>Instead of having seperate "entities" for the webserver&nbsp; the
 architecture of AmmarServer statically links the webserver library with
-the dynamic content which is compiled into the same executable..&nbsp; <br><br><big style="background-color: white; color: rgb(204, 204, 204);"><big><span style="font-style: italic;">What is it ?</span></big></big><br>AmmarServer is a low level framework that allows the creation of binary executables which contain both their webserver and the ability to generate dynamic pages.<br><br>A sample application that demonstrates this concept and you can see , <a href="https://github.com/AmmarkoV/V4L2ToHTTP/blob/master/src/main.cpp">is my V4L2ToHTTP project</a>
+the dynamic content which is compiled into the same executable..&nbsp; <br><br>
+
+<img src="dependencies.jpg" alt="AmmarServer dependencies"> <br>
+
+
+<big style="background-color: white; color: rgb(204, 204, 204);"><big><span style="font-style: italic;">What is it ?</span></big></big><br>AmmarServer is a low level framework that allows the creation of binary executables which contain both their webserver and the ability to generate dynamic pages.<br><br>A sample application that demonstrates this concept and you can see , <a href="https://github.com/AmmarkoV/V4L2ToHTTP/blob/master/src/main.cpp">is my V4L2ToHTTP project</a>
 that uses AmmarServer as its backbone. V4L2ToHTTP is aimed at a thin server that receives frames from a video device
 ( i.e. webcam ) encodes them into jpeg format in memory , and when a
 client requests a version of cam.jpg the callback dynamically snaps and uploads a new frame from the camera. The whole point of course is having the minimal possible internal "generation/communication" overhead and the
