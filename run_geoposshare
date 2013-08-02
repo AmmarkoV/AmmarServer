@@ -7,9 +7,8 @@ STARTDIR=`pwd`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-# Start ScriptRunner
-src/Services/ScriptRunner/scriptrunner $@
-
+# Start AmmarServer
+src/Services/GeoPosShare/run_geoposshare $@
 
 cd "$STARTDIR"
 

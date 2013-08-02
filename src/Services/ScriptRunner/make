@@ -6,7 +6,7 @@ normal=$(printf "\033[m")
 
 USE_DYNAMIC_LINKING=""
 USE_SYSTEM_DYNAMIC_LIBRARY=""
-OUTPUT="myurl"
+OUTPUT="scriptrunner"
 
 for arg in $@; do 
  if [ "$arg" = "dynamic" ]
@@ -25,9 +25,9 @@ then
 fi 
 
 CFLAGS="-s -Os -fexpensive-optimizations"  
-LIBRARIES="-pthread -lm -lrt -ljpeg"
+LIBRARIES="-pthread -lrt"
 
-USELZ=`cat ../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
+USELZ=`cat ../../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
 if [ -n "$USELZ" ]
 then 
  echo "$green Also Linking Lz $normal"
@@ -44,20 +44,18 @@ if [ -n "$USE_DYNAMIC_LINKING" ]
 then 
  if [ ! -e libAmmServerlib.so ]
   then
-   ln -s ../AmmServerlib/libAmmServerlib.so
+   ln -s ../../AmmServerlib/libAmmServerlib.so
  fi
  OURLIBRARIES="libAmmServerlib.so"  
 else
- OURLIBRARIES="../AmmServerlib/libAmmServerlib.a"  
+ OURLIBRARIES="../../AmmServerlib/libAmmServerlib.a"  
 fi
 fi
 # -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
-OURLIBRARIES="$OURLIBRARIES ../AmmCaptcha/libAmmCaptcha.a"  
-
 gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 
-
+  
 if [ -e $OUTPUT ]
 then
   strip $OUTPUT

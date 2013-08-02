@@ -32,7 +32,7 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>
-			<Add option="../AmmServerlib/libAmmServerlib.a" />
+			<Add option="../../AmmServerlib/libAmmServerlib.a" />
 			<Add option="-pthread" />
 			<Add option="-lrt" />
 			<Add option="-lz" />

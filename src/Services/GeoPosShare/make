@@ -6,7 +6,7 @@ normal=$(printf "\033[m")
 
 USE_DYNAMIC_LINKING=""
 USE_SYSTEM_DYNAMIC_LIBRARY=""
-OUTPUT="myloader"
+OUTPUT="geoposshare"
 
 for arg in $@; do 
  if [ "$arg" = "dynamic" ]
@@ -24,10 +24,10 @@ then
   rm $OUTPUT
 fi 
 
-CFLAGS="-s -Os -fexpensive-optimizations" 
-LIBRARIES="-pthread -lrt"
+CFLAGS="-s -Os -fexpensive-optimizations"  
+LIBRARIES="-pthread -lm -lrt -ljpeg"
 
-USELZ=`cat ../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
+USELZ=`cat ../../AmmServerlib/server_configuration.h | grep "#define ENABLE_COMPRESSION 1"`
 if [ -n "$USELZ" ]
 then 
  echo "$green Also Linking Lz $normal"
@@ -48,11 +48,11 @@ then
  fi
  OURLIBRARIES="libAmmServerlib.so"  
 else
- OURLIBRARIES="../AmmServerlib/libAmmServerlib.a"  
+ OURLIBRARIES="../../AmmServerlib/libAmmServerlib.a"  
 fi
 fi
 # -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
-
+ 
 
 gcc  main.c -L. $OURLIBRARIES $LIBRARIES -o $OUTPUT
 

@@ -22,9 +22,8 @@
 #define WARN_ABOUT_INCORRECTLY_ALLOCATED_STACK_STRINGS 1
 int warningsAboutIncorrectlyAllocatedStackIssued = 0;
 
+
 char _ipc_ver[]=" 0.356 written from scratch - 8/2/10 \0";
-
-
 
 char * InputParserC_Version()
 {
@@ -573,7 +572,9 @@ int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcop
          fprintf(stderr,"Valgrind classifies these errors as \"Bad permissions for mapped region at address\" \n");
          ++warningsAboutIncorrectlyAllocatedStackIssued ;
         }
-      #endif
+       #endif
+
+
     }
 
 

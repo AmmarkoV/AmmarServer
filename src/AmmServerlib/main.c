@@ -170,10 +170,37 @@ struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int
 }
 
 
-struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char ** argv ,
-                                                                  char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
+struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char ** argv , char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
 {
-  return AmmServer_Start(name,ip,port,conf_file,web_root_path,templates_root_path);
+   //First prepare some buffers with default values for all the arguments
+   char serverName[MAX_FILE_PATH]="default";
+   char webserver_root[MAX_FILE_PATH]="public_html/";
+   char templates_root[MAX_FILE_PATH]="public_html/templates/";
+   char configuration_file[MAX_FILE_PATH]={0};
+   char bindIP[MAX_IP_STRING_SIZE]="0.0.0.0";
+   unsigned int bindPort=8080;
+
+   //If we have arguments we change our buffers
+   if (name!=0)           {  strcpy(serverName,name); }
+   if (web_root_path!=0)  {  strcpy(webserver_root,web_root_path); }
+   if (templates_root!=0) {  strcpy(templates_root,templates_root_path); }
+   if (conf_file!=0)      { strcpy(configuration_file,conf_file); }
+   if (ip!=0)             {  strcpy(bindIP,ip); }
+   if (port!=0)           {  bindPort=port; }
+
+
+   //If we have a command line arguments we overwrite our buffers
+  int i=0;
+  for (i=0; i<argc; i++)
+  {
+    if (strcmp(argv[i],"-bind")==0) { strcpy(bindIP,argv[i+1]); fprintf(stderr,"Binding to %s \n",bindIP); } else
+    if (strcmp(argv[i],"-port")==0) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
+    if (strcmp(argv[i],"-rootdir")==0) { strcpy(webserver_root,argv[i+1]); fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
+    if (strcmp(argv[i],"-templatedir")==0) { strcpy(templates_root,argv[i+1]); fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
+    if (strcmp(argv[i],"-conf")==0) { strcpy(configuration_file,conf_file); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
+  }
+
+  return AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
 }
 
 
