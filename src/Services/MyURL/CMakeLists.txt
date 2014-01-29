@@ -8,9 +8,9 @@ set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizat
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
 add_executable(myurl main.c ) 
-target_link_libraries(myurl pthread rt AmmarServer )
+target_link_libraries(myurl pthread rt m AmmarServer AmmCaptcha )
 set_target_properties(myurl PROPERTIES DEBUG_POSTFIX "D")
-add_dependencies(myurl AmmarServer)  
+add_dependencies(myurl AmmarServer AmmCaptcha)  
        
 
 

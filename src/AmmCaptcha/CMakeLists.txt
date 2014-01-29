@@ -26,8 +26,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
   
     add_library(AmmCaptchaDynamic SHARED ${AMMCAPTCHA_INGREDIENTS} )
     add_library(AmmCaptcha STATIC ${AMMCAPTCHA_INGREDIENTS} )
-    target_link_libraries(AmmCaptcha jpeg)
-    target_link_libraries(AmmCaptchaDynamic jpeg)
+    target_link_libraries(AmmCaptcha jpeg m)
+    target_link_libraries(AmmCaptchaDynamic jpeg m)
     set_target_properties(AmmCaptcha PROPERTIES DEBUG_POSTFIX "D")
        
  
