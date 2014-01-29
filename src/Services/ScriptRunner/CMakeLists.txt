@@ -12,7 +12,12 @@ target_link_libraries(scriptrunner pthread rt AmmarServer )
 set_target_properties(scriptrunner PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(scriptrunner AmmarServer)  
        
-
+    set_target_properties(scriptrunner PROPERTIES 
+                          DEBUG_POSTFIX "D"
+                          ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                         )
 
 #    install(TARGETS AmmarServer
 #                    LIBRARY DESTINATION lib

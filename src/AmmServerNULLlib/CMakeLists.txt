@@ -12,10 +12,21 @@ add_custom_command(OUTPUT AmmServerlib.h COMMAND ln -fs  ${CMAKE_SOURCE_DIR}/src
  
 
 add_library(AmmarServerNullDynamic SHARED main.c AmmServerlib.h)
-add_library(AmmarServerNull STATIC  main.c AmmServerlib.h) 
-set_target_properties(AmmarServer PROPERTIES DEBUG_POSTFIX "D")
+add_library(AmmarServerNull STATIC  main.c AmmServerlib.h)  
  
- 
+     set_target_properties(AmmarServerNullDynamic PROPERTIES 
+                          DEBUG_POSTFIX "D"
+                          ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                         )
+     set_target_properties(AmmarServerNull PROPERTIES 
+                          DEBUG_POSTFIX "D"
+                          ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                         )
+
 #    install(TARGETS AmmarServer
 #                    LIBRARY DESTINATION lib
 #                    ARCHIVE DESTINATION lib
