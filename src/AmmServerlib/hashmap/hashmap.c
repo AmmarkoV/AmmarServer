@@ -1,3 +1,9 @@
+//
+//hashmap implementation for C , original (master) repository -> https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/hashmap/hashmap.c
+//written by Ammar Qammaz
+//
+
+
 #include <stdio.h>     /* files */
 #include <stdlib.h>     /* qsort */
 #include <string.h>     /* memset */

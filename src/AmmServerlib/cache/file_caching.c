@@ -397,7 +397,7 @@ int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct A
        context->requestContext.MAXcontentSize=0;
        if ((free_mem)&&(context->requestContext.content!=0)) { free(context->requestContext.content); context->requestContext.content=0; }
 
-       unsigned int index;
+       unsigned int index=0;
        if (!cache_FindResource(instance,context->resource_name,&index) )
           {
             warning("Could not remove direct resource ( it does not exist ) ..\n");
