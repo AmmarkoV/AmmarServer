@@ -8,8 +8,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
 #Left here as a reminder
 #add_custom_command(OUTPUT AmmServerlib.h COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/custom.cmake)
 
-add_custom_command(OUTPUT AmmServerlib.h COMMAND ln -fs  ${CMAKE_SOURCE_DIR}/src/AmmServerlib/AmmServerlib.h ${CMAKE_SOURCE_DIR}/src/AmmServerNULLlib/AmmServerlib.h ) 
+#This does not work always
+#add_custom_command(OUTPUT AmmServerlib.h COMMAND ln -fs  ${CMAKE_SOURCE_DIR}/src/AmmServerlib/AmmServerlib.h ${CMAKE_SOURCE_DIR}/src/AmmServerNULLlib/AmmServerlib.h ) 
  
+#This seems to work always
+add_custom_command(OUTPUT AmmServerlib.h COMMAND ln -fs  ${CMAKE_CURRENT_SOURCE_DIR}/../AmmServerlib/AmmServerlib.h ${CMAKE_CURRENT_SOURCE_DIR}/AmmServerlib.h ) 
+
 
 add_library(AmmarServerNullDynamic SHARED main.c AmmServerlib.h)
 add_library(AmmarServerNull STATIC  main.c AmmServerlib.h)  
