@@ -17,4 +17,7 @@ char * dynamicRequest_serveContent
 
 int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output);
 
+
+int saveDynamicRequest(char* filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst);
+
 #endif // DYNAMIC_REQUESTS_H_INCLUDED

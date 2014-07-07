@@ -300,6 +300,8 @@ int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest 
 
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst);
 
+int AmmServer_SaveDynamicRequest(char* filename , struct AmmServer_Instance * instance  , struct AmmServer_DynamicRequest * rqst);
+
 int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context);
 int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name);
 

@@ -173,3 +173,18 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
 
 
 
+int saveDynamicRequest(char * filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst)
+{
+  FILE *fp=0;
+
+  fp = fopen(filename,"w");
+  if (fp!=0)
+  {
+    fprintf(fp,"%s",rqst->GET_request);
+    fclose(fp);
+    return 1;
+  }
+  return 0;
+}
+
+

@@ -194,6 +194,7 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char
   for (i=0; i<argc; i++)
   {
     if ((strcmp(argv[i],"-bind")==0)&&(argc>i+1)) { strcpy(bindIP,argv[i+1]); fprintf(stderr,"Binding to %s \n",bindIP); } else
+    if ((strcmp(argv[i],"-p")==0)&&(argc>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-port")==0)&&(argc>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-rootdir")==0)&&(argc>i+1)) { strcpy(webserver_root,argv[i+1]); fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
     if ((strcmp(argv[i],"-templatedir")==0)&&(argc>i+1)) { strcpy(templates_root,argv[i+1]); fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
@@ -359,6 +360,12 @@ int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instan
 
    return 0;
 }
+
+int AmmServer_SaveDynamicRequest(char* filename , struct AmmServer_Instance * instance  , struct AmmServer_DynamicRequest * rqst)
+{
+    return saveDynamicRequest(filename,instance,rqst);
+}
+
 
 
 /*
