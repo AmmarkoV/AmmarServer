@@ -33,8 +33,8 @@ enum TypesOfRequests
 
 
 #define MAX_IP_STRING_SIZE 32
-#define MAX_QUERY 512
-#define MAX_RESOURCE 512
+#define MAX_QUERY 2048
+#define MAX_RESOURCE 2048
 #define MAX_FILE_PATH 1024
 #define MAX_INSTANCE_NAME_STRING 128
 
