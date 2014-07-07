@@ -65,7 +65,7 @@ char * dynamicRequest_serveContent
   //So we bail out and emmit an error message..!
   if ( (cacheMemory==0) || (shared_context->requestContext.MAXcontentSize==0) )
     {
-     fprintf(stderr,"Not going to call callback function with an empty buffer..!\n");
+     warning("Not going to call callback function with an empty buffer..!\n");
     } else
     {
      //This means we can call the callback to prepare the memory content..! START
