@@ -38,6 +38,15 @@ char * dynamicRequest_serveContent
     error("dynamicRequest_serveContent should never get called without a function to call \n");
     fprintf(stderr,"Index item %u\n",index);
     fprintf(stderr,"content Resource name %s\n",shared_context->resource_name);
+
+      //CRAZY DEBUGGING -------------
+       struct cache_item * cache = (struct cache_item *) instance->cache;
+       struct AmmServer_RH_Context * shc = cache[index].dynamicRequest;
+       fprintf(stderr,"content pointer %p\n",shc->dynamicRequestCallbackFunction);
+       fprintf(stderr,"content Resource name %s\n",shc->resource_name);
+
+      //-----------------------------
+
     return 0;
   }
 
