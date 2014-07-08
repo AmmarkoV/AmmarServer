@@ -64,15 +64,20 @@ unsigned int pageLength=0;
 
 */
 
+
+
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_Instance  * admin_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context indexPage={0};
+struct AmmServer_RH_Context settings={0};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
+struct AmmServer_RH_Context base_image={0};
+struct AmmServer_RH_Context top_image={0};
 struct AmmServer_RH_Context random_chars={0};
 
 
@@ -116,15 +121,67 @@ void replaceChar(char * input , char findChar , char replaceWith)
 void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strcpy(rqst->content,"<html><head><title>Welcome</title>\
+  strcpy(rqst->content,"<html><head><title>Welcome to The Hobbit WebInterface</title>\
+                                     <meta http-equiv=\"refresh\" content=\"0; url=controlpanel.html\" />\
                   <body><center><br><br><br>\
                    <h1>The incredibly minimal WebInterface for Hobbit</h1><br><br>\
-                   <h3><a href=\"controlpanel.html\">Click Here to open Control Panel</a></h3>\
-                   <h3><a href=\"stats.html\">Click Here for stats (not ready yet)</a></h3>\
+                   <h3><a href=\"controlpanel.html\">Click Here for remote operation control panel</a></h3>\
+                   <h3><a href=\"facilitator_panel.html\">Click Here for facilitator panel</a></h3>\
                    </body></html> ");
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
+
+
+
+int getBackCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize)
+{
+ FILE *fp;
+ /* Open the command for reading. */
+ fp = popen(command, "r");
+ if (fp == 0 )
+       {
+         fprintf(stderr,"Failed to run command (%s) \n",command);
+         return 0;
+       }
+
+ /* Read the output a line at a time - output it. */
+  unsigned int i=0;
+  while (fgets(what2GetBack, what2GetBackMaxSize , fp) != 0)
+    {
+        ++i;
+        //fprintf(stderr,"\n\nline %u = %s \n",i,output);
+        break;
+    }
+  /* close */
+  pclose(fp);
+  return 1;
+}
+
+
+
+
+
+/*
+rostopic echo /battery_state
+
+header:
+  seq: 10374
+  stamp:
+    secs: 1402062613
+    nsecs: 430198039
+  frame_id: ''
+voltage: 26.0810012817
+current: 3.8780002594
+lifePercent: 41
+lifeTime: -1
+charging: False
+powerSupplyPresent: False
+cellVoltage: [3.264000177383423, 3.259000062942505, 3.267000198364258, 3.2680001258850098, 3.261000156402588, 3.258000135421753, 3.258000135421753, 3.252000093460083]
+
+rostopic echo /battery_state -n 1 | grep lifePercent | cut -d ':' -f2
+
+*/
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
@@ -132,14 +189,69 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
+  char batteryState[1000]={0};
+  getBackCommandLine("rostopic echo /battery_state -n 1 | grep lifePercent | cut -d ':' -f2", batteryState , 1000 );
+  char chargingState[1000]={0};
+  getBackCommandLine("rostopic echo /battery_state -n 1 | grep charging | cut -d ':' -f2", chargingState , 1000 );
+  char mileageState[1000]={0};
+  getBackCommandLine("rostopic echo /mileage -n 1 | grep data | cut -d ':' -f2", mileageState , 1000 );
+
+
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(rqst->content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
-                    tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-  strcat(rqst->content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
-  strcat(rqst->content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L37\">Dynamic content code label in ammarserver main.c</a><br>\n");
-  strcat(rqst->content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
-  strcat(rqst->content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
+  sprintf(rqst->content,"<html><head><body>Time is<br> %02d-%02d-%02d %02d:%02d:%02d\n <br>Battery is : %s<br>Charging : %s<br>Mileage : %s<br>",
+                    tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec,batteryState,chargingState,mileageState);
+  strcat(rqst->content,"<br></body></html>");
   rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
+
+//This function prepares the content of  stats context , ( stats.content )
+void * prepare_base_image(struct AmmServer_DynamicRequest  * rqst)
+{
+  unsigned int length;
+  char * readContent = AmmServer_ReadFileToMemory("/opt/ros/hobbit_hydro/src/rgbd_acquisition/bin/frames/base/left0000.jpg",&length);
+
+  if(readContent==0)
+  {
+     sprintf(rqst->content,"<html><body><h1>Bad Image</h1></body></html>");
+     rqst->contentSize=strlen(rqst->content);
+  } else
+  {
+     if (rqst->MAXcontentSize<length)
+     {
+        length = rqst->MAXcontentSize;
+        fprintf(stderr,"Error , not enough space to accomodate image \n");
+     }
+     memcpy(rqst->content,readContent,length);
+     rqst->contentSize=length;
+  }
+  return 0;
+}
+
+
+//This function prepares the content of  stats context , ( stats.content )
+void * prepare_top_image(struct AmmServer_DynamicRequest  * rqst)
+{
+  unsigned int length;
+  char * readContent = AmmServer_ReadFileToMemory("/opt/ros/hobbit_hydro/src/rgbd_acquisition/bin/frames/top/left0000.jpg",&length);
+
+  if(readContent==0)
+  {
+     sprintf(rqst->content,"<html><body><h1>Bad Image</h1></body></html>");
+     rqst->contentSize=strlen(rqst->content);
+  } else
+  {
+     if (rqst->MAXcontentSize<length)
+     {
+        length = rqst->MAXcontentSize;
+        fprintf(stderr,"Error , not enough space to accomodate image \n");
+     }
+     memcpy(rqst->content,readContent,length);
+     rqst->contentSize=length;
+  }
   return 0;
 }
 
@@ -161,25 +273,60 @@ void joystickExecute(float x , float y )
 }
 
 
+/*
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+                     IF SOMEONE WANTS TO ADD SOMETHING JUST ADD TO THE FOLLOWING ( execute("command","param" )
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+*/
 void execute(char * command,char * param)
 {
   fprintf(stderr,"Execute(%s,%s) \n",command,param);
   int i=0;
   char commandToRun[1024]={0};
 
+
+  if (strcmp(command,"camera")==0)
+  {
+    if (strcmp(param,"refresh")==0)
+        { strcpy(commandToRun,"/bin/bash -c \"cd /opt/ros/hobbit_hydro/src/rgbd_acquisition/bin/frames/base/ && timeout 1 rosrun image_view image_saver image:=/basecam/rgb/image_raw\" && cd /opt/ros/hobbit_hydro/src/rgbd_acquisition/bin/frames/top/ && timeout 1 rosrun image_view image_saver image:=/headcam/rgb/image_raw "); }
+  } else
   if (strcmp(command,"head")==0)
   {
     if (strcmp(param,"default")==0)  {
-                                        execute("head","center");
-                                        execute("head","middle");
+                                        execute((char*)"head",(char*)"center_center");
                                         return;
                                      } else
-    if (strcmp(param,"right")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"right\" -1\" "); } else
-    if (strcmp(param,"center")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"center\" -1\" ");    } else
-    if (strcmp(param,"left")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"left\" -1\" ");  } else
-    if (strcmp(param,"up")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"up\" -1\" ");    } else
-    if (strcmp(param,"middle")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"middle\" -1\" ");  } else
-    if (strcmp(param,"down")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /HeadMove std_msgs/String \"down\" -1\" ");  }
+    if (strcmp(param,"up_right")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"up_right\" -1\" "); } else
+    if (strcmp(param,"up_center")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"up_center\" -1\" ");    } else
+    if (strcmp(param,"up_left")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"up_left\" -1\" ");  } else
+    if (strcmp(param,"center_right")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"center_right\" -1\" "); } else
+    if (strcmp(param,"center_center")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"center_center\" -1\" ");    } else
+    if (strcmp(param,"center_left")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"center_left\" -1\" ");  } else
+    if (strcmp(param,"down_right")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"down_right\" -1\" "); } else
+    if (strcmp(param,"down_center")==0)    { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"down_center\" -1\" ");    } else
+    if (strcmp(param,"down_left")==0)  { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/move std_msgs/String \"down_left\" -1\" ");  }
+  }
+   else
+  if (strcmp(command,"emotion")==0)
+  {
+    //HAPPY VHAPPY LTIRED VTIRED CONCERNED SAD WONDERING NEUTRAL SLEEPING
+    if (strcmp(param,"happy")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"HAPPY\" -1\" "); } else
+    if (strcmp(param,"vhappy")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"VHAPPY\" -1\" "); } else
+    if (strcmp(param,"ltired")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"LTIRED\" -1\" "); } else
+    if (strcmp(param,"vtired")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"VTIRED\" -1\" "); } else
+    if (strcmp(param,"concerned")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"CONCERNED\" -1\" "); } else
+    if (strcmp(param,"sad")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"SAD\" -1\" "); } else
+    if (strcmp(param,"wondering")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"WONDERING\" -1\" "); } else
+    if (strcmp(param,"neutral")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"NEUTRAL\" -1\" "); } else
+    if (strcmp(param,"sleeping")==0) { strcpy(commandToRun,"/bin/bash -c \"rostopic pub /head/emo std_msgs/String \"SLEEPING\" -1\" "); }
   }
    else
   if (strcmp(command,"rtd")==0)
@@ -209,6 +356,10 @@ void execute(char * command,char * param)
    else
   if (strcmp(command,"body")==0)
   {
+    if (strcmp(param,"reset")==0) { strcpy(commandToRun,"rosservice call /reset_motorstop service,mira_msgs::ResetMotorStop::Request"); } else
+    if (strcmp(param,"360")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn 360'\" -1"); } else
+    if (strcmp(param,"360ccw")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn 360'\" -1"); } else
+    if (strcmp(param,"360cw")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn -360'\" -1"); } else
     if (strcmp(param,"right")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn -30'\" -1"); } else
     if (strcmp(param,"left")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Turn 30'\" -1"); } else
     if (strcmp(param,"forward")==0) { strcpy(commandToRun,"rostopic pub /DiscreteMotionCmd std_msgs/String \"data: 'Move 0.30'\" -1"); } else
@@ -221,6 +372,14 @@ void execute(char * command,char * param)
   {
     if (strcmp(param,"aspirin")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_BRING' , params: [ {name: 'Name' , value: 'ΑΣΠΙΡΊΝΗ'} ] }\" -1  "); } else
     if (strcmp(param,"sugar")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_BRING' , params: [ {name: 'Name' , value: 'ΖΆΧΑΡΗ'} ] }\" -1  "); }
+  }
+   else
+  if (strcmp(command,"move")==0)
+  {
+    if (strcmp(param,"charging")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_BRING' , params: [ {name: 'Name' , value: 'ΑΣΠΙΡΊΝΗ'} ] }\" -1  "); } else
+    if (strcmp(param,"kitchen")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_BRING' , params: [ {name: 'Name' , value: 'ΑΣΠΙΡΊΝΗ'} ] }\" -1  "); } else
+    if (strcmp(param,"livingroom")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_BRING' , params: [ {name: 'Name' , value: 'ΑΣΠΙΡΊΝΗ'} ] }\" -1  "); } else
+    if (strcmp(param,"bedroom")==0) { strcpy(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_BRING' , params: [ {name: 'Name' , value: 'ΑΣΠΙΡΊΝΗ'} ] }\" -1  "); }
   }
    else
   if (strcmp(command,"robot")==0)
@@ -262,7 +421,7 @@ void execute(char * command,char * param)
      replaceChar(internalString,'+',' ');
 
      //rostopic pub /ActionSequence HobbitMsgs/Command "{command: 'C_SPEAK' , params: [ name: 'INFO' , value: 'lobbit' ] }" -1
-     sprintf(commandToRun,"rostopic pub /ActionSequence HobbitMsgs/Command \"{command: 'C_SPEAK' , params: [ {name: 'INFO' , value: '%s'} ] }\" -1\n",internalString);
+     sprintf(commandToRun,"rostopic pub /ActionSequence hobbit_msgs/Command \"{command: 'C_SPEAK' , params: [ {name: 'INFO' , value: '%s'} ] }\" -1\n",internalString);
   }
 
   if ( strlen(commandToRun)!=0 )
@@ -276,6 +435,54 @@ void execute(char * command,char * param)
    }
 
   return ;
+}
+
+
+/*
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+                     IF SOMEONE WANTS TO ADD SOMETHING JUST ADD TO THE PREVIOUS FUNCTION  ( execute("command","param" )
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+      ===========================================================================================================================
+*/
+
+
+
+//This function prepares the content of  form context , ( content )
+void * store_new_configuration_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  unsigned int successfullStore = 0;
+  rqst->content[pageLength]=0; //Clear content
+
+  if  ( rqst->GET_request != 0 )
+    {
+      if ( strlen(rqst->GET_request)>0 )
+       {
+         if ( AmmServer_SaveDynamicRequest("hobbit_raw.ini",default_server,rqst) )
+           {
+             int i=system("tr \"\\&\" \"\\n\" < hobbit_raw.ini > hobbit.ini");
+             if (i==0) {  successfullStore = 1; }
+           }
+       }
+    }
+
+if (successfullStore)
+     {
+         strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"3; url=controlpanel.html\" /></head>\
+                  <body><center><br><br><br><h1>Settings stored..</h1><br><br><h3><a href=\"controlpanel.html\">You are beeing redirected to control panel</a></h3></body></html> ");
+     } else
+     {
+         strcpy(rqst->content,"<html><body><center><br><br><br><h1>FAILED to store settings :( </h1><br><br><h3><a href=\"#\" onclick=\"javascript:window.history.go(-1)\">Click here to go back</a></h3></body></html> ");
+     }
+
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
 }
 
 
@@ -295,9 +502,11 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
          char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
          if (bufferCommand!=0)
           {
-            if ( _GET(default_server,rqst,"head",bufferCommand,256) )  { execute("head",bufferCommand);  } else
-            if ( _GET(default_server,rqst,"hand",bufferCommand,256) )  { execute("hand",bufferCommand);  } else
-            if ( _GET(default_server,rqst,"body",bufferCommand,256) )
+            if ( _GET(default_server,rqst,(char*)"camera",bufferCommand,256) )  { execute((char*)"camera",bufferCommand);  } else
+            if ( _GET(default_server,rqst,(char*)"head",bufferCommand,256) )  { execute((char*)"head",bufferCommand);  } else
+            if ( _GET(default_server,rqst,(char*)"hand",bufferCommand,256) )  { execute((char*)"hand",bufferCommand);  } else
+            if ( _GET(default_server,rqst,(char*)"emotion",bufferCommand,256) )  { execute((char*)"emotion",bufferCommand);  } else
+            if ( _GET(default_server,rqst,(char*)"body",bufferCommand,256) )
                  {
                      if (strcmp(bufferCommand,"joystick")==0)
                          {
@@ -305,20 +514,21 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
                              char xString[256]={0};
                              char yString[256]={0};
 
-                             if ( _GET(default_server,rqst,"x",xString,256) ) { x=atof(xString); } else { AmmServer_Warning("Could not find X coord"); }
-                             if ( _GET(default_server,rqst,"y",yString,256) ) { y=atof(yString); } else { AmmServer_Warning("Could not find Y coord"); }
+                             if ( _GET(default_server,rqst,(char*)"x",xString,256) ) { x=atof(xString); } else { AmmServer_Warning("Could not find X coord"); }
+                             if ( _GET(default_server,rqst,(char*)"y",yString,256) ) { y=atof(yString); } else { AmmServer_Warning("Could not find Y coord"); }
 
                              joystickExecute(x,y);
                            //Parse joystick command
                          } else
                          {
-                           execute("body",bufferCommand);
+                           execute((char*)"body",bufferCommand);
                          }
                  } else
-            if ( _GET(default_server,rqst,"bring",bufferCommand,256) )  { execute("bring",bufferCommand);  } else
-            if ( _GET(default_server,rqst,"robot",bufferCommand,256) ) { execute("robot",bufferCommand); } else
-            if ( _GET(default_server,rqst,"rtd",bufferCommand,256) ) { execute("rtd",bufferCommand); } else
-            if ( _GET(default_server,rqst,"say",bufferCommand,256) )   { execute("say",bufferCommand);   }
+            if ( _GET(default_server,rqst,(char*)"bring",bufferCommand,256) )  { execute((char*)"bring",bufferCommand);  } else
+            if ( _GET(default_server,rqst,(char*)"move",bufferCommand,256) )  { execute((char*)"move",bufferCommand);  } else
+            if ( _GET(default_server,rqst,(char*)"robot",bufferCommand,256) ) { execute((char*)"robot",bufferCommand); } else
+            if ( _GET(default_server,rqst,(char*)"rtd",bufferCommand,256) ) { execute((char*)"rtd",bufferCommand); } else
+            if ( _GET(default_server,rqst,(char*)"say",bufferCommand,256) )   { execute((char*)"say",bufferCommand);   }
 
             free(bufferCommand);
           }
@@ -336,11 +546,19 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  if (! AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&indexPage,(char*)"/index.html",webserver_root,4096,0,(void* ) &prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&stats,(char*)"/stats.html",webserver_root,4096,0,(void* ) &prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
 
-  page=AmmServer_ReadFileToMemory("src/Services/ScriptRunner/controlpanel.html",&pageLength);
-  if (! AmmServer_AddResourceHandler(default_server,&form,"/controlpanel.html",webserver_root,pageLength+1,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&settings,(char*)"/settings.html",webserver_root,4096,0,(void* ) &store_new_configuration_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding settings page\n"); }
+
+
+  fprintf(stderr,"Please note that control panel , is only refreshed once per startup for min resource consumption\n");
+  page=AmmServer_ReadFileToMemory((char*)"controlpanel.html",&pageLength);
+  if (! AmmServer_AddResourceHandler(default_server,&form,(char*)"/controlpanel.html",webserver_root,pageLength+1,0,(void* ) &prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+
+  if (! AmmServer_AddResourceHandler(default_server,&base_image,(char*)"/base_image.jpg",webserver_root,640*480*3,0,(void* ) &prepare_base_image,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding prepare base_image page\n"); }
+
+  if (! AmmServer_AddResourceHandler(default_server,&top_image,(char*)"/top_image.jpg",webserver_root,640*480*3,0,(void* ) &prepare_top_image,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding prepare top_image page\n"); }
 
   AmmServer_DoNOTCacheResourceHandler(default_server,&form);
  }
@@ -348,6 +566,12 @@ void init_dynamic_content()
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
+    AmmServer_RemoveResourceHandler(default_server,&indexPage,1);
+    AmmServer_RemoveResourceHandler(default_server,&settings,1);
+    AmmServer_RemoveResourceHandler(default_server,&form,1);
+    AmmServer_RemoveResourceHandler(default_server,&base_image,1);
+    AmmServer_RemoveResourceHandler(default_server,&top_image,1);
+
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
     AmmServer_RemoveResourceHandler(default_server,&form,1);
 }

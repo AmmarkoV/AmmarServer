@@ -246,8 +246,6 @@ int AmmServer_AddResourceHandler
    strncpy(context->web_root_path,web_root,MAX_FILE_PATH);
    strncpy(context->resource_name,resource_name,MAX_RESOURCE);
    context->requestContext.MAXcontentSize=allocate_mem_bytes;
-   context->dynamicRequestCallbackFunction=callback;
-   if (callback==0) { AmmServer_Warning("No callback passed for a new AmmServer_AddResourceHandler "); }
    context->callback_every_x_msec=callback_every_x_msec;
    context->last_callback=0; //This is important because a random value here will screw up things with callback_every_x_msec..
    context->callback_cooldown=0;
@@ -256,7 +254,12 @@ int AmmServer_AddResourceHandler
    if ( allocate_mem_bytes>0 )
     {
        context->requestContext.content = (char*) malloc( sizeof(char) * allocate_mem_bytes );
+       if (context->requestContext.content==0) { AmmServer_Warning("Could not allocate space for request Context"); }
     }
+
+   context->dynamicRequestCallbackFunction=callback;
+   if (callback==0) { AmmServer_Warning("No callback passed for a new AmmServer_AddResourceHandler "); }
+
   return cache_AddMemoryBlock(instance,context);
 }
 
