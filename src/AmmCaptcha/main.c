@@ -142,6 +142,7 @@ int AmmCaptcha_destroy()
   //Font RAW is a stack variable , do not destroy it!
   //destroyImage(&fontRAW);
   if(fontRAW.pixels!=0) { free(fontRAW.pixels); fontRAW.pixels=0; }
+  return 1;
 }
 
 

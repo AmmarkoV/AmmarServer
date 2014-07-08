@@ -3,66 +3,7 @@
   <head> 
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>  
 	<title>Hobbinterface</title>
-	<style type="text/css"> 
- 
-		table{
-			border-spacing: 5px 5px;
-		}
-		hr{
-			color: orange;
-			height: 0px;
-			border: 0px;
-			border-bottom: 3px dashed orange;
-		}
-		td{
-			vertical-align:top;
-		}
-		#scissors{
-			position: relative;
-			left: -765px;
-			top: 26px;
-		}
-		.rtd{
-			border: 1px solid black;
-			background: #ffebc5;
-			padding: 20px;
-			border-radius: 10px;
-                        line-height:200%;
-		}
-		.rtd a{ color: green; }
-
-		.rtdFloating
-                {
-			border: 1px solid black;
-			background: #ffebc5;
-			padding: 20px;
-			border-radius: 10px;
-                        line-height:200%; 
-
-
-                        cursor: move;
-                        position: absolute;  
-                        visibility:hidden;
-		}   
-		.rtdFloating a{ color: green; }
-
-
-		.turnControls
-                {
-                        visibility:hidden;
-                }
-
-                 #marker
-                {
-                        
-			height: 1px;
-                }
-
-                 #joystick
-                {
-                        position:absolute;
-                }
-	</style>
+        <link rel="stylesheet" type="text/css" href="hobbit.css">
    <script type="text/javascript">  
    
    var centerX=51;
@@ -107,20 +48,23 @@
           }
      } 
    }
-
-    function refreshFeed()
+ 
+    function refreshFeed(name,imageName)
     {
-      document.getElementById("videoFeed").style.visibility='visible';
+      command('camera=refresh');
+      document.getElementById(name).style.visibility='visible';
+      var randomnumber=Math.floor(Math.random()*100000);
+      document.getElementById("videoFeedImage").src="base_image.jpg?t="+randomnumber;
     }
 
-    function makeFeedVisible()
+    function makeFeedVisible(name)
     {
-      document.getElementById("videoFeed").style.visibility='visible';
+      document.getElementById(name).style.visibility='visible';
     }
 
-    function makeFeedInvisible()
+    function makeFeedInvisible(name)
     {
-      document.getElementById("videoFeed").style.visibility='hidden';
+      document.getElementById(name).style.visibility='hidden';
     }
 
     function makeTurnControlsVisible() 
@@ -176,6 +120,15 @@
      } 
 
 
+
+function updateStatusMonitor()
+{
+    var iframe = document.getElementById('statusMonitor');
+    iframe.reload(true);
+}
+
+setTimeout('updateStatusMonitor()', 10000);
+
 function updateFormRandomNumber()
     {
        var randomnumber=Math.floor(Math.random()*100000);
@@ -206,10 +159,62 @@ function drop(ev)
 
   </head>
  <body onload="makeUniqueURLs();"> 
+
+
+
+
+
+
+
+<!-- POPUP WINDOWS -->
+
+
+
+
+
+ <div class="rtdFloating" id="settingsTab" draggable="true" ondrop="drop(event)" ondragover="allowDrop(event)" ondragstart="drag(event)" >
+            <table>
+              <tr>
+                <td width=350 ></td><td><a href="javascript:makeFeedInvisible('settingsTab');" class="xbutton" >X</a></td>
+              </tr>
+              <tr>
+                <td colspan=2> 
+                  <form action="settings.html" accept-charset="utf-8" >  
+                     <div style="overflow: hidden; padding-right: .5em;">
+                      Robot Name :  <br/>
+                      <input type="text" name="name"  style="width: 60%;"> <br/>
+                      
+                      Talking Speed : 
+                      <select id="talkingSpeed"  >
+                        <option value="ltired">Normal</option> 
+                        <option value="happy">Very Slow</option>
+                        <option value="vhappy">Slow</option>
+                        <option value="vtired">Fast</option>
+                        <option value="concerned">Very Fast</option> 
+                      </select>   <br/>
+
+                      Gender : 
+                      <select id="gender"  >
+                        <option value="male">Male</option> 
+                        <option value="fale">Female</option> 
+                      </select>   <br/>
+                      
+                      <br/>
+                      <input type="submit" value="Set" onclick="updateFormRandomNumber()" style="float: right">
+                     </div> 
+                     <input id="FormRandomField" type="hidden" name="t" value="somethingRandomHere"> 
+                   </form> <br/>
+
+                   <i>Please note that Set overwrites all settings listed here</i>
+                </td>
+              </tr> 
+           </table>
+</div> 
+
         <div class="rtdFloating" id="videoFeed" draggable="true" ondrop="drop(event)" ondragover="allowDrop(event)" ondragstart="drag(event)" >
             <table>
               <tr>
-                <td width=300 ></td><td><a href="javascript:makeFeedInvisible();">x</a></td>
+                <td width=300 ></td><td><a href="javascript:makeFeedInvisible('videoFeed');" class="xbutton" >X</a></td>
               </tr>
               <tr>
                 <td colspan=2> 
@@ -218,16 +223,39 @@ function drop(ev)
               </tr>
               <tr>
                <td colspan=2>
-                 <a href="javascript:refreshFeed();">Refresh</a>   
+                 <a href="javascript:refreshFeed('videoFeed','videoFeedImage');">Refresh</a>   
                </td>
               </tr>
            </table>
 	</div> 
 
 
+
+
+
+
+
+ 
+
+
+
+<!-- MAIN WINDOW -->
+
+
+
+
+
+
+
+
+
+
+
+
+
   <center>
-	<!--a href="controlpanel.html?nothing=true"> <img src="header.png" border=0/> </a-->
-	<img src="scissors.png" id="scissors"/>
+	<!--a href="controlpanel.html?nothing=true"> <img src="header.png" border=0/> </a--> 
+        <img src="banner.png" width=800 /><br/> 
 	<hr />
 	
    <table id="content">
@@ -240,41 +268,163 @@ function drop(ev)
          <td>
 
 	<div class="rtd">
-          <strong>HEAD</strong><br/>
-          <a href="controlpanel.html?head=left">  Head Left</a><br/>
-          <a href="controlpanel.html?head=center">Head Center</a><br/>
-          <a href="controlpanel.html?head=right"> Head Right</a> <br/>
+          <strong>HEAD CONTROL</strong><br/>
+           <table>
+              <tr> 
+                 <td align="center"><a href="controlpanel.html?head=up_left"><img src="head_up_left.png"></a></td> 
+                 <td align="center"><a href="controlpanel.html?head=up_center"><img src="head_up.png"></a></td> 
+                 <td align="center"><a href="controlpanel.html?head=up_right"><img src="head_up_right.png"></a></td> 
+               <tr>
+                 <td align="center"><br><a href="controlpanel.html?head=center_left"><img src="head_left.png"></a></td> 
+                 <td><a href="controlpanel.html?head=center_center"><img src="head.png"></a></td>
+                 <td align="center"><br><a href="controlpanel.html?head=center_right"><img src="head_right.png"></a></td> 
+               </tr>
+              <tr>
+                 <td align="center"><a href="controlpanel.html?head=down_left"><img src="head_down_left.png"></a></td> 
+                 <td align="center"><a href="controlpanel.html?head=down_center"><img src="head_down.png"></a></td> 
+                 <td align="center"><a href="controlpanel.html?head=down_right"><img src="head_down_right.png"></a></td> 
+              </tr> 
 
-          <a href="controlpanel.html?head=up">    Head Up</a><br/>
-          <a href="controlpanel.html?head=middle">Head Middle</a><br/>
-          <a href="controlpanel.html?head=down">  Head Down</a><br/><br/> 
+              <tr>
+                <td colspan=3 align="center" > Head Emotion   : 
+                  <select id="emotionSelector" onchange="javascript:command('emotion='+this.value);" > 
+                    <option value="happy">Happy</option>
+                    <option value="vhappy">Very Happy</option>
+                    <option value="ltired">Little Tired</option>
+                    <option value="vtired">Very Tired</option>
+                    <option value="concerned">Concerned</option>
+                    <option value="sad">Sad</option>
+                    <option value="wondering">Wondering</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="sleeping">Sleeping</option>
+                  </select>  
+                </td>
+              </tr>
 
-          <a href="controlpanel.html?head=default">  Head Default</a><br/> 
+ 
+              <tr>
+                <td colspan=3>
+                  <form action="controlpanel.html" accept-charset="utf-8" > 
+                   TTS : 
+                     <div style="overflow: hidden; padding-right: .5em;">
+                      <input type="text" name="say"  style="width: 60%;">
+                      <input type="submit" value="Speak" onclick="updateFormRandomNumber()" style="float: right">
+                     </div> 
+                     <input id="FormRandomField" type="hidden" name="t" value="somethingRandomHere"> 
+                   </form>
+                </td>
+              </tr>
 
+
+           </table>  
 	</div> 
         </td>
-        <td>
-
+        <td> 
 	<div class="rtd">
-        <strong>COMMANDS</strong><br/>
-        <a href="controlpanel.html?scenario=moveto1">Move To Start</a><br/>
-        <a href="controlpanel.html?robot=clearfloor">  Clear Floor </a><br/> 
-        <a href="controlpanel.html?robot=learnobject">  Learn Object </a><br/> 
-        <a href="controlpanel.html?bring=aspirin">  Bring Aspirin </a><br/> 
-        <a href="controlpanel.html?bring=sugar">  Bring Sugar </a><br/> 
-        <a href="controlpanel.html?robot=helpme">  Help me </a><br/> 
-        <br/>
-
-        <a href="controlpanel.html?hand=calibrate">  Calibrate Hand</a><br/>
-	</div>
-
+        <strong>STATUS</strong><br/>
+         <iframe id="statusMonitor" src="stats.html" frameBorder="0" scrolling="no" > 
+         </iframe>
+        <br><br>   
+         <center>
+          <a href="javascript:makeFeedVisible('videoFeed');">View</a>  / <a href="javascript:makeFeedInvisible('videoFeed');">Hide</a> the Camera<br/>
+         </center>
+	</div> 
         </td>
+
+
+
+
+     
+      <td> 
+	<div class="rtd">
+        <strong>READY TO DRINK POSES</strong><br/>
+                  <select id="RTDSelector" onchange="javascript:command('rtd='+this.value);" > 
+                    <option value="nothing">Click to manipulate Arm</option>  
+                    <option value="calibrate">Calibrate Hand</option>
+                    <option value="home">Pose Home</option>
+                    <option value="almosthome">Pose Almost Home</option>
+                    <option value="armatside">Pose Arm At Side</option>
+                    <option value="lowerlearn">Pose Lower Learn</option>
+                    <option value="tablepregrasp">Pose Table Pregrasp</option>
+                    <option value="tablefinalgrasp">Pose Table Final Grasp</option>
+                    <option value="trayprerelease">Pose Tray Pre Release</option>
+                    <option value="trayrelease">Pose Tray Release</option>
+                    <option value="clearfloorpregrasp">Pose Clear Floor Pregrasp</option>
+                    <option value="clearfloorfinalgrasp">Pose Clear Floor Final Grasp</option>
+                    <option value="cfaftergrasp">Pose Clear Floor After Grasp</option> 
+                    <option value="graspfromtable">Grasp From the Table</option>
+                    <option value="graspfromfloor">Grasp From the Floor</option> 
+                  </select>    <br/>
+
+        <strong>GRIPPER STATE</strong><br/>
+                  <select id="RTDGripperSelector" onchange="javascript:command('rtd='+this.value);" > 
+                    <option value="nothing">Click To Change Gripper State</option> 
+                    <option value="opengripper">Open Gripper</option>
+                    <option value="closegripper">Close Gripper</option>
+                    <option value="closegripper">Disable All Axis</option> 
+                  </select>       <br/>
+ 
+
+        <strong>EVENTS</strong><br/>
+                  <select id="EventSelector" onchange="javascript:command('robot='+this.value);" > 
+                    <option value="nothing">Click to activate an event</option> 
+                    <option value="cancel">Tablet Goto Main Menu/Cancel</option>
+                    <option value="yes">Hear Yes</option> 
+                    <option value="no">Hear No</option> 
+                    <option value="reward">Reward</option>
+                    <option value="call">Call to Room</option> 
+                    <option value="clearfloor">Clear Floor</option> 
+                    <option value="learnobject">Learn Object</option> 
+                    <option value="settings">Settings</option> 
+                    <option value="wake">Hear My Name (C_WAKEUP)</option> 
+                    <option value="stop">Wake Up (C_STOP)</option> 
+                    <option value="helpme">Help Me/Emergency</option> 
+                    <option value="sleep">Sleep</option> 
+                    <option value="openmic">Enable Microphone</option> 
+                    <option value="closemic">Mute Microphone</option> 
+                  </select>       <br/>
+
+
+
+        <strong>BRING</strong><br/>
+                  <select id="bringSelector" onchange="javascript:command('bring='+this.value);" > 
+                    <option value="nothing">Click to Select an item</option> 
+                    <option value="aspirin">Aspirin</option> 
+                    <option value="sugar">Sugar</option> 
+                  </select>        <br/> 
+    
+
+        <strong>MOVE</strong><br/>
+                  <select id="moveSelector" onchange="javascript:command('move='+this.value);" > 
+                    <option value="nowhere"> Click to Select a movement to </option> 
+                    <option value="charging">Move To Charging</option> 
+                    <option value="kitchen">Kitchen</option> 
+                    <option value="livingroom">Living Room</option> 
+                    <option value="bedroom">Bed Room</option>  
+                  </select>        <br/> 
+           
+          <br/> 
+            <center>
+               <a href="facilitator_panel.html" target="_new">Facilitator Initialization Menu</a> 
+               <!-- a href="javascript:makeFeedVisible('settingsTab');">View</a>  / <a href="javascript:makeFeedInvisible('settingsTab');">Hide</a> Settings <br/ -->
+            </center>
+          <br/> 
+
+	</div><br/>
+      </td>
+ 
        </tr>
        <tr>
-        <td colspan=2>
+        <td colspan=3>
            <div class="rtd">
-            <center>
               <strong>MOVEMENT</strong><br/> 
+            <center>
+
+<table>
+ <tr> 
+   <td>         
+      <!-- Movement has 2 parts , First is the Joystick -->
+
               <a href="javascript:joystickExecute(0.5,0);"><img class="turnControls" src="turnLeft.png" id="turnLeft" ></a>
 <!--  ------------------------------------------------------------------------------
       START OF:         THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
@@ -411,6 +561,49 @@ function drop(ev)
                 <br/> 
                 <label><input id="joystickActiveSwitch" type="checkbox" onchange='handleJoystickActiveSwitch(this);' >Joystick Active</label> <br/>
                 <a href="javascript:joystickExecute(0,0);">STOP ALL MOVEMENT</a>
+
+
+</td>
+<td>
+</td>
+<td>
+        <!-- Movement has 2 parts , Second is the Discrete Movement -->
+        <table>
+          <tr>
+           <td></td>
+           <td>
+               <a href="controlpanel.html?body=forward"><img src="head_up.png" width=40></a><br/>
+           </td>
+           <td></td>
+          </tr>
+          <tr>
+           <td>
+              <a href="controlpanel.html?body=left"><img src="head_left.png" width=40></a><br/> 
+           </td>
+           <td>
+              <a href="controlpanel.html?body=stop"><img src="head_stop.png" width=40></a><br/> 
+           </td>
+           <td>
+              <a href="controlpanel.html?body=right"><img src="head_right.png" width=40></a><br/>
+           </td>
+          </tr>
+          <tr>
+           <td>
+              <a href="controlpanel.html?body=360ccw"><img src="head_ccw.png" width=40></a><br/>
+           </td>
+           <td>
+               <a href="controlpanel.html?body=back"><img src="head_down.png" width=40></a><br/>
+           </td>
+           <td>
+               <a href="controlpanel.html?body=360cw"><img src="head_cw.png" width=40></a><br/>
+           </td>
+          </tr>
+        </table>   
+        
+        
+</td>
+</tr>
+</table>
             </center>
            </div> 
         </td>
@@ -418,76 +611,17 @@ function drop(ev)
        </table> 
        <!-- NESTED BOX END -->
       </td>
-      <td> 
-
-	<div class="rtd">
-        <strong>GENERIC</strong><br/>
-        <a href="controlpanel.html?robot=yes"> Yes </a> &nbsp; &nbsp; &nbsp; / &nbsp; &nbsp;
-        <a href="controlpanel.html?robot=no">  No </a><br/>
-        <a href="controlpanel.html?robot=cancel"> Tablet Goto Main Menu </a><br/>
-        <a href="controlpanel.html?robot=reward"> Reward </a><br/>
-        <a href="controlpanel.html?robot=wake">  Hear My Name (C_WAKEUP) </a><br/> 
-	<br/>        
-        <a href="controlpanel.html?robot=stop"> Wake Up (C_STOP) </a><br/>
-        <a href="controlpanel.html?robot=sleep">  Sleep </a><br/> 
-        <a href="controlpanel.html?robot=openmic"> Enable Microphone </a><br/>
-        <a href="controlpanel.html?robot=closemic">  Mute Microphone </a><br/>
-        <a href="controlpanel.html?robot=call">  Call to Room </a><br/>
-        <a href="controlpanel.html?robot=settings"> Settings </a><br/> 
-        <a href="javascript:makeFeedVisible();">View</a>  / <a href="javascript:makeFeedInvisible();">Hide</a> the Camera<br/> 
-	</div>
 
 
-	<div class="rtd">
-        <strong>BODY</strong><br/>
-        <a href="controlpanel.html?body=forward">  Move Forward </a><br/>
-        <a href="controlpanel.html?body=back">  Move Back </a><br/>
-        <a href="controlpanel.html?body=left">  Rotate Left </a><br/> 
-        <a href="controlpanel.html?body=right">  Rotate Right </a><br/>
-	</div><br/>
+ 
 
 
-      </td>
-      <td> 
-	<div class="rtd">
-        <strong>READY TO DRINK POSES</strong><br/>
-        <a href="controlpanel.html?rtd=home">Pose Home</a><br/>
-        <a href="controlpanel.html?rtd=almosthome">Pose Almost Home</a><br/>
-        <a href="controlpanel.html?rtd=armatside">Pose Arm At Side</a><br/>
-        <a href="controlpanel.html?rtd=lowerlearn">Pose Lower Learn</a><br/>
-        <a href="controlpanel.html?rtd=tablepregrasp">Pose Table Pregrasp</a><br/>
-        <a href="controlpanel.html?rtd=tablefinalgrasp">Pose Table Final Grasp</a><br/>
-        <a href="controlpanel.html?rtd=trayprerelease">Pose Tray Pre Release</a><br/>
-        <a href="controlpanel.html?rtd=trayrelease">Pose Tray Release</a><br/>
-        <a href="controlpanel.html?rtd=clearfloorpregrasp">Pose Clear Floor Pregrasp</a><br/>
-        <a href="controlpanel.html?rtd=clearfloorfinalgrasp">Pose Clear Floor Final Grasp</a><br/>
-        <a href="controlpanel.html?rtd=cfaftergrasp">Pose Clear Floor After Grasp</a><br/>
-        <strong>READY TO DRINK COMMANDS</strong><br/>
-        <a href="controlpanel.html?rtd=opengripper">Open Gripper</a><br/>
-        <a href="controlpanel.html?rtd=closegripper">Close Gripper</a><br/>
-        <a href="controlpanel.html?rtd=closegripper">Disable All Axis</a><br/>
-        <strong>READY TO DRINK SEQUENCES</strong><br/>
-        <a href="controlpanel.html?rtd=graspfromtable">Grasp From the Table</a><br/>
-        <a href="controlpanel.html?rtd=graspfromfloor">Grasp From the Floor</a><br/>
-	</div><br/>
-      </td>
     </tr>
-
-    <!--tr>
-      <td colspan=10> 
-        <br/><br/> 
-        &nbsp;
-      </td>
-    </tr-->
+ 
 
     <tr>
       <td colspan=10><center>
-       <form action="controlpanel.html" accept-charset="utf-8" >
-        Speech : 
-         <input type="text" name="say"> 
-         <input id="FormRandomField" type="hidden" name="t" value="somethingRandomHere"> 
-         <input type="submit" value="Say It" onclick="updateFormRandomNumber()">
-       </form></center>
+     </center>
       </td>
     </tr>
 

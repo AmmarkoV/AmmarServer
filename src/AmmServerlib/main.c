@@ -247,6 +247,7 @@ int AmmServer_AddResourceHandler
    strncpy(context->resource_name,resource_name,MAX_RESOURCE);
    context->requestContext.MAXcontentSize=allocate_mem_bytes;
    context->dynamicRequestCallbackFunction=callback;
+   if (callback==0) { AmmServer_Warning("No callback passed for a new AmmServer_AddResourceHandler "); }
    context->callback_every_x_msec=callback_every_x_msec;
    context->last_callback=0; //This is important because a random value here will screw up things with callback_every_x_msec..
    context->callback_cooldown=0;
