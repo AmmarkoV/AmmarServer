@@ -34,20 +34,18 @@ char * dynamicRequest_serveContent
 
   if (shared_context->dynamicRequestCallbackFunction==0)
   {
-    error("dynamicRequest_serveContent : No Callback registered , cannot serve content without a function to call \n");
-    error("dynamicRequest_serveContent should never get called without a function to call \n");
-    fprintf(stderr,"Index item %u\n",index);
-    fprintf(stderr,"content Resource name %s\n",shared_context->resource_name);
-
-      //CRAZY DEBUGGING -------------
-       struct cache_item * cache = (struct cache_item *) instance->cache;
-       struct AmmServer_RH_Context * shc = cache[index].dynamicRequest;
-       fprintf(stderr,"content pointer %p\n",shc->dynamicRequestCallbackFunction);
-       fprintf(stderr,"content Resource name %s\n",shc->resource_name);
-
-      //-----------------------------
-
-    return 0;
+    struct cache_item * cache = (struct cache_item *) instance->cache;
+    if (cache[index].dynamicRequestCallbackFunction==0)
+    {
+     error("dynamicRequest_serveContent : No Callback registered , cannot serve content without a function to call \n");
+     error("dynamicRequest_serveContent should never get called without a function to call \n");
+     return 0;
+    } else
+    {
+     warning("Something nasty is happening , dynamic request does not carry its pointer any more , was able to find it from cache information \n");
+     shared_context->dynamicRequestCallbackFunction = cache[index].dynamicRequestCallbackFunction;
+     warning("Will try to continue with cache pointer.. \n");
+    }
   }
 
   char * cacheMemory=0; // <- this will hold the resulting page
