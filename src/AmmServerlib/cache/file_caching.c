@@ -161,7 +161,7 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
 int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
-  if (cache==0) { fprintf(stderr,"Cache hasn't been allocated yet\n"); return 0; }
+  if (cache==0) { error("Cache hasn't been allocated yet\n"); return 0; }
 
 
   if (MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
@@ -169,8 +169,8 @@ int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,un
 
    if ( hashMap_AddULong((struct hashMap *) instance->cacheHashMap ,resource,(unsigned long) *index) )
    {
-    warning("hashMap_AddULong adding New Resource to HashMap");
-    fprintf(stderr,"hashMap_AddULong adding %s \n",resource);
+     warning("hashMap_AddULong adding New Resource to HashMap");
+     fprintf(stderr,"hashMap_AddULong adding %s , loaded items are now %u \n",resource,instance->loaded_cache_items);
    }
 
 
@@ -309,7 +309,7 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
   ReducePathSlashes_Inplace(full_filename);
 
   unsigned int index=0;
-  if (! cache_CreateResource(instance,full_filename,&index) ) { return 0; }
+  if (! cache_CreateResource(instance,full_filename,&index) ) { error("Could not create a resource for cache\n"); return 0; }
 
   cache[index].dynamicRequest = context;
   cache[index].content = context->requestContext.content;
