@@ -471,12 +471,8 @@ int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * 
 char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
 {
   *length = 0;
-  FILE * pFile=0;
+  FILE * pFile = fopen ( filename , "rb" );
 
-  char * buffer;
-  size_t result;
-
-  pFile = fopen ( filename , "rb" );
   if (pFile==0) { fprintf(stderr,"Could not read file %s \n",filename); return 0; }
 
   // obtain file size:
@@ -485,11 +481,11 @@ char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
   rewind (pFile);
 
   // allocate memory to contain the whole file:
-  buffer = (char*) malloc (sizeof(char)*lSize);
+  char * buffer = (char*) malloc (sizeof(char)*lSize);
   if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory for file %s ",filename); fclose(pFile); return 0; }
 
   // copy the file into the buffer:
-  result = fread (buffer,1,lSize,pFile);
+  size_t result = fread (buffer,1,lSize,pFile);
   if (result != lSize) { fprintf(stderr,"Could not read the whole file onto memory %s ",filename); fclose(pFile); return 0; }
 
   /* the whole file is now loaded in the memory buffer. */
@@ -498,7 +494,7 @@ char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
   fclose (pFile);
 
 
-  *length = lSize;
+  *length = (unsigned int) lSize;
   return buffer;
 }
 
