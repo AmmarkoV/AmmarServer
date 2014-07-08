@@ -42,8 +42,8 @@
 		</Compiler>
 		<Linker>
 			<Add option="-pg" />
+			<Add option="../../AmmServerlib/libAmmarServer.a" />
 			<Add option="-pthread" />
-			<Add option="../../AmmServerlib/libAmmarServer.a;" />
 			<Add option="-lrt" />
 			<Add option="-lz" />
 		</Linker>
