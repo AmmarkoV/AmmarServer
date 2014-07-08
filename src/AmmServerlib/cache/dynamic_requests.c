@@ -69,13 +69,18 @@ char * dynamicRequest_serveContent
    if ( (shared_context->RH_Scenario == SAME_PAGE_FOR_ALL_CLIENTS ) )
     {
        cacheMemory =  shared_context->requestContext.content;
+    } else
+    {
+      error("Shared content has an invalid RH_Scenario flag , this version of AmmarServer does not know what it means");
+      error("Maybe this has to do with a newer version , and stuff that haven't been invented yet in this build..");
     }
 
   //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
   //So we bail out and emmit an error message..!
   if ( (cacheMemory==0) || (shared_context->requestContext.MAXcontentSize==0) )
     {
-     warning("Not going to call callback function with an empty buffer..!\n");
+     warning("Not going to call callback function with an empty buffer..!");
+     fprintf(stderr," ( cacheMemory=%p , MAXcontentSize=%u ) ..!\n",cacheMemory,shared_context->requestContext.MAXcontentSize);
     } else
     {
      //This means we can call the callback to prepare the memory content..! START
