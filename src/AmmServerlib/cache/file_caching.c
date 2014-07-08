@@ -472,7 +472,7 @@ if (cache_FindResource(instance,verified_filename,index))
    fprintf(stderr,"Found Resource in our cache : \n");
    fprintf(stderr,"index = %u\n",*index);
    fprintf(stderr,"doNotCache = %u \n",cache[*index].doNOTCacheRule);
-   fprintf(stderr,"mem_callback = %p \n",cache[*index].dynamicRequestCallbackFunction);
+   fprintf(stderr,"dynamicRequestCallbackFunction pointer = %p \n",cache[*index].dynamicRequestCallbackFunction);
 
    if ( (cache[*index].doNOTCacheRule)&& //If we forbid caching
         (cache[*index].dynamicRequestCallbackFunction==0)) //And we don't have a dynamic page to load!
@@ -487,10 +487,17 @@ if (cache_FindResource(instance,verified_filename,index))
      if ( dynamicRequest_ContentAvailiable(instance,*index) )
            {
              unsigned long memSize=0;
-             char * mem = dynamicRequest_serveContent(instance,request,cache[*index].dynamicRequest ,*index,&memSize,compressionSupported,freeContentAfterUsingIt);
+             char * mem = dynamicRequest_serveContent(
+                                                       instance,
+                                                       request,cache[*index].dynamicRequest ,
+                                                       *index,
+                                                       &memSize,
+                                                       compressionSupported,
+                                                       freeContentAfterUsingIt
+                                                    );
              if ( (mem==0) || (memSize==0) )
              {
-               warning("Could not perform dynamicRequest_serveContent , hope there is a regular fallback file , or we will probably 404 \n");
+               warning("Tried to perform dynamicRequest_serveContent , but got back null , if there is no regular fallback file we will probably 404 now\n");
                return 0;
              }
 

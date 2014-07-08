@@ -34,7 +34,10 @@ char * dynamicRequest_serveContent
 
   if (shared_context->dynamicRequestCallbackFunction==0)
   {
-    fprintf(stderr,"No dynamic request content registered\n");
+    error("dynamicRequest_serveContent : No Callback registered , cannot serve content without a function to call \n");
+    error("dynamicRequest_serveContent should never get called without a function to call \n");
+    fprintf(stderr,"Index item %u\n",index);
+    fprintf(stderr,"content Resource name %s\n",shared_context->resource_name);
     return 0;
   }
 

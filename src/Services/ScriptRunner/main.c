@@ -227,6 +227,7 @@ void * prepare_base_image(struct AmmServer_DynamicRequest  * rqst)
      }
      memcpy(rqst->content,readContent,length);
      rqst->contentSize=length;
+     free(readContent);
   }
   return 0;
 }
@@ -251,6 +252,7 @@ void * prepare_top_image(struct AmmServer_DynamicRequest  * rqst)
      }
      memcpy(rqst->content,readContent,length);
      rqst->contentSize=length;
+     free(readContent);
   }
   return 0;
 }
