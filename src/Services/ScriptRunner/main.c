@@ -31,6 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define ENABLE_PASSWORD_PROTECTION 0
 #define ENABLE_CHAT_BOX 0
 
+#define MAX_COMMAND_SIZE 2048
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 #define ADMIN_BINDING_PORT 8082
@@ -160,42 +161,28 @@ int getBackCommandLine(char *  command , char * what2GetBack , unsigned int what
 
 
 
-
-
-/*
-rostopic echo /battery_state
-
-header:
-  seq: 10374
-  stamp:
-    secs: 1402062613
-    nsecs: 430198039
-  frame_id: ''
-voltage: 26.0810012817
-current: 3.8780002594
-lifePercent: 41
-lifeTime: -1
-charging: False
-powerSupplyPresent: False
-cellVoltage: [3.264000177383423, 3.259000062942505, 3.267000198364258, 3.2680001258850098, 3.261000156402588, 3.258000135421753, 3.258000135421753, 3.252000093460083]
-
-rostopic echo /battery_state -n 1 | grep lifePercent | cut -d ':' -f2
-
-*/
-
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
 
-  char batteryState[1000]={0};
-  getBackCommandLine("rostopic echo /battery_state -n 1 | grep lifePercent | cut -d ':' -f2", batteryState , 1000 );
-  char chargingState[1000]={0};
-  getBackCommandLine("rostopic echo /battery_state -n 1 | grep charging | cut -d ':' -f2", chargingState , 1000 );
-  char mileageState[1000]={0};
-  getBackCommandLine("rostopic echo /mileage -n 1 | grep data | cut -d ':' -f2", mileageState , 1000 );
+/*
+rostopic echo /battery_state
+voltage: 26.0810012817
+current: 3.8780002594
+lifePercent: 41
+lifeTime: -1
+charging: False
+powerSupplyPresent: False
+*/
 
+  char batteryState[MAX_COMMAND_SIZE]={0};
+  getBackCommandLine("timeout 1 rostopic echo /battery_state -n 1 | grep lifePercent | cut -d ':' -f2", batteryState , MAX_COMMAND_SIZE );
+  char chargingState[MAX_COMMAND_SIZE]={0};
+  getBackCommandLine("timeout 1 rostopic echo /battery_state -n 1 | grep charging | cut -d ':' -f2", chargingState , MAX_COMMAND_SIZE );
+  char mileageState[MAX_COMMAND_SIZE]={0};
+  getBackCommandLine("timeout 1 rostopic echo /mileage -n 1 | grep data | cut -d ':' -f2", mileageState , MAX_COMMAND_SIZE );
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   sprintf(rqst->content,"<html><head><body>Time is<br> %02d-%02d-%02d %02d:%02d:%02d\n <br>Battery is : %s<br>Charging : %s<br>Mileage : %s<br>",
@@ -206,12 +193,10 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
-
-
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_base_image(struct AmmServer_DynamicRequest  * rqst)
 {
-  unsigned int length;
+  unsigned int length=0;
   char * readContent = AmmServer_ReadFileToMemory("/opt/ros/hobbit_hydro/src/rgbd_acquisition/bin/frames/base/left0000.jpg",&length);
 
   if(readContent==0)
@@ -236,7 +221,7 @@ void * prepare_base_image(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_top_image(struct AmmServer_DynamicRequest  * rqst)
 {
-  unsigned int length;
+  unsigned int length=0;
   char * readContent = AmmServer_ReadFileToMemory("/opt/ros/hobbit_hydro/src/rgbd_acquisition/bin/frames/top/left0000.jpg",&length);
 
   if(readContent==0)
@@ -262,7 +247,7 @@ void joystickExecute(float x , float y )
 {
    AmmServer_Warning("Joystick(%0.2f,%0.2f)\n",x,y);
 
-   char commandToRun[1024]={0};
+   char commandToRun[MAX_COMMAND_SIZE]={0};
     sprintf(commandToRun,
            "rostopic pub /joy sensor_msgs/Joy \"{ axes: [ %0.2f , %0.2f , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ] , buttons: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }\" -1&"
             ,x,y
@@ -292,8 +277,34 @@ void execute(char * command,char * param)
 {
   fprintf(stderr,"Execute(%s,%s) \n",command,param);
   int i=0;
-  char commandToRun[1024]={0};
+  char commandToRun[MAX_COMMAND_SIZE]={0};
 
+
+
+  if (strcmp(command,"node")==0)
+  {
+    if (strcmp(param,"niteTrigger")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /rgbd_acquisition/trigger_peopletracker\" "); } else
+    if (strcmp(param,"nitePause")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /rgbd_acquisition/pause_peopletracker\" "); } else
+    if (strcmp(param,"niteResume")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /rgbd_acquisition/resume_peopletracker\" "); } else
+    if (strcmp(param,"nitePausePoint")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /rgbd_acquisition/pause_pointing_gesture_messages\" "); } else
+    if (strcmp(param,"niteResumePoint")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /rgbd_acquisition/resume__pointing_gesture_messages\" "); } else
+
+    if (strcmp(param,"forthSKPause")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /skeleton_detector/pause\" "); } else
+    if (strcmp(param,"forthSKResume")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /skeleton_detector/resume\" "); } else
+
+    if (strcmp(param,"emergencyTrigger")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /emergency_detector/trigger\" "); } else
+    if (strcmp(param,"emergencyPause")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /emergency_detector/pause\" "); } else
+    if (strcmp(param,"emergencyResume")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /emergency_detector/resume\" "); } else
+
+    if (strcmp(param,"gesturePause")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /hand_gestures/pause\" "); } else
+    if (strcmp(param,"gestureResume")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /hand_gestures/resume\" "); } else
+
+    if (strcmp(param,"faceTrigger")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /face_detection/trigger\" "); } else
+    if (strcmp(param,"facePause")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /face_detection/pause\" "); } else
+    if (strcmp(param,"faceResume")==0) {  strcpy(commandToRun,"/bin/bash -c \"rosservice call /face_detection/resume\" "); } else
+                                      { fprintf(stderr,"Unknown node command ( param %s ) \n", param); }
+
+  } else
 
   if (strcmp(command,"camera")==0)
   {
@@ -415,7 +426,7 @@ void execute(char * command,char * param)
    else
   if (strcmp(command,"say")==0)
   {
-     char internalString[1024]={0};
+     char internalString[MAX_COMMAND_SIZE]={0};
      if (strcmp(param,"test")==0) {  strcpy(internalString,"Θα σας κάνω μια έκπληξη , θα σταματήσω να δουλεύω σε ένα τυχαίο σημείο.!"); } else
                                   {  strcpy(internalString,param); }
 
@@ -492,11 +503,6 @@ if (successfullStore)
 //This function prepares the content of  form context , ( content )
 void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  strncpy(rqst->content,page,pageLength);
-  rqst->content[pageLength]=0;
-  rqst->contentSize=pageLength;
-
-
   if  ( rqst->GET_request != 0 )
     {
       if ( strlen(rqst->GET_request)>0 )
@@ -504,6 +510,7 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
          char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
          if (bufferCommand!=0)
           {
+            if ( _GET(default_server,rqst,(char*)"node",bufferCommand,256) )  { execute((char*)"node",bufferCommand);  } else
             if ( _GET(default_server,rqst,(char*)"camera",bufferCommand,256) )  { execute((char*)"camera",bufferCommand);  } else
             if ( _GET(default_server,rqst,(char*)"head",bufferCommand,256) )  { execute((char*)"head",bufferCommand);  } else
             if ( _GET(default_server,rqst,(char*)"hand",bufferCommand,256) )  { execute((char*)"hand",bufferCommand);  } else
@@ -530,7 +537,9 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
             if ( _GET(default_server,rqst,(char*)"move",bufferCommand,256) )  { execute((char*)"move",bufferCommand);  } else
             if ( _GET(default_server,rqst,(char*)"robot",bufferCommand,256) ) { execute((char*)"robot",bufferCommand); } else
             if ( _GET(default_server,rqst,(char*)"rtd",bufferCommand,256) ) { execute((char*)"rtd",bufferCommand); } else
-            if ( _GET(default_server,rqst,(char*)"say",bufferCommand,256) )   { execute((char*)"say",bufferCommand);   }
+            if ( _GET(default_server,rqst,(char*)"say",bufferCommand,256) )   { execute((char*)"say",bufferCommand);   } else
+                                                                              { AmmServer_Warning("Could not find a recognizable command family to execute");  }
+
 
             free(bufferCommand);
           }
@@ -538,31 +547,36 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
        }
     }
 
+  if ( (page==0) || (pageLength==0) )
+  {
+     page=AmmServer_ReadFileToMemory((char*)"controlpanel.html",&pageLength);
+  }
+  strncpy(rqst->content,page,pageLength);
+  rqst->content[pageLength]=0;
+  rqst->contentSize=pageLength;
 
   //form.content_size=strlen(content);
   return 0;
 }
 
-
-
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
-void init_dynamic_content()
+int  init_dynamic_content()
 {
-  if (! AmmServer_AddResourceHandler(default_server,&indexPage,(char*)"/index.html",webserver_root,4096,0,(void* ) &prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&stats,(char*)"/stats.html",webserver_root,4096,0,(void* ) &prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
+  fprintf(stderr,"Please note that control panel , is only refreshed once per startup for min resource consumption\n");
+  page=AmmServer_ReadFileToMemory((char*)"controlpanel.html",&pageLength);
+  if ( (page==0) || (pageLength==0) ) { fprintf(stderr,"Cannot initialize dynamic content\n"); return 0; }
+
+  if (! AmmServer_AddResourceHandler(default_server,&form,(char*)"/controlpanel.html",webserver_root,pageLength+1,0,(void* ) &prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+  AmmServer_DoNOTCacheResourceHandler(default_server,&form);
+
+  if (! AmmServer_AddResourceHandler(default_server,&indexPage,(char*)"/index.html",webserver_root,4096,0,(void*) &prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&stats,(char*) "/stats.html",webserver_root,4096,0,(void*) &prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding stats page\n"); }
 
   if (! AmmServer_AddResourceHandler(default_server,&settings,(char*)"/settings.html",webserver_root,4096,0,(void* ) &store_new_configuration_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding settings page\n"); }
 
-
-  fprintf(stderr,"Please note that control panel , is only refreshed once per startup for min resource consumption\n");
-  page=AmmServer_ReadFileToMemory((char*)"controlpanel.html",&pageLength);
-  if (! AmmServer_AddResourceHandler(default_server,&form,(char*)"/controlpanel.html",webserver_root,pageLength+1,0,(void* ) &prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
-
   if (! AmmServer_AddResourceHandler(default_server,&base_image,(char*)"/base_image.jpg",webserver_root,640*480*3,0,(void* ) &prepare_base_image,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding prepare base_image page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&top_image,(char*)"/top_image.jpg",webserver_root,640*480*3,0,(void* ) &prepare_top_image,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding prepare top_image page\n"); }
-
-  AmmServer_DoNOTCacheResourceHandler(default_server,&form);
+  //if (! AmmServer_AddResourceHandler(default_server,&top_image,(char*)"/top_image.jpg",webserver_root,640*480*3,0,(void* ) &prepare_top_image,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding prepare top_image page\n"); }
+  return 1;
  }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
@@ -578,6 +592,7 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&form,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
+
 
 
 
@@ -634,10 +649,9 @@ int main(int argc, char *argv[])
 
 
     //Create dynamic content allocations and associate context to the correct files
-    init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
-
-
+    if ( init_dynamic_content() )
+        {
          while ( (AmmServer_Running(default_server))  )
            {
              //Main thread should just sleep and let the background threads do the hard work..!
@@ -649,8 +663,9 @@ int main(int argc, char *argv[])
            }
 
 
-    //Delete dynamic content allocations and remove stats.html and formtest.html from the server
-    close_dynamic_content();
+          //Delete dynamic content allocations and remove stats.html and formtest.html from the server
+          close_dynamic_content();
+        }
 
     //Stop the server and clean state
     AmmServer_Stop(default_server);

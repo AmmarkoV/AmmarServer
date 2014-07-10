@@ -337,6 +337,48 @@ function drop(ev)
      
       <td> 
 	<div class="rtd">
+
+        <strong>NODE CONTROL</strong><br/>
+           <select id="NodeControls" onchange="javascript:command('node='+this.value);" > 
+               <option value="nothing0">Click to control nodes</option>  
+               
+                 <optgroup label="Nite Skeleton Tracker" >
+                    <option value="niteTrigger">Trigger Nite Person Message</option> 
+                    <option value="nitePause">Pause Nite Tracking</option> 
+                    <option value="niteResume">Resume Nite Tracking</option>
+                    <option value="nitePausePoint">Pause Nite Point Events</option> 
+                    <option value="niteResumePoint">Resume Nite Point Events</option>
+                 </optgroup>
+
+                 <optgroup label="FORTH Person Detector" > 
+                    <option value="forthSKPause">Pause FORTH Person Detector</option> 
+                    <option value="forthSKResume">Resume FORTH Person Detector</option> 
+                 </optgroup>       
+                 
+                 
+                 <optgroup label="FORTH Skeleton Tracker" > 
+                    <option value="forthSKPause">Pause FORTH Skeleton Tracker</option> 
+                    <option value="forthSKResume">Resume FORTH Skeleton Tracker</option> 
+                 </optgroup>                        
+                      
+                 <optgroup label="Emergency Detector" >
+                    <option value="emergencyTrigger">Trigger Emergency Detector</option> 
+                    <option value="emergencyPause">Pause Emergency Detector</option> 
+                    <option value="emergencyResume">Resume Emergency Detector</option>
+                 </optgroup>
+                      
+                 <optgroup label="Gesture Detector" >
+                    <option value="gesturePause">Pause Gesture Detector</option> 
+                    <option value="gestureResume">Resume Gesture Detector</option>
+                 </optgroup>
+                      
+                 <optgroup label="Face Detector" >
+                    <option value="faceTrigger">Trigger Face Detector</option> 
+                    <option value="facePause">Pause Face Detector</option> 
+                    <option value="faceResume">Resume Face Detector</option>
+                 </optgroup>   
+         </select>       <br/>
+
         <strong>READY TO DRINK POSES</strong><br/>
                   <select id="RTDSelector" onchange="javascript:command('rtd='+this.value);" > 
                     <option value="nothing">Click to manipulate Arm</option>  
@@ -597,6 +639,14 @@ function drop(ev)
            <td>
                <a href="controlpanel.html?body=360cw"><img src="head_cw.png" width=40></a><br/>
            </td>
+          </tr>
+
+          <tr>
+            <td colspan=3>
+               <center>
+                 <a href="controlpanel.html?body=reset">Reset Motors/Brakes</a>
+               </center>
+            </td>
           </tr>
         </table>   
         

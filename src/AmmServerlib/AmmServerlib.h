@@ -1,3 +1,15 @@
+/** @file AmmServerlib.h
+* @brief The Main Header for AmmarServer
+*
+* Any application that may want to interface with AmmarServer will probably want to link to libAmmarServer.a
+* and include this header. It provides the entry point for setting up a web share and access to
+* sub-modules on runtime.
+*
+* @author Ammar Qammaz (AmmarkoV)
+* @bug AmmarServer is not properly pentested yet
+*/
+
+
 #ifndef AMMSERVERLIB_H_INCLUDED
 #define AMMSERVERLIB_H_INCLUDED
 

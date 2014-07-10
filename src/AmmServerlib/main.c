@@ -473,7 +473,12 @@ char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
   *length = 0;
   FILE * pFile = fopen ( filename , "rb" );
 
-  if (pFile==0) { fprintf(stderr,"Could not read file %s \n",filename); return 0; }
+  if (pFile==0)
+     {
+       AmmServer_Error("AmmServer_ReadFileToMemory failed");
+       fprintf(stderr,"Could not read file %s \n",filename);
+       return 0;
+     }
 
   // obtain file size:
   fseek (pFile , 0 , SEEK_END);
