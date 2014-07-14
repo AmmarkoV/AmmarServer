@@ -41,6 +41,17 @@ char * AmmServer_Version()
   return (char*) FULLVERSION_STRING;
 }
 
+int AmmServer_CheckIfBinaryFitsHeaderDecleration(int headerSpec)
+{
+  if (AMMAR_SERVER_HTTP_HEADER_SPEC != headerSpec)
+    {
+      fprintf(stderr,RED "Please note that an inconsistency of binary and its header has been detected\n" NORMAL);
+      return 0;
+    }
+  return 1;
+}
+
+
 void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
 {
    unsigned int freeAtTheEnd=1;

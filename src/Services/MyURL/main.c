@@ -610,6 +610,9 @@ void close_dynamic_content()
 int main(int argc, char *argv[])
 {
     printf("Ammar Server starting up\n");
+    //Check binary and header spec
+    AmmServer_CheckIfBinaryFitsHeaderDecleration(AMMAR_SERVER_HTTP_HEADER_SPEC);
+    //Register termination signal for when we receive SIGKILL etc
     AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
     char bindIP[MAX_IP_STRING_SIZE]={0};

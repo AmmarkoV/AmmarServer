@@ -336,7 +336,10 @@ void init_dynamic_content()
   if (executeScript!=0)
   {
      if (! AmmServer_AddResourceHandler(default_server,&gps,"/execute.html",webserver_root,16000,0,&executeScriptFunction,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-         { AmmServer_Warning("Failed adding execute page\n"); }
+         { AmmServer_Warning("Failed adding execute page\n"); } else
+         {
+           fprintf(stderr,"Call http://YOURIP:%u/execute.html to execute %s \n",default_server->settings.BINDING_PORT,executeScript);
+         }
   }
 
 
@@ -398,7 +401,9 @@ int main(int argc, char *argv[])
       }
    }
 
-
+    //Check binary and header spec
+    AmmServer_CheckIfBinaryFitsHeaderDecleration(AMMAR_SERVER_HTTP_HEADER_SPEC);
+    //Register termination signal for when we receive SIGKILL etc
     AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
     char bindIP[MAX_IP_STRING_SIZE];

@@ -19,6 +19,7 @@ extern "C" {
 
 #include <pthread.h>
 
+#define AMMAR_SERVER_HTTP_HEADER_SPEC 123
 
 
 /**
@@ -315,6 +316,15 @@ enum AmmServStrSettings
 */
 char * AmmServer_Version();
 
+/**
+* @brief Internal Check to compare against changes of the header files
+* @ingroup tools
+* @param Header ( should be AMMAR_SERVER_HTTP_HEADER_SPEC )
+* @retval 1=Success,0=Failure
+*/
+int AmmServer_CheckIfBinaryFitsHeaderDecleration(int headerSpec);
+
+
 void AmmServer_Warning( const char *format , ... );
 void AmmServer_Error( const char *format , ... );
 void AmmServer_Success( const char *format , ... );
@@ -368,8 +378,37 @@ int AmmServer_Stop(struct AmmServer_Instance * instance);
 int AmmServer_Running(struct AmmServer_Instance * instance);
 
 
+/**
+* @brief Add a request handler to handle requests , before they get processed internally
+*        Calling this will bind a C function that will be called and produce output when someone asks for any resource using the specified method
+         TODO : Improve this documenatation
+* @ingroup core
+* @param An AmmarServer Instance
+* @param A AmmServer_RequestOverride_Context to be populated
+* @param Request Type
+* @param Pointer to function callback
+* @retval 1=Success,0=Fail
+*/
 int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,char * request_type,void * callback);
 
+
+
+
+/**
+* @brief Add a request handler to handle dynamic requests , the core mechanic of AmmarServer
+*        Calling this will bind a C function that will be called and produce output when someone asks for a resource
+         TODO : Improve this documenatation
+* @ingroup core
+* @param An AmmarServer Instance
+* @param An AmmServer_RH_Context to be populated
+* @param Name of resource that should get dynamic responses ( i.e. "index.html" )
+* @param Root Path for the specific resource
+* @param Memory chunk to allocate for responses , ( this is the max response size )
+* @param Minimum time between two calls of the function ( 0 = no minimum time)
+* @param Function to be called and provides output when someone asks for resource
+* @param Scenario/Profile of this resource ( see RHScenarios )
+* @retval 1=Success,0=Fail
+*/
 int AmmServer_AddResourceHandler
      ( struct AmmServer_Instance * instance,
        struct AmmServer_RH_Context * context,
