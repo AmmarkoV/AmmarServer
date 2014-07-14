@@ -97,7 +97,7 @@ while ((dp=readdir(dir)) != 0)
      if (mem_remaining < GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY)
      {
         warning("Growing directory list memory");
-        char * moreMemory= (int*) realloc (memory, sizeof(char) * ( *memoryUsed + GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY ) );
+        char * moreMemory= (char*) realloc (memory, sizeof(char) * ( *memoryUsed + GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY ) );
         if (moreMemory==0)
              {
                closedir(dir);

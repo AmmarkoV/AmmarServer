@@ -181,7 +181,7 @@ int TransmitFileToSocket(
          //Content-Range: bytes 1000-3979/3980
          int endAtBytePrinted = end_at_byte;
          if (endAtBytePrinted == 0 ) { endAtBytePrinted = lSize; }
-          sprintf(reply_header,"Content-Range: bytes %u-%u/%u\nContent-length: %u\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);
+          sprintf(reply_header,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);
        } else
        {
          //error("TransmitFileToSocket Plain Content-Length ");
@@ -310,7 +310,7 @@ unsigned long SendFile
        if ((request->eTag!=0)&&(cache_etag!=0))
         {
           char LocalETag[40]={0};
-          sprintf(LocalETag,"%u%u%u",cache_etag,start_at_byte,end_at_byte);
+          sprintf(LocalETag,"%u%lu%lu",cache_etag,start_at_byte,end_at_byte);
 
           //fprintf(stderr,"E-Tag is `%s` , local hash is `%s` \n",request->eTag,LocalETag);
           if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
@@ -380,7 +380,7 @@ if (request->requestType!=HEAD)
      unsigned int  cache_etag = cache_GetHashOfResource(instance,index);
      if (cache_etag!=0)
      {
-        sprintf(reply_header,"ETag: \"%u%u%u\"\n",cache_etag,start_at_byte,end_at_byte);
+        sprintf(reply_header,"ETag: \"%u%lu%lu\"\n",cache_etag,start_at_byte,end_at_byte);
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
@@ -404,7 +404,7 @@ if (request->requestType!=HEAD)
          //Content-Range: bytes 1000-3979/3980
          int endAtBytePrinted = end_at_byte;
          if (endAtBytePrinted == 0 ) { endAtBytePrinted = cached_lSize; }
-          sprintf(reply_header,"Content-Range: bytes %u-%u/%u\nContent-length: %u\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
+          sprintf(reply_header,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
        } else
        {
          //error("Resource Plain Content-Length ");

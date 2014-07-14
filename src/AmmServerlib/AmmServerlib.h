@@ -456,17 +456,109 @@ int AmmServer_AddResourceHandler
 */
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem);
 
+/**
+* @brief Get an Integer out of the state of an instance , of course one can dive into the instance structure but this is a much more clean way to do this
+* @ingroup core
+* @param An AmmarServer Instance
+* @param An ID about which info we want , see (  AmmServInfos )
+* @retval Value of the integer we asked about
+*/
 int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_type);
 
+/**
+* @brief Get an Integer out of the state of an instance , of course one can dive into the instance structure but this is a much more clean way to do this
+* @ingroup core
+* @param An AmmarServer Instance
+* @param An ID about which integer info we want , see (  AmmServSettings )
+* @retval Value of the integer we asked about
+*/
 int AmmServer_GetIntSettingValue(struct AmmServer_Instance * instance,unsigned int set_type);
+
+/**
+* @brief Set an Integer inside the state of an instance , of course one can dive into the instance structure but this is a much more clean way to do this
+* @ingroup core
+* @param An AmmarServer Instance
+* @param An ID about which integer info we want , see (  AmmServSettings )
+* @param New value to set
+* @retval Value of the integer we asked about
+*/
 int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,int set_value);
 
+
+
+/**
+* @brief Get a String out of the state of an instance , of course one can dive into the instance structure but this is a much more clean way to do this
+* @ingroup core
+* @param An AmmarServer Instance
+* @param An ID about which string info we want , see (  AmmServStrSettings )
+* @retval Value of the string we asked about
+*/
+char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type);
+
+/**
+* @brief Set an string inside the state of an instance , of course one can dive into the instance structure but this is a much more clean way to do this
+* @ingroup core
+* @param An AmmarServer Instance
+* @param An ID about which integer info we want , see (  AmmServStrSettings )
+* @param New string value to set
+* @retval 1=Success,0=Failure
+*/
+int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,char * set_value);
+
+/**
+* @brief Get a POST argument
+* @ingroup core
+* @param Instance of an AmmarServer
+* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
+* @param Input Name of argument we are looking for
+* @param Output Pointer that will be copied with the value we were looking for
+* @param Maximum Size for output Value
+* @retval 1=Success,0=Failure
+*/
 int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+
+
+/**
+* @brief Get a GET argument
+* @ingroup core
+* @param Instance of an AmmarServer
+* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
+* @param Input Name of argument we are looking for
+* @param Output Pointer that will be copied with the value we were looking for
+* @param Maximum Size for output Value
+* @retval 1=Success,0=Failure
+*/
 int AmmServer_GETArg  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+
+
+/**
+* @brief Access a FILE submitted by a dynamic requested
+* @ingroup core
+* @param Instance of an AmmarServer
+* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
+* @param Input Name of argument we are looking for
+* @param Output Pointer that will be copied with the value we were looking for
+* @param Maximum Size for output Value
+* @retval 1=Success,0=Failure
+*/
 int AmmServer_FILES   (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
+/**
+* @brief Shorthand/Shortcut for AmmServer_POSTArg()
+* @ingroup shortcut
+*/
 int _POST (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+
+/**
+* @brief Shorthand/Shortcut for AmmServer_GETArg()
+* @ingroup shortcut
+*/
 int _GET  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+
+/**
+* @brief Shorthand/Shortcut for AmmServer_FILES()
+* @ingroup shortcut
+*/
 int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst);
@@ -476,9 +568,14 @@ int AmmServer_SaveDynamicRequest(char* filename , struct AmmServer_Instance * in
 int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context);
 int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name);
 
-char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type);
-int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,char * set_value);
 
+/**
+* @brief Planned functionality for a default http administrator panel per server per instance , currently not implemented correctly
+* @ingroup core
+* @param IP to bind the interface at
+* @param Port to use
+* @retval Value of the integer we asked about
+*/
 struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int port);
 
 /**

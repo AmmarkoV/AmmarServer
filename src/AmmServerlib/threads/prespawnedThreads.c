@@ -86,7 +86,7 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 
   if ( (instance==0)||(instance->prespawned_pool==0) ) { fprintf(stderr,"PreSpawnThreads called on an invalid instance..\n"); return; }
 
-  struct PassToPreSpawnedThread context={{0}};
+  struct PassToPreSpawnedThread context={0};
   //memset(&context,0,sizeof(struct PassToPreSpawnedThread));
 
   struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
