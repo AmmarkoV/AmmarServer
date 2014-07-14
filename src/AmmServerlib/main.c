@@ -41,7 +41,7 @@ char * AmmServer_Version()
   return (char*) FULLVERSION_STRING;
 }
 
-int AmmServer_CheckIfBinaryFitsHeaderDecleration(int headerSpec)
+int AmmServer_CheckIfHeaderBinaryAreTheSame(int headerSpec)
 {
   if (AMMAR_SERVER_HTTP_HEADER_SPEC != headerSpec)
     {

@@ -327,11 +327,36 @@ char * AmmServer_Version();
 * @param Header ( should be AMMAR_SERVER_HTTP_HEADER_SPEC )
 * @retval 1=Success,0=Failure
 */
-int AmmServer_CheckIfBinaryFitsHeaderDecleration(int headerSpec);
+int AmmServer_CheckIfHeaderBinaryAreTheSame(int headerSpec);
 
-
+/**
+* @brief Writes the C string pointed by format to stderr , as a warning ( Yellow ) and logs it to the appropriate log
+         If format includes format specifiers (subsequences beginning with %), the additional arguments following format are formatted and inserted in the resulting
+         string replacing their respective specifiers.
+* @ingroup tools
+* @param format , see printf ( http://www.cplusplus.com/reference/cstdio/printf/ )
+* @param Arbitrary number of other parameters that where defined in format
+*/
 void AmmServer_Warning( const char *format , ... );
+
+/**
+* @brief Writes the C string pointed by format to stderr , as an error ( Red ) and logs it to the appropriate log
+         If format includes format specifiers (subsequences beginning with %), the additional arguments following format are formatted and inserted in the resulting
+         string replacing their respective specifiers.
+* @ingroup tools
+* @param format , see printf ( http://www.cplusplus.com/reference/cstdio/printf/ )
+* @param Arbitrary number of other parameters that where defined in format
+*/
 void AmmServer_Error( const char *format , ... );
+
+/**
+* @brief Writes the C string pointed by format to stderr , as a success ( Green ) and logs it to the appropriate log
+         If format includes format specifiers (subsequences beginning with %), the additional arguments following format are formatted and inserted in the resulting
+         string replacing their respective specifiers.
+* @ingroup tools
+* @param format , see printf ( http://www.cplusplus.com/reference/cstdio/printf/ )
+* @param Arbitrary number of other parameters that where defined in format
+*/
 void AmmServer_Success( const char *format , ... );
 
 
@@ -347,8 +372,6 @@ void AmmServer_Success( const char *format , ... );
 * @retval An Ammar Server instance or 0=Failure
 */
 struct AmmServer_Instance * AmmServer_Start(char * name ,char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
-
-
 
 /**
 * @brief Start a Web Server , allocate memory , bind ports and return its instance , also process arguments ( argc and argv from int main(int argc, char *argv[]) ) ..
@@ -373,7 +396,6 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char
 */
 int AmmServer_Stop(struct AmmServer_Instance * instance);
 
-
 /**
 * @brief Query if an instance of AmmarServer is initialized and running
 * @ingroup core
@@ -381,7 +403,6 @@ int AmmServer_Stop(struct AmmServer_Instance * instance);
 * @retval 1=Running,0=Stopped
 */
 int AmmServer_Running(struct AmmServer_Instance * instance);
-
 
 /**
 * @brief Add a request handler to handle requests , before they get processed internally
@@ -395,9 +416,6 @@ int AmmServer_Running(struct AmmServer_Instance * instance);
 * @retval 1=Success,0=Fail
 */
 int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,char * request_type,void * callback);
-
-
-
 
 /**
 * @brief Add a request handler to handle dynamic requests , the core mechanic of AmmarServer
