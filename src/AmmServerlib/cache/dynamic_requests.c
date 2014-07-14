@@ -80,7 +80,7 @@ char * dynamicRequest_serveContent
   if ( (cacheMemory==0) || (shared_context->requestContext.MAXcontentSize==0) )
     {
      warning("Not going to call callback function with an empty buffer..!");
-     fprintf(stderr," ( cacheMemory=%p , MAXcontentSize=%u ) ..!\n",cacheMemory,shared_context->requestContext.MAXcontentSize);
+     fprintf(stderr," ( cacheMemory=%p , MAXcontentSize=%lu ) ..!\n",cacheMemory,shared_context->requestContext.MAXcontentSize);
     } else
     {
      //This means we can call the callback to prepare the memory content..! START
@@ -134,7 +134,7 @@ char * dynamicRequest_serveContent
                     {
                      memcpy(rqst , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
 
-                     fprintf(stderr,"Request for a maximum of %u characters ( %lu ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
+                     fprintf(stderr,"Request for a maximum of %lu characters ( %lu ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
                      fprintf(stderr,"POST : %p , %u bytes\n",rqst->POST_request , rqst->POST_request_length );
                      fprintf(stderr,"GET : %p , %u bytes\n",rqst->GET_request , rqst->GET_request_length );
 

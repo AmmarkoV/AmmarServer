@@ -226,9 +226,7 @@ struct AmmServer_Instance_Settings
 
 
 
-/**
-* @brief This holds all the information about an Ammar Server Instance , sockets , thread pools , cache , memory , settings etc , this is the central structure for holding context
-*/
+/** @brief This holds all the information about an Ammar Server Instance , sockets , thread pools , cache , memory , settings etc , this is the central structure for holding context */
 struct AmmServer_Instance
 {
     char instanceName[MAX_INSTANCE_NAME_STRING];
@@ -271,9 +269,7 @@ struct AmmServer_Instance
 
 
 
-/**
-* @brief Structure to keep data for an HTTP Transaction
-*/
+/** @brief Structure to keep data for an HTTP Transaction */
 struct HTTPTransaction
 {
   struct AmmServer_Instance * instance;
@@ -293,6 +289,7 @@ struct HTTPTransaction
 };
 
 
+/** @brief Enumerator for calls AmmServer_GetInfo */
 enum AmmServInfos
 {
     AMMINF_ACTIVE_CLIENTS=0,
@@ -300,6 +297,7 @@ enum AmmServInfos
 };
 
 
+/** @brief Enumerator for calls AmmServer_GetIntSettingValue and AmmServer_SetIntSettingValue */
 enum AmmServSettings
 {
     AMMSET_PASSWORD_PROTECTION=0,
@@ -307,6 +305,7 @@ enum AmmServSettings
 };
 
 
+/** @brief Enumerator for calls AmmServer_GetStrSettingValue and AmmServer_SetStrSettingValue */
 enum AmmServStrSettings
 {
     AMMSET_USERNAME_STR=0,
@@ -316,9 +315,7 @@ enum AmmServStrSettings
 
 
 
-/**
-* @brief Returns a string with the version of AmmarServer , in case it returns NULL it means that we are linked to AmmarServerNULL which means a fake binary
-*/
+/** @brief Returns a string with the version of AmmarServer , in case it returns NULL it means that we are linked to AmmarServerNULL which means a fake binary */
 char * AmmServer_Version();
 
 /**
@@ -501,8 +498,7 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
 * @param An AmmarServer Instance
 * @param An ID about which integer info we want , see (  AmmServStrSettings )
 * @param New string value to set
-* @retval 1=Success,0=Failure
-*/
+* @retval 1=Success,0=Failure */
 int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,char * set_value);
 
 /**
@@ -513,8 +509,7 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 * @param Input Name of argument we are looking for
 * @param Output Pointer that will be copied with the value we were looking for
 * @param Maximum Size for output Value
-* @retval 1=Success,0=Failure
-*/
+* @retval 1=Success,0=Failure */
 int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 
@@ -526,8 +521,7 @@ int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_Dyn
 * @param Input Name of argument we are looking for
 * @param Output Pointer that will be copied with the value we were looking for
 * @param Maximum Size for output Value
-* @retval 1=Success,0=Failure
-*/
+* @retval 1=Success,0=Failure */
 int AmmServer_GETArg  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 
@@ -539,33 +533,56 @@ int AmmServer_GETArg  (struct AmmServer_Instance * instance,struct AmmServer_Dyn
 * @param Input Name of argument we are looking for
 * @param Output Pointer that will be copied with the value we were looking for
 * @param Maximum Size for output Value
-* @retval 1=Success,0=Failure
-*/
+* @retval 1=Success,0=Failure */
 int AmmServer_FILES   (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_POSTArg()
-* @ingroup shortcut
-*/
+* @ingroup shortcut */
 int _POST (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_GETArg()
-* @ingroup shortcut
-*/
+* @ingroup shortcut */
 int _GET  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()
-* @ingroup shortcut
-*/
+* @ingroup shortcut */
 int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
+/**
+* @brief Staged way to easily handle bad clients etc from the clients , currently a stub..!
+* @ingroup shortcut
+* @bug Client behaviours etc are not implemented yet */
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst);
 
+/**
+* @brief Save Dynamic Request to file
+* @ingroup tools
+* @param Filename to save the dynamic request
+* @param Instance of an AmmarServer
+* @param Request that we want to save to a file ( see AmmServer_DynamicRequest )
+* @retval 1=Success,0=Failure */
 int AmmServer_SaveDynamicRequest(char* filename , struct AmmServer_Instance * instance  , struct AmmServer_DynamicRequest * rqst);
 
+
+
+/**
+* @brief Set resource handler to no-cache mode , this means whoever asks for it will never get a cached response
+* @ingroup tools
+* @param Instance of an AmmarServer
+* @param Resource context that should always be served fresh ( AmmServer_RH_Context )
+* @retval 1=Success,0=Failure */
 int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context);
+
+
+/**
+* @brief Set resource to no-cache mode , this means whoever asks for it will never get a cached response
+* @ingroup tools
+* @param Instance of an AmmarServer
+* @param Resource name that we want to always serve fresh
+* @retval 1=Success,0=Failure */
 int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name);
 
 

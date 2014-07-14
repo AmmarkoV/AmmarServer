@@ -586,7 +586,7 @@ int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int m
   if (result != memoryLength)
      {
        fprintf(stderr,"Could not write the whole file onto disk %s \n",filename);
-       fprintf(stderr,"We wrote %u / %u  \n",result,memoryLength);
+       fprintf(stderr,"We wrote %zu / %u  \n",result,memoryLength);
        fclose(pFile);
        return 0;
      }
