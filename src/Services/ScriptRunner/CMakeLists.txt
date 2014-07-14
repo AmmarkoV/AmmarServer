@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizat
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(scriptrunner main.c ) 
+add_executable(scriptrunner main.cpp ) 
 target_link_libraries(scriptrunner pthread rt AmmarServer )
 set_target_properties(scriptrunner PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(scriptrunner AmmarServer)  

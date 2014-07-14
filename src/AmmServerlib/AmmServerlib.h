@@ -19,6 +19,12 @@ extern "C" {
 
 #include <pthread.h>
 
+
+
+/**
+* @brief An enumerator that lists the types of requests , per HTTP spec , see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+*        Of course not all of them are supported/used internally but they are listed in the same order to maintain spec compatibility
+*/
 enum TypesOfRequests
 {
     NONE=0,
@@ -53,6 +59,10 @@ enum TypesOfRequests
 
 
 
+/**
+* @brief Each HTTP Request has a header , this is the internal structure that carries the information about the header of an HTTP request parsed and ready for easy
+*        for consumption by the various consumers of HTTP requests
+*/
 struct HTTPHeader
 {
    char * headerRAW;
@@ -106,6 +116,10 @@ struct HTTPHeader
 };
 
 
+/**
+* @brief HTTPOutHeader is not really used , it should probably be removed
+* @bug remove HTTPOutHeader ?
+*/
 struct HTTPOutHeader
 {
   unsigned int responseNumber;
@@ -114,12 +128,23 @@ struct HTTPOutHeader
 
 
 
+/**
+* @brief Each Dynamic Resource Handler can have multiple profiles for optimizing performance/memory usage etc.
+*        For now there are 2 profiles/scenarios. The first one is where there is a global state that all clients should share
+*        The second one is where there is a different page for each client , which is more memory intensive since there are separate buffers etc for each request.
+*/
 enum RHScenarios
 {
    SAME_PAGE_FOR_ALL_CLIENTS = 0 ,
    DIFFERENT_PAGE_FOR_EACH_CLIENT
 };
 
+
+
+/**
+* @brief We can override/intercept connections before the very fundamental HTTP stage using a request override context and AmmServer_AddRequestHandler
+*        This is the structure that holds the information and what to be called back to populate the response
+*/
 struct AmmServer_RequestOverride_Context
 {
    char requestHeader[64]; //Initial request ( GET , HEAD , CONNECT )
@@ -129,6 +154,9 @@ struct AmmServer_RequestOverride_Context
 
 
 
+/**
+* @brief When a call to a function that is a dynamic request is done this is the structure that holds the information
+*/
 struct AmmServer_DynamicRequest
 {
    unsigned int headerResponse;
@@ -152,6 +180,9 @@ struct AmmServer_DynamicRequest
 };
 
 
+/**
+* @brief We can override resources to respond with our own C function code , to do so a AmmServer_DynamicRequest must be populated using a AmmServer_AddResourceHandler
+*/
 struct AmmServer_RH_Context
 {
    unsigned int RH_Scenario;
@@ -170,6 +201,9 @@ struct AmmServer_RH_Context
 
 
 
+/**
+* @brief Each Instance of AmmarServer has some basic settings , which are stored in AmmServer_Instance_Settings
+*/
 struct AmmServer_Instance_Settings
 {
     //Configuration of instance..
@@ -186,6 +220,9 @@ struct AmmServer_Instance_Settings
 
 
 
+/**
+* @brief This holds all the information about an Ammar Server Instance , sockets , thread pools , cache , memory , settings etc , this is the central structure for holding context
+*/
 struct AmmServer_Instance
 {
     char instanceName[MAX_INSTANCE_NAME_STRING];
@@ -228,6 +265,9 @@ struct AmmServer_Instance
 
 
 
+/**
+* @brief Structure to keep data for an HTTP Transaction
+*/
 struct HTTPTransaction
 {
   struct AmmServer_Instance * instance;
@@ -268,17 +308,63 @@ enum AmmServStrSettings
     AMMSET_TESTSTR
 };
 
+
+
+/**
+* @brief Returns a string with the version of AmmarServer , in case it returns NULL it means that we are linked to AmmarServerNULL which means a fake binary
+*/
 char * AmmServer_Version();
 
 void AmmServer_Warning( const char *format , ... );
 void AmmServer_Error( const char *format , ... );
 void AmmServer_Success( const char *format , ... );
 
+
+/**
+* @brief Start a Web Server , allocate memory , bind ports and return its instance..
+* @ingroup core
+* @param String containing the name of this Server
+* @param String containing the IP to be binded ( 0.0.0.0 , for all interfaces )
+* @param Port to use , ports under 1000 require superuser privileges
+* @param String with the filename of a configuration file
+* @param String with the root public_html directory , all directories that are childs of this dir could be visible
+* @param String with the root directory for templates ( custom 404 pages etc )
+* @retval An Ammar Server instance or 0=Failure
+*/
 struct AmmServer_Instance * AmmServer_Start(char * name ,char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 
+
+
+/**
+* @brief Start a Web Server , allocate memory , bind ports and return its instance , also process arguments ( argc and argv from int main(int argc, char *argv[]) ) ..
+* @ingroup core
+* @param String containing the name of this Server
+* @param argc , number of arguments
+* @param argv , array of strings
+* @param String containing the IP to be binded ( 0.0.0.0 , for all interfaces )
+* @param Port to use , ports under 1000 require superuser privileges
+* @param String with the filename of a configuration file
+* @param String with the root public_html directory , all directories that are childs of this dir could be visible
+* @param String with the root directory for templates ( custom 404 pages etc )
+* @retval An Ammar Server instance or 0=Failure
+*/
 struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char ** argv , char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
 
+/**
+* @brief Stop a Web Server , deallocate memory , free ports and free the server instance..
+* @ingroup core
+* @param An AmmarServer Instance
+* @retval 1=Success,0=Failure
+*/
 int AmmServer_Stop(struct AmmServer_Instance * instance);
+
+
+/**
+* @brief Query if an instance of AmmarServer is initialized and running
+* @ingroup core
+* @param An AmmarServer Instance
+* @retval 1=Running,0=Stopped
+*/
 int AmmServer_Running(struct AmmServer_Instance * instance);
 
 
@@ -324,11 +410,43 @@ struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
+int AmmServer_ExecuteCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize);
+
 int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value);
 char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
 int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int memoryLength);
 
+/**
+* @brief Register a function to call a function that gracefully terminates a client when a SIGKILL or the time to stop the server comes
+* @ingroup tools
+* @param Path to file
+* @retval 1=Exists,0=Does not Exist
+*/
 int AmmServer_RegisterTerminationSignal(void * callback);
+
+/**
+* @brief Check if file Exists
+* @ingroup tools
+* @param Path to file
+* @retval 1=Exists,0=Does not Exist
+*/
+int AmmServer_FileExists(char * filename);
+
+/**
+* @brief Erase a File
+* @ingroup tools
+* @param Path to file
+* @retval 1=Success,0=Failure
+*/
+int AmmServer_EraseFile(char * filename);
+
+/**
+* @brief Check if a string has html elements inside it , so if we append it to a web site we won't have html injected
+* @ingroup tools
+* @param Input String
+* @retval 1=Safe,0=Unsafe
+*/
+unsigned int AmmServer_StringIsHTMLSafe(char * str);
 
 #ifdef __cplusplus
 }

@@ -109,7 +109,7 @@ int AmmCaptcha_loadDictionary(char * dictFilename)
  fd = fopen(dictFilename,"r");
  if (fd!=0)
  {
-  char str[100]={0};
+  char str[256]={0};
   while (!feof(fd))
   {
     fscanf (fd, "%s", str);

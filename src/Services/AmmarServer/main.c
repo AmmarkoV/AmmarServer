@@ -40,6 +40,9 @@ char admin_root[MAX_FILE_PATH]="admin_html/"; // <- change this to the directory
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
+#define MAX_SCRIPT_RESPONSE_SIZE 40960
+char * executeScript=0;
+
 
 /*! Dynamic content code ..! START!*/
 /* A few words about dynamic content here..
@@ -72,31 +75,7 @@ struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
 struct AmmServer_RH_Context gps={0};
 struct AmmServer_RH_Context random_chars={0};
-
-
-char FileExistsTest(char * filename)
-{
- FILE *fp = fopen(filename,"r");
- if( fp ) { /* exists */ fclose(fp); return 1; }
- fprintf(stderr,"FileExists(%s) returns 0\n",filename);
- return 0;
-}
-
-char EraseFile(char * filename)
-{
- FILE *fp = fopen(filename,"w");
- if( fp ) { /* exists */ fclose(fp); return 1; }
- return 0;
-}
-
-
-unsigned int StringIsHTMLSafe(char * str)
-{
-  unsigned int i=0;
-  while(i<strlen(str)) { if ( ( str[i]<'!' ) || ( str[i]=='<' ) || ( str[i]=='>' ) ) { return 0;} ++i; }
-  return 1;
-}
-
+struct AmmServer_RH_Context executeScriptRC={0};
 
 
 void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
@@ -126,7 +105,7 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
              {
                 if (! _POST(default_server,rqst,"comment",comment,1024) ) { fprintf(stderr,"Didn't find a comment \n"); }
 
-                if ((StringIsHTMLSafe(username))&&(StringIsHTMLSafe(comment)))
+                if ((AmmServer_StringIsHTMLSafe(username))&&(AmmServer_StringIsHTMLSafe(comment)))
                 {
                  FILE * chatlog = fopen(chatlog_path,"a");
                  if (chatlog!=0)
@@ -298,6 +277,36 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+
+
+
+//This function prepares the content of  form context , ( content )
+void * executeScriptFunction(struct AmmServer_DynamicRequest  * rqst)
+{
+ rqst->contentSize=0;
+ if (executeScript==0) { AmmServer_Error("execute script called , but no execute script is declared \n"); return 0; }
+
+ char * response = (char*) malloc(sizeof(char) * MAX_SCRIPT_RESPONSE_SIZE);
+
+ if (response==0)
+ {
+    strcpy(rqst->content,"<html><body>Internal Error when executing command</body></html>");
+    rqst->contentSize=strlen(rqst->content);
+ } else
+ {
+    AmmServer_ExecuteCommandLine( executeScript , response , MAX_SCRIPT_RESPONSE_SIZE );
+    sprintf(rqst->content,"<html><body><textarea name=\"commandline\" cols=\"80\" rows=\"24\">%s</textarea><br/><a href=\"javascript:location.reload();\">Rerun</a></body></html>",response);
+    rqst->contentSize=strlen(rqst->content);
+
+    free(response);
+ }
+
+  return 0;
+}
+
+
+
+
 //This function prepares the content of  form context , ( content )
 void * request_override_callback(char * content)
 {
@@ -324,6 +333,12 @@ void init_dynamic_content()
 
   if (! AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding gps testing page\n"); }
 
+  if (executeScript!=0)
+  {
+     if (! AmmServer_AddResourceHandler(default_server,&gps,"/execute.html",webserver_root,16000,0,&executeScriptFunction,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+         { AmmServer_Warning("Failed adding execute page\n"); }
+  }
+
 
 
   if (ENABLE_CHAT_BOX)
@@ -334,7 +349,7 @@ void init_dynamic_content()
      char chatlog_path[MAX_FILE_PATH]={0};
      strcpy(chatlog_path,webserver_root);
      strcat(chatlog_path,"chat.html");
-     EraseFile(chatlog_path);
+     AmmServer_EraseFile(chatlog_path);
 
      AmmServer_DoNOTCacheResourceHandler(default_server,&chatbox);
   }
@@ -345,7 +360,17 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
     AmmServer_RemoveResourceHandler(default_server,&form,1);
+    AmmServer_RemoveResourceHandler(default_server,&random_chars,1);
+    AmmServer_RemoveResourceHandler(default_server,&gps,1);
     if (ENABLE_CHAT_BOX) { AmmServer_RemoveResourceHandler(default_server,&chatbox,1); }
+
+    if (executeScript!=0)
+        {
+          AmmServer_RemoveResourceHandler(default_server,&executeScriptRC,1);
+          free(executeScript);
+          executeScript=0;
+        }
+
 }
 /*! Dynamic content code ..! END ------------------------*/
 
@@ -355,8 +380,26 @@ void close_dynamic_content()
 int main(int argc, char *argv[])
 {
     printf("\nAmmar Server %s starting up..\n",AmmServer_Version());
-    AmmServer_RegisterTerminationSignal(&close_dynamic_content);
+   //If we have a command line arguments we overwrite our buffers
 
+   unsigned int i=0;
+   for (i=0; i<argc; i++)
+   {
+    if ((strcmp(argv[i],"-e")==0)&&(argc>i+1))
+      {
+        if ( strlen(argv[i+1]) > MAX_RESOURCE ) { AmmServer_Error("-e argument is too long , will not allocate such a big chunk of memory"); return 1; } else
+        {
+          executeScript = (char*) malloc(sizeof(unsigned char) * strlen(argv[i+1]) );
+          if (executeScript==0) { AmmServer_Error("-e argument could not be stored , could not allocate a chunk of memory for it"); return 1; }
+        }
+
+        strncpy(executeScript,argv[i+1] ,  strlen(argv[i+1]) );
+        fprintf(stderr,"AmmarServer Will Execute script %s \n",executeScript);
+      }
+   }
+
+
+    AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
     char bindIP[MAX_IP_STRING_SIZE];
     strcpy(bindIP,"0.0.0.0");

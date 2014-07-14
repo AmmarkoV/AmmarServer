@@ -46,32 +46,6 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context gps={0};
 
 
-char FileExistsTest(char * filename)
-{
- FILE *fp = fopen(filename,"r");
- if( fp ) { /* exists */ fclose(fp); return 1; }
- fprintf(stderr,"FileExists(%s) returns 0\n",filename);
- return 0;
-}
-
-char EraseFile(char * filename)
-{
- FILE *fp = fopen(filename,"w");
- if( fp ) { /* exists */ fclose(fp); return 1; }
- return 0;
-}
-
-
-unsigned int StringIsHTMLSafe(char * str)
-{
-  unsigned int i=0;
-  while(i<strlen(str)) { if ( ( str[i]<'!' ) || ( str[i]=='<' ) || ( str[i]=='>' ) ) { return 0;} ++i; }
-  return 1;
-}
-
-
-
-
 //This function prepares the content of  form context , ( content )
 void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {

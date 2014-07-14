@@ -468,6 +468,64 @@ int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * 
 }
 
 
+void AmmServer_GlobalTerminationHandler(int signum)
+{
+        fprintf(stderr,"Terminating AmmarServer.. \n");
+          GLOBAL_KILL_SERVER_SWITCH=1;
+        //&
+        if (TerminationCallback!=0) { TerminationCallback(); }
+        fprintf(stderr,"done\n");
+        exit(0);
+}
+
+
+int AmmServer_RegisterTerminationSignal(void * callback)
+{
+  TerminationCallback = callback;
+
+  unsigned int failures=0;
+  if (signal(SIGINT, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { AmmServer_Warning("AmmarServer cannot handle SIGINT!\n");  ++failures; }
+  if (signal(SIGHUP, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { AmmServer_Warning("AmmarServer cannot handle SIGHUP!\n");  ++failures; }
+  if (signal(SIGTERM, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGTERM!\n"); ++failures; }
+  if (signal(SIGKILL, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGKILL!\n"); ++failures; }
+  return (failures==0);
+}
+
+
+/*
+  ---------------------------------------------------
+
+  LAST , SOME GENERIC TOOLS THAT ARE HANDY AND COMMON
+
+  ---------------------------------------------------
+*/
+
+
+int AmmServer_ExecuteCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize)
+{
+ /* Open the command for reading. */
+ FILE * fp = popen(command, "r");
+ if (fp == 0 )
+       {
+         fprintf(stderr,"Failed to run command (%s) \n",command);
+         return 0;
+       }
+
+ /* Read the output a line at a time - output it. */
+  unsigned int i=0;
+  while (fgets(what2GetBack, what2GetBackMaxSize , fp) != 0)
+    {
+        ++i;
+        //fprintf(stderr,"\n\nline %u = %s \n",i,output);
+        break;
+    }
+  /* close */
+  pclose(fp);
+  return 1;
+}
+
+
+
 char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
 {
   *length = 0;
@@ -529,29 +587,28 @@ int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int m
 
 
 
-void AmmServer_GlobalTerminationHandler(int signum)
+int AmmServer_FileExists(char * filename)
 {
-        fprintf(stderr,"Terminating AmmarServer.. \n");
-          GLOBAL_KILL_SERVER_SWITCH=1;
-        //&
-        if (TerminationCallback!=0) { TerminationCallback(); }
-        fprintf(stderr,"done\n");
-        exit(0);
+ FILE *fp = fopen(filename,"r");
+ if( fp ) { /* exists */ fclose(fp); return 1; }
+ fprintf(stderr,"FileExists(%s) returns 0\n",filename);
+ return 0;
+}
+
+int AmmServer_EraseFile(char * filename)
+{
+ FILE *fp = fopen(filename,"w");
+ if( fp ) { /* exists */ fclose(fp); return 1; }
+ return 0;
 }
 
 
-int AmmServer_RegisterTerminationSignal(void * callback)
+unsigned int AmmServer_StringIsHTMLSafe(char * str)
 {
-  TerminationCallback = callback;
-
-  unsigned int failures=0;
-  if (signal(SIGINT, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { AmmServer_Warning("AmmarServer cannot handle SIGINT!\n");  ++failures; }
-  if (signal(SIGHUP, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { AmmServer_Warning("AmmarServer cannot handle SIGHUP!\n");  ++failures; }
-  if (signal(SIGTERM, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGTERM!\n"); ++failures; }
-  if (signal(SIGKILL, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGKILL!\n"); ++failures; }
-  return (failures==0);
+  unsigned int i=0;
+  while(i<strlen(str)) { if ( ( str[i]<'!' ) || ( str[i]=='<' ) || ( str[i]=='>' ) ) { return 0;} ++i; }
+  return 1;
 }
-
 
 
 
