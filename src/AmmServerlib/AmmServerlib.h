@@ -19,6 +19,11 @@ extern "C" {
 
 #include <pthread.h>
 
+/**
+* @brief An enumerator that lists the types of requests , per HTTP spec , see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
+*        Of course not all of them are supported/used internally but they are listed in the same order to maintain spec compatibility
+* @bug   A potential bug might arise if the specs of the header file are changed and someone is linking with an older version libAmmServer.a thats why this value exists
+*/
 #define AMMAR_SERVER_HTTP_HEADER_SPEC 123
 
 
@@ -420,6 +425,17 @@ int AmmServer_AddResourceHandler
        unsigned int scenario
     );
 
+
+
+
+/**
+* @brief Remove a request handler that hanles dynamic requests
+* @ingroup core
+* @param An AmmarServer Instance
+* @param An AmmServer_RH_Context to be freed
+* @param Switch to control freeing memory or not for this context ( typically should be set to 1 except one knows what he is trying to do )
+* @retval 1=Success,0=Failure
+*/
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem);
 
 int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_type);
@@ -447,18 +463,64 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 
 struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int port);
 
+/**
+* @brief Perform a sanity check on the instance of AmmarServer , this is mostly a dev debug tool and an entry point for code inside AmmServerlib
+* @ingroup tools
+* @param Ammar Server Instance
+* @retval 1=Ok,0=Failed
+* @bug Maybe remove AmmServer_SelfCheck
+*/
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
+
+/**
+* @brief Execute a command and copy its output to the provided buffer
+* @ingroup tools
+* @param Command to execute
+* @param Allocated memory to store the result
+* @param Size of Allocated memory
+* @retval 1=Ok,0=Failed
+* @bug Executing commands can be dangerous , always check and sanitize input before executing , Also be sure about the max size of output so that you don't lose a part of it , also make something like escapeshellcmd
+*/
 int AmmServer_ExecuteCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize);
 
+
+/**
+* @brief Hot-Replace a variable inside a memory block , typically used to replace placeholders inside text files , like $$$$$$$$NAME$$$$$$$$  , the value should be smaller or equal to the var beeing replaced
+* @ingroup tools
+* @param Pointer to memory that contains the document
+* @param Size of document
+* @param Variable to be replaced
+* @param What to replace it with
+* @retval 1=Ok,0=Failed
+* @bug Value should not be bigger than variable otherwise things won't fit in the same memory block
+*/
 int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value);
+
+
+/**
+* @brief Read a file and store it to a freshly allocated memory block
+* @ingroup tools
+* @param Input Filename
+* @param Output Maximum Size
+* @retval Pointer to the new memory or 0=Failed
+*/
 char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
+
+/**
+* @brief Dump a memory block to a file
+* @ingroup tools
+* @param Output Filename
+* @param Input Pointer to memory
+* @param Size of memory block
+* @retval 1=Ok,0=Failed
+*/
 int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int memoryLength);
 
 /**
 * @brief Register a function to call a function that gracefully terminates a client when a SIGKILL or the time to stop the server comes
 * @ingroup tools
-* @param Path to file
+* @param Pointer to function
 * @retval 1=Exists,0=Does not Exist
 */
 int AmmServer_RegisterTerminationSignal(void * callback);
