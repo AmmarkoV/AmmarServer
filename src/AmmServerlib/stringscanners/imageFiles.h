@@ -1,7 +1,13 @@
+/** @file imageFiles.h
+* @brief A tool that scans for a string in a very fast and robust way
+* @author Ammar Qammaz (AmmarkoV)
+*/
+
 #ifndef IMAGEFILES_H_INCLUDED
 #define IMAGEFILES_H_INCLUDED
 
 
+/** @brief Enumerator for the IDs of imageFiles so we can know what the result was*/
 enum { 
  IMAGEFILES_EMPTY=0,
  IMAGEFILES_GIF,
@@ -24,6 +30,11 @@ enum {
 
 
 
-int scanFor_imageFiles(char * str,unsigned int strLength); 
+/** @brief Scan a string for one of the words of the imageFiles word set
+* @ingroup stringParsing
+* @param Input String , to be scanned
+* @param Length of Input String
+* @retval See above enumerator*/
+ int scanFor_imageFiles(char * str,unsigned int strLength); 
 
 #endif

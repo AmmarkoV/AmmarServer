@@ -1,7 +1,13 @@
+/** @file videoFiles.h
+* @brief A tool that scans for a string in a very fast and robust way
+* @author Ammar Qammaz (AmmarkoV)
+*/
+
 #ifndef VIDEOFILES_H_INCLUDED
 #define VIDEOFILES_H_INCLUDED
 
 
+/** @brief Enumerator for the IDs of videoFiles so we can know what the result was*/
 enum { 
  VIDEOFILES_EMPTY=0,
  VIDEOFILES_AVI,
@@ -19,6 +25,11 @@ enum {
 
 
 
-int scanFor_videoFiles(char * str,unsigned int strLength); 
+/** @brief Scan a string for one of the words of the videoFiles word set
+* @ingroup stringParsing
+* @param Input String , to be scanned
+* @param Length of Input String
+* @retval See above enumerator*/
+ int scanFor_videoFiles(char * str,unsigned int strLength); 
 
 #endif

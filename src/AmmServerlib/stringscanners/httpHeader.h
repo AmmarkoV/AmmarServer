@@ -1,7 +1,13 @@
+/** @file httpHeader.h
+* @brief A tool that scans for a string in a very fast and robust way
+* @author Ammar Qammaz (AmmarkoV)
+*/
+
 #ifndef HTTPHEADER_H_INCLUDED
 #define HTTPHEADER_H_INCLUDED
 
 
+/** @brief Enumerator for the IDs of httpHeader so we can know what the result was*/
 enum { 
  HTTPHEADER_EMPTY=0,
  HTTPHEADER_AUTHORIZATION,
@@ -20,6 +26,11 @@ enum {
 
 
 
-int scanFor_httpHeader(char * str,unsigned int strLength); 
+/** @brief Scan a string for one of the words of the httpHeader word set
+* @ingroup stringParsing
+* @param Input String , to be scanned
+* @param Length of Input String
+* @retval See above enumerator*/
+ int scanFor_httpHeader(char * str,unsigned int strLength); 
 
 #endif

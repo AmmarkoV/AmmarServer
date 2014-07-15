@@ -339,9 +339,6 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
 void * ServeClient(void * ptr)
 {
-
-
-
   //fprintf(stderr,"Serve Client called ..\n");
   // We first have to store the context variables we got through our struct PassToHTTPThread
   // so we first need to do that

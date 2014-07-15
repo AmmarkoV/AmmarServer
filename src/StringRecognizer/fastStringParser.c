@@ -293,15 +293,30 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
 
   //PRINT OUT THE HEADER
-
   sprintf(filenameWithExtension,"%s.h",functionName);
   FILE * fp = fopen(filenameWithExtension,"w");
   if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
 
+
+  fprintf(fp,"/** @file %s.h\n",functionName);
+  fprintf(fp,"* @brief A tool that scans for a string in a very fast and robust way\n");
+  fprintf(fp,"* @author Ammar Qammaz (AmmarkoV)\n");
+  fprintf(fp,"*/\n\n");
+
   fprintf(fp,"#ifndef %s_H_INCLUDED\n",fsp->functionName);
   fprintf(fp,"#define %s_H_INCLUDED\n\n\n",fsp->functionName);
+
+
+      fprintf(fp,"/** @brief Enumerator for the IDs of %s so we can know what the result was*/\n",functionName);
       printAllEnumeratorItems(fp, fsp, functionName);
-  fprintf(fp,"\n\nint scanFor_%s(char * str,unsigned int strLength); \n\n",functionName);
+
+
+  fprintf(fp,"\n\n/** @brief Scan a string for one of the words of the %s word set\n",functionName);
+  fprintf(fp,"* @ingroup stringParsing\n");
+  fprintf(fp,"* @param Input String , to be scanned\n");
+  fprintf(fp,"* @param Length of Input String\n");
+  fprintf(fp,"* @retval See above enumerator*/\n");
+  fprintf(fp," int scanFor_%s(char * str,unsigned int strLength); \n\n",functionName);
   fprintf(fp,"#endif\n");
   fclose(fp);
 
