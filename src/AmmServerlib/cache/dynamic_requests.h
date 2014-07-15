@@ -1,3 +1,9 @@
+/** @file dynamic_requests.h
+* @brief Dynamic request handler , one of the most important parts of this library
+* @author Ammar Qammaz (AmmarkoV)
+* @bug Compression should be improved
+*/
+
 #ifndef DYNAMIC_REQUESTS_H_INCLUDED
 #define DYNAMIC_REQUESTS_H_INCLUDED
 
@@ -18,6 +24,13 @@ char * dynamicRequest_serveContent
 int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output);
 
 
+/**
+* @brief Save Dynamic request to a file
+* @ingroup dynamicRequests
+* @param ClientList
+* @param ClientID we are talking about
+* @param String of the resource
+* @retval 1=Ok,0=Failed*/
 int saveDynamicRequest(char* filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst);
 
 #endif // DYNAMIC_REQUESTS_H_INCLUDED
