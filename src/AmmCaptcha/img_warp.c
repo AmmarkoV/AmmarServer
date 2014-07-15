@@ -47,7 +47,7 @@ int warpImage(struct Image * target , unsigned int posX,unsigned int posY , sign
  * @author  Jose Rodriguez <jose.rodriguez@exec.cl>
  * @license GPLv3
  * @link    http://code.google.com/p/cool-php-captcha
- * @package captcha
+ * @group captcha
  * @version 0.3
  *
  */
@@ -88,4 +88,4 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
 
  return 1;
 }
- 
+
