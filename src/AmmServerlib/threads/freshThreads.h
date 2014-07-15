@@ -9,7 +9,6 @@
 #include <netinet/in.h>
 #include "../server_configuration.h"
 
-
 /** @brief A structure that holds information to be passed from the main thread to the new (fresh) thread */
 struct PassToHTTPThread
 {
@@ -25,7 +24,6 @@ struct PassToHTTPThread
 
      int pre_spawned_thread;
 };
-
 
 /**
 * @brief Create a new Thread that will serve the incoming client socket connection

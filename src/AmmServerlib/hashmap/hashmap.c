@@ -415,10 +415,10 @@ int hashMap_SaveToFile(struct hashMap * hm,char * filename)
   return result;
 }
 
-/*
+
 int hashMap_LoadToFile(struct hashMap * hm,char * filename)
 {
-    fprintf(stderr,"Not Ready\n");
+    error("hashMap_LoadToFile not implemented\n");
     return 0;
     FILE * pFile;
     pFile = fopen (filename,"rb");
@@ -428,10 +428,8 @@ int hashMap_LoadToFile(struct hashMap * hm,char * filename)
      fclose (pFile);
      return 1;
     }
-
     return 0;
 }
-*/
 
 
 

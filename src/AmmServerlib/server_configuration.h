@@ -1,3 +1,11 @@
+/** @file server_configuration.h
+* @brief The Main Header for the settings used by AmmarServer
+*
+* Take extra care when changing something here , since its impact is global
+*
+* @author Ammar Qammaz (AmmarkoV)
+* @bug AmmarServer is not properly pentested yet
+*/
 #ifndef CONFIGURATION_H_INCLUDED
 #define CONFIGURATION_H_INCLUDED
 

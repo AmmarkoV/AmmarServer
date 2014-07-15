@@ -9,7 +9,6 @@
 * @bug AmmarServer is not properly pentested yet
 */
 
-
 #ifndef AMMSERVERLIB_H_INCLUDED
 #define AMMSERVERLIB_H_INCLUDED
 
