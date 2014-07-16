@@ -81,7 +81,7 @@ inline int TransmitFileToSocketInternal(
         { error(" Could not allocate enough memory to serve file %s\n"); return 0; }
 
 
-      #if TIME_UPLOADS
+      #if CALCULATE_TIME_FOR_UPLOADS
       //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
       struct time_snap time_to_serve_file_s;
       start_timer (&time_to_serve_file_s);
@@ -121,7 +121,7 @@ inline int TransmitFileToSocketInternal(
       } // End of having a remaining file to send
 
 
-      #if TIME_UPLOADS
+      #if CALCULATE_TIME_FOR_UPLOADS
       double time_to_serve_file_in_seconds = (double ) end_timer(&time_to_serve_file_s) / 1000000; // go to seconds
       double speed_in_Mbps= 0;
       if (time_to_serve_file_in_seconds>0)

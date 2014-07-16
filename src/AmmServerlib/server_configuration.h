@@ -12,19 +12,32 @@
 #include "AmmServerlib.h"
 
 
-//Prespawned threads sleep until its their time to serve , the next thread to serve is vigilant ( 0.7ms max delay )
+/** @brief Next prespawned thread , should be vigilant and ready to serve so it has a shorter delay than the other prespawned threads ( 0.7ms max delay seems like a good value ) */
 #define THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT 700
-//Other prespawned threads sleep for 20ms
+
+/** @brief Sleep time for threads that are prespawned until they check for potential new work , the lowest the value here ,
+           the shortest the wait time for clients , but this causes higher CPU usage ( for idle tasks ) and ultimately more power consumption
+           A good default time is 25000 , ( 25ms ) */
 #define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 25000
 
-#define TIME_UPLOADS 1
+/** @brief Calculate (And output) transmission speed for files broadcast by AmmarServer  */
+#define CALCULATE_TIME_FOR_UPLOADS 1
 
-#define COMPILE_WITH_CLIENT_LIST 1
+/** @brief Precompiler switch that controls baking in ( or not ) the client list capabilities , currently disabled since client lists are not yet implemented */
+#define COMPILE_WITH_CLIENT_LIST 0
 
+
+/** @brief Setting this to 1 will signal that all instances of AmmarServer need to die */
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
+/** @brief Maximum Target of concurrent clients being listened at the same time C10K tests require this to be 10000 ( http://en.wikipedia.org/wiki/C10k_problem ) */
 #define MAX_CLIENTS_LISTENING_FOR 5000 //C10K :P
+
+/** @brief Maximum Number of concurrent threads being created at the same time , depending on the size of the listen pool this can be smaller than the MAX_CLIENTS_LISTENING_FOR and connections will
+           be queued and served sequentially */
 #define MAX_CLIENT_THREADS 3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
+
+/** @brief Prespawned theads reduce overall latency but they increase CPU load  */
 #define MAX_CLIENT_PRESPAWNED_THREADS 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
 

@@ -44,7 +44,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
        return 1;
      } else
      {
-       fprintf(stderr,"Could not grow hashMap (running out of memory?)");
+       error("Could not grow hashMap (running out of memory?)");
      }
   return 0;
 }

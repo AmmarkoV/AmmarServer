@@ -7,7 +7,6 @@
 #ifndef FILE_COMPRESSION_H_INCLUDED
 #define FILE_COMPRESSION_H_INCLUDED
 
-
 /**
 * @brief Create compressed version of dynamic content , cache item
 * @ingroup compression
@@ -16,7 +15,6 @@
 * @retval 1=Success,0=Failure*/
 int CreateCompressedVersionofDynamicContent(struct AmmServer_Instance * instance,unsigned int index);
 
-
 /**
 * @brief Create compressed version of static content , cache item
 * @ingroup compression
@@ -24,7 +22,6 @@ int CreateCompressedVersionofDynamicContent(struct AmmServer_Instance * instance
 * @param Index of cache item
 * @retval 1=Success,0=Failure*/
 int CreateCompressedVersionofStaticContent(struct AmmServer_Instance * instance,unsigned int index);
-
 
 /**
 * @brief Create compressed version of static content which is preloaded , cache item

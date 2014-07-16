@@ -9,7 +9,6 @@
 
 #include "../AmmServerlib.h"
 
-
 /**
 * @brief Ask if dynamic content is available for this cache index
 * @ingroup dynamicRequests
@@ -17,7 +16,6 @@
 * @param Index of cache we want to ask for
 * @retval 1=Availiable , 0=Not Availiable*/
 int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsigned int index);
-
 
 /**
 * @brief Handles and serves a dynamic request
@@ -40,7 +38,6 @@ char * dynamicRequest_serveContent
             unsigned char * freeContentAfterUsingIt
           );
 
-
 /**
 * @brief Execute callback function associated with dynamic content , providing it with the http header it needs to output data to
 * @ingroup dynamicRequests
@@ -48,7 +45,6 @@ char * dynamicRequest_serveContent
 * @param HTTPHeader containing the output of the request
 * @retval 1=Ok,0=Failed*/
 int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output);
-
 
 /**
 * @brief Save Dynamic request to a file ( for debugging it )

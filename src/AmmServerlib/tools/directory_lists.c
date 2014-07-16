@@ -217,7 +217,7 @@ while ((dp=readdir(dir)) != 0)
   mem_remaining-=strlen(after_up);
 
   /* END OF HTML --------------------------------------------*/
-  char * ending="</table><hr></body></html>";
+  char * ending="</table><hr></body></html>\0\0\0";
   strncat(memory,ending,mem_remaining);
   mem_remaining-=strlen(ending);
 
