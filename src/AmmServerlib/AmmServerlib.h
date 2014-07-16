@@ -130,9 +130,6 @@ struct HTTPOutHeader
   unsigned int responseNumber;
 };
 
-
-
-
 /**
 * @brief Each Dynamic Resource Handler can have multiple profiles for optimizing performance/memory usage etc.
 *        For now there are 2 profiles/scenarios. The first one is where there is a global state that all clients should share
@@ -144,8 +141,6 @@ enum RHScenarios
    DIFFERENT_PAGE_FOR_EACH_CLIENT
 };
 
-
-
 /**
 * @brief We can override/intercept connections before the very fundamental HTTP stage using a request override context and AmmServer_AddRequestHandler
 *        This is the structure that holds the information and what to be called back to populate the response
@@ -156,8 +151,6 @@ struct AmmServer_RequestOverride_Context
    struct HTTPHeader * request;
    void * request_override_callback;
 };
-
-
 
 /**
 * @brief When a call to a function that is a dynamic request is done this is the structure that holds the information
@@ -184,7 +177,6 @@ struct AmmServer_DynamicRequest
    unsigned int clientID;
 };
 
-
 /**
 * @brief We can override resources to respond with our own C function code , to do so a AmmServer_DynamicRequest must be populated using a AmmServer_AddResourceHandler
 */
@@ -204,8 +196,6 @@ struct AmmServer_RH_Context
    struct AmmServer_DynamicRequest requestContext;
 };
 
-
-
 /**
 * @brief Each Instance of AmmarServer has some basic settings , which are stored in AmmServer_Instance_Settings
 */
@@ -222,8 +212,6 @@ struct AmmServer_Instance_Settings
 
     int BINDING_PORT;
 };
-
-
 
 /** @brief This holds all the information about an Ammar Server Instance , sockets , thread pools , cache , memory , settings etc , this is the central structure for holding context */
 struct AmmServer_Instance
@@ -265,9 +253,6 @@ struct AmmServer_Instance
     char templates_root[MAX_FILE_PATH];
 };
 
-
-
-
 /** @brief Structure to keep data for an HTTP Transaction */
 struct HTTPTransaction
 {
@@ -287,14 +272,12 @@ struct HTTPTransaction
   int prespawnedThreadFlag;
 };
 
-
 /** @brief Enumerator for calls AmmServer_GetInfo */
 enum AmmServInfos
 {
     AMMINF_ACTIVE_CLIENTS=0,
     AMMINF_ACTIVE_THREADS
 };
-
 
 /** @brief Enumerator for calls AmmServer_GetIntSettingValue and AmmServer_SetIntSettingValue */
 enum AmmServSettings
@@ -303,7 +286,6 @@ enum AmmServSettings
     AMMSET_TEST
 };
 
-
 /** @brief Enumerator for calls AmmServer_GetStrSettingValue and AmmServer_SetStrSettingValue */
 enum AmmServStrSettings
 {
@@ -311,8 +293,6 @@ enum AmmServStrSettings
     AMMSET_PASSWORD_STR,
     AMMSET_TESTSTR
 };
-
-
 
 /** @brief Returns a string with the version of AmmarServer , in case it returns NULL it means that we are linked to AmmarServerNULL which means a fake binary */
 char * AmmServer_Version();
@@ -354,7 +334,6 @@ void AmmServer_Error( const char *format , ... );
 * @param Arbitrary number of other parameters that where defined in format
 */
 void AmmServer_Success( const char *format , ... );
-
 
 /**
 * @brief Start a Web Server , allocate memory , bind ports and return its instance..

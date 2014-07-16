@@ -140,14 +140,14 @@
 	"../tools/logs.h"
 	"sendHTTPHeader.h"
 
-1405511160 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1405511575 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
-1371156699 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
+1405511574 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
 
 1405510974 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.h
 
-1371324363 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.c
+1405511158 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.c
 	"sendHTTPHeader.h"
 	<stdio.h>
 	<stdlib.h>
@@ -160,6 +160,7 @@
 	<sys/uio.h>
 	"../version.h"
 	"../server_configuration.h"
+	"../tools/logs.h"
 
 1405007204 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.c
 	"server_configuration.h"
