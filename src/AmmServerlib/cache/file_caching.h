@@ -1,3 +1,9 @@
+/** @file file_caching.h
+* @brief Central cache of AmmarServer , it reads/indexes and swaps resources asked by clients for fast performance
+* @author Ammar Qammaz (AmmarkoV)
+* @bug File caching relies on hashmap for storing data , so it relies on optimizations done there for seek time optimization , other than that there needs to be a clean-up and code quality improvement
+*/
+
 #ifndef FILE_CACHING_H_INCLUDED
 #define FILE_CACHING_H_INCLUDED
 
@@ -9,8 +15,7 @@
 #include <sys/stat.h>
 #include <time.h>
 
-
-
+/** @brief Timestamp for a cache item entry */
 struct timestamp
 {
    unsigned char hour;
@@ -22,8 +27,7 @@ struct timestamp
    unsigned int  year;
 };
 
-
-
+/** @brief A cache item and all it's contents */
 struct cache_item
 {
    //If this is set it means this is a dynamic request item
@@ -49,25 +53,118 @@ struct cache_item
    struct timestamp modification;
 };
 
-
+/**
+* @brief Tool to check if a malloc'ed chunk of memory should be freed
+* @ingroup cache
+* @param Pointer to memory
+* @param Flag that signals if the pointer should be freed or not
+* @retval 1=Ok,0=Failed*/
 int freeMallocIfNeeded(char * mem,unsigned char free_is_needed);
+
+/**
+* @brief The role of request caching is to intercept incoming requests and if they are referring
+         to an internal resource using the TemplatesInternalURI URI we want to redirect the request
+         to our templates folder ..!
+         If the request was indeed a change request returns 1 else 0
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param String of Request
+* @param Filename pointing to directory that contains templates
+* @retval 1=If request was for a template and it got changed ,0= not changed request*/
 int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,char * templates_root);
 
+/**
+* @brief Add a filesystem file to cache
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Filename pointing to the file to be added to cache
+* @param Output index number of cache item
+* @param Output time of last modification
+* @retval 1=Found,0=Failed*/
 int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification);
+
+/**
+* @brief Add a memory block to cache
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Dynamic Request to be added
+* @retval 1=Success,0=Failure*/
 int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context);
+
+/**
+* @brief Create a rule for specific resource so that it will always be served fresh and not cached
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Resource filename
+* @retval 1=Success,0=Failure*/
 int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,char * filename);
+
+/**
+* @brief Destroy Cache entry and resource context
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Resource Context to be removed
+* @param Flag controlling whether memory should be freed
+* @retval 1=Success,0=Failure*/
 int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem);
 
-
+/**
+* @brief Get Hash Value of resource ( to be used for E-Tags http://en.wikipedia.org/wiki/HTTP_ETag or whatever other reason )
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Index to the cache item requested
+* @retval Hash Value for Index specified , 0 = failure */
 unsigned long cache_GetHashOfResource(struct AmmServer_Instance * instance,unsigned int index);
 
+/**
+* @brief Query for a resource , and return its index
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Resource we are searching for
+* @param Output Index number
+* @retval 1=Success,0=Failure*/
 unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index);
+
+/**
+* @brief Query for a resource , and return its index
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Resource we are searching for
+* @param Output Index number
+* @retval 1=Success,0=Failure*/
 int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index);
 
-
+/**
+* @brief Allocate and create a new empty cache
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Maximum Number of separate items
+* @param Maximum memory usage ( Megabytes ) for this entire cache
+* @param Maximum memory usage ( Megabytes ) for a specific entry of the cache
+* @retval 1=Ok,0=Failed*/
 int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB);
+
+/**
+* @brief Deallocate and destroy the cache of an AmmarServer instance
+* @ingroup cache
+* @param An AmmarServer Instance
+* @retval 1=Ok,0=Failed*/
 int cache_Destroy(struct AmmServer_Instance * instance);
 
+/**
+* @brief Get a resource to be served to a client . This call will try to find if it is already used , if it exists on disk , if it is a dynamic request etc , and return the specified buffer
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param HTTPHeader of request we are trying to service with the resource
+* @param cacheID for resource
+* @param Filename of the resource , this should be verified so that it doesn't access the whole filesystem but only subdirectories of the root public_html dir , and we consider this safe
+* @param Output Index number of cache item we requested
+* @param Output FileSize of cache item we requested
+* @param Output last modification time of cache item we requested
+* @param Output flag about whether the buffer returned is compressed or not
+* @param Output flag about whether it is safe to automatically free the resource after using it , or there is an automatic handling of memory for the specific item
+* @bug If verified_filename , is not really verified (i.e. outside of the public_html root directory , this function could pose a security problem , since it will just blindly open and serve the filename given to it)
+* @retval 1=Ok,0=Failed*/
 char * cache_GetResource(
                           struct AmmServer_Instance * instance,
                           struct HTTPHeader * request,

@@ -9,6 +9,8 @@
 
 #include "../hashmap/hashmap.h"
 
+
+/** @brief Typedef to make clientID stand out */
 typedef unsigned int clientID;
 
 /** @brief The client list is just a hashmap ( see hashmap.h )  */
