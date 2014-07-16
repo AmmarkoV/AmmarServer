@@ -9,6 +9,27 @@
 #include <errno.h>
 
 
+
+#define starting "\
+<html>\
+  <head>\
+    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\
+    <title>AmmarServer Directory listing</title>\
+  </head>\
+  <body>\
+  <h1>AmmarServer Directory Listing</h1>\
+  <a name=\"top\"></a><hr>\
+  <!-- TODO : Add some clientside javascript search and sorting capabilities! :P -->\
+  <table>\
+    <tr>\
+      <td></td>\
+      <td><a href=\"#todo2\">Filename</a></td><td><a href=\"#todo3\">Byte Size</a></td><td><a href=\"#todo4\">Modification Date</a></td>\
+    </tr>\n"
+
+
+
+
+
 char * path_cat (const char *str1, char *str2)
 {
 size_t str1_len = strlen(str1);
@@ -36,20 +57,18 @@ char * memory=(char*) malloc( sizeof(char) * ( *memoryUsed ) );
 
 unsigned int mem_remaining=*memoryUsed;
 
-char * starting="<html><head>\
-<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\
-<title>AmmarServer Directory listing</title>\n </head>\n<body>\n<h1>AmmarServer Directory Listing</h1><a name=\"top\"></a><hr>\
-<!-- TODO : Add some clientside javascript search and sorting capabilities! :P -->\
-<table><tr><td></td><td><a href=\"#todo2\">Filename</a></td><td><a href=\"#todo3\">Byte Size</a></td><td><a href=\"#todo4\">Modification Date</a></td></tr>\n";
+
+
 strncpy(memory,starting,mem_remaining);
 mem_remaining-=strlen(starting);
 
-char * tag_pre_image="<tr><td><img src=\"/";
+
+#define tag_pre_image "<tr><td><img src=\"/"
 unsigned int tag_pre_image_size=strlen(tag_pre_image);
-char * tag_after_image="\">";
+#define tag_after_image "\">"
 unsigned int tag_after_image_size=strlen(tag_after_image);
 // Image Filename
-char image_file[512]={0};
+char image_file[MAX_FILE_PATH]={0};
 // Image Filename
 char * tag_pre_link="</td><td class=\"link\"><a href=\"";
 unsigned int tag_pre_link_size=strlen(tag_pre_link);
@@ -119,7 +138,7 @@ while ((dp=readdir(dir)) != 0)
      mem_remaining-=tag_pre_image_size;
 
      //Image Filename
-     GetExtensionImage(dp->d_name,image_file,512);
+     GetExtensionImage(dp->d_name,image_file,MAX_FILE_PATH);
      strncat(memory,TemplatesInternalURI,mem_remaining);
      mem_remaining-=strlen(TemplatesInternalURI);
 
@@ -217,7 +236,7 @@ while ((dp=readdir(dir)) != 0)
   mem_remaining-=strlen(after_up);
 
   /* END OF HTML --------------------------------------------*/
-  char * ending="</table><hr></body></html>\0\0\0";
+  char * ending="</table><hr></body></html>\0\0\0\0\0\0";
   strncat(memory,ending,mem_remaining);
   mem_remaining-=strlen(ending);
 
