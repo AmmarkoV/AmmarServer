@@ -122,15 +122,6 @@ struct HTTPHeader
 
 
 /**
-* @brief HTTPOutHeader is not really used , it should probably be removed
-* @bug remove HTTPOutHeader ?
-*/
-struct HTTPOutHeader
-{
-  unsigned int responseNumber;
-};
-
-/**
 * @brief Each Dynamic Resource Handler can have multiple profiles for optimizing performance/memory usage etc.
 *        For now there are 2 profiles/scenarios. The first one is where there is a global state that all clients should share
 *        The second one is where there is a different page for each client , which is more memory intensive since there are separate buffers etc for each request.
@@ -260,7 +251,7 @@ struct HTTPTransaction
 
   struct HTTPHeader incomingHeader;
 
-  struct HTTPOutHeader outgoingHeader;
+  //struct HTTPOutHeader outgoingHeader;
   char * outgoingBody;
   unsigned int outgoingBodySize;
 

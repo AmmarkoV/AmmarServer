@@ -1,8 +1,7 @@
 /** @file fastStringParser.h
 * @brief A tool that converts a file with words ( each word on a new line ) to C code ( see automata ) for fast string checking
 *
-* @author Ammar Qammaz (AmmarkoV)
-* @bug AmmarServer is not properly pentested yet
+* @author Ammar Qammaz (AmmarkoV) 
 */
 
 #ifndef FASTSTRINGPARSER_H_INCLUDED
