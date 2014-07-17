@@ -224,7 +224,7 @@ unsigned long SendFile
   struct HTTPHeader * request = &transaction->incomingHeader;
 
   char verified_filename[MAX_FILE_PATH+1]={0};
-  char reply_header[MAX_HTTP_RESPONSE_HEADER+1]={0};
+  char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
 
   if (verified_filename_pending_copy != 0)
   {
@@ -472,7 +472,7 @@ unsigned long SendMemoryBlockAsFile
     unsigned long mem_block // The size of the memory block to be sent
   )
 {
-  char reply_header[MAX_HTTP_RESPONSE_HEADER+1]={0};
+  char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
   if (! SendSuccessCodeHeader(clientsock,200,filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
   sprintf(reply_header,"Content-length: %u\n",(unsigned int) mem_block);
   strcat(reply_header,"Connection: close\n\n");

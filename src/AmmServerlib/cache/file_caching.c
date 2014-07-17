@@ -291,11 +291,6 @@ int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned 
 
 int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
 {
-  if ( ! DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED )
-   {
-     fprintf(stderr,"Dynamic content is disabled..!\n");
-     return 0;
-   }
 
   //Create the full path to distinguish from different root_paths ( virutal servers ) ..!
   char full_filename[(MAX_RESOURCE*2)+1]={0};

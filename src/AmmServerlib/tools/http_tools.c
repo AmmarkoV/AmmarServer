@@ -54,11 +54,18 @@ static char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 unsigned int ServerThreads_DropRootUID()
 {
    if (ENABLE_DROPPING_UID_ALWAYS ) { /* We fall through and change UID , as a mandatory step.. */} else
-   if (ENABLE_DROPPING_ROOT_UID_IF_ROOT) { /*Check if we are root */
-                                           if (getuid()>=1000) { /*Non root id , we can skip dropping our UID with this configuration..*/ return 0; }
-                                           //If we fell through it means we are root and dropping root when root is enabled so the code that follows will alter our uid..
-                                         } else
-                                          { fprintf(stderr,"DropRootUID() not needed ..\n"); return 0; }
+   if (ENABLE_DROPPING_ROOT_UID_IF_ROOT)
+      { /*Check if we are root */
+        if (getuid()>=1000) { /*Non root id , we can skip dropping our UID with this configuration..*/ return 0; }
+                              //If we fell through it means we are root and dropping root when root is enabled so the code that follows will alter our uid..
+      } else
+      {
+        if (getuid()<1000)
+             {
+              error("This version of AmmarServer is running with superuser privileges and is compiled not to drop them , this is a serious security liability");
+             }
+        return 0;
+      }
 
    char command_to_get_uid[MAX_FILE_PATH]={0};
    sprintf(command_to_get_uid,"id -u %s",USERNAME_UID_FOR_DAEMON);
@@ -67,10 +74,10 @@ unsigned int ServerThreads_DropRootUID()
    FILE * fp  = popen(command_to_get_uid, "r");
    if (fp == 0 ) { fprintf(stderr,"Failed to get our user id ( trying to drop root UID ) \n"); return 0; }
 
-   char output[101]={0};
+   char output[POPEN_BUFFER_SIZE]={0};
    /* Read the output a line at a time - output it. */
      unsigned int i=0;
-     while (fgets(output,101 , fp) != 0) { ++i; /*fprintf(stderr,"\n\nline %u = %s \n",i,output);*/ break; }
+     while (fgets(output,POPEN_BUFFER_SIZE , fp) != 0) { ++i; /*fprintf(stderr,"\n\nline %u = %s \n",i,output);*/ break; }
     /* close */
      pclose(fp);
 
@@ -78,8 +85,14 @@ unsigned int ServerThreads_DropRootUID()
    if (non_root_uid<1000)
       {
         fprintf(stderr,"The user set in USERNAME_UID_FOR_DAEMON=\"%s\" is also root (his uid is %u)\n",USERNAME_UID_FOR_DAEMON,non_root_uid);
-        if (CHANGE_TO_UID<1000) { fprintf(stderr,"Our CHANGE_TO_UID value is also super user , setting a bogus non-root value..\n"); non_root_uid=1500; } else
-                                { non_root_uid=CHANGE_TO_UID; }
+        if (CHANGE_TO_UID<1000)
+            {
+              error("This should never happen , Our CHANGE_TO_UID non-root value is also a super user UID , we are forced to set a bogus non-root value..\n");
+              non_root_uid=NON_ROOT_UID_IF_USER_FAILS;
+            } else
+            {
+              non_root_uid=CHANGE_TO_UID;
+            }
       }
 
    fprintf(stderr,"setuid(%u);\n",non_root_uid);
@@ -491,6 +504,7 @@ int StripHTMLCharacters_Inplace(char * filename,int enable_security)
         ++i;
         if (offset!=0) {  filename[i]=filename[i+offset]; }
      }
+
   if (offset!=0) {  filename[i]=0; /*Append null termination..!*/ }
   //fprintf(stderr,"\nStripHTMLCharacters_Inplace produced %s ..\n",filename);
 

@@ -597,13 +597,14 @@ int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int m
 }
 
 
+int AmmServer_DirectoryExists(char * filename)
+{
+ return DirectoryExistsAmmServ(filename);
+}
 
 int AmmServer_FileExists(char * filename)
 {
- FILE *fp = fopen(filename,"r");
- if( fp ) { /* exists */ fclose(fp); return 1; }
- fprintf(stderr,"FileExists(%s) returns 0\n",filename);
- return 0;
+ return FileExistsAmmServ(filename);
 }
 
 int AmmServer_EraseFile(char * filename)

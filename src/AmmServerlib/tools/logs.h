@@ -1,3 +1,7 @@
+/** @file logs.h
+* @brief Logging functions
+* @author Ammar Qammaz (AmmarkoV)
+*/
 #ifndef LOGS_H_INCLUDED
 #define LOGS_H_INCLUDED
 
@@ -22,7 +26,16 @@
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 
+/**
+* @brief Log Function to output Errors
+* @ingroup logs
+* @param String with message To log*/
 void error(char * msg);
+
+/**
+* @brief Log Function to output warnings
+* @ingroup logs
+* @param String with message To log*/
 void warning(char * msg);
 
 

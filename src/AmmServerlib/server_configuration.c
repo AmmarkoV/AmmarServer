@@ -17,17 +17,16 @@ unsigned int GLOBAL_KILL_SERVER_SWITCH = 0;
       C ) SOME THAT ARE INSTANCE SPECIFIC , AND THEY ARE DECLARED IN  AmmServerlib.h INSIDE struct AmmServer_Instance_Settings  ..
 */
 
-char USERNAME_UID_FOR_DAEMON[MAX_FILE_PATH]="www-data";  //one interesting value here is `whoami` since it will input the username of the current user :P
-int  CHANGE_TO_UID=1500; //Non superuser system
+char USERNAME_UID_FOR_DAEMON[MAX_FILE_PATH]=DEFAULT_USERNAME_UID_FOR_DAEMON;  //one interesting value here is `whoami` since it will input the username of the current user :P
+int  CHANGE_TO_UID=NON_ROOT_UID_IF_USER_FAILS; //Non superuser system
 
 signed int CHANGE_PRIORITY=0;
 
-int varSocketTimeoutREAD_seconds=4 /*Seconds*/ ;
-int varSocketTimeoutWRITE_seconds=4 /*Seconds*/ ;
+int varSocketTimeoutREAD_seconds= DEFAULT_SOCKET_READ_TIMEOUT_SECS;
+int varSocketTimeoutWRITE_seconds=DEFAULT_SOCKET_WRITE_TIMEOUT_SECS;
 
 //CACHE
 unsigned char CACHING_ENABLED=1;
-unsigned char DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=1;
 int MAX_SEPERATE_CACHE_ITEMS = 1024;
 int MAX_CACHE_SIZE_IN_MB = 128;
 int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB = 3;
@@ -42,9 +41,8 @@ int ErrorLogEnable=0;
 char ErrorLog[MAX_FILE_PATH]="error.log";
 
 
-char TemplatesInternalURI[MAX_RESOURCE]="_asvres_/";
-//Please note that the file server limits the filenames _asvres_/filename.jpg is OK
-//a filename like _asvres_/filenamemplampla.jpg will return a 404
+char TemplatesInternalURI[MAX_RESOURCE] = TEMPLATE_INTERNAL_URI;
+
 
 // ------------------------------------------------------------------------------------------------------
 
@@ -147,13 +145,16 @@ int LoadConfigurationFile(struct AmmServer_Instance * instance,char * conf_file)
   pFile = 0;
   if ( (conf_file!=0)&&(strlen(conf_file)>1) ) {  pFile = fopen (conf_file ,"r");  } //We may want to open a particluar configuration file
 
-  if (ENABLE_AUTOMATIC_CONFIGURATION_LOADING)
+  if (pFile==0)
+  {
+   if (ENABLE_AUTOMATIC_CONFIGURATION_LOADING)
    { //We may want or we may not want automatic configuration loading from the files below ..
      //A particularly embedded service may not want to use this files for security reasons for example...
      if (pFile==0) {  pFile = fopen ("ammarServer.conf" ,"r");  } //First lets try for a local ammarServer.conf ( i.e. development directory scenario )
      if (pFile==0) {  pFile = fopen ("/etc/ammarServer.conf" ,"r");  } //Second try lets try for the real system installation scenario ( /etc/ammarServer.conf )
      if (pFile==0) {  pFile = fopen ("default.conf" ,"r");  } //If we can't find a regular conf file lets check for a default one
    }
+  }
 
   if (pFile!=0 )
     {

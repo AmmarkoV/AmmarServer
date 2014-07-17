@@ -59,6 +59,10 @@ enum TypesOfRequests
 #define MAX_QUERY 2048
 #define MAX_RESOURCE 2048
 #define MAX_FILE_PATH 1024
+
+/** @brief Size for popen replies */
+#define POPEN_BUFFER_SIZE 256
+
 #define MAX_INSTANCE_NAME_STRING 128
 
 
@@ -625,6 +629,17 @@ int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int m
 * @retval 1=Exists,0=Does not Exist
 */
 int AmmServer_RegisterTerminationSignal(void * callback);
+
+
+
+/**
+* @brief Check if directory Exists
+* @ingroup tools
+* @param Path to directory
+* @retval 1=Exists,0=Does not Exist
+*/
+int AmmServer_DirectoryExists(char * filename);
+
 
 /**
 * @brief Check if file Exists
