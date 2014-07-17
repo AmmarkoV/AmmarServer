@@ -26,10 +26,6 @@ else
   cd ..
   cd ..
 fi
-
-#after everything is done we can now make the project
-#using the fresh code base..
-
-./make
+ 
 
 exit 0
