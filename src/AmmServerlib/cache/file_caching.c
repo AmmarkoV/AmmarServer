@@ -329,6 +329,8 @@ int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,char
      }
     else
      { //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
+       warning("Creating a new cache definition , just to activate doNOTCacheRule ");
+       fprintf(stderr,"Resource name is %s \n",filename);
        if (cache_CreateResource(instance,filename,&index) )
        {
         if (cache_FindResource(instance,filename,&index))
