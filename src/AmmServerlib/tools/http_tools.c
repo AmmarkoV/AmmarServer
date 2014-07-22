@@ -127,6 +127,13 @@ char DirectoryExistsAmmServ( char* dirpath )
 int GetContentTypeForExtension(char * theextension,char * content_type,unsigned int contentTypeLength)
 {
   //fprintf(stderr,"Resolving Extension %s , length %u \n",theextension,theextensionLength );
+  if (contentTypeLength<29)
+  {
+    error("GetContentTypeForExtension called with a very small buffer , we will return");
+    fprintf(stderr,"GetContentTypeForExtension called with a very small buffer ( %u bytes )  \n",contentTypeLength );
+    return 0;
+  }
+
 
   unsigned int theextensionLength = strlen(theextension);
 
@@ -811,14 +818,18 @@ int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potentia
   return stristr2Caps(line,line_length,potential_strCAPS,strlen(potential_strCAPS),payload_start);
 }
 
-int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,char * directory,char * indexfile)
+int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,char * directory,char * indexfile,unsigned int indexFileLength)
 {
   unsigned int unused=0;
   //TODO : This code can become much better and avoid re making all the strings again and again and again..
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.html"); ReducePathSlashes_Inplace(indexfile);
+  snprintf(indexfile,indexFileLength,"%s%sindex.html",webserver_root,directory); ReducePathSlashes_Inplace(indexfile);
+  //strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.html"); ReducePathSlashes_Inplace(indexfile);
   if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
-  strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
+
+  snprintf(indexfile,indexFileLength,"%s%sindex.htm",webserver_root,directory); ReducePathSlashes_Inplace(indexfile);
+  //strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"index.htm");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around
   if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
+
   //strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.htm");   ReducePathSlashes_Inplace(indexfile); // <- TODO : notice that i can just change the extension to reduce copying around
   //if ((cache_FindResource(instance,indexfile,&unused))||(FileExistsAmmServ(indexfile))) { return 1; }
   //strcpy(indexfile,webserver_root); strcat(indexfile,directory); strcat(indexfile,"home.html");  ReducePathSlashes_Inplace(indexfile);// <- TODO : notice that i can just change the extension to reduce copying around

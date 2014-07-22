@@ -216,7 +216,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
       if (resource_is_a_directory)
            {
              /*resource_is_a_directory means we got something like directory1/directory2/ so we should check for index file at the path given..! */
-             if ( FindIndexFile(instance,instance->webserver_root,transaction->incomingHeader.resource,servefile) )
+             if ( FindIndexFile(instance,instance->webserver_root,transaction->incomingHeader.resource,servefile,MAX_FILE_PATH) )
                 {
                    /*servefile should contain a valid index file ,
                      lets make it look like it was a file we wanted all along :P! */

@@ -286,7 +286,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 {
 
   fsp->functionName  = (char* ) malloc(sizeof(1+strlen(functionName)));
-  strcpy(fsp->functionName,functionName);
+  strncpy(fsp->functionName,strlen(functionName),functionName);
   convertTo_ENUM_ID(fsp->functionName);
 
 

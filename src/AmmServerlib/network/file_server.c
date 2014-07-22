@@ -391,7 +391,7 @@ if (request->requestType!=HEAD)
 
      if ( cached_buffer_is_compressed )
      {
-        strcpy(reply_header,"Content-Encoding: deflate\n");
+        strncpy(reply_header,"Content-Encoding: deflate\n",MAX_HTTP_REQUEST_HEADER_REPLY);
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending Compression header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }

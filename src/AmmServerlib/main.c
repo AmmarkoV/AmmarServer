@@ -137,7 +137,7 @@ struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int
                                {  memset(instance->threads_pool,0,sizeof(pthread_t)*MAX_CLIENT_THREADS); }
 
 
-  strcpy(instance->instanceName , name); // TODO: check for MAX_INSTANCE_NAME_STRING
+  strncpy(instance->instanceName , name , MAX_INSTANCE_NAME_STRING); // TODO: check for MAX_INSTANCE_NAME_STRING
 
 
 
@@ -192,11 +192,11 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char
    unsigned int bindPort=8080;
 
    //If we have arguments we change our buffers
-   if (name!=0)           {  strcpy(serverName,name); }
-   if (web_root_path!=0)  {  strcpy(webserver_root,web_root_path); }
-   if (templates_root!=0) {  strcpy(templates_root,templates_root_path); }
-   if (conf_file!=0)      { strcpy(configuration_file,conf_file); }
-   if (ip!=0)             {  strcpy(bindIP,ip); }
+   if (name!=0)           {  strncpy(serverName,name,MAX_FILE_PATH); }
+   if (web_root_path!=0)  {  strncpy(webserver_root,web_root_path,MAX_FILE_PATH); }
+   if (templates_root!=0) {  strncpy(templates_root,templates_root_path,MAX_FILE_PATH); }
+   if (conf_file!=0)      {  strncpy(configuration_file,conf_file,MAX_FILE_PATH); }
+   if (ip!=0)             {  strncpy(bindIP,ip,MAX_IP_STRING_SIZE); }
    if (port!=0)           {  bindPort=port; }
 
 
@@ -204,12 +204,12 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char
   int i=0;
   for (i=0; i<argc; i++)
   {
-    if ((strcmp(argv[i],"-bind")==0)&&(argc>i+1)) { strcpy(bindIP,argv[i+1]); fprintf(stderr,"Binding to %s \n",bindIP); } else
+    if ((strcmp(argv[i],"-bind")==0)&&(argc>i+1)) { strncpy(bindIP,argv[i+1],MAX_IP_STRING_SIZE); fprintf(stderr,"Binding to %s \n",bindIP); } else
     if ((strcmp(argv[i],"-p")==0)&&(argc>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-port")==0)&&(argc>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
-    if ((strcmp(argv[i],"-rootdir")==0)&&(argc>i+1)) { strcpy(webserver_root,argv[i+1]); fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
-    if ((strcmp(argv[i],"-templatedir")==0)&&(argc>i+1)) { strcpy(templates_root,argv[i+1]); fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
-    if (strcmp(argv[i],"-conf")==0)  { strcpy(configuration_file,conf_file); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
+    if ((strcmp(argv[i],"-rootdir")==0)&&(argc>i+1)) { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
+    if ((strcmp(argv[i],"-templatedir")==0)&&(argc>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
+    if (strcmp(argv[i],"-conf")==0)  { strncpy(configuration_file,conf_file,MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
   }
 
   return AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
@@ -286,8 +286,10 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
 {
     #warning "Please fix AmmServer_DoNOTCacheResourceHandler so the resource_name is the real one and does not generate a seperate cache rule"
     char resource_name[MAX_FILE_PATH]={0};
-    strcpy(resource_name,context->web_root_path);
-    strcat(resource_name,context->resource_name);
+
+    snprintf(resource_name,MAX_FILE_PATH,"%s%s",context->web_root_path,context->resource_name);
+    //strcpy(resource_name,context->web_root_path);
+    //strcat(resource_name,context->resource_name);
 
     if (! cache_AddDoNOTCacheRuleForResource(instance,resource_name) )
      {

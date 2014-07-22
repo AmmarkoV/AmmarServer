@@ -74,7 +74,7 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
        }
     }
 
-  strcpy(rqst->content,"<html><body>Ack</body></html>");
+  strncpy(rqst->content,"<html><body>Ack</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 
 
     char bindIP[MAX_IP_STRING_SIZE];
-    strcpy(bindIP,"0.0.0.0");
+    strncpy(bindIP,"0.0.0.0",MAX_IP_STRING_SIZE);
 
     unsigned int port=DEFAULT_BINDING_PORT;
 

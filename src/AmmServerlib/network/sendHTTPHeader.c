@@ -22,17 +22,27 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
     it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
 */
+strcpy(verified_filename,templates_root);
      char response[MAX_HTTP_REQUEST_HEADER_REPLY]={0};
      switch (error_code)
      {
-       case 400 : strcpy(response,"400 Bad Request");            strcpy(verified_filename,templates_root); strcat(verified_filename,"400.html"); break;
-       case 401 : strcpy(response,"401 Password Protected");     strcpy(verified_filename,templates_root); strcat(verified_filename,"401.html"); break;
-       case 404 : strcpy(response,"404 Not Found");              strcpy(verified_filename,templates_root); strcat(verified_filename,"404.html"); break;
-       case 408 : strcpy(response,"408 Timed Out");              strcpy(verified_filename,templates_root); strcat(verified_filename,"408.html"); break;
-       case 500 : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,templates_root); strcat(verified_filename,"500.html"); break;
-       case 501 : strcpy(response,"501 Not Implemented");        strcpy(verified_filename,templates_root); strcat(verified_filename,"501.html"); break;
+       case 400 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"400 Bad Request %s400.html",templates_root);            break;
+       case 401 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"401 Password Protected %s401.html",templates_root);     break;
+       case 404 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"404 Not Found %s404.html",templates_root);              break;
+       case 408 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"408 Timed Out %s408.html",templates_root);              break;
+       case 500 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"500 Internal Server Error %s500.html",templates_root);  break;
+       case 501 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"501 Not Implemented %s501.html",templates_root);        break;
        //---------------------------------------------------------------------------------------------------------------------------
-       default : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,templates_root); strcat(verified_filename,"500.html"); break;
+       default : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"500 Internal Server Error %s500.html",templates_root);   break;
+
+       //case 400 : strcpy(response,"400 Bad Request");            strcpy(verified_filename,templates_root); strcat(verified_filename,"400.html"); break;
+       //case 401 : strcpy(response,"401 Password Protected");     strcpy(verified_filename,templates_root); strcat(verified_filename,"401.html"); break;
+       //case 404 : strcpy(response,"404 Not Found");              strcpy(verified_filename,templates_root); strcat(verified_filename,"404.html"); break;
+       //case 408 : strcpy(response,"408 Timed Out");              strcpy(verified_filename,templates_root); strcat(verified_filename,"408.html"); break;
+       //case 500 : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,templates_root); strcat(verified_filename,"500.html"); break;
+       //case 501 : strcpy(response,"501 Not Implemented");        strcpy(verified_filename,templates_root); strcat(verified_filename,"501.html"); break;
+       //---------------------------------------------------------------------------------------------------------------------------
+       //default : strcpy(response,"500 Internal Server Error");  strcpy(verified_filename,templates_root); strcat(verified_filename,"500.html"); break;
      };
 
 

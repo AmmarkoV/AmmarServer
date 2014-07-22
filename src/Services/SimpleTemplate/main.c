@@ -85,7 +85,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strcpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>");
+  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
 
   char hex[16+1]={0};
   unsigned int i=0;

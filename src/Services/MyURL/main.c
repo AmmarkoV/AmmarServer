@@ -489,7 +489,7 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
                unsigned int captchaID = atoi(captchaIDStr);
                if ( ! AmmCaptcha_isReplyCorrect(captchaID , captchaReply) )
                 {
-                 strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>");
+                 strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>",rqst->MAXcontentSize);
                  AmmServer_SignalCountAsBadClientBehaviour(myurl_server,rqst);
                 } else
                #endif
@@ -619,7 +619,7 @@ int main(int argc, char *argv[])
     AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
     char bindIP[MAX_IP_STRING_SIZE]={0};
-    strcpy(bindIP,"0.0.0.0");
+    strncpy(bindIP,"0.0.0.0",MAX_IP_STRING_SIZE);
 
     unsigned int port=DEFAULT_BINDING_PORT;
 

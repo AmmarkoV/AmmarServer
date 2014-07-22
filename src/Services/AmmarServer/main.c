@@ -91,8 +91,9 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
   char chatlog_path[MAX_FILE_PATH]={0};
-  strcpy(chatlog_path,webserver_root);
-  strcat(chatlog_path,"chat.html");
+  snprintf(chatlog_path,MAX_FILE_PATH,"%schat.html",webserver_root);
+  //strcpy(chatlog_path,webserver_root);
+  //strcat(chatlog_path,"chat.html");
 
    unsigned int default_post_form = 1;
 
@@ -193,11 +194,11 @@ void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
 
-  strcpy(rqst->content,"<html><body>");
-  strcat(rqst->content,"<form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Submit\" /></form>");
-  strcat(rqst->content,"<br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" />");
-  strcat(rqst->content,"<input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car &nbsp; ");
-  strcat(rqst->content,"<input type=\"file\" name=\"testfile\" size=\"chars\"><br></form><br><br><br>");
+  strncpy(rqst->content,"<html><body> \
+  <form name=\"input\" action=\"formtest.html\" method=\"get\">Username: <input type=\"text\" name=\"user\" />Comment: <input type=\"text\" name=\"comment\" /><input type=\"submit\" value=\"Submit\" /></form> \
+  <br><br><br><form name=\"input\" action=\"formtest.html\" method=\"post\">Username: <input type=\"text\" name=\"user\" /><input type=\"submit\" value=\"Submit\" /> \
+  <input type=\"checkbox\" name=\"vehicle\" value=\"Bike\" /> I have a bike<br /><input type=\"checkbox\" name=\"vehicle\" value=\"Car\" /> I have a car &nbsp; \
+  <input type=\"file\" name=\"testfile\" size=\"chars\"><br></form><br><br><br>",rqst->MAXcontentSize);
 
 
 
@@ -278,7 +279,7 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
        }
     }
 
-  strcpy(rqst->content,"<html><body>Ack</body></html>");
+  strncpy(rqst->content,"<html><body>Ack</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
@@ -297,7 +298,7 @@ void * executeScriptFunction(struct AmmServer_DynamicRequest  * rqst)
 
  if (response==0)
  {
-    strcpy(rqst->content,"<html><body>Internal Error when executing command</body></html>");
+    strncpy(rqst->content,"<html><body>Internal Error when executing command</body></html>",rqst->MAXcontentSize);
     rqst->contentSize=strlen(rqst->content);
  } else
  {
@@ -360,8 +361,9 @@ void init_dynamic_content()
       { AmmServer_Warning("Failed adding chatbox page\n"); }
 
      char chatlog_path[MAX_FILE_PATH]={0};
-     strcpy(chatlog_path,webserver_root);
-     strcat(chatlog_path,"chat.html");
+     snprintf(chatlog_path,MAX_FILE_PATH,"%schat.html",webserver_root);
+     //strcpy(chatlog_path,webserver_root);
+     //strcat(chatlog_path,"chat.html");
      AmmServer_EraseFile(chatlog_path);
 
      AmmServer_DoNOTCacheResourceHandler(default_server,&chatbox);
@@ -417,7 +419,7 @@ int main(int argc, char *argv[])
     AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
     char bindIP[MAX_IP_STRING_SIZE];
-    strcpy(bindIP,"0.0.0.0");
+    strncpy(bindIP,"0.0.0.0",MAX_IP_STRING_SIZE);
 
     unsigned int port=DEFAULT_BINDING_PORT;
 

@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
     char bindIP[MAX_IP_STRING_SIZE];
-    strcpy(bindIP,"0.0.0.0");
+    strncpy(bindIP,"0.0.0.0",MAX_IP_STRING_SIZE);
 
     unsigned int port=DEFAULT_BINDING_PORT;
 
