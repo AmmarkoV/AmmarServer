@@ -75,6 +75,21 @@ int instance_CountFreeOP(struct AmmServer_Instance * instance,unsigned long addi
 
 int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
 {
+  /**
+  @bug TOP PRIORITY -> Implement POST !FILE! requests , and couple them to dynamic content
+  @bug Implement download resume capabilities ( range head request ) ..
+  @bug  require the Host: header from HTTP 1.1 clients
+  @bug accept absolute URL's in a request
+  @bug  accept requests with chunked data
+  @bug use the \"100 Continue\" response appropriately
+  @bug handle requests with If-Modified-Since: or If-Unmodified-Since: headers
+  @bug  Add configuration file ammServ.conf parsing..
+  @bug  Add detailed input header parsing
+  @bug  Improve directory listings ( add filesizes , dates etc )
+  @bug  Improve implemented file caching mechanism ( add string comparison to make code hash collision free )
+  @bug  Add apache like logging capabilities
+  */
+
   fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST !FILE! requests , and couple them to dynamic content ..\n");
   fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
   fprintf(stderr,"TODO: require the Host: header from HTTP 1.1 clients\n");

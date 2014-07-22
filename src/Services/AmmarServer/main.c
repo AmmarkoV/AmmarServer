@@ -25,6 +25,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
+
+#define ENABLE_STOP_PAGE 1
+#if ENABLE_STOP_PAGE
+ #warning "if you open http://127.0.0.1/stop.html this will stop the web server of course you don't want this in production so disable this"
+#endif // ENABLE_STOP_PAGE
+
 #define MAX_BINDING_PORT 65534
 
 #define ENABLE_PASSWORD_PROTECTION 0
@@ -72,6 +78,7 @@ struct AmmServer_Instance  * default_server=0;
 struct AmmServer_Instance  * admin_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
+struct AmmServer_RH_Context stop={0};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
@@ -250,6 +257,13 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+//This function prepares the content of  form context , ( content )
+void * stop_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+    #if ENABLE_STOP_PAGE
+     AmmServer_Stop(default_server);
+    #endif
+}
 
 //This function prepares the content of  form context , ( content )
 void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
@@ -340,6 +354,10 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding random testing page\n"); }
 
   if (! AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding gps testing page\n"); }
+
+#if ENABLE_STOP_PAGE
+  if (! AmmServer_AddResourceHandler(default_server,&stop,"/stop.html",webserver_root,4096,0,&stop_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding stop\n"); }
+#endif
 
   //fresh.txt will always be served fresh
   AmmServer_DoNOTCacheResource(default_server,WEBSERVERROOT "fresh.txt");

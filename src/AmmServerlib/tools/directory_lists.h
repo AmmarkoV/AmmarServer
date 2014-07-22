@@ -14,7 +14,7 @@
 * @param Input size of memory tou allocate and Output size of memory used
 * @retval Pointer to memory that contains directory listing ,0=Failure
 
-  @bug GenerateDirectoryPage does not handle memory correctly , code is in very bad shape
+  @bug GenerateDirectoryPage does not handle memory correctly , code is in very bad shape , needs a lot of work
 */
 char * GenerateDirectoryPage(char * system_path,char * client_path,unsigned long * memoryUsed);
 
