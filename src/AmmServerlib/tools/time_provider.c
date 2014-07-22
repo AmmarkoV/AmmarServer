@@ -36,7 +36,7 @@ int GetDateString(char * output,unsigned int maxOutput,char * label,unsigned int
 
       } else
       {
-        sprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
+        snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
       }
     return 1;
 }
