@@ -429,6 +429,22 @@ int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_fi
 }
 
 
+int cache_RefreshResource(
+                           struct AmmServer_Instance * instance,
+                           struct HTTPHeader * request,
+                           char * verified_filename,
+                           unsigned int * index,
+                           unsigned long *filesize,
+                           struct stat * last_modification
+                         )
+{
+
+   #warning "TODO : we should check here for a potentially newer version of the file..";
+ return 0;
+}
+
+
+
 char * cache_GetResource(
                           struct AmmServer_Instance * instance,
                           struct HTTPHeader * request,
@@ -464,6 +480,10 @@ if (cache_FindResource(instance,verified_filename,index))
   //Initially we would like to work with the memory block allocated when the dynamic call
   //was first registered..
    char * cache_memory = cache[*index].content;
+   if ( cache_RefreshResource(instance,request,verified_filename,index,filesize,last_modification) )
+   {
+     fprintf(stderr,"Updated Resource , to newest version \n");
+   }
 
    //if doNOTCache is set and this is a real file..
    fprintf(stderr,"Found Resource in our cache : \n");

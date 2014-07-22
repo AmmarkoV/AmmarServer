@@ -7,6 +7,19 @@
 #ifndef FILE_COMPRESSION_H_INCLUDED
 #define FILE_COMPRESSION_H_INCLUDED
 
+
+
+/**
+* @brief Create compressed version of dynamic content , this should be used via the shortcut functions that control compression levels automatically
+* @ingroup compression
+* @param An AmmarServer Instance
+* @param Index of cache item
+* @param Compression level 1-9
+* @retval 1=Success,0=Failure*/
+inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * instance,unsigned int index,int compression_level);
+
+
+
 /**
 * @brief Create compressed version of dynamic content , cache item
 * @ingroup compression

@@ -163,7 +163,8 @@ int cache_Destroy(struct AmmServer_Instance * instance);
 * @param Output last modification time of cache item we requested
 * @param Output flag about whether the buffer returned is compressed or not
 * @param Output flag about whether it is safe to automatically free the resource after using it , or there is an automatic handling of memory for the specific item
-* @bug If verified_filename , is not really verified (i.e. outside of the public_html root directory , this function could pose a security problem , since it will just blindly open and serve the filename given to it)
+* @bug    This function should check filesizes/dates and refresh memory snapshots
+          If verified_filename , is not really verified (i.e. outside of the public_html root directory , this function could pose a security problem , since it will just blindly open and serve the filename given to it)
 * @retval 1=Ok,0=Failed*/
 char * cache_GetResource(
                           struct AmmServer_Instance * instance,
