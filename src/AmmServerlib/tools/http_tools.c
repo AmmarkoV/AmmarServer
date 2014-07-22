@@ -95,7 +95,7 @@ unsigned int ServerThreads_DropRootUID()
             }
       }
 
-   fprintf(stderr,"setuid(%u);\n",non_root_uid);
+   fprintf(stderr,"setuid(%d);\n",non_root_uid);
    return setuid(non_root_uid); // Non Root UID :-P
 }
 
@@ -271,9 +271,9 @@ int GetContentType(char * filename,char * contentType,unsigned int contentTypeLe
 int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length)
 {
    //fprintf(stderr,"GetExtensionImage for %s \n",filename);
-   int res=GetContentType(filename,theimagepath,theimagepath_length);
+   GetContentType(filename,theimagepath,theimagepath_length);
    //fprintf(stderr,"GetExtentionType for %s \n",filename);
-        res=GetExtentionType(theimagepath);
+   int res=GetExtentionType(theimagepath);
    //fprintf(stderr,"yields %u\n",res);
    switch (res)
    {
@@ -594,7 +594,7 @@ int FilenameStripperOk(char * filename)
 
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength)
 {
- int i=0;
+ unsigned int i=0;
  while (i < strLength)
  {
    strTarget[i] = toupper( strSource[i] );
@@ -858,7 +858,7 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     // host byte order
     their_addr.sin_family = AF_INET;
     // short, network byte order
-    printf("Server-Using %s:%d...\n",hostname,port);
+    printf("Server-Using %s:%u...\n",hostname,port);
     their_addr.sin_port = htons(port);
     their_addr.sin_addr = *((struct in_addr *)he->h_addr);
     // zero the rest of the struct
@@ -884,6 +884,7 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     {
       buffer[0]=0;
       opres = recv(sockfd,buffer,MAX_HTTP_REQUEST_HEADER,MSG_WAITALL|MSG_NOSIGNAL);
+      if (opres<=0) { fprintf(stderr,"Error Receiving Request data\n"); }
     }
     // Todo add here some header sensing , malloc a good sized buffer , put the file in there ,
     close(sockfd);

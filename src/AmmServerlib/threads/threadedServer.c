@@ -255,8 +255,8 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
         }
 
 
-       return 0;
        we_can_send_result=0;
+       return 0;
      }
         else
       if  (resource_is_a_file)
@@ -270,8 +270,8 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
         fprintf(stderr,"404 not found..!!\n");
         SendErrorFile(instance,transaction,404);
 
-        return 0;
         we_can_send_result=0;
+        return 0;
      }
 
 
@@ -354,7 +354,7 @@ void * ServeClient(void * ptr)
   //This is the structure that holds all the state of the current ServeClient transaction
   struct AmmServer_Instance * instance = context->instance;
   struct HTTPTransaction transaction={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
-  int close_connection=0; // <- if this is set it means Serve Client must stop
+  //int close_connection=0; // <- if this is set it means Serve Client must stop
 
   //memset(&transaction->incomingHeader,0,sizeof(struct HTTPHeader));
   transaction.incomingHeader.headerRAW=0;

@@ -15,7 +15,9 @@
 * @param An AmmarServer Instance
 * @param Socket that we should recv to get the http header
 * @param Output length of incoming header
-* @retval Pointer to memory containing HTTPHeader,0=Failure */
+* @retval Pointer to memory containing HTTPHeader,0=Failure
+* @bug Reallocation code of ReceiveHTTPHeader when we jump from a regular GET memory block to a large POST memory block is shit and needs to be fixed
+*/
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength);
 
 /**

@@ -73,15 +73,34 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
               if (MAXincomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
                    { MAXincomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
 
+              #warning "ReceiveHTTPHeader realloc handling for POST requests is bad "
 
-              char  * largerRequest = (char * )  realloc (incomingRequest, MAXincomingRequestLength );
-              if ( incomingRequest != largerRequest ) { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength); }
-                                                        else
-                                                      {
-                                                        fprintf(stderr,"The request would overflow POST limit , dropping client \n");
-                                                        free(incomingRequest);
-                                                        return 0;
-                                                      }
+              #define BETTER_POST_REALLOC_CODE 1
+               char  * largerRequest = (char * )  realloc (incomingRequest, MAXincomingRequestLength );
+
+              #if  BETTER_POST_REALLOC_CODE
+               if ( largerRequest!=0 )
+                   { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength);
+                     incomingRequest=largerRequest;
+                   }
+                     else
+                   {
+                    fprintf(stderr,"The request would overflow POST limit , dropping client \n");
+                    free(incomingRequest);
+                    return 0;
+                   }
+              #else
+              #warning "This realloc handling is wrong"
+              if ( incomingRequest != largerRequest )
+                   { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength); }
+                     else
+                   {
+                    fprintf(stderr,"The request would overflow POST limit , dropping client \n");
+                    free(incomingRequest);
+                    return 0;
+                   }
+              #endif // BETTER_POST_REALLOC_CODE
+
             }
           } else
           {

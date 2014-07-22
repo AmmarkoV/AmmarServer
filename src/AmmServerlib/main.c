@@ -145,7 +145,12 @@ struct AmmServer_Instance * AmmServer_Start(char * name , char * ip,unsigned int
 
   instance->prespawned_pool = (void *) malloc( sizeof(struct PreSpawnedThread) * MAX_CLIENT_PRESPAWNED_THREADS);
   if (!instance->prespawned_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_PRESPAWNED_THREADS);  }else
-                                  {  memset(instance->prespawned_pool,0,sizeof(pthread_t)*MAX_CLIENT_PRESPAWNED_THREADS);  }
+                                  {
+                                    if (MAX_CLIENT_PRESPAWNED_THREADS>0)
+                                     {
+                                      memset(instance->prespawned_pool,0,sizeof(pthread_t)*MAX_CLIENT_PRESPAWNED_THREADS);
+                                     }
+                                  }
 
 
 
@@ -562,7 +567,13 @@ char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
 
   // copy the file into the buffer:
   size_t result = fread (buffer,1,lSize,pFile);
-  if (result != lSize) { fprintf(stderr,"Could not read the whole file onto memory %s ",filename); fclose(pFile); return 0; }
+  if (result != lSize)
+    {
+      free(buffer);
+      fprintf(stderr,"Could not read the whole file onto memory %s ",filename);
+      fclose(pFile);
+      return 0;
+    }
 
   /* the whole file is now loaded in the memory buffer. */
 
