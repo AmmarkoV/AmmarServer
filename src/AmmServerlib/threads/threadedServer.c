@@ -171,7 +171,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
       //we have checked transaction->incomingHeader.verified_local_resource for .. , weird ascii characters etc, so it should be safe for usage from now on..!
 
       //There are some virtual files we want to re-route to their real path..!
-      if (cache_ChangeRequestIfTemplateRequested(instance,servefile,instance->templates_root) )
+      if (cache_ChangeRequestIfTemplateRequested(instance,servefile,MAX_FILE_PATH,instance->templates_root) )
       { //Skip disk access times for checking for directories and other stuff..!
         //We know that the resource is a file from our cache indexes..!
           resource_is_a_directory=0;

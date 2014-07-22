@@ -24,7 +24,7 @@
      ------------------------------------------------------------------
 */
 
-int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,char * templates_root)
+int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,unsigned int maxRequest,char * templates_root)
 {
   if (!ENABLE_INTERNAL_RESOURCES_RESOLVE)  { return 0; }
   //The role of request caching is to intercept incoming requests and if they are referring
@@ -57,7 +57,7 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
            return 0;
        }
       fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
-      strcpy(request,tmp_cmp);
+      strncpy(request,tmp_cmp,maxRequest);
       return 1;
    }
   return 0;
