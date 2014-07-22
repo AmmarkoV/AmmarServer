@@ -174,7 +174,7 @@ while ((dp=readdir(dir)) != 0)
        strncat(memory," ",mem_remaining);
        mem_remaining-=1;
        char sizeStr[128]={0};
-       sprintf(sizeStr,"%li",st.st_size);
+       snprintf(sizeStr,128,"%li",st.st_size);
 
        //Append FileSize information
        strncat(memory,tag_pre_filesize,mem_remaining);

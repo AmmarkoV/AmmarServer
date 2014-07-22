@@ -429,7 +429,7 @@ int LoadMyURLDBFile(char * filename)
 void * serve_error_url_page(struct AmmServer_DynamicRequest  * rqst)
 {
   memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
-  sprintf(rqst->content,"<html><head><body><center><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></center></body></html>",service_root_withoutfilename);
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><body><center><br><br><br><br><br><h2>Could not find your URL , <a href=\"javascript:history.go(-1)\">go back</a> , <a href=\"%s\">MyURL home page</a></h2></center></body></html>",service_root_withoutfilename);
   rqst->contentSize=strlen(rqst->content);
   rqst->content[rqst->contentSize]=0;
   return 0;
@@ -457,8 +457,8 @@ void * serve_create_url_page(struct AmmServer_DynamicRequest  * rqst)
   rqst->content[indexPageLength]=0;
   rqst->contentSize=indexPageLength;
 
-  char val[132]={0};
-  sprintf(val , "%u",loaded_links);
+  char val[132+1]={0};
+  snprintf(val ,132, "%u",loaded_links);
   AmmServer_ReplaceVarInMemoryFile(rqst->content,indexPageLength,"$NUMBER_OF_LINKS$",val);
 
   return 0;
@@ -499,28 +499,28 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
                   //Assigning a (short)to to a (long)url
                   if ( (is_an_unsafe_str(to,strlen(to))) || (is_an_unsafe_str(url,strlen(url)) ) ) //There should be an internal length of the get argument instead of strlen!
                     {
-                      sprintf(rqst->content,"<html><body>Bad Strings provided..</body></html>");
+                      snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Bad Strings provided..</body></html>");
                     } else
                     {
                       Add_MyURL(url,to,1 /*We want to save it to disk..!*/);
-                      sprintf(rqst->content,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready \
+                      snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><title>MyURL has shortened your URL</title></head><body><br><br><center>Your link is ready \
                               <a target=\"_new\" href=\"%s%s\">%s%s</a> \
                               <br>Go on , make <a href=\"index.html\">another one</a></center></body></html>",service_root_withoutfilename,to,service_root_withoutfilename, to);
                     }
                 } else
                 {
                  //No Point in a url without a to , here we could probably generate a random to !
-                 strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Error creating a new url</h2></body></html>");
+                 strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Error creating a new url</h2></body></html>",rqst->MAXcontentSize);
                 }
              } else
          //If only to is set it means we have ourselves somewhere to go to!
          if ( _GET(myurl_server,rqst,"to",to,MAX_TO_SIZE) )
              {
-                sprintf(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_longURL(to));
+                snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_longURL(to));
              }
     } else
     {
-      strcpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to go to .. </body></html>");
+      strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to go to .. </body></html>",rqst->MAXcontentSize);
     }
 
   rqst->contentSize=strlen(rqst->content);
@@ -532,10 +532,13 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
    -----------------------------------------------------------
 */
 
-//This is a custom resolver for requests
-//When a new message is received this gets called and depending on the resource requested
-//we camouflage the request in a way that we want to make urls more user friendly
-//so a request for /whatever is converted to /go?to=whatever in ourcase :) ( since we have a url shortner )
+
+/**
+* @brief  This is a custom resolver for requests
+*          When a new message is received this gets called and depending on the resource requested
+*          we camouflage the request in a way that we want to make urls more user friendly
+*          so a request for /whatever is converted to /go?to=whatever in ourcase :) ( since we have a url shortner )
+*/
 void resolveRequest(void * request)
 {
   struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
@@ -559,12 +562,12 @@ void resolveRequest(void * request)
              AmmServer_Warning("Detected new kind of page , should make it /go?to=%s",rqst->resource+1);
              //For now they are static if (rqst->GETquery!=0) { free(rqst->GETquery); rqst->GETquery=0; }
              //rqst->GETquery = ( char * ) malloc (sizeof(char) * newlength);
-             sprintf(rqst->GETquery,"to=%s",rqst->resource+1 /* +1 To avoid the slash / */);
+             snprintf(rqst->GETquery,MAX_QUERY,"to=%s",rqst->resource+1 /* +1 To avoid the slash / */);
 
              //if (rqst->resource!=0) { free(rqst->resource); rqst->resource=0; }
              //rqst->resource = ( char * ) malloc (sizeof(char) * 4); //+3 chars + nulltermination
-             sprintf(rqst->resource,"%s",service_filename);
-             sprintf(rqst->verified_local_resource,"%s%s",webserver_root,service_filename_noslash);
+             snprintf(rqst->resource,MAX_RESOURCE,"%s",service_filename);
+             snprintf(rqst->verified_local_resource,MAX_RESOURCE,"%s%s",webserver_root,service_filename_noslash);
              AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
           }
 }

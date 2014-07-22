@@ -7,6 +7,7 @@
 
 struct fastStringParser * fspHTTPHeader = 0;
 
+#define MAXIMUM_FILENAME_WITH_EXTENSION 1024
 #define MAXIMUM_LINE_LENGTH 1024
 #define MAXIMUM_LEVELS 123
 #define ACTIVATED_LEVELS 3
@@ -289,11 +290,11 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   convertTo_ENUM_ID(fsp->functionName);
 
 
-  char filenameWithExtension[1024]={0};
+  char filenameWithExtension[MAXIMUM_FILENAME_WITH_EXTENSION+1]={0};
 
 
   //PRINT OUT THE HEADER
-  sprintf(filenameWithExtension,"%s.h",functionName);
+  snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
   FILE * fp = fopen(filenameWithExtension,"w");
   if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
 
@@ -323,7 +324,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
   //PRINT OUT THE MAIN FILE
 
-  sprintf(filenameWithExtension,"%s.c",functionName);
+  snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.c",functionName);
   fp = fopen(filenameWithExtension,"w");
   if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
 

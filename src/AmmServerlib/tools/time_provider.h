@@ -39,6 +39,8 @@ unsigned long GetTickCountAmmServ();
 * @retval 1=Success,0=Failure*/
 int GetDateString(
                   char * output,
+                  unsigned int maxOutput,
+
                   char * label,
                   unsigned int now,
                   //-------------------

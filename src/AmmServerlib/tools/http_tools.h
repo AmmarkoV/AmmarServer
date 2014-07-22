@@ -74,7 +74,6 @@ int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,cha
 int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length);
 int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val , unsigned int var_val_length);
 
-int GetDateString(char * output,char * label,unsigned int now,unsigned int dayofweek,unsigned int day,unsigned int month,unsigned int year,unsigned int hour,unsigned int minute,unsigned int second);
 
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength);
 

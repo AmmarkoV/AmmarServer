@@ -68,7 +68,7 @@ unsigned int ServerThreads_DropRootUID()
       }
 
    char command_to_get_uid[MAX_FILE_PATH]={0};
-   sprintf(command_to_get_uid,"id -u %s",USERNAME_UID_FOR_DAEMON);
+   snprintf(command_to_get_uid,MAX_FILE_PATH,"id -u %s",USERNAME_UID_FOR_DAEMON);
 
 
    FILE * fp  = popen(command_to_get_uid, "r");
@@ -270,12 +270,12 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
    //fprintf(stderr,"yields %u\n",res);
    switch (res)
    {
-     case TEXT       :  sprintf(theimagepath,"doc.gif");    break;
-     case IMAGE      :  sprintf(theimagepath,"img.gif");  break;
-     case VIDEO      :  sprintf(theimagepath,"vid.gif");  break;
-     case AUDIO      :  sprintf(theimagepath,"mus.gif");  break;
-     case EXECUTABLE :  sprintf(theimagepath,"exe.gif");    break;
-     default         :  sprintf(theimagepath,"dir.gif");  break;
+     case TEXT       :  snprintf(theimagepath,theimagepath_length,"doc.gif");    break;
+     case IMAGE      :  snprintf(theimagepath,theimagepath_length,"img.gif");  break;
+     case VIDEO      :  snprintf(theimagepath,theimagepath_length,"vid.gif");  break;
+     case AUDIO      :  snprintf(theimagepath,theimagepath_length,"mus.gif");  break;
+     case EXECUTABLE :  snprintf(theimagepath,theimagepath_length,"exe.gif");    break;
+     default         :  snprintf(theimagepath,theimagepath_length,"dir.gif");  break;
    }
    if ( res == NO_FILETYPE ) { return 0; }
    return 1;
@@ -353,7 +353,7 @@ int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned in
    filename[i]=0;
 
    if (strlen(start_of_query)>=max_query_length) { fprintf(stderr,"Not enough space for GET Request query\n");  return 0; }
-   sprintf(query,"%s",start_of_query);
+   snprintf(query,max_query_length,"%s",start_of_query);
 
    //fprintf(stderr,"GET Request ( %s ) has a query inlined ( %s ) \n",filename,query);
   return 1;
@@ -865,14 +865,14 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
 
 
-    char buffer[1024]={0};
-    sprintf(buffer,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
+    char buffer[MAX_HTTP_REQUEST_HEADER]={0};
+    snprintf(buffer,MAX_HTTP_REQUEST_HEADER,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
 
     int opres =  send(sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
     if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
     {
       buffer[0]=0;
-      opres = recv(sockfd,buffer,1024,MSG_WAITALL|MSG_NOSIGNAL);
+      opres = recv(sockfd,buffer,MAX_HTTP_REQUEST_HEADER,MSG_WAITALL|MSG_NOSIGNAL);
     }
     // Todo add here some header sensing , malloc a good sized buffer , put the file in there ,
     close(sockfd);

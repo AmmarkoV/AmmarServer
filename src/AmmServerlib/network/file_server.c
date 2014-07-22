@@ -173,7 +173,7 @@ int TransmitFileToSocket(
 
     fprintf(stderr,"Sending file %s , size %0.2f Kbytes , Open files %u \n",verified_filename,(double) lSize/1024,files_open);
 
-    char reply_header[512]={0};
+    char reply_header[MAX_HTTP_REQUEST_SHORT_HEADER_REPLY]={0};
     //THIS ALSO EXISTS IN THE Cached resource response CODE around line 395
     if ( (start_at_byte!=0) || (end_at_byte!=0) )
        {
@@ -181,12 +181,12 @@ int TransmitFileToSocket(
          //Content-Range: bytes 1000-3979/3980
          int endAtBytePrinted = end_at_byte;
          if (endAtBytePrinted == 0 ) { endAtBytePrinted = lSize; }
-          sprintf(reply_header,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);
+          snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);
        } else
        {
          //error("TransmitFileToSocket Plain Content-Length ");
          //This is the last header part , so we are appending an extra \n to mark the end of the header
-         sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) lSize);
+         snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) lSize);
        }
     if (!SendPart(clientsock,reply_header,strlen(reply_header))) { fprintf(stderr,"Failed sending Content-length @  SendFile ..!\n");  }
 
@@ -309,8 +309,8 @@ unsigned long SendFile
        unsigned int cache_etag = cache_GetHashOfResource(instance,index);
        if ((request->eTag!=0)&&(cache_etag!=0))
         {
-          char LocalETag[40]={0};
-          sprintf(LocalETag,"%u%lu%lu",cache_etag,start_at_byte,end_at_byte);
+          char LocalETag[MAX_ETAG_SIZE]={0};
+          snprintf(LocalETag,MAX_ETAG_SIZE,"%u%lu%lu",cache_etag,start_at_byte,end_at_byte);
 
           //fprintf(stderr,"E-Tag is `%s` , local hash is `%s` \n",request->eTag,LocalETag);
           if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
@@ -319,8 +319,8 @@ unsigned long SendFile
               SendNotModifiedHeader(clientsock);
 
               //The Etag is mandatory on 304 messages..!
-              char ETagSendChunk[128]={0};
-              sprintf(ETagSendChunk,"ETag: \"%s\" \n",LocalETag);
+              char ETagSendChunk[MAX_ETAG_SIZE+64]={0};
+              snprintf(ETagSendChunk,MAX_ETAG_SIZE+64,"ETag: \"%s\" \n",LocalETag);
               if (!SendPart(clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
               WeWantA200OK=0;
@@ -353,7 +353,7 @@ unsigned long SendFile
 
        struct tm * ptm = gmtime ( &last_modified.st_mtime ); //This is not a particularly thread safe call , must add a mutex or something here..!
        //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
-       GetDateString(reply_header,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+       GetDateString(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
        opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
@@ -380,7 +380,7 @@ if (request->requestType!=HEAD)
      unsigned int  cache_etag = cache_GetHashOfResource(instance,index);
      if (cache_etag!=0)
      {
-        sprintf(reply_header,"ETag: \"%u%lu%lu\"\n",cache_etag,start_at_byte,end_at_byte);
+        snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%u%lu%lu\"\n",cache_etag,start_at_byte,end_at_byte);
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
@@ -404,12 +404,12 @@ if (request->requestType!=HEAD)
          //Content-Range: bytes 1000-3979/3980
          int endAtBytePrinted = end_at_byte;
          if (endAtBytePrinted == 0 ) { endAtBytePrinted = cached_lSize; }
-          sprintf(reply_header,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
+          snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
        } else
        {
          //error("Resource Plain Content-Length ");
          //This is the last header part , so we are appending an extra \n to mark the end of the header
-         sprintf(reply_header,"Content-length: %u\n\n",(unsigned int) cached_lSize);
+         snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) cached_lSize);
        }
      opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
@@ -474,8 +474,7 @@ unsigned long SendMemoryBlockAsFile
 {
   char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
   if (! SendSuccessCodeHeader(clientsock,200,filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
-  sprintf(reply_header,"Content-length: %u\n",(unsigned int) mem_block);
-  strcat(reply_header,"Connection: close\n\n");
+  snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\nConnection: close\n\n",(unsigned int) mem_block);
   //TODO : Location : path etc
 
   if (!SendPart(clientsock,reply_header,strlen(reply_header)))

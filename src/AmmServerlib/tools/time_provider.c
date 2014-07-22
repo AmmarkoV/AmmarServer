@@ -23,7 +23,7 @@ unsigned long GetTickCountAmmServ()
 
 
 
-int GetDateString(char * output,char * label,unsigned int now,unsigned int dayofweek,unsigned int day,unsigned int month,unsigned int year,unsigned int hour,unsigned int minute,unsigned int second)
+int GetDateString(char * output,unsigned int maxOutput,char * label,unsigned int now,unsigned int dayofweek,unsigned int day,unsigned int month,unsigned int year,unsigned int hour,unsigned int minute,unsigned int second)
 {
    //Date: Sat, 29 May 2010 12:31:35 GMT
    //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
@@ -32,11 +32,11 @@ int GetDateString(char * output,char * label,unsigned int now,unsigned int dayof
         time_t clock = time(NULL);
         struct tm * ptm = gmtime ( &clock );
 
-        sprintf(output,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+        snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
 
       } else
       {
-        sprintf(output,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
+        sprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
       }
     return 1;
 }

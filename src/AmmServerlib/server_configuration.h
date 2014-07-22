@@ -73,9 +73,15 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 #define MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
 
 
+/** @brief Maximum size of an E-Tag */
+#define MAX_ETAG_SIZE 40
+
+
 /** @brief Maximum size of an http header reply */
 #define MAX_HTTP_REQUEST_HEADER_REPLY 1024
 
+/** @brief Maximum size of a short , static ,  http header reply */
+#define MAX_HTTP_REQUEST_SHORT_HEADER_REPLY 512
 
 /** @brief Controls initial allocated size for a directory listing */
 #define INITIAL_DIRECTORY_LIST_RESPONSE_BODY 64/*KB*/*1024

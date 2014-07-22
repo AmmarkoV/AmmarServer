@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
   unsigned long i=0;
   while (i<10000)
    {
-      sprintf(keyStr,"%lu",i);
+      snprintf(keyStr,128,"%lu",i);
       hashMap_Add(hm,keyStr,(void*) i,0);
       ++i;
    }
@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
   i=0;
   while (i<10000)
    {
-      sprintf(keyStr,"%lu",i);
+      snprintf(keyStr,128,"%lu",i);
       if (!hashMap_FindIndex(hm,keyStr,&index))
        {
          fprintf(stderr,"Could not find %lu\n",i);

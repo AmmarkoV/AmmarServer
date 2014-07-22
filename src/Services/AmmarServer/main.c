@@ -87,7 +87,7 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(rqst->content,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=700 height=500>This Browser does not support frames</iframe><br><hr><br>");
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><title>A dead simple file based ChatBox</title></head><body><center><iframe src=\"chat.html\" width=700 height=500>This Browser does not support frames</iframe><br><hr><br>");
 
 
   char chatlog_path[MAX_FILE_PATH]={0};
@@ -152,12 +152,15 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
   struct tm tm = *localtime(&t);
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  sprintf(rqst->content,"<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>",
-                    tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-  strcat(rqst->content,"The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n");
-  strcat(rqst->content,"To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L46\">Dynamic content code label in ammarserver main.c</a><br>\n");
-  strcat(rqst->content,"If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in ");
-  strcat(rqst->content,"<a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>");
+  snprintf(rqst->content,rqst->MAXcontentSize,
+           "<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head>\
+            <body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>\
+            The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n\
+            To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L46\">\
+            Dynamic content code label in ammarserver main.c</a><br>\n\
+            If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in \
+            <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>",
+           tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
@@ -167,17 +170,18 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strcpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>");
+  #warning "There is a range check but it is stupid..!"
+  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
 
-  char hex[10]={0};
+  char hex[16]={0};
   unsigned int i=0;
   for (i=0; i<1024; i++)
     {
-        sprintf(hex, "%x ", rand()%256 );
-        strcat(rqst->content,hex);
+        snprintf(hex,16, "%x ", rand()%256 );
+        strncat(rqst->content,hex,rqst->MAXcontentSize);
     }
 
-  strcat(rqst->content,"</body></html>");
+  strncat(rqst->content,"</body></html>",rqst->MAXcontentSize);
 
   rqst->contentSize=strlen(rqst->content);
   return 0;
@@ -298,7 +302,7 @@ void * executeScriptFunction(struct AmmServer_DynamicRequest  * rqst)
  } else
  {
     AmmServer_ExecuteCommandLine( executeScript , response , MAX_SCRIPT_RESPONSE_SIZE );
-    sprintf(rqst->content,"<html><body><textarea name=\"commandline\" cols=\"80\" rows=\"24\">%s</textarea><br/><a href=\"javascript:location.reload();\">Rerun</a></body></html>",response);
+    snprintf(rqst->content,rqst->MAXcontentSize,"<html><body><textarea name=\"commandline\" cols=\"80\" rows=\"24\">%s</textarea><br/><a href=\"javascript:location.reload();\">Rerun</a></body></html>",response);
     rqst->contentSize=strlen(rqst->content);
 
     free(response);
