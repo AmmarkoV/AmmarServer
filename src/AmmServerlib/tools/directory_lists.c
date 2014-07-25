@@ -3,24 +3,20 @@
 #include <string.h>
 #include <dirent.h>
 #include "../server_configuration.h"
+#include "logs.h"
 #include "directory_lists.h"
 #include "http_tools.h"
 #include <sys/stat.h>
 #include <errno.h>
 
-
-
+//Multi line html things break code so to keep things clean they are included as html files :)
 char * starting =
  #include "../../public_html/templates/directoryListStart.html"
 ;
 
-
 char * ending =
  #include "../../public_html/templates/directoryListEnd.html"
 ;
-
-
-
 
 
 char * path_cat (const char *str1, char *str2)
@@ -198,7 +194,6 @@ while ((dp=readdir(dir)) != 0)
      }
      //---------------------------------
 
-     //<br>
      strncat(memory,tag_after_filename,mem_remaining);
      mem_remaining-=tag_after_filename_size;
     }
