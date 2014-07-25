@@ -88,7 +88,7 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 /** @brief Controls allocation step for when we run out of space for a directory listing */
 #define GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY 16/*KB*/*1024
 /** @brief Maximum space allocated for a directory listing */
-#define MAX_DIRECTORY_LIST_RESPONSE_BODY 128/*KB*/*1024
+#define MAX_DIRECTORY_LIST_RESPONSE_BODY 256/*KB*/*1024
 
 /** @brief When we compress a file we may have a buffer allocated for 16KB and the compressed size might be 1.6KB ( if we get an impressive 1:10 ratio )
            If that's the case we could do a system call to free memory and allocate a 1.6KB chunk of memory thus being economic in memory requirements*/

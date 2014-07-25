@@ -1,24 +1,42 @@
-"\
-<html>\
+"<html>\
   <head>\
     <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\
     <title>AmmarServer Directory listing</title>\
   </head>\
+  <script type=\"text/javascript\" >\n\
+function sortData()\n\
+{\n\
+ var tableData = document.getElementById('data').getElementsByTagName('tbody').item(0);\n\
+ var rowData = tableData.getElementsByTagName('tr');\n\
+  for(var i = 0; i < rowData.length - 1; i++)\n\
+  {\n\
+   for(var j = 0; j < rowData.length - (i + 1); j++)\n\
+    {\n\
+      if(parseInt(rowData.item(j).getElementsByTagName('td').item(0).innerHTML) > parseInt(rowData.item(j+1).getElementsByTagName('td').item(0).innerHTML))\n\
+      {\n\
+       tableData.insertBefore(rowData.item(j+1),rowData.item(j));\n\
+      }\n\
+    }\n\
+  }\n\
+}\n\
+</script>\
   <body>\
   <h1>AmmarServer Directory Listing</h1>\
-  <a name=\"top\"></a><hr>\
-  <!-- TODO : Add some clientside javascript search and sorting capabilities! :P -->\
-  <table>\
+  <a name=\"top\"></a><hr>\ 
+  <table id=\"data\">\
+   <thead>\
     <tr>\
       <td></td>\
       <td>\
-         <a href=\"#todo2\">Filename</a>\
+         <a href=\"#\" onclick=\"sortData();\" >Filename</a>\
       </td>\
       <td>\
-         <a href=\"#todo3\">Byte Size</a>\
+         <a href=\"#\" onclick=\"sortData();\" >Byte Size</a>\
       </td>\
       <td>\
-         <a href=\"#todo4\">Modification Date</a>\
+         <a href=\"#\" onclick=\"sortData();\" >Modification Date</a>\
       </td>\
     </tr>\
+   </thead>\
+   </tbody>\
 "

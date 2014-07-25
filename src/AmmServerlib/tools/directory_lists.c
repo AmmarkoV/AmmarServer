@@ -9,8 +9,14 @@
 #include <errno.h>
 
 
+
 char * starting =
  #include "../../public_html/templates/directoryListStart.html"
+;
+
+
+char * ending =
+ #include "../../public_html/templates/directoryListEnd.html"
 ;
 
 
@@ -57,8 +63,8 @@ unsigned int tag_pre_image_size=strlen(tag_pre_image);
 unsigned int tag_after_image_size=strlen(tag_after_image);
 // Image Filename
 char image_file[MAX_FILE_PATH]={0};
-// Image Filename
-char * tag_pre_link="</td><td class=\"link\"><a href=\"";
+// Image Filename //class=\"link\"
+char * tag_pre_link="</td><td ><a href=\"";
 unsigned int tag_pre_link_size=strlen(tag_pre_link);
 char * tag_after_link="\">"; // target=\"_new\"
 unsigned int tag_after_link_size=strlen(tag_after_link);
@@ -67,13 +73,13 @@ char * tag_after_filename="</a></td>\n";
 unsigned int tag_after_filename_size=strlen(tag_after_filename);
 
 
-char * tag_pre_filesize="</td><td class=\"size\">";
+char * tag_pre_filesize="</td><td>";
 unsigned int tag_pre_filesize_size=strlen(tag_pre_filesize);
 
 char * tag_after_filesize="</td>\n";
 unsigned int tag_after_filesize_size=strlen(tag_after_filesize);
 
-char * tag_pre_date="</td><td class=\"date\">";
+char * tag_pre_date="</td><td>";
 unsigned int tag_pre_date_size=strlen(tag_pre_date);
 
 char * tag_after_date="</td></tr>\n";
@@ -97,6 +103,7 @@ while ((dp=readdir(dir)) != 0)
      {
         closedir(dir);
         strncat(memory,"</table><hr><h2>Error, reached memory limit</h2></body></html>",mem_remaining);
+        *memoryUsed=strlen(memory);
         return memory;
      }
        else
@@ -109,6 +116,7 @@ while ((dp=readdir(dir)) != 0)
              {
                closedir(dir);
                strncat(memory,"</table><hr><h2>Error,  could not reallocate memory</h2></body></html>",mem_remaining);
+               *memoryUsed=strlen(memory);
                return memory;
              } else
              {
@@ -199,34 +207,11 @@ while ((dp=readdir(dir)) != 0)
 
    }
 
-  /* BACK BUTTON --------------------------------------------*/
-  char * pre_back="<tr><td><a href=\"#\" onclick=\"javascript:history.back()\"><img src=\"/";
-  strncat(memory,pre_back,mem_remaining);
-  mem_remaining-=strlen(pre_back);
+  char lastPart[1024]={0};
+  snprintf(lastPart,1024,ending,TemplatesInternalURI,TemplatesInternalURI);
+  strncat(memory,lastPart,mem_remaining);
 
-  strncat(memory,TemplatesInternalURI,mem_remaining);
-  mem_remaining-=strlen(TemplatesInternalURI);
-
-  char * after_back="back.gif\"></a></td><td><a href=\"#\" onclick=\"javascript:history.back()\">Back</a></tr>";
-  strncat(memory,after_back,mem_remaining);
-  mem_remaining-=strlen(after_back);
-
-  /* UP BUTTON --------------------------------------------*/
-  char * pre_up="<tr><td><a href=\"#top\"><img src=\"/";
-  strncat(memory,pre_up,mem_remaining);
-  mem_remaining-=strlen(pre_up);
-
-  strncat(memory,TemplatesInternalURI,mem_remaining);
-  mem_remaining-=strlen(TemplatesInternalURI);
-
-  char * after_up="up.gif\"></a></td><td><a href=\"#top\">Up</a></tr>\n";
-  strncat(memory,after_up,mem_remaining);
-  mem_remaining-=strlen(after_up);
-
-  /* END OF HTML --------------------------------------------*/
-  char * ending="</table><hr></body></html>\0\0\0\0\0\0";
-  strncat(memory,ending,mem_remaining);
-  mem_remaining-=strlen(ending);
+  *memoryUsed=strlen(memory);
 
  closedir(dir);
  return memory;
