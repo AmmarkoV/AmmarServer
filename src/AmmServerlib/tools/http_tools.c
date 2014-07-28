@@ -374,7 +374,7 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
 
   unsigned int var_id_length = strlen(var_id);
 
-  fprintf(stderr,"StripVariableFromGETorPOSTString is slopilly implemented \n");
+  //fprintf(stderr,"StripVariableFromGETorPOSTString is slopilly implemented \n");
   #warning "StripVariableFromGETorPOSTString is slopilly implemented"
   /**
    @bug StripVariableFromGETorPOSTString does not have a high quality implementation
