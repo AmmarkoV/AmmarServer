@@ -375,6 +375,11 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
   unsigned int var_id_length = strlen(var_id);
 
   fprintf(stderr,"StripVariableFromGETorPOSTString is slopilly implemented \n");
+  #warning "StripVariableFromGETorPOSTString is slopilly implemented"
+  /**
+   @bug StripVariableFromGETorPOSTString does not have a high quality implementation
+  */
+
   /*! TODO : A decent implementation here..! , input is like "idname=idvalue&idname2=idvalue2&idname3=idvalue3" , var_id is the value we are looking for
              var_val is the payload which has space allocated as declared in var_val_length  */
 
@@ -445,7 +450,7 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
 
    }
   //If we are here this means we couldnt find an instance of our var in the input string..!
-  fprintf(stderr,"Could not find VAR %s \n",var_id);
+  //This spams output a lot , so it is disabled -> fprintf(stderr,"Could not find VAR %s \n",var_id);
   return 0;
 }
 
