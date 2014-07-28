@@ -11,11 +11,11 @@
 
 //Multi line html things break code so to keep things clean they are included as html files :)
 char * starting =
- #include "../../public_html/templates/directoryListStart.html"
+ #include "../../../public_html/templates/directoryListStart.html"
 ;
 
 char * ending =
- #include "../../public_html/templates/directoryListEnd.html"
+ #include "../../../public_html/templates/directoryListEnd.html"
 ;
 
 
