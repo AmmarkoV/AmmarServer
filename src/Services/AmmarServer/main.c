@@ -31,6 +31,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
  #warning "if you open http://127.0.0.1/stop.html this will stop the web server of course you don't want this in production so disable this"
 #endif // ENABLE_STOP_PAGE
 
+#define logEcho() fprintf(stderr," Reached %s , %u \n ", __FILE__, __LINE__);
+
+
 #define MAX_BINDING_PORT 65534
 
 #define ENABLE_PASSWORD_PROTECTION 0
