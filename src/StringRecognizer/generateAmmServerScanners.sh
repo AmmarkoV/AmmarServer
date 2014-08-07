@@ -1,10 +1,14 @@
 #!/bin/bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
 
-for item in httpHeader postHeader firstLines imageFiles textFiles audioFiles videoFiles applicationFiles ; do
+mkdir binaries
+
+for item in httpHeader postHeader firstLines imageFiles textFiles audioFiles videoFiles applicationFiles archiveFiles; do
     echo "Generating $item header"
     ./StringRecognizer $item
-    #gcc "$item.c" -o "$item-Scanner"
+    gcc -S "$item.c" -o "binaries/$item-Scanner"
 
     cp "$item.c" ../AmmServerlib/stringscanners/
     cp "$item.h" ../AmmServerlib/stringscanners/

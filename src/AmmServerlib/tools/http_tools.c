@@ -212,6 +212,14 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
    case APPLICATIONFILES_PDF  :  strcpy(content_type,"application/pdf");                  content_type[15]=0; return 1; break;
   };
 
+
+  ext=scanFor_archiveFiles(theextension,theextensionLength);
+  switch (ext)
+  {
+   /** @bug : TODO , add archive files to MIME list */
+   default :  break;
+  };
+
  fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
  return 0;
 }

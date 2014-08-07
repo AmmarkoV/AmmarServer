@@ -1,7 +1,7 @@
 /** @file fastStringParser.h
 * @brief A tool that converts a file with words ( each word on a new line ) to C code ( see automata ) for fast string checking
 *
-* @author Ammar Qammaz (AmmarkoV) 
+* @author Ammar Qammaz (AmmarkoV)
 */
 
 #ifndef FASTSTRINGPARSER_H_INCLUDED
@@ -47,5 +47,14 @@ int export_C_Scanner(struct fastStringParser * fsp,char * filename);
 * @retval fastStringParser context,0=Failure
 */
 struct fastStringParser * fastSTringParser_createRulesFromFile(char* filename,unsigned int totalStrings);
+
+
+/**
+* @brief Destroy fast string parser
+* @ingroup stringParsing
+* @param Structure that holds the parser
+* @retval 1=Success,0=Failure
+*/
+int fastStringParser_close(struct fastStringParser * fsp);
 
 #endif // FASTSTRINGPARSER_H_INCLUDED

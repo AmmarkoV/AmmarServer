@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 struct fastStringParser * fspHTTPHeader = 0;
 
@@ -26,6 +27,7 @@ inline void convertTo_ENUM_ID(char *sPtr)
 
      if  (sPtr[source]=='_')  {  } else
      if  (sPtr[source]=='-')  { sPtr[target]='_'; } else
+     if  (sPtr[source]=='.')  { sPtr[target]='_'; } else
      if  (
               ( (sPtr[source]>='A') && (sPtr[source]<='Z' ) )  ||
               ( (sPtr[source]>='0') && (sPtr[source]<='9' ) )
@@ -80,10 +82,6 @@ int fastStringParser_addString(struct fastStringParser * fsp, char * str)
     if (fsp->contents[ourNum].str!=0) { free(fsp->contents[ourNum].str); fsp->contents[ourNum].str=0; }
     return 0;
   }
-
-
-
-
 
   return 0;
 }
@@ -284,9 +282,15 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
 
 int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 {
+  if (fsp==0) { fprintf(stderr,"export_C_Scanner called with empty string parser\n"); return 0; }
+  if (functionName==0) { fprintf(stderr,"export_C_Scanner called with empty function name\n"); return 0; }
 
-  fsp->functionName  = (char* ) malloc(sizeof(1+strlen(functionName)));
-  strncpy(fsp->functionName,strlen(functionName),functionName);
+  unsigned int functionNameLength = strlen(functionName);
+  fsp->functionName  = (char* ) malloc(sizeof(char) * (1+functionNameLength));
+  if (fsp->functionName==0) { fprintf(stderr,"Could not allocate memory for function name\n"); return 0; }
+  strncpy(fsp->functionName,functionName,functionNameLength);
+  fsp->functionName[functionNameLength]=0;
+
   convertTo_ENUM_ID(fsp->functionName);
 
 
@@ -333,12 +337,17 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   for (i=0; i<MAXIMUM_LEVELS; i++ ) { cArray[i]=0;/*'A';*/ }
 
 
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+
+
   fprintf(fp,"/* \
-                 \nThis file was automatically generated using StringRecognizer\
+                 \nThis file was automatically generated @ %02d-%02d-%02d %02d:%02d:%02d using StringRecognizer \
                  \nhttps://github.com/AmmarkoV/AmmarServer/tree/master/src/StringRecognizer\
                  \nPlease note that changes you make here may be automatically overwritten \
                  \nif the String Recognizer generator runs again..!\
-              \n */ \n\n");
+              \n */ \n\n" ,
+          tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
 
 
   fprintf(fp,"#include <stdio.h>\n");
@@ -377,7 +386,7 @@ struct fastStringParser * fastSTringParser_createRulesFromFile(char* filename,un
   if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",filename); return 0; }
 
   struct fastStringParser *  fsp  = fastStringParser_initialize(totalStrings);
-  if (fsp==0) { return 0; }
+  if (fsp==0) { fclose(fp); return 0; }
 
   char line[MAXIMUM_LINE_LENGTH]={0};
   unsigned int lineLength=0;
@@ -408,11 +417,11 @@ struct fastStringParser * fastSTringParser_createRulesFromFile(char* filename,un
 
 
 
-int fastStringParser_close()
+int fastStringParser_close(struct fastStringParser * fsp)
 {
 
-
-    return 0;
+    fprintf(stderr,"TODO: Deallocate here\nClosing Fast String Parser\n");
+    return 1;
 }
 
 

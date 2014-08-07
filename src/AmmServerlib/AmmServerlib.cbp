@@ -106,6 +106,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="stringscanners/applicationFiles.h" />
+		<Unit filename="stringscanners/archiveFiles.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="stringscanners/archiveFiles.h" />
 		<Unit filename="stringscanners/audioFiles.c">
 			<Option compilerVar="CC" />
 		</Unit>
