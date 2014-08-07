@@ -48,12 +48,12 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
       fprintf(stderr,"We've got a result , %s ( skipped %s )\n",res,res_skipped);
       if (strlen(res_skipped)+strlen(templates_root)<MAX_FILE_PATH)
        {
-         snprintf(tmp_cmp,"%s%s",templates_root,res_skipped);
+         snprintf(tmp_cmp,MAX_FILE_PATH,"%s%s",templates_root,res_skipped);
          //strcpy(tmp_cmp,templates_root);
          //strcat(tmp_cmp,res_skipped);
        } else
        {
-           fprintf(stderr,"Internal request too long , not thoroughly tested\n");
+           fprintf(stderr,"Internal request too long\n");
            return 0;
        }
       fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
