@@ -217,27 +217,27 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
   ext=scanFor_archiveFiles(theextension,theextensionLength);
   switch (ext)
   {
-   case   ARCHIVEFILES_7Z  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_AR  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_BZ2  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_CBZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_CPIO  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_GZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_ISO  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_JAR  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_LZMA  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TGZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR_7Z  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR_Z  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR_GZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR_BZ2  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR_BZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR_LZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR_LZMA  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_TAR_XZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_XZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
-   case   ARCHIVEFILES_ZIP   :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_GZ        :  strcpy(content_type,"application/gzip");    content_type[16]=0; return 1; break;
+   case   ARCHIVEFILES_TAR       :  strcpy(content_type,"application/x-tar");   content_type[17]=0; return 1; break;
+   case   ARCHIVEFILES_TGZ       :  strcpy(content_type,"application/gnutar");  content_type[18]=0; return 1; break;
+   case   ARCHIVEFILES_ZIP       :  strcpy(content_type,"application/zip");     content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_JAR       :
+   case   ARCHIVEFILES_7Z        :
+   case   ARCHIVEFILES_AR        :
+   case   ARCHIVEFILES_BZ2       :
+   case   ARCHIVEFILES_CBZ       :
+   case   ARCHIVEFILES_CPIO      :
+   case   ARCHIVEFILES_ISO       :
+   case   ARCHIVEFILES_LZMA      :
+   case   ARCHIVEFILES_TAR_7Z    :
+   case   ARCHIVEFILES_TAR_Z     :
+   case   ARCHIVEFILES_TAR_GZ    :
+   case   ARCHIVEFILES_TAR_BZ2   :
+   case   ARCHIVEFILES_TAR_BZ    :
+   case   ARCHIVEFILES_TAR_LZ    :
+   case   ARCHIVEFILES_TAR_LZMA  :
+   case   ARCHIVEFILES_TAR_XZ    :
+   case   ARCHIVEFILES_XZ        :  strcpy(content_type,"application/octet-stream");      content_type[24]=0; return 1; break;
   };
 
  fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
