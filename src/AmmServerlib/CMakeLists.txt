@@ -47,6 +47,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 #String Scanners , these get  automatically generated
                 stringscanners/applicationFiles.c
                 stringscanners/applicationFiles.h
+                stringscanners/archiveFiles.c
+                stringscanners/archiveFiles.h
                 stringscanners/audioFiles.c
                 stringscanners/audioFiles.h
                 stringscanners/firstLines.c

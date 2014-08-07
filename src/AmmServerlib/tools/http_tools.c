@@ -38,6 +38,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../cache/file_caching.h"
 
 #include "../stringscanners/applicationFiles.h"
+#include "../stringscanners/archiveFiles.h"
 #include "../stringscanners/imageFiles.h"
 #include "../stringscanners/textFiles.h"
 #include "../stringscanners/videoFiles.h"
@@ -216,8 +217,27 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
   ext=scanFor_archiveFiles(theextension,theextensionLength);
   switch (ext)
   {
-   /** @bug : TODO , add archive files to MIME list */
-   default :  break;
+   case   ARCHIVEFILES_7Z  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_AR  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_BZ2  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_CBZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_CPIO  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_GZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_ISO  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_JAR  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_LZMA  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TGZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR_7Z  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR_Z  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR_GZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR_BZ2  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR_BZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR_LZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR_LZMA  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_TAR_XZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_XZ  :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
+   case   ARCHIVEFILES_ZIP   :  strcpy(content_type,"application/exe");                  content_type[15]=0; return 1; break;
   };
 
  fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
