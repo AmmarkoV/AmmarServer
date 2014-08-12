@@ -26,6 +26,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../AmmServerlib/AmmServerlib.h"
 
 
+
+#define ENABLE_GET_DEBUGGING 1
+#if ENABLE_GET_DEBUGGING
+ #warning "if you open http://127.0.0.1/stop.html this will echo back the get tokens received for debugging , of course you don't want this in production so disable this"
+#endif // ENABLE_STOP_PAGE
+
+
 #define ENABLE_STOP_PAGE 1
 #if ENABLE_STOP_PAGE
  #warning "if you open http://127.0.0.1/stop.html this will stop the web server of course you don't want this in production so disable this"
@@ -260,6 +267,25 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+
+//This function prepares the content of  form context , ( content )
+void * debug_get_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  strncpy(rqst->content,"<html><body><br><br>",rqst->MAXcontentSize);
+  if  ( rqst->GET_request != 0 )
+    {
+      if ( strlen(rqst->GET_request)>0 )
+       {
+         strcat(rqst->content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(rqst->content, rqst->GET_request ); strcat(rqst->content,"</i><hr>");
+       }
+    }
+  strcat(rqst->content,"</body></html>");
+
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
 //This function prepares the content of  form context , ( content )
 void * stop_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -361,6 +387,10 @@ void init_dynamic_content()
 #if ENABLE_STOP_PAGE
   if (! AmmServer_AddResourceHandler(default_server,&stop,"/stop.html",webserver_root,4096,0,&stop_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding stop\n"); }
 #endif
+
+#if ENABLE_GET_DEBUGGING
+  if (! AmmServer_AddResourceHandler(default_server,&stop,"/debugGET.html",webserver_root,4096,0,&debug_get_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding debug GET\n"); }
+#endif // ENABLE_GET_DEBUGGING
 
   //fresh.txt will always be served fresh
   AmmServer_DoNOTCacheResource(default_server,WEBSERVERROOT "fresh.txt");
