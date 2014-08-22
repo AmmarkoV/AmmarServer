@@ -21,6 +21,7 @@ set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizat
     add_subdirectory (src/Services/MyLoader) 
     add_subdirectory (src/Services/GeoPosShare) 
     add_subdirectory (src/Services/SimpleTemplate) 
+    add_subdirectory (src/Services/HabChan) 
  
     #Finally make a null version of ammarserver :P
     add_subdirectory (src/AmmServerNULLlib) 
