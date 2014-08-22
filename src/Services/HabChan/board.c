@@ -18,12 +18,18 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
     unsigned int i=0;
     for (i=0; i<=boardHashMap->curNumberOfEntries; i++)
     {
-      strcat(rqst->content," <a href=\"threadIndexView.html?board=");
-     strcat(rqst->content,hashMap_GetKeyAtIndex(boardHashMap,i));
-     strcat(rqst->content,"\">");
-     strcat(rqst->content," Board ");
-     strcat(rqst->content,hashMap_GetKeyAtIndex(boardHashMap,i));
-     strcat(rqst->content," </a> <br>");
+      char * key = hashMap_GetKeyAtIndex(boardHashMap,i);
+
+      if (key!=0)
+      {
+       strcat(rqst->content," <a href=\"threadIndexView.html?board=");
+       strcat(rqst->content,key);
+       strcat(rqst->content,"\">");
+       strcat(rqst->content," Board ");
+       strcat(rqst->content,key);
+       strcat(rqst->content," </a> <br>");
+      }
+
     }
 
     strcat(rqst->content,"</body></html>");

@@ -35,7 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define ENABLE_CHAT_BOX 0
 
 
-#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+#define DEFAULT_BINDING_PORT 8082  // <--- Change this to 80 if you want to bind to the default http port..!
 #define ADMIN_BINDING_PORT 8082
 #define ENABLE_ADMIN_PAGE 0
 
@@ -54,28 +54,6 @@ struct AmmServer_RH_Context threadView={0};
 struct AmmServer_RH_Context postReceiver={0};
 
 
-
-int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber)
-{
- /* Open the command for reading. */
- FILE * fp = popen(command, "r");
- if (fp == 0 )
-       {
-         fprintf(stderr,"Failed to run command (%s) \n",command);
-         return 0;
-       }
-
- /* Read the output a line at a time - output it. */
-  unsigned int i=0;
-  while (fgets(what2GetBack, what2GetBackMaxSize , fp) != 0)
-    {
-        ++i;
-        if (lineNumber==i) { break; }
-    }
-  /* close */
-  pclose(fp);
-  return 1;
-}
 
 void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -239,7 +217,7 @@ int main(int argc, char *argv[])
     //Check binary and header spec
     AmmServer_CheckIfHeaderBinaryAreTheSame(AMMAR_SERVER_HTTP_HEADER_SPEC);
     //Register termination signal for when we receive SIGKILL etc
-    AmmServer_RegisterTerminationSignal(&close_dynamic_content);
+    //AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 
     char bindIP[MAX_IP_STRING_SIZE];
     strncpy(bindIP,"0.0.0.0",MAX_IP_STRING_SIZE);

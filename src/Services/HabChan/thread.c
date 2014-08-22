@@ -22,7 +22,17 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
           {
             if ( _GET(default_server,rqst,"board",boardID,256) )
              {
-               strcat(rqst->content,"GOT A BOARD !!!  : "); strcat(rqst->content,boardID); strcat(rqst->content," ! ! <br>");
+                if ( hashMap_ContainsKey(boardHashMap,boardID) )
+                {
+                  strcat(rqst->content,"GOT A BOARD !!!  : "); strcat(rqst->content,boardID); strcat(rqst->content," ! ! <br>");
+
+                  // int serveThreadsOfBoard(struct AmmServer_DynamicRequest  * rqst)
+
+
+                } else
+                {
+                  strcat(rqst->content,"No BOARD  , denied!!!  <BR> ");
+                }
              }
             free(boardID);
           }
@@ -30,4 +40,5 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
     }
    strcat(rqst->content,"</body></html>" );
    rqst->contentSize=strlen(rqst->content);
+
 }
