@@ -25,21 +25,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
-
-
-#define ENABLE_GET_DEBUGGING 1
-#if ENABLE_GET_DEBUGGING
- #warning "if you open http://127.0.0.1/stop.html this will echo back the get tokens received for debugging , of course you don't want this in production so disable this"
-#endif // ENABLE_STOP_PAGE
-
-
-#define ENABLE_STOP_PAGE 1
-#if ENABLE_STOP_PAGE
- #warning "if you open http://127.0.0.1/stop.html this will stop the web server of course you don't want this in production so disable this"
-#endif // ENABLE_STOP_PAGE
-
-#define logEcho() fprintf(stderr," Reached %s , %u \n ", __FILE__, __LINE__);
-
+#include "state.h"
+#include "thread.h"
+#include "board.h"
 
 #define MAX_BINDING_PORT 65534
 
@@ -59,34 +47,6 @@ char webserver_root[MAX_FILE_PATH]=WEBSERVERROOT; // <- change this to the direc
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 #define MAX_SCRIPT_RESPONSE_SIZE 40960
-char * executeScript=0;
-
-
-/*! Dynamic content code ..! START!*/
-/* A few words about dynamic content here..
-   This is actually one of the key features on AmmarServer and maybe the reason that I started the whole project
-   What I am trying to do here is serve content by directly linking the webserver to binary ( NOT Interpreted ) code
-   in order to serve pages with the maximum possible efficiency and skipping all intermidiate layers..
-
-   PHP , Ruby , Python and all other "web-languages" are very nice and handy and to be honest I can do most of my work fine using PHP , MySQL and Apache
-   However setting up , configuring and maintaining large projects with different database systems , seperate configuration files for each of the sub parts
-   and re deploying everything is a very tiresome affair.. Not to mention that despite the great work done by the apache  , php etc teams performance is wasted
-   due to the interpreters of the various scripting languages used..
-
-   Things can't get any faster than AmmarServer and the whole programming interface exposed to the programmer is ( imho ) very friendly and familiar to even inexperienced
-   C developer..
-
-   What follows is the decleration of some "Dynamic Content Resources" their Constructors/Destructors and their callback routines that fill them with the content to be served
-   each time a client requests one of the pages..
-
-   One can test them by opening http://127.0.0.1:8081/stats.html for a dynamic time page and http://127.0.0.1:8081/formtest.html for form testing..
-
-*/
-
-//The decleration of some dynamic content resources..
-struct AmmServer_Instance  * default_server=0;
-struct AmmServer_Instance  * admin_server=0;
-struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context boardIndexView={0};
 struct AmmServer_RH_Context threadIndexView={0};
@@ -95,24 +55,42 @@ struct AmmServer_RH_Context postReceiver={0};
 
 
 
-//This function prepares the content of  stats context , ( stats.content )
-void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
+int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber)
 {
-   snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><body>Welcome to Hab Chan</body></html>" );
-   rqst->contentSize=strlen(rqst->content);
-}
+ /* Open the command for reading. */
+ FILE * fp = popen(command, "r");
+ if (fp == 0 )
+       {
+         fprintf(stderr,"Failed to run command (%s) \n",command);
+         return 0;
+       }
 
-void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
-{
+ /* Read the output a line at a time - output it. */
+  unsigned int i=0;
+  while (fgets(what2GetBack, what2GetBackMaxSize , fp) != 0)
+    {
+        ++i;
+        if (lineNumber==i) { break; }
+    }
+  /* close */
+  pclose(fp);
+  return 1;
 }
 
 void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
 {
+   snprintf(rqst->content,rqst->MAXcontentSize,
+           "<html><body>Welcome to Hab Chan</body></html>" );
+   rqst->contentSize=strlen(rqst->content);
+   return 0;
 }
 
 void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
 {
+   snprintf(rqst->content,rqst->MAXcontentSize,
+           "<html><body>Welcome to Hab Chan</body></html>" );
+   rqst->contentSize=strlen(rqst->content);
+   return 0;
 }
 
 
@@ -226,21 +204,24 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&boardIndexView,"/index.html",webserver_root,4096,0,&prepareBoardIndexView,SAME_PAGE_FOR_ALL_CLIENTS) )
         { AmmServer_Warning("Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&threadIndexView,"/threadIndex.html",webserver_root,4096,0,&prepareThreadIndexView,SAME_PAGE_FOR_ALL_CLIENTS) )
+  if (! AmmServer_AddResourceHandler(default_server,&threadIndexView,"/threadIndexView.html",webserver_root,4096,0,&prepareThreadIndexView,SAME_PAGE_FOR_ALL_CLIENTS) )
         { AmmServer_Warning("Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&threadView,"/index.html",webserver_root,4096,0,&prepareThreadView,SAME_PAGE_FOR_ALL_CLIENTS) )
+  if (! AmmServer_AddResourceHandler(default_server,&threadView,"/threadView.html",webserver_root,4096,0,&prepareThreadView,SAME_PAGE_FOR_ALL_CLIENTS) )
         { AmmServer_Warning("Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&postReceiver,"/index.html",webserver_root,4096,0,&processPostReceiver,SAME_PAGE_FOR_ALL_CLIENTS) )
+  if (! AmmServer_AddResourceHandler(default_server,&postReceiver,"/postReceiver.html",webserver_root,4096,0,&processPostReceiver,SAME_PAGE_FOR_ALL_CLIENTS) )
         { AmmServer_Warning("Failed adding stats page\n"); }
 
 
+  loadBoards();
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
+    unloadBoards();
+
     AmmServer_RemoveResourceHandler(default_server,&boardIndexView,1);
     AmmServer_RemoveResourceHandler(default_server,&threadIndexView,1);
     AmmServer_RemoveResourceHandler(default_server,&threadView,1);

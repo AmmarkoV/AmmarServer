@@ -37,9 +37,30 @@
 			<Add option="-lrt" />
 			<Add option="-lz" />
 		</Linker>
+		<Unit filename="../../AmmServerlib/InputParser/InputParser_C.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../AmmServerlib/InputParser/InputParser_C.h" />
+		<Unit filename="../../AmmServerlib/hashmap/hashmap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../AmmServerlib/hashmap/hashmap.h" />
+		<Unit filename="board.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="board.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="main.h" />
+		<Unit filename="state.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="state.h" />
+		<Unit filename="thread.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="thread.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
