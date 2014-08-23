@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HabChan Dynamic Title here</title>
+    
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+  </head>
+  <body style="background-color:#ffffee;">
+     
+      <center> 
+       list channels here <br>     
+       <img src="banner.jpg"> <br> 
+       <h2>Say Which Board we are in here</h2>
+       <hr> 
+       
+
+<form name="postform" id="postform" action="postReceiver.html" method="get" >
+<input type="hidden" name="board" value="b" />
+<input type="hidden" name="replythread" value="0" />
+<input type="hidden" name="MAX_FILE_SIZE" value="3072000" />
+
+<input type="text" name="email" size="28" maxlength="75" value="" style="display: none;" />
+<table class="postform">
+<tbody>
+<tr>
+<td class="postblock">
+Όνομα</td>
+<td>
+<input type="text" name="name" size="28" maxlength="75" accesskey="n" autocomplete="off"/>
+</td>
+</tr>
+
+<tr>
+<td class="postblock">
+Email</td>
+<td>
+<input type="text" name="em" size="28" maxlength="75" accesskey="e" />
+</td>
+</tr>
+<tr>
+<td class="postblock">
+Θέμα
+</td>
+<td>
+<input type="text" name="subject" size="35" maxlength="75" accesskey="s" />&nbsp;<input type="submit" value="Αποστολή" accesskey="z" autocomplete="off"/>&nbsp;(<span id="posttypeindicator">νέο θέμα</span>)
+</td>
+</tr>
+<tr>
+<td class="postblock">
+Μήνυμα
+</td>
+<td>
+<textarea name="message" cols="48" rows="4" accesskey="m" autocomplete="off"></textarea>
+</td>
+</tr>
+<tr>
+<td class="postblock'">
+<a href="#" onclick="javascript:document.getElementById('captchaimage').src = 'http://TODO/captcha.php?' + Math.random();return false;"><img id="captchaimage" src="http://TODO/captcha.php" border="0" width="90" height="25" alt="Captcha image"></a>
+</td>
+<td>
+<input type="text" name="captcha" size="28" maxlength="10" accesskey="c" />
+</td>
+</tr>
+
+<tr>
+<td class="postblock">
+Αρχείο
+</td>
+<td>
+<input type="file" name="imagefile" size="35" accesskey="f" />
+
+</td>
+</tr>
+
+<tr>
+<td class="postblock">
+Video
+</td>
+<td>
+<input type="text" name="embed" size="28" maxlength="75" accesskey="e" />&nbsp;<select name="embedtype">
+<option value="youtube">Youtube</option>
+
+<option value="google">Google</option>
+
+
+</select>
+<a class="rules" href="#postbox" onclick="window.open('http://TODO/embedhelp.php','embedhelp','toolbar=0,location=0,status=0,menubar=0,scrollbars=0,resizable=0,width=300,height=210');return false;">Βοήθεια</a>
+</td>
+</tr>
+
+<tr>
+<td class="postblock">
+Κωδικός
+</td>
+<td>
+<input type="password" name="postpassword" size="8" accesskey="p" />&nbsp;(για τη δυνατότητα διαγραφής)
+</td>
+</tr>
+<tr id="passwordbox"><td></td><td></td></tr>
+<tr>
+<td colspan="2" class="rules">
+<ul style="margin-left: 0; margin-top: 0; margin-bottom: 0; padding-left: 0;">
+<li>Επιτρεπόμενοι τύποι αρχείων:
+GIF, 
+JPG, 
+PNG
+
+
+</li>
+<li>Μέγιστο επιτρεπόμενο μέγεθος 3000 KB.</li>
+
+</li>
+</ul>
+
+</td>
+</tr>
+</tbody>
+
+</table>
+</form>
+
+<hr>       
+       
+      </center>
+     
+     <!-- FOR LOOP gia osa threads -->
+     <div style="background-color:#ffffee;">
+     <br>
+
+         <!-- FOR LOOP gia ta X prwta posts tou thread -->
+         <div>
+          <table width="400" style="background-color:#f0e0d6;">
+           <tr>
+             <td colspan=2> Header Here </td> 
+           </tr>
+           <tr>  
+             <td> <img src="../data/board/b/1/image_1.jpg" height="100"> </td> <td> payload here </td> 
+           </tr>
+          </table>   
+         </div> <br> <hr> <br>
+  
+  
+          <!-- FOR LOOP gia ta X prwta posts tou thread -->
+         <div style="background-color:#f0e0d6;">
+          <table>
+           <tr>
+             <td colspan=2> Header Here </td> 
+             <td> image here </td> <td> payload here </td> 
+           </tr>
+          </table>   
+         </div> 
+  
+  
+ 
+     <br>
+     </div>    
+     <!-- FOR LOOP gia osa threads -->
+
+
+
+
+
+    
+    
+       <hr> 
+  
+      <center> 
+       list channels here <br>     
+      </center>
+  
+  
+  </body>
+</html>
