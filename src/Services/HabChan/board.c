@@ -41,17 +41,19 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-int loadBoardSettings(char * filename , struct board * ourBoard)
+int loadBoardSettings(char * boardName , struct board * ourBoard)
 {
+   char filename[LINE_MAX_LENGTH]={0};
+   snprintf(filename,LINE_MAX_LENGTH,"data/board/%s/boardStatus.ini",boardName);
    char line [LINE_MAX_LENGTH]={0};
    //Try and open filename
    FILE * fp = fopen(filename,"r");
-   if (fp == 0 ) { fprintf(stderr,"Cannot open trajectory stream %s \n",filename); return 0; }
+   if (fp == 0 ) { fprintf(stderr,"Cannot open loadBoardSettings file %s \n",filename); return 0; }
 
     //Allocate a token parser
     struct InputParserC * ipc=0;
     ipc = InputParser_Create(LINE_MAX_LENGTH,5);
-    if (ipc==0) { fprintf(stderr,"Cannot allocate memory for new stream\n"); return 0; }
+    if (ipc==0) { fprintf(stderr,"Cannot allocate memory for new loadBoardSettings parser\n"); return 0; }
 
     while (!feof(fp))
        {
@@ -115,6 +117,33 @@ int addBoardToSite( struct site * targetSite , char * boardName )
 
   //Update hashmap used to check for sites
   hashMap_Add(boardHashMap,boardName,0,0);
+
+
+
+   unsigned int numberOfThreads=0;
+   char command[MAX_STRING_SIZE]={0};
+   char what2GetBack[1024]={0};
+
+   //ls data/board/b -a | sed 's/ /\n/g' | egrep '^[0-9].*'
+   snprintf(command,MAX_STRING_SIZE,"ls data/board/%s/ -al | cut -d ' ' -f10 | wc -l",boardName);
+   AmmServer_ExecuteCommandLine(command, what2GetBack , 1024 );
+   numberOfThreads = atoi(what2GetBack);
+
+   snprintf(command,MAX_STRING_SIZE,"ls data/board/%s/ -al | cut -d ' ' -f10",boardName);
+   unsigned int i=0;
+    for (i=4; i<=numberOfThreads; i++)
+    {
+     AmmServer_ExecuteCommandLineNum(command, what2GetBack , 1024 , i);
+     if (strlen(what2GetBack)>1)
+         { what2GetBack[strlen(what2GetBack)-1]=0; }
+
+         if (strcmp(what2GetBack,"boardStatus.ini")!=0 )
+          {
+            addThreadToBoard( boardName , what2GetBack );
+          }
+    }
+
+
 
  return 0;
 }

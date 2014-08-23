@@ -214,7 +214,7 @@ struct InputParserC * InputParser_Create(unsigned int max_string_count,unsigned 
 
 
     ipc->delimeters = (char *) malloc( sizeof(char) * (max_delimiter_count+1) );
-    if ( ipc->delimeters  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new Delimeter List\n"); return 0; }
+    if ( ipc->delimeters  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new Delimeter List\n"); free(ipc->tokenlist); return 0; }
     ipc->max_delimeter_count=max_delimiter_count;
     ipc->cur_delimeter_count=max_delimiter_count;
 
@@ -399,6 +399,14 @@ unsigned char InputParser_WordCompareNoCase(struct InputParserC * ipc,unsigned i
     /*fprintf(stderr," returning success ");*/
     return 1;
 }
+
+
+
+unsigned char InputParser_WordCompareNoCase2(struct InputParserC * ipc,unsigned int num,char * word)
+{
+    return InputParser_WordCompareNoCase(ipc,num,word,strlen(word));
+}
+
 
 /*
    InputParser_WordCompareNoCase..

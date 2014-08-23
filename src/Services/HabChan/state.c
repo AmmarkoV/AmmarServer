@@ -126,24 +126,6 @@ int unloadSite()
 
 
 
-int addThreadToBoard( char * boardName ,  struct thread * newThread )
-{
-  if ( ! hashMap_ContainsKey(boardHashMap,boardName) )
-  {
-    fprintf(stderr,"Could not find board name `%s` , Cannot create a thread in non existing board\n", boardName);
-    return 0;
-  }
-
-
- // ourSite.
-
-
-
-
- return 0;
-
-}
-
 
 int addPostToThread( char * boardName ,  struct thread * newThread ,  struct post * newPost )
 {

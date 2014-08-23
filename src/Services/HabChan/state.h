@@ -115,14 +115,12 @@ struct site
 };
 
 extern struct hashMap * boardHashMap ;
+extern struct hashMap * threadHashMap;
 
 int loadSite( char *filename );
 
 int unloadSite();
 
-
-
-int addThreadToBoard( char * boardName ,  struct thread * newThread );
 
 int addPostToThread( char * boardName ,  struct thread * newThread ,  struct post * newPost );
 
