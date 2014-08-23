@@ -16,6 +16,10 @@ struct hashMap * boardHashMap =0;
 struct hashMap * threadHashMap =0;
 
 
+unsigned int threadIndexPageLength = 0;
+char * threadIndexPage = 0;
+
+
 int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber)
 {
  /* Open the command for reading. */
@@ -57,6 +61,7 @@ int loadBoards()
      hashMap_Add(boardHashMap,what2GetBack,0,0);
     }
 
+   threadIndexPage = AmmServer_ReadFileToMemory("data/simple.html", &threadIndexPageLength );
 
 }
 
@@ -64,5 +69,7 @@ int unloadBoards()
 {
 
   hashMap_Destroy( boardHashMap );
+
+  free(threadIndexPage);
 
 }

@@ -41,4 +41,7 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
    strcat(rqst->content,"</body></html>" );
    rqst->contentSize=strlen(rqst->content);
 
+   rqst->contentSize = threadIndexPageLength;
+   strncpy(rqst->content,threadIndexPage,rqst->contentSize);
+
 }

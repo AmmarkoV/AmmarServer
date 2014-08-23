@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "state.h"
 #include "thread.h"
 #include "board.h"
+#include "postReceiver.h"
 
 #define MAX_BINDING_PORT 65534
 
@@ -62,15 +63,6 @@ void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
    rqst->contentSize=strlen(rqst->content);
    return 0;
 }
-
-void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
-{
-   snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><body>Welcome to Hab Chan</body></html>" );
-   rqst->contentSize=strlen(rqst->content);
-   return 0;
-}
-
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)

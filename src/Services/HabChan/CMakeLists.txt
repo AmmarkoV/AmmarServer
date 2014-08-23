@@ -21,6 +21,8 @@ add_executable(habchan
  board.h 
  state.c 
  state.h 
+ postReceiver.c
+ postReceiver.h
  ../../AmmServerlib/hashmap/hashmap.c 
  ../../AmmServerlib/hashmap/hashmap.h 
  ../../AmmServerlib/InputParser/InputParser_C.c  

@@ -12,6 +12,14 @@ extern struct AmmServer_Instance  * default_server;
 extern struct AmmServer_Instance  * admin_server;
 extern struct AmmServer_RequestOverride_Context GET_override;
 
+
+
+
+extern unsigned int threadIndexPageLength;
+extern char * threadIndexPage;
+
+
+
 #define MAX_STRING_SIZE 512
 
 enum FILETYPES_ENUM
@@ -36,6 +44,8 @@ struct post
   unsigned int numberOfComplaints;
 
   char op[MAX_STRING_SIZE];
+  char password[MAX_STRING_SIZE];
+
 
   unsigned char hasFile;
   unsigned char fileType;
@@ -59,6 +69,7 @@ struct thread
   unsigned char repliable;
 
   char op[MAX_STRING_SIZE];
+  char password[MAX_STRING_SIZE];
   char title[MAX_STRING_SIZE];
 
   struct timestamp creation;
