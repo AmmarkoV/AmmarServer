@@ -12,14 +12,15 @@ extern struct AmmServer_Instance  * default_server;
 extern struct AmmServer_Instance  * admin_server;
 extern struct AmmServer_RequestOverride_Context GET_override;
 
-
+extern struct site ourSite;
 
 
 extern unsigned int threadIndexPageLength;
 extern char * threadIndexPage;
 
 
-
+#define MAX_BOARDS 1000
+#define LINE_MAX_LENGTH 1024
 #define MAX_STRING_SIZE 512
 
 enum FILETYPES_ENUM
@@ -85,6 +86,8 @@ struct thread
 
 struct board
 {
+  char name[MAX_STRING_SIZE];
+
   unsigned int maxThreads;
   unsigned int currentThreads;
 
@@ -101,20 +104,26 @@ struct board
   struct thread * threads;
 };
 
+struct site
+{
+  unsigned int maxNumberOfBoards;
+  unsigned int numberOfBoards;
+  struct board *  boards;
 
-
-
-
-
-
-
-
-
+  char siteName[MAX_STRING_SIZE];
+  char siteDescription[MAX_STRING_SIZE];
+};
 
 extern struct hashMap * boardHashMap ;
 
-int loadBoards();
+int loadSite( char *filename );
 
-int unloadBoards();
+int unloadSite();
+
+
+
+int addThreadToBoard( char * boardName ,  struct thread * newThread );
+
+int addPostToThread( char * boardName ,  struct thread * newThread ,  struct post * newPost );
 
 #endif // STATE_H_INCLUDED

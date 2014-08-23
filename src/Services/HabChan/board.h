@@ -11,4 +11,5 @@
 void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst);
 
 
+int addBoardToSite( struct site * targetSite , char * boardName );
 #endif // BOARD_H_INCLUDED

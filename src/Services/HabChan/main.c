@@ -184,13 +184,13 @@ void init_dynamic_content()
         { AmmServer_Warning("Failed adding stats page\n"); }
 
 
-  loadBoards();
+  loadSite("data/settings.ini");
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    unloadBoards();
+    unloadSite();
 
     AmmServer_RemoveResourceHandler(default_server,&boardIndexView,1);
     AmmServer_RemoveResourceHandler(default_server,&threadIndexView,1);

@@ -27,8 +27,6 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
                   strcat(rqst->content,"GOT A BOARD !!!  : "); strcat(rqst->content,boardID); strcat(rqst->content," ! ! <br>");
 
                   // int serveThreadsOfBoard(struct AmmServer_DynamicRequest  * rqst)
-
-
                 } else
                 {
                   strcat(rqst->content,"No BOARD  , denied!!!  <BR> ");
@@ -43,5 +41,5 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
 
    rqst->contentSize = threadIndexPageLength;
    strncpy(rqst->content,threadIndexPage,rqst->contentSize);
-
+  return 0;
 }

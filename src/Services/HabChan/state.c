@@ -4,8 +4,11 @@
 #include <string.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 #include "../../AmmServerlib/hashmap/hashmap.h"
+#include "../../AmmServerlib/InputParser/InputParser_C.h"
+
 
 #include "state.h"
+#include "board.h"
 
 
 struct AmmServer_Instance  * default_server=0;
@@ -15,9 +18,12 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct hashMap * boardHashMap =0;
 struct hashMap * threadHashMap =0;
 
+struct site ourSite={0};
 
 unsigned int threadIndexPageLength = 0;
 char * threadIndexPage = 0;
+
+
 
 
 int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber)
@@ -42,12 +48,11 @@ int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsi
   return 1;
 }
 
-int loadBoards()
+int loadSite( char * filename )
 {
   boardHashMap = hashMap_Create( 100 , 100 , 0 );
 
-
-    unsigned int numberOfElements=0;
+  unsigned int numberOfElements=0;
     char what2GetBack[1024]={0};
     AmmServer_ExecuteCommandLine("ls data/board -al | cut -d ' ' -f10 | wc -l ", what2GetBack , 1024 );
     numberOfElements = atoi(what2GetBack);
@@ -57,19 +62,102 @@ int loadBoards()
     {
      AmmServer_ExecuteCommandLineNum("ls data/board -al | cut -d ' ' -f10", what2GetBack , 1024 , i);
      if (strlen(what2GetBack)>1)
-      { what2GetBack[strlen(what2GetBack)-1]=0; }
-     hashMap_Add(boardHashMap,what2GetBack,0,0);
+         { what2GetBack[strlen(what2GetBack)-1]=0; }
+
+     addBoardToSite( &ourSite , what2GetBack );
     }
+
+    ourSite.boards = (struct board * ) malloc(sizeof(struct board) * MAX_BOARDS);
+    if (ourSite.boards == 0 ) { fprintf(stderr,"Cannot allocate memory to hold boards , failed to load "); return 0; }
+
+    ourSite.maxNumberOfBoards = MAX_BOARDS;
+    ourSite.numberOfBoards = 0;
 
    threadIndexPage = AmmServer_ReadFileToMemory("data/simple.html", &threadIndexPageLength );
 
+   //------------------------------------------------------
+
+   char line [LINE_MAX_LENGTH]={0};
+   //Try and open filename
+   FILE * fp = fopen(filename,"r");
+   if (fp == 0 ) { fprintf(stderr,"Cannot open trajectory stream %s \n",filename); return 0; }
+
+    //Allocate a token parser
+    struct InputParserC * ipc=0;
+    ipc = InputParser_Create(LINE_MAX_LENGTH,5);
+    if (ipc==0) { fprintf(stderr,"Cannot allocate memory for new stream\n"); return 0; }
+
+    while (!feof(fp))
+       {
+         //We get a new line out of the file
+         unsigned int readOpResult = (fgets(line,LINE_MAX_LENGTH,fp)!=0);
+         if ( readOpResult != 0 )
+           {
+             //We tokenize it
+             unsigned int words_count = InputParser_SeperateWords(ipc,line,0);
+             if ( words_count > 0 )
+              {
+                if (InputParser_WordCompareNoCase(ipc,0,(char*)"SITENAME",8)==1)
+                {
+                     InputParser_GetWord(ipc,1, ourSite.siteName , MAX_STRING_SIZE );
+                } else
+                if (InputParser_WordCompareNoCase(ipc,0,(char*)"SITEDESCRIPTION",8)==1)
+                {
+                     InputParser_GetWord(ipc,1, ourSite.siteDescription , MAX_STRING_SIZE );
+                }
+              }
+          }
+       }
+
+    InputParser_Destroy(ipc);
+    fclose(fp);
+
+  return 1;
 }
 
-int unloadBoards()
+int unloadSite()
 {
 
   hashMap_Destroy( boardHashMap );
 
   free(threadIndexPage);
+  return 1;
+}
+
+
+
+int addThreadToBoard( char * boardName ,  struct thread * newThread )
+{
+  if ( ! hashMap_ContainsKey(boardHashMap,boardName) )
+  {
+    fprintf(stderr,"Could not find board name `%s` , Cannot create a thread in non existing board\n", boardName);
+    return 0;
+  }
+
+
+ // ourSite.
+
+
+
+
+ return 0;
 
 }
+
+
+int addPostToThread( char * boardName ,  struct thread * newThread ,  struct post * newPost )
+{
+ return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+

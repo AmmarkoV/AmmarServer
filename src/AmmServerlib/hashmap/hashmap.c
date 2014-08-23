@@ -44,7 +44,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
        return 1;
      } else
      {
-       error("Could not grow hashMap (running out of memory?)");
+       fprintf(stderr,"Could not grow hashMap (running out of memory?)");
      }
   return 0;
 }
@@ -349,10 +349,10 @@ int hashMap_ContainsKey(struct hashMap * hm,char * key)
   if (!hashMap_IsOK(hm)) { return 0;}
   unsigned int i=0;
   unsigned long keyHash = hashFunction(key);
-  fprintf(stderr,"Key we are searching for has value %u ( %s ) ",keyHash,key);
+  fprintf(stderr,"Key we are searching for has value %lu ( %s ) ",keyHash,key);
   while ( i < hm->curNumberOfEntries )
   {
-    fprintf(stderr,"Element %u has value %u  ( %s )",i,hm->entries[i].keyHash,hm->entries[i].key);
+    fprintf(stderr,"Element %u has value %lu  ( %s )",i,hm->entries[i].keyHash,hm->entries[i].key);
     if ( hm->entries[i].keyHash == keyHash ) {     fprintf(stderr,"Found Match"); return 1; }
     ++i;
   }
@@ -422,7 +422,7 @@ int hashMap_SaveToFile(struct hashMap * hm,char * filename)
 
 int hashMap_LoadToFile(struct hashMap * hm,char * filename)
 {
-    error("hashMap_LoadToFile not implemented\n");
+    fprintf(stderr,"hashMap_LoadToFile not implemented\n");
     return 0;
     FILE * pFile;
     pFile = fopen (filename,"rb");
