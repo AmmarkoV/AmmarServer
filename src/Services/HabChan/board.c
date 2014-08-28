@@ -14,11 +14,17 @@
 //This function prepares the content of  stats context , ( stats.content )
 void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
 {
-    strcpy(rqst->content,"<html><body>Welcome to Hab Chan<br>");
+    strcpy(rqst->content,"<html><title>HabChan Board Index</title><body>Welcome to Hab Chan<br>");
 
-    unsigned int i=0;
-    for (i=0; i<=boardHashMap->curNumberOfEntries; i++)
+
+    if (boardHashMap->curNumberOfEntries==0)
     {
+      strcat(rqst->content," <br><br><br> <center> <h2>No boards exist </h2> </center> ");
+    } else
+    {
+     unsigned int i=0;
+     for (i=0; i<=boardHashMap->curNumberOfEntries; i++)
+     {
       char * key = hashMap_GetKeyAtIndex(boardHashMap,i);
 
       if (key!=0)
@@ -30,6 +36,7 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
        strcat(rqst->content,key);
        strcat(rqst->content," </a> <br>");
       }
+     }
 
     }
 
