@@ -55,6 +55,15 @@ int loadSite( char * filename )
     AmmServer_ExecuteCommandLine("ls data/board -al | cut -d ' ' -f10 | wc -l ", what2GetBack , 1024 );
     numberOfElements = atoi(what2GetBack);
 
+    ourSite.boards = (struct board * ) malloc(sizeof(struct board) * MAX_BOARDS);
+    if (ourSite.boards == 0 ) { fprintf(stderr,"Cannot allocate memory to hold boards , failed to load "); return 0; }
+
+    ourSite.maxNumberOfBoards = MAX_BOARDS;
+    ourSite.numberOfBoards = 0;
+    strncpy(ourSite.siteName ,filename  ,MAX_STRING_SIZE  );
+
+
+
     unsigned int i=0;
     for (i=4; i<=numberOfElements; i++)
     {
@@ -65,11 +74,7 @@ int loadSite( char * filename )
      addBoardToSite( &ourSite , what2GetBack );
     }
 
-    ourSite.boards = (struct board * ) malloc(sizeof(struct board) * MAX_BOARDS);
-    if (ourSite.boards == 0 ) { fprintf(stderr,"Cannot allocate memory to hold boards , failed to load "); return 0; }
 
-    ourSite.maxNumberOfBoards = MAX_BOARDS;
-    ourSite.numberOfBoards = 0;
 
    threadIndexPage = AmmServer_ReadFileToMemory("data/simple.html", &threadIndexPageLength );
 

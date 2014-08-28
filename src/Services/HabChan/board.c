@@ -14,7 +14,7 @@
 //This function prepares the content of  stats context , ( stats.content )
 void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
 {
-    strcpy(rqst->content,"<html><title>HabChan Board Index</title><body>Welcome to Hab Chan<br>");
+    strcpy(rqst->content,"<html><title>HabChan Board Index</title><body>Welcome to Hab Chan , powered by <a href=\"https://github.com/AmmarkoV/AmmarServer/\">AmmarServer</a> , final destination <br>");
 
 
     if (boardHashMap->curNumberOfEntries==0)
@@ -108,6 +108,8 @@ int loadBoardSettings(char * boardName , struct board * ourBoard)
 
 int addBoardToSite( struct site * targetSite , char * boardName )
 {
+  fprintf(stderr,"Adding Board `%s` to site `%s` \n",boardName,targetSite->siteName);
+
   if ((targetSite==0)||(boardName==0)) { fprintf(stderr,"Cannot addBoardToSite with incorrect parameters\n"); return 0; }
 
   if ( targetSite->numberOfBoards+1 >= targetSite->maxNumberOfBoards)
