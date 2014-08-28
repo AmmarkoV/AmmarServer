@@ -25,6 +25,27 @@ char * threadIndexPage = 0;
 
 
 
+
+//This function prepares the content of  form context , ( content )
+void * debug_get_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  strncpy(rqst->content,"<html><body><br><br>",rqst->MAXcontentSize);
+  if  ( rqst->GET_request != 0 )
+    {
+      if ( strlen(rqst->GET_request)>0 )
+       {
+         strcat(rqst->content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(rqst->content, rqst->GET_request ); strcat(rqst->content,"</i><hr>");
+       }
+    }
+  strcat(rqst->content,"</body></html>");
+
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
+
 int loadSite( char * filename )
 {
   boardHashMap = hashMap_Create( 100 , 100 , 0 );

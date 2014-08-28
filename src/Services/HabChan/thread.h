@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
-
+void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst);
 void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst);
 
 

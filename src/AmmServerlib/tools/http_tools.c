@@ -909,18 +909,26 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
 
 
-    char buffer[MAX_HTTP_REQUEST_HEADER]={0};
-    snprintf(buffer,MAX_HTTP_REQUEST_HEADER,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
 
-    int opres =  send(sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-    if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
+    char * buffer = (char*) malloc( (max_content+1) * sizeof(char) );
+    if (buffer!=0)
     {
-      buffer[0]=0;
-      opres = recv(sockfd,buffer,MAX_HTTP_REQUEST_HEADER,MSG_WAITALL|MSG_NOSIGNAL);
-      if (opres<=0) { fprintf(stderr,"Error Receiving Request data\n"); }
+      snprintf(buffer,max_content,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
+      int opres =  send(sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+
+      if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
+      {
+        buffer[0]=0;
+        opres = recv(sockfd,buffer,max_content,MSG_WAITALL|MSG_NOSIGNAL);
+        if (opres<=0) { fprintf(stderr,"Error Receiving Request data\n"); }
+      }
+
+      free(buffer);
     }
-    // Todo add here some header sensing , malloc a good sized buffer , put the file in there ,
+
     close(sockfd);
+
+  /** @bug : Check for success or failure on RequestHTTPWebPage and return an appropriate return value */
   return 0;
 }
 

@@ -12,6 +12,14 @@
 #include "../../AmmServerlib/AmmServerlib.h"
 #include "../../AmmServerlib/InputParser/InputParser_C.h"
 
+void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
+{
+   snprintf(rqst->content,rqst->MAXcontentSize,
+           "<html><body>Welcome to Hab Chan</body></html>" );
+   rqst->contentSize=strlen(rqst->content);
+   return 0;
+}
+
 void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
 {
   strcpy(rqst->content,"<html><body>Welcome to Hab Chan");

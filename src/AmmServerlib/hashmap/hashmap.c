@@ -459,7 +459,7 @@ int hashMap_LoadToFile(struct hashMap * hm,char * filename)
     {
       //TODO IMPLEMENT!
      fclose (pFile);
-     return 1;
+     return 0;
     }
     return 0;
 }
