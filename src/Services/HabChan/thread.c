@@ -59,6 +59,10 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
 
 int loadThread(char * threadName , struct board * ourBoard , struct thread * ourThread)
 {
+   if (ourBoard==0) { fprintf(stderr,"Cannot load thread without an allocated board\n"); return 0; }
+   if (ourThread==0) { fprintf(stderr,"Cannot load thread without an allocated thread\n"); return 0; }
+   fprintf(stderr,"Loading Thread `%s` to board `%s` \n",threadName,ourBoard->name);
+
    char filename[LINE_MAX_LENGTH]={0};
    snprintf(filename,LINE_MAX_LENGTH,"data/board/%s/%s/status.ini",ourBoard->name,threadName);
    char line [LINE_MAX_LENGTH]={0};
@@ -122,6 +126,7 @@ int loadThread(char * threadName , struct board * ourBoard , struct thread * our
 
 int addThreadToBoard( char * boardName ,  char * threadName )
 {
+  fprintf(stderr,"Adding Thread `%s` to board `%s` \n",threadName,boardName);
 
   if ( ! hashMap_ContainsKey(boardHashMap,boardName) )
   {

@@ -370,15 +370,19 @@ int hashMap_ContainsKey(struct hashMap * hm,char * key)
   if (!hashMap_IsOK(hm)) { return 0;}
   unsigned int i=0;
   unsigned long keyHash = hashFunction(key);
-  fprintf(stderr,"Key we are searching for has value %lu ( %s ) ",keyHash,key);
+  //fprintf(stderr,"Key we are searching for has value %lu ( %s ) \n",keyHash,key);
   while ( i < hm->curNumberOfEntries )
   {
-    fprintf(stderr,"Element %u has value %lu  ( %s )",i,hm->entries[i].keyHash,hm->entries[i].key);
-    if ( hm->entries[i].keyHash == keyHash ) {     fprintf(stderr,"Found Match"); return 1; }
+    //fprintf(stderr,"Element %u has value %lu  ( %s )\n",i,hm->entries[i].keyHash,hm->entries[i].key);
+    if ( hm->entries[i].keyHash == keyHash )
+         {
+          //fprintf(stderr,"Found Match\n");
+          return 1;
+         }
     ++i;
   }
 
-  fprintf(stderr,"Could not Find Match");
+  //fprintf(stderr,"Could not Find Match");
   return 0;
 }
 

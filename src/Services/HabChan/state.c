@@ -63,19 +63,6 @@ int loadSite( char * filename )
     strncpy(ourSite.siteName ,filename  ,MAX_STRING_SIZE  );
 
 
-
-    unsigned int i=0;
-    for (i=4; i<=numberOfElements; i++)
-    {
-     AmmServer_ExecuteCommandLineNum("ls data/board -al | cut -d ' ' -f10", what2GetBack , 1024 , i);
-     if (strlen(what2GetBack)>1)
-         { what2GetBack[strlen(what2GetBack)-1]=0; }
-
-     addBoardToSite( &ourSite , what2GetBack );
-    }
-
-
-
    threadIndexPage = AmmServer_ReadFileToMemory("data/simple.html", &threadIndexPageLength );
 
    //------------------------------------------------------
@@ -114,6 +101,24 @@ int loadSite( char * filename )
 
     InputParser_Destroy(ipc);
     fclose(fp);
+
+
+
+
+
+    unsigned int i=0;
+    for (i=4; i<=numberOfElements; i++)
+    {
+     AmmServer_ExecuteCommandLineNum("ls data/board -al | cut -d ' ' -f10", what2GetBack , 1024 , i);
+     if (strlen(what2GetBack)>1)
+         { what2GetBack[strlen(what2GetBack)-1]=0; }
+
+     addBoardToSite( &ourSite , what2GetBack );
+    }
+
+
+
+
 
   return 1;
 }
