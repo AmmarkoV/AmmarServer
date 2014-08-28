@@ -7,7 +7,19 @@
 #ifndef HASHMAP_H_INCLUDED
 #define HASHMAP_H_INCLUDED
 
-#include <pthread.h>
+
+/** @brief HashMap should always be thread safe , since we are talking about a multi-threaded web-server.
+           That being said , if someone wants to use hashmap.c/hashmap.h as a standalone ingredient to another project
+           and wants to discard all thread specific locks , it can be easily done with the following switch..!
+  */
+#define HASHMAP_BE_THREAD_SAFE 1
+
+#if HASHMAP_BE_THREAD_SAFE
+   #include <pthread.h>
+#else
+   #warning "HashMap will not be compiled with thread safe provisions ( pthread )"
+#endif // HASHMAP_BE_THREAD_SAFE
+
 
 /** @brief The function that converts a string to a number so that it will be easier to be searched  */
 unsigned long hashFunction(char *str);
@@ -32,8 +44,11 @@ struct hashMap
   struct hashMapEntry * entries;
 
   void * clearItemCallbackFunction;
-  pthread_mutex_t hm_addLock;
-  pthread_mutex_t hm_fileLock;
+
+  #if HASHMAP_BE_THREAD_SAFE
+   pthread_mutex_t hm_addLock;
+   pthread_mutex_t hm_fileLock;
+  #endif // HASHMAP_BE_THREAD_SAFE
 };
 
 /**

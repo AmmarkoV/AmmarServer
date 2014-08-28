@@ -54,6 +54,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="main.h" />
+		<Unit filename="postReceiver.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="postReceiver.h" />
 		<Unit filename="state.c">
 			<Option compilerVar="CC" />
 		</Unit>

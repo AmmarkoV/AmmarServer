@@ -25,29 +25,6 @@ char * threadIndexPage = 0;
 
 
 
-
-int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber)
-{
- /* Open the command for reading. */
- FILE * fp = popen(command, "r");
- if (fp == 0 )
-       {
-         fprintf(stderr,"Failed to run command (%s) \n",command);
-         return 0;
-       }
-
- /* Read the output a line at a time - output it. */
-  unsigned int i=0;
-  while (fgets(what2GetBack, what2GetBackMaxSize , fp) != 0)
-    {
-        ++i;
-        if (lineNumber==i) { break; }
-    }
-  /* close */
-  pclose(fp);
-  return 1;
-}
-
 int loadSite( char * filename )
 {
   boardHashMap = hashMap_Create( 100 , 100 , 0 );

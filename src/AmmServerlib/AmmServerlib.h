@@ -578,6 +578,19 @@ struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
 
+
+/**
+* @brief Execute a command and copy its output line to the provided buffer
+* @ingroup tools
+* @param Command to execute
+* @param Allocated memory to store the result
+* @param Size of Allocated memory
+* @param Number of line we want to get back
+* @retval 1=Ok,0=Failed
+* @bug Executing commands can be dangerous , always check and sanitize input before executing , Also be sure about the max size of output so that you don't lose a part of it , also make something like escapeshellcmd
+*/
+int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber);
+
 /**
 * @brief Execute a command and copy its output to the provided buffer
 * @ingroup tools

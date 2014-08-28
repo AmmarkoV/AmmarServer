@@ -6,8 +6,11 @@
 #include <unistd.h>
 
 #include "state.h"
+#include "thread.h"
+
 
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../AmmServerlib/InputParser/InputParser_C.h"
 
 void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -122,7 +125,7 @@ int addThreadToBoard( char * boardName ,  char * threadName )
   unsigned long boardID=0;
   if ( hashMap_FindIndex(boardHashMap,boardName,&boardID) )
   {
-   loadThread(threadName , &ourSite->boards[boardID] , &ourSite->boards[boardID].threads[threadID]);
+   loadThread(threadName , &ourSite.boards[boardID] , &ourSite.boards[boardID].threads[threadID]);
    hashMap_Add(threadHashMap,threadName,0,0);
    return 1;
   }

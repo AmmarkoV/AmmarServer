@@ -6,6 +6,8 @@
 #include <unistd.h>
 
 #include "state.h"
+#include "board.h"
+#include "thread.h"
 
 #include "../../AmmServerlib/AmmServerlib.h"
 
@@ -35,13 +37,18 @@ void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
     }
 
 
+   //TODO : CREATE FILE HERE
+
+
+
+/*
    if ( addThreadToBoard( boardName , &newThread ) )
    {
       if ( addPostToThread( boardName , &newThread , &newPost ) )
       {
         succesfulAddition = 1;
       }
-   }
+   }*/
 
 
   if (succesfulAddition)

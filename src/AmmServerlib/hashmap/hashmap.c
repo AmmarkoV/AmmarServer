@@ -69,7 +69,10 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
   }
 
   hm->clearItemCallbackFunction = clearItemFunction;
-  pthread_mutex_init(&hm->hm_addLock,0);
+
+    #if HASHMAP_BE_THREAD_SAFE
+      pthread_mutex_init(&hm->hm_addLock,0);
+    #endif // HASHMAP_BE_THREAD_SAFE
 
   return hm;
 }
@@ -164,7 +167,11 @@ void hashMap_Destroy(struct hashMap * hm)
   }
   hm->clearItemCallbackFunction=0;
   free(hm);
-  pthread_mutex_destroy(&hm->hm_addLock);
+
+    #if HASHMAP_BE_THREAD_SAFE
+      pthread_mutex_destroy(&hm->hm_addLock);
+    #endif // HASHMAP_BE_THREAD_SAFE
+
   return ;
 }
 
@@ -190,7 +197,11 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
 {
   if (!hashMap_IsOK(hm)) { return 0; }
   int clearToAdd=1;
-  pthread_mutex_lock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+
+    #if HASHMAP_BE_THREAD_SAFE
+       pthread_mutex_lock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+    #endif // HASHMAP_BE_THREAD_SAFE
+
 
   if (hm->curNumberOfEntries >= hm->maxNumberOfEntries)
   {
@@ -219,8 +230,12 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
      if (hm->entries[our_index].key == 0)
          {
            --hm->curNumberOfEntries;
-           pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
-           fprintf(stderr,"While Adding a new key to hashmap , couldnt allocate key");
+
+             #if HASHMAP_BE_THREAD_SAFE
+              pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+             #endif // HASHMAP_BE_THREAD_SAFE
+
+             fprintf(stderr,"While Adding a new key to hashmap , could not allocate key");
            return 0;
          }
      hm->entries[our_index].keyLength = strlen(key);
@@ -242,7 +257,10 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
         hm->entries[our_index].key=0;
         --hm->curNumberOfEntries;
         fprintf(stderr,"While Adding a new key to hashmap , couldn't allocate payload");
-        pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+
+          #if HASHMAP_BE_THREAD_SAFE
+           pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+          #endif // HASHMAP_BE_THREAD_SAFE
       }
       memcpy(hm->entries[our_index].payload,val,valLength);
       hm->entries[our_index].payloadLength = valLength;
@@ -252,7 +270,10 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
 
   }
 
+  #if HASHMAP_BE_THREAD_SAFE
    pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  #endif // HASHMAP_BE_THREAD_SAFE
+
   return 1;
 }
 
@@ -380,7 +401,11 @@ int hashMap_ContainsValue(struct hashMap * hm,void * val)
 int hashMap_SaveToFile(struct hashMap * hm,char * filename)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
-  pthread_mutex_lock (&hm->hm_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+
+  #if HASHMAP_BE_THREAD_SAFE
+     pthread_mutex_lock (&hm->hm_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  #endif // HASHMAP_BE_THREAD_SAFE
+
   int result = 0;
   FILE * pFile=0;
   pFile = fopen (filename,"wb");
@@ -415,7 +440,11 @@ int hashMap_SaveToFile(struct hashMap * hm,char * filename)
      fclose (pFile);
      result=1;
     }
-  pthread_mutex_unlock (&hm->hm_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+
+  #if HASHMAP_BE_THREAD_SAFE
+    pthread_mutex_unlock (&hm->hm_fileLock); // LOCK PROTECTED OPERATION -------------------------------------------
+  #endif // HASHMAP_BE_THREAD_SAFE
+
   return result;
 }
 

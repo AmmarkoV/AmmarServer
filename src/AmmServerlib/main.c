@@ -520,7 +520,7 @@ int AmmServer_RegisterTerminationSignal(void * callback)
 
 
 
-int AmmServer_ExecuteCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize)
+int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber)
 {
  /* Open the command for reading. */
  FILE * fp = popen(command, "r");
@@ -535,12 +535,17 @@ int AmmServer_ExecuteCommandLine(char *  command , char * what2GetBack , unsigne
   while (fgets(what2GetBack, what2GetBackMaxSize , fp) != 0)
     {
         ++i;
-        //fprintf(stderr,"\n\nline %u = %s \n",i,output);
-        break;
+        if (lineNumber==i) { break; }
     }
   /* close */
   pclose(fp);
   return 1;
+}
+
+
+int AmmServer_ExecuteCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize)
+{
+  return AmmServer_ExecuteCommandLineNum(command,what2GetBack,what2GetBackMaxSize,1);
 }
 
 
