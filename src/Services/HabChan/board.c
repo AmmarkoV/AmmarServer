@@ -16,7 +16,6 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
 {
     strcpy(rqst->content,"<html><title>HabChan Board Index</title><body>Welcome to Hab Chan , powered by <a href=\"https://github.com/AmmarkoV/AmmarServer/\">AmmarServer</a> , final destination <br>");
 
-
     if (boardHashMap->curNumberOfEntries==0)
     {
       strcat(rqst->content," <br><br><br> <center> <h2>No boards exist </h2> </center> ");
@@ -26,7 +25,6 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
      for (i=0; i<=boardHashMap->curNumberOfEntries; i++)
      {
       char * key = hashMap_GetKeyAtIndex(boardHashMap,i);
-
       if (key!=0)
       {
        strcat(rqst->content," <a href=\"threadIndexView.html?board=");
@@ -37,7 +35,6 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
        strcat(rqst->content," </a> <br>");
       }
      }
-
     }
 
     strcat(rqst->content,"</body></html>");
@@ -50,6 +47,8 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
 
 int loadBoardSettings(char * boardName , struct board * ourBoard)
 {
+   if (ourBoard==0) { fprintf(stderr,"Cannot load board without an allocated board\n"); return 0; }
+
    char filename[LINE_MAX_LENGTH]={0};
    snprintf(filename,LINE_MAX_LENGTH,"data/board/%s/boardStatus.ini",boardName);
    char line [LINE_MAX_LENGTH]={0};
@@ -127,6 +126,16 @@ int addBoardToSite( struct site * targetSite , char * boardName )
   //Update hashmap used to check for sites
   hashMap_Add(boardHashMap,boardName,0,0);
 
+  unsigned long boardID=0;
+  if ( hashMap_FindIndex(boardHashMap,boardName,&boardID) )
+  {
+    if (ourSite.boards[boardID].threads == 0 )
+    {
+        ourSite.boards[boardID].threads = (struct thread * ) malloc(sizeof(struct thread) * MAX_THREADS_PER_BOARD );
+    }
+   ourSite.boards[boardID].currentThreads=0;
+   ourSite.boards[boardID].maxThreads=MAX_THREADS_PER_BOARD;
+  }
 
 
    unsigned int numberOfThreads=0;
