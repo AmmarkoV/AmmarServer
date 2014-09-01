@@ -287,8 +287,20 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 
 inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned long * rangeStart,unsigned long * rangeEnd)
 {
+ //TODO : Fix this ,
+
+ if (strncmp(request,"Range: bytes=0-",15)==0)
+ {
+     fprintf(stderr,"Got ProcessRangeHTTPLine got a full range \n");
+     *rangeStart=0;
+     *rangeEnd=0;
+     return 1;
+ }
+
  //Range: bytes=0-1024
- fprintf(stderr,"Got ProcessRangeHTTPLine %s , %u \n",request,requestLength);
+ /** @bug : Printing request ( which is not null terminated can print garbage on screen ) */
+ //fprintf(stderr,"Got ProcessRangeHTTPLine %s , %u \n",request,requestLength);
+  fprintf(stderr,"Got ProcessRangeHTTPLine  %u \n", requestLength);
 
  int startOfStart=0;
  int startOfEnd=0;
