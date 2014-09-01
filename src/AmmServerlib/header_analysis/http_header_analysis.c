@@ -288,17 +288,17 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned long * rangeStart,unsigned long * rangeEnd)
 {
  //TODO : Fix this ,
+ /** @bug : ProcessRangeHTTPLine , does not work as it should*/
 
  if (strncmp(request,"Range: bytes=0-",15)==0)
  {
-     fprintf(stderr,"Got ProcessRangeHTTPLine got a full range \n");
+     fprintf(stderr,"Got ProcessRangeHTTPLine got a full range starting from zero \n");
      *rangeStart=0;
      *rangeEnd=0;
      return 1;
  }
 
  //Range: bytes=0-1024
- /** @bug : Printing request ( which is not null terminated can print garbage on screen ) */
  //fprintf(stderr,"Got ProcessRangeHTTPLine %s , %u \n",request,requestLength);
   fprintf(stderr,"Got ProcessRangeHTTPLine  %u \n", requestLength);
 
@@ -314,7 +314,7 @@ inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsign
    --i;
  }
 
- if ( (startOfStart==0) && (startOfEnd==0) ) { warning("Could not find range in range request"); return 0; }
+ if ( (startOfStart==0) && (startOfEnd==0) ) { error("Could not find range in range request , will respond with an incorrect range (?) ..! "); return 0; }
  if (startOfEnd>=requestLength-1 ) { /*This means we have a range like `Range: bytes=144687104-` i.e. Unknown ending*/ } else
                                    { *rangeEnd = atoi(request+startOfEnd); }
 
@@ -413,6 +413,7 @@ int AnalyzeHTTPLineRequest(
              fprintf(stderr,"Ranges not implemented yet! %s \n",request);
              if (!ProcessRangeHTTPLine(request+payload_start,request_length-payload_start,&output->range_start,&output->range_end))
              {
+               fprintf(stderr,"Failed to process ranges will use %u , %u \n",output->range_start,output->range_end);
                output->range_start=0;
                output->range_end=0;
                return 0;
