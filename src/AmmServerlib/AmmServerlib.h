@@ -226,6 +226,7 @@ struct AmmServer_Instance
     int stop_server;
 
     //Cache Items..
+    unsigned int cacheVersionETag;
     unsigned long loaded_cache_items_Kbytes;
     unsigned int loaded_cache_items;
     void * cache; /*Actually struct cache_item * but declared as a void pointer here */

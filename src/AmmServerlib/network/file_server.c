@@ -310,7 +310,7 @@ unsigned long SendFile
        if ((request->eTag!=0)&&(cache_etag!=0))
         {
           char LocalETag[MAX_ETAG_SIZE]={0};
-          snprintf(LocalETag,MAX_ETAG_SIZE,"%u%lu%lu",cache_etag,start_at_byte,end_at_byte);
+          snprintf(LocalETag,MAX_ETAG_SIZE,"%u%u%lu%lu", instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
 
           //fprintf(stderr,"E-Tag is `%s` , local hash is `%s` \n",request->eTag,LocalETag);
           if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
@@ -380,7 +380,7 @@ if (request->requestType!=HEAD)
      unsigned int  cache_etag = cache_GetHashOfResource(instance,index);
      if (cache_etag!=0)
      {
-        snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%u%lu%lu\"\n",cache_etag,start_at_byte,end_at_byte);
+        snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%s%u%lu%lu\"\n", instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
