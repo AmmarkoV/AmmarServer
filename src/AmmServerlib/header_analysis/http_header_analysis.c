@@ -137,9 +137,9 @@ int FreeHTTPHeader(struct HTTPHeader * output)
 /* Getting a consistent segfault on the raspberry pi The last console line is
    ->  Freeing HTTP Request : ETag *** glibc detected *** src/ammarserver: free(): invalid next size (fast): 0x01ad7ac8 *** */
 
-   unsigned int fields_I_try_to_clean=0;
+   //unsigned int fields_I_try_to_clean=0;
 
-     //This does nothing any more , to be removed
+   //This does nothing any more , to be removed
 
    return 1;
 }

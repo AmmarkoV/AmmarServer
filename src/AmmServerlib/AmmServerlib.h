@@ -227,7 +227,7 @@ struct AmmServer_Instance
     int stop_server;
 
     //Cache Items..
-    unsigned int cacheVersionETag;
+    unsigned int cacheVersionETag; //This should be set to a number ( typically 0 ) and gets prepended to the e-tag , in order to make clients refresh on different launches of AmmarServer
     unsigned long loaded_cache_items_Kbytes;
     unsigned int loaded_cache_items;
     void * cache; /*Actually struct cache_item * but declared as a void pointer here */
