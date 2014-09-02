@@ -135,7 +135,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
          transaction->incomingHeader.POSTrequest = transaction->incomingHeader.headerRAW;
          transaction->incomingHeader.POSTrequestSize =  transaction->incomingHeader.ContentLength;
 
-         fprintf(stderr,"Found a POST query %u bytes long , %s \n",transaction->incomingHeader.POSTrequestSize, transaction->incomingHeader.POSTrequest);
+         fprintf(stderr,"Found a POST query %lu bytes long , %s \n",transaction->incomingHeader.POSTrequestSize, transaction->incomingHeader.POSTrequest);
          warning("Will now pretend that we are a GET request for the rest of the page to be served nicely until I fix it :P\n");
 
          //Will now pretend that we are a GET request for the rest of the page to be served nicely

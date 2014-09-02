@@ -418,7 +418,7 @@ int AnalyzeHTTPLineRequest(
              //fprintf(stderr,"Ranges not implemented correctly yet! %s \n",request);
              if (!ProcessRangeHTTPLine(request+payload_start,request_length-payload_start,&output->range_start,&output->range_end))
              {
-               fprintf(stderr,"Failed to process ranges will use %u , %u \n",output->range_start,output->range_end);
+               fprintf(stderr,"Failed to process ranges will use %lu , %lu \n",output->range_start,output->range_end);
                output->range_start=0;
                output->range_end=0;
                return 0;

@@ -231,12 +231,13 @@ unsigned long SendFile
      strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
   }
 
- fprintf(stderr,"SendFile(%s , resourceCacheID = %u , start = %u , end = %u , keepalive = %u , compression = %u )\n",
+/*
+ fprintf(stderr,"SendFile(%s , resourceCacheID = %u , start = %lu , end = %lu , keepalive = %u , compression = %u )\n",
                  verified_filename,
                  resourceCacheID,
                  start_at_byte,
                  end_at_byte,
-                 compression_supported);
+                 compression_supported);*/
 
 
 
