@@ -231,6 +231,14 @@ unsigned long SendFile
      strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
   }
 
+ fprintf(stderr,"SendFile(%s , resourceCacheID = %u , start = %u , end = %u , keepalive = %u , compression = %u )\n",
+                 verified_filename,
+                 resourceCacheID,
+                 start_at_byte,
+                 end_at_byte,
+                 compression_supported);
+
+
 
 /*!   Start sending the header first..!
       Due to error messages also having body payloads they are also handled here , creating
@@ -310,7 +318,7 @@ unsigned long SendFile
        if ((request->eTag!=0)&&(cache_etag!=0))
         {
           char LocalETag[MAX_ETAG_SIZE]={0};
-          snprintf(LocalETag,MAX_ETAG_SIZE,"%u%u%lu%lu", instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
+          snprintf(LocalETag,MAX_ETAG_SIZE,"%u%u%lu%lu",instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
 
           //fprintf(stderr,"E-Tag is `%s` , local hash is `%s` \n",request->eTag,LocalETag);
           if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
@@ -334,6 +342,9 @@ unsigned long SendFile
      }
    }
 
+
+
+
    unsigned int have_last_modified=0;
    struct stat last_modified;
 
@@ -348,6 +359,7 @@ unsigned long SendFile
        //TODO -> Check with last modified -> char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,gzip_supported);
    }
 
+
    if (have_last_modified)
      {
 
@@ -357,6 +369,8 @@ unsigned long SendFile
        opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
+
+
                  //This used to also emmit --> Keep-Alive: timeout=5, max=100\n <--
                  /* RedBot says ( http://redbot.org/?uri=http%3A%2F%2Fammar.gr%3A8080%2F ) ..!
                      The Keep-Alive header is completely optional; it is defined primarily because the keep-alive connection token implies that such a header exists, not because anyone actually uses it.
@@ -380,7 +394,7 @@ if (request->requestType!=HEAD)
      unsigned int  cache_etag = cache_GetHashOfResource(instance,index);
      if (cache_etag!=0)
      {
-        snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%s%u%lu%lu\"\n", instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
+        snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%u%u%lu%lu\"\n", instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
         opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
@@ -426,7 +440,6 @@ if (request->requestType!=HEAD)
 
     if ((cached_buffer==0)&&(cached_lSize==1)) { /*TODO : Cache indicates that file doesn't exist */ } else
     if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
-
 
 
      if ( !TransmitFileToSocket(clientsock,verified_filename,start_at_byte,end_at_byte) )

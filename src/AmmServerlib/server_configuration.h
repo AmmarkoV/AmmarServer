@@ -78,7 +78,7 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 #define RANDOMIZE_ETAG_PER_LAUNCH 1
 
 /** @brief Maximum size of an E-Tag */
-#define MAX_ETAG_SIZE 40
+#define MAX_ETAG_SIZE 128
 
 
 /** @brief Maximum size of an http header reply */

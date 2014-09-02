@@ -292,6 +292,7 @@ void * stop_callback(struct AmmServer_DynamicRequest  * rqst)
     #if ENABLE_STOP_PAGE
      AmmServer_Stop(default_server);
     #endif
+   return 0;
 }
 
 //This function prepares the content of  form context , ( content )

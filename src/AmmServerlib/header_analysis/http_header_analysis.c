@@ -287,20 +287,25 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 
 inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned long * rangeStart,unsigned long * rangeEnd)
 {
- //TODO : Fix this ,
- /** @bug : ProcessRangeHTTPLine , does not work as it should*/
+ //What we have initially is like
+ //Range: bytes=0-1024
+ //But what we get here is only the last part i.e.
+ // bytes=0- etc
 
- if (strncmp(request,"Range: bytes=0-",15)==0)
+ if (requestLength==9)
  {
-     fprintf(stderr,"Got ProcessRangeHTTPLine got a full range starting from zero \n");
-     *rangeStart=0;
-     *rangeEnd=0;
+  if (strncmp(request," bytes=0-",9)==0)
+  {
+     fprintf(stderr,"ProcessRangeHTTPLine got a full range starting from zero\n");
+     *rangeStart=0; *rangeEnd=0;
      return 1;
+  }
  }
 
- //Range: bytes=0-1024
- //fprintf(stderr,"Got ProcessRangeHTTPLine %s , %u \n",request,requestLength);
   fprintf(stderr,"Got ProcessRangeHTTPLine  %u \n", requestLength);
+
+  //TODO : Fix this ,
+  /** @bug : ProcessRangeHTTPLine , can be improved , it is not thoroughly tested*/
 
  int startOfStart=0;
  int startOfEnd=0;
@@ -410,7 +415,7 @@ int AnalyzeHTTPLineRequest(
         case HTTPHEADER_RANGE :
              //Todo here : Fill in range_start and range_end
              payload_start+=strlen("RANGE:");
-             fprintf(stderr,"Ranges not implemented yet! %s \n",request);
+             //fprintf(stderr,"Ranges not implemented correctly yet! %s \n",request);
              if (!ProcessRangeHTTPLine(request+payload_start,request_length-payload_start,&output->range_start,&output->range_end))
              {
                fprintf(stderr,"Failed to process ranges will use %u , %u \n",output->range_start,output->range_end);
