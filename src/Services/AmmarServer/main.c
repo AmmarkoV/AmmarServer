@@ -33,7 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endif // ENABLE_STOP_PAGE
 
 
-#define ENABLE_STOP_PAGE 1
+#define ENABLE_STOP_PAGE 0
 #if ENABLE_STOP_PAGE
  #warning "if you open http://127.0.0.1/stop.html this will stop the web server of course you don't want this in production so disable this"
 #endif // ENABLE_STOP_PAGE
@@ -295,7 +295,6 @@ void * stop_callback(struct AmmServer_DynamicRequest  * rqst)
       rqst->contentSize=strlen(rqst->content);
       fprintf(stderr,"Stop called ( and is not disabled ) \n");
       AmmServer_Stop(default_server);
-      exit(0);
     #endif
    return 0;
 }
