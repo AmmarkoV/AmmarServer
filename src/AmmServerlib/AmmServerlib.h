@@ -605,6 +605,16 @@ int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsi
 int AmmServer_ExecuteCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize);
 
 
+
+/**
+* @brief Hot-Replace a character inside a memory block , typically used to replace characters like '+' with ' '
+* @ingroup tools
+* @param Pointer to memory that contains the null terminated string
+* @param Character to be replaced
+* @param What to replace the character with
+*/
+void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWith);
+
 /**
 * @brief Hot-Replace a variable inside a memory block , typically used to replace placeholders inside text files , like $$$$$$$$NAME$$$$$$$$  , the value should be smaller or equal to the var beeing replaced
 * @ingroup tools

@@ -247,7 +247,6 @@ int AssignStr(char ** dest , char * source)
 
 int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,char * password)
 {
-
   unsigned int pass_size = 2; // : and \0
   if ( username !=0 ) { pass_size += strlen(username); }
   if ( password !=0 ) { pass_size += strlen(password); }
@@ -265,7 +264,12 @@ int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,
 
 
   char * base64pass = malloc(sizeof (char) *  ((pass_size*2)+1 ));
-  if (base64pass==0) { fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n"); return 0; }
+  if (base64pass==0)
+     {
+      fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n");
+      if (mixed_string!=0) {free(mixed_string); }
+      return 0;
+     }
   base64pass[0]=0;
 
   int result=encodeToBase64(mixed_string,strlen(mixed_string),base64pass,pass_size*2);

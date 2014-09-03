@@ -536,7 +536,23 @@ float InputParser_GetWordFloat(struct InputParserC * ipc,unsigned int num)
    }
    //else we are on the last part of the string so no reason to do the whole 0 remember thing..
 
+    #warning "scanf without field width limits can crash with huge input data on libc versions older than 2.13-25. Add a field width specifier to fix this problem"
+    /*
+      Sample program that can crash:
+
+      #include <stdio.h>
+      int main()
+       {
+        int a;
+        scanf("%i", &a);
+        return 0;
+       }
+
+      To make it crash:
+      perl -e 'print "5"x2100000' | ./a.out|
+    */
     sscanf(string_segment,"%f",&return_value);
+    //return_value=atof(string_segment);
 
 
    if (ipc->tokenlist[num].token_start + ipc->tokenlist[num].length < ipc->str_length)

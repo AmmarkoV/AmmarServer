@@ -37,13 +37,13 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
        return 0;
    }
 
-  char tmp_cmp[MAX_FILE_PATH]={0};
   char * res=strstr(request,TemplatesInternalURI);
   char * res_skipped=res;
   unsigned int template_size = strlen(TemplatesInternalURI);
 
   if ( res!=0 )
    {
+      char tmp_cmp[MAX_FILE_PATH]={0};
       res_skipped=res+template_size;
       fprintf(stderr,"We've got a result , %s ( skipped %s )\n",res,res_skipped);
       if (strlen(res_skipped)+strlen(templates_root)<MAX_FILE_PATH)
@@ -262,7 +262,7 @@ int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned 
 
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
-  fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) instance->loaded_cache_items_Kbytes/1048576 ,  MAX_CACHE_SIZE_IN_MB);
+  fprintf(stderr,"Adding file %s to cache ( %0.2f / %u MB )\n",filename,(float) instance->loaded_cache_items_Kbytes/1048576 ,(unsigned int)  MAX_CACHE_SIZE_IN_MB);
 
   //first to clear this cache item
   /* We clear everything using memset ! */

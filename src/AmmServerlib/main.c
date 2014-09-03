@@ -453,6 +453,22 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 }
 
 
+
+
+void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWith)
+{
+  char * cur = input;
+  char * inputEnd = input+strlen(input);
+  while ( cur < inputEnd )
+  {
+     if (*cur == findChar ) { *cur = replaceWith; }
+     ++cur;
+  }
+  return ;
+}
+
+
+
 int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value)
 {
   if (page==0) { fprintf(stderr,"Replacing var in empty page\n"); return 0; }
