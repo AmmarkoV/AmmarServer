@@ -89,6 +89,7 @@ struct AmmServer_Instance  * admin_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context stop={0};
+struct AmmServer_RH_Context getdbg={0};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
@@ -290,7 +291,11 @@ void * debug_get_callback(struct AmmServer_DynamicRequest  * rqst)
 void * stop_callback(struct AmmServer_DynamicRequest  * rqst)
 {
     #if ENABLE_STOP_PAGE
-     AmmServer_Stop(default_server);
+      strncpy(rqst->content,"<html><body><h1>Stopping web server</h1></body></html>",rqst->MAXcontentSize);
+      rqst->contentSize=strlen(rqst->content);
+      fprintf(stderr,"Stop called ( and is not disabled ) \n");
+      AmmServer_Stop(default_server);
+      exit(0);
     #endif
    return 0;
 }
@@ -385,12 +390,13 @@ void init_dynamic_content()
 
   if (! AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding gps testing page\n"); }
 
-#if ENABLE_STOP_PAGE
-  if (! AmmServer_AddResourceHandler(default_server,&stop,"/stop.html",webserver_root,4096,0,&stop_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding stop\n"); }
-#endif
+  #if ENABLE_STOP_PAGE
+    AmmServer_Error("Enabling stop page , you don't want this in a production usage\n");
+    if (! AmmServer_AddResourceHandler(default_server,&stop,"/stop.html",webserver_root,4096,0,&stop_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding stop\n"); }
+  #endif
 
 #if ENABLE_GET_DEBUGGING
-  if (! AmmServer_AddResourceHandler(default_server,&stop,"/debugGET.html",webserver_root,4096,0,&debug_get_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding debug GET\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&getdbg,"/debugGET.html",webserver_root,4096,0,&debug_get_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding debug GET\n"); }
 #endif // ENABLE_GET_DEBUGGING
 
   //fresh.txt will always be served fresh

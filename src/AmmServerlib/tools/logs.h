@@ -26,6 +26,8 @@
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 
+#define logEcho() fprintf(stderr," Reached %s , %u \n ", __FILE__, __LINE__);
+
 /**
 * @brief Log Function to output Errors
 * @ingroup logs

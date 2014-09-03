@@ -89,7 +89,8 @@ int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seper
     instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
     instance->cacheVersionETag = 0;
     #if RANDOMIZE_ETAG_PER_LAUNCH
-      instance->cacheVersionETag = rand() % 100000;
+      srand(time(NULL));
+      instance->cacheVersionETag = rand() % 10000;
       fprintf(stderr,"Randomizing cache ETag is enabled , ETags will be %uXXXXXXXX \n",instance->cacheVersionETag);
     #endif // RANDOMIZE_ETAG_PER_LAUNCH
 

@@ -145,6 +145,16 @@ int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_fi
 * @retval 1=Ok,0=Failed*/
 int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB);
 
+
+/**
+* @brief Query to remove a resource using its index
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Index number of resource to be removed
+* @retval 1=Success,0=Failure*/
+int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index);
+
+
 /**
 * @brief Deallocate and destroy the cache of an AmmarServer instance
 * @ingroup cache
