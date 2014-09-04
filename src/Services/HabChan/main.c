@@ -32,16 +32,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_BINDING_PORT 65534
 
-#define ENABLE_PASSWORD_PROTECTION 0
-#define ENABLE_CHAT_BOX 0
-
-
 #define DEFAULT_BINDING_PORT 8082  // <--- Change this to 80 if you want to bind to the default http port..!
 #define ADMIN_BINDING_PORT 8082
-#define ENABLE_ADMIN_PAGE 0
-
-//char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented out or removed in stable release..
-char admin_root[MAX_FILE_PATH]="admin_html/"; // <- change this to the directory that contains your content if you dont want to use the default admin_html dir..
 
 #define WEBSERVERROOT "public_html/"
 char webserver_root[MAX_FILE_PATH]=WEBSERVERROOT; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..

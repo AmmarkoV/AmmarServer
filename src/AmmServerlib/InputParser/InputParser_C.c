@@ -1,4 +1,5 @@
 #include "InputParser_C.h"
+#include <math.h>
 /* InputParser..
    A small generic library for parsing a string and tokenizing it!
    GITHUB Repo : http://github.com/AmmarkoV/InputParser
@@ -512,6 +513,7 @@ signed int InputParser_GetWordInt(struct InputParserC * ipc,unsigned int num)
 }
 
 
+
 /*
    InputParser_GetWordFloat..
    Same with InputParser_GetWord , if the result can be converted to a float number , it returns this number
@@ -519,51 +521,78 @@ signed int InputParser_GetWordInt(struct InputParserC * ipc,unsigned int num)
 */
 float InputParser_GetWordFloat(struct InputParserC * ipc,unsigned int num)
 {
-    if ( CheckWordNumOk(ipc,num) == 0 ) { return 0.0; }
-    if (ipc->tokenlist[num].length == 0 ) { return 0.0; }
+   if ( CheckWordNumOk(ipc,num) == 0 ) { return 0.0; }
+   if (ipc->tokenlist[num].length == 0 ) { return 0.0; }
+
+   char remember = 0;
+   char * string_segment = 0;
+   char * last_char_of_string_segment = 0;
+   unsigned char isLocallyAllocated = ipc->local_allocation;
+
+   unsigned int tokenStart = ipc->tokenlist[num].token_start;
+   unsigned int tokenLength = ipc->tokenlist[num].length;
+   unsigned int stringLength = ipc->str_length;
+
+   float return_value=0.0;
+   //Our string is a "string_segment" , and its last character ( which will be temporary become null ) is last_char_of_string_segment
 
 
-  float return_value=0.0;
-  //Our string is a "string_segment" , and its last character ( which will be temporary become null ) is last_char_of_string_segment
-  char * string_segment = ipc->str+ipc->tokenlist[num].token_start;
-  char * last_char_of_string_segment = string_segment + ipc->tokenlist[num].length;
-  char remember = 0;
+   if (!isLocallyAllocated)
+    {
+     string_segment = (char*) malloc( (tokenLength+1) * sizeof(char) );
+     if (string_segment==0)
+      {
+        fprintf(stderr,"InputParser_GetWordFloat could not allocate memory to return float value , returning NaN \n");
+        return NAN;
+      }
 
-   if (ipc->tokenlist[num].token_start + ipc->tokenlist[num].length < ipc->str_length)
+     strncpy(string_segment,ipc->str+tokenStart,tokenLength);
+     last_char_of_string_segment = string_segment + ipc->tokenlist[num].length;
+    } else
+    {
+     string_segment = ipc->str+tokenStart;
+     last_char_of_string_segment = string_segment + ipc->tokenlist[num].length;
+    }
+
+   if (tokenStart + tokenLength < stringLength)
    {
     remember = *last_char_of_string_segment;
     *last_char_of_string_segment = (char) 0; //Temporarily convert the string segment to a null terminated string
    }
    //else we are on the last part of the string so no reason to do the whole 0 remember thing..
 
+
+   #if USE_SCANF
+    //fprintf(stderr,"Using sscanf to parse %s \n",string_segment);
     #warning "scanf without field width limits can crash with huge input data on libc versions older than 2.13-25. Add a field width specifier to fix this problem"
     /*
       Sample program that can crash:
-
       #include <stdio.h>
       int main()
-       {
-        int a;
-        scanf("%i", &a);
-        return 0;
-       }
+       { int a; scanf("%i", &a); return 0; }
 
       To make it crash:
       perl -e 'print "5"x2100000' | ./a.out|
     */
     sscanf(string_segment,"%f",&return_value);
-    //return_value=atof(string_segment);
+   #else
+    //fprintf(stderr,"Using atof to parse %s \n",string_segment);
+    return_value=atof(string_segment);
+   #endif // USE_SCANF
 
 
-   if (ipc->tokenlist[num].token_start + ipc->tokenlist[num].length < ipc->str_length)
+   if ( tokenStart + tokenLength < stringLength)
    {
     *last_char_of_string_segment = remember; //Restore string..
    }
 
+  if (!isLocallyAllocated)
+  {
+   free(string_segment);
+  }
 
   return return_value;
 }
-
 
 /*
    InputParser_GetChar..

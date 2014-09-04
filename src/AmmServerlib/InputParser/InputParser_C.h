@@ -18,7 +18,7 @@ extern "C" {
 #define MAX_MEMORY 256
 #define MAX_STRING 2048
 
-
+#define USE_SCANF 0
 
 
 
