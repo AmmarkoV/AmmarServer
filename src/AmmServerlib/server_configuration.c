@@ -220,7 +220,7 @@ int LoadConfigurationFile(struct AmmServer_Instance * instance,const char * conf
 }
 
 /*Kind of twisted function TODO : improve it :P*/
-int AssignStr(char ** dest , char * source)
+int AssignStr(char ** dest , const char * source)
 {
     //We want to replace **dest with a pointer to a valid point
     //in memory that contains a copy of source.. :P

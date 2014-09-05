@@ -394,7 +394,7 @@ int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned in
   return 1;
 }
 
-int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val , unsigned int var_val_length)
+int StripVariableFromGETorPOSTString(const char * input,const char * var_id, char * var_val , unsigned int var_val_length)
 {
   if (var_val==0) { fprintf(stderr,"StripVariableFromGETorPOSTString called with a null output buf\n"); return 0; }
   if (var_val_length==0) { fprintf(stderr,"StripVariableFromGETorPOSTString called with a null output buf size\n");  return 0; }
@@ -433,7 +433,7 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
        if (input[var_id_length]=='=')
        {
         fprintf(stderr,"It is the first variable\n"); //,input,var_id,FullVarID
-        id_instance=input;
+        id_instance=(char*) input;
        }
      }
    }
@@ -463,7 +463,7 @@ int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val 
      if (total_chars_to_copy==0) { fprintf(stderr,"VAR `%s` was empty\n",var_id); return 0; } else
      if (total_chars_to_copy < var_val_length-1) //We want to include a null terminator
                                  {
-                                  char * val_start_on_input = input + start_of_var_val;
+                                  const char * val_start_on_input = input + start_of_var_val;
                                   strncpy(var_val,val_start_on_input,total_chars_to_copy);
                                   var_val[total_chars_to_copy]=0;
 

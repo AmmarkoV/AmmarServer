@@ -520,7 +520,7 @@ int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const c
 
 void AmmServer_GlobalTerminationHandler(int signum)
 {
-        fprintf(stderr,"Terminating AmmarServer.. \n");
+        fprintf(stderr,"Terminating AmmarServer with signum %u .. \n",signum);
           GLOBAL_KILL_SERVER_SWITCH=1;
         //&
         if (TerminationCallback!=0) { TerminationCallback(); }

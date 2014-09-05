@@ -27,6 +27,7 @@
 
 int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,unsigned int maxRequest,char * templates_root)
 {
+  if (instance==0) { return 0; }
   if (!ENABLE_INTERNAL_RESOURCES_RESOLVE)  { return 0; }
   //The role of request caching is to intercept incoming requests and if they are referring
   //to an internal resource using the TemplatesInternalURI URI we want to redirect the request
@@ -325,7 +326,7 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
 }
 
 
-int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,char * filename)
+int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,const char * filename)
 {
    struct cache_item * cache = (struct cache_item *) instance->cache;
    unsigned int index=0;

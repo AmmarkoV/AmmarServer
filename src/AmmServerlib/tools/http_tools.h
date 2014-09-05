@@ -72,7 +72,7 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
 int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,char * directory,char * indexfile,unsigned int indexFileLength);
 
 int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length);
-int StripVariableFromGETorPOSTString(char * input,char * var_id, char * var_val , unsigned int var_val_length);
+int StripVariableFromGETorPOSTString(const char * input,const char * var_id, char * var_val , unsigned int var_val_length);
 
 
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength);

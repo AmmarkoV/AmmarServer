@@ -83,6 +83,8 @@ void * PreSpawnedThread(void * ptr)
 
 void PreSpawnThreads(struct AmmServer_Instance * instance)
 {
+  if (instance==0) { error("Cannot UsePreSpawnedThreadToServeNewClient without a valid instance"); }
+
   #if MAX_CLIENT_PRESPAWNED_THREADS==0
     warning("PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n");
   #else
@@ -117,6 +119,7 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 
 int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
 {
+  if (instance==0) { error("Cannot UsePreSpawnedThreadToServeNewClient without a valid instance"); }
   #if MAX_CLIENT_PRESPAWNED_THREADS==0
     warning("PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n");
     return 0;

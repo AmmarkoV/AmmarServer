@@ -121,7 +121,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 
 int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction)
 {
- unsigned int incomingRequestLength = transaction->incomingHeader.headerRAWSize;
+ //unsigned int incomingRequestLength = transaction->incomingHeader.headerRAWSize;
 
  transaction->incomingHeader.headerRAWSize  = HTTPHeaderComplete(transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize);
  fprintf(stderr,"Header Size  =  %u / %u \n",transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.headerRAWSize);

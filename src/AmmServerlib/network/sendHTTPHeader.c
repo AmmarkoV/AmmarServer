@@ -16,6 +16,7 @@
 #include "../server_configuration.h"
 #include "../tools/logs.h"
 #include "../tools/http_tools.h"
+#include "../tools/time_provider.h"
 
 unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root)
 {

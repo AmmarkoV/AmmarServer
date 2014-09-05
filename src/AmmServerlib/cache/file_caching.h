@@ -98,7 +98,7 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
 * @param An AmmarServer Instance
 * @param Resource filename
 * @retval 1=Success,0=Failure*/
-int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,char * filename);
+int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,const char * filename);
 
 /**
 * @brief Destroy Cache entry and resource context

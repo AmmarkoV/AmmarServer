@@ -6,6 +6,8 @@
 
 unsigned int clientList_GetClientId(struct clientListContext * clientList,char * ip)
 {
+  if (clientList==0) { return 0; }
+
   #if COMPILE_WITH_CLIENT_LIST
    //fprintf(stderr,"GetClientId(%s) not implemented\n",ip);
    return 0;
@@ -16,6 +18,8 @@ unsigned int clientList_GetClientId(struct clientListContext * clientList,char *
 
 int clientList_isClientBanned(struct clientListContext * clientList,clientID client_id)
 {
+  if (clientList==0) { return 0; }
+
   #if COMPILE_WITH_CLIENT_LIST
    //fprintf(stderr,"ClientIsBanned(%u) not implemented\n",client_id);
    return 0;
@@ -26,6 +30,8 @@ int clientList_isClientBanned(struct clientListContext * clientList,clientID cli
 
 int clientList_isClientAllowedToUseResource(struct clientListContext * clientList,clientID client_id,char * resource)
 {
+  if (clientList==0) { return 0; }
+
   #if COMPILE_WITH_CLIENT_LIST
   //fprintf(stderr,"AllowClientToUseResource(%u,%s) not implemented\n",client_id,resource);
    return 1;
@@ -37,6 +43,8 @@ int clientList_isClientAllowedToUseResource(struct clientListContext * clientLis
 
 int clientList_signalClientStoppedUsingResource(struct clientListContext * clientList,clientID client_id,char * resource)
 {
+  if (clientList==0) { return 0; }
+
   #if COMPILE_WITH_CLIENT_LIST
    //fprintf(stderr,"ClientStoppedUsingResource(%u,%s) not implemented\n",client_id,resource);
    return 1;
@@ -58,6 +66,9 @@ struct clientListContext *  clientList_initialize()
 
 int clientList_close(struct clientListContext * clientList)
 {
+  if (clientList==0) { return 0; }
+
+
   #if COMPILE_WITH_CLIENT_LIST
    return 1;
   #else
