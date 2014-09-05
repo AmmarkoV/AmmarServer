@@ -22,7 +22,7 @@
 
 
 /** @brief The function that converts a string to a number so that it will be easier to be searched  */
-unsigned long hashFunction(char *str);
+unsigned long hashFunction(const char *str);
 
 /** @brief An entry on the hash map flattened out for ease of use  */
 struct hashMapEntry
@@ -82,7 +82,7 @@ int hashMap_Sort(struct hashMap * hm);
 * @param String with the value of this record
 * @param Length of the value
 * @retval 1=Success,0=Failure */
-int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength);
+int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int valLength);
 
 /**
 * @brief Add a new key ( integer )  to hash map
@@ -91,7 +91,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
 * @param String with the key index
 * @param Number value of this record
 * @retval 1=Success,0=Failure */
-int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val);
+int hashMap_AddULong(struct hashMap * hm,const char * key,unsigned long val);
 
 /**
 * @brief Find index of a key
@@ -100,7 +100,7 @@ int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val);
 * @param Input String with the key index to find
 * @param Output index of the record that holds the data we were searching for
 * @retval 1=Success,0=Failure */
-int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index);
+int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index);
 
 /**
 * @brief Swap two records
@@ -134,7 +134,7 @@ unsigned long hashMap_GetHashAtIndex(struct hashMap * hm,unsigned int index);
 * @param Input String of key
 * @param Output Pointer of payload
 * @retval 1=Success,0=Failure */
-int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload);
+int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload);
 
 /**
 * @brief Return numerical payload for specified key
@@ -143,7 +143,7 @@ int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload);
 * @param Input String of key
 * @param Output Pointer of payload
 * @retval 1=Success,0=Failure */
-int hashMap_GetULongPayload(struct hashMap * hm,char * key,unsigned long * payload);
+int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long * payload);
 
 /**
 * @brief Clear all entries of hash map
@@ -158,7 +158,7 @@ void hashMap_Clear(struct hashMap * hm);
 * @param HashMap
 * @param String of key
 * @retval 1=Exists,0=Does not Exist */
-int hashMap_ContainsKey(struct hashMap * hm,char * key);
+int hashMap_ContainsKey(struct hashMap * hm,const char * key);
 
 /**
 * @brief Check if hashmap contains a value
@@ -188,7 +188,7 @@ int hashMap_GetCurrentNumberOfEntries(struct hashMap * hm);
 * @param HashMap structure
 * @param Filename to save to
 * @retval 1=Success,0=Fail*/
-int hashMap_LoadToFile(struct hashMap * hm,char * filename);
+int hashMap_LoadToFile(struct hashMap * hm,const char * filename);
 
 /**
 * @brief Save hash map to a file
@@ -196,6 +196,6 @@ int hashMap_LoadToFile(struct hashMap * hm,char * filename);
 * @param HashMap structure
 * @param Filename to save to
 * @retval 1=Success,0=Fail*/
-int hashMap_SaveToFile(struct hashMap * hm,char * filename);
+int hashMap_SaveToFile(struct hashMap * hm,const char * filename);
 
 #endif // HASHMAP_H_INCLUDED

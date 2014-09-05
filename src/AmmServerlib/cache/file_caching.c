@@ -4,6 +4,7 @@
 #include "../AmmServerlib.h"
 #include "../server_configuration.h"
 #include "file_caching.h"
+#include "file_compression.h"
 #include "../tools/logs.h"
 #include "../tools/http_tools.h"
 #include "../tools/time_provider.h"
@@ -164,13 +165,13 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * reso
 
 /*This is the Create Index Function , Nothing is sorted so we just append our cache item list with another one..
   Also for now only the hash is used to retrieve it ( talk about a sloppy implementation ) */
-int cache_CreateResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
+int cache_CreateResource(struct AmmServer_Instance * instance,const char * resource,unsigned int * index)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { error("Cache hasn't been allocated yet\n"); return 0; }
 
 
-  if (MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
+  if ((unsigned int) MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
   *index=instance->loaded_cache_items++;
 
    if ( hashMap_AddULong((struct hashMap *) instance->cacheHashMap ,resource,(unsigned long) *index) )
@@ -199,7 +200,7 @@ int cache_DestroyResource(unsigned int * index)
 */
 
 
-int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filename,unsigned int * index)
+int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *filename,unsigned int * index)
 {
   /*Now we will do the following things
     1) Open the file and find how large it is
@@ -256,7 +257,7 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,char *filena
 }
 
 
-int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification)
+int cache_AddFile(struct AmmServer_Instance * instance,const char * filename,unsigned int * index,struct stat * last_modification)
 {
   if (!cache_CreateResource(instance,filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
 
@@ -444,7 +445,7 @@ int cache_RefreshResource(
                            struct stat * last_modification
                          )
 {
-
+   fprintf(stderr,"cache_RefreshResource is a stub.. \n");
    #warning "TODO : we should check here for a potentially newer version of the file..";
  return 0;
 }

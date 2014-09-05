@@ -50,8 +50,8 @@ char TemplatesInternalURI[MAX_RESOURCE] = TEMPLATE_INTERNAL_URI;
 
 int instance_WeCanCommitMoreMemory(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
 {
-  if (MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
-  if (MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
+  if ((unsigned int) MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
+  if ((unsigned int) MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
   return 1;
 }
 
@@ -153,7 +153,7 @@ static void ParseConfigString(struct AmmServer_Instance * instance,struct InputP
 }
 
 
-int LoadConfigurationFile(struct AmmServer_Instance * instance,char * conf_file)
+int LoadConfigurationFile(struct AmmServer_Instance * instance,const char * conf_file)
 {
   char line[MAX_CONFIGURATION_FILE_LINE_SIZE]={0};
   FILE * pFile;

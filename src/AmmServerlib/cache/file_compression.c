@@ -61,9 +61,22 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
 
   //We free compressed buffers outside of the ENABLE_COMPRESSION precompiler selector , aftere the next 2 steps we have a clean state and so we are ready to allocate
   //memory for the compressed content
-  if (cache[index].compressedContent!=0) { free(cache[index].compressedContent); cache[index].compressedContent=0;
-                                        if (cache[index].compressedContentSize!=0) { AddFreeOpToCacheCounter(instance,*cache[index].compressedContentSize); }  }
-  if (cache[index].compressedContentSize!=0) { free(cache[index].compressedContentSize); cache[index].compressedContentSize=0; }
+  if (cache[index].compressedContent!=0)
+      {
+        free(cache[index].compressedContent);
+        cache[index].compressedContent=0;
+        if (cache[index].compressedContentSize!=0)
+             {
+               #warning "Where is AddFreeOpToCacheCounter declared?"
+               AddFreeOpToCacheCounter(instance,*cache[index].compressedContentSize);
+             }
+      }
+
+  if (cache[index].compressedContentSize!=0)
+      {
+        free(cache[index].compressedContentSize);
+        cache[index].compressedContentSize=0;
+      }
 
 
   #if ENABLE_COMPRESSION

@@ -37,6 +37,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../tools/directory_lists.h"
 #include "../network/file_server.h"
+#include "../network/sendHTTPHeader.h"
 #include "../header_analysis/http_header_analysis.h"
 #include "../tools/http_tools.h"
 #include "../tools/logs.h"
@@ -475,6 +476,7 @@ void * MainHTTPServerThread (void * ptr)
   bzero(&server,serverlen);
 
   server.sin_family = AF_INET;
+  #warning "TODO: , bind to context->ip"
   server.sin_addr.s_addr = INADDR_ANY;
   server.sin_port = htons(context->port);
 
@@ -546,7 +548,7 @@ void * MainHTTPServerThread (void * ptr)
 
 
 
-int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int port,char * root_path,char * templates_path)
+int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path)
 {
   if (instance==0) { fprintf(stderr,"StartHTTPServer called with an unallocated instance \n"); return 0; }
 
@@ -561,6 +563,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
   int retres=0;
   volatile struct PassToHTTPThread context={ { 0 } };
   //memset((void*) &context,0,sizeof(context));
+
    context.port=port;
    context.instance = instance; //Also pass instance on new thread..
    context.keep_var_on_stack=1;
@@ -568,6 +571,9 @@ int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int 
    instance->server_running=1;
    instance->pause_server=0;
    instance->stop_server=0;
+
+   #warning "Todo make instance->ip"
+   //strncpy(instance->ip,ip,MAX_IP_STRING_SIZE);
    strncpy((char*) instance->webserver_root,root_path,MAX_FILE_PATH);
    strncpy((char*) instance->templates_root,templates_path,MAX_FILE_PATH);
   //strncpy((char*) context.ip,ip,MAX_IP_STRING_SIZE);

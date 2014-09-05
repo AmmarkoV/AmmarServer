@@ -24,7 +24,7 @@ void * ServeClient(void * ptr);
 * @param Filename to root path for this webserver ( public_html )
 * @param Filename to root path for templates ( 404.html etc )
 * @retval 1=Success,0=Failure  */
-int StartHTTPServer(struct AmmServer_Instance * instance,char * ip,unsigned int port,char * root_path,char * templates_path);
+int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path);
 
 /**
 * @brief Stop a running HTTP server , unbind ports , deallocate structures etc

@@ -82,7 +82,7 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
 * @param Output index number of cache item
 * @param Output time of last modification
 * @retval 1=Found,0=Failed*/
-int cache_AddFile(struct AmmServer_Instance * instance,char * filename,unsigned int * index,struct stat * last_modification);
+int cache_AddFile(struct AmmServer_Instance * instance,const char * filename,unsigned int * index,struct stat * last_modification);
 
 /**
 * @brief Add a memory block to cache

@@ -27,6 +27,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../stringscanners/firstLines.h"
 
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,7 +76,6 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
               if (MAXincomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
                    { MAXincomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
 
-              #warning "ReceiveHTTPHeader realloc handling for POST requests is bad "
 
               #define BETTER_POST_REALLOC_CODE 1
                char  * largerRequest = (char * )  realloc (incomingRequest, MAXincomingRequestLength );
@@ -90,7 +92,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
                     return 0;
                    }
               #else
-              #warning "This realloc handling is wrong"
+               #error "This realloc handling is wrong"
               if ( incomingRequest != largerRequest )
                    { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength); }
                      else
@@ -134,6 +136,7 @@ int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction)
 
 int FreeHTTPHeader(struct HTTPHeader * output)
 {
+   if (output==0) { /*Already Freed*/ return 1; }
 /* Getting a consistent segfault on the raspberry pi The last console line is
    ->  Freeing HTTP Request : ETag *** glibc detected *** src/ammarserver: free(): invalid next size (fast): 0x01ad7ac8 *** */
 

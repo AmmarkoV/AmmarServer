@@ -2,6 +2,7 @@
 
 #include "../tools/http_tools.h"
 #include "../stringscanners/postHeader.h"
+#include "../stringscanners/httpHeader.h"
 
 #include <stdio.h>
 #include <stdlib.h>

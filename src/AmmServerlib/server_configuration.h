@@ -217,7 +217,7 @@ int EmmitPossibleConfigurationWarnings();
 
 /** @param Load a configuration file
     @bug   LoadConfigurationFiles etc is not ready yet , although it relies on InputParser and should be easy to implement , there are just things missing still and that's why I postpone implementing it*/
-int LoadConfigurationFile(struct AmmServer_Instance * instance,char * conf_file);
+int LoadConfigurationFile(struct AmmServer_Instance * instance,const char * conf_file);
 
 int AssignStr(char ** dest , char * source);
 

@@ -15,7 +15,7 @@
 This algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c. another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i]; the magic of number 33 (why it works better than many other constants, prime or not) has never been adequately explained.
 Needless to say , this is our hash function..!
 */
-unsigned long hashFunction(char *str)
+unsigned long hashFunction(const char *str)
 {
  if (str==0) return 0;
  if (str[0]==0) return 0;
@@ -193,7 +193,7 @@ int hashMap_Sort(struct hashMap * hm)
 }
 
 
-int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength)
+int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int valLength)
 {
   if (!hashMap_IsOK(hm)) { return 0; }
   int clearToAdd=1;
@@ -278,7 +278,7 @@ int hashMap_Add(struct hashMap * hm,char * key,void * val,unsigned int valLength
 }
 
 
-int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val)
+int hashMap_AddULong(struct hashMap * hm,const char * key,unsigned long val)
 {
   void * valPTRForm=0;
   valPTRForm = (void *) val;
@@ -286,7 +286,7 @@ int hashMap_AddULong(struct hashMap * hm,char * key,unsigned long val)
 }
 
 
-int hashMap_FindIndex(struct hashMap * hm,char * key,unsigned long * index)
+int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
   unsigned long i=0;
@@ -348,7 +348,7 @@ unsigned long hashMap_GetHashAtIndex(struct hashMap * hm,unsigned int index)
   return hm->entries[index].keyHash;
 }
 
-int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload)
+int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload)
 {
   unsigned long i=0;
   if (hashMap_FindIndex(hm,key,&i)) {  payload = hm->entries[i].payload; return 1; }
@@ -356,7 +356,7 @@ int hashMap_GetPayload(struct hashMap * hm,char * key,void * payload)
 }
 
 
-int hashMap_GetULongPayload(struct hashMap * hm,char * key,unsigned long * payload)
+int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long * payload)
 {
   unsigned long i=*payload;
   if (hashMap_FindIndex(hm,key,&i)) {  *payload = (unsigned long) hm->entries[i].payload; return 1; }
@@ -365,7 +365,7 @@ int hashMap_GetULongPayload(struct hashMap * hm,char * key,unsigned long * paylo
 
 
 
-int hashMap_ContainsKey(struct hashMap * hm,char * key)
+int hashMap_ContainsKey(struct hashMap * hm,const char * key)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
   unsigned int i=0;
@@ -402,7 +402,7 @@ int hashMap_ContainsValue(struct hashMap * hm,void * val)
 
 
 
-int hashMap_SaveToFile(struct hashMap * hm,char * filename)
+int hashMap_SaveToFile(struct hashMap * hm,const char * filename)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
 
@@ -416,7 +416,7 @@ int hashMap_SaveToFile(struct hashMap * hm,char * filename)
   unsigned int zero=0;
   if (pFile!=0)
    {
-    int i=0;
+    unsigned int i=0;
 
     char uintsize=sizeof(hm->entries[0].keyLength);
     fwrite(&uintsize,1,1,pFile);
@@ -453,9 +453,10 @@ int hashMap_SaveToFile(struct hashMap * hm,char * filename)
 }
 
 
-int hashMap_LoadToFile(struct hashMap * hm,char * filename)
+int hashMap_LoadToFile(struct hashMap * hm,const char * filename)
 {
-    fprintf(stderr,"hashMap_LoadToFile not implemented\n");
+    if (hm==0) { fprintf(stderr,"hashMap_LoadToFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
+    fprintf(stderr,"hashMap_LoadToFile not implemented ( max entries when called %u ) \n",hm->maxNumberOfEntries);
     return 0;
     FILE * pFile;
     pFile = fopen (filename,"rb");
