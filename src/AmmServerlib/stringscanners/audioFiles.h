@@ -26,6 +26,6 @@ enum {
 * @param Input String , to be scanned
 * @param Length of Input String
 * @retval See above enumerator*/
- int scanFor_audioFiles(char * str,unsigned int strLength); 
+ int scanFor_audioFiles(const char * str,unsigned int strLength); 
 
 #endif

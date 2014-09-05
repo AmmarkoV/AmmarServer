@@ -23,7 +23,7 @@ extern "C" {
 *        Of course not all of them are supported/used internally but they are listed in the same order to maintain spec compatibility
 * @bug   A potential bug might arise if the specs of the header file are changed and someone is linking with an older version libAmmServer.a thats why this value exists
 */
-#define AMMAR_SERVER_HTTP_HEADER_SPEC 126
+#define AMMAR_SERVER_HTTP_HEADER_SPEC 128
 //+a cacheEtag field on instance
 
 
@@ -343,7 +343,7 @@ void AmmServer_Success( const char *format , ... );
 * @param String with the root directory for templates ( custom 404 pages etc )
 * @retval An Ammar Server instance or 0=Failure
 */
-struct AmmServer_Instance * AmmServer_Start(char * name ,char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
+struct AmmServer_Instance * AmmServer_Start(const char * name ,const char * ip,unsigned int port,const char * conf_file,const char * web_root_path,const char * templates_root_path);
 
 /**
 * @brief Start a Web Server , allocate memory , bind ports and return its instance , also process arguments ( argc and argv from int main(int argc, char *argv[]) ) ..
@@ -358,7 +358,7 @@ struct AmmServer_Instance * AmmServer_Start(char * name ,char * ip,unsigned int 
 * @param String with the root directory for templates ( custom 404 pages etc )
 * @retval An Ammar Server instance or 0=Failure
 */
-struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char ** argv , char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path);
+struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name , int argc, char ** argv , const char * ip,unsigned int port,const char * conf_file,const char * web_root_path,const char * templates_root_path);
 
 /**
 * @brief Stop a Web Server , deallocate memory , free ports and free the server instance..
@@ -387,7 +387,7 @@ int AmmServer_Running(struct AmmServer_Instance * instance);
 * @param Pointer to function callback
 * @retval 1=Success,0=Fail
 */
-int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,char * request_type,void * callback);
+int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,const char * request_type,void * callback);
 
 /**
 * @brief Add a request handler to handle dynamic requests , the core mechanic of AmmarServer
@@ -407,8 +407,8 @@ int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmS
 int AmmServer_AddResourceHandler
      ( struct AmmServer_Instance * instance,
        struct AmmServer_RH_Context * context,
-       char * resource_name ,
-       char * web_root,
+       const char * resource_name ,
+       const char * web_root,
        unsigned int allocate_mem_bytes,
        unsigned int callback_every_x_msec,
        void * callback,
@@ -474,7 +474,7 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
 * @param An ID about which integer info we want , see (  AmmServStrSettings )
 * @param New string value to set
 * @retval 1=Success,0=Failure */
-int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,char * set_value);
+int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,const char * set_value);
 
 /**
 * @brief Get a POST argument
@@ -485,7 +485,7 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 * @param Output Pointer that will be copied with the value we were looking for
 * @param Maximum Size for output Value
 * @retval 1=Success,0=Failure */
-int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 
 /**
@@ -497,7 +497,7 @@ int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_Dyn
 * @param Output Pointer that will be copied with the value we were looking for
 * @param Maximum Size for output Value
 * @retval 1=Success,0=Failure */
-int AmmServer_GETArg  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int AmmServer_GETArg  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 
 /**
@@ -509,22 +509,22 @@ int AmmServer_GETArg  (struct AmmServer_Instance * instance,struct AmmServer_Dyn
 * @param Output Pointer that will be copied with the value we were looking for
 * @param Maximum Size for output Value
 * @retval 1=Success,0=Failure */
-int AmmServer_FILES   (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int AmmServer_FILES   (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_POSTArg()
 * @ingroup shortcut */
-int _POST (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int _POST (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_GETArg()
 * @ingroup shortcut */
-int _GET  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int _GET  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()
 * @ingroup shortcut */
-int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Staged way to easily handle bad clients etc from the clients , currently a stub..!
@@ -539,7 +539,7 @@ int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instan
 * @param Instance of an AmmarServer
 * @param Request that we want to save to a file ( see AmmServer_DynamicRequest )
 * @retval 1=Success,0=Failure */
-int AmmServer_SaveDynamicRequest(char* filename , struct AmmServer_Instance * instance  , struct AmmServer_DynamicRequest * rqst);
+int AmmServer_SaveDynamicRequest(const char* filename , struct AmmServer_Instance * instance  , struct AmmServer_DynamicRequest * rqst);
 
 
 
@@ -558,7 +558,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
 * @param Instance of an AmmarServer
 * @param Resource name that we want to always serve fresh
 * @retval 1=Success,0=Failure */
-int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name);
+int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,const char * resource_name);
 
 
 /**
@@ -568,7 +568,7 @@ int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * res
 * @param Port to use
 * @retval Value of the integer we asked about
 */
-struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int port);
+struct AmmServer_Instance *  AmmServer_StartAdminInstance(const char * ip,unsigned int port);
 
 /**
 * @brief Perform a sanity check on the instance of AmmarServer , this is mostly a dev debug tool and an entry point for code inside AmmServerlib
@@ -591,7 +591,7 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 * @retval 1=Ok,0=Failed
 * @bug Executing commands can be dangerous , always check and sanitize input before executing , Also be sure about the max size of output so that you don't lose a part of it , also make something like escapeshellcmd
 */
-int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber);
+int AmmServer_ExecuteCommandLineNum(const char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber);
 
 /**
 * @brief Execute a command and copy its output to the provided buffer
@@ -602,7 +602,7 @@ int AmmServer_ExecuteCommandLineNum(char *  command , char * what2GetBack , unsi
 * @retval 1=Ok,0=Failed
 * @bug Executing commands can be dangerous , always check and sanitize input before executing , Also be sure about the max size of output so that you don't lose a part of it , also make something like escapeshellcmd
 */
-int AmmServer_ExecuteCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize);
+int AmmServer_ExecuteCommandLine(const char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize);
 
 
 
@@ -625,7 +625,7 @@ void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWi
 * @retval 1=Ok,0=Failed
 * @bug Value should not be bigger than variable otherwise things won't fit in the same memory block
 */
-int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value);
+int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value);
 
 
 /**
@@ -635,7 +635,7 @@ int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * 
 * @param Output Maximum Size
 * @retval Pointer to the new memory or 0=Failed
 */
-char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
+char * AmmServer_ReadFileToMemory(const char * filename,unsigned int *length );
 
 /**
 * @brief Dump a memory block to a file
@@ -645,7 +645,7 @@ char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length );
 * @param Size of memory block
 * @retval 1=Ok,0=Failed
 */
-int AmmServer_WriteFileFromMemory(char * filename,char * memory , unsigned int memoryLength);
+int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength);
 
 /**
 * @brief Register a function to call a function that gracefully terminates a client when a SIGKILL or the time to stop the server comes
@@ -663,7 +663,7 @@ int AmmServer_RegisterTerminationSignal(void * callback);
 * @param Path to directory
 * @retval 1=Exists,0=Does not Exist
 */
-int AmmServer_DirectoryExists(char * filename);
+int AmmServer_DirectoryExists(const char * filename);
 
 
 /**
@@ -672,7 +672,7 @@ int AmmServer_DirectoryExists(char * filename);
 * @param Path to file
 * @retval 1=Exists,0=Does not Exist
 */
-int AmmServer_FileExists(char * filename);
+int AmmServer_FileExists(const char * filename);
 
 /**
 * @brief Erase a File
@@ -680,7 +680,7 @@ int AmmServer_FileExists(char * filename);
 * @param Path to file
 * @retval 1=Success,0=Failure
 */
-int AmmServer_EraseFile(char * filename);
+int AmmServer_EraseFile(const char * filename);
 
 /**
 * @brief Check if a string has html elements inside it , so if we append it to a web site we won't have html injected
@@ -688,7 +688,7 @@ int AmmServer_EraseFile(char * filename);
 * @param Input String
 * @retval 1=Safe,0=Unsafe
 */
-unsigned int AmmServer_StringIsHTMLSafe(char * str);
+unsigned int AmmServer_StringIsHTMLSafe(const char * str);
 
 #ifdef __cplusplus
 }

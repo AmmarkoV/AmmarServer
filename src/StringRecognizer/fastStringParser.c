@@ -321,7 +321,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp,"* @param Input String , to be scanned\n");
   fprintf(fp,"* @param Length of Input String\n");
   fprintf(fp,"* @retval See above enumerator*/\n");
-  fprintf(fp," int scanFor_%s(char * str,unsigned int strLength); \n\n",functionName);
+  fprintf(fp," int scanFor_%s(const char * str,unsigned int strLength); \n\n",functionName);
   fprintf(fp,"#endif\n");
   fclose(fp);
 
@@ -355,7 +355,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   fprintf(fp,"#include <ctype.h>\n");
   fprintf(fp,"#include \"%s.h\"\n\n",functionName);
 
-  fprintf(fp,"int scanFor_%s(char * str,unsigned int strLength) \n{\n",functionName);
+  fprintf(fp,"int scanFor_%s(const char * str,unsigned int strLength) \n{\n",functionName);
 
      fprintf(fp," if (str==0) { return 0; } \n");
      fprintf(fp," if (strLength<%u) { return 0; } \n\n",fsp->shortestStringLength);

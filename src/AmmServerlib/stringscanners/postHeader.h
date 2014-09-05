@@ -23,6 +23,6 @@ enum {
 * @param Input String , to be scanned
 * @param Length of Input String
 * @retval See above enumerator*/
- int scanFor_postHeader(char * str,unsigned int strLength); 
+ int scanFor_postHeader(const char * str,unsigned int strLength); 
 
 #endif

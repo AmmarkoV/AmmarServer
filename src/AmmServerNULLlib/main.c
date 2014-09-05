@@ -58,7 +58,13 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   return 0;
 }
 
-struct AmmServer_Instance * AmmServer_Start(char * name,char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
+struct AmmServer_Instance * AmmServer_Start(const char * name,
+                                            const char * ip,
+                                            unsigned int port,
+                                            const char * conf_file,
+                                            const char * web_root_path,
+                                            const char * templates_root_path
+                                           )
 {
   fprintf(stderr,"Binding Null AmmarServer to %s:%u\n",ip,port);
 
@@ -66,8 +72,14 @@ struct AmmServer_Instance * AmmServer_Start(char * name,char * ip,unsigned int p
 }
 
 
-struct AmmServer_Instance * AmmServer_StartWithArgs(char * name , int argc, char ** argv ,
-                                                                  char * ip,unsigned int port,char * conf_file,char * web_root_path,char * templates_root_path)
+struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
+                                                    int argc, char ** argv ,
+                                                    const char * ip,
+                                                    unsigned int port,
+                                                    const char * conf_file,
+                                                    const char * web_root_path,
+                                                    const char * templates_root_path
+                                                   )
 {
   return 0;
 }
@@ -78,20 +90,20 @@ int AmmServer_Running(struct AmmServer_Instance * instance)
   return 0;
 }
 
-int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * context,char * request_type,void * callback)
+int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * context,const char * request_type,void * callback)
 {
   return 0;
 }
 
 
-int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback,unsigned int scenario)
+int AmmServer_AddResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context, const char * resource_name ,const char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback,unsigned int scenario)
 {
 
   return 0;
 }
 
 
-int AmmServer_PreCacheFile(struct AmmServer_Instance * instance,char * filename)
+int AmmServer_PreCacheFile(struct AmmServer_Instance * instance,const char * filename)
 {
    return 0;
 }
@@ -104,7 +116,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
 
 
 
-int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,char * resource_name)
+int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,const char * resource_name)
 {
   return 0;
 }
@@ -123,33 +135,33 @@ int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_typ
 }
 
 
-int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   return 0;
 }
 
-int AmmServer_GETArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_GETArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   return 0;
 }
 
-int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   return 0;
 }
 
 
-int _POST(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _POST(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
     return 0;
 }
 
-int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
     return 0;
 }
 
-int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
     return 0;
 }
@@ -171,13 +183,13 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
   return 0;
 }
 
-int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,char * set_value)
+int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,const char * set_value)
 {
   return 0;
 }
 
 
-struct AmmServer_Instance *  AmmServer_StartAdminInstance(char * ip,unsigned int port)
+struct AmmServer_Instance *  AmmServer_StartAdminInstance(const char * ip,unsigned int port)
 {
   return 0;
 }
@@ -188,12 +200,12 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 {
   return 0;
 }
-int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,char * var,char * value)
+int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value)
 {
   return 0;
 }
 
-char * AmmServer_ReadFileToMemory(char * filename,unsigned int *length )
+char * AmmServer_ReadFileToMemory(const char * filename,unsigned int *length )
 {
   return 0;
 }

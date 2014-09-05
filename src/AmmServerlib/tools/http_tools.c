@@ -100,7 +100,7 @@ unsigned int ServerThreads_DropRootUID()
    return setuid(non_root_uid); // Non Root UID :-P
 }
 
-char FileExistsAmmServ(char * filename)
+char FileExistsAmmServ(const char * filename)
 {
  FILE *fp = fopen(filename,"r");
  if( fp ) { /* exists */ fclose(fp); return 1; }
@@ -108,7 +108,7 @@ char FileExistsAmmServ(char * filename)
  return 0;
 }
 
-char DirectoryExistsAmmServ( char* dirpath )
+char DirectoryExistsAmmServ(const char* dirpath )
 {
   if ( dirpath == 0) return 0;
   char bExists = 0;
@@ -125,7 +125,7 @@ char DirectoryExistsAmmServ( char* dirpath )
 
 
 
-int GetContentTypeForExtension(char * theextension,char * content_type,unsigned int contentTypeLength)
+int GetContentTypeForExtension(const char * theextension,char * content_type,unsigned int contentTypeLength)
 {
   //fprintf(stderr,"Resolving Extension %s , length %u \n",theextension,theextensionLength );
   if (contentTypeLength<29)
@@ -246,12 +246,12 @@ int GetContentTypeForExtension(char * theextension,char * content_type,unsigned 
 
 
 
-int GetExtentionType(char * theextension)
+int GetExtentionType(const char * theextension)
 { //Crude and fast lookup
   if (theextension==0) { return NO_FILETYPE; }
   switch (theextension[0])
   {
-   case 0 : return NO_FILETYPE; break;
+   case 0   : return NO_FILETYPE; break;
    case 't' : return TEXT;      break;
    case 'i' : return IMAGE;     break;
    case 'v' : return VIDEO;     break;
@@ -289,7 +289,7 @@ int GetContentType(char * filename,char * contentType,unsigned int contentTypeLe
    char * start_of_extension = &filename[i+1]; // do not include . ( dot )
 
    //fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
-   int res=GetContentTypeForExtension(start_of_extension,contentType,contentTypeLength);
+   int res=GetContentTypeForExtension((const char*) start_of_extension,contentType,contentTypeLength);
    //fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
 
   return res;

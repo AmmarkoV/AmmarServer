@@ -31,6 +31,6 @@ enum {
 * @param Input String , to be scanned
 * @param Length of Input String
 * @retval See above enumerator*/
- int scanFor_httpHeader(char * str,unsigned int strLength); 
+ int scanFor_httpHeader(const char * str,unsigned int strLength); 
 
 #endif

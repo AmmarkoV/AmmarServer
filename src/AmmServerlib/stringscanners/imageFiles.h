@@ -35,6 +35,6 @@ enum {
 * @param Input String , to be scanned
 * @param Length of Input String
 * @retval See above enumerator*/
- int scanFor_imageFiles(char * str,unsigned int strLength); 
+ int scanFor_imageFiles(const char * str,unsigned int strLength); 
 
 #endif

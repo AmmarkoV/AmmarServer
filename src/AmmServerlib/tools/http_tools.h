@@ -35,21 +35,21 @@ unsigned int ServerThreads_DropRootUID();
 * @ingroup tools
 * @param Path to file
 * @retval 1=Exists,0=Does not Exist*/
-char FileExistsAmmServ(char * filename);
+char FileExistsAmmServ(const char * filename);
 
 /**
 * @brief Check if directory Exists
 * @ingroup tools
 * @param Path to directory
 * @retval 1=Exists,0=Does not Exist*/
-char DirectoryExistsAmmServ( char* dirpath );
+char DirectoryExistsAmmServ(const char* dirpath );
 
 /**
 * @brief Convert an Extension Type to a contentTypeEnumerator
 * @ingroup tools
 * @param String with the extension type
 * @retval contentTypeEnumerator*/
-int GetExtentionType(char * theextension);
+int GetExtentionType(const char * theextension);
 
 /**
 * @brief Convert a filename to a contentType

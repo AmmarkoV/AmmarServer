@@ -28,6 +28,6 @@ enum {
 * @param Input String , to be scanned
 * @param Length of Input String
 * @retval See above enumerator*/
- int scanFor_textFiles(char * str,unsigned int strLength); 
+ int scanFor_textFiles(const char * str,unsigned int strLength); 
 
 #endif

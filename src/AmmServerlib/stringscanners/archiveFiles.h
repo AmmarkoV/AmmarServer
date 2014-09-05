@@ -41,6 +41,6 @@ enum {
 * @param Input String , to be scanned
 * @param Length of Input String
 * @retval See above enumerator*/
- int scanFor_archiveFiles(char * str,unsigned int strLength); 
+ int scanFor_archiveFiles(const char * str,unsigned int strLength); 
 
 #endif

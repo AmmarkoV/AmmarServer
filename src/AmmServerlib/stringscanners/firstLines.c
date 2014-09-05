@@ -1,5 +1,5 @@
 /*                  
-This file was automatically generated @ 07-08-2014 15:29:16 using StringRecognizer                  
+This file was automatically generated @ 05-09-2014 22:48:14 using StringRecognizer                  
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/StringRecognizer                 
 Please note that changes you make here may be automatically overwritten                  
 if the String Recognizer generator runs again..!              
@@ -10,7 +10,7 @@ if the String Recognizer generator runs again..!
 #include <ctype.h>
 #include "firstLines.h"
 
-int scanFor_firstLines(char * str,unsigned int strLength) 
+int scanFor_firstLines(const char * str,unsigned int strLength) 
 {
  if (str==0) { return 0; } 
  if (strLength<3) { return 0; } 
