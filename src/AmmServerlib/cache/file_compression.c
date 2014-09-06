@@ -67,8 +67,7 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
         cache[index].compressedContent=0;
         if (cache[index].compressedContentSize!=0)
              {
-               #warning "Where is AddFreeOpToCacheCounter declared?"
-               AddFreeOpToCacheCounter(instance,*cache[index].compressedContentSize);
+               cache_CountMemoryUsageFreeOperation(instance,*cache[index].compressedContentSize);
              }
       }
 
@@ -88,7 +87,7 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
 
 
   //Second job is to prepare the compressed memory block , we clean it up and allocate an unsigned long ..!
-  AddNewMallocOpToCacheCounter(instance,initial_compressed_buffer_filesize_estimation);
+  cache_CountMemoryUsageAllocateOperation(instance,initial_compressed_buffer_filesize_estimation);
   cache[index].compressed_mem = (char * ) malloc(sizeof (char) * ( initial_compressed_buffer_filesize_estimation ));
   //We dont need to clear this buffer , it is a waste of time .. It will get filled in one step , so lets conserve CPU time..
 
@@ -114,8 +113,8 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
      {
       char * better_fit = (char*) realloc ( cache[index].compressed_mem , *cache[index].compressed_mem_filesize );
       if (better_fit!=0) { cache[index].compressed_mem=better_fit;
-                           AddNewMallocOpToCacheCounter(instance,*cache[index].compressed_mem_filesize); // We subtract the freed bytes as a second operation to take care of race conditions..!
-                           AddFreeOpToCacheCounter(instance,initial_compressed_buffer_filesize_estimation);
+                           cache_CountMemoryUsageAllocateOperation(instance,*cache[index].compressed_mem_filesize); // We subtract the freed bytes as a second operation to take care of race conditions..!
+                           cache_CountMemoryUsageFreeOperation(instance,initial_compressed_buffer_filesize_estimation);
                          }
      }
      //Finally , very important , never forget to mark the operation as successfull!
@@ -130,7 +129,7 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
   if (!return_value)
   { //Compression failed so we will now free our buffers..!
 
-     AddFreeOpToCacheCounter(instance,initial_compressed_buffer_filesize_estimation); //A failed return_value ( compression ) means we still have our initial buffer , so we free the initial number of bytes..!
+     cache_CountMemoryUsageFreeOperation(instance,initial_compressed_buffer_filesize_estimation); //A failed return_value ( compression ) means we still have our initial buffer , so we free the initial number of bytes..!
      free(cache[index].compressed_mem_filesize);
      free(cache[index].compressed_mem);
 

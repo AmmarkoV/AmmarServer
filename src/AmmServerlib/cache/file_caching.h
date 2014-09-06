@@ -53,6 +53,27 @@ struct cache_item
    struct timestamp modification;
 };
 
+
+
+/**
+* @brief Tool to count total memory usage after a free operation
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Size of memory being freed
+* @bug This call should have a mutex lock so that it is well defined on massively parallel operations
+* @retval 1=Ok,0=Failed*/
+int cache_CountMemoryUsageFreeOperation(struct AmmServer_Instance * instance , unsigned long freedSize);
+
+
+/**
+* @brief Tool to count total memory usage after a memory allocation operation
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Size of memory being allocated
+* @retval 1=Ok,0=Failed*/
+int cache_CountMemoryUsageAllocateOperation(struct AmmServer_Instance * instance , unsigned long allocatedSize);
+
+
 /**
 * @brief Tool to check if a malloc'ed chunk of memory should be freed
 * @ingroup cache

@@ -1,5 +1,6 @@
 #include "post_header_analysis.h"
 
+#include "../tools/logs.h"
 #include "../tools/http_tools.h"
 #include "../stringscanners/postHeader.h"
 #include "../stringscanners/httpHeader.h"
