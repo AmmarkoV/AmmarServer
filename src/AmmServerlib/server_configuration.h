@@ -33,7 +33,7 @@
 #define DELAY_TRY_BINDING_TO_PORT 5000 *1000
 
 /** @brief Maximum times to try to bind to port on initial server start up */
-#define MAX_TRIES_TO_BIND_TO_PORT 10
+#define MAX_TRIES_TO_BIND_TO_PORT 5
 
 /** @brief Setting this to 1 will signal that all instances of AmmarServer need to die at once */
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
@@ -162,11 +162,11 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 extern int CHANGE_PRIORITY;
 
 /**  @brief Default timeout value before which a socket blocking on a read call should be considered dead */
-#define DEFAULT_SOCKET_READ_TIMEOUT_SECS 4
+#define DEFAULT_SOCKET_READ_TIMEOUT_SECS 3
 extern int varSocketTimeoutREAD_seconds;
 
 /**  @brief Default timeout value before which a socket blocking on a write call should be considered dead */
-#define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 4
+#define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 3
 extern int varSocketTimeoutWRITE_seconds;
 
 // ----------------- CACHE OPTIONS -----------------

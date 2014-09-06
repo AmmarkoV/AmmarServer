@@ -28,14 +28,14 @@ blinkingChars=$(printf "\033[5m")
 
 void error(char * msg)
 {
- fprintf(stderr,RED " ERROR MESSAGE : %s\n\033[0m" NORMAL,msg);
+ fprintf(stderr,RED " ERROR MESSAGE : %s\n" NORMAL,msg);
  return;
 }
 
 
 void warning(char * msg)
 {
- fprintf(stderr,YELLOW " WARNING MESSAGE : %s\n " NORMAL,msg);
+ fprintf(stderr,YELLOW " WARNING MESSAGE : %s\n" NORMAL,msg);
  return;
 }
 

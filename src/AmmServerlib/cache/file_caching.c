@@ -196,8 +196,7 @@ int cache_CreateResource(struct AmmServer_Instance * instance,const char * resou
 
    if ( hashMap_AddULong((struct hashMap *) instance->cacheHashMap ,resource,(unsigned long) *index) )
    {
-     warning("hashMap_AddULong adding New Resource to HashMap");
-     fprintf(stderr,"hashMap_AddULong adding %s , loaded items are now %u \n",resource,instance->loaded_cache_items);
+      AmmServer_Success("Added resource %s , loaded items are now %u \n",resource,instance->loaded_cache_items);
    }
 
 

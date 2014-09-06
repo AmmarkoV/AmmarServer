@@ -502,18 +502,16 @@ void * MainHTTPServerThread (void * ptr)
   //We bind to our port..!
   //While this is relatively straight forward ( a.k.a. one bind(...) call some times between subsequent restarts the socket cannot be binded and also there are issues with permissions
   //needed for binding ports lower than a thousand ..! , so we try to sense all of these things here..
+  // -------------------------------------------------------------------------------------------------------------
   unsigned int bindTries = 0;
 
+  //SO_REUSEADDR allows to bind an address that previously had TCP connections stuck at TIME_WAIT , we definately want to have this
+  //since this allows subsequent runs of the web server
+  int yes = 1;
+  if ( setsockopt(serversock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0  )
+      {  warning("Error setting SO_REUSEADDR socket ( does the OS not support it ? ), this might cause problems rebinding.."); }
 
-  fprintf(stderr,"Binding (%s:%u) from pid %u uid %u.. \n",bindingIP,bindingPort,getpid(),getuid());
-
-
-  if ( (getuid()>=1000) && (bindingPort<1000) )
-    {
-      error("UNIX will probably not allow binding a port bellow 1000 with a UID above a thousand.. ");
-      warning(" will try to continue though and see what happens.. ");
-    }
-
+  fprintf(stderr,"Binding (%s:%u) / pid %u uid %u.. \n",bindingIP,bindingPort,getpid(),getuid());
   while (
           ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) &&
           ( bindTries < MAX_TRIES_TO_BIND_TO_PORT )
@@ -526,10 +524,15 @@ void * MainHTTPServerThread (void * ptr)
 
    if (bindTries>=MAX_TRIES_TO_BIND_TO_PORT)
      {
-      error("Server Thread : Error binding master port!\nThe server may already be running ..\n");
+       if ( (getuid()!=0) && (bindingPort<1000) )
+              { error("UNIX does not allow binding a port below 1000 with a non root UID.. \n We tried to do it though.. \n Run with sudo or bind to a port higher than 1000 "); } else
+              { error("Server Thread : Error binding master port!\nThe server may already be running ..\n");                          }
       instance->server_running=0;
       return 0;
     }
+  // -------------------------------------------------------------------------------------------------------------
+  // Done binding ..
+  // -------------------------------------------------------------------------------------------------------------
 
   //MAX_CLIENT_THREADS <- this could also be used instead of MAX_CLIENTS_LISTENING_FOR
   //I am trying a larger listen queue to hold incoming connections regardless of the serving threads
