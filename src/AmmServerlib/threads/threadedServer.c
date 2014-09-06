@@ -475,16 +475,57 @@ void * MainHTTPServerThread (void * ptr)
   bzero(&client,clientlen);
   bzero(&server,serverlen);
 
-  server.sin_family = AF_INET;
-  #warning "TODO: , bind to context->ip"
-  server.sin_addr.s_addr = INADDR_ANY;
-  server.sin_port = htons(context->port);
+  unsigned int bindingPort = context->port;
+  char bindingIP[MAX_IP_STRING_SIZE]={0};
+  strncpy(bindingIP,context->ip,MAX_IP_STRING_SIZE);
+
+  server.sin_family = AF_INET;/* set the type of connection to TCP/IP */
+  server.sin_port = htons(context->port);     /* set the server port number */
+   //server.sin_addr.s_addr = INADDR_ANY;   or  server.sin_addr.s_addr = htonl(INADDR_ANY); <- which of the 2 is correct ?
+  if ( strlen(bindingIP)==0 )             {
+                                            fprintf(stderr,"Trying to bind to INADDR_ANY\n");
+                                            server.sin_addr.s_addr = htonl(INADDR_ANY); /* set our address to any interface */
+                                          } else
+  if ( strcmp(bindingIP,"0.0.0.0")==0 )   {
+                                            fprintf(stderr,"Trying to bind to INADDR_ANY\n");
+                                            server.sin_addr.s_addr = htonl(INADDR_ANY); /* set our address to any interface */
+                                          } else
+                                          {
+                                            fprintf(stderr,"Trying to bind to %s:%u ",bindingIP,bindingPort);
+                                            server.sin_addr.s_addr = inet_addr(bindingIP);
+                                          }
+
 
   childFinishedWithParentMessage(&context->keep_var_on_stack); //If we were not able to bind we still signal that we got the message so that parent thread can continue
 
+
   //We bind to our port..!
-  if ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 )
+  //While this is relatively straight forward ( a.k.a. one bind(...) call some times between subsequent restarts the socket cannot be binded and also there are issues with permissions
+  //needed for binding ports lower than a thousand ..! , so we try to sense all of these things here..
+  unsigned int bindTries = 0;
+
+
+  fprintf(stderr,"Binding (%s:%u) from pid %u uid %u.. \n",bindingIP,bindingPort,getpid(),getuid());
+
+
+  if ( (getuid()>=1000) && (bindingPort<1000) )
     {
+      error("UNIX will probably not allow binding a port bellow 1000 with a UID above a thousand.. ");
+      warning(" will try to continue though and see what happens.. ");
+    }
+
+  while (
+          ( bind(serversock,(struct sockaddr *) &server,serverlen) < 0 ) &&
+          ( bindTries < MAX_TRIES_TO_BIND_TO_PORT )
+        )
+  {
+      usleep(DELAY_TRY_BINDING_TO_PORT);
+      ++bindTries;
+      fprintf(stderr,"Try to bind web server (%s:%u) failed , try %u/%u \n",bindingIP,bindingPort,bindTries,MAX_TRIES_TO_BIND_TO_PORT);
+  }
+
+   if (bindTries>=MAX_TRIES_TO_BIND_TO_PORT)
+     {
       error("Server Thread : Error binding master port!\nThe server may already be running ..\n");
       instance->server_running=0;
       return 0;
@@ -568,15 +609,15 @@ int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigne
    context.instance = instance; //Also pass instance on new thread..
    context.keep_var_on_stack=1;
 
+   context.ip[0]=0;
+   if (ip!=0) { strncpy((char*) context.ip , ip , MAX_IP_STRING_SIZE); }
+
    instance->server_running=1;
    instance->pause_server=0;
    instance->stop_server=0;
 
-   #warning "Todo make instance->ip"
-   //strncpy(instance->ip,ip,MAX_IP_STRING_SIZE);
    strncpy((char*) instance->webserver_root,root_path,MAX_FILE_PATH);
    strncpy((char*) instance->templates_root,templates_path,MAX_FILE_PATH);
-  //strncpy((char*) context.ip,ip,MAX_IP_STRING_SIZE);
 
 
    fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);

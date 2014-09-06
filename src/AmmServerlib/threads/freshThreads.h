@@ -23,6 +23,8 @@ struct PassToHTTPThread
      struct AmmServer_Instance * instance;
 
      int pre_spawned_thread;
+
+     char ip[MAX_IP_STRING_SIZE];
 };
 
 /**

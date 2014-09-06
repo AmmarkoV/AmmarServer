@@ -18,13 +18,14 @@
 #include "../tools/http_tools.h"
 #include "../tools/time_provider.h"
 
-unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root)
+unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,const char * verified_filename,const char * templates_root)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
     it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
 */
-strcpy(verified_filename,templates_root);
+     // This is wrong  -> strcpy(verified_filename,templates_root);
+
      char response[MAX_HTTP_REQUEST_HEADER_REPLY]={0};
      switch (error_code)
      {
@@ -61,7 +62,7 @@ strcpy(verified_filename,templates_root);
 
 
 
-unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verified_filename)
+unsigned long SendSuccessCodeHeader(int clientsock,int success_code,const char * verified_filename)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -102,7 +103,7 @@ unsigned long SendNotModifiedHeader(int clientsock)
       return 1;
 }
 
-unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verified_filename)
+unsigned long SendAuthorizationHeader(int clientsock,char * message,const char * verified_filename)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!

@@ -33,7 +33,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endif // ENABLE_STOP_PAGE
 
 
-#define ENABLE_STOP_PAGE 0
+#define ENABLE_STOP_PAGE 1
 #if ENABLE_STOP_PAGE
  #warning "if you open http://127.0.0.1/stop.html this will stop the web server of course you don't want this in production so disable this"
 #endif // ENABLE_STOP_PAGE

@@ -13,8 +13,9 @@
 * @param ErrorCode to be transmitted to client
 * @param Verified Filename of file to transmit ( appended with error code )
 * @param Filename to directory when error template files are stored
+* @bug   This call seems to fail ?
 * @retval 1=Success,0=Failure*/
-unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * verified_filename,char * templates_root);
+unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,const char * verified_filename,const char * templates_root);
 
 /**
 * @brief Send a Success header , meaning that what was asked for will follow
@@ -23,7 +24,7 @@ unsigned long SendErrorCodeHeader(int clientsock,unsigned int error_code,char * 
 * @param Success code ( typically 200 ok )
 * @param Verified Filename of file to transmit
 * @retval 1=Success,0=Failure*/
-unsigned long SendSuccessCodeHeader(int clientsock,int success_code,char * verified_filename);
+unsigned long SendSuccessCodeHeader(int clientsock,int success_code,const char * verified_filename);
 
 /**
 * @brief Send a 304 Not Modified response
@@ -39,6 +40,6 @@ unsigned long SendNotModifiedHeader(int clientsock);
 * @param String with message to be sent
 * @param Verified Filename of file asked to be transmitted
 * @retval 1=Success,0=Failure*/
-unsigned long SendAuthorizationHeader(int clientsock,char * message,char * verified_filename);
+unsigned long SendAuthorizationHeader(int clientsock,char * message,const char * verified_filename);
 
 #endif // SENDHTTPHEADER_H_INCLUDED

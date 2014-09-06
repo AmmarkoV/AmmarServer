@@ -29,6 +29,12 @@
 #define COMPILE_WITH_CLIENT_LIST 0
 
 
+/** @brief Sleep time after unsuccessfully trying to bind to port ( usleep(DELAY... ) */
+#define DELAY_TRY_BINDING_TO_PORT 5000 *1000
+
+/** @brief Maximum times to try to bind to port on initial server start up */
+#define MAX_TRIES_TO_BIND_TO_PORT 10
+
 /** @brief Setting this to 1 will signal that all instances of AmmarServer need to die at once */
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
