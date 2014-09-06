@@ -323,8 +323,10 @@ inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsign
  }
 
  if ( (startOfStart==0) && (startOfEnd==0) ) { error("Could not find range in range request , will respond with an incorrect range (?) ..! "); return 0; }
- if (startOfEnd>=requestLength-1 ) { /*This means we have a range like `Range: bytes=144687104-` i.e. Unknown ending*/ } else
-                                   { *rangeEnd = atoi(request+startOfEnd); }
+
+ int requestLengthMinus1 = requestLength-1;
+ if (startOfEnd >= requestLengthMinus1 ) { /*This means we have a range like `Range: bytes=144687104-` i.e. Unknown ending*/ } else
+                                         { *rangeEnd = atoi(request+startOfEnd); }
 
  request[dashPos]=0;
  *rangeStart = atoi(request+startOfStart);

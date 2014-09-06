@@ -457,6 +457,7 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 
 struct AmmServer_Instance *  AmmServer_StartAdminInstance(const char * ip,unsigned int port)
 {
+  fprintf(stderr,"Admin instance asked to open at %s:%u , but this is not implemented\n",ip,port);
   return 0;
 }
 

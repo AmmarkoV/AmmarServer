@@ -78,7 +78,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    unsigned long headerRAWSizeTemp = 0;
    transaction->incomingHeader.headerRAW = ReceiveHTTPHeader(instance,transaction->clientSock,&headerRAWSizeTemp);
    transaction->incomingHeader.headerRAWSize = (unsigned int) headerRAWSizeTemp;
-   #warning "Work around with no reason here ?"
+
    if (transaction->incomingHeader.headerRAW==0) { return 0; }
 
    fprintf(stderr,"Received request header \n");
