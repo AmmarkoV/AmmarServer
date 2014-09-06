@@ -373,6 +373,7 @@ int AmmServer_GETArg(struct AmmServer_Instance * instance,struct AmmServer_Dynam
 int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   if (instance==0) { return 0; }
+  if ( (rqst==0) || (var_id_IN==0) || (var_value_OUT==0) || (max_var_value_OUT==0) )  { return 0; }
   fprintf(stderr,"AmmServer_FILES failed , called with incorrect parameters..\n");
   return 0;
 }
@@ -397,7 +398,8 @@ int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest 
 
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst)
 {
-
+   if ( (instance==0) || (rqst==0) ) { return 0; }
+   fprintf(stderr,"AmmServer_SignalCountAsBadClientBehaviour is a stub ..\n");
    return 0;
 }
 

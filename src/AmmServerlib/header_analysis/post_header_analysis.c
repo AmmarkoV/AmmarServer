@@ -69,6 +69,12 @@ int AnalyzePOSTLineRequest(
                             unsigned int lines_gathered
                           )
 {
+         if (instance==0)
+            {
+             warning("Cannot AnalyzePOSTLineRequest for a null instance\n");
+             fprintf(stderr,"AnalyzePOSTLineRequest lines_gathered = %u \n",lines_gathered);
+             return 0;
+            }
          //If we just had a POST request , it  may have a file associated with it , so we will check for content tags..
          //Scanning for the case that the line is -> Content-Type: (i.e.) application/x-www-form-urlencoded
          /* OR SOMETHING LIKE
