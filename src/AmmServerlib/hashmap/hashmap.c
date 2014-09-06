@@ -351,7 +351,13 @@ unsigned long hashMap_GetHashAtIndex(struct hashMap * hm,unsigned int index)
 int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload)
 {
   unsigned long i=0;
-  if (hashMap_FindIndex(hm,key,&i)) {  payload = hm->entries[i].payload; return 1; }
+  if (hashMap_FindIndex(hm,key,&i))
+    {
+       fprintf(stderr,"Payload was pointing to %p and now it is pointing to ",payload);
+        payload = hm->entries[i].payload;
+       fprintf(stderr,"%p \n",payload);
+       return 1;
+    }
   return 0;
 }
 

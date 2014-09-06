@@ -303,12 +303,9 @@ int AmmServer_PreCacheFile(struct AmmServer_Instance * instance,const char * fil
 
 int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
 {
-    #warning "Please fix AmmServer_DoNOTCacheResourceHandler so the resource_name is the real one and does not generate a seperate cache rule"
     char resource_name[MAX_FILE_PATH]={0};
 
     snprintf(resource_name,MAX_FILE_PATH,"%s%s",context->web_root_path,context->resource_name);
-    //strcpy(resource_name,context->web_root_path);
-    //strcat(resource_name,context->resource_name);
 
     if (! cache_AddDoNOTCacheRuleForResource(instance,resource_name) )
      {
