@@ -275,7 +275,7 @@ void convertToUpperCase(char *sPtr)
    }
 }
 
-int GetContentType(char * filename,char * contentType,unsigned int contentTypeLength)
+int GetContentType(const char * filename,char * contentType,unsigned int contentTypeLength)
 {
    //fprintf(stderr,"GetContentType ( %s , %s , %u )\n",filename,contentType,contentTypeLength);
    unsigned int filenameLength=strlen(filename);
@@ -286,10 +286,10 @@ int GetContentType(char * filename,char * contentType,unsigned int contentTypeLe
    if (i==0) { return 0; } //<- could not find the content type..
    if (i+1>=filenameLength) { return 0; } //<- found the dot at i BUT it is the last character so no extension is possible..!
 
-   char * start_of_extension = &filename[i+1]; // do not include . ( dot )
+   const char * start_of_extension = &filename[i+1]; // do not include . ( dot )
 
    //fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
-   int res=GetContentTypeForExtension((const char*) start_of_extension,contentType,contentTypeLength);
+   int res=GetContentTypeForExtension(start_of_extension,contentType,contentTypeLength);
    //fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
 
   return res;

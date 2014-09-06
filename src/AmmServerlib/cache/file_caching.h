@@ -124,7 +124,7 @@ unsigned long cache_GetHashOfResource(struct AmmServer_Instance * instance,unsig
 * @param Resource we are searching for
 * @param Output Index number
 * @retval 1=Success,0=Failure*/
-unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index);
+unsigned int cache_FindResource(struct AmmServer_Instance * instance,const char * resource,unsigned int * index);
 
 /**
 * @brief Query for a resource , and return its index

@@ -36,6 +36,6 @@ struct PassToHTTPThread
 * @param Filename of template directory for this connection ( for 404.html etc )
 * @retval 1=Success,0=Fail
 */
-int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root);
+int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen);
 
 #endif // FRESHTHREADS_H_INCLUDED

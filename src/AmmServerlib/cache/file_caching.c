@@ -145,7 +145,7 @@ int cache_Destroy(struct AmmServer_Instance * instance)
 */
 
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
-unsigned int cache_FindResource(struct AmmServer_Instance * instance,char * resource,unsigned int * index)
+unsigned int cache_FindResource(struct AmmServer_Instance * instance,const char * resource,unsigned int * index)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { warning("Cache hasn't been allocated yet\n"); return 0; }
@@ -446,6 +446,7 @@ int cache_RefreshResource(
                            struct stat * last_modification
                          )
 {
+   if ( (instance==0) || (request==0) || (verified_filename==0) ||(index==0) || (filesize==0) || (last_modification==0)  ) { return 0; }
    fprintf(stderr,"cache_RefreshResource is a stub.. \n");
    #warning "TODO : we should check here for a potentially newer version of the file..";
  return 0;

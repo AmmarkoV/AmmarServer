@@ -66,8 +66,7 @@ int AnalyzePOSTLineRequest(
                             struct HTTPHeader * output,
                             char * request,
                             unsigned int request_length,
-                            unsigned int lines_gathered,
-                            char * webserver_root
+                            unsigned int lines_gathered
                           )
 {
          //If we just had a POST request , it  may have a file associated with it , so we will check for content tags..

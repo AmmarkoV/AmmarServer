@@ -43,7 +43,7 @@ inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * i
 
 
   //Todo check file type , if it is jpg , zip etc it doesnt need compression..!
-  if ( cache[index].contentTypeID!=TEXT ) { fprintf(stderr,"The content is not text , so we wont go in the trouble of compressing it..\n"); return 0; }
+  if ( cache[index].contentTypeID!=TEXT ) { fprintf(stderr,"The content is not text , so we wont go in the trouble of compressing it ( complvl = %u ) ..\n",compression_level); return 0; }
   //If it is css html etc compression would be very nice..
 
   int return_value = 0;

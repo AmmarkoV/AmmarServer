@@ -188,7 +188,7 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
 
 
 
-int saveDynamicRequest(char * filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst)
+int saveDynamicRequest(const char * filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst)
 {
   if (instance==0) { return 0; }
 

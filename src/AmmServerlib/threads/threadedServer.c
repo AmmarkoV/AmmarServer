@@ -523,7 +523,7 @@ void * MainHTTPServerThread (void * ptr)
               // Nothing to do here , proceeding to the next incoming connection..
               // if we failed to use a pre spawned thread we will spawn a new one using the next call..!
             } else
-            if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root))
+            if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen))
             {
               // This request got served by a freshly spawned thread..!
               // Nothing to do here , proceeding to the next incoming connection..

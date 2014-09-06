@@ -53,6 +53,6 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
 * @param ClientID we are talking about
 * @param String of the resource
 * @retval 1=Ok,0=Failed*/
-int saveDynamicRequest(char* filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst);
+int saveDynamicRequest(const char* filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst);
 
 #endif // DYNAMIC_REQUESTS_H_INCLUDED

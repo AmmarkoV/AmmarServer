@@ -58,7 +58,7 @@ int GetExtentionType(const char * theextension);
 * @param Output String with the contentType
 * @param Output contentType length
 * @retval contentTypeEnumerator*/
-int GetContentType(char * filename,char * contentType,unsigned int contentTypeLength);
+int GetContentType(const char * filename,char * contentType,unsigned int contentTypeLength);
 
 /**
 * @brief Return template image for specific content type ( for directory listings etc )

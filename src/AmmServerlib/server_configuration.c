@@ -138,7 +138,11 @@ static void ParseConfigString(struct AmmServer_Instance * instance,struct InputP
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"KEEPALIVE"))
         {
              int keepalive_value = 0;
-             if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON")) { keepalive_value =1; }
+             if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON"))
+                {
+                  keepalive_value=1;
+                  fprintf(stderr,"Keep Alive Function is set to %u but is ignored \n",keepalive_value);
+                }
         } else
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))      { instance->settings.BINDING_PORT = InputParser_GetWordInt(ipc,1); } else
       if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASPRIORITY"))   { CHANGE_PRIORITY  = InputParser_GetWordInt(ipc,1); } else

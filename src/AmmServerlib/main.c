@@ -27,6 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "threads/threadedServer.h"
 #include "threads/prespawnedThreads.h"
 #include "cache/file_caching.h"
+#include "cache/dynamic_requests.h"
 #include "version.h"
 #include "tools/http_tools.h"
 #include "tools/logs.h"
