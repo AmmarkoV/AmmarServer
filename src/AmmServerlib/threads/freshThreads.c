@@ -75,7 +75,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //We may want to keep a client for opening too many connections or ban him early on , before going through the expense
   //of creating a seperate thread for him..
 
-  volatile struct PassToHTTPThread context={{0}};
+  volatile struct PassToHTTPThread context={0};
   //memset((void*) &context,0,sizeof(struct PassToHTTPThread));
 
   context.keep_var_on_stack=1;

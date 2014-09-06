@@ -354,7 +354,7 @@ void * ServeClient(void * ptr)
 
   //This is the structure that holds all the state of the current ServeClient transaction
   struct AmmServer_Instance * instance = context->instance;
-  struct HTTPTransaction transaction={{0}}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
+  struct HTTPTransaction transaction={0}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
   //int close_connection=0; // <- if this is set it means Serve Client must stop
 
   //memset(&transaction->incomingHeader,0,sizeof(struct HTTPHeader));
@@ -561,7 +561,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigne
   instance->clientList = clientList_initialize();
 
   int retres=0;
-  volatile struct PassToHTTPThread context={ { 0 } };
+  volatile struct PassToHTTPThread context={ 0 };
   //memset((void*) &context,0,sizeof(context));
 
    context.port=port;

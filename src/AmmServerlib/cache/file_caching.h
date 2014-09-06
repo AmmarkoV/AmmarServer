@@ -60,7 +60,7 @@ struct cache_item
 * @ingroup cache
 * @param An AmmarServer Instance
 * @param Size of memory being freed
-* @bug This call should have a mutex lock so that it is well defined on massively parallel operations
+* @bug cache_CountMemoryUsageFreeOperation should have a mutex lock so that it is well defined on massively parallel operations
 * @retval 1=Ok,0=Failed*/
 int cache_CountMemoryUsageFreeOperation(struct AmmServer_Instance * instance , unsigned long freedSize);
 
@@ -70,6 +70,7 @@ int cache_CountMemoryUsageFreeOperation(struct AmmServer_Instance * instance , u
 * @ingroup cache
 * @param An AmmarServer Instance
 * @param Size of memory being allocated
+* @bug cache_CountMemoryUsageAllocateOperation should have a mutex lock so that it is well defined on massively parallel operations
 * @retval 1=Ok,0=Failed*/
 int cache_CountMemoryUsageAllocateOperation(struct AmmServer_Instance * instance , unsigned long allocatedSize);
 

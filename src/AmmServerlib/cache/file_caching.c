@@ -17,23 +17,17 @@
 //The cache must be Created and then Destroyed because on program execution its pointer has no memory allocated for the content..!
 
 
-
-
 int cache_CountMemoryUsageFreeOperation(struct AmmServer_Instance * instance , unsigned long freedSize)
 {
   if (instance==0) { return 0; }
-  #warning "cache_CountMemoryUsageFreeOperation should be protected with a thread lock"
   if (instance->loaded_cache_items_Kbytes > freedSize ) { instance->loaded_cache_items_Kbytes -= (unsigned long) freedSize/1024; } else
                                                         { instance->loaded_cache_items_Kbytes = 0; }
   return 1;
 }
 
-
-
 int cache_CountMemoryUsageAllocateOperation(struct AmmServer_Instance * instance , unsigned long allocatedSize)
 {
   if (instance==0) { return 0; }
-  #warning "cache_CountMemoryUsageFreeOperation should be protected with a thread lock"
    instance->loaded_cache_items_Kbytes += (unsigned long) allocatedSize/1024;
   return 1;
 }
