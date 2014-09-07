@@ -23,8 +23,8 @@ extern "C" {
 *        Of course not all of them are supported/used internally but they are listed in the same order to maintain spec compatibility
 * @bug   A potential bug might arise if the specs of the header file are changed and someone is linking with an older version libAmmServer.a thats why this value exists
 */
-#define AMMAR_SERVER_HTTP_HEADER_SPEC 128
-//+a cacheEtag field on instance
+#define AMMAR_SERVER_HTTP_HEADER_SPEC 129
+
 
 
 /**

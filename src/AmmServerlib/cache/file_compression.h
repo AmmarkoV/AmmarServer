@@ -16,7 +16,7 @@
 * @param Index of cache item
 * @param Compression level 1-9
 * @retval 1=Success,0=Failure*/
-inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * instance,unsigned int index,int compression_level);
+inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * instance,unsigned int index,unsigned int compression_level);
 
 
 
