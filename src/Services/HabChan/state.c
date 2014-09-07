@@ -24,6 +24,11 @@ unsigned int threadIndexPageLength = 0;
 char * threadIndexPage = 0;
 
 
+unsigned int threadIndexStartPageLength = 0;
+char * threadIndexStartPage = 0;
+
+unsigned int threadIndexEndPageLength = 0;
+char * threadIndexEndPage = 0;
 
 
 //This function prepares the content of  form context , ( content )
@@ -63,7 +68,9 @@ int loadSite( char * filename )
     strncpy(ourSite.siteName ,filename  ,MAX_STRING_SIZE  );
 
 
-   threadIndexPage = AmmServer_ReadFileToMemory("data/simple.html", &threadIndexPageLength );
+   threadIndexPage      = AmmServer_ReadFileToMemory("data/simple.html", &threadIndexPageLength );
+   threadIndexStartPage = AmmServer_ReadFileToMemory("data/style/simple/threadIndexStart.html", &threadIndexStartPageLength );
+   threadIndexEndPage   = AmmServer_ReadFileToMemory("data/style/simple/threadIndexEnd.html"  , &threadIndexEndPageLength );
 
    //------------------------------------------------------
 

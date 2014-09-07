@@ -20,9 +20,16 @@ void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
    return 0;
 }
 
+
+char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * htmlLength)
+{
+
+  return 0;
+}
+
 void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
 {
-  strcpy(rqst->content,"<html><body>Welcome to Hab Chan");
+  strcpy(rqst->content,threadIndexStartPage);
 
   if  ( rqst->GET_request != 0 )
     {
@@ -35,9 +42,17 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
              {
                 if ( hashMap_ContainsKey(boardHashMap,boardID) )
                 {
-                  strcat(rqst->content,"GOT A BOARD !!!  : "); strcat(rqst->content,boardID); strcat(rqst->content," ! ! <br>");
+                  strcat(rqst->content,"GOT A BOARD !!!  : ");
+                  strcat(rqst->content,boardID); strcat(rqst->content," ! ! <br>");
 
-                  // int serveThreadsOfBoard(struct AmmServer_DynamicRequest  * rqst)
+                  unsigned int threadsHTMLLength=0;
+                  char * threadsHTML = mallocHTMLListOfThreadsOfBoard(boardID,&threadsHTMLLength);
+                  if (threadsHTML!=0)
+                   {
+                    strcat(rqst->content,threadsHTML);
+                    free(threadsHTML);
+                   }
+
                 } else
                 {
                   strcat(rqst->content,"No BOARD  , denied!!!  <BR> ");
@@ -47,17 +62,17 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
           }
        }
     }
-   strcat(rqst->content,"</body></html>" );
+   strcat(rqst->content,threadIndexEndPage);
    rqst->contentSize=strlen(rqst->content);
 
-   rqst->contentSize = threadIndexPageLength;
-   strncpy(rqst->content,threadIndexPage,rqst->contentSize);
+  // rqst->contentSize = threadIndexPageLength;
+  // strncpy(rqst->content,threadIndexPage,rqst->contentSize);
   return 0;
 }
 
 
 
-int loadThread(char * threadName , struct board * ourBoard , struct thread * ourThread)
+int loadThread(const char * threadName , struct board * ourBoard , struct thread * ourThread)
 {
    if (ourBoard==0) { fprintf(stderr,"Cannot load thread without an allocated board\n"); return 0; }
    if (ourThread==0) { fprintf(stderr,"Cannot load thread without an allocated thread\n"); return 0; }

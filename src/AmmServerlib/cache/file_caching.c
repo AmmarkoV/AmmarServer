@@ -91,6 +91,13 @@ int freeMallocIfNeeded(char * mem,unsigned char free_is_needed)
     return 0;
 }
 
+int cache_RandomizeETAG(struct AmmServer_Instance * instance)
+{
+  srand(time(NULL));
+  instance->cacheVersionETag = rand() % 10000;
+  fprintf(stderr,"Randomizing cache ETag , ETags will from now on be %uXXXXXXXX \n",instance->cacheVersionETag);
+  return 1;
+}
 
 
 int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
@@ -109,10 +116,9 @@ int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seper
 
     instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
     instance->cacheVersionETag = 0;
+
     #if RANDOMIZE_ETAG_PER_LAUNCH
-      srand(time(NULL));
-      instance->cacheVersionETag = rand() % 10000;
-      fprintf(stderr,"Randomizing cache ETag is enabled , ETags will be %uXXXXXXXX \n",instance->cacheVersionETag);
+      cache_RandomizeETAG(instance);
     #endif // RANDOMIZE_ETAG_PER_LAUNCH
 
    return 1;

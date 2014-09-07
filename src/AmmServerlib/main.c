@@ -429,6 +429,7 @@ int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
   switch (set_type)
    {
      case AMMSET_PASSWORD_PROTECTION :  instance->settings.PASSWORD_PROTECTION=set_value; return 1; break;
+     case AMMSET_RANDOMIZE_ETAG_BEGINNING :  return cache_RandomizeETAG(instance);  break;
    };
   return 0;
 }

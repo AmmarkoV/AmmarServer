@@ -157,6 +157,14 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,const char 
 * @retval 1=Success,0=Failure*/
 int cache_ResourceExists(struct AmmServer_Instance * instance,char * verified_filename,unsigned int * index);
 
+
+/**
+* @brief Randomize Cache-Etag prefix , this causes all subsequent hits to the cache to have a different E-Tag Prefix
+* @ingroup cache
+* @param An AmmarServer Instance
+* @retval 1=Ok,0=Failed*/
+int cache_RandomizeETAG(struct AmmServer_Instance * instance);
+
 /**
 * @brief Allocate and create a new empty cache
 * @ingroup cache

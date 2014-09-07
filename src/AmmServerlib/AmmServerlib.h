@@ -280,6 +280,7 @@ enum AmmServInfos
 enum AmmServSettings
 {
     AMMSET_PASSWORD_PROTECTION=0,
+    AMMSET_RANDOMIZE_ETAG_BEGINNING,
     AMMSET_TEST
 };
 
