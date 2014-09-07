@@ -257,6 +257,9 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
   if (result != lSize) { fprintf(stderr,"Reading error , while filling in newly allocated cache item %s \n",filename); free (buffer); fclose (pFile); return 0; }
 
   fprintf(stderr,"File %s has %u bytes cached with index %u \n",filename,(unsigned int ) lSize,*index);
+  #warning " Todo : populate cache[*index].modification with int fstat(pFile, struct stat *buf);"
+
+
   fclose(pFile);
   // file has been cached , so time to fill in its details..
   cache[*index].content = buffer;
@@ -265,7 +268,6 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
   *cache[*index].contentSize = lSize;
 
 
-  #warning " Todo : populate cache[*index].modification"
 
   /*This could be a good place to make the gzipped version of the buffer..!*/
    char content_type_str[128]={0};
