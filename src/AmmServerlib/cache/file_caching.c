@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "../AmmServerlib.h"
 #include "../server_configuration.h"
 #include "file_caching.h"
@@ -93,9 +98,16 @@ int freeMallocIfNeeded(char * mem,unsigned char free_is_needed)
 
 int cache_RandomizeETAG(struct AmmServer_Instance * instance)
 {
+  unsigned int oldRandomValue = instance->cacheVersionETag;
   srand(time(NULL));
   instance->cacheVersionETag = rand() % 10000;
   fprintf(stderr,"Randomizing cache ETag , ETags will from now on be %uXXXXXXXX \n",instance->cacheVersionETag);
+
+  if (oldRandomValue == instance->cacheVersionETag)
+     {
+      warning("Randomizer was crap .. \n");
+        instance->cacheVersionETag = ( instance->cacheVersionETag +1 )% 10000;
+     }
   return 1;
 }
 
@@ -238,14 +250,35 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
   if (pFile==0) { fprintf(stderr,"Could not open file to cache it.. %s\n",filename); return 0;}
   /*We have opened the file.. */
 
-  if ( fseek (pFile , 0 , SEEK_END)!=0 ) { fprintf(stderr,"Could not find file size to cache client..!\nUnable to serve client\n"); fclose(pFile); return 0; }
-  unsigned long lSize = ftell (pFile); //lSize now holds the size of the file..
+   unsigned long lSize = 0;
+   struct stat statBuf;
+   if (stat(filename,&statBuf)==0)
+   {
+      //Successfully stated file
+      printf("File size:                %lld bytes\n", (long long) statBuf.st_size);
+      lSize = (unsigned long) statBuf.st_size;
+      fprintf(stderr,"Last status change:       %s", ctime(&statBuf.st_ctime));
+      fprintf(stderr,"Last file access:         %s", ctime(&statBuf.st_atime));
+      fprintf(stderr,"Last file modification:   %s", ctime(&statBuf.st_mtime));
+      #warning " Todo : populate cache[*index].modification with int fstat(pFile, struct stat *buf);"
 
-  //We check if the file size is ok with our configuration limits
-  if (!instance_WeCanCommitMoreMemory(instance,lSize)) { fclose(pFile); return 0; }
+     //We check if the file size is ok with our configuration limits
+     if (!instance_WeCanCommitMoreMemory(instance,lSize)) { fclose(pFile); return 0; }
+   } else
+   {
+     perror("stat returned error : ");
 
-  //We are ok with the file size , we will now rewind the file to start reading it from the beginning..!
-  rewind (pFile);
+     AmmServer_Warning("Could not stat file %s , trying for alternative way to find filesize",filename);
+     if ( fseek (pFile , 0 , SEEK_END)!=0 ) { fprintf(stderr,"Could not find file size to cache client..!\nUnable to serve client\n"); fclose(pFile); return 0; }
+     lSize = ftell (pFile); //lSize now holds the size of the file..
+
+     //We check if the file size is ok with our configuration limits
+     if (!instance_WeCanCommitMoreMemory(instance,lSize)) { fclose(pFile); return 0; }
+
+     //We are ok with the file size , we will now rewind the file to start reading it from the beginning..!
+     rewind (pFile);
+   }
+
   //We will allocate the required memory..!
   char * buffer = (char*) malloc ( sizeof(char) * (lSize));
   if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory to cache this file..!\n"); fclose(pFile); return 0;  }
@@ -257,8 +290,6 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
   if (result != lSize) { fprintf(stderr,"Reading error , while filling in newly allocated cache item %s \n",filename); free (buffer); fclose (pFile); return 0; }
 
   fprintf(stderr,"File %s has %u bytes cached with index %u \n",filename,(unsigned int ) lSize,*index);
-  #warning " Todo : populate cache[*index].modification with int fstat(pFile, struct stat *buf);"
-
 
   fclose(pFile);
   // file has been cached , so time to fill in its details..
