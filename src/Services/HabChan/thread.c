@@ -124,7 +124,7 @@ int loadThread(char * threadName , struct board * ourBoard , struct thread * our
 }
 
 
-int addThreadToBoard( char * boardName ,  char * threadName )
+int addThreadToBoard( const char * boardName , const char * threadName )
 {
   fprintf(stderr,"Adding Thread `%s` to board `%s` \n",threadName,boardName);
 

@@ -24,7 +24,7 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
      unsigned int i=0;
      for (i=0; i<=boardHashMap->curNumberOfEntries; i++)
      {
-      char * key = hashMap_GetKeyAtIndex(boardHashMap,i);
+      const char * key = hashMap_GetKeyAtIndex(boardHashMap,i);
       if (key!=0)
       {
        strcat(rqst->content," <a href=\"threadIndexView.html?board=");

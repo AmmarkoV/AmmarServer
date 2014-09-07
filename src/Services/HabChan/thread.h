@@ -10,6 +10,6 @@ void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst);
 void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst);
 
 
-int addThreadToBoard( char * boardName ,  char * threadName);
+int addThreadToBoard(const char * boardName , const char * threadName);
 
 #endif // THREAD_H_INCLUDED

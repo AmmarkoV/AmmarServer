@@ -241,6 +241,7 @@ int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int val
      hm->entries[our_index].keyLength = strlen(key);
      hm->entries[our_index].keyHash = hashFunction(key);
      strncpy(hm->entries[our_index].key , key , hm->entries[our_index].keyLength);
+     hm->entries[our_index].key[strlen(key)]=0; //Force null termination
     }
 
     if (valLength==0)
