@@ -264,6 +264,9 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
   cache[*index].contentSize = (unsigned long * ) malloc(sizeof (unsigned long));
   *cache[*index].contentSize = lSize;
 
+
+  #warning " Todo : populate cache[*index].modification"
+
   /*This could be a good place to make the gzipped version of the buffer..!*/
    char content_type_str[128]={0};
    if ( GetContentType(filename,content_type_str,128) )

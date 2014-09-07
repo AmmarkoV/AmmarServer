@@ -23,8 +23,48 @@ void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
 
 char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * htmlLength)
 {
+    char * buffer=(char*) malloc(sizeof(char) * 100000);
+    if (buffer==0) { return 0; }
+    buffer[0]=0;
 
-  return 0;
+    unsigned long boardIndex = 0;
+    if ( hashMap_FindIndex(boardHashMap,boardName,&boardIndex) )
+    {
+        unsigned int threadID=0;
+        for (threadID=0; threadID<ourSite.boards[boardIndex].currentThreads; threadID++)
+           {
+
+               strcat(buffer,"\
+               <div style=\"background-color:#ffffee;\">\
+                <br>\
+                  <div>\
+                    <table width=\"400\" style=\"background-color:#f0e0d6;\">\
+                       <tr>\
+                        <td colspan=2> Header Here </td>\
+                       </tr>\
+                       <tr>\
+                        <td> <img src=\"board/b/1/image_1.jpg\" height=\"100\"> </td> <td> payload here </td>\
+                       </tr>\
+                    </table>\
+                 </div><br><hr><br>");
+
+              unsigned int postID=0;
+              for (postID=0; postID<4; postID++)
+              {
+               strcat(buffer,"\
+                 <div style=\"background-color:#f0e0d6;\">\
+                    <table>\
+                       <tr>\
+                         <td colspan=2> Header Here </td>\
+                         <td> image here </td> <td> payload here </td>\
+                       </tr>\
+                    </table>\
+                 </div><br>");
+              }
+             strcat(buffer,"</div>");
+           }
+    }
+  return buffer;
 }
 
 void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
