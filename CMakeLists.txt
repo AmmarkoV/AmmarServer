@@ -1,8 +1,8 @@
 project( AmmarServerProject ) 
 cmake_minimum_required( VERSION 2.8.7 )
 
-set(CMAKE_CXX_FLAGS "-fPIC -s")
-set(CMAKE_C_FLAGS "-fPIC -s")
+set(CMAKE_CXX_FLAGS "-fPIC -s -Wl,-z,relro,-z,now ")
+set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now")
 #set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizations -s")
 #set(CMAKE_CXX_COMPILER "g++-4.6")
     
