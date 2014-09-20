@@ -2,7 +2,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-sudo ./checkrelro.sh --proc-all
+sudo ./checksec.sh --proc-all
 
 cd "$STARTDIR"
 
