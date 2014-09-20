@@ -567,7 +567,7 @@ void resolveRequest(void * request)
              //if (rqst->resource!=0) { free(rqst->resource); rqst->resource=0; }
              //rqst->resource = ( char * ) malloc (sizeof(char) * 4); //+3 chars + nulltermination
              snprintf(rqst->resource,MAX_RESOURCE,"%s",service_filename);
-             snprintf(rqst->verified_local_resource,MAX_RESOURCE,"%s%s",webserver_root,service_filename_noslash);
+             snprintf(rqst->verified_local_resource,MAX_FILE_PATH,"%s%s",webserver_root,service_filename_noslash);
              AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
           }
 }

@@ -1,11 +1,9 @@
 project( AmmarServerProject ) 
 cmake_minimum_required( VERSION 2.8.7 )
 
-set(CMAKE_CXX_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector ")
-set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector")
-#set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizations -s")
-#set(CMAKE_CXX_COMPILER "g++-4.6")
-    
+set(CMAKE_CXX_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
+set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
+
     #This is the core library 
     add_subdirectory (src/AmmServerlib)
     #These are unit tests for the core library

@@ -1,8 +1,7 @@
 project( scriptrunner ) 
 cmake_minimum_required( VERSION 2.8.7 )
 
-set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizations -s")
-#set(CMAKE_CXX_COMPILER "g++-4.6")
+set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
