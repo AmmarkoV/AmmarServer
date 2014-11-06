@@ -46,6 +46,19 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context gps={0};
 
 
+int appendGPSMessage(char * filename , char  * from , char * message , char * latitude , char * longitude)
+{
+    FILE * fp = fopen(filename,"a+");
+    if (fp!=0)
+    {
+        fprintf(fp,"gps(%s,%s,%s,%s)\n",from,latitude,longitude,message);
+        fclose(fp);
+        return 1;
+    }
+  return 0;
+}
+
+
 //This function prepares the content of  form context , ( content )
 void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -76,6 +89,10 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
              {
                fprintf(stderr,"From : %s \n",from);
              }
+         if (!appendGPSMessage("gps.log", (char  *) from , (char *) message , (char *) latitude , (char *) longitude))
+         {
+            AmmServer_Error("Could not log new GPS message received");
+         }
        }
     }
 
