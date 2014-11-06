@@ -22,11 +22,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
 
+
+/**  @brief TM structures carry the year after 1900 (see http://www.cplusplus.com/reference/ctime/tm/ )  so  this is encoded here as a reminder
+     @ingroup security */
+#define EPOCH_YEAR_IN_TM_YEAR 1900
 
 #define DEFAULT_BINDING_PORT 8081  // <--- Change this to 80 if you want to bind to the default http port..!
 #define ADMIN_BINDING_PORT 8082
@@ -51,7 +56,15 @@ int appendGPSMessage(char * filename , char  * from , char * message , char * la
     FILE * fp = fopen(filename,"a+");
     if (fp!=0)
     {
-        fprintf(fp,"gps(%s,%s,%s,%s)\n",from,latitude,longitude,message);
+        time_t clock = time(NULL);
+        struct tm * ptm = gmtime ( &clock );
+
+        char timeStr[128]={0};
+        //Time is GMT
+        snprintf(timeStr,128,"%u/%u/%u,%02u:%02u:%02u",ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+
+
+        fprintf(fp,"gps(%s,%s,%s,%s,%s)\n",from,timeStr,latitude,longitude,message);
         fclose(fp);
         return 1;
     }
