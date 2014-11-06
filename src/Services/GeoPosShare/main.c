@@ -53,6 +53,7 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
   char latitude[128]={0};
   char longitude[128]={0};
   char message[256]={0};
+  char from[256]={0};
 
  AmmServer_Warning("New GPS message");
  if ( rqst->GET_request != 0 )
@@ -70,6 +71,10 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
          if ( _GET(default_server,rqst,"msg",message,256) )
              {
                fprintf(stderr,"Message : %s \n",message);
+             }
+         if ( _GET(default_server,rqst,"from",from,256) )
+             {
+               fprintf(stderr,"From : %s \n",from);
              }
        }
     }
