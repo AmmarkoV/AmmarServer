@@ -48,6 +48,8 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
+struct AmmServer_RH_Context android={0};
+struct AmmServer_RH_Context apk={0};
 struct AmmServer_RH_Context gps={0};
 
 
@@ -127,13 +129,21 @@ void * request_override_callback(char * content)
 }
 
 
-
+//This function prepares the content of  form context , ( content )
+void * prepare_apk_link(struct AmmServer_DynamicRequest  * rqst)
+{
+  strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"5; url=https://github.com/AmmarkoV/GPSTransmitter/\"></head><body><a href=\"https://github.com/AmmarkoV/GPSTransmitter/\">Get Android APK From Here</a></body></html>",rqst->MAXcontentSize);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding gps testing page\n"); }
+  AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&android,"/android.html",webserver_root,4096,0,&prepare_apk_link,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&apk,"/apk.html",webserver_root,4096,0,&prepare_apk_link,SAME_PAGE_FOR_ALL_CLIENTS);
 
 }
 
@@ -141,6 +151,8 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&gps,1);
+    AmmServer_RemoveResourceHandler(default_server,&android,1);
+    AmmServer_RemoveResourceHandler(default_server,&apk,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 

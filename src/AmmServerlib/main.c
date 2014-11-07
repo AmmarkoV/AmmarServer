@@ -290,7 +290,15 @@ int AmmServer_AddResourceHandler
    context->dynamicRequestCallbackFunction=callback;
    if (callback==0) { AmmServer_Warning("No callback passed for a new AmmServer_AddResourceHandler "); }
 
-  return cache_AddMemoryBlock(instance,context);
+
+   int returnValue = cache_AddMemoryBlock(instance,context);
+
+   if (!returnValue)
+   {
+     AmmServer_Error("Failed adding new resource handler\n Resource name `%s` will be unavailable\n",resource_name);
+   }
+
+  return returnValue;
 }
 
 
