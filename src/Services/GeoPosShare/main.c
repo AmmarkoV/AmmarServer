@@ -128,11 +128,10 @@ void * request_override_callback(char * content)
   return 0;
 }
 
-
 //This function prepares the content of  form context , ( content )
 void * prepare_apk_link(struct AmmServer_DynamicRequest  * rqst)
 {
-  strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"5; url=https://github.com/AmmarkoV/GPSTransmitter/\"></head><body><a href=\"https://github.com/AmmarkoV/GPSTransmitter/\">Get Android APK From Here</a></body></html>",rqst->MAXcontentSize);
+  strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0; url=https://github.com/AmmarkoV/GPSTransmitter/blob/master/app/build/outputs/apk/app-debug.apk?raw=true\"></head><body><a href=\"https://github.com/AmmarkoV/GPSTransmitter/blob/master/app/build/outputs/apk/app-debug.apk?raw=true\">Get Android APK From Here</a></body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
