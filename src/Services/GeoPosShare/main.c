@@ -48,6 +48,8 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
+struct AmmServer_RH_Context interestPoints={0};
+struct AmmServer_RH_Context indexPage={0};
 struct AmmServer_RH_Context android={0};
 struct AmmServer_RH_Context apk={0};
 struct AmmServer_RH_Context gps={0};
@@ -97,7 +99,6 @@ int appendGPSMessage(char * filename , char  * from , char * message , char * la
 //This function prepares the content of  form context , ( content )
 void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-
   char latitude[128]={0};
   char longitude[128]={0};
   char message[256]={0};
@@ -159,15 +160,42 @@ void * prepare_apk_link(struct AmmServer_DynamicRequest  * rqst)
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
+
+
+//This function prepares the content of  form context , ( content )
+void * prepare_indexPage(struct AmmServer_DynamicRequest  * rqst)
+{
+  strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0; url=geolocation.html\"></head><body><a href=\"geolocation.html\">Accessing</a></body></html>",rqst->MAXcontentSize);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+//This function prepares the content of  form context , ( content )
+void * prepare_interestPoints(struct AmmServer_DynamicRequest  * rqst)
+{
+  unsigned int pointsLength;
+  char * points=AmmServer_ReadFileToMemory((char*)"points.txt",&pointsLength);
+  if (pointsLength>rqst->MAXcontentSize) { pointsLength=rqst->MAXcontentSize; }
+  memcpy(rqst->content,points,pointsLength);
+  free(points);
+  rqst->contentSize=pointsLength;
+  return 0;
+}
+
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
+  AmmServer_AddResourceHandler(default_server,&interestPoints,"/points.txt",webserver_root,4096,0,&prepare_interestPoints,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  //-------------
   AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&android,"/android.html",webserver_root,4096,0,&prepare_apk_link,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&apk,"/apk.html",webserver_root,4096,0,&prepare_apk_link,SAME_PAGE_FOR_ALL_CLIENTS);
-
+  AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_indexPage,SAME_PAGE_FOR_ALL_CLIENTS);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

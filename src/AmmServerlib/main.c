@@ -271,7 +271,11 @@ int AmmServer_AddResourceHandler
        unsigned int scenario
     )
 {
-   if ( context->requestContext.content!=0 ) { fprintf(stderr,"Context in AmmServer_AddResourceHandler for %s appears to have an already initialized memory part\n",resource_name); }
+   if ( context->requestContext.content!=0 )
+    {
+      AmmServer_Warning("Context in AmmServer_AddResourceHandler for %s appears to have an already initialized memory part\n",resource_name);
+      AmmServer_Warning("Make sure that you are using a seperate context for each AmmServer_AddResourceHandler call you make..\n");
+    }
    memset(context,0,sizeof(struct AmmServer_RH_Context));
    strncpy(context->web_root_path,web_root,MAX_FILE_PATH);
    strncpy(context->resource_name,resource_name,MAX_RESOURCE);
