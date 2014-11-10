@@ -57,9 +57,13 @@ struct AmmServer_RH_Context gps={0};
 
 int appendGPS_OSM_Format(char * filename , char  * from , char * message , char * latitude , char * longitude)
 {
+    int dontWriteHeader=AmmServer_FileExists(filename);
+
     FILE * fp = fopen(filename,"a+");
     if (fp!=0)
     {
+        if (!dontWriteHeader)
+               { fprintf(fp,"lat\tlon\ttitle\tdescription\ticon\ticonSize\ticonOffset\n");     }
         time_t clock = time(NULL);
         struct tm * ptm = gmtime ( &clock );
 
