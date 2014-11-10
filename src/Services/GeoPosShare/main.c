@@ -39,7 +39,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 //char webserver_root[MAX_FILE_PATH]="ammar.gr/"; //<- This is my dev dir.. itshould be commented out or removed in stable release..
 char admin_root[MAX_FILE_PATH]="admin_html/"; // <- change this to the directory that contains your content if you dont want to use the default admin_html dir..
-char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char webserver_root[MAX_FILE_PATH]="public_html/geoPosShare/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
