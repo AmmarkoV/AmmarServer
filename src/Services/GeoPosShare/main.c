@@ -53,6 +53,26 @@ struct AmmServer_RH_Context apk={0};
 struct AmmServer_RH_Context gps={0};
 
 
+int appendGPS_OSM_Format(char * filename , char  * from , char * message , char * latitude , char * longitude)
+{
+    FILE * fp = fopen(filename,"a+");
+    if (fp!=0)
+    {
+        time_t clock = time(NULL);
+        struct tm * ptm = gmtime ( &clock );
+
+        char timeStr[128]={0};
+        //Time is GMT
+        snprintf(timeStr,128,"%u/%u/%u,%02u:%02u:%02u",ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+
+
+        fprintf(fp,"%s\t%s\tMessage:%s Time:%s From:%s\tr.png\t24,24\t0,0\n",latitude,longitude,message,timeStr,from);
+        fclose(fp);
+        return 1;
+    }
+  return 0;
+}
+
 int appendGPSMessage(char * filename , char  * from , char * message , char * latitude , char * longitude)
 {
     FILE * fp = fopen(filename,"a+");
@@ -107,6 +127,10 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
          if (!appendGPSMessage("gps.log", (char  *) from , (char *) message , (char *) latitude , (char *) longitude))
          {
             AmmServer_Error("Could not log new GPS message received");
+         }
+          if (!appendGPS_OSM_Format("points.txt", (char  *) from , (char *) message , (char *) latitude , (char *) longitude))
+         {
+            AmmServer_Error("Could not log to OSM point cloud");
          }
        }
     }

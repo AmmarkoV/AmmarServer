@@ -3,20 +3,21 @@
 
 .cTxt
 {  
- 
     color: white;
 }
 
 
 body 
 {
-    color: blue;
+   color:white;
 }
 
-h1 {
-    color: #00ff00;
+h1 
+{
+   
 }
 
-h2 {
+h2 
+{
     color: rgb(255,0,0);
 } 
