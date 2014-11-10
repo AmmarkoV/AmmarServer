@@ -1,10 +1,8 @@
 <html><body>
-
   <p id="placeholder"></p>
   <div id="mapdiv"></div>
   <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
   <script>
-
 
 var x=document.getElementById("placeholder");
 
@@ -22,7 +20,7 @@ function showPositionLonLat(positionLon,positionLat,zoom)
     var layer_switcher= new OpenLayers.Control.LayerSwitcher({});
     map.addControl(layer_switcher);
     //Set start centrepoint and zoom    
-    var lonLat = new OpenLayers.LonLat(lonFloat, latFloat )
+    var lonLat = new OpenLayers.LonLat(positionLon, positionLat)
           .transform(
             new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
             map.getProjectionObject() // to Spherical Mercator Projection
