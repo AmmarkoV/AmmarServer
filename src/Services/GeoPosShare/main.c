@@ -208,6 +208,9 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&gps,1);
     AmmServer_RemoveResourceHandler(default_server,&android,1);
     AmmServer_RemoveResourceHandler(default_server,&apk,1);
+
+    AmmServer_RemoveResourceHandler(default_server,&interestPoints,1);
+    AmmServer_RemoveResourceHandler(default_server,&indexPage,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 
