@@ -7,36 +7,63 @@
   </head>
   <body bgcolor="#CCCCC">
     <!-- Top Menu -->
+
     <table>
       <tr>
-        <td>
-           <div bgcolor="#FFFFFF">
+        <td  width=200>
+           <div bgcolor="#FFFFFF" >
             Time Here
             
            </div>
         </td>
-        <td>
-           Monitor 
-        </td>
-        <td>
-           Control
-        </td>
-        <td>
-           Build
-        </td>
-        <td>
-           Content
-        </td>
-        <td>
-           Schedule
-        </td>
-        <td>
-           System
+        <td>  
+  
+  
+<ul> 
+  <li>
+    <a href="#">Monitor</a>
+    <ul>
+      <li><a href="#">Call to Room</a></li>
+      <li><a href="#">Follow me</a></li>
+      <li><a href="#">Clear Floor</a></li>
+      <li><a href="#">Learn Object</a></li>
+      <li><a href="#">Help Me</a></li>
+      <li><a href="#">Sleep</a></li>
+      <li><a href="#">Wake-up</a></li>
+       
+    </ul>
+  </li>   
+  
+  
+  <li>
+    <a href="#">Control</a>
+    <ul>
+      <li><a href="javascript:makeFeedVisible('videoFeedTop');">Top Camera</a></li>
+      <li><a href="javascript:makeFeedVisible('videoFeedBottom');">Botom Camera</a></li>
+      <li><a href="javascript:makeFeedVisible('mapFeed');">Map Overview</a> </li>
+      <li><a href="javascript:makeFeedVisible('tfTree');">TF-Tree</a> </li>
+    </ul>
+  </li> 
+  <li> <a href="#">Build</a>
+    <ul>
+      <li><a href="recordings/" target="_new">View Recordings</a></li>
+      <li><a href="controlpanel.html?node=startRecording">Start Recording</a></li>
+      <li><a href="controlpanel.html?node=stopRecording">Stop Recording</a></li>
+
+      <li><a href="controlpanel.html?robot=systemUpdate">Software Update</a></li>
+      <li><a href="controlpanel.html?robot=systemRestart">System Restart</a></li>
+      <li><a href="controlpanel.html?robot=systemShutdown">System Shutdown</a></li>
+    </ul>   
+  </li>
+  <li><a href="http://hobbit.acin.tuwien.ac.at/">Content</a></li>
+  <li><a href="mailto:hob-impl@fortec.tuwien.ac.at">Schedule</a></li>
+  <li><a href="mailto:hob-impl@fortec.tuwien.ac.at">System</a></li>
+</ul>         
+      
         </td>
       </tr>    
-    </table> <br>
-    <hr>
-    <br><br>
+    </table> 
+    <hr> 
     
     <!-- Main Page -->
     <table bgcolor="#000033" width="100%" class="cTxt" >
@@ -64,7 +91,7 @@
              <table width="100%">
              <tr>
                <td> 
-                 <iframe src="timetable.html" width="100%" frameborder="0" > </iframe>
+                 <iframe src="timetable.html" width="100%" height=300 frameborder="0" > </iframe>
                </td>
              </tr> 
             </table>
@@ -96,8 +123,6 @@
           
           
           <br><br><br><br><br><br><br>
-          <br><br><br><br><br><br><br><br>
-          <br><br><br><br><br><br><br><br>
         </td>
       </tr>
     </table>
