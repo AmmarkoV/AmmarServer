@@ -1,12 +1,20 @@
 <html><body>
+
+  <p id="placeholder"></p>
   <div id="mapdiv"></div>
   <script src="http://www.openlayers.org/api/OpenLayers.js"></script>
   <script>
+
+
+var x=document.getElementById("placeholder");
+
+function showPositionLonLat(positionLon,positionLat,zoom)
+ {
     map = new OpenLayers.Map("mapdiv");
     map.addLayer(new OpenLayers.Layer.OSM());
  
-    var pois = new OpenLayers.Layer.Text( "My Points",
-                    { location:"./points.txt",
+    var pois = new OpenLayers.Layer.Text( "GeoPosShare",
+                    { location:"points.txt",
                       projection: map.displayProjection
                     });
     map.addLayer(pois);
@@ -14,13 +22,62 @@
     var layer_switcher= new OpenLayers.Control.LayerSwitcher({});
     map.addControl(layer_switcher);
     //Set start centrepoint and zoom    
-    var lonLat = new OpenLayers.LonLat( 9.5788, 48.9773 )
+    var lonLat = new OpenLayers.LonLat(lonFloat, latFloat )
           .transform(
             new OpenLayers.Projection("EPSG:4326"), // transform from WGS 1984
             map.getProjectionObject() // to Spherical Mercator Projection
           );
-    var zoom=11;
     map.setCenter (lonLat, zoom);  
+ }
+
+function showPosition(position)
+{
+    var latFloat = parseFloat(position.coords.latitude);
+    var lonFloat = parseFloat(position.coords.longitude);
+    showPositionLonLat(lonFloat,latFloat,15);
+}
+
+function showWithoutKnowingWhereWeAre()
+{
+   showPositionLonLat(36,23,5);
+}
+
+
+function showError(error)
+  {
+  switch(error.code) 
+    {
+    case error.PERMISSION_DENIED:
+      x.innerHTML="User denied the request for Geolocation."
+      break;
+    case error.POSITION_UNAVAILABLE:
+      x.innerHTML="Location information is unavailable."
+      break;
+    case error.TIMEOUT:
+      x.innerHTML="The request to get user location timed out."
+      break;
+    case error.UNKNOWN_ERROR:
+      x.innerHTML="An unknown error occurred."
+      break;
+    }
+   showWithoutKnowingWhereWeAre();
+  } 
+
+function getLocation()
+{
+  if (navigator.geolocation)
+    {
+      navigator.geolocation.getCurrentPosition(showPosition,showError);
+      return 1;
+    }
+  else{x.innerHTML="Geolocation is not supported by this browser.";}
+  return 0;
+}
+
+ if (!getLocation())
+  {
+   showWithoutKnowingWhereWeAre();
+  }
  
   </script>
 </body></html> 
