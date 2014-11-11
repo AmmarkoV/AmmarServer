@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
-char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char webserver_root[MAX_FILE_PATH]="public_html/cinemaPilot/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
@@ -53,6 +53,8 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
+
+struct AmmServer_RH_Context indexPage={0};
 struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
 
@@ -76,6 +78,16 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
             <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>",
            tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
 
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
+//This function prepares the content of  form context , ( content )
+void * prepare_indexPage(struct AmmServer_DynamicRequest  * rqst)
+{
+  strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0; url=cinema.html\"></head><body><a href=\"cinema.html\">Accessing</a></body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
@@ -114,18 +126,18 @@ void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
+  AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
-   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding random testing page\n"); }
-
+  AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_indexPage,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
+    AmmServer_RemoveResourceHandler(default_server,&random_chars,1);
+    AmmServer_RemoveResourceHandler(default_server,&indexPage,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 
@@ -147,7 +159,7 @@ int main(int argc, char *argv[])
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     default_server = AmmServer_StartWithArgs(
-                                             "SimpleTemplate",
+                                             "CinemaPilot",
                                               argc,argv , //The internal server will use the arguments to change settings
                                               //If you don't want this look at the AmmServer_Start call
                                               bindIP,
