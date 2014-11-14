@@ -55,6 +55,7 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 
 struct AmmServer_RH_Context indexPage={0};
+struct AmmServer_RH_Context remoteControl={0};
 struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
 
@@ -83,6 +84,37 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+//This function prepares the content of form context , ( content )
+void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
+{
+ char data[256]={0};
+ AmmServer_Warning("New Control");
+ if ( rqst->GET_request != 0 )
+ {
+   if ( strlen(rqst->GET_request)>0 )
+    {
+      if ( _GET(default_server,rqst,"play",data,128) )
+       {
+         AmmServer_Warning("Play pressed \n");
+       }
+      if ( _GET(default_server,rqst,"pause",data,128) )
+       {
+         AmmServer_Warning("Pause pressed\n");
+       }
+      if ( _GET(default_server,rqst,"previous",data,128) )
+       {
+         AmmServer_Warning("Previous\n");
+       }
+      if ( _GET(default_server,rqst,"next",data,128) )
+       {
+         AmmServer_Warning("Next\n");
+       }
+    }
+ }
+  strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0; url=control.html\" ></head><body>Ack</body></html>",rqst->MAXcontentSize);
+  rqst->contentSize=strlen(rqst->content);
+return 0;
+}
 
 //This function prepares the content of  form context , ( content )
 void * prepare_indexPage(struct AmmServer_DynamicRequest  * rqst)
@@ -128,6 +160,10 @@ void init_dynamic_content()
 
   AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+
+  AmmServer_AddResourceHandler(default_server,&remoteControl,"/remoteControl.html",webserver_root,4096,0,&prepare_remoteControl_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+
+
 
   AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_indexPage,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
