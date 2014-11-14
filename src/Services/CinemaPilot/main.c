@@ -83,31 +83,78 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
+int issueCommandToMplayer(const char * pathToPipe ,const char * command )
+{
+  FILE *fp =fopen(pathToPipe,"w");
+  if (fp!=0)
+  {
+    fprintf(fp,"%s\n",command);
+    fclose(fp);
+    return 1;
+  }
+  return 0;
+}
+
+int intermission(unsigned int seconds)
+{
+ int i=system("xdotool mousemove --sync 1920 1080 click 0");
+
+ i=system("./FullScreenViewer start.jpg&");
+//
+//./FullScreenViewer start.jpg&
+//sleep 10
+return 1;
+}
+
+int startMplayer(char * path, char * movie,char * subtitles,unsigned int startAt,unsigned int duration)
+{
+  char command[512]={0};
+  snprintf(command,512,"mkfifo %s",path);
+  int i=system(command);
+
+
+
+  snprintf(command,512,"killall mplayer2");
+  i=system(command);
+
+  //mplayer -ss 46 -endpos 17 -utf8 -fs -slang gr,en -sub Mad.Max.1979.1080p.BluRay.x264.anoXmous.srt -v Mad.Max.1979.1080p.BluRay.x264.anoXmous_.mp4
+
+  snprintf(command,512,"mplayer2 -slave %s -utf8 -fs -slang gr,en -v %s -sub %s",path,movie,subtitles);
+  i=system(command);
+
+
+  return (i==0);
+}
+
 
 //This function prepares the content of form context , ( content )
 void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
 {
  char data[256]={0};
- AmmServer_Warning("New Control");
+ AmmServer_Success("New Control Request");
  if ( rqst->GET_request != 0 )
  {
    if ( strlen(rqst->GET_request)>0 )
     {
       if ( _GET(default_server,rqst,"play",data,128) )
        {
-         AmmServer_Warning("Play pressed \n");
+         AmmServer_Success("Play pressed \n");
+         issueCommandToMplayer("/tmp/mplayer","play");
        }
       if ( _GET(default_server,rqst,"pause",data,128) )
        {
-         AmmServer_Warning("Pause pressed\n");
+         AmmServer_Success("Pause pressed\n");
+         issueCommandToMplayer("/tmp/mplayer","pause");
        }
       if ( _GET(default_server,rqst,"previous",data,128) )
        {
-         AmmServer_Warning("Previous\n");
+         AmmServer_Success("Previous\n");
+         issueCommandToMplayer("/tmp/mplayer","previous");
        }
       if ( _GET(default_server,rqst,"next",data,128) )
        {
-         AmmServer_Warning("Next\n");
+         AmmServer_Success("Next\n");
+         issueCommandToMplayer("/tmp/mplayer","next");
        }
     }
  }
