@@ -85,6 +85,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 int issueCommandToMplayer(const char * pathToPipe ,const char * command )
 {
+  //http://www.mplayerhq.hu/DOCS/tech/slave.txt <- for commands used
   FILE *fp =fopen(pathToPipe,"w");
   if (fp!=0)
   {
@@ -93,6 +94,22 @@ int issueCommandToMplayer(const char * pathToPipe ,const char * command )
     return 1;
   }
   return 0;
+}
+
+
+int pauseMplayer(const char * pathToPipe)
+{
+  return issueCommandToMplayer( pathToPipe , "pause");
+}
+
+int resumeMplayer(const char * pathToPipe)
+{
+  return issueCommandToMplayer( pathToPipe , "pause");
+}
+
+int stopMplayer(const char * pathToPipe)
+{
+  return issueCommandToMplayer( pathToPipe , "stop");
 }
 
 int intermission(unsigned int seconds)
@@ -112,14 +129,12 @@ int startMplayer(char * path, char * movie,char * subtitles,unsigned int startAt
   snprintf(command,512,"mkfifo %s",path);
   int i=system(command);
 
-
-
-  snprintf(command,512,"killall mplayer2");
+  snprintf(command,512,"killall mplayer");
   i=system(command);
 
   //mplayer -ss 46 -endpos 17 -utf8 -fs -slang gr,en -sub Mad.Max.1979.1080p.BluRay.x264.anoXmous.srt -v Mad.Max.1979.1080p.BluRay.x264.anoXmous_.mp4
 
-  snprintf(command,512,"mplayer2 -slave %s -utf8 -fs -slang gr,en -v %s -sub %s",path,movie,subtitles);
+  snprintf(command,512,"mplayer -slave -input file=%s -utf8 -fs -slang gr,en -v %s -sub %s",path,movie,subtitles);
   i=system(command);
 
 
@@ -144,7 +159,8 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
       if ( _GET(default_server,rqst,"pause",data,128) )
        {
          AmmServer_Success("Pause pressed\n");
-         issueCommandToMplayer("/tmp/mplayer","pause");
+         //issueCommandToMplayer("/tmp/mplayer","pause");
+         pauseMplayer("/tmp/mplayer");
        }
       if ( _GET(default_server,rqst,"previous",data,128) )
        {
@@ -258,6 +274,8 @@ int main(int argc, char *argv[])
     //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
+
+    //startMplayer(char * path, char * movie,char * subtitles,unsigned int startAt,unsigned int duration)
 
          while ( (AmmServer_Running(default_server))  )
            {
