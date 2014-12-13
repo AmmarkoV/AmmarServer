@@ -93,12 +93,22 @@ struct playlist
    struct playlistItem item[100];
 };
 
+
+
+int processCommand( struct playlist * newMovie , struct InputParserC * ipc , char * line , unsigned int words_count )
+{
+}
+
+
 struct playlist * readPlaylist(char * filename)
 {
 
   FILE * fp = fopen(filename,"r");
   if (fp == 0 ) { fprintf(stderr,"Cannot open trajectory stream %s \n",filename); return 0; }
 
+
+ unsigned int readOpResult = 0;
+ char line [512]={0};
 
   struct playlist * newMovie=0;
   newMovie = (struct playlist *) malloc(sizeof(struct playlist) );
@@ -108,12 +118,25 @@ struct playlist * readPlaylist(char * filename)
   ipc = InputParser_Create(1024,5);
   if (ipc==0) { fprintf(stderr,"Cannot allocate memory for new stream\n"); return 0; }
 
+  while (!feof(fp))
+  {
+   //We get a new line out of the file
+   readOpResult = (fgets(line,512,fp)!=0);
+   if ( readOpResult != 0 )
+    {
+     //We tokenize it
+     unsigned int words_count = InputParser_SeperateWords(ipc,line,0);
+    if ( words_count > 0 )
+      {
+       processCommand(newMovie,ipc,line,words_count);
+      } // End of line containing tokens
+    } //End of getting a line while reading the file
+   }
 
+ fclose(fp);
+ InputParser_Destroy(ipc);
 
-
-
-
-  return newMovie;
+ return newMovie;
 }
 
 
@@ -176,10 +199,10 @@ int intermission(unsigned int seconds)
  int i=system("xdotool mousemove --sync 1920 1080 click 0");
 
  i=system("./FullScreenViewer start.jpg&");
-//
-//./FullScreenViewer start.jpg&
-//sleep 10
-return (i==0);
+ //
+ //./FullScreenViewer start.jpg&
+ //sleep 10
+ return (i==0);
 }
 
 int startMplayer(char * path, char * movie,char * subtitles,unsigned int startAt,unsigned int duration)
