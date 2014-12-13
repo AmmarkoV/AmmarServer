@@ -24,6 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../AmmServerlib/InputParser/InputParser_C.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
@@ -75,17 +76,47 @@ struct movieTime
 };
 
 
-struct movieProgram
+struct playlistItem
 {
   int command;
   char playFile[512];
 
 
   struct movieTime triggerTime;
-
-
-
 };
+
+
+struct playlist
+{
+   unsigned int numberOfItems;
+   unsigned int maxItems;
+   struct playlistItem item[100];
+};
+
+struct playlist * readPlaylist(char * filename)
+{
+
+  FILE * fp = fopen(filename,"r");
+  if (fp == 0 ) { fprintf(stderr,"Cannot open trajectory stream %s \n",filename); return 0; }
+
+
+  struct playlist * newMovie=0;
+  newMovie = (struct playlist *) malloc(sizeof(struct playlist) );
+
+
+  struct InputParserC * ipc=0;
+  ipc = InputParser_Create(1024,5);
+  if (ipc==0) { fprintf(stderr,"Cannot allocate memory for new stream\n"); return 0; }
+
+
+
+
+
+
+  return newMovie;
+}
+
+
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -148,7 +179,7 @@ int intermission(unsigned int seconds)
 //
 //./FullScreenViewer start.jpg&
 //sleep 10
-return 1;
+return (i==0);
 }
 
 int startMplayer(char * path, char * movie,char * subtitles,unsigned int startAt,unsigned int duration)
