@@ -30,6 +30,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char webserver_root[MAX_FILE_PATH]="public_html/cinemaPilot/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
+//char mplayerPath[MAX_FILE_PATH]="/tmp/mplayer";
+char mplayerPath[MAX_FILE_PATH]="/home/ammar/Videos/videoController";
+
 
 /*! Dynamic content code ..! START!*/
 /* A few words about dynamic content here..
@@ -58,6 +61,31 @@ struct AmmServer_RH_Context indexPage={0};
 struct AmmServer_RH_Context remoteControl={0};
 struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
+
+
+struct movieTime
+{
+  unsigned int hours;
+  unsigned int minutes;
+  unsigned int seconds;
+
+  unsigned int day;
+  unsigned int month;
+  unsigned int year;
+};
+
+
+struct movieProgram
+{
+  int command;
+  char playFile[512];
+
+
+  struct movieTime triggerTime;
+
+
+
+};
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -154,23 +182,23 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
       if ( _GET(default_server,rqst,"play",data,128) )
        {
          AmmServer_Success("Play pressed \n");
-         issueCommandToMplayer("/tmp/mplayer","play");
+         issueCommandToMplayer(mplayerPath,"play");
        }
       if ( _GET(default_server,rqst,"pause",data,128) )
        {
          AmmServer_Success("Pause pressed\n");
          //issueCommandToMplayer("/tmp/mplayer","pause");
-         pauseMplayer("/tmp/mplayer");
+         pauseMplayer(mplayerPath);
        }
       if ( _GET(default_server,rqst,"previous",data,128) )
        {
          AmmServer_Success("Previous\n");
-         issueCommandToMplayer("/tmp/mplayer","previous");
+         issueCommandToMplayer(mplayerPath,"previous");
        }
       if ( _GET(default_server,rqst,"next",data,128) )
        {
          AmmServer_Success("Next\n");
-         issueCommandToMplayer("/tmp/mplayer","next");
+         issueCommandToMplayer(mplayerPath,"next");
        }
     }
  }

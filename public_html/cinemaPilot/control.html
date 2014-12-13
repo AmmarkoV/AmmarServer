@@ -1,8 +1,31 @@
 <html>
+
+
   <head>
     <title></title>
     <meta content="">
     <style></style>
+
+
+<script type="text/javascript" >   
+   function httpGet(theUrl)
+    {
+    var xmlHttp = null;
+
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+    }
+
+     function command(theCommand)
+     {
+       var randomnumber=Math.floor(Math.random()*100000);
+       httpGet("remoteControl.html?"+theCommand+"&t="+randomnumber); 
+     } 
+   </script>
+
+
   </head>
   <body>  
     <table>
@@ -13,12 +36,12 @@
       </tr>    
     </table>
     <br>
-   <a href="remoteControl.html?previous=1"><img src="ctrl_prev.png"></a>
+   <a href="javascript:command('previous=1');"><img src="ctrl_prev.png"></a>
    <!-- img src="ctrl_seekb.png" -->
-   <a href="remoteControl.html?stop=1"><img src="ctrl_stop.png"></a>
-   <a href="remoteControl.html?pause=1"><img src="ctrl_pause.png"></a>
-   <a href="remoteControl.html?play=1"><img src="ctrl_play.png"></a>
+   <a href="javascript:command('stop=1');"><img src="ctrl_stop.png"></a>
+   <a href="javascript:command('pause=1');"><img src="ctrl_pause.png"></a>
+   <a href="javascript:command('play=1');"><img src="ctrl_play.png"></a>
    <!-- img src="ctrl_seekn.png" -->
-   <a href="remoteControl.html?next=1"><img src="ctrl_next.png"></a>
+   <a href="javascript:command('next=1');"><img src="ctrl_next.png"></a>
   </body>
 </html>
