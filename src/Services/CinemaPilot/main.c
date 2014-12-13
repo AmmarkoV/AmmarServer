@@ -64,6 +64,23 @@ struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
 
 
+enum commandType
+{
+ CMD_TYPE_NONE=0,
+ CMD_TYPE_TRAILER,
+ CMD_TYPE_MOVIE,
+ CMD_TYPE_LIGHTS_ON,
+ CMD_TYPE_LIGHTS_OFF,
+ CMD_TYPE_SOUND_ON,
+ CMD_TYPE_SOUND_OFF,
+ CMD_TYPE_INTERMISSION,
+ CMD_TYPE_BELL_ON,
+ CMD_TYPE_BELL_OFF,
+ //----------------
+ NUMBER_OF_COMMANDS
+};
+
+
 struct movieTime
 {
   unsigned int hours;
@@ -81,7 +98,6 @@ struct playlistItem
   int command;
   char playFile[512];
 
-
   struct movieTime triggerTime;
 };
 
@@ -97,6 +113,49 @@ struct playlist
 
 int processCommand( struct playlist * newMovie , struct InputParserC * ipc , char * line , unsigned int words_count )
 {
+  unsigned int thisItem = newMovie->numberOfItems;
+
+  if (InputParser_WordCompareNoCase(ipc,0,(char*)"TRAILER",10)==1)
+    {
+      newMovie->item[thisItem].command  =  CMD_TYPE_TRAILER;
+      InputParser_GetWord(ipc,1,newMovie->item[thisItem].playFile,512);
+      ++newMovie->numberOfItems;
+    } else
+  if (InputParser_WordCompareNoCase(ipc,0,(char*)"MOVIE",5)==1)
+    {
+      newMovie->item[thisItem].command  =  CMD_TYPE_MOVIE;
+      InputParser_GetWord(ipc,1,newMovie->item[thisItem].playFile,512);
+      ++newMovie->numberOfItems;
+    } else
+  if (InputParser_WordCompareNoCase(ipc,0,(char*)"LIGHTS",6)==1)
+    {
+      if (InputParser_GetWordInt(ipc,1)==1) {  newMovie->item[thisItem].command  =  CMD_TYPE_LIGHTS_ON;  } else
+      if (InputParser_GetWordInt(ipc,1)==0) {  newMovie->item[thisItem].command  =  CMD_TYPE_LIGHTS_OFF;  }
+      ++newMovie->numberOfItems;
+    } else
+  if (InputParser_WordCompareNoCase(ipc,0,(char*)"SOUND",5)==1)
+    {
+      if (InputParser_GetWordInt(ipc,1)==1) {  newMovie->item[thisItem].command  =  CMD_TYPE_SOUND_ON;  } else
+      if (InputParser_GetWordInt(ipc,1)==0) {  newMovie->item[thisItem].command  =  CMD_TYPE_SOUND_OFF;  }
+      ++newMovie->numberOfItems;
+    } else
+  if (InputParser_WordCompareNoCase(ipc,0,(char*)"INTERMISSION",12)==1)
+    {
+      newMovie->item[thisItem].command  =  CMD_TYPE_INTERMISSION;
+      InputParser_GetWord(ipc,1,newMovie->item[thisItem].playFile,512);
+      ++newMovie->numberOfItems;
+    } else
+  if (InputParser_WordCompareNoCase(ipc,0,(char*)"BELL",4)==1)
+    {
+      if (InputParser_GetWordInt(ipc,1)==1) {  newMovie->item[thisItem].command  =  CMD_TYPE_BELL_ON;  } else
+      if (InputParser_GetWordInt(ipc,1)==0) {  newMovie->item[thisItem].command  =  CMD_TYPE_BELL_OFF;  }
+      ++newMovie->numberOfItems;
+    } else
+    {
+      fprintf(stderr,"Unknown string,treated as comment\n");
+      return 0;
+    }
+  return 1;
 }
 
 
