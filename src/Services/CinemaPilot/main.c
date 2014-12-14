@@ -64,6 +64,8 @@ struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
 
 
+
+
 enum commandType
 {
  CMD_TYPE_NONE=0,
@@ -109,6 +111,11 @@ struct playlist
    struct playlistItem item[100];
 };
 
+
+
+
+
+struct playlist * movieList={0};
 
 
 int processCommand( struct playlist * newMovie , struct InputParserC * ipc , char * line , unsigned int words_count )
@@ -199,6 +206,33 @@ struct playlist * readPlaylist(char * filename)
 }
 
 
+
+
+int executePlaylist(struct playlist * thePlaylist)
+{
+  return 0;
+}
+
+
+int keepalivePlaylist(struct playlist * thePlaylist)
+{
+    /*
+    ti ginete?
+    ti na ginei
+    ola kala.esu
+    kala k egw ftiaxnw ayto gia tin katw aithousa
+    k pio meta  mallon tha tin kanw na paw na paiksw kammia dota
+    egw tha fugw se 5 lepta tha paw mia volta
+    na prosexeis <3
+    8eeeenx*/
+
+
+  time_t clock = time(NULL);
+  struct tm * ptm = gmtime ( &clock );
+  //snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+
+
+}
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -296,6 +330,8 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
        {
          AmmServer_Success("Play pressed \n");
          issueCommandToMplayer(mplayerPath,"play");
+
+         executePlaylist(movieList);
        }
       if ( _GET(default_server,rqst,"pause",data,128) )
        {
@@ -414,9 +450,14 @@ int main(int argc, char *argv[])
 
     //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
+
+
+    movieList = readPlaylist("/home/ammar/Documents/Programming/AmmarServer/src/Services/CinemaPilot/playlist.ini");
     //stats.html and formtest.html should be availiable from now on..!
 
     //startMplayer(char * path, char * movie,char * subtitles,unsigned int startAt,unsigned int duration)
+
+
 
          while ( (AmmServer_Running(default_server))  )
            {
@@ -426,6 +467,8 @@ int main(int argc, char *argv[])
              //the AmmServer_Running() call once in a while to make sure everything is in order
              //usleep(60000);
              sleep(1);
+
+             keepalivePlaylist(movieList);
            }
 
     //Delete dynamic content allocations and remove stats.html and formtest.html from the server
