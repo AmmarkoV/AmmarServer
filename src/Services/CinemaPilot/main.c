@@ -31,8 +31,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char webserver_root[MAX_FILE_PATH]="public_html/cinemaPilot/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
-//char mplayerPath[MAX_FILE_PATH]="/tmp/mplayer";
-char mplayerPath[MAX_FILE_PATH]="/home/ammar/Videos/videoController";
+//char mplayerControllerPath[MAX_FILE_PATH]="/tmp/mplayer";
+char mplayerControllerPath[MAX_FILE_PATH]="/home/ammar/Videos/videoController";
 
 
 /*! Dynamic content code ..! START!*/
@@ -64,6 +64,15 @@ struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
 
 
+enum stateType
+{
+ STATE_UNINITIALIZED=0,
+ STATE_PLAYING,
+ STATE_FINISHED,
+ //----------------
+ NUMBER_OF_STATES
+};
+
 
 
 enum commandType
@@ -83,24 +92,16 @@ enum commandType
 };
 
 
-struct movieTime
-{
-  unsigned int hours;
-  unsigned int minutes;
-  unsigned int seconds;
-
-  unsigned int day;
-  unsigned int month;
-  unsigned int year;
-};
-
 
 struct playlistItem
 {
   int command;
   char playFile[512];
 
-  struct movieTime triggerTime;
+
+  struct tm * triggerTime;
+  struct tm * stopTime;
+
 };
 
 
@@ -109,6 +110,9 @@ struct playlist
    unsigned int numberOfItems;
    unsigned int maxItems;
    struct playlistItem item[100];
+
+   unsigned int playlistActiveItem;
+   unsigned int playlistState;
 };
 
 
@@ -116,6 +120,67 @@ struct playlist
 
 
 struct playlist * movieList={0};
+
+
+
+int issueCommandToMplayer(const char * pathToPipe ,const char * command )
+{
+  //http://www.mplayerhq.hu/DOCS/tech/slave.txt <- for commands used
+  FILE *fp =fopen(pathToPipe,"w");
+  if (fp!=0)
+  {
+    fprintf(fp,"%s\n",command);
+    fclose(fp);
+    return 1;
+  }
+  return 0;
+}
+
+
+int pauseMplayer(const char * pathToPipe)
+{
+  return issueCommandToMplayer( pathToPipe , "pause");
+}
+
+int resumeMplayer(const char * pathToPipe)
+{
+  return issueCommandToMplayer( pathToPipe , "pause");
+}
+
+int stopMplayer(const char * pathToPipe)
+{
+  return issueCommandToMplayer( pathToPipe , "stop");
+}
+
+int intermission(unsigned int seconds)
+{
+ int i=system("xdotool mousemove --sync 1920 1080 click 0");
+
+ i=system("./FullScreenViewer start.jpg&");
+ //
+ //./FullScreenViewer start.jpg&
+ //sleep 10
+ return (i==0);
+}
+
+int startMplayer( char * movie,char * subtitles,unsigned int startAt,unsigned int duration)
+{
+  char command[512]={0};
+  snprintf(command,512,"mkfifo %s",mplayerControllerPath);
+  int i=system(command);
+
+  snprintf(command,512,"killall mplayer");
+  i=system(command);
+
+  //mplayer -ss 46 -endpos 17 -utf8 -fs -slang gr,en -sub Mad.Max.1979.1080p.BluRay.x264.anoXmous.srt -v Mad.Max.1979.1080p.BluRay.x264.anoXmous_.mp4
+
+  snprintf(command,512,"mplayer -slave -input file=%s -utf8 -fs -slang gr,en -v %s -sub %s",mplayerControllerPath,movie,subtitles);
+  i=system(command);
+
+
+  return (i==0);
+}
+
 
 
 int processCommand( struct playlist * newMovie , struct InputParserC * ipc , char * line , unsigned int words_count )
@@ -207,9 +272,44 @@ struct playlist * readPlaylist(char * filename)
 
 
 
+int executePlaylistCurrentItem(struct playlist * thePlaylist)
+{
+  unsigned int currentItem = thePlaylist->playlistActiveItem;
+      switch (thePlaylist->item[currentItem].command)
+      {
+        case  CMD_TYPE_TRAILER : startMplayer(thePlaylist->item[currentItem].playFile,"nothing.srt",0,0);  break;
+        case  CMD_TYPE_MOVIE :  break;
+        case  CMD_TYPE_LIGHTS_ON :  break;
+        case  CMD_TYPE_LIGHTS_OFF :  break;
+        case  CMD_TYPE_SOUND_ON :  break;
+        case  CMD_TYPE_SOUND_OFF :  break;
+        case  CMD_TYPE_INTERMISSION :  break;
+        case  CMD_TYPE_BELL_ON :  break;
+        case  CMD_TYPE_BELL_OFF :  break;
+      };
+}
+
+
 
 int executePlaylist(struct playlist * thePlaylist)
 {
+  unsigned int transitionedToNext=0;
+  if ( thePlaylist->playlistState == STATE_UNINITIALIZED )
+  {
+    //roll on next
+    transitionedToNext=1;
+  }
+
+
+
+  if (transitionedToNext)
+    {
+       executePlaylistCurrentItem(thePlaylist);
+    } else
+    {
+
+    }
+
   return 0;
 }
 
@@ -231,7 +331,7 @@ int keepalivePlaylist(struct playlist * thePlaylist)
   struct tm * ptm = gmtime ( &clock );
   //snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
 
-
+ return 1;
 }
 
 
@@ -258,64 +358,6 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
-int issueCommandToMplayer(const char * pathToPipe ,const char * command )
-{
-  //http://www.mplayerhq.hu/DOCS/tech/slave.txt <- for commands used
-  FILE *fp =fopen(pathToPipe,"w");
-  if (fp!=0)
-  {
-    fprintf(fp,"%s\n",command);
-    fclose(fp);
-    return 1;
-  }
-  return 0;
-}
-
-
-int pauseMplayer(const char * pathToPipe)
-{
-  return issueCommandToMplayer( pathToPipe , "pause");
-}
-
-int resumeMplayer(const char * pathToPipe)
-{
-  return issueCommandToMplayer( pathToPipe , "pause");
-}
-
-int stopMplayer(const char * pathToPipe)
-{
-  return issueCommandToMplayer( pathToPipe , "stop");
-}
-
-int intermission(unsigned int seconds)
-{
- int i=system("xdotool mousemove --sync 1920 1080 click 0");
-
- i=system("./FullScreenViewer start.jpg&");
- //
- //./FullScreenViewer start.jpg&
- //sleep 10
- return (i==0);
-}
-
-int startMplayer(char * path, char * movie,char * subtitles,unsigned int startAt,unsigned int duration)
-{
-  char command[512]={0};
-  snprintf(command,512,"mkfifo %s",path);
-  int i=system(command);
-
-  snprintf(command,512,"killall mplayer");
-  i=system(command);
-
-  //mplayer -ss 46 -endpos 17 -utf8 -fs -slang gr,en -sub Mad.Max.1979.1080p.BluRay.x264.anoXmous.srt -v Mad.Max.1979.1080p.BluRay.x264.anoXmous_.mp4
-
-  snprintf(command,512,"mplayer -slave -input file=%s -utf8 -fs -slang gr,en -v %s -sub %s",path,movie,subtitles);
-  i=system(command);
-
-
-  return (i==0);
-}
-
 
 //This function prepares the content of form context , ( content )
 void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
@@ -329,7 +371,7 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
       if ( _GET(default_server,rqst,"play",data,128) )
        {
          AmmServer_Success("Play pressed \n");
-         issueCommandToMplayer(mplayerPath,"play");
+         issueCommandToMplayer(mplayerControllerPath,"play");
 
          executePlaylist(movieList);
        }
@@ -337,17 +379,17 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
        {
          AmmServer_Success("Pause pressed\n");
          //issueCommandToMplayer("/tmp/mplayer","pause");
-         pauseMplayer(mplayerPath);
+         pauseMplayer(mplayerControllerPath);
        }
       if ( _GET(default_server,rqst,"previous",data,128) )
        {
          AmmServer_Success("Previous\n");
-         issueCommandToMplayer(mplayerPath,"previous");
+         issueCommandToMplayer(mplayerControllerPath,"previous");
        }
       if ( _GET(default_server,rqst,"next",data,128) )
        {
          AmmServer_Success("Next\n");
-         issueCommandToMplayer(mplayerPath,"next");
+         issueCommandToMplayer(mplayerControllerPath,"next");
        }
     }
  }
