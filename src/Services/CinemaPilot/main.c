@@ -33,6 +33,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 //char mplayerControllerPath[MAX_FILE_PATH]="/tmp/mplayer";
 char mplayerControllerPath[MAX_FILE_PATH]="/home/ammar/Videos/videoController";
+char fullScreenViewerPath[MAX_FILE_PATH]="/home/ammar/Documents/Programming/AmmarServer/src/Services/CinemaPilot";
 
 
 /*! Dynamic content code ..! START!*/
@@ -156,7 +157,10 @@ int intermission(unsigned int seconds)
 {
  int i=system("xdotool mousemove --sync 1920 1080 click 0");
 
- i=system("./FullScreenViewer start.jpg&");
+  char command[512]={0};
+  snprintf(command,512,"%s start.jpg&",fullScreenViewerPath);
+
+   i=system(command);
  //
  //./FullScreenViewer start.jpg&
  //sleep 10
@@ -165,6 +169,8 @@ int intermission(unsigned int seconds)
 
 int startMplayer( char * movie,char * subtitles,unsigned int startAt,unsigned int duration)
 {
+  AmmServer_Success("startMplayer ( %s , %s , %u , %u  ) \n",movie,subtitles,startAt,duration);
+
   char command[512]={0};
   snprintf(command,512,"mkfifo %s",mplayerControllerPath);
   int i=system(command);
@@ -174,10 +180,11 @@ int startMplayer( char * movie,char * subtitles,unsigned int startAt,unsigned in
 
   //mplayer -ss 46 -endpos 17 -utf8 -fs -slang gr,en -sub Mad.Max.1979.1080p.BluRay.x264.anoXmous.srt -v Mad.Max.1979.1080p.BluRay.x264.anoXmous_.mp4
 
-  snprintf(command,512,"mplayer -slave -input file=%s -utf8 -fs -slang gr,en -v %s -sub %s",mplayerControllerPath,movie,subtitles);
+  snprintf(command,512,"mplayer -slave -input file=\"%s\" -utf8 -fs -slang gr,en -v \"%s\" -sub %s",mplayerControllerPath,movie,subtitles);
   i=system(command);
 
-
+  if (i==0) {  AmmServer_Success("Success Executing( %s ) \n",command); } else
+            {  AmmServer_Error("Error Executing( %s ) \n",command); }
   return (i==0);
 }
 
@@ -275,17 +282,23 @@ struct playlist * readPlaylist(char * filename)
 int executePlaylistCurrentItem(struct playlist * thePlaylist)
 {
   unsigned int currentItem = thePlaylist->playlistActiveItem;
+  AmmServer_Success("executePlaylistCurrentItem ( %u , command type %u ) \n",currentItem,thePlaylist->item[currentItem].command);
       switch (thePlaylist->item[currentItem].command)
       {
-        case  CMD_TYPE_TRAILER : startMplayer(thePlaylist->item[currentItem].playFile,"nothing.srt",0,0);  break;
-        case  CMD_TYPE_MOVIE :  break;
-        case  CMD_TYPE_LIGHTS_ON :  break;
-        case  CMD_TYPE_LIGHTS_OFF :  break;
-        case  CMD_TYPE_SOUND_ON :  break;
-        case  CMD_TYPE_SOUND_OFF :  break;
-        case  CMD_TYPE_INTERMISSION :  break;
-        case  CMD_TYPE_BELL_ON :  break;
-        case  CMD_TYPE_BELL_OFF :  break;
+        case  CMD_TYPE_NONE         : ++thePlaylist->playlistActiveItem; thePlaylist->playlistState=STATE_UNINITIALIZED; break;
+        case  CMD_TYPE_TRAILER      : ++thePlaylist->playlistActiveItem; startMplayer(thePlaylist->item[currentItem].playFile,"nothing.srt",0,0);  break;
+        case  CMD_TYPE_MOVIE        : ++thePlaylist->playlistActiveItem; startMplayer(thePlaylist->item[currentItem].playFile,"nothing.srt",0,0);  break;
+        case  CMD_TYPE_LIGHTS_ON    : ++thePlaylist->playlistActiveItem;  break;
+        case  CMD_TYPE_LIGHTS_OFF   : ++thePlaylist->playlistActiveItem;  break;
+        case  CMD_TYPE_SOUND_ON     : ++thePlaylist->playlistActiveItem;  break;
+        case  CMD_TYPE_SOUND_OFF    : ++thePlaylist->playlistActiveItem;  break;
+        case  CMD_TYPE_INTERMISSION : ++thePlaylist->playlistActiveItem;  intermission(0 /*TODO ADD TIME HERE*/);  break;
+        case  CMD_TYPE_BELL_ON      : ++thePlaylist->playlistActiveItem;  break;
+        case  CMD_TYPE_BELL_OFF     : ++thePlaylist->playlistActiveItem;  break;
+        default :
+          AmmServer_Warning("Unrecognizable playlist item , bad condition\n",currentItem);
+
+        break;
       };
 }
 
@@ -298,6 +311,7 @@ int executePlaylist(struct playlist * thePlaylist)
   {
     //roll on next
     transitionedToNext=1;
+    AmmServer_Success("First Hit on playlist , we will start without de-initializing anything\n");
   }
 
 
@@ -371,7 +385,7 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
       if ( _GET(default_server,rqst,"play",data,128) )
        {
          AmmServer_Success("Play pressed \n");
-         issueCommandToMplayer(mplayerControllerPath,"play");
+         //issueCommandToMplayer(mplayerControllerPath,"play");
 
          executePlaylist(movieList);
        }
