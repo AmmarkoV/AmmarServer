@@ -22,6 +22,7 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
     add_subdirectory (src/Services/GeoPosShare) 
     add_subdirectory (src/Services/SimpleTemplate) 
     add_subdirectory (src/Services/HabChan) 
+    add_subdirectory (src/Services/CinemaPilot) 
  
     #Finally make a null version of ammarserver :P
     add_subdirectory (src/AmmServerNULLlib) 
