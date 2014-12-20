@@ -13,6 +13,10 @@ set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
 add_executable(habchan 
+ ../../AmmServerlib/hashmap/hashmap.c 
+ ../../AmmServerlib/hashmap/hashmap.h 
+ ../../AmmServerlib/InputParser/InputParser_C.c  
+ ../../AmmServerlib/InputParser/InputParser_C.h 
  main.c 
  thread.c 
  thread.h 
@@ -22,10 +26,6 @@ add_executable(habchan
  state.h 
  postReceiver.c
  postReceiver.h
- ../../AmmServerlib/hashmap/hashmap.c 
- ../../AmmServerlib/hashmap/hashmap.h 
- ../../AmmServerlib/InputParser/InputParser_C.c  
- ../../AmmServerlib/InputParser/InputParser_C.h 
  ) 
 target_link_libraries(habchan pthread rt AmmarServer )
 set_target_properties(habchan PROPERTIES DEBUG_POSTFIX "D")
