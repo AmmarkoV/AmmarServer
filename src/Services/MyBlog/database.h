@@ -8,6 +8,8 @@
 #define MAX_MENU_ITEMS 10
 #define MAX_WIDGET_ITEMS 10
 
+#define MAX_TAGS_PER_POST 10
+
 struct htmlContent
 {
   unsigned int totalDataLength;
@@ -60,13 +62,34 @@ struct widgetItemList
 };
 
 
+struct tagItem
+{
+  char tag[MAX_STR];
+  unsigned int tagHash;
+};
 
+struct tagItemList
+{
+  unsigned int currentTags;
+  unsigned int maxTags;
+  struct tagItem item[MAX_TAGS_PER_POST];
+};
 
 struct postItem
 {
-  unsigned char postTitle[MAX_STR];
-  unsigned char postTags[MAX_STR];
+  unsigned char title[MAX_STR];
+  unsigned char dateStr[MAX_STR];
+  unsigned char author[MAX_STR];
+  struct tagItemList tags;
   struct htmlContent widgetContent;
+};
+
+
+struct postItemList
+{
+  unsigned int currentPosts;
+  unsigned int maxPosts;
+  struct postItem item[MAX_TAGS_PER_POST];
 };
 
 
@@ -84,6 +107,7 @@ struct website
    struct socialLinks social;
    struct menuItemList menu;
    struct linkItemList links;
+   struct postItemList post;
 
    struct widgetItemList widget;
 };
