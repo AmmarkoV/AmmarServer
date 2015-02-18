@@ -24,6 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "database.h"
 #include "index.h"
 
 
@@ -74,6 +75,8 @@ void request_override_callback(void * request)
 void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
+
+  prepare_index_prototype("res/index.html",&myblog);
 
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/index.html",webserver_root,4096,0,&prepare_index,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding index page\n"); }

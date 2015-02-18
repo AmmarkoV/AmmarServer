@@ -1,9 +1,42 @@
+#include <stdio.h>
+
 #include "index.h"
 #include "database.h"
 
 
 unsigned int indexLength=0;
 unsigned char * indexContent=0;
+
+
+
+int appendMenuList(struct website * configuration , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+{
+  unsigned int i=0;
+  for (i=0; i<configuration->menu.currentItems; i++)
+  {
+    //toDO Append
+    fprintf(stderr,"<li class=\"page_item page-item-%u\"><a href=\"%s\">%s</a></li>" ,i, configuration->menu.item[i].link , configuration->menu.item[i].label);
+  }
+
+}
+
+
+
+
+int appendWidgetList(struct website * configuration , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+{
+  unsigned int i=0;
+  for (i=0; i<configuration->menu.currentItems; i++)
+  {
+    fprintf(stderr,"<li class=\"page_item page-item-%u\"><a href=\"%s\">%s</a></li>" ,i, configuration->menu.item[i].link , configuration->menu.item[i].label);
+
+    fprintf(stderr,"<li id=\"text-%u\" class=\"widget widget_text\">\
+                       <h2 class=\"widgettitle\">%s</h2>\
+                       <div class=\"textwidget\">%s/div>\
+		           </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.totalDataLength);
+
+  }
+}
 
 
 char * prepare_index_prototype(char * filename , struct website * configuration)
@@ -22,8 +55,13 @@ char * prepare_index_prototype(char * filename , struct website * configuration)
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++TAGLIST+++","no tags");
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++ARCHIVELIST+++","no archives");
 
+  appendMenuList(configuration,indexContent,indexLength,indexLength);
 
+
+  return indexContent;
 }
+
+
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst)

@@ -10,9 +10,9 @@
 
 struct htmlContent
 {
-  unsigned int allocatedContent;
-  unsigned int currentContent;
-  unsigned char * content;
+  unsigned int totalDataLength;
+  unsigned int currentDataLength;
+  unsigned char * data;
 };
 
 
@@ -47,9 +47,9 @@ struct linkItemList
 
 struct widgetItem
 {
-  unsigned char widgetLabel[MAX_STR];
-  unsigned char widgetLink[MAX_STR];
-  struct htmlContent widgetContent;
+  unsigned char label[MAX_STR];
+  unsigned char link[MAX_STR];
+  struct htmlContent content;
 };
 
 struct widgetItemList
@@ -87,6 +87,9 @@ struct website
 
    struct widgetItemList widget;
 };
+
+extern struct website myblog;
+
 
 
 #endif // DATABASE_H_INCLUDED
