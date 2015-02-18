@@ -30,8 +30,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
-
-
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
@@ -41,13 +39,8 @@ struct AmmServer_RH_Context stats={0};
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
+void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
 {
-  time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
-
-  fprintf(stderr,"Trying to write dynamic request to %p , max size %lu \n",rqst->content , rqst->MAXcontentSize);
-
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   snprintf(rqst->content,rqst->MAXcontentSize,
            "<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head>\
@@ -97,8 +90,8 @@ void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&stats,"/index.html",webserver_root,4096,0,&prepare_index,SAME_PAGE_FOR_ALL_CLIENTS) )
+     { AmmServer_Warning("Failed adding index page\n"); }
 
    if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
      { AmmServer_Warning("Failed adding random testing page\n"); }
@@ -110,7 +103,6 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
 }
-/*! Dynamic content code ..! END ------------------------*/
 
 
 
