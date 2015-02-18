@@ -78,6 +78,7 @@ struct website
 
    char blogTitle[MAX_STR];
    char siteName[MAX_STR];
+   char siteDescription[MAX_STR];
    char siteURL[MAX_STR];
 
    struct socialLinks social;
