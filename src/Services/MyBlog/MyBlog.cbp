@@ -41,6 +41,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="database.h" />
+		<Unit filename="index.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="index.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
