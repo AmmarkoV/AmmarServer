@@ -37,6 +37,10 @@
 			<Add option="-lrt" />
 			<Add option="-lz" />
 		</Linker>
+		<Unit filename="database.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="database.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
