@@ -16,18 +16,32 @@ struct htmlContent
 };
 
 
-
-struct menuItem
+struct socialLinks
 {
-  unsigned char menuLabel[MAX_STR];
-  unsigned char menuLink[MAX_STR];
+   char facebookURL[MAX_STR];
+   char twitterURL[MAX_STR];
+   char youtubeURL[MAX_STR];
+};
+
+
+struct linkLabelItem
+{
+  unsigned char label[MAX_STR];
+  unsigned char link[MAX_STR];
 };
 
 struct menuItemList
 {
   unsigned int currentItems;
   unsigned int maxItems;
-  struct menuItem item[MAX_MENU_ITEMS];
+  struct linkLabelItem item[MAX_MENU_ITEMS];
+};
+
+struct linkItemList
+{
+  unsigned int currentItems;
+  unsigned int maxItems;
+  struct linkLabelItem item[MAX_MENU_ITEMS];
 };
 
 
@@ -48,15 +62,28 @@ struct widgetItemList
 
 
 
+struct postItem
+{
+  unsigned char postTitle[MAX_STR];
+  unsigned char postTags[MAX_STR];
+  struct htmlContent widgetContent;
+};
 
 
 struct website
 {
+   int allowComments;
+   int allowPing;
+
+
    char blogTitle[MAX_STR];
    char siteName[MAX_STR];
    char siteURL[MAX_STR];
 
+   struct socialLinks social;
    struct menuItemList menu;
+   struct linkItemList links;
+
    struct widgetItemList widget;
 };
 
