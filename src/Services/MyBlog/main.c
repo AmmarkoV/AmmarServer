@@ -31,23 +31,6 @@ char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the dire
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
-/*! Dynamic content code ..! START!*/
-/* A few words about dynamic content here..
-   This is actually one of the key features on AmmarServer and maybe the reason that I started the whole project
-   What I am trying to do here is serve content by directly linking the webserver to binary ( NOT Interpreted ) code
-   in order to serve pages with the maximum possible efficiency and skipping all intermediate layers..
-
-   PHP , Ruby , Python and all other "web-languages" are very nice and handy and to be honest I can do most of my work fine using PHP , MySQL and Apache
-   However setting up , configuring and maintaining large projects with different database systems , separate configuration files for each of the sub parts
-   and re deploying everything is a very tiresome affair.. Not to mention that despite the great work done by the apache  , PHP etc teams performance is wasted
-   due to the interpreters of the various scripting languages used..
-
-   Things can't get any faster than AmmarServer and the whole programming interface exposed to the programmer is ( imho ) very friendly and familiar to even inexperienced
-   C developer..
-
-   What follows is the decleration of some "Dynamic Content Resources" their Constructors/Destructors and their callback routines that fill them with the content to be served
-   each time a client requests one of the pages..
-*/
 
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
