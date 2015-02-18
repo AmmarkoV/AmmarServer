@@ -9,7 +9,7 @@ unsigned char * indexContent=0;
 
 
 
-int appendMenuList(struct website * configuration , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+int appendMenuList(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
 {
   unsigned int i=0;
   for (i=0; i<configuration->menu.currentItems; i++)
@@ -20,16 +20,11 @@ int appendMenuList(struct website * configuration , char * buffer, unsigned int 
 
 }
 
-
-
-
-int appendWidgetList(struct website * configuration , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+int appendWidgetList(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
 {
   unsigned int i=0;
   for (i=0; i<configuration->menu.currentItems; i++)
   {
-    fprintf(stderr,"<li class=\"page_item page-item-%u\"><a href=\"%s\">%s</a></li>" ,i, configuration->menu.item[i].link , configuration->menu.item[i].label);
-
     fprintf(stderr,"<li id=\"text-%u\" class=\"widget widget_text\">\
                        <h2 class=\"widgettitle\">%s</h2>\
                        <div class=\"textwidget\">%s/div>\
@@ -37,6 +32,35 @@ int appendWidgetList(struct website * configuration , char * buffer, unsigned in
 
   }
 }
+
+int appendPostList(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+{
+  unsigned int i=0;
+  for (i=0; i<configuration->menu.currentItems; i++)
+  {
+     fprintf(stderr,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post %s\" id=\"post-%u\">\
+	                  <div class=\"posttitle\">\
+		                 <h2 class=\"pagetitle\">\
+                          <a href=\"post.html?id=%u\" rel=\"bookmark\" title=\"%s\">%s</a></h2>\
+		                   <small>Posted: %s by <strong>%s</strong> in <a href=\"post.html?id=%u\" title=\"View all posts in Post\" rel=\"category\">Post</a><br>\
+			               Tags: <a href=\"tag.html?id=%u\" rel=\"tag\">TAG</a></small>\
+	                  </div>\
+	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
+                      <div class=\"entry\">+++POST1+++</div>\
+	                 </div>"
+	  ,
+	   i , i , "tag-raspberry-pi etc" , i ,
+	   configuration->post.item[i].title ,
+	   configuration->post.item[i].title ,
+	   configuration->post.item[i].dateStr ,
+	   configuration->post.item[i].author ,
+       i);
+
+  }
+}
+
+
+
 
 
 char * prepare_index_prototype(char * filename , struct website * configuration)
@@ -55,7 +79,8 @@ char * prepare_index_prototype(char * filename , struct website * configuration)
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++TAGLIST+++","no tags");
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++ARCHIVELIST+++","no archives");
 
-  appendMenuList(configuration,indexContent,indexLength,indexLength);
+  appendMenuList(configuration,"+++MENULIST+++",indexContent,indexLength,indexLength);
+  appendWidgetList(configuration,"+++WIDGETLIST+++",indexContent,indexLength,indexLength);
 
 
   return indexContent;
