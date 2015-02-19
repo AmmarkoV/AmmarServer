@@ -10,6 +10,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 main.c 
                 AmmServerlib.h
                 server_configuration.c
+                #AString string helper
+                AString/AString.c
+                AString/AString.h
                 #InputParser
                 InputParser/InputParser_C.c 
                 InputParser/InputParser_C.h 
