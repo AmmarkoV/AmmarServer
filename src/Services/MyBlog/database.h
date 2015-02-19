@@ -81,7 +81,7 @@ struct postItem
   unsigned char dateStr[MAX_STR];
   unsigned char author[MAX_STR];
   struct tagItemList tags;
-  struct htmlContent widgetContent;
+  struct htmlContent content;
 };
 
 

@@ -38,29 +38,56 @@ int appendPostList(struct website * configuration , char * entryPoint , char * b
   unsigned int i=0;
   for (i=0; i<configuration->menu.currentItems; i++)
   {
-     fprintf(stderr,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post %s\" id=\"post-%u\">\
+     fprintf(stderr,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
+
+     //Print Tag CSS Classes
+     unsigned int z=0;
+     for (z=0; z<configuration->post.item[i].tags.currentTags; z++)
+     {
+       fprintf(stderr,"tag-%s ",configuration->post.item[i].tags.item[z].tag );
+     }
+
+     fprintf(stderr,"\" id=\"post-%u\">\
 	                  <div class=\"posttitle\">\
 		                 <h2 class=\"pagetitle\">\
                           <a href=\"post.html?id=%u\" rel=\"bookmark\" title=\"%s\">%s</a></h2>\
 		                   <small>Posted: %s by <strong>%s</strong> in <a href=\"post.html?id=%u\" title=\"View all posts in Post\" rel=\"category\">Post</a><br>\
-			               Tags: <a href=\"tag.html?id=%u\" rel=\"tag\">TAG</a></small>\
-	                  </div>\
-	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
-                      <div class=\"entry\">+++POST1+++</div>\
-	                 </div>"
-	  ,
-	   i , i , "tag-raspberry-pi etc" , i ,
+			               " , i , i ,
 	   configuration->post.item[i].title ,
 	   configuration->post.item[i].title ,
 	   configuration->post.item[i].dateStr ,
 	   configuration->post.item[i].author ,
-       i);
+       i );
+
+
+     fprintf(stderr,"Tags: ");
+     for (z=0; z<configuration->post.item[i].tags.currentTags; z++)
+     {
+       fprintf(stderr,"<a href=\"tag.html?id=%s\" rel=\"tag\">%s</a> ", configuration->post.item[i].tags.item[z].tag , configuration->post.item[i].tags.item[z].tag);
+     }
+
+    fprintf(stderr,"</small></div>\
+	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
+                      <div class=\"entry\">%s</div>\
+	                 </div>"
+            , i , configuration->post.item[i].title  , configuration->post.item[i].content.data );
 
   }
 }
 
 
 
+int appendLeftBlogRoll(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+{
+}
+
+int appendRightBlogRoll(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+{
+}
+
+int appendFooterLinks(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+{
+}
 
 
 char * prepare_index_prototype(char * filename , struct website * configuration)
@@ -82,6 +109,9 @@ char * prepare_index_prototype(char * filename , struct website * configuration)
   appendMenuList(configuration,"+++MENULIST+++",indexContent,indexLength,indexLength);
   appendWidgetList(configuration,"+++WIDGETLIST+++",indexContent,indexLength,indexLength);
 
+  appendLeftBlogRoll(configuration,"+++LEFTBLOGROLL+++",indexContent,indexLength,indexLength);
+  appendRightBlogRoll(configuration,"+++RIGHTBLOGROLL+++",indexContent,indexLength,indexLength);
+  appendFooterLinks(configuration,"+++FOOTERLINKS+++",indexContent,indexLength,indexLength);
 
   return indexContent;
 }
