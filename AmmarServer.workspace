@@ -13,5 +13,6 @@
 		<Project filename="src/Services/GeoPosShare/GeoPosShare.cbp" />
 		<Project filename="src/ScriptRunner/ScriptRunner.cbp" />
 		<Project filename="src/Services/HabChan/HabChan.cbp" />
+		<Project filename="src/Services/MyBlog/MyBlog.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
