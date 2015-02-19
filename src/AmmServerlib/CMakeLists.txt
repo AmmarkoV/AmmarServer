@@ -78,8 +78,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
               )
   
     add_library(AmmarServerDynamic SHARED ${AMMARSERVER_INGREDIENTS} )
+    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES})
+
     add_library(AmmarServer STATIC ${AMMARSERVER_INGREDIENTS} )
     target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES})
+
+
 
     set_target_properties(AmmarServer PROPERTIES 
                           DEBUG_POSTFIX "D"
@@ -88,6 +92,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                           RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                          )
   
+    set_target_properties(AmmarServerDynamic PROPERTIES 
+                          DEBUG_POSTFIX "D"
+                          ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          OUTPUT_NAME AmmarServer 
+                        )
 
 
  
