@@ -33,7 +33,7 @@
 1409968923 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.h
 	"../AmmServerlib.h"
 
-1424341231 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1424343758 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 	<pthread.h>
 
 1410091641 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.h
@@ -150,7 +150,7 @@
 	"../tools/logs.h"
 	"sendHTTPHeader.h"
 
-1424341262 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1424385596 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1405512645 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -401,4 +401,12 @@
 1409657162 /home/ammar/Documents/Programming/AmmarServer/public_html/templates/directoryListStart.html
 
 1406281864 /home/ammar/Documents/Programming/AmmarServer/public_html/templates/directoryListEnd.html
+
+1424385229 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"AString.h"
+
+1424385150 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.h
 
