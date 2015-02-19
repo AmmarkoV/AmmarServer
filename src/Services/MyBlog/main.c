@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "database.h"
 #include "index.h"
 
-
+#define TEST_INDEX_GENERATION_ONLY 1
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -78,18 +78,6 @@ void init_dynamic_content()
 
   unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog);
 
-  FILE *fp =fopen("test.html","w");
-  if (fp!=0)
-  {
-     fprintf(fp,"%s",buf);
-     fclose(fp);
-  }
-  fprintf(stderr,"Program just generates a test.html file and stops for now , it is not ready yet :) \n");
-  exit (0);
-
-
-
-
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/index.html",webserver_root,4096,0,&prepare_index,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding index page\n"); }
 
@@ -109,6 +97,22 @@ void close_dynamic_content()
 
 int main(int argc, char *argv[])
 {
+
+#if TEST_INDEX_GENERATION_ONLY
+  fprintf(stderr,"Testing index generation..\n");
+  unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog);
+  FILE *fp =fopen("test.html","w");
+  if (fp!=0)
+  {
+     fprintf(fp,"%s",buf);
+     fclose(fp);
+  }
+  fprintf(stderr,"Program just generates a test.html file and stops for now , it is not ready yet :) \n");
+  exit (0);
+#endif // TEST_INDEX_GENERATION_ONLY
+
+
+
     printf("\nAmmar Server %s starting up..\n",AmmServer_Version());
     //Check binary and header spec
     AmmServer_CheckIfHeaderBinaryAreTheSame(AMMAR_SERVER_HTTP_HEADER_SPEC);
