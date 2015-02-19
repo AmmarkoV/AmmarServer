@@ -11,17 +11,6 @@ unsigned char * indexContent=0;
 #warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
 
 
-int injectDataToBuffer(unsigned char * entryPoint , unsigned char * data , unsigned char * buffer,  unsigned int currentBufferLength , unsigned int totalBufferLength )
-{
-  char * where2inject = strstr ((const char*) buffer,(const char*) entryPoint);
-  if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
-
- // if ()
-
-  return 1;
-}
-
-
 unsigned char * getMenuListHTML(struct website * configuration)
 {
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
@@ -142,24 +131,24 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
   unsigned char * htmlData = 0;
   htmlData = getMenuListHTML(configuration);
-  injectDataToBuffer("+++MENULIST+++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++MENULIST+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
 
   htmlData = getWidgetListHTML(configuration);
-  injectDataToBuffer("+++WIDGETLIST+++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++WIDGETLIST+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   htmlData = getLeftBlogRollHTML(configuration);
-  injectDataToBuffer("+++LEFTBLOGROLL+++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++LEFTBLOGROLL+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   htmlData = getRightBlogRollHTML(configuration);
-  injectDataToBuffer("+++RIGHTBLOGROLL+++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++RIGHTBLOGROLL+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   htmlData = getFooterLinksHTML(configuration);
-  injectDataToBuffer("+++FOOTERLINKS+++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++FOOTERLINKS+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   return indexContent;

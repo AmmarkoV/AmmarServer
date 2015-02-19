@@ -662,6 +662,55 @@ int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned
 }
 
 
+
+int AmmServer_CopyOverlappingDataContent(unsigned char * buffer , unsigned int totalSize  , unsigned char * from , unsigned char * to , unsigned int blockSize)
+{
+  unsigned char * tmp = (unsigned char * ) malloc(sizeof(unsigned char) * blockSize);
+  if (tmp==0) { return 0; }
+
+     memcpy(tmp,from,blockSize);
+     memcpy(to,tmp,blockSize);
+
+  free(tmp);
+  return 1;
+}
+
+int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , unsigned char * buffer,  unsigned int currentBufferLength , unsigned int totalBufferLength )
+{
+  if (data==0)        { fprintf(stderr,"injectDataToBuffer / Zero Data To Inject we are happy..\n"); return 1; }
+  if (entryPoint==0)  { fprintf(stderr,"injectDataToBuffer / No entry point defined..\n");           return 0; }
+  if (buffer==0)      { fprintf(stderr,"injectDataToBuffer / No Buffer To inject to..\n");           return 0; }
+
+
+  unsigned int dataLength = strlen(data);
+  if (dataLength + currentBufferLength >= totalBufferLength )
+  {
+    fprintf(stderr,"Not enough space for data injection on buffer.. ( todo realloc here.. ) \n");
+    return 0;
+  }
+
+  unsigned int entryPointLength = strlen(entryPoint);
+  unsigned char * where2inject = (unsigned char* ) strstr ((const char*) buffer,(const char*) entryPoint);
+  if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
+
+
+  //We create space for our new data..
+  if ( AmmServer_CopyOverlappingDataContent(buffer,totalBufferLength,where2inject,where2inject+entryPointLength,dataLength) )
+  {
+    //If we have enough space , we inject our data and everyone is happy
+    memcpy(where2inject,data,dataLength);
+    return 1;
+  }
+  else
+  {
+    fprintf(stderr,"Could not find enough space to reallocate old data .. Injection failed \n");
+  }
+
+
+  return 0;
+}
+
+
 int AmmServer_DirectoryExists(const char * filename)
 {
  return DirectoryExistsAmmServ(filename);

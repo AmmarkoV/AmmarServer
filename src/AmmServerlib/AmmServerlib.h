@@ -648,6 +648,34 @@ char * AmmServer_ReadFileToMemory(const char * filename,unsigned int *length );
 */
 int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength);
 
+
+
+/**
+* @brief Copy Content from one place of a buffer to another using an intermediate buffer..
+* @ingroup tools
+* @param Original Buffer
+* @param Size of Original Buffer
+* @param Pointer to the start of the source of the copy
+* @param Pointer to the start of the destination of the copy
+* @param Size of data to copy
+* @retval 1=Ok,0=Failed
+*/
+int AmmServer_CopyOverlappingDataContent(unsigned char * buffer , unsigned int totalSize  , unsigned char * from , unsigned char * to , unsigned int blockSize);
+
+
+/**
+* @brief Search for entryPoint pattern in buffer , and inject data there..!
+* @ingroup tools
+* @param String to find in buffer and replace with new content
+* @param Data we want to inject
+* @param Buffer we want to fill data into
+* @param Buffer current length
+* @param Buffer total length
+* @retval 1=Ok,0=Failed
+*/
+int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , unsigned char * buffer,  unsigned int currentBufferLength , unsigned int totalBufferLength );
+
+
 /**
 * @brief Register a function to call a function that gracefully terminates a client when a SIGKILL or the time to stop the server comes
 * @ingroup tools
