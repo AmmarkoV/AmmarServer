@@ -54,6 +54,10 @@
 			<Add option="-lrt" />
 			<Add option="-pthreads" />
 		</Linker>
+		<Unit filename="AString/AString.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="AString/AString.h" />
 		<Unit filename="AmmServerlib.h" />
 		<Unit filename="InputParser/InputParser_C.c">
 			<Option compilerVar="CC" />
