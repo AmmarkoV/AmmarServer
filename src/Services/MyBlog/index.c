@@ -1,5 +1,6 @@
 #include <stdio.h>
-
+#include <stdlib.h>
+#include <string.h>
 #include "index.h"
 #include "database.h"
 
@@ -7,47 +8,75 @@
 unsigned int indexLength=0;
 unsigned char * indexContent=0;
 
+#warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
 
 
-int appendMenuList(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+int injectDataToBuffer(unsigned char * entryPoint , unsigned char * data , unsigned char * buffer,  unsigned int currentBufferLength , unsigned int totalBufferLength )
 {
-  unsigned int i=0;
-  for (i=0; i<configuration->menu.currentItems; i++)
-  {
-    //toDO Append
-    fprintf(stderr,"<li class=\"page_item page-item-%u\"><a href=\"%s\">%s</a></li>" ,i, configuration->menu.item[i].link , configuration->menu.item[i].label);
-  }
+  char * where2inject = strstr ((const char*) buffer,(const char*) entryPoint);
+  if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
 
+ // if ()
+
+  return 1;
 }
 
-int appendWidgetList(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+
+unsigned char * getMenuListHTML(struct website * configuration)
 {
+  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
+
   unsigned int i=0;
   for (i=0; i<configuration->menu.currentItems; i++)
   {
-    fprintf(stderr,"<li id=\"text-%u\" class=\"widget widget_text\">\
+    //TODO PROPER MEMORY HANDLING ,, REALLOC ETC ..
+    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<li class=\"page_item page-item-%u\"><a href=\"%s\">%s</a></li>" ,i, configuration->menu.item[i].link , configuration->menu.item[i].label);
+  }
+
+ return buffer;
+}
+
+unsigned char * getWidgetListHTML(struct website * configuration)
+{
+  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
+
+  unsigned int i=0;
+  for (i=0; i<configuration->menu.currentItems; i++)
+  {
+    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
+                      "<li id=\"text-%u\" class=\"widget widget_text\">\
                        <h2 class=\"widgettitle\">%s</h2>\
                        <div class=\"textwidget\">%s/div>\
 		           </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.totalDataLength);
 
   }
+
+ return buffer;
 }
 
-int appendPostList(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+unsigned char * getPostListHTML(struct website * configuration)
 {
+  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
+
   unsigned int i=0;
   for (i=0; i<configuration->menu.currentItems; i++)
   {
-     fprintf(stderr,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
+     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
 
      //Print Tag CSS Classes
      unsigned int z=0;
      for (z=0; z<configuration->post.item[i].tags.currentTags; z++)
      {
-       fprintf(stderr,"tag-%s ",configuration->post.item[i].tags.item[z].tag );
+       currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"tag-%s ",configuration->post.item[i].tags.item[z].tag );
      }
 
-     fprintf(stderr,"\" id=\"post-%u\">\
+      currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"\" id=\"post-%u\">\
 	                  <div class=\"posttitle\">\
 		                 <h2 class=\"pagetitle\">\
                           <a href=\"post.html?id=%u\" rel=\"bookmark\" title=\"%s\">%s</a></h2>\
@@ -60,37 +89,42 @@ int appendPostList(struct website * configuration , char * entryPoint , char * b
        i );
 
 
-     fprintf(stderr,"Tags: ");
+     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"Tags: ");
      for (z=0; z<configuration->post.item[i].tags.currentTags; z++)
      {
-       fprintf(stderr,"<a href=\"tag.html?id=%s\" rel=\"tag\">%s</a> ", configuration->post.item[i].tags.item[z].tag , configuration->post.item[i].tags.item[z].tag);
+       currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<a href=\"tag.html?id=%s\" rel=\"tag\">%s</a> ", configuration->post.item[i].tags.item[z].tag , configuration->post.item[i].tags.item[z].tag);
      }
 
-    fprintf(stderr,"</small></div>\
+    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"</small></div>\
 	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
                       <div class=\"entry\">%s</div>\
 	                 </div>"
             , i , configuration->post.item[i].title  , configuration->post.item[i].content.data );
 
   }
+
+ return buffer;
 }
 
 
 
-int appendLeftBlogRoll(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+unsigned char * getLeftBlogRollHTML(struct website * configuration)
 {
+    return 0;
 }
 
-int appendRightBlogRoll(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+unsigned char * getRightBlogRollHTML(struct website * configuration )
 {
+    return 0;
 }
 
-int appendFooterLinks(struct website * configuration , char * entryPoint , char * buffer, unsigned int bufferLength , unsigned int totalBufferLength)
+unsigned char * getFooterLinksHTML(struct website * configuration )
 {
+    return 0;
 }
 
 
-char * prepare_index_prototype(char * filename , struct website * configuration)
+unsigned char * prepare_index_prototype(char * filename , struct website * configuration)
 {
   indexContent=AmmServer_ReadFileToMemory(filename,&indexLength);
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++YEAR+++","20xx");
@@ -106,12 +140,27 @@ char * prepare_index_prototype(char * filename , struct website * configuration)
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++TAGLIST+++","no tags");
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++ARCHIVELIST+++","no archives");
 
-  appendMenuList(configuration,"+++MENULIST+++",indexContent,indexLength,indexLength);
-  appendWidgetList(configuration,"+++WIDGETLIST+++",indexContent,indexLength,indexLength);
+  unsigned char * htmlData = 0;
+  htmlData = getMenuListHTML(configuration);
+  injectDataToBuffer("+++MENULIST+++",htmlData,indexContent,indexLength,indexLength);
+  if (htmlData!=0) { free(htmlData); htmlData=0; }
 
-  appendLeftBlogRoll(configuration,"+++LEFTBLOGROLL+++",indexContent,indexLength,indexLength);
-  appendRightBlogRoll(configuration,"+++RIGHTBLOGROLL+++",indexContent,indexLength,indexLength);
-  appendFooterLinks(configuration,"+++FOOTERLINKS+++",indexContent,indexLength,indexLength);
+
+  htmlData = getWidgetListHTML(configuration);
+  injectDataToBuffer("+++WIDGETLIST+++",htmlData,indexContent,indexLength,indexLength);
+  if (htmlData!=0) { free(htmlData); htmlData=0; }
+
+  htmlData = getLeftBlogRollHTML(configuration);
+  injectDataToBuffer("+++LEFTBLOGROLL+++",htmlData,indexContent,indexLength,indexLength);
+  if (htmlData!=0) { free(htmlData); htmlData=0; }
+
+  htmlData = getRightBlogRollHTML(configuration);
+  injectDataToBuffer("+++RIGHTBLOGROLL+++",htmlData,indexContent,indexLength,indexLength);
+  if (htmlData!=0) { free(htmlData); htmlData=0; }
+
+  htmlData = getFooterLinksHTML(configuration);
+  injectDataToBuffer("+++FOOTERLINKS+++",htmlData,indexContent,indexLength,indexLength);
+  if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   return indexContent;
 }
