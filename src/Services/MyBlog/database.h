@@ -10,6 +10,8 @@
 
 #define MAX_TAGS_PER_POST 10
 
+#define CONTENT_BUFFER 16500// 16Kb
+
 struct htmlContent
 {
   unsigned int totalDataLength;
@@ -20,9 +22,9 @@ struct htmlContent
 
 struct socialLinks
 {
-   char facebookURL[MAX_STR];
-   char twitterURL[MAX_STR];
-   char youtubeURL[MAX_STR];
+   unsigned char facebookURL[MAX_STR];
+   unsigned char twitterURL[MAX_STR];
+   unsigned char youtubeURL[MAX_STR];
 };
 
 
@@ -64,7 +66,7 @@ struct widgetItemList
 
 struct tagItem
 {
-  char tag[MAX_STR];
+  unsigned char tag[MAX_STR];
   unsigned int tagHash;
 };
 
@@ -99,10 +101,10 @@ struct website
    int allowPing;
 
 
-   char blogTitle[MAX_STR];
-   char siteName[MAX_STR];
-   char siteDescription[MAX_STR];
-   char siteURL[MAX_STR];
+   unsigned char blogTitle[MAX_STR];
+   unsigned char siteName[MAX_STR];
+   unsigned char siteDescription[MAX_STR];
+   unsigned char siteURL[MAX_STR];
 
    struct socialLinks social;
    struct menuItemList menu;
