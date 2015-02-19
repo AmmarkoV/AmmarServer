@@ -624,7 +624,7 @@ void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWi
 * @param Variable to be replaced
 * @param What to replace it with
 * @retval 1=Ok,0=Failed
-* @bug Value should not be bigger than variable otherwise things won't fit in the same memory block
+* @bug Value should not be bigger than variable otherwise things won't fit in the same memory block , this should be handled
 */
 int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value);
 

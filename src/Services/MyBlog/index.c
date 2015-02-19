@@ -113,8 +113,18 @@ unsigned char * getFooterLinksHTML(struct website * configuration )
 }
 
 
+int setupMyBlog(struct website * configuration)
+{
+  strncpy( configuration->blogTitle , MAX_STR , "AmmarkoV's Personal Website");
+
+}
+
+
+
 unsigned char * prepare_index_prototype(char * filename , struct website * configuration)
 {
+  setupMyBlog(configuration);
+
   indexContent=AmmServer_ReadFileToMemory(filename,&indexLength);
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++YEAR+++","20xx");
   AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++BLOGTITLE+++",configuration->blogTitle);
