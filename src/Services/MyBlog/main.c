@@ -76,7 +76,19 @@ void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  prepare_index_prototype("res/index.html",&myblog);
+  unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog);
+
+  FILE *fp =fopen("test.html","w");
+  if (fp!=0)
+  {
+     fprintf(fp,"%s",buf);
+     fclose(fp);
+  }
+  fprintf(stderr,"Program just generates a test.html file and stops for now , it is not ready yet :) \n");
+  exit (0);
+
+
+
 
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/index.html",webserver_root,4096,0,&prepare_index,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding index page\n"); }
