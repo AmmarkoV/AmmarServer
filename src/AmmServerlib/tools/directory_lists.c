@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-//Multi line html things break code so to keep things clean they are included as html files :)
+//Multi line html things break code style so to keep things clean they are included as html files :)
 char * starting =
  #include "../../../public_html/templates/directoryListStart.html"
 ;
@@ -39,7 +39,7 @@ return result;
 char * GenerateDirectoryPage(char * system_path,char * client_path,unsigned long * memoryUsed)
 {
 if (!ENABLE_DIRECTORY_LISTING) { return 0; }
-fprintf(stderr,"Generating path for directory %s \n",system_path);
+fprintf(stderr,GREEN "Generating directory list page for directory %s \n" NORMAL,system_path);
 
 *memoryUsed=INITIAL_DIRECTORY_LIST_RESPONSE_BODY+1;
 char * memory=(char*) malloc( sizeof(char) * ( *memoryUsed ) );
@@ -91,9 +91,17 @@ while ((dp=readdir(dir)) != 0)
     //TODO: remove // from requests.. of dp->d_name is like /filename.ext
     char *tmp = path_cat(client_path, dp->d_name);
 
+    if (dp->d_name==0) { fprintf(stderr,"Got garbage out of readdir(%s)\n",dir); }
+     else
     if ( (strcmp(dp->d_name,".")!=0) && (strcmp(dp->d_name,"..")!=0) )
     {
-
+     if (
+           (strlen(dp->d_name)>0) &&
+           (dp->d_name[0]=='.')
+        )
+     { fprintf(stderr,YELLOW "Hidding hidden file %s from directory list\n" NORMAL,dp->d_name); }
+       else
+     {
      //If we reached our memory limit we'll just stop serving and return what we already have with an error message in the end..
      if (*memoryUsed>=MAX_DIRECTORY_LIST_RESPONSE_BODY)
      {
@@ -196,6 +204,8 @@ while ((dp=readdir(dir)) != 0)
 
      strncat(memory,tag_after_filename,mem_remaining);
      mem_remaining-=tag_after_filename_size;
+    }
+
     }
 
     if (tmp!=0 ) { free(tmp); tmp=0; }
