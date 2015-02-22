@@ -38,6 +38,18 @@ int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char
 }
 
 
+int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value)
+{
+  char * location = strstr(page,var);
+  while (location!=0)
+  {
+    unsigned int remainingLength = pageLength - (location-page);
+    astringReplaceVarInMemoryFile(page,pageLength,var,value);
+  }
+
+ return 1;
+}
+
 
 
 char * astringReadFileToMemory(const char * filename,unsigned int *length )
