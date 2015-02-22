@@ -506,6 +506,12 @@ int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const c
 }
 
 
+int AmmServer_ReplaceAllVarsInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value)
+{
+  return astringReplaceAllInstancesOfVarInMemoryFile(page,pageLength,var,value);
+}
+
+
 void AmmServer_GlobalTerminationHandler(int signum)
 {
         fprintf(stderr,"Terminating AmmarServer with signum %i .. \n",signum);
