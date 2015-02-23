@@ -506,9 +506,9 @@ int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const c
 }
 
 
-int AmmServer_ReplaceAllVarsInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value)
+int AmmServer_ReplaceAllVarsInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value)
 {
-  return astringReplaceAllInstancesOfVarInMemoryFile(page,pageLength,var,value);
+  return astringReplaceAllInstancesOfVarInMemoryFile(page,instances,pageLength,var,value);
 }
 
 

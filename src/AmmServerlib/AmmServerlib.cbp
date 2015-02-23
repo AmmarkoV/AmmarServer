@@ -12,7 +12,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="2" />
 				<Option compiler="gcc" />
-				<Option host_application="/home/ammar/Documents/Programming/AmmarServer/src/ammarserver" />
+				<Option host_application="/home/ammar/Documents/Programming/AmmarServer/src/Services/MyBlog/myblog" />
 				<Option run_host_application_in_terminal="1" />
 				<Option createDefFile="1" />
 				<Compiler>
