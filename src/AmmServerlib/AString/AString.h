@@ -5,7 +5,7 @@
 
 
 int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value);
-int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value);
+int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value);
 
 char * astringReadFileToMemory(const char * filename,unsigned int *length );
 

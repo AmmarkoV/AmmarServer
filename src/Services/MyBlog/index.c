@@ -113,9 +113,26 @@ unsigned char * getFooterLinksHTML(struct website * configuration )
 }
 
 
+int strlimcpy(char * output , unsigned int outputLimit , const char * source )
+{
+  unsigned int sourceLength = strlen(source);
+  if ( sourceLength >= outputLimit )
+  {
+    fprintf(stderr,"strlimcpy - Source Does not fit in output\n");
+    return 0;
+  }
+
+  if ( sourceLength < outputLimit )
+  {
+    strncpy(output,source,sourceLength);
+    return 1;
+  }
+ return 0;
+}
+
 int setupMyBlog(struct website * configuration)
 {
-  strncpy( configuration->blogTitle , MAX_STR , "AmmarkoV's Personal Website");
+  strlimcpy( configuration->blogTitle , MAX_STR , "AmmarkoV's Personal Website");
 
 }
 
@@ -123,40 +140,51 @@ int setupMyBlog(struct website * configuration)
 
 unsigned char * prepare_index_prototype(char * filename , struct website * configuration)
 {
+  fprintf(stderr,"Generating Index File ..!\n");
+
+  fprintf(stderr,"Loading Setup..!\n");
   setupMyBlog(configuration);
 
+  fprintf(stderr,"Reading master index file..!\n");
   indexContent=AmmServer_ReadFileToMemory(filename,&indexLength);
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++YEAR+++","20xx");
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++BLOGTITLE+++",configuration->blogTitle);
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++SITENAME+++",configuration->siteName);
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++SITEDESCRIPTION+++",configuration->siteDescription);
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++RSSLINK+++","rss.html");
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++RSSCOMMENT+++","rssComments.html");
 
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++ATOMLINK+++","atom.html");
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++PINGBACKLINK+++","pingback.html");
+  fprintf(stderr,"Replacing Variables..!\n");
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++YEAR+++","20xx");
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++BLOGTITLE+++",configuration->blogTitle);
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,6,indexLength,"+++SITENAME+++",configuration->siteName);
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++SITEDESCRIPTION+++",configuration->siteDescription);
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,4,indexLength,"+++RSSLINK+++","rss.html");
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,2,indexLength,"+++RSSCOMMENT+++","rssComments.html");
 
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++TAGLIST+++","no tags");
-  AmmServer_ReplaceVarInMemoryFile(indexContent,indexLength,"+++ARCHIVELIST+++","no archives");
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++ATOMLINK+++","atom.html");
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++PINGBACKLINK+++","pingback.html");
 
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++TAGLIST+++","no tags");
+  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++ARCHIVELIST+++","no archives");
+
+  fprintf(stderr,"Injecting Menu List..!\n");
   unsigned char * htmlData = 0;
   htmlData = getMenuListHTML(configuration);
   AmmServer_InjectDataToBuffer("+++MENULIST+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
 
+  fprintf(stderr,"Injecting Widget List..!\n");
   htmlData = getWidgetListHTML(configuration);
   AmmServer_InjectDataToBuffer("+++WIDGETLIST+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
+  fprintf(stderr,"Injecting Blog Roll Left..!\n");
   htmlData = getLeftBlogRollHTML(configuration);
   AmmServer_InjectDataToBuffer("+++LEFTBLOGROLL+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
+  fprintf(stderr,"Injecting Blog Roll Right..!\n");
   htmlData = getRightBlogRollHTML(configuration);
   AmmServer_InjectDataToBuffer("+++RIGHTBLOGROLL+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
+  fprintf(stderr,"Injecting Footer List ..!\n");
   htmlData = getFooterLinksHTML(configuration);
   AmmServer_InjectDataToBuffer("+++FOOTERLINKS+++",htmlData,indexContent,indexLength,indexLength);
   if (htmlData!=0) { free(htmlData); htmlData=0; }

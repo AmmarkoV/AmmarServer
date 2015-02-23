@@ -1,34 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="network/sendHTTPHeader.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="5393" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="cache/dynamic_requests.c" open="1" top="0" tabpos="19" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1539" topLine="166" />
-		</Cursor>
-	</File>
 	<File name="header_analysis/post_header_analysis.c" open="1" top="0" tabpos="52" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="2630" topLine="14" />
-		</Cursor>
-	</File>
-	<File name="tools/directory_lists.c" open="1" top="0" tabpos="25" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3279" topLine="78" />
-		</Cursor>
-	</File>
-	<File name="header_analysis/http_header_analysis.c" open="1" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="19370" topLine="475" />
-		</Cursor>
-	</File>
-	<File name="cache/client_list.h" open="1" top="0" tabpos="36" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1617" topLine="28" />
 		</Cursor>
 	</File>
 	<File name="stringscanners/firstLines.h" open="1" top="0" tabpos="31" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -36,74 +11,24 @@
 			<Cursor1 position="778" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="stringscanners/firstLines.c" open="1" top="0" tabpos="48" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="stringscanners/httpHeader.h" open="1" top="0" tabpos="33" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="0" topLine="0" />
+			<Cursor1 position="438" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="cache/file_compression.c" open="1" top="0" tabpos="41" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="cache/dynamic_requests.c" open="1" top="0" tabpos="19" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="7617" topLine="15" />
+			<Cursor1 position="1539" topLine="166" />
 		</Cursor>
 	</File>
-	<File name="network/file_server.c" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tools/directory_lists.h" open="1" top="0" tabpos="44" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="11157" topLine="268" />
+			<Cursor1 position="651" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="network/file_server.h" open="1" top="0" tabpos="39" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="network/sendHTTPHeader.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="0" topLine="17" />
-		</Cursor>
-	</File>
-	<File name="tools/http_tools.h" open="1" top="0" tabpos="21" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1496" topLine="39" />
-		</Cursor>
-	</File>
-	<File name="network/sendHTTPHeader.h" open="1" top="0" tabpos="40" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1498" topLine="4" />
-		</Cursor>
-	</File>
-	<File name="cache/file_caching.c" open="1" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="23806" topLine="592" />
-		</Cursor>
-	</File>
-	<File name="threads/threadInitHelper.c" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="176" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="stringscanners/audioFiles.h" open="1" top="0" tabpos="30" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="702" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="stringscanners/textFiles.c" open="1" top="0" tabpos="46" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tools/logs.c" open="1" top="0" tabpos="27" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1003" topLine="41" />
-		</Cursor>
-	</File>
-	<File name="stringscanners/applicationFiles.c" open="1" top="0" tabpos="32" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="460" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="InputParser/InputParser_C.c" open="1" top="0" tabpos="51" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="11650" topLine="359" />
-		</Cursor>
-	</File>
-	<File name="tools/time_provider.h" open="1" top="0" tabpos="45" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1072" topLine="29" />
+			<Cursor1 position="5393" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="threads/threadInitHelper.h" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -111,14 +36,144 @@
 			<Cursor1 position="1525" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="AString/AString.h" open="1" top="0" tabpos="55" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="hashmap/hashmap.h" open="1" top="0" tabpos="23" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="288" topLine="0" />
+			<Cursor1 position="963" topLine="4" />
 		</Cursor>
 	</File>
 	<File name="version.h" open="1" top="0" tabpos="43" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="stringscanners/textFiles.c" open="1" top="0" tabpos="46" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="InputParser/InputParser_C.c" open="1" top="0" tabpos="51" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="11650" topLine="359" />
+		</Cursor>
+	</File>
+	<File name="stringscanners/imageFiles.c" open="1" top="0" tabpos="53" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="stringscanners/archiveFiles.h" open="1" top="0" tabpos="49" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="317" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="stringscanners/applicationFiles.h" open="1" top="0" tabpos="29" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="header_analysis/http_header_analysis.c" open="1" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="19370" topLine="475" />
+		</Cursor>
+	</File>
+	<File name="server_configuration.c" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3807" topLine="71" />
+		</Cursor>
+	</File>
+	<File name="tools/logs.h" open="1" top="0" tabpos="18" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1071" topLine="6" />
+		</Cursor>
+	</File>
+	<File name="threads/threadInitHelper.c" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="176" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="network/file_server.c" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="11157" topLine="268" />
+		</Cursor>
+	</File>
+	<File name="tools/directory_lists.c" open="1" top="0" tabpos="25" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3279" topLine="78" />
+		</Cursor>
+	</File>
+	<File name="AmmServerlib.h" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="26121" topLine="620" />
+		</Cursor>
+	</File>
+	<File name="cache/file_caching.h" open="1" top="0" tabpos="24" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3829" topLine="86" />
+		</Cursor>
+	</File>
+	<File name="threads/freshThreads.c" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3872" topLine="78" />
+		</Cursor>
+	</File>
+	<File name="hashmap/hashmap.c" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6831" topLine="219" />
+		</Cursor>
+	</File>
+	<File name="AString/AString.h" open="1" top="0" tabpos="55" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="249" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tools/time_provider.h" open="1" top="0" tabpos="45" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1072" topLine="29" />
+		</Cursor>
+	</File>
+	<File name="stringscanners/firstLines.c" open="1" top="0" tabpos="48" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="server_configuration.h" open="1" top="0" tabpos="28" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1597" topLine="12" />
+		</Cursor>
+	</File>
+	<File name="threads/threadedServer.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="12548" topLine="269" />
+		</Cursor>
+	</File>
+	<File name="header_analysis/http_header_analysis.h" open="1" top="0" tabpos="38" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="834" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tools/time_provider.c" open="1" top="0" tabpos="17" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="697" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="stringscanners/audioFiles.h" open="1" top="0" tabpos="30" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="702" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="cache/file_caching.c" open="1" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="23806" topLine="592" />
+		</Cursor>
+	</File>
+	<File name="cache/file_compression.h" open="1" top="0" tabpos="37" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="704" topLine="6" />
+		</Cursor>
+	</File>
+	<File name="threads/threadedServer.h" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1051" topLine="3" />
 		</Cursor>
 	</File>
 	<File name="stringscanners/archiveFiles.c" open="1" top="0" tabpos="47" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -131,29 +186,9 @@
 			<Cursor1 position="658" topLine="17" />
 		</Cursor>
 	</File>
-	<File name="threads/threadedServer.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tools/http_tools.h" open="1" top="0" tabpos="21" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="12548" topLine="269" />
-		</Cursor>
-	</File>
-	<File name="stringscanners/httpHeader.h" open="1" top="0" tabpos="33" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="438" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="threads/prespawnedThreads.h" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="536" topLine="4" />
-		</Cursor>
-	</File>
-	<File name="server_configuration.c" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3807" topLine="71" />
-		</Cursor>
-	</File>
-	<File name="hashmap/hashmap.h" open="1" top="0" tabpos="23" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="963" topLine="4" />
+			<Cursor1 position="1496" topLine="39" />
 		</Cursor>
 	</File>
 	<File name="stringscanners/postHeader.c" open="1" top="0" tabpos="50" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -161,54 +196,19 @@
 			<Cursor1 position="454" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="hashmap/hashmap.c" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="threads/prespawnedThreads.h" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="6831" topLine="219" />
+			<Cursor1 position="536" topLine="4" />
 		</Cursor>
 	</File>
-	<File name="stringscanners/applicationFiles.h" open="1" top="0" tabpos="29" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="cache/client_list.h" open="1" top="0" tabpos="36" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="0" topLine="0" />
+			<Cursor1 position="1617" topLine="28" />
 		</Cursor>
 	</File>
-	<File name="AString/AString.c" open="1" top="0" tabpos="54" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="stringscanners/applicationFiles.c" open="1" top="0" tabpos="32" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1069" topLine="126" />
-		</Cursor>
-	</File>
-	<File name="main.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="19445" topLine="491" />
-		</Cursor>
-	</File>
-	<File name="threads/freshThreads.c" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3872" topLine="78" />
-		</Cursor>
-	</File>
-	<File name="tools/http_tools.c" open="1" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="17000" topLine="394" />
-		</Cursor>
-	</File>
-	<File name="stringscanners/archiveFiles.h" open="1" top="0" tabpos="49" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="317" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="threads/threadedServer.h" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1051" topLine="3" />
-		</Cursor>
-	</File>
-	<File name="server_configuration.h" open="1" top="0" tabpos="28" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1597" topLine="12" />
-		</Cursor>
-	</File>
-	<File name="cache/client_list.c" open="1" top="0" tabpos="22" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1241" topLine="10" />
+			<Cursor1 position="460" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="cache/dynamic_requests.h" open="1" top="0" tabpos="20" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -216,14 +216,14 @@
 			<Cursor1 position="2134" topLine="17" />
 		</Cursor>
 	</File>
-	<File name="threads/prespawnedThreads.c" open="1" top="0" tabpos="26" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="main.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="998" topLine="14" />
+			<Cursor1 position="19275" topLine="474" />
 		</Cursor>
 	</File>
-	<File name="stringscanners/imageFiles.c" open="1" top="0" tabpos="53" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="cache/client_list.c" open="1" top="0" tabpos="22" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="0" topLine="0" />
+			<Cursor1 position="1241" topLine="10" />
 		</Cursor>
 	</File>
 	<File name="header_analysis/post_header_analysis.h" open="1" top="0" tabpos="42" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -231,9 +231,24 @@
 			<Cursor1 position="990" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="tools/directory_lists.h" open="1" top="0" tabpos="44" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="network/sendHTTPHeader.h" open="1" top="0" tabpos="40" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="651" topLine="0" />
+			<Cursor1 position="1498" topLine="4" />
+		</Cursor>
+	</File>
+	<File name="threads/prespawnedThreads.c" open="1" top="0" tabpos="26" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="998" topLine="14" />
+		</Cursor>
+	</File>
+	<File name="AString/AString.c" open="1" top="0" tabpos="54" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1048" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="cache/file_compression.c" open="1" top="0" tabpos="41" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7617" topLine="15" />
 		</Cursor>
 	</File>
 	<File name="threads/freshThreads.h" open="1" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -241,9 +256,9 @@
 			<Cursor1 position="699" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="cache/file_compression.h" open="1" top="0" tabpos="37" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tools/http_tools.c" open="1" top="0" tabpos="14" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="704" topLine="6" />
+			<Cursor1 position="17000" topLine="394" />
 		</Cursor>
 	</File>
 	<File name="stringscanners/postHeader.h" open="1" top="0" tabpos="34" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -251,29 +266,14 @@
 			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="cache/file_caching.h" open="1" top="0" tabpos="24" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tools/logs.c" open="1" top="0" tabpos="27" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3829" topLine="86" />
+			<Cursor1 position="1003" topLine="41" />
 		</Cursor>
 	</File>
-	<File name="tools/time_provider.c" open="1" top="0" tabpos="17" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="network/file_server.h" open="1" top="0" tabpos="39" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="697" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="AmmServerlib.h" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="8036" topLine="274" />
-		</Cursor>
-	</File>
-	<File name="tools/logs.h" open="1" top="0" tabpos="18" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1071" topLine="6" />
-		</Cursor>
-	</File>
-	<File name="header_analysis/http_header_analysis.h" open="1" top="0" tabpos="38" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="834" topLine="0" />
+			<Cursor1 position="0" topLine="17" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

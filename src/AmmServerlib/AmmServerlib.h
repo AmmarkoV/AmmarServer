@@ -633,13 +633,14 @@ int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const c
 * @brief Hot-Replace ALL variables inside a memory block , typically used to replace placeholders inside text files , like $$$$$$$$NAME$$$$$$$$  , the value should be smaller or equal to the var being replaced
 * @ingroup tools
 * @param Pointer to memory that contains the document
+* @param Maximum number of Variable instances , 0 means infinite ( until the end of the memory buffer )..
 * @param Size of document
 * @param Variable to be replaced
 * @param What to replace it with
 * @retval 1=Ok,0=Failed
 * @bug Value should not be bigger than variable otherwise things won't fit in the same memory block , this should be handled
 */
-int AmmServer_ReplaceAllVarsInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value);
+int AmmServer_ReplaceAllVarsInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value);
 
 /**
 * @brief Read a file and store it to a freshly allocated memory block
