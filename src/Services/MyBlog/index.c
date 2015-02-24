@@ -132,7 +132,7 @@ int strlimcpy(char * output , unsigned int outputLimit , const char * source )
 int setupMyBlog(struct website * configuration)
 {
   strlimcpy( configuration->blogTitle , MAX_STR  , "AmmarkoV's Personal Website");
-  strlimcpy( configuration->siteName  , MAX_STR  , "AmmarkoV's Personal Website");
+  strlimcpy( configuration->siteName  , MAX_STR  , "AmmarkoV's Website");
   strlimcpy( configuration->siteDescription  , MAX_STR  , "I would love to change the world , but they won`t give me the source code");
 
 
