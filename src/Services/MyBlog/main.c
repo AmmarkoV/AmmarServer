@@ -90,6 +90,8 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
+
+    destroy_index_prototype();
 }
 
 
