@@ -580,6 +580,8 @@ char * AmmServer_ReadFileToMemory(const char * filename,unsigned int *length )
 }
 
 
+
+
 int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength)
 {
   return astringWriteFileFromMemory(filename,memory,memoryLength);
@@ -590,10 +592,73 @@ int AmmServer_CopyOverlappingDataContent(unsigned char * buffer , unsigned int t
   return astringCopyOverlappingDataContent(buffer,totalSize,from,to,blockSize);
 }
 
-int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , unsigned char * buffer,  unsigned int currentBufferLength , unsigned int totalBufferLength )
+int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , struct AmmServer_MemoryHandler * mh )
 {
-  return  astringInjectDataToBuffer(entryPoint,data,buffer,currentBufferLength,totalBufferLength);;
+  return  astringInjectDataToBuffer(entryPoint,data,mh->content,mh->contentCurrentLength,mh->contentSize);
 }
+
+int AmmServer_ReplaceVarInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
+{
+  return astringReplaceVarInMemoryFile(mh->content,mh->contentCurrentLength,var,value);
+}
+
+
+int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh ,unsigned int instances,const char * var,const char * value)
+{
+  return astringReplaceAllInstancesOfVarInMemoryFile(mh->content,instances,mh->contentCurrentLength,var,value);
+}
+
+
+
+struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int initialBufferLength, unsigned int growStep)
+{
+ struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
+ if (mh==0) { fprintf(stderr,"Could not allocate a memory handler of %u bytes length\n",initialBufferLength); return 0; }
+
+
+ mh->content = (char*) malloc( initialBufferLength * sizeof(char));
+ if (mh->content==0) { fprintf(stderr,"Could not allocate the buffer of the allocated memory handler\n"); free(mh); return 0; }
+
+ mh->contentSize = initialBufferLength;
+ mh->contentCurrentLength = initialBufferLength;
+
+ return mh;
+}
+
+
+struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char * filename)
+{
+  struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
+  if (mh==0) { return 0; }
+
+   mh->content = AmmServer_ReadFileToMemory(filename,&mh->contentSize);
+   mh->contentCurrentLength = mh->contentSize;
+
+   return mh;
+}
+
+
+int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh)
+{
+  if (*mh==0) { return 0; }
+
+  struct AmmServer_MemoryHandler * tmp = *mh;
+  free(tmp->content);
+  free(*mh);
+  return 0;
+}
+
+
+
+int AmmServer_ConvertBufferToMemoryHandler(struct AmmServer_MemoryHandler * mh, unsigned char * buffer,unsigned int bufferLength)
+{
+  if (mh==0) { return 0; }
+  mh->content = buffer;
+  mh->contentSize = bufferLength;
+  mh->contentCurrentLength;
+  return 1;
+}
+
 
 
 int AmmServer_DirectoryExists(const char * filename)

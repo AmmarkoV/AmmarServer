@@ -4,6 +4,7 @@
 
 #include "../../AmmServerlib/AmmServerlib.h"
 
+int destroy_index_prototype();
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst);
 
 

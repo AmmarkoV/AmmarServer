@@ -148,6 +148,21 @@ struct AmmServer_RequestOverride_Context
    void * request_override_callback;
 };
 
+
+
+/**
+* @brief A Wrapper around a memory buffer that enables house keeping for reallocations etc
+*/
+struct AmmServer_MemoryHandler
+{
+  unsigned int contentSize;
+  unsigned int contentCurrentLength;
+  char * content;
+};
+
+
+
+
 /**
 * @brief When a call to a function that is a dynamic request is done this is the structure that holds the information
 */
@@ -662,6 +677,14 @@ char * AmmServer_ReadFileToMemory(const char * filename,unsigned int *length );
 int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength);
 
 
+/**
+* @brief Read a file and store it to a freshly allocated memory handler context
+* @ingroup tools
+* @param Input Filename
+* @retval Pointer to the new memory handler or 0=Failed
+*/
+struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char * filename);
+
 
 /**
 * @brief Copy Content from one place of a buffer to another using an intermediate buffer..
@@ -681,12 +704,18 @@ int AmmServer_CopyOverlappingDataContent(unsigned char * buffer , unsigned int t
 * @ingroup tools
 * @param String to find in buffer and replace with new content
 * @param Data we want to inject
-* @param Buffer we want to fill data into
-* @param Buffer current length
-* @param Buffer total length
+* @param Memory Handler for Buffer we want to inject to , see struct AmmServer_MemoryHandler
 * @retval 1=Ok,0=Failed
 */
-int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , unsigned char * buffer,  unsigned int currentBufferLength , unsigned int totalBufferLength );
+int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , struct AmmServer_MemoryHandler * mh );
+
+
+int AmmServer_ReplaceVarInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value);
+int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh ,unsigned int instances,const char * var,const char * value);
+
+struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int initialBufferLength, unsigned int growStep);
+int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh);
+
 
 
 /**

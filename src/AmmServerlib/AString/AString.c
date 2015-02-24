@@ -40,6 +40,7 @@ int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char
 
 int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value)
 {
+  unsigned int varLength = strlen(var);
   unsigned int locatedInstaces=0;
   char * location = strstr(page,var);
   while (location!=0)
@@ -53,7 +54,7 @@ int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instanc
      ++location;
     }
 
-    if (location>=page+pageLength) { return 1; } //We finished our buffer lets get out..
+    if (location+varLength>=page+pageLength) { return 1; } //We finished our buffer lets get out..
     location = strstr(location,var);
   }
 

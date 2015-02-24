@@ -5,8 +5,7 @@
 #include "database.h"
 
 
-unsigned int indexLength=0;
-unsigned char * indexContent=0;
+struct AmmServer_MemoryHandler * indexPage=0;
 
 #warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
 
@@ -132,11 +131,19 @@ int strlimcpy(char * output , unsigned int outputLimit , const char * source )
 
 int setupMyBlog(struct website * configuration)
 {
-  strlimcpy( configuration->blogTitle , MAX_STR , "AmmarkoV's Personal Website");
+  strlimcpy( configuration->blogTitle , MAX_STR  , "AmmarkoV's Personal Website");
+  strlimcpy( configuration->siteName  , MAX_STR  , "AmmarkoV's Personal Website");
+  strlimcpy( configuration->siteDescription  , MAX_STR  , "I would love to change the world , but they won`t give me the source code");
+
 
 }
 
 
+int destroy_index_prototype()
+{
+  AmmServer_FreeMemoryHandler(&indexPage);
+  return 0;
+}
 
 unsigned char * prepare_index_prototype(char * filename , struct website * configuration)
 {
@@ -146,50 +153,52 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   setupMyBlog(configuration);
 
   fprintf(stderr,"Reading master index file..!\n");
-  indexContent=AmmServer_ReadFileToMemory(filename,&indexLength);
+  indexPage=AmmServer_ReadFileToMemoryHandler(filename);
 
   fprintf(stderr,"Replacing Variables..!\n");
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++++++++YEAR+++++++++","20xx");
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++++++++BLOGTITLE+++++++++",configuration->blogTitle);
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,6,indexLength,"+++++++++SITENAME+++++++++",configuration->siteName);
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++++++++SITEDESCRIPTION+++++++++",configuration->siteDescription);
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,4,indexLength,"+++++++++RSSLINK+++++++++","rss.html");
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,2,indexLength,"+++++++++RSSCOMMENT+++++++++","rssComments.html");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++YEAR+++++++++","20xx");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++BLOGTITLE+++++++++",configuration->blogTitle);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,6,"+++++++++SITENAME+++++++++",configuration->siteName);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++SITEDESCRIPTION+++++++++",configuration->siteDescription);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++++++++RSSLINK+++++++++","rss.html");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,2,"+++++++++RSSCOMMENT+++++++++","rssComments.html");
 
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++++++++ATOMLINK+++++++++","atom.html");
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++++++++PINGBACKLINK+++++++++","pingback.html");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ATOMLINK+++++++++","atom.html");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++PINGBACKLINK+++++++++","pingback.html");
 
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++++++++TAGLIST+++++++++","no tags");
-  AmmServer_ReplaceAllVarsInMemoryFile(indexContent,1,indexLength,"+++++++++ARCHIVELIST+++++++++","no archives");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++TAGLIST+++++++++","no tags");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ARCHIVELIST+++++++++","no archives");
 
   fprintf(stderr,"Injecting Menu List..!\n");
   unsigned char * htmlData = 0;
   htmlData = getMenuListHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++MENULIST+++++++++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++++++++MENULIST+++++++++",htmlData,indexPage);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
 
   fprintf(stderr,"Injecting Widget List..!\n");
   htmlData = getWidgetListHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++WIDGETLIST+++++++++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++++++++WIDGETLIST+++++++++",htmlData,indexPage);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Blog Roll Left..!\n");
   htmlData = getLeftBlogRollHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++LEFTBLOGROLL+++++++++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++++++++LEFTBLOGROLL+++++++++",htmlData,indexPage);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Blog Roll Right..!\n");
   htmlData = getRightBlogRollHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++RIGHTBLOGROLL+++++++++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++++++++RIGHTBLOGROLL+++++++++",htmlData,indexPage);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Footer List ..!\n");
   htmlData = getFooterLinksHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++FOOTERLINKS+++++++++",htmlData,indexContent,indexLength,indexLength);
+  AmmServer_InjectDataToBuffer("+++++++++FOOTERLINKS+++++++++",htmlData,indexPage);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
-  return indexContent;
+  fprintf(stderr,"Done with index..\n");
+
+  return indexPage->content;
 }
 
 
@@ -197,19 +206,9 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
 {
-
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  /*
-  snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head>\
-            <body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>\
-            The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n\
-            To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L46\">\
-            Dynamic content code label in ammarserver main.c</a><br>\n\
-            If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in \
-            <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>",
-           tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);*/
-
-  rqst->contentSize=strlen(rqst->content);
+  unsigned int howLongToCopy = indexPage->contentCurrentLength;
+  if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
+  strncpy(rqst->content,indexPage->content,howLongToCopy);
+  rqst->contentSize=howLongToCopy;
   return 0;
 }
