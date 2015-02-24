@@ -6,6 +6,11 @@
 #ifndef THREADINITHELPER_H_INCLUDED
 #define THREADINITHELPER_H_INCLUDED
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
 * @brief A call to help waiting for a message to be consumed by a child thread , or until a timeout , this should be called by the parent thread
 * @ingroup threads
@@ -27,5 +32,10 @@ int parentKeepMessageOnStackUntilReady(volatile int * childSwitch);
 * @param Pointer to the switch signaling that the child has read the message , so that the parent will keep it in his stack
 * @retval 1=Success,0=Fail */
 void childFinishedWithParentMessage(volatile int * childSwitch);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // THREADINITHELPER_H_INCLUDED

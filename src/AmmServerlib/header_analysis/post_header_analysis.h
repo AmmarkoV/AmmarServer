@@ -9,6 +9,10 @@
 
 #include "../AmmServerlib.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
 * @brief Analyze a POST request line by line filling in the structures that define it
 * @ingroup POSTanalysis
@@ -26,5 +30,11 @@ int AnalyzePOSTLineRequest(
                             unsigned int request_length,
                             unsigned int lines_gathered
                           );
+
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // POSTHEADERS_H_INCLUDED

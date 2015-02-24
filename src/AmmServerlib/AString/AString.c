@@ -40,9 +40,6 @@ int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char
 
 int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value)
 {
-  fprintf(stderr,"astringReplaceAllInstancesOfVarInMemoryFile is incorrectly implemented and causes an infinite loop\n");
-  return 0;
-
   unsigned int locatedInstaces=0;
   char * location = strstr(page,var);
   while (location!=0)
@@ -53,8 +50,10 @@ int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instanc
     {
      unsigned int remainingLength = pageLength - (location-page);
      astringReplaceVarInMemoryFile(location,remainingLength,var,value);
+     ++location;
     }
 
+    if (location>=page+pageLength) { return 1; } //We finished our buffer lets get out..
     location = strstr(location,var);
   }
 

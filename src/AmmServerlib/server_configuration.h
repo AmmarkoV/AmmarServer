@@ -13,6 +13,10 @@
 
 #include "AmmServerlib.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /** @brief Next prespawned thread , should be vigilant and ready to serve so it has a shorter delay than the other prespawned threads ( 0.7ms max delay seems like a good value ) */
 #define THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT 700
@@ -235,5 +239,11 @@ int AssignStr(char ** dest ,const char * source);
     @param String with new password
   * @retval 1=Success,0=Failure*/
 int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,char * password);
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif // CONFIGURATION_H_INCLUDED
