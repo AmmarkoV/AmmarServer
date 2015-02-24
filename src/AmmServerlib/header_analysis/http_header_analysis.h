@@ -9,6 +9,10 @@
 
 #include "../AmmServerlib.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
 * @brief Receive an HTTP Header from a socket and prepare it for further processing
 * @ingroup HTTPanalysis
@@ -57,4 +61,11 @@ int HTTPHeaderIsPOST(char * request , unsigned int requestLength);
 * @param HTTPTransaction we are talking about
 * @retval 1=Success,0=Failure */
 int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
+
+
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // HTTP_HEADER_ANALYSIS_H_INCLUDED
