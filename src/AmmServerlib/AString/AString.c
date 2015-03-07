@@ -176,3 +176,16 @@ int astringInjectDataToBuffer(unsigned char * entryPoint , unsigned char * data 
 
   return 0;
 }
+
+
+
+
+
+
+int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
+{
+ return 0;
+}
+
+
+

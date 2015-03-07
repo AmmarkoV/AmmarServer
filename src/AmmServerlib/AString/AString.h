@@ -2,7 +2,7 @@
 #define ASTRING_H_INCLUDED
 
 
-
+#include "../AmmServerlib.h"
 
 int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value);
 int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value);
@@ -15,5 +15,6 @@ int astringCopyOverlappingDataContent(unsigned char * buffer , unsigned int tota
 
 int astringInjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , unsigned char * buffer,  unsigned int currentBufferLength , unsigned int totalBufferLength);
 
+int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value);
 
 #endif // ASTRING_H_INCLUDED

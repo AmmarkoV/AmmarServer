@@ -599,7 +599,8 @@ int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * da
 
 int AmmServer_ReplaceVarInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
 {
-  return astringReplaceVarInMemoryFile(mh->content,mh->contentCurrentLength,var,value);
+  return astringInjectDataToMemoryHandler(mh,var,value);
+  //return astringReplaceVarInMemoryFile(mh->content,mh->contentCurrentLength,var,value);
 }
 
 
