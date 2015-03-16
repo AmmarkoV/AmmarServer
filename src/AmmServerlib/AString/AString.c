@@ -178,12 +178,69 @@ int astringInjectDataToBuffer(unsigned char * entryPoint , unsigned char * data 
 }
 
 
+/*
 
+
+struct AmmServer_MemoryHandler
+{
+  unsigned int contentSize;
+  unsigned int contentCurrentLength;
+  char * content;
+};
+
+
+*/
 
 
 
 int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
 {
+  fprintf(stderr,"We want to inject \n %s \n to \n %s \n",value,var);
+
+
+  if (value==0)        { fprintf(stderr,"injectDataToBuffer / Zero Data To Inject we are happy..\n"); return 1; }
+  if (var==0)  { fprintf(stderr,"injectDataToBuffer / No entry point defined..\n");           return 0; }
+  if (mh==0)      { fprintf(stderr,"injectDataToBuffer / No Buffer To inject to..\n");           return 0; }
+
+ /*
+   WE HAVE :
+         S <----------------> VAR <-------------------------------> OLDEND
+
+   WE WANT :
+         S <----------------> VALUE <-------------------------------> NEWEND
+ */
+
+ unsigned int valueLength = strlen(value);
+ unsigned int varLength = strlen(var);
+
+ char * where2inject = (unsigned char* ) strstr ((const char*) mh->content,(const char*) var);
+  if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
+ unsigned int injectOffset = where2inject - mh->content;
+
+ unsigned int endBufferLength = mh->contentCurrentLength - injectOffset - varLength;
+
+ if (mh->contentCurrentLength + endBufferLength + 1 > mh->contentSize )
+ {
+  char * newBuffer = realloc( mh->content , mh->contentCurrentLength + endBufferLength + 1);
+  if (newBuffer==0) { fprintf(stderr,"Could not Inject #1\n"); return 0; }
+
+  mh->content = newBuffer;
+  mh->contentSize=mh->contentCurrentLength + endBufferLength + 1;
+ }
+
+ char * endBuffer = (char* ) malloc( (endBufferLength+1) * sizeof(char));
+ if (endBuffer==0) { fprintf(stderr,"Could not Inject \n"); return 0; }
+
+ memcpy(endBuffer,where2inject,endBufferLength);
+
+ memcpy(where2inject,value,valueLength);
+
+ memcpy(where2inject+valueLength,endBuffer,endBufferLength);
+
+ mh->contentCurrentLength += valueLength;
+
+ free(endBuffer);
+
  return 0;
 }
 

@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
      fclose(fp);
   }
   fprintf(stderr,"Program just generates a test.html file and stops for now , it is not ready yet :) \n");
- // exit (0);
+  exit (0);
 #endif // TEST_INDEX_GENERATION_ONLY
 
 
