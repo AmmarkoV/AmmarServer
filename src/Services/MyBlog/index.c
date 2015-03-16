@@ -136,6 +136,33 @@ int setupMyBlog(struct website * configuration)
   strlimcpy( configuration->siteDescription  , MAX_STR  , "I would love to change the world , but they won`t give me the source code");
 
 
+
+
+
+  //HARDCODED MENUS
+  configuration->menu.currentItems=0;
+
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "About" , MAX_STR);
+  ++configuration->menu.currentItems;
+  //-------------------------------
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "Linux Coding" , MAX_STR);
+  ++configuration->menu.currentItems;
+  //-------------------------------
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "Windows Coding" , MAX_STR);
+  ++configuration->menu.currentItems;
+  //-------------------------------
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "GuarddoG Robot Project" , MAX_STR);
+  ++configuration->menu.currentItems;
+  //-------------------------------
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "DeviantArt Gallery" , MAX_STR);
+  ++configuration->menu.currentItems;
+  //-------------------------------
+
 }
 
 
