@@ -40,8 +40,8 @@ unsigned char * getWidgetListHTML(struct website * configuration)
     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
                       "<li id=\"text-%u\" class=\"widget widget_text\">\
                        <h2 class=\"widgettitle\">%s</h2>\
-                       <div class=\"textwidget\">%s/div>\
-		           </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.data);
+                       <div class=\"textwidget\">%s</div>\
+		               </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.data);
 
   }
 
@@ -166,6 +166,7 @@ int setupMyBlog(struct website * configuration)
   //-------------------------------
 
 
+  const char * const widgetLabelList[] = { "Donation box!", "Featured Projects", "Project Statistics", "Browser Detector :P" };
   char tmpPath[512]={0};
   struct AmmServer_MemoryHandler *  tmp=0;
   configuration->widget.currentItems=0;
@@ -178,7 +179,7 @@ int setupMyBlog(struct website * configuration)
    tmp = AmmServer_ReadFileToMemoryHandler(tmpPath);
    if (tmp!=0)
    {
-    snprintf(configuration->widget.item[configuration->widget.currentItems].label , MAX_STR , "Widget %u", loadedWidgets );
+    snprintf(configuration->widget.item[configuration->widget.currentItems].label , MAX_STR , "%s", widgetLabelList[loadedWidgets] );
     snprintf(configuration->widget.item[configuration->widget.currentItems].link , MAX_STR , "widget%u.html",loadedWidgets );
     configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
     configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
