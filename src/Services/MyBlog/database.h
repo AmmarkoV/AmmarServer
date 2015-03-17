@@ -108,7 +108,8 @@ struct website
 
    struct socialLinks social;
    struct menuItemList menu;
-   struct linkItemList links;
+   struct linkItemList linksLeft;
+   struct linkItemList linksRight;
    struct postItemList post;
 
    struct widgetItemList widget;
