@@ -277,20 +277,6 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   fprintf(stderr,"Reading master index file..!\n");
   indexPage=AmmServer_ReadFileToMemoryHandler(filename);
 
-  fprintf(stderr,"Replacing Variables..!\n");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++YEAR+++++++++","20xx");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++BLOGTITLE+++++++++",configuration->blogTitle);
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,6,"+++++++++SITENAME+++++++++",configuration->siteName);
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++SITEDESCRIPTION+++++++++",configuration->siteDescription);
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++++++++RSSLINK+++++++++","rss.html");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,2,"+++++++++RSSCOMMENT+++++++++","rssComments.html");
-
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ATOMLINK+++++++++","atom.html");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++PINGBACKLINK+++++++++","pingback.html");
-
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++TAGLIST+++++++++","no tags");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ARCHIVELIST+++++++++","no archives");
-
   fprintf(stderr,"Injecting Menu List..!\n");
   unsigned char * htmlData = 0;
   htmlData = getMenuListHTML(configuration);
@@ -317,6 +303,26 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   htmlData = getFooterLinksHTML(configuration);
   AmmServer_InjectDataToBuffer("+++++++++FOOTERLINKS+++++++++",htmlData,indexPage);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
+
+
+  fprintf(stderr,"Replacing Variables..!\n");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++YEAR+++++++++","20xx");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++BLOGTITLE+++++++++",configuration->blogTitle);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,6,"+++++++++SITENAME+++++++++",configuration->siteName);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++SITEDESCRIPTION+++++++++",configuration->siteDescription);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++++++++RSSLINK+++++++++","rss.html");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,2,"+++++++++RSSCOMMENT+++++++++","rssComments.html");
+
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ATOMLINK+++++++++","atom.html");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++PINGBACKLINK+++++++++","pingback.html");
+
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++TAGLIST+++++++++","no tags");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ARCHIVELIST+++++++++","no archives");
+
+
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++RESOURCES+++","res");
+
+
 
   fprintf(stderr,"Done with index..\n");
 
