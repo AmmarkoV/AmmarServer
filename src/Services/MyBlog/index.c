@@ -10,6 +10,38 @@ struct AmmServer_MemoryHandler * indexPage=0;
 #warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
 
 
+unsigned char * getLeftBlogRollHTML(struct website * configuration)
+{
+  unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
+
+  unsigned int i=0;
+  for (i=0; i<configuration->linksLeft.currentItems; i++)
+  {
+    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
+                          "<li><a href=\"%s\">%s</a></li>\n" ,configuration->linksLeft.item[i].link , configuration->linksLeft.item[i].label);
+  }
+
+ return buffer;
+}
+
+unsigned char * getRightBlogRollHTML(struct website * configuration )
+{
+  unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
+
+  unsigned int i=0;
+  for (i=0; i<configuration->linksRight.currentItems; i++)
+  {
+    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
+                          "<li><a href=\"%s\">%s</a></li>\n" ,configuration->linksRight.item[i].link , configuration->linksRight.item[i].label);
+  }
+
+ return buffer;
+}
+
 unsigned char * getFooterLinksHTML(struct website * configuration )
 {
   unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
@@ -120,16 +152,6 @@ unsigned char * getPostListHTML(struct website * configuration)
 
 
 
-unsigned char * getLeftBlogRollHTML(struct website * configuration)
-{
-    return 0;
-}
-
-unsigned char * getRightBlogRollHTML(struct website * configuration )
-{
-    return 0;
-}
-
 
 int strlimcpy(char * output , unsigned int outputLimit , const char * source )
 {
@@ -152,7 +174,8 @@ int setupMyBlog(struct website * configuration)
 {
   strlimcpy( configuration->blogTitle , MAX_STR  , "AmmarkoV's Personal Website");
   strlimcpy( configuration->siteName  , MAX_STR  , "AmmarkoV's Website");
-  strlimcpy( configuration->siteDescription  , MAX_STR  , "I would love to change the world , but they won`t give me the source code");
+  //strlimcpy( configuration->siteDescription  , MAX_STR  , "I would love to change the world , but they won`t give me the source code");
+  strlimcpy( configuration->siteDescription  , MAX_STR  , "AmmarServer&trade;");
 
 
 
@@ -206,6 +229,35 @@ int setupMyBlog(struct website * configuration)
    }
   //-------------------------------
   }
+
+
+   const char * const leftBlogRollList[] = { "Best Links in the world", "bestlinks.html"          ,
+                                             "ELLAK Planet"           , "http://planet.ellak.gr/" ,
+                                             "FOSS AUEB"              , "http://foss.aueb.gr/" };
+
+  unsigned int i=0;
+  configuration->linksLeft.currentItems=0;
+  for (i=0; i<3; i++)
+  {
+      snprintf(configuration->linksLeft.item[i].label, MAX_STR , "%s", leftBlogRollList[i*2+0] );
+      snprintf(configuration->linksLeft.item[i].link , MAX_STR , "%s", leftBlogRollList[i*2+1] );
+      ++configuration->linksLeft.currentItems;
+  }
+
+   const char * const rightBlogRollList[] = { "Free Software Foundation", "http://www.fsf.org/"  ,
+                                              "Guarddog project blog"   , "+++++++++WEBROOT+++++++++gddg.html"   };
+
+   configuration->linksRight.currentItems=0;
+  for (i=0; i<2; i++)
+  {
+      snprintf(configuration->linksRight.item[i].label, MAX_STR , "%s", rightBlogRollList[i*2+0] );
+      snprintf(configuration->linksRight.item[i].link , MAX_STR , "%s", rightBlogRollList[i*2+1] );
+      ++configuration->linksRight.currentItems;
+  }
+
+
+
+
 }
 
 
