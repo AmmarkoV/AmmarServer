@@ -40,10 +40,12 @@ int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char
 
 int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value)
 {
+  if ( (page==0) || (pageLength==0) || (var==0) || (value==0) ) { return 0; }
+
   unsigned int varLength = strlen(var);
   unsigned int locatedInstaces=0;
   char * location = strstr(page,var);
-  while (location!=0)
+  while  (location!=0)
   {
     ++locatedInstaces;
 
@@ -54,6 +56,8 @@ int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instanc
      ++location;
     }
 
+    if ( (instances!=0) && (instances==locatedInstaces) ) { return 1; } //We Finished with all instances we wanted to replace
+    if (location+1>=page+pageLength) { return 1; } //Never get out of memory on strstr
     if (location+varLength>=page+pageLength) { return 1; } //We finished our buffer lets get out..
     location = strstr(location,var);
   }
@@ -192,24 +196,36 @@ struct AmmServer_MemoryHandler
 */
 
 
+int myStupidMemcpy(char * target , char * source , unsigned int sourceLength)
+{
+  while (sourceLength>0)
+  {
+    *target=*source;
+    --sourceLength;
+  }
+
+ return 1;
+}
+
+
 
 int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
 {
   fprintf(stderr,"We want to inject \n %s \n to \n %s \n",value,var);
-
 
   if (value==0)        { fprintf(stderr,"injectDataToBuffer / Zero Data To Inject we are happy..\n"); return 1; }
   if (var==0)  { fprintf(stderr,"injectDataToBuffer / No entry point defined..\n");           return 0; }
   if (mh==0)      { fprintf(stderr,"injectDataToBuffer / No Buffer To inject to..\n");           return 0; }
 
  /*
-   WE HAVE :
+   WE HAVE :                              PART_TO_BE_MOVED
          S <----------------> VAR <-------------------------------> OLDEND
 
-   WE WANT :
+   WE WANT :                               PART_TO_BE_MOVED
          S <----------------> VALUE <-------------------------------> NEWEND
  */
 
+ //We need to know how long is our value and variable
  unsigned int valueLength = strlen(value);
  unsigned int varLength = strlen(var);
 
@@ -217,29 +233,33 @@ int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const c
   if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
  unsigned int injectOffset = where2inject - mh->content;
 
- unsigned int endBufferLength = mh->contentCurrentLength - injectOffset - varLength;
+ unsigned int partToBeMovedLength = mh->contentCurrentLength - injectOffset - varLength;
 
- if (mh->contentCurrentLength + endBufferLength + 1 > mh->contentSize )
+ if (mh->contentCurrentLength + partToBeMovedLength + 1 > mh->contentSize )
  {
-  char * newBuffer = realloc( mh->content , mh->contentCurrentLength + endBufferLength + 1);
+  char * newBuffer = realloc( mh->content , mh->contentCurrentLength + partToBeMovedLength + 1);
   if (newBuffer==0) { fprintf(stderr,"Could not Inject #1\n"); return 0; }
 
   mh->content = newBuffer;
-  mh->contentSize=mh->contentCurrentLength + endBufferLength + 1;
+  mh->contentSize=mh->contentCurrentLength + partToBeMovedLength + 1;
  }
 
- char * endBuffer = (char* ) malloc( (endBufferLength+1) * sizeof(char));
- if (endBuffer==0) { fprintf(stderr,"Could not Inject \n"); return 0; }
+ //We want to allocate enough space for the part to be moved
+ char * partToBeMoved = (char* ) malloc( (partToBeMovedLength+1) * sizeof(char));
+ if (partToBeMoved==0) { fprintf(stderr,"Could not allocate enough space for the part to be moved\n"); return 0; }
 
- memcpy(endBuffer,where2inject,endBufferLength);
+ //We save the part to be moved @ partToBeMoved
+ myStupidMemcpy(partToBeMoved,where2inject+varLength,partToBeMovedLength);
 
- memcpy(where2inject,value,valueLength);
+ //We write our value..
+ myStupidMemcpy(where2inject,value,valueLength);
 
- memcpy(where2inject+valueLength,endBuffer,endBufferLength);
+ //We append the partToBeMoved
+ myStupidMemcpy(where2inject+valueLength,partToBeMoved,partToBeMovedLength);
 
  mh->contentCurrentLength += valueLength;
 
- free(endBuffer);
+ free(partToBeMoved);
 
  return 0;
 }

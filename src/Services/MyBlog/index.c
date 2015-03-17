@@ -12,7 +12,7 @@ struct AmmServer_MemoryHandler * indexPage=0;
 
 unsigned char * getMenuListHTML(struct website * configuration)
 {
-  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
@@ -22,6 +22,8 @@ unsigned char * getMenuListHTML(struct website * configuration)
     //TODO PROPER MEMORY HANDLING ,, REALLOC ETC ..
     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<li class=\"page_item page-item-%u\"><a href=\"%s\">%s</a></li>" ,i, configuration->menu.item[i].link , configuration->menu.item[i].label);
   }
+
+ currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<!--getMenuListHTML done-->");
 
  return buffer;
 }

@@ -594,7 +594,7 @@ int AmmServer_CopyOverlappingDataContent(unsigned char * buffer , unsigned int t
 
 int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , struct AmmServer_MemoryHandler * mh )
 {
-  return  astringInjectDataToBuffer(entryPoint,data,mh->content,mh->contentCurrentLength,mh->contentSize);
+  return astringInjectDataToMemoryHandler(mh,entryPoint,data);
 }
 
 int AmmServer_ReplaceVarInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)

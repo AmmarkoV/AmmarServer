@@ -33,7 +33,7 @@ add_dependencies(habchan AmmarServer)
        
 
     set_target_properties(habchan PROPERTIES 
-                          DEBUG_POSTFIX "D"
+                          DEBUG_POSTFIX ""
                           ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
