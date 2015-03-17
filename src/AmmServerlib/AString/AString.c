@@ -211,7 +211,7 @@ int myStupidMemcpy(char * target , char * source , unsigned int sourceLength)
 
 int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
 {
-  fprintf(stderr,"We want to inject \n %s \n to \n %s \n",value,var);
+  fprintf(stderr,"We want to inject \n Value=`%s` \n to \n Var=`%s` \n",value,var);
 
   if (value==0)        { fprintf(stderr,"injectDataToBuffer / Zero Data To Inject we are happy..\n"); return 1; }
   if (var==0)  { fprintf(stderr,"injectDataToBuffer / No entry point defined..\n");           return 0; }
@@ -240,6 +240,8 @@ int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const c
   char * newBuffer = realloc( mh->content , mh->contentCurrentLength + partToBeMovedLength + 1);
   if (newBuffer==0) { fprintf(stderr,"Could not Inject #1\n"); return 0; }
 
+  where2inject = newBuffer + injectOffset; //We recalculate the pointer for where 2 inject based on the new reallocated buffer..!
+
   mh->content = newBuffer;
   mh->contentSize=mh->contentCurrentLength + partToBeMovedLength + 1;
  }
@@ -249,15 +251,19 @@ int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const c
  if (partToBeMoved==0) { fprintf(stderr,"Could not allocate enough space for the part to be moved\n"); return 0; }
 
  //We save the part to be moved @ partToBeMoved
- myStupidMemcpy(partToBeMoved,where2inject+varLength,partToBeMovedLength);
+ memcpy(partToBeMoved,where2inject+varLength,partToBeMovedLength);
+ //fprintf(stderr,"End Part is `%s`\n \n",partToBeMoved);
+
 
  //We write our value..
- myStupidMemcpy(where2inject,value,valueLength);
+ memcpy(where2inject,value,valueLength);
 
  //We append the partToBeMoved
- myStupidMemcpy(where2inject+valueLength,partToBeMoved,partToBeMovedLength);
+ memcpy(where2inject+valueLength,partToBeMoved,partToBeMovedLength);
+
 
  mh->contentCurrentLength += valueLength;
+ mh->content[mh->contentCurrentLength]=0; //Make sure that the end is clearly signaled
 
  free(partToBeMoved);
 

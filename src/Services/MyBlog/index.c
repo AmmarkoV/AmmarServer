@@ -30,7 +30,7 @@ unsigned char * getMenuListHTML(struct website * configuration)
 
 unsigned char * getWidgetListHTML(struct website * configuration)
 {
-  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
@@ -41,7 +41,7 @@ unsigned char * getWidgetListHTML(struct website * configuration)
                       "<li id=\"text-%u\" class=\"widget widget_text\">\
                        <h2 class=\"widgettitle\">%s</h2>\
                        <div class=\"textwidget\">%s/div>\
-		           </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.totalDataLength);
+		           </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.data);
 
   }
 
@@ -165,6 +165,29 @@ int setupMyBlog(struct website * configuration)
   ++configuration->menu.currentItems;
   //-------------------------------
 
+
+  char tmpPath[512]={0};
+  struct AmmServer_MemoryHandler *  tmp=0;
+  configuration->widget.currentItems=0;
+
+  unsigned int loadedWidgets=0;
+  for (loadedWidgets=0; loadedWidgets<4; loadedWidgets++)
+  {
+   //-------------------------------
+   snprintf(tmpPath,512,"src/Services/MyBlog/res/widgets/widget%u.html",loadedWidgets);
+   tmp = AmmServer_ReadFileToMemoryHandler(tmpPath);
+   if (tmp!=0)
+   {
+    snprintf(configuration->widget.item[configuration->widget.currentItems].label , MAX_STR , "Widget %u", loadedWidgets );
+    snprintf(configuration->widget.item[configuration->widget.currentItems].link , MAX_STR , "widget%u.html",loadedWidgets );
+    configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
+    configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
+    configuration->widget.item[configuration->widget.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
+    free(tmp); //We just free the wrapper
+    ++configuration->widget.currentItems;
+   }
+  //-------------------------------
+  }
 }
 
 
