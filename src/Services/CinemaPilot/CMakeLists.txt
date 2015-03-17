@@ -12,7 +12,7 @@ set_target_properties(cinemapilot PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(cinemapilot AmmarServer)  
        
     set_target_properties(cinemapilot PROPERTIES 
-                          DEBUG_POSTFIX "D"
+                          DEBUG_POSTFIX ""
                           ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
