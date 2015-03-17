@@ -10,6 +10,28 @@ struct AmmServer_MemoryHandler * indexPage=0;
 #warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
 
 
+unsigned char * getFooterLinksHTML(struct website * configuration )
+{
+  unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
+
+  currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<a href=\"index.html\">Home</a> &nbsp;&nbsp;|	&nbsp;&nbsp;\n" );
+
+  unsigned int i=0;
+  for (i=0; i<configuration->menu.currentItems; i++)
+  {
+    //TODO PROPER MEMORY HANDLING ,, REALLOC ETC ..
+    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
+                          "<a href=\"%s\" title=\"%s\">%s</a>&nbsp; | &nbsp;&nbsp;\n" ,configuration->menu.item[i].link , configuration->menu.item[i].label, configuration->menu.item[i].label);
+  }
+
+ currentSize+=snprintf(buffer+currentSize,totalSize-currentSize," <a href=\"rss.html\" title=\"RSS\">Posts RSS</a> &nbsp;|&nbsp;\n" );
+ currentSize+=snprintf(buffer+currentSize,totalSize-currentSize," <a href=\"rssComments.html\" title=\"Comments RSS\">Comments RSS</a> &nbsp;|&nbsp;\n" );
+
+ return buffer;
+}
+
 unsigned char * getMenuListHTML(struct website * configuration)
 {
   unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
@@ -104,11 +126,6 @@ unsigned char * getLeftBlogRollHTML(struct website * configuration)
 }
 
 unsigned char * getRightBlogRollHTML(struct website * configuration )
-{
-    return 0;
-}
-
-unsigned char * getFooterLinksHTML(struct website * configuration )
 {
     return 0;
 }
