@@ -1,5 +1,6 @@
 /** @file fastStringParser.h
 * @brief A tool that converts a file with words ( each word on a new line ) to C code ( see automata ) for fast string checking
+* @bug In case the declarations have shared prefixes and the shortest prefix is stated first they will also get recognized first so be careful
 *
 * @author Ammar Qammaz (AmmarkoV)
 */
