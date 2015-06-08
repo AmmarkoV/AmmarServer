@@ -51,6 +51,10 @@ inline void convertTo_ENUM_ID(char *sPtr)
 
 int fastStringParser_addString(struct fastStringParser * fsp, char * str)
 {
+  //TODO : Check here if there are smaller strings with the same prefix as us declared before
+  //here if found then swap them with current word
+
+
   unsigned int ourNum = fsp->stringsLoaded++;
   fsp->contents[ourNum].strLength=strlen(str);
 
