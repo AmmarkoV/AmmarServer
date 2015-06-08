@@ -205,7 +205,7 @@ int printAllEnumeratorItems(FILE * fp , struct fastStringParser * fsp,char * fun
   unsigned int i=0;
   for (i=0; i<fsp->stringsLoaded; i++)
   {
-    fprintf(fp," %s_%s,\n",fsp->functionName,fsp->contents[i].strIDFriendly);
+    fprintf(fp," %s_%s, // %u \n",fsp->functionName,fsp->contents[i].strIDFriendly,i+1);
   }
 
   fprintf(fp," %s_END_OF_ITEMS\n",fsp->functionName);

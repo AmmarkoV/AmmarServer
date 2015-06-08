@@ -170,6 +170,56 @@ int strlimcpy(char * output , unsigned int outputLimit , const char * source )
  return 0;
 }
 
+
+
+
+int loadPosts(struct website * configuration)
+{
+  return 0;
+
+  configuration->post.currentItems=0;
+
+  char filename[FILENAME_MAX]={0};
+  FILE *fp = 0;
+
+  unsigned int number=0;
+
+  snprintf(filename,FILENAME_MAX,"res/posts/post%u.html",number);
+  while (AmmServer_FileExists(filename))
+  {
+
+
+
+    ++number;
+    snprintf(filename,FILENAME_MAX,"res/posts/post%u.html",number);
+  }
+
+ /*
+  for (i=0; i<2; i++)
+  {
+      snprintf(configuration->post.item[i].title, MAX_STR , "%s", rightBlogRollList[i*2+0] );
+      snprintf(configuration->linksRight.item[i].link , MAX_STR , "%s", rightBlogRollList[i*2+1] );
+
+ unsigned char title[MAX_STR];
+  unsigned char dateStr[MAX_STR];
+  unsigned char author[MAX_STR];
+  struct tagItemList tags;
+  struct htmlContent content;
+
+
+      ++configuration->linksRight.currentItems;
+  }
+*/
+
+  return 0;
+}
+
+
+
+
+
+
+
 int setupMyBlog(struct website * configuration)
 {
   strlimcpy( configuration->blogTitle , MAX_STR  , "AmmarkoV's Personal Website");
@@ -247,7 +297,7 @@ int setupMyBlog(struct website * configuration)
    const char * const rightBlogRollList[] = { "Free Software Foundation", "http://www.fsf.org/"  ,
                                               "Guarddog project blog"   , "+++++++++WEBROOT+++++++++gddg.html"   };
 
-   configuration->linksRight.currentItems=0;
+  configuration->linksRight.currentItems=0;
   for (i=0; i<2; i++)
   {
       snprintf(configuration->linksRight.item[i].label, MAX_STR , "%s", rightBlogRollList[i*2+0] );
@@ -256,6 +306,7 @@ int setupMyBlog(struct website * configuration)
   }
 
 
+  loadPosts(configuration);
 
 
 }
