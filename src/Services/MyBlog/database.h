@@ -12,6 +12,21 @@
 
 #define CONTENT_BUFFER 16500// 16Kb
 
+
+
+#include <sqlite3.h>
+#include "../../AmmServerlib/AmmServerlib.h"
+
+struct SQLiteSession
+{
+ sqlite3 *db;
+ sqlite3_stmt *res;
+ char *err_msg;
+
+ int rc;
+};
+
+
 struct htmlContent
 {
   unsigned int totalDataLength;
