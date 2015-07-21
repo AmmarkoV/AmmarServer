@@ -131,7 +131,12 @@ struct website
 };
 
 extern struct website myblog;
+extern struct SQLiteSession sqlserver;
 
 
+
+int SQL_init(struct SQLiteSession * sqlserver , const char * dbFilename);
+int SQL_close(struct SQLiteSession * sqlserver);
+int SQL_createInitialTables(struct SQLiteSession * sqlserver );
 
 #endif // DATABASE_H_INCLUDED

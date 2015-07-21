@@ -113,6 +113,10 @@ int main(int argc, char *argv[])
   exit (0);
 #endif // TEST_INDEX_GENERATION_ONLY
 
+    SQL_init(&sqlserver ,"myblog.db");
+
+    //Initial tables
+    SQL_createInitialTables(&sqlserver);
 
 
     printf("\nAmmar Server %s starting up..\n",AmmServer_Version());
@@ -157,6 +161,8 @@ int main(int argc, char *argv[])
 
     //Delete dynamic content allocations and remove stats.html and formtest.html from the server
     close_dynamic_content();
+
+    SQL_close(&sqlserver);
 
     //Stop the server and clean state
     AmmServer_Stop(default_server);
