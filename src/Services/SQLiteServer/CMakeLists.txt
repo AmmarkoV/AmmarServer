@@ -7,7 +7,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
    
 add_executable(SQLiteServer main.c )  
 set_target_properties(SQLiteServer PROPERTIES DEBUG_POSTFIX "D") 
-target_link_libraries(SQLiteServer sqlite3 )
+target_link_libraries(SQLiteServer sqlite3  pthread rt AmmarServer )
+add_dependencies(SQLiteServer AmmarServer)  
 
     set_target_properties(SQLiteServer PROPERTIES 
                           DEBUG_POSTFIX "D"
