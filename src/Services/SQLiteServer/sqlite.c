@@ -4,6 +4,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
+
+int printCars(void *rqstV, int argc, char **argv, char **azColName)
+{
+    struct AmmServer_DynamicRequest  * rqst = (struct AmmServer_DynamicRequest  *) rqstV;
+    char formatBuffer[512]={0};
+
+    unsigned int i=0;
+    for (i = 0; i < argc; i++)
+    {
+        snprintf(formatBuffer,512,"<tr><td>%s</td><td>%s</td></tr>\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        strcat(rqst->content,formatBuffer);
+    }
+
+   return 0;
+}
+
+
+
+
 int SQL_init(struct SQLiteSession * sqlserver , const char * dbFilename)
 {
     sqlserver->rc = sqlite3_open(dbFilename, &sqlserver->db);
@@ -77,39 +98,32 @@ int SQL_populate(struct SQLiteSession * sqlserver )
 
 
 
-int printCars(void *NotUsed, int argc, char **argv,
-                    char **azColName)
+
+
+int serveCarsPageWithSQL(struct SQLiteSession * sqlserver , struct AmmServer_DynamicRequest  * rqst)
 {
-    int i = 0;
-    NotUsed = 0;
 
-    for (i = 0; i < argc; i++) {
+    strncpy(rqst->content,"<html><head><title>Car List</title></head><body><table>",rqst->MAXcontentSize);
 
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-
-    printf("\n");
-
-    return 0;
-}
-
-
-
-
-int SQL_fetchcars(struct SQLiteSession * sqlserver)
-{
     char *sqlSelect = "SELECT * FROM Cars";
-    sqlserver->rc = sqlite3_exec(sqlserver->db, sqlSelect, printCars, 0, &sqlserver->err_msg);
+    sqlserver->rc = sqlite3_exec(sqlserver->db, sqlSelect, printCars, (void*) rqst, &sqlserver->err_msg);
 
-    if (sqlserver->rc != SQLITE_OK ) {
 
-        fprintf(stderr, "Failed to select data\n");
-        fprintf(stderr, "SQL error: %s\n", sqlserver->err_msg);
+    strcat(rqst->content,"</table></body></html>");
+    rqst->contentSize=strlen(rqst->content);
 
-        sqlite3_free(sqlserver->err_msg);
-        sqlite3_close(sqlserver->db);
+    if (sqlserver->rc != SQLITE_OK )
+    {
+     fprintf(stderr, "Failed to select data\n");
+     fprintf(stderr, "SQL error: %s\n", sqlserver->err_msg);
 
-        return 0;
+     sqlite3_free(sqlserver->err_msg);
+     sqlite3_close(sqlserver->db);
+
+     return 0;
     }
+
+
+
   return 1;
 }
