@@ -27,6 +27,12 @@ int printCars(void *rqstV, int argc, char **argv, char **azColName)
 
 int SQL_init(struct SQLiteSession * sqlserver , const char * dbFilename)
 {
+    if (sqlite3_config(SQLITE_CONFIG_SERIALIZED)!=SQLITE_OK)
+    {
+     AmmServer_Error("Cannot set SQLite to serialized mode , cannot continue we are not going to be thread safe..!");
+     return 0;
+    }
+
     sqlserver->rc = sqlite3_open(dbFilename, &sqlserver->db);
     if (sqlserver->rc != SQLITE_OK)
     {
