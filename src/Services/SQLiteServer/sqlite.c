@@ -5,8 +5,6 @@
 #include <string.h>
 
 
-
-
 int printCars(void *rqstV, int argc, char **argv, char **azColName)
 {
     struct AmmServer_DynamicRequest  * rqst = (struct AmmServer_DynamicRequest  *) rqstV;
@@ -21,9 +19,6 @@ int printCars(void *rqstV, int argc, char **argv, char **azColName)
 
    return 0;
 }
-
-
-
 
 int SQL_init(struct SQLiteSession * sqlserver , const char * dbFilename)
 {
@@ -89,7 +84,8 @@ int SQL_populate(struct SQLiteSession * sqlserver )
 
     sqlserver->rc = sqlite3_exec(sqlserver->db, sql, 0, 0, &sqlserver->err_msg);
 
-    if (sqlserver->rc != SQLITE_OK ) {
+    if (sqlserver->rc != SQLITE_OK )
+    {
 
         fprintf(stderr, "SQL error: %s\n", sqlserver->err_msg);
 
@@ -103,17 +99,12 @@ int SQL_populate(struct SQLiteSession * sqlserver )
 }
 
 
-
-
-
 int serveCarsPageWithSQL(struct SQLiteSession * sqlserver , struct AmmServer_DynamicRequest  * rqst)
 {
-
     strncpy(rqst->content,"<html><head><title>Car List</title></head><body><table>",rqst->MAXcontentSize);
 
     char *sqlSelect = "SELECT * FROM Cars";
     sqlserver->rc = sqlite3_exec(sqlserver->db, sqlSelect, printCars, (void*) rqst, &sqlserver->err_msg);
-
 
     strcat(rqst->content,"</table></body></html>");
     rqst->contentSize=strlen(rqst->content);

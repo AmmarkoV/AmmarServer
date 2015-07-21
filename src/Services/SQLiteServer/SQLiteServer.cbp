@@ -33,10 +33,18 @@
 		</Compiler>
 		<Linker>
 			<Add option="-lsqlite3" />
+			<Add option="../../AmmServerlib/libAmmarServer.a" />
+			<Add option="-pthread" />
+			<Add option="-lrt" />
+			<Add option="-lz" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="sqlite.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sqlite.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
