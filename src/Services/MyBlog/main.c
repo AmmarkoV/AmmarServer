@@ -100,6 +100,16 @@ void close_dynamic_content()
 int main(int argc, char *argv[])
 {
 
+    int doInitializationOfDatabase=0;
+    if (!AmmServer_FileExists("myblog.db")) { doInitializationOfDatabase=1; }
+    SQL_init(&sqlserver ,"myblog.db");
+    //Initial tables
+    if (doInitializationOfDatabase)
+    {
+      AmmServer_Warning("Formatting myblog for first time usage..!");
+      SQL_createInitialTables(&sqlserver);
+    }
+
 #if TEST_INDEX_GENERATION_ONLY
   fprintf(stderr,"Testing index generation..\n");
   unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog);
@@ -113,10 +123,6 @@ int main(int argc, char *argv[])
   exit (0);
 #endif // TEST_INDEX_GENERATION_ONLY
 
-    SQL_init(&sqlserver ,"myblog.db");
-
-    //Initial tables
-    SQL_createInitialTables(&sqlserver);
 
 
     printf("\nAmmar Server %s starting up..\n",AmmServer_Version());
@@ -161,6 +167,8 @@ int main(int argc, char *argv[])
 
     //Delete dynamic content allocations and remove stats.html and formtest.html from the server
     close_dynamic_content();
+
+
 
     SQL_close(&sqlserver);
 
