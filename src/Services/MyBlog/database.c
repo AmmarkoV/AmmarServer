@@ -175,14 +175,31 @@ int SQL_createInitialTables(struct SQLiteSession * sqlserver )
                 "DROP TABLE IF EXISTS tags;"
                 "CREATE TABLE tags(Id INT,label TEXT,int postID);"
                 // - - -
+                "DROP TABLE IF EXISTS menu;"
+                "CREATE TABLE menu(Id INT,label TEXT,url TEXT);"
+                // - - -
                 "DROP TABLE IF EXISTS posts;"
                 "CREATE TABLE posts(Id INT,title TEXT,date TEXT,author TEXT,content TEXT);"
+                // - - -
+                "INSERT INTO linksLeft VALUES(1,'Best Links in the world','bestlinks.html');"
+                "INSERT INTO linksLeft VALUES(2,'ELLAK Planet','http://planet.ellak.gr/');"
+                "INSERT INTO linksLeft VALUES(3,'FOSS AUEB','http://foss.aueb.gr/');"
+                // - - -
+                "INSERT INTO linksRight VALUES(1,'Free Software Foundation','http://www.fsf.org/');"
+                "INSERT INTO linksRight VALUES(2,'Guarddog project blog','+++++++++WEBROOT+++++++++gddg.html');"
                 // - - -
                 "INSERT INTO socialLinks VALUES(1,'Facebook','http://facebook.com/ammarkov');"
                 "INSERT INTO socialLinks VALUES(2,'Twitter','http://twitter.com/ammarkov');"
                 "INSERT INTO socialLinks VALUES(3,'Youtube','http://youtube.com/ammarkov');"
                 // - - -
+                "INSERT INTO menu VALUES(1,'About','menu0.html');"
+                "INSERT INTO menu VALUES(2,'Linux Coding','menu1.html');"
+                "INSERT INTO menu VALUES(3,'Windows Coding','menu2.html');"
+                "INSERT INTO menu VALUES(4,'GuarddoG Robot Project','menu3.html');"
+                "INSERT INTO menu VALUES(5,'DeviantArt Gallery','menu4.html');"
+                // - - -
                 "INSERT INTO website VALUES(1,1,1,'Ammar`s Website','Powered by AmmarServer','Description of Site','http://ammar.gr');" ;
+
 
     sqlserver->rc = sqlite3_exec(sqlserver->db, sql, 0, 0, &sqlserver->err_msg);
 
