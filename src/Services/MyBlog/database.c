@@ -7,6 +7,7 @@
 
 
 struct website myblog={0};
+struct SQLiteSession sqlserver={0};
 
 
 int printCars(void *rqstV, int argc, char **argv, char **azColName)
@@ -134,15 +135,54 @@ int serveCarsPageWithSQL(struct SQLiteSession * sqlserver , struct AmmServer_Dyn
 
 
 
+/*
 
+   struct menuItemList menu;
+   struct linkItemList linksLeft;
+   struct linkItemList linksRight;
+   struct postItemList post;
+
+   struct widgetItemList widget;
+
+struct postItem
+{
+  unsigned char title[MAX_STR];
+  unsigned char dateStr[MAX_STR];
+  unsigned char author[MAX_STR];
+  struct tagItemList tags;
+  struct htmlContent content;
+};
+
+
+*/
 
 
 
 int SQL_createInitialTables(struct SQLiteSession * sqlserver )
 {
-    char *sql = "DROP TABLE IF EXISTS Website;"
-                "CREATE TABLE Website(Id INT, Name TEXT, Price INT);"
-                "INSERT INTO Cars VALUES(1, 'Audi', 52642);" ;
+    char *sql = "DROP TABLE IF EXISTS website;"
+                "CREATE TABLE website(Id INT,allowComments INT,allowPing INT,blogTitle TEXT,siteName TEXT,siteDescription TEXT,siteURL TEXT);"
+                // - - -
+                "DROP TABLE IF EXISTS socialLinks;"
+                "CREATE TABLE socialLinks(Id INT,label TEXT,url TEXT);"
+                // - - -
+                "DROP TABLE IF EXISTS linksLeft;"
+                "CREATE TABLE linksLeft(Id INT,label TEXT,url TEXT);"
+                // - - -
+                "DROP TABLE IF EXISTS linksRight;"
+                "CREATE TABLE linksRight(Id INT,label TEXT,url TEXT);"
+                // - - -
+                "DROP TABLE IF EXISTS tags;"
+                "CREATE TABLE tags(Id INT,label TEXT,int postID);"
+                // - - -
+                "DROP TABLE IF EXISTS posts;"
+                "CREATE TABLE posts(Id INT,title TEXT,date TEXT,author TEXT,content TEXT);"
+                // - - -
+                "INSERT INTO socialLinks VALUES(1,'Facebook','http://facebook.com/ammarkov');"
+                "INSERT INTO socialLinks VALUES(2,'Twitter','http://twitter.com/ammarkov');"
+                "INSERT INTO socialLinks VALUES(3,'Youtube','http://youtube.com/ammarkov');"
+                // - - -
+                "INSERT INTO website VALUES(1,1,1,'Ammar`s Website','Powered by AmmarServer','Description of Site','http://ammar.gr');" ;
 
     sqlserver->rc = sqlite3_exec(sqlserver->db, sql, 0, 0, &sqlserver->err_msg);
 
