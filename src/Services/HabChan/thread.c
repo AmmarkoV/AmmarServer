@@ -140,15 +140,15 @@ int loadThread(const char * threadName , struct board * ourBoard , struct thread
              unsigned int words_count = InputParser_SeperateWords(ipc,line,0);
              if ( words_count > 0 )
               {
-                if (InputParser_WordCompareNoCase2(ipc,0,(char*)"OP")==1)
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"OP")==1)
                 {
                    InputParser_GetWord(ipc,1,ourThread->op,MAX_STRING_SIZE);
                 } else
-                if (InputParser_WordCompareNoCase2(ipc,0,(char*)"TITLE")==1)
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"TITLE")==1)
                 {
                    InputParser_GetWord(ipc,1,ourThread->title,MAX_STRING_SIZE);
                 } else
-                if (InputParser_WordCompareNoCase2(ipc,0,(char*)"LASTREPLY")==1)
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LASTREPLY")==1)
                 {
                    ourThread->lastReply.year   =  InputParser_GetWordInt(ipc,1);
                    ourThread->lastReply.month  =  InputParser_GetWordInt(ipc,2);
@@ -157,15 +157,15 @@ int loadThread(const char * threadName , struct board * ourBoard , struct thread
                    ourThread->lastReply.minute =  InputParser_GetWordInt(ipc,5);
                    ourThread->lastReply.second =  InputParser_GetWordInt(ipc,6);
                 } else
-                if (InputParser_WordCompareNoCase2(ipc,0,(char*)"NUMBEROFREPLIES")==1)
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"NUMBEROFREPLIES")==1)
                 {
                    ourThread->numberOfReplies =  InputParser_GetWordInt(ipc,1);
                 } else
-                if (InputParser_WordCompareNoCase2(ipc,0,(char*)"NUMBEROFIMAGES")==1)
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"NUMBEROFIMAGES")==1)
                 {
                    ourThread->numberOfImages =  InputParser_GetWordInt(ipc,1);
                 } else
-                if (InputParser_WordCompareNoCase2(ipc,0,(char*)"STICKY")==1)
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"STICKY")==1)
                 {
                    ourThread->sticky =  InputParser_GetWordInt(ipc,1);
                 }
