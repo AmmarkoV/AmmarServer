@@ -177,7 +177,7 @@ int loadPosts(struct website * configuration)
 {
   return 0;
 
-/*  TODO TODO TODO configuration->post.currentItems=0;
+  configuration->post.currentPosts=0;
 
   char filename[FILENAME_MAX]={0};
   FILE *fp = 0;
@@ -193,7 +193,7 @@ int loadPosts(struct website * configuration)
     ++number;
     snprintf(filename,FILENAME_MAX,"res/posts/post%u.html",number);
   }
-*/
+
 
 
 

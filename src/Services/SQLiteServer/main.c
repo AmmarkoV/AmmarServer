@@ -109,7 +109,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding stats page\n"); }
 
-   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/cars.html",webserver_root,4096,0,&prepare_cars_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/index.html",webserver_root,4096,0,&prepare_cars_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
      { AmmServer_Warning("Failed adding random testing page\n"); }
 
 }
