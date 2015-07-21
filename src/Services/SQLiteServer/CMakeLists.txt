@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizat
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(SQLiteServer main.c )  
+add_executable(SQLiteServer main.c sqlite.c )  
 set_target_properties(SQLiteServer PROPERTIES DEBUG_POSTFIX "D") 
 target_link_libraries(SQLiteServer sqlite3  pthread rt AmmarServer )
 add_dependencies(SQLiteServer AmmarServer)  

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 #include <sqlite3.h>
+#include "sqlite.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -56,6 +57,8 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
 
+
+struct SQLiteSession sqliteSession={0};
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
@@ -109,6 +112,8 @@ void request_override_callback(void * request)
   return;
 }
 
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
@@ -131,122 +136,14 @@ void close_dynamic_content()
 
 
 
-
-
-
-int printCars(void *NotUsed, int argc, char **argv,
-                    char **azColName)
-{
-    int i = 0;
-    NotUsed = 0;
-
-    for (i = 0; i < argc; i++) {
-
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-
-    printf("\n");
-
-    return 0;
-}
-
-
-
-
-
-
-
-
-int printCars(void *, int, char **, char **);
-
-
-
-
 int main(int argc, char *argv[])
 {
+    if (!SQL_init(&sqliteSession,"test.db")) { return 1; }
 
-    sqlite3 *db;
-    sqlite3_stmt *res;
-    char *err_msg = 0;
+    SQL_getVersion(&sqliteSession);
+    SQL_populate(&sqliteSession);
 
-    int rc = sqlite3_open("test.db", &db);
-
-    if (rc != SQLITE_OK) {
-
-        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-
-        return 1;
-    }
-
-
-
-
-    rc = sqlite3_prepare_v2(db, "SELECT SQLITE_VERSION()", -1, &res, 0);
-
-    if (rc != SQLITE_OK) {
-
-        fprintf(stderr, "Failed to fetch data: %s\n", sqlite3_errmsg(db));
-        sqlite3_close(db);
-
-        return 1;
-    }
-
-    rc = sqlite3_step(res);
-
-    if (rc == SQLITE_ROW) {
-        printf("%s\n", sqlite3_column_text(res, 0));
-    }
-
-    sqlite3_finalize(res);
-
-
-
-
-
-    char *sql = "DROP TABLE IF EXISTS Cars;"
-                "CREATE TABLE Cars(Id INT, Name TEXT, Price INT);"
-                "INSERT INTO Cars VALUES(1, 'Audi', 52642);"
-                "INSERT INTO Cars VALUES(2, 'Mercedes', 57127);"
-                "INSERT INTO Cars VALUES(3, 'Skoda', 9000);"
-                "INSERT INTO Cars VALUES(4, 'Volvo', 29000);"
-                "INSERT INTO Cars VALUES(5, 'Bentley', 350000);"
-                "INSERT INTO Cars VALUES(6, 'Citroen', 21000);"
-                "INSERT INTO Cars VALUES(7, 'Hummer', 41400);"
-                "INSERT INTO Cars VALUES(8, 'Volkswagen', 21600);";
-
-    rc = sqlite3_exec(db, sql, 0, 0, &err_msg);
-
-    if (rc != SQLITE_OK ) {
-
-        fprintf(stderr, "SQL error: %s\n", err_msg);
-
-        sqlite3_free(err_msg);
-        sqlite3_close(db);
-
-        return 1;
-    }
-
-
-
-
-
-    char *sqlSelect = "SELECT * FROM Cars";
-    rc = sqlite3_exec(db, sqlSelect, printCars, 0, &err_msg);
-
-    if (rc != SQLITE_OK ) {
-
-        fprintf(stderr, "Failed to select data\n");
-        fprintf(stderr, "SQL error: %s\n", err_msg);
-
-        sqlite3_free(err_msg);
-        sqlite3_close(db);
-
-        return 1;
-    }
-
-
-
+    SQL_fetchcars(&sqliteSession);
 
 
     printf("\nAmmar Server %s starting up..\n",AmmServer_Version());
@@ -299,13 +196,7 @@ int main(int argc, char *argv[])
 
 
 
-
-
-
-
-
-
-    sqlite3_close(db);
+    SQL_close(&sqliteSession);
 
     return 0;
 }
