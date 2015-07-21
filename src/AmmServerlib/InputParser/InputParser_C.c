@@ -24,7 +24,49 @@
 int warningsAboutIncorrectlyAllocatedStackIssued = 0;
 
 
-char _ipc_ver[]=" 0.356 written from scratch - 8/2/10 \0";
+char _ipc_ver[]=" 0.357 written from scratch - 8/2/10 \0";
+
+
+/*
+
+
+TODO
+
+
+void stringToFloatArray(char * str , char delimiter , float * floatArr , int elements)
+{
+    unsigned int strLength = strlen(str);
+    char * strPtr=str;
+    char * strStart=str;
+    char * strEnd=str+strLength;
+
+    int curElement = 0;
+
+    while ( (curElement<elements) && (strPtr<strEnd) )
+    {
+       while ( (strPtr<strEnd) && (*strPtr!=delimiter) )
+       {
+         ++strPtr; //Seeking next delimiter
+       }
+
+       if (*strPtr==delimiter)
+       {
+         *strPtr=0; //Null terminate
+         floatArr[curElement]=atof(strStart);
+         ++curElement;
+         *strPtr=delimiter;
+         strStart=strPtr+1;
+       }
+
+    }
+
+}
+
+*/
+
+
+
+
 
 char * InputParserC_Version()
 {
@@ -215,7 +257,7 @@ struct InputParserC * InputParser_Create(unsigned int max_string_count,unsigned 
 
 
     ipc->delimeters = (char *) malloc( sizeof(char) * (max_delimiter_count+1) );
-    if ( ipc->delimeters  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new Delimeter List\n"); free(ipc->tokenlist); return 0; }
+    if ( ipc->delimeters  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new Delimeter List\n"); free(ipc->tokenlist);  return 0; }
     ipc->max_delimeter_count=max_delimiter_count;
     ipc->cur_delimeter_count=max_delimiter_count;
 
@@ -401,14 +443,6 @@ unsigned char InputParser_WordCompareNoCase(struct InputParserC * ipc,unsigned i
     return 1;
 }
 
-
-
-unsigned char InputParser_WordCompareNoCase2(struct InputParserC * ipc,unsigned int num,char * word)
-{
-    return InputParser_WordCompareNoCase(ipc,num,word,strlen(word));
-}
-
-
 /*
    InputParser_WordCompareNoCase..
    Compares word (word) with token with number (num) , null terminating character is required , NO CASE SENSITIVITY..!
@@ -511,7 +545,6 @@ signed int InputParser_GetWordInt(struct InputParserC * ipc,unsigned int num)
     if ( CheckWordNumOk(ipc,num) == 0 ) { return 0; }
     return Str2Int_internal(ipc->str,ipc->tokenlist[num].token_start,ipc->tokenlist[num].length);
 }
-
 
 
 /*
