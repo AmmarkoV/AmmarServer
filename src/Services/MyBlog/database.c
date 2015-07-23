@@ -134,9 +134,38 @@ int serveCarsPageWithSQL(struct SQLiteSession * sqlserver , struct AmmServer_Dyn
 
 
 
+int serveCarsPageWithSQL(struct SQLiteSession * sqlserver , struct AmmServer_DynamicRequest  * rqst)
+{
+    strncpy(rqst->content,"<html><head><title>Car List</title></head><body><table>",rqst->MAXcontentSize);
+
+    char *sqlSelect = "SELECT * FROM Cars";
+    sqlserver->rc = sqlite3_exec(sqlserver->db, sqlSelect, printCars, (void*) rqst, &sqlserver->err_msg);
+
+    strcat(rqst->content,"</table></body></html>");
+    rqst->contentSize=strlen(rqst->content);
+
+    if (sqlserver->rc != SQLITE_OK )
+    {
+     fprintf(stderr, "Failed to select data\n");
+     fprintf(stderr, "SQL error: %s\n", sqlserver->err_msg);
+
+     sqlite3_free(sqlserver->err_msg);
+     sqlite3_close(sqlserver->db);
+
+     return 0;
+    }
+
+
+
+  return 1;
+}
+
+
+
+
+
 
 /*
-
    struct menuItemList menu;
    struct linkItemList linksLeft;
    struct linkItemList linksRight;
@@ -152,8 +181,6 @@ struct postItem
   struct tagItemList tags;
   struct htmlContent content;
 };
-
-
 */
 
 
@@ -177,6 +204,9 @@ int SQL_createInitialTables(struct SQLiteSession * sqlserver )
                 // - - -
                 "DROP TABLE IF EXISTS menu;"
                 "CREATE TABLE menu(Id INT,label TEXT,url TEXT);"
+                // - - -
+                "DROP TABLE IF EXISTS widgets;"
+                "CREATE TABLE widgets(Id INT,label TEXT,url TEXT,data TEXT);"
                 // - - -
                 "DROP TABLE IF EXISTS posts;"
                 "CREATE TABLE posts(Id INT,title TEXT,date TEXT,author TEXT,content TEXT);"

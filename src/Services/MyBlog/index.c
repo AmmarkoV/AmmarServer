@@ -170,7 +170,13 @@ int strlimcpy(char * output , unsigned int outputLimit , const char * source )
  return 0;
 }
 
+/*
 
+
+  struct tagItemList tags;
+  struct htmlContent content;
+};
+*/
 
 
 int loadPosts(struct website * configuration)
@@ -188,7 +194,22 @@ int loadPosts(struct website * configuration)
   while (AmmServer_FileExists(filename))
   {
 
+   struct AmmServer_MemoryHandler *  tmp = AmmServer_ReadFileToMemoryHandler(filename);
+   if (tmp!=0)
+   {
+    char * mouf="moufa";
+    snprintf(configuration->post.item[configuration->post.currentPosts].author , MAX_STR , "%s", mouf );
+    snprintf(configuration->post.item[configuration->post.currentPosts].dateStr , MAX_STR , "%s", mouf );
+    snprintf(configuration->post.item[configuration->post.currentPosts].title , MAX_STR , "%s", mouf );
 
+   struct tagItemList tags;
+   configuration->post.item[configuration->post.currentPosts].content.data;
+
+
+    //-------------
+    AmmServer_FreeMemoryHandler(&tmp);
+    ++configuration->widget.currentItems;
+   }
 
     ++number;
     snprintf(filename,FILENAME_MAX,"res/posts/post%u.html",number);
@@ -283,7 +304,7 @@ int setupMyBlog(struct website * configuration)
     configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
     configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
     configuration->widget.item[configuration->widget.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
-    free(tmp); //We just free the wrapper
+    AmmServer_FreeMemoryHandler(&tmp);
     ++configuration->widget.currentItems;
    }
   //-------------------------------
