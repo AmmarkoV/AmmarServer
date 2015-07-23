@@ -99,6 +99,45 @@ int SQL_getVersion(struct SQLiteSession * sqlserver)
 int SQL_appendpost(struct SQLiteSession * sqlserver , const char * title , char * author, const char * data , unsigned int dataSize )
 {
 
+  sqlite3 *db,                   /* Database to insert data into */
+  const char *zKey,              /* Null-terminated key string */
+  const unsigned char *zBlob,    /* Pointer to blob of data */
+  int nBlob                      /* Length of data pointed to by zBlob */
+
+  const char *zSql = "INSERT INTO posts (title,date,author,content) VALUES(?,?,?,?);";
+  sqlite3_stmt *pStmt;
+  int rc;
+
+
+  int rc = sqlite3_prepare(sqlserver->db, zSql, -1, &pStmt, 0);
+    if( rc!=SQLITE_OK ){ return rc; }
+
+    /* Bind the key and value data for the new table entry to SQL variables
+    ** (the ? characters in the sql statement) in the compiled INSERT
+    ** statement.
+    **
+    ** NOTE: variables are numbered from left to right from 1 upwards.
+    ** Passing 0 as the second parameter of an sqlite3_bind_XXX() function
+    ** is an error.
+    */
+    sqlite3_bind_text(pStmt, 1, title, -1, SQLITE_STATIC);
+    sqlite3_bind_text(pStmt, 2, "0/0/0", -1, SQLITE_STATIC);
+    sqlite3_bind_text(pStmt, 3, author, -1, SQLITE_STATIC);
+    sqlite3_bind_blob(pStmt, 4, data, dataSize, SQLITE_STATIC);
+
+    /* Call sqlite3_step() to run the virtual machine. Since the SQL being
+    ** executed is not a SELECT statement, we assume no data will be returned.
+    */
+    rc = sqlite3_step(pStmt);
+    assert( rc!=SQLITE_ROW );
+
+    /* Finalize the virtual machine. This releases all memory and other
+    ** resources allocated by the sqlite3_prepare() call above.
+    */
+    rc = sqlite3_finalize(pStmt);
+
+  }
+
    unsigned int querySize = strlen(title)+strlen(author)+dataSize + 200;
    char * sql = (char *) malloc(sizeof(char) * querySize );
 
@@ -109,6 +148,8 @@ int SQL_appendpost(struct SQLiteSession * sqlserver , const char * title , char 
     //sqlite3_snprintf(sql,querySize,"DROP TABLE IF EXISTS posts;\nCREATE TABLE posts(Id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,date TEXT,author TEXT,content TEXT);INSERT INTO posts (title,date,author,content) VALUES(%q,%q,%q,%q);",title,"0/0/0",author,data  );
     /*Fucking historical accident*/
     sqlite3_snprintf(querySize,sql,"INSERT INTO posts (title,date,author,content) VALUES(%q,%q,%q,%q);",title,"0/0/0",author,data  );
+
+
 
     //snprintf(sql,querySize,"DROP TABLE IF EXISTS posts;\nCREATE TABLE posts(Id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,date TEXT,author TEXT,content TEXT);INSERT INTO posts (title,date,author,content) VALUES(%s,%s,%s,%s);",title,"0/0/0",author,data  );
 
