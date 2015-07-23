@@ -98,16 +98,8 @@ int SQL_getVersion(struct SQLiteSession * sqlserver)
 
 int SQL_appendpost(struct SQLiteSession * sqlserver , const char * title , char * author, const char * data , unsigned int dataSize )
 {
-
-  sqlite3 *db,                   /* Database to insert data into */
-  const char *zKey,              /* Null-terminated key string */
-  const unsigned char *zBlob,    /* Pointer to blob of data */
-  int nBlob                      /* Length of data pointed to by zBlob */
-
   const char *zSql = "INSERT INTO posts (title,date,author,content) VALUES(?,?,?,?);";
   sqlite3_stmt *pStmt;
-  int rc;
-
 
   int rc = sqlite3_prepare(sqlserver->db, zSql, -1, &pStmt, 0);
     if( rc!=SQLITE_OK ){ return rc; }
@@ -129,42 +121,14 @@ int SQL_appendpost(struct SQLiteSession * sqlserver , const char * title , char 
     ** executed is not a SELECT statement, we assume no data will be returned.
     */
     rc = sqlite3_step(pStmt);
-    assert( rc!=SQLITE_ROW );
+    //assert( rc!=SQLITE_ROW );
 
     /* Finalize the virtual machine. This releases all memory and other
     ** resources allocated by the sqlite3_prepare() call above.
     */
     rc = sqlite3_finalize(pStmt);
 
-  }
 
-   unsigned int querySize = strlen(title)+strlen(author)+dataSize + 200;
-   char * sql = (char *) malloc(sizeof(char) * querySize );
-
-
-   if (sql!=0)
-   {
-
-    //sqlite3_snprintf(sql,querySize,"DROP TABLE IF EXISTS posts;\nCREATE TABLE posts(Id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,date TEXT,author TEXT,content TEXT);INSERT INTO posts (title,date,author,content) VALUES(%q,%q,%q,%q);",title,"0/0/0",author,data  );
-    /*Fucking historical accident*/
-    sqlite3_snprintf(querySize,sql,"INSERT INTO posts (title,date,author,content) VALUES(%q,%q,%q,%q);",title,"0/0/0",author,data  );
-
-
-
-    //snprintf(sql,querySize,"DROP TABLE IF EXISTS posts;\nCREATE TABLE posts(Id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,date TEXT,author TEXT,content TEXT);INSERT INTO posts (title,date,author,content) VALUES(%s,%s,%s,%s);",title,"0/0/0",author,data  );
-
-     fprintf(stderr,"Running query %s\n",sql);
-
-    sqlserver->rc = sqlite3_exec(sqlserver->db, sql, 0, 0, &sqlserver->err_msg);
-    free(sql);
-
-    if ( SQL_error(sqlserver,sqlserver->rc, __FILE__, __LINE__) )
-    {
-        return 0;
-    }
-
-    return 1;
-   }
   return 0;
 }
 
