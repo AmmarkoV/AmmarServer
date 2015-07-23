@@ -336,7 +336,8 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
   fprintf(stderr,"Injecting Widget List..!\n");
   htmlData = getWidgetListHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++WIDGETLIST+++++++++",htmlData,indexPage);
+  //This segfaults
+  //AmmServer_InjectDataToBuffer("+++++++++WIDGETLIST+++++++++",htmlData,indexPage);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Blog Roll Left..!\n");
