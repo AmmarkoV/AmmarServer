@@ -3,5 +3,6 @@
 	<Workspace title="Workspace">
 		<Project filename="../../AmmServerlib/AmmServerlib.cbp" />
 		<Project filename="MyBlog.cbp" />
+		<Project filename="tools/MyBlogTool.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

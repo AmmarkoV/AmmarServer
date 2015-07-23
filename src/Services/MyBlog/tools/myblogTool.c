@@ -1,13 +1,24 @@
-#include "database.h"
-
 #include <sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdio.h>
+#include <stdlib.h>
 
-struct website myblog={0};
+struct SQLiteSession
+{
+ sqlite3 *db;
+ sqlite3_stmt *res;
+ char *err_msg;
+
+ int rc;
+};
+
+
 struct SQLiteSession sqlserver={0};
+
+
 
 int SQL_error(struct SQLiteSession * sqlserver,int rc,const char * msg , unsigned int line)
 {
@@ -28,7 +39,7 @@ int SQL_init(struct SQLiteSession * sqlserver , const char * dbFilename)
 {
     if (sqlite3_config(SQLITE_CONFIG_SERIALIZED)!=SQLITE_OK)
     {
-     AmmServer_Error("Cannot set SQLite to serialized mode , cannot continue we are not going to be thread safe..!");
+     fprintf(stderr,"Cannot set SQLite to serialized mode , cannot continue we are not going to be thread safe..!");
      return 0;
     }
 
@@ -131,7 +142,7 @@ int SQL_createInitialTables(struct SQLiteSession * sqlserver )
 
     sqlserver->rc = sqlite3_exec(sqlserver->db, sql, 0, 0, &sqlserver->err_msg);
 
-    if ( SQL_error(&sqlserver,sqlserver->rc, __FILE__, __LINE__) )
+    if ( SQL_error(sqlserver,sqlserver->rc, __FILE__, __LINE__) )
     {
         return 0;
     }
@@ -141,54 +152,14 @@ int SQL_createInitialTables(struct SQLiteSession * sqlserver )
 }
 
 
-
-/*
-       =======================================================================================
-       =======================================================================================
-       =======================================================================================
-       =======================================================================================
-*/
-
-
-int appendPosts(void *rqstV, int argc, char **argv, char **azColName)
+int main(int argc, char *argv[])
 {
-    struct website * websiteContext = (struct website *) rqstV;
 
 
-    unsigned int postID = websiteContext->post.currentPosts;
-    unsigned int i=0;
-    for (i = 0; i < argc; i++)
-    {
-        if (strcmp(azColName[i],"author")==0)  { strncpy( websiteContext->post.item[postID].author   , argv[i] ? argv[i] : "NULL" , MAX_STR );   } else
-        if (strcmp(azColName[i],"title")==0)   { strncpy( websiteContext->post.item[postID].title    , argv[i] ? argv[i] : "NULL" , MAX_STR );   } else
-        if (strcmp(azColName[i],"date")==0)    { strncpy( websiteContext->post.item[postID].dateStr  , argv[i] ? argv[i] : "NULL" , MAX_STR );   } else
-        if (strcmp(azColName[i],"content")==0) {
-                                                 websiteContext->post.item[postID].content.totalDataLength = strlen(argv[i]);
-                                                 websiteContext->post.item[postID].content.currentDataLength = websiteContext->post.item[postID].content.totalDataLength;
-                                                 websiteContext->post.item[postID].content.data = (char * ) malloc(sizeof(char) * (1+websiteContext->post.item[postID].content.totalDataLength)  );
-                                                 strncpy( websiteContext->post.item[postID].content.data  , argv[i] , websiteContext->post.item[postID].content.totalDataLength );
-                                               }
-    }
 
-
-    ++websiteContext->post.currentPosts;
-   return 0;
+    printf("Hello world!\n");
+    return 0;
 }
-
-
-int loadPostsFromSQL(struct SQLiteSession * sqlserver , struct website * websiteContext)
-{
-    char *sqlSelect = "SELECT title,date,author,content FROM posts";
-    sqlserver->rc = sqlite3_exec(sqlserver->db, sqlSelect, appendPosts, (void*) websiteContext, &sqlserver->err_msg);
-
-    if ( SQL_error(&sqlserver,sqlserver->rc, __FILE__, __LINE__) )
-    {
-        return 0;
-    }
-  return 1;
-}
-
-
 
 
 
