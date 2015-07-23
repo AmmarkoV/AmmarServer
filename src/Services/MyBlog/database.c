@@ -104,10 +104,10 @@ int SQL_createInitialTables(struct SQLiteSession * sqlserver )
                 "CREATE TABLE menu(Id INT,label TEXT,url TEXT);"
                 // - - -
                 "DROP TABLE IF EXISTS widgets;"
-                "CREATE TABLE widgets(Id INT,label TEXT,url TEXT,data TEXT);"
+                "CREATE TABLE widgets(Id INT,label TEXT,url TEXT,data BLOB);"
                 // - - -
                 "DROP TABLE IF EXISTS posts;"
-                "CREATE TABLE posts(Id INT,title TEXT,date TEXT,author TEXT,content TEXT);"
+                "CREATE TABLE posts(Id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,date TEXT,author TEXT,content BLOB);"
                 // - - -
                 "INSERT INTO linksLeft VALUES(1,'Best Links in the world','bestlinks.html');"
                 "INSERT INTO linksLeft VALUES(2,'ELLAK Planet','http://planet.ellak.gr/');"
