@@ -137,6 +137,9 @@ extern struct SQLiteSession sqlserver;
 
 int SQL_init(struct SQLiteSession * sqlserver , const char * dbFilename);
 int SQL_close(struct SQLiteSession * sqlserver);
+
+int loadPostsFromSQL(struct SQLiteSession * sqlserver , struct website * websiteContext);
+
 int SQL_createInitialTables(struct SQLiteSession * sqlserver );
 
 #endif // DATABASE_H_INCLUDED

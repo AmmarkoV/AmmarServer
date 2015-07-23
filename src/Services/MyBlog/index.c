@@ -170,14 +170,6 @@ int strlimcpy(char * output , unsigned int outputLimit , const char * source )
  return 0;
 }
 
-/*
-
-
-  struct tagItemList tags;
-  struct htmlContent content;
-};
-*/
-
 
 int loadPosts(struct website * configuration)
 {
@@ -217,29 +209,6 @@ int loadPosts(struct website * configuration)
 
 
 
-
-
-
-
-
-
-
- /*
-  for (i=0; i<2; i++)
-  {
-      snprintf(configuration->post.item[i].title, MAX_STR , "%s", rightBlogRollList[i*2+0] );
-      snprintf(configuration->linksRight.item[i].link , MAX_STR , "%s", rightBlogRollList[i*2+1] );
-
- unsigned char title[MAX_STR];
-  unsigned char dateStr[MAX_STR];
-  unsigned char author[MAX_STR];
-  struct tagItemList tags;
-  struct htmlContent content;
-
-
-      ++configuration->linksRight.currentItems;
-  }
-*/
 
   return 0;
 }
