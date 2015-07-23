@@ -108,6 +108,9 @@ int main(int argc, char *argv[])
     {
       AmmServer_Warning("Formatting myblog for first time usage..!");
       SQL_createInitialTables(&sqlserver);
+      SQL_close(&sqlserver);
+      AmmServer_Warning("Run me again please..!");
+      return 0;
     }
 
 #if TEST_INDEX_GENERATION_ONLY

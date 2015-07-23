@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../../../AmmServerlib/AmmServerlib.h"
+
 struct SQLiteSession
 {
  sqlite3 *db;
@@ -94,70 +96,59 @@ int SQL_getVersion(struct SQLiteSession * sqlserver)
 */
 
 
-int SQL_createInitialTables(struct SQLiteSession * sqlserver )
+int SQL_appendpost(struct SQLiteSession * sqlserver , const char * title , char * author, const char * data , unsigned int dataSize )
 {
-    char *sql = "DROP TABLE IF EXISTS website;"
-                "CREATE TABLE website(Id INT,allowComments INT,allowPing INT,blogTitle TEXT,siteName TEXT,siteDescription TEXT,siteURL TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS socialLinks;"
-                "CREATE TABLE socialLinks(Id INT,label TEXT,url TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS linksLeft;"
-                "CREATE TABLE linksLeft(Id INT,label TEXT,url TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS linksRight;"
-                "CREATE TABLE linksRight(Id INT,label TEXT,url TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS tags;"
-                "CREATE TABLE tags(Id INT,label TEXT,int postID);"
-                // - - -
-                "DROP TABLE IF EXISTS menu;"
-                "CREATE TABLE menu(Id INT,label TEXT,url TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS widgets;"
-                "CREATE TABLE widgets(Id INT,label TEXT,url TEXT,data TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS posts;"
-                "CREATE TABLE posts(Id INT,title TEXT,date TEXT,author TEXT,content TEXT);"
-                // - - -
-                "INSERT INTO linksLeft VALUES(1,'Best Links in the world','bestlinks.html');"
-                "INSERT INTO linksLeft VALUES(2,'ELLAK Planet','http://planet.ellak.gr/');"
-                "INSERT INTO linksLeft VALUES(3,'FOSS AUEB','http://foss.aueb.gr/');"
-                // - - -
-                "INSERT INTO linksRight VALUES(1,'Free Software Foundation','http://www.fsf.org/');"
-                "INSERT INTO linksRight VALUES(2,'Guarddog project blog','+++++++++WEBROOT+++++++++gddg.html');"
-                // - - -
-                "INSERT INTO socialLinks VALUES(1,'Facebook','http://facebook.com/ammarkov');"
-                "INSERT INTO socialLinks VALUES(2,'Twitter','http://twitter.com/ammarkov');"
-                "INSERT INTO socialLinks VALUES(3,'Youtube','http://youtube.com/ammarkov');"
-                // - - -
-                "INSERT INTO menu VALUES(1,'About','menu0.html');"
-                "INSERT INTO menu VALUES(2,'Linux Coding','menu1.html');"
-                "INSERT INTO menu VALUES(3,'Windows Coding','menu2.html');"
-                "INSERT INTO menu VALUES(4,'GuarddoG Robot Project','menu3.html');"
-                "INSERT INTO menu VALUES(5,'DeviantArt Gallery','menu4.html');"
-                // - - -
-                "INSERT INTO website VALUES(1,1,1,'Ammar`s Website','Powered by AmmarServer','Description of Site','http://ammar.gr');" ;
 
+   unsigned int querySize = strlen(title)+strlen(author)+dataSize + 200;
+   char * sql = (char *) malloc(sizeof(char) * querySize );
+
+
+   if (sql!=0)
+   {
+
+    //sqlite3_snprintf(sql,querySize,"DROP TABLE IF EXISTS posts;\nCREATE TABLE posts(Id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,date TEXT,author TEXT,content TEXT);INSERT INTO posts (title,date,author,content) VALUES(%q,%q,%q,%q);",title,"0/0/0",author,data  );
+    /*Fucking historical accident*/
+    sqlite3_snprintf(querySize,sql,"INSERT INTO posts (title,date,author,content) VALUES(%q,%q,%q,%q);",title,"0/0/0",author,data  );
+
+    //snprintf(sql,querySize,"DROP TABLE IF EXISTS posts;\nCREATE TABLE posts(Id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,date TEXT,author TEXT,content TEXT);INSERT INTO posts (title,date,author,content) VALUES(%s,%s,%s,%s);",title,"0/0/0",author,data  );
+
+     fprintf(stderr,"Running query %s\n",sql);
 
     sqlserver->rc = sqlite3_exec(sqlserver->db, sql, 0, 0, &sqlserver->err_msg);
+    free(sql);
 
     if ( SQL_error(sqlserver,sqlserver->rc, __FILE__, __LINE__) )
     {
         return 0;
     }
 
-
- return 1;
+    return 1;
+   }
+  return 0;
 }
 
 
 int main(int argc, char *argv[])
 {
+    if (argc<3)
+    {
+        fprintf(stderr,"Usage : myblogTool filename \"Title\" \"Author\" ");
+        return 0;
+    }
+
+    SQL_init(&sqlserver,"myblog.db");
 
 
+    fprintf(stderr,"File To Add : %s  -  Title %s - Author %s \n",argv[1],argv[2],argv[3]);
 
-    printf("Hello world!\n");
+    struct AmmServer_MemoryHandler *  tmp = AmmServer_ReadFileToMemoryHandler(argv[1]);
+
+      SQL_appendpost(&sqlserver ,argv[2],argv[3] , tmp->content , tmp->contentCurrentLength );
+
+    //-------------
+    AmmServer_FreeMemoryHandler(&tmp);
+
+    SQL_close(&sqlserver);
     return 0;
 }
 

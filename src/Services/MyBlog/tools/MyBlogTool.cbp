@@ -33,6 +33,10 @@
 		</Compiler>
 		<Linker>
 			<Add option="-lsqlite3" />
+			<Add option="../../../AmmServerlib/libAmmarServer.a" />
+			<Add option="-pthread" />
+			<Add option="-lrt" />
+			<Add option="-lz" />
 		</Linker>
 		<Unit filename="myblogTool.c">
 			<Option compilerVar="CC" />
