@@ -237,6 +237,7 @@ int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const c
 
  if (mh->contentCurrentLength + partToBeMovedLength + 1 > mh->contentSize )
  {
+  fprintf(stderr,"Reallocating buffer to astringInjectDataToMemoryHandler \n");
   char * newBuffer = realloc( mh->content , mh->contentCurrentLength + partToBeMovedLength + 1);
   if (newBuffer==0) { fprintf(stderr,"Could not Inject #1\n"); return 0; }
 
