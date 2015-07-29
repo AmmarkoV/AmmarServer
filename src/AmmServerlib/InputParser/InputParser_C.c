@@ -105,11 +105,12 @@ int InputParser_ClearNonCharacters(char * inpt , unsigned int length)
 
 int InputParser_TrimCharactersStart(char * inpt , unsigned int length,char what2trim)
 {
+   if ( ( inpt==0 ) || (length==0) ) { return 0; }
    unsigned int skip_chars=0;
    unsigned int i=0;
 
 
-   while ((inpt[skip_chars]==what2trim)&&(skip_chars<length)) { ++skip_chars; }
+   while ((skip_chars<length)&&(inpt[skip_chars]==what2trim)) { ++skip_chars; }
 
    while  (i<length)
     {
@@ -248,16 +249,16 @@ struct InputParserC * InputParser_Create(unsigned int max_string_count,unsigned 
     struct InputParserC * ipc=0;
 
     ipc = ( struct InputParserC * ) malloc ( sizeof ( struct InputParserC ) );
-    if ( ipc  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new instance\n"); return 0; }
+    if ( ipc  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new instance\n");  return 0; }
 
     ipc->tokenlist = (struct tokens *) malloc( sizeof(struct tokens) * (max_string_count+1) );
-    if ( ipc->tokenlist  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new Token List\n"); return 0; }
+    if ( ipc->tokenlist  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new Token List\n"); free(ipc); return 0; }
     ipc->tokens_count=0;
     ipc->tokens_max = max_string_count;
 
 
     ipc->delimeters = (char *) malloc( sizeof(char) * (max_delimiter_count+1) );
-    if ( ipc->delimeters  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new Delimeter List\n"); free(ipc->tokenlist);  return 0; }
+    if ( ipc->delimeters  == 0 ) { fprintf(stderr,"InputParserC unable to commit memory for a new Delimeter List\n"); free(ipc->tokenlist); free(ipc); return 0; }
     ipc->max_delimeter_count=max_delimiter_count;
     ipc->cur_delimeter_count=max_delimiter_count;
 

@@ -465,6 +465,7 @@ int hashMap_LoadToFile(struct hashMap * hm,const char * filename)
     if (hm==0) { fprintf(stderr,"hashMap_LoadToFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
     fprintf(stderr,"hashMap_LoadToFile not implemented ( max entries when called %u ) \n",hm->maxNumberOfEntries);
     return 0;
+    /*
     FILE * pFile;
     pFile = fopen (filename,"rb");
     if (pFile!=0)
@@ -473,6 +474,7 @@ int hashMap_LoadToFile(struct hashMap * hm,const char * filename)
      fclose (pFile);
      return 0;
     }
+    */
     return 0;
 }
 
