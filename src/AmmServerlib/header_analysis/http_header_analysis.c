@@ -62,7 +62,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
   if (opres<=0) { free(incomingRequest); return 0;   /*TODO : Check opres here..!*/ } else
     {
       incomingRequestLength+=opres;
-      fprintf(stderr,"Got %u bytes ( %u total )\n",opres,incomingRequestLength);
+      fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
       if (incomingRequestLength>=MAXincomingRequestLength)
       {
          //We filled our buffer , if we have a POST request there is a different limit
@@ -209,10 +209,10 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
           (output->requestType==POST) //POST REQUEST DOESNT REALLY BELONG HERE , BUT TO SAVE SPACE AND EFFORT IT IS TREATED LIKE GET/HEAD
         )
        { // A GET or HEAD Request..!
-         while ( (request[s]==' ')&&(s<request_length) ) { ++s; }
+         while ( (s<request_length)&&(request[s]==' ') ) { ++s; }
          if (s>=request_length) { fprintf(stderr,"Error #1 with GET/HEAD request\n"); return 0;}
          unsigned int e=s;
-         while ( (request[e]!=' ')&&(e<request_length) ) { ++e; }
+         while ( (e<request_length)&&(request[e]!=' ') ) { ++e; }
          if (e>=request_length) { fprintf(stderr,"Error #2 with GET/HEAD request\n"); return 0;}
          request[e]=0; //Signal ending
 

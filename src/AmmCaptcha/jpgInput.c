@@ -157,6 +157,7 @@ int ReadJPEG( char *filename,struct Image * pic,char read_only_header)
  */
 int WriteJPEGInternal( char *filename,struct Image * pic,char *mem,unsigned long * mem_size)
 {
+    if (filename==0) { fprintf(stderr,"WriteJPEGInternal called with null filename \n"); return 0;}
     fprintf(stderr,"WriteJPEG(%s,%p,%p,%p); called \n",filename,pic,mem,mem_size);
 
     if (pic==0) { fprintf(stderr,"WriteJPEG called with an incorrect image structure \n "); return 0; }

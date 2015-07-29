@@ -85,7 +85,7 @@ unsigned int ServerThreads_DropRootUID()
    int non_root_uid = atoi(output);
    if (non_root_uid<1000)
       {
-        fprintf(stderr,"The user set in USERNAME_UID_FOR_DAEMON=\"%s\" is also root (his uid is %u)\n",USERNAME_UID_FOR_DAEMON,non_root_uid);
+        fprintf(stderr,"The user set in USERNAME_UID_FOR_DAEMON=\"%s\" is also root (his uid is %d)\n",USERNAME_UID_FOR_DAEMON,non_root_uid);
         if (CHANGE_TO_UID<1000)
             {
               error("This should never happen , Our CHANGE_TO_UID non-root value is also a super user UID , we are forced to set a bogus non-root value..\n");
@@ -334,7 +334,7 @@ int ReducePathSlashes_Inplace(char * filename)
         if ( filename[i+offset]=='/')
          {
             unsigned int z=i+offset+1;
-            while ((filename[z]=='/')&&(z<length))
+            while ((z<length)&&(filename[z]=='/'))
             {
               ++offset;
               ++z;
@@ -445,7 +445,7 @@ int StripVariableFromGETorPOSTString(const char * input,const char * var_id, cha
      unsigned int start_of_var_val=id_instance-input;
      unsigned int total_chars_to_copy=0;
      start_of_var_val+=strlen(var_id); // We go right at the = char!
-     while ( (input[start_of_var_val]!='=') && (start_of_var_val<input_length) ) {  ++start_of_var_val; } //We seek the = sign
+     while ( (start_of_var_val<input_length) && (input[start_of_var_val]!='=') ) {  ++start_of_var_val; } //We seek the = sign
 
      if ( input[start_of_var_val]=='=') { ++start_of_var_val; } else
      if ( input[start_of_var_val]!='=') { fprintf(stderr,"Error Parsing GET/POST var string\n"); }
