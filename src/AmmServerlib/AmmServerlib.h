@@ -754,6 +754,11 @@ int AmmServer_DirectoryExists(const char * filename);
 */
 int AmmServer_FileExists(const char * filename);
 
+
+
+int AmmServer_FileIsVideo(const char * filename);
+
+
 /**
 * @brief Erase a File
 * @ingroup tools
