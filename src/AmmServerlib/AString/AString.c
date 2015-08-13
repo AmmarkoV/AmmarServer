@@ -5,6 +5,14 @@
 
 
 
+
+#define NORMAL   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+
+
 int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value)
 {
   if (page==0) { fprintf(stderr,"Replacing var in empty page\n"); return 0; }
@@ -74,8 +82,8 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
 
   if (pFile==0)
      {
-       fprintf(stderr,"AmmServer_ReadFileToMemory failed");
-       fprintf(stderr,"Could not read file %s \n",filename);
+       fprintf(stderr,RED "AmmServer_ReadFileToMemory failed" NORMAL);
+       fprintf(stderr,RED "Could not read file %s \n" NORMAL,filename);
        return 0;
      }
 
@@ -86,14 +94,14 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
 
   // allocate memory to contain the whole file:
   char * buffer = (char*) malloc (sizeof(char)*lSize);
-  if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory for file %s ",filename); fclose(pFile); return 0; }
+  if (buffer == 0 ) { fprintf(stderr,RED "Could not allocate enough memory for file %s " NORMAL,filename); fclose(pFile); return 0; }
 
   // copy the file into the buffer:
   size_t result = fread (buffer,1,lSize,pFile);
   if (result != lSize)
     {
       free(buffer);
-      fprintf(stderr,"Could not read the whole file onto memory %s ",filename);
+      fprintf(stderr,RED "Could not read the whole file onto memory %s " NORMAL,filename);
       fclose(pFile);
       return 0;
     }

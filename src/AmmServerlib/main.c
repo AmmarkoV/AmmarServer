@@ -645,8 +645,8 @@ struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_Me
   struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
   if (mh==0) { return 0; }
 
-   inpt->contentCurrentLength = mh->contentCurrentLength;
-   inpt->contentSize = mh->contentSize;
+   mh->contentCurrentLength = inpt->contentCurrentLength;
+   mh->contentSize = inpt->contentSize ;
    mh->content = (char *) malloc(sizeof(char) * inpt->contentSize );
    memcpy(mh->content,inpt->content,inpt->contentSize);
 

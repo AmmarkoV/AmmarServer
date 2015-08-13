@@ -68,12 +68,31 @@ struct AmmServer_MemoryHandler * indexPage=0;
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_video(struct AmmServer_DynamicRequest  * rqst)
 {
+  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
+
   char videoRequested[128]={0};
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
-             {
-               fprintf(stderr,"Video Requested is : %s \n",videoRequested);
-             }
-  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
+              {
+                fprintf(stderr,"Video Requested is : %s \n",videoRequested);
+
+                fprintf(stderr,"Replacing Variables..!\n");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"+++++++++TITLE+++++++++"," Title Test ");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++SOURCE+++++++++","<source src=\"test.mp4\" type=\"video/mp4\">");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USER+++++++++","USERNAME");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++","xxxxxxxx");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Comment of video etc");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USERCOMMENTS+++++++++","Comment of user video etc");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++PLAYLIST+++++++++","Playlist");
+
+               memcpy( rqst->content , videoMH->content , videoMH->contentSize );
+               rqst->contentSize = videoMH->contentSize;
+               fprintf(stderr,"Gave back %u\n",rqst->contentSize);
+
+               memcpy( rqst->content , indexPage->content , indexPage->contentSize );
+               rqst->contentSize = indexPage->contentSize;
+               fprintf(stderr,"Gave back %u\n",rqst->contentSize);
+              }
+
 
 
   AmmServer_FreeMemoryHandler(&videoMH);
@@ -92,15 +111,9 @@ void request_override_callback(void * request)
 void init_dynamic_content()
 {
 
-  fprintf(stderr,"Reading master index file..!\n");
-  indexPage=AmmServer_ReadFileToMemoryHandler("res/player.html");
-
-  fprintf(stderr,"Replacing Variables..!\n");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++YEAR+++++++++","20xx");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++BLOGTITLE+++++++++","configuration->blogTitle");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,6,"+++++++++SITENAME+++++++++","configuration->siteName");
-
-
+  fprintf(stderr,"Reading master index file..  ");
+  indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/player.html");
+  fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
 
 
   myTube = loadVideoDatabase(video_root);
