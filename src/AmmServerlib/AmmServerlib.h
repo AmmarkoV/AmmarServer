@@ -686,6 +686,15 @@ int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned
 struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char * filename);
 
 
+
+/**
+* @brief Copy a memory handler
+* @ingroup tools
+* @param Input memory handle
+* @retval Pointer to the new memory handler or 0=Failed
+*/
+struct AmmServer_MemoryHandler *  AmmServer_CopyMemoryHandler(struct AmmServer_MemoryHandler * inpt);
+
 /**
 * @brief Copy Content from one place of a buffer to another using an intermediate buffer..
 * @ingroup tools

@@ -639,6 +639,24 @@ struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char *
 }
 
 
+
+struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_MemoryHandler * inpt)
+{
+  struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
+  if (mh==0) { return 0; }
+
+   inpt->contentCurrentLength = mh->contentCurrentLength;
+   inpt->contentSize = mh->contentSize;
+   mh->content = (char *) malloc(sizeof(char) * inpt->contentSize );
+   memcpy(mh->content,inpt->content,inpt->contentSize);
+
+   return mh;
+}
+
+
+
+
+
 int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh)
 {
   if (*mh==0) { return 0; }

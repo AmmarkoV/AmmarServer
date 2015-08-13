@@ -61,6 +61,10 @@ struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context stats={0};
 
 
+struct AmmServer_MemoryHandler * indexPage=0;
+
+
+
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_video(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -84,6 +88,18 @@ void request_override_callback(void * request)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
+
+  fprintf(stderr,"Reading master index file..!\n");
+  indexPage=AmmServer_ReadFileToMemoryHandler("res/");
+
+  fprintf(stderr,"Replacing Variables..!\n");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++YEAR+++++++++","20xx");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++BLOGTITLE+++++++++",configuration->blogTitle);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,6,"+++++++++SITENAME+++++++++",configuration->siteName);
+
+
+
+
   myTube = loadVideoDatabase(video_root);
 
 

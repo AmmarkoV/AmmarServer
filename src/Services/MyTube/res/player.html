@@ -8,7 +8,7 @@
 <table>
  <tr>
   <td>
-   <h2>MyTube</h2>
+   <h2>MyTube - +++++++++TITLE+++++++++ </h2>
   </td>
   <td>
    <form>
@@ -41,11 +41,13 @@
 
          <script> 
           var myVideo = document.getElementById("myplayer"); 
+          myVideo.addEventListener('ended',videoEndedHandler,false);
 
           function playPause() { if (myVideo.paused) myVideo.play(); else myVideo.pause(); } 
           function makeBig()    { myVideo.width = 1500; } 
           function makeSmall()  { myVideo.width = 320; } 
           function makeNormal() { myVideo.width = 875; } 
+          function videoEndedHandler(e) { alert('Video ended'); }
          </script> 
        </td>
       </tr>
@@ -55,7 +57,7 @@
       <tr>
        <td>
         <!-- info -->
-        <h2>Title</h2>
+        <h2> +++++++++TITLE+++++++++ </h2>
         USER - xxxxxxx Views - Up - Down - Add - Share 
        </td>
       </tr>  
@@ -66,8 +68,7 @@
         Uploader Comment about this video 
        </td>
       </tr> 
-
-
+ 
       <tr>
        <td>
         <!-- comment -->
@@ -84,7 +85,7 @@
      <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
      <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
      <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
-     <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
+     <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br> 
 
 
 
