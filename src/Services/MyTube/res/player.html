@@ -1,0 +1,101 @@
+<html>
+<head>
+<title>MyTube</title> 
+</head>
+<body>
+ 
+<!-- header -->
+<table>
+ <tr>
+  <td>
+   <h2>MyTube</h2>
+  </td>
+  <td>
+   <form>
+    <input type="text" name="q">
+   </form> 
+  </td>
+ </tr>
+</table>
+ 
+<!-- main page -->
+<hr>
+<table>
+ <tr>
+  <td>
+     <table>
+      <tr>
+       <td>
+         <!-- player -->
+         <video id="myplayer" width="875" height="500" controls autoplay>
+          <source src="test.mp4" type="video/mp4">
+          <!--source src="movie.ogg" type="video/ogg"-->
+          Your browser does not support the video tag.
+         </video>
+
+          <br>
+         <button onclick="playPause()">Play/Pause</button> 
+         <button onclick="makeBig()">Big</button>
+         <button onclick="makeSmall()">Small</button>
+         <button onclick="makeNormal()">Normal</button>  
+
+         <script> 
+          var myVideo = document.getElementById("myplayer"); 
+
+          function playPause() { if (myVideo.paused) myVideo.play(); else myVideo.pause(); } 
+          function makeBig()    { myVideo.width = 1500; } 
+          function makeSmall()  { myVideo.width = 320; } 
+          function makeNormal() { myVideo.width = 875; } 
+         </script> 
+       </td>
+      </tr>
+
+  
+      
+      <tr>
+       <td>
+        <!-- info -->
+        <h2>Title</h2>
+        USER - xxxxxxx Views - Up - Down - Add - Share 
+       </td>
+      </tr>  
+
+      <tr>
+       <td>
+        <!-- comment -->
+        Uploader Comment about this video 
+       </td>
+      </tr> 
+
+
+      <tr>
+       <td>
+        <!-- comment -->
+        User Comments about this video 
+       </td>
+      </tr> 
+
+     </table> 
+  </td>
+  <td>
+     <!-- playlist --> 
+     <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
+     <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
+     <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
+     <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
+     <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
+     <table><tr><td><img src="thumb.png" width=100></td><td><b>Playlist Item</b><br>by User<br>xxxxxx views</td></tr></table> <br>
+
+
+
+  </td>
+ </tr>
+</table>
+<br>
+
+<br><br><br><br>
+Powered by <a href="https://github.com/AmmarkoV/AmmarServer/wiki">AmmarServer</a>
+
+</body>
+</html>
+
