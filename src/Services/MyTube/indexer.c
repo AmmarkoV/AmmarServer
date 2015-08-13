@@ -23,6 +23,7 @@ char * path_cat2 (const char *str1, char *str2)
 }
 
 
+
 struct videoCollection * loadVideoDatabase(char * directoryPath)
 {
     unsigned int count=0;
@@ -55,12 +56,24 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
             else
             {
                 ++count;
-                fprintf(stderr,"%u - %s \n",count,dp->d_name);
-
                 //Now lets try to get filesize and modification date using stat.h
                 char * fullpath = path_cat(directoryPath,dp->d_name);
                 if (fullpath!=0 )
                 {
+
+                fprintf(stderr,"%u - %s  ",count,dp->d_name);
+
+                if (AmmServer_FileIsVideo(fullpath))
+                {
+                 fprintf(stderr," is video ");
+                } else
+                {
+                  fprintf(stderr," is nothing ");
+                }
+                 fprintf(stderr,"\n");
+
+
+
                     if ( stat(fullpath, &st) == 0 )
                     {
 
