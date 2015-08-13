@@ -68,12 +68,15 @@ struct AmmServer_MemoryHandler * indexPage=0;
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_video(struct AmmServer_DynamicRequest  * rqst)
 {
-  char videoRequested[128];
+  char videoRequested[128]={0};
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
              {
                fprintf(stderr,"Video Requested is : %s \n",videoRequested);
              }
+  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
+
+  AmmServer_FreeMemoryHandler(&videoMH);
   return 0;
 }
 
@@ -90,12 +93,12 @@ void init_dynamic_content()
 {
 
   fprintf(stderr,"Reading master index file..!\n");
-  indexPage=AmmServer_ReadFileToMemoryHandler("res/");
+  indexPage=AmmServer_ReadFileToMemoryHandler("res/player.html");
 
   fprintf(stderr,"Replacing Variables..!\n");
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++YEAR+++++++++","20xx");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++BLOGTITLE+++++++++",configuration->blogTitle);
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,6,"+++++++++SITENAME+++++++++",configuration->siteName);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++BLOGTITLE+++++++++","configuration->blogTitle");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,6,"+++++++++SITENAME+++++++++","configuration->siteName");
 
 
 
