@@ -77,7 +77,7 @@ void * serve_video(struct AmmServer_DynamicRequest  * rqst)
 
                 fprintf(stderr,"Replacing Variables..!\n");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"+++++++++TITLE+++++++++"," Title Test ");
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++SOURCE+++++++++","<source src=\"test.mp4\" type=\"video/mp4\">");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++SOURCE+++++++++++++++++++++++++++","<source src=\"test.mp4\" type=\"video/mp4\">");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USER+++++++++","USERNAME");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++","xxxxxxxx");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Comment of video etc");
@@ -88,9 +88,9 @@ void * serve_video(struct AmmServer_DynamicRequest  * rqst)
                rqst->contentSize = videoMH->contentSize;
                fprintf(stderr,"Gave back %u\n",rqst->contentSize);
 
-               memcpy( rqst->content , indexPage->content , indexPage->contentSize );
-               rqst->contentSize = indexPage->contentSize;
-               fprintf(stderr,"Gave back %u\n",rqst->contentSize);
+               //memcpy( rqst->content , indexPage->content , indexPage->contentSize );
+               //rqst->contentSize = indexPage->contentSize;
+               //fprintf(stderr,"Gave back %u\n",rqst->contentSize);
               }
 
 
