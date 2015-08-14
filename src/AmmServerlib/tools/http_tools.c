@@ -316,6 +316,30 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
    return 1;
 }
 
+
+
+
+
+
+int CheckIfFileIsVideo(const char * filename)
+{
+  if (AmmServer_FileExists(filename))
+  {
+    char contentType[128];
+    GetContentType(filename,contentType,128);
+    if ( GetExtentionType(contentType)==VIDEO)
+    {
+      //Todo also check internals of files ( file magic number headers etc )
+      return 1;
+    }
+  }
+  return 0;
+}
+
+
+
+
+
 int ReducePathSlashes_Inplace(char * filename)
 {
   //This piece of code removes excess slashes from resource strings in place
