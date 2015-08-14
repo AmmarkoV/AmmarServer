@@ -34,7 +34,7 @@ char * dynamicRequest_serveContent
 
   //Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
   *contentContainsPathToFileToBeStreamed=0;
-  AmmServer_Warning("Will call %p \n",shared_context->dynamicRequestCallbackFunction);
+  //AmmServer_Warning("Will call %p \n",shared_context->dynamicRequestCallbackFunction);
 
   if (shared_context->dynamicRequestCallbackFunction==0)
   {
