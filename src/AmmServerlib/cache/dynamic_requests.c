@@ -148,8 +148,7 @@ char * dynamicRequest_serveContent
                      if (rqst->contentContainsPathToFileToBeStreamed)
                      {
                         *contentContainsPathToFileToBeStreamed=1;
-                        AmmServer_Error("Unsafe strcpy done ");
-                        strcpy(verified_filename,rqst->content);
+                        snprintf(verified_filename,verified_filenameLength,"%s",rqst->content);
                      }
 
                      *memSize = rqst->contentSize;

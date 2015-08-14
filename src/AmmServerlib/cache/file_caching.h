@@ -199,6 +199,7 @@ int cache_Destroy(struct AmmServer_Instance * instance);
 * @param HTTPHeader of request we are trying to service with the resource
 * @param cacheID for resource
 * @param Filename of the resource , this should be verified so that it doesn't access the whole filesystem but only subdirectories of the root public_html dir , and we consider this safe
+* @param Size of the filename of the resource
 * @param Output Index number of cache item we requested
 * @param Output FileSize of cache item we requested
 * @param Output last modification time of cache item we requested
@@ -212,6 +213,7 @@ char * cache_GetResource(
                           struct HTTPHeader * request,
                           unsigned int resourceCacheID,
                           char * verified_filename,
+                          unsigned int verified_filenameSize,
                           unsigned int * index,
                           unsigned long *filesize,
                           struct stat * last_modification,
