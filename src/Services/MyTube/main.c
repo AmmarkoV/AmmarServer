@@ -42,9 +42,11 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context videoPageContext={0};
 struct AmmServer_RH_Context videoFileContext={0};
+struct AmmServer_RH_Context randomVideoFileContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
+
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -57,7 +59,11 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
                 fprintf(stderr,"Video Requested is : %s \n",videoRequested);
 
                 unsigned int videoID=atoi(videoRequested);
-
+                if (videoID >= myTube->numberOfLoadedVideos)
+                {
+                  rqst->headerResponse=404;
+                } else
+                {
                 char * fullpath = path_cat2(video_root,myTube->video[videoID].filename);
                 if (fullpath!=0 )
                 {
@@ -68,6 +74,9 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
                  }
                  free(fullpath);
                 }
+
+                }
+
               }
   return 0;
 }
@@ -76,7 +85,6 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
   AmmServer_Success("serve_videopage (%p) called ..!\n",serve_videopage);
-  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
   char videoRequested[128]={0};
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
@@ -85,8 +93,12 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 
                 unsigned int videoID=atoi(videoRequested);
 
-
-
+                if (videoID >= myTube->numberOfLoadedVideos)
+                {
+                  rqst->headerResponse=404;
+                } else
+                {
+                struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
                 AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"+++++++++++++++++++++++++++TITLE+++++++++++++++++++++++++++",myTube->video[videoID].title);
 
@@ -102,14 +114,22 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                memcpy( rqst->content , videoMH->content , videoMH->contentSize );
                rqst->contentSize = videoMH->contentSize;
                fprintf(stderr,"Gave back %u\n",rqst->contentSize);
+               AmmServer_FreeMemoryHandler(&videoMH);
+               }
               }
-
-
-
-  AmmServer_FreeMemoryHandler(&videoMH);
   return 0;
 }
 
+
+//This function prepares the content of  stats context , ( stats.content )
+void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
+{
+  unsigned int videoID=rand()%myTube->numberOfLoadedVideos;
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /></head></html>",videoID);
+  fprintf(stderr,"Giving back random video %u/%u \n",videoID,myTube->numberOfLoadedVideos);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
 
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
@@ -127,6 +147,7 @@ void init_dynamic_content()
   //---------------
   if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,4096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,4096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   //---------------
 
 }
