@@ -66,6 +66,8 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
             {
                 ++count;
                 snprintf(newDB->video[count].filename,MAX_STR,dp->d_name);
+                snprintf(newDB->video[count].title,MAX_STR,dp->d_name);
+
 
 
                 //Now lets try to get filesize and modification date using stat.h
