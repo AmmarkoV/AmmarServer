@@ -523,11 +523,12 @@ char * cache_GetResource(
                           unsigned long *filesize,
                           struct stat * last_modification,
                           unsigned char * compressionSupported,
-                          unsigned char * freeContentAfterUsingIt
+                          unsigned char * freeContentAfterUsingIt,
+                          unsigned char * serveAsRegularFile
                         )
 {
- //By default we dont want to free the memory allocation after use..
- *freeContentAfterUsingIt=0;
+ *freeContentAfterUsingIt=0; //By default we dont want to free the memory allocation after use..
+ *serveAsRegularFile=0;      //By default we dont want to end up serving this as a regular file..!
 
  if (instance==0) { error("Instance is not allocated..\n"); return 0;  }
  if (request==0)  { error("Request is not allocated..\n"); return 0;  }
@@ -570,17 +571,37 @@ if (cache_FindResource(instance,verified_filename,index))
      //We are allowed to search/use the cache!
     {
       //We want to check if a dynamic content is availiable  for this file
+     unsigned char contentContainsPathToFileToBeStreamed=0;
      if ( dynamicRequest_ContentAvailiable(instance,*index) )
            {
              unsigned long memSize=0;
              char * mem = dynamicRequest_serveContent(
                                                        instance,
                                                        request,cache[*index].dynamicRequest ,
+                                                       verified_filename,
+                                                       strlen(verified_filename),
                                                        *index,
                                                        &memSize,
                                                        compressionSupported,
-                                                       freeContentAfterUsingIt
+                                                       freeContentAfterUsingIt,
+                                                       &contentContainsPathToFileToBeStreamed
                                                     );
+
+             struct AmmServer_DynamicRequest * drq = &cache[*index].dynamicRequest->requestContext;
+             if ( contentContainsPathToFileToBeStreamed )
+             {
+                  AmmServer_Warning("Returning a file stream from something that started to be a dynamic request , filename is %s , lets hope it works" , verified_filename);
+                  *serveAsRegularFile=1;
+
+                  if (freeContentAfterUsingIt)
+                  {
+                      AmmServer_Error("Please free content here..");
+                  }
+
+                  return 0;
+             }
+
+
              if ( (mem==0) || (memSize==0) )
              {
                warning("Tried to perform dynamicRequest_serveContent , but got back null , if there is no regular fallback file we will probably 404 now\n");

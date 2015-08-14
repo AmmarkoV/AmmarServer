@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-char * path_cat2 (const char *str1, char *str2)
+char * path_cat2 (const char *str1,const char *str2)
 {
     size_t str1_len = strlen(str1);
     size_t str2_len = strlen(str2);
@@ -69,7 +69,7 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
 
 
                 //Now lets try to get filesize and modification date using stat.h
-                char * fullpath = path_cat(directoryPath,dp->d_name);
+                char * fullpath = path_cat2(directoryPath,dp->d_name);
                 if (fullpath!=0 )
                 {
 

@@ -28,6 +28,7 @@ struct videoCollection
 };
 
 
+char * path_cat2 (const char *str1,const char *str2);
 
 struct videoCollection * loadVideoDatabase(char * directoryPath);
 

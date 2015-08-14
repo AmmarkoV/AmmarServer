@@ -216,7 +216,8 @@ char * cache_GetResource(
                           unsigned long *filesize,
                           struct stat * last_modification,
                           unsigned char * compressionSupported,
-                          unsigned char * freeContentAfterUsingIt
+                          unsigned char * freeContentAfterUsingIt,
+                          unsigned char * serveAsRegularFile
                         );
 
 

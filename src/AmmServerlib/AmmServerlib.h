@@ -173,6 +173,7 @@ struct AmmServer_DynamicRequest
    char * content;
    unsigned long contentSize;
    unsigned long MAXcontentSize;
+   unsigned int contentContainsPathToFileToBeStreamed;
 
    char * compressedContent;
    unsigned long compressedContentSize;

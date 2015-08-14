@@ -286,7 +286,8 @@ unsigned long SendFile
   unsigned long cached_lSize=0;
   unsigned char cached_buffer_is_compressed = compression_supported;
   unsigned char free_cached_buffer_after_use=0;
-  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use);
+  unsigned char serveAsRegularFile=0;
+  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile);
 
   if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
