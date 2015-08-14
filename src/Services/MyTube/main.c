@@ -49,6 +49,7 @@ struct AmmServer_MemoryHandler * indexPage=0;
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 {
+  AmmServer_Success("serve_videofile (%p) called ..!\n",serve_videofile);
   char videoRequested[128]={0};
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
@@ -60,7 +61,7 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
                 if (fullpath!=0 )
                 {
                  AmmServer_Warning("Trying to redirect request to file (%s) ..!\n",fullpath);
-                 if (!AmmServer_DynamicRequestReturnFile(rqst,fullpath) )
+                 //if (!AmmServer_DynamicRequestReturnFile(rqst,fullpath) )
                  {
                   AmmServer_Error("Could not redirect request to file (%s) ..!\n",fullpath);
                  }
@@ -73,6 +74,7 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
+  AmmServer_Success("serve_videopage (%p) called ..!\n",serve_videopage);
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
   char videoRequested[128]={0};
@@ -108,12 +110,6 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
-//This function could alter the content of the URI requested and then return 1
-void request_override_callback(void * request)
-{
-  //struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
-  return;
-}
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
@@ -127,10 +123,13 @@ void init_dynamic_content()
   myTube = loadVideoDatabase(video_root);
 
 
-  AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
-
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/watch",webserver_root,4096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/video",webserver_root,4096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
+  //---------------
+  if (! AmmServer_AddResourceHandler(default_server,&stats,"/watch",webserver_root,4096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     { AmmServer_Warning("Failed adding serve video page\n"); }
+  //---------------
+  if (! AmmServer_AddResourceHandler(default_server,&stats,"/f",webserver_root,4096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     { AmmServer_Warning("Failed adding serve video file\n"); }
+  //---------------
 
 }
 

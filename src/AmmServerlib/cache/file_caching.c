@@ -519,6 +519,7 @@ char * cache_GetResource(
                           struct HTTPHeader * request,
                           unsigned int resourceCacheID,
                           char * verified_filename,
+                          unsigned int verified_filenameSize,
                           unsigned int * index,
                           unsigned long *filesize,
                           struct stat * last_modification,
@@ -579,7 +580,7 @@ if (cache_FindResource(instance,verified_filename,index))
                                                        instance,
                                                        request,cache[*index].dynamicRequest ,
                                                        verified_filename,
-                                                       strlen(verified_filename),
+                                                       verified_filenameSize,
                                                        *index,
                                                        &memSize,
                                                        compressionSupported,
@@ -587,7 +588,6 @@ if (cache_FindResource(instance,verified_filename,index))
                                                        &contentContainsPathToFileToBeStreamed
                                                     );
 
-             struct AmmServer_DynamicRequest * drq = &cache[*index].dynamicRequest->requestContext;
              if ( contentContainsPathToFileToBeStreamed )
              {
                   AmmServer_Warning("Returning a file stream from something that started to be a dynamic request , filename is %s , lets hope it works" , verified_filename);
