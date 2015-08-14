@@ -30,12 +30,12 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
 
 
     newDB->MAX_numberOfVideos = 5000;
+    newDB->numberOfLoadedVideos=0;
     newDB->video = (struct videoItem *) malloc(  newDB->MAX_numberOfVideos * sizeof(struct videoItem) );
     if (newDB->video==0) { fprintf(stderr,"Could not allocate a video item\n"); free(newDB); return 0;}
 
 
 
-    unsigned int count=0;
     struct stat st;
     struct dirent *dp= {0};
 // enter existing path to directory below
@@ -64,9 +64,9 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
             }
             else
             {
-                ++count;
-                snprintf(newDB->video[count].filename,MAX_STR,dp->d_name);
-                snprintf(newDB->video[count].title,MAX_STR,dp->d_name);
+                ++newDB->numberOfLoadedVideos;
+                snprintf(newDB->video[newDB->numberOfLoadedVideos].filename,MAX_STR,dp->d_name);
+                snprintf(newDB->video[newDB->numberOfLoadedVideos].title,MAX_STR,dp->d_name);
 
 
 
@@ -75,7 +75,7 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
                 if (fullpath!=0 )
                 {
 
-                fprintf(stderr,"%u - %s  ",count,dp->d_name);
+                fprintf(stderr,"%u - %s  ",newDB->numberOfLoadedVideos,dp->d_name);
 
                 if (AmmServer_FileIsVideo(fullpath))
                 {
