@@ -145,9 +145,9 @@ void init_dynamic_content()
 
 
   //---------------
-  if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,4096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,4096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,14096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,14096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   //---------------
 
 }

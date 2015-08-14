@@ -34,10 +34,10 @@ int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB = 3;
 
 
 
-int AccessLogEnable=0;
+int AccessLogEnable=1;
 char AccessLog[MAX_FILE_PATH]="access.log";
 
-int ErrorLogEnable=0;
+int ErrorLogEnable=1;
 char ErrorLog[MAX_FILE_PATH]="error.log";
 
 
