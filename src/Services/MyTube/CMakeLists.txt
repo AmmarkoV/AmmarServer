@@ -7,7 +7,7 @@ set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(mytube main.c indexer.c ) 
+add_executable(mytube main.c indexer.c thumbnailer.c ) 
 target_link_libraries(mytube pthread rt AmmarServer )
 set_target_properties(mytube PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(mytube AmmarServer)  
