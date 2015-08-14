@@ -100,7 +100,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 {
                 struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
                 AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"+++++++++++++++++++++++++++TITLE+++++++++++++++++++++++++++",myTube->video[videoID].title);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++",myTube->video[videoID].title);
 
                 char data[256];
                 snprintf(data,256,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
