@@ -23,6 +23,7 @@ int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsig
 * @param An AmmarServer Instance
 * @param HTTPHeader containing the request done
 * @param Resource Context for specific dynamic Request
+* @param The filename that got requested , that might get rewritten
 * @param Index of cache item , containing this dynamic request
 * @param Memory Size allocated by the new dynamic request
 * @param Outputs if compression was supported ( and used ) by client
@@ -32,10 +33,13 @@ char * dynamicRequest_serveContent
            (struct AmmServer_Instance * instance,
             struct HTTPHeader * request,
             struct AmmServer_RH_Context * shared_context,
+            char * verified_filename,
+            unsigned int verified_filenameLength,
             unsigned int index,
             unsigned long * memSize,
             unsigned char * compressionSupported,
-            unsigned char * freeContentAfterUsingIt
+            unsigned char * freeContentAfterUsingIt,
+            unsigned char * contentContainsPathToFileToBeStreamed
           );
 
 /**

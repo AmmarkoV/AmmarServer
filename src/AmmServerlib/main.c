@@ -245,7 +245,10 @@ int AmmServer_Running(struct AmmServer_Instance * instance)
 
 int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,const char * filename)
 {
-  return 0;
+  if ( (rqst==0) || (filename==0) || ( strlen(filename)==0) )  { return 0; }
+  rqst->contentContainsPathToFileToBeStreamed=1;
+  snprintf(rqst->content,rqst->MAXcontentSize,"%s",filename);
+  return 1;
 }
 
 

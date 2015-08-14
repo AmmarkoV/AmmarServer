@@ -31,7 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 char video_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/";
-char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db";
+char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db/";
 
 struct videoCollection * myTube=0;
 
@@ -56,14 +56,17 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 
                 unsigned int videoID=atoi(videoRequested);
 
-                AmmServer_Warning("Serving file (%s) ..!\n",myTube->video[videoID].filename );
-
-                if (!AmmServer_DynamicRequestReturnFile(rqst,myTube->video[videoID].filename) )
+                char * fullpath = path_cat2(video_root,myTube->video[videoID].filename);
+                if (fullpath!=0 )
                 {
-                 AmmServer_Error("Could not serve file (%s) ..!\n",myTube->video[videoID].filename );
+                 AmmServer_Warning("Trying to redirect request to file (%s) ..!\n",fullpath);
+                 if (!AmmServer_DynamicRequestReturnFile(rqst,fullpath) )
+                 {
+                  AmmServer_Error("Could not redirect request to file (%s) ..!\n",fullpath);
+                 }
+                 free(fullpath);
                 }
               }
-
   return 0;
 }
 

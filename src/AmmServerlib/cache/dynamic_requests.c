@@ -18,10 +18,13 @@ char * dynamicRequest_serveContent
             struct AmmServer_Instance * instance,
             struct HTTPHeader * request,
             struct AmmServer_RH_Context * shared_context ,
+            char * verified_filename,
+            unsigned int verified_filenameLength,
             unsigned int index,
             unsigned long * memSize,
             unsigned char * compressionSupported,
-            unsigned char * freeContentAfterUsingIt
+            unsigned char * freeContentAfterUsingIt,
+            unsigned char * contentContainsPathToFileToBeStreamed
           )
 {
  // error("Dynamic requests are disabled until further notice .. \n");
@@ -30,7 +33,7 @@ char * dynamicRequest_serveContent
 
 
   //Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
-
+  *contentContainsPathToFileToBeStreamed=0;
 
   if (shared_context->dynamicRequestCallbackFunction==0)
   {
@@ -141,6 +144,14 @@ char * dynamicRequest_serveContent
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
                      DoCallback(rqst);
+
+                     if (rqst->contentContainsPathToFileToBeStreamed)
+                     {
+                        *contentContainsPathToFileToBeStreamed=1;
+                        AmmServer_Error("Unsafe strcpy done ");
+                        strcpy(verified_filename,rqst->content);
+                     }
+
                      *memSize = rqst->contentSize;
                      fprintf(stderr,"After callback we got back %lu bytes\n",rqst->contentSize);
                      free(rqst);
