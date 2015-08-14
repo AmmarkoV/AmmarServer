@@ -69,6 +69,11 @@ int GetContentType(const char * filename,char * contentType,unsigned int content
 * @retval 1=Exists,0=Does not Exist*/
 int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length);
 
+
+
+int CheckIfFileIsVideo(const char * filename);
+
+
 int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,char * directory,char * indexfile,unsigned int indexFileLength);
 
 int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length);

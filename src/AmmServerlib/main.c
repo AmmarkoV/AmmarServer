@@ -693,17 +693,7 @@ int AmmServer_FileExists(const char * filename)
 
 int AmmServer_FileIsVideo(const char * filename)
 {
-  if (AmmServer_FileExists(filename))
-  {
-    char contentType[128];
-    GetContentType(filename,contentType,128);
-    if ( GetExtentionType(contentType)==VIDEO)
-    {
-      //Todo also check internals of files ( file magic number headers etc )
-      return 1;
-    }
-  }
-  return 0;
+  return CheckIfFileIsVideo(filename);
 }
 
 int AmmServer_EraseFile(const char * filename)

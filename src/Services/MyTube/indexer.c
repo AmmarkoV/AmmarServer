@@ -23,9 +23,18 @@ char * path_cat2 (const char *str1, char *str2)
 }
 
 
-
 struct videoCollection * loadVideoDatabase(char * directoryPath)
 {
+    struct videoCollection * newDB=(struct videoCollection * ) malloc(sizeof(struct videoCollection));
+    if (newDB==0) { fprintf(stderr,"Could not allocate a video collection \n"); return 0; }
+
+
+    newDB->MAX_numberOfVideos = 5000;
+    newDB->video = (struct videoItem *) malloc(  newDB->MAX_numberOfVideos * sizeof(struct videoItem) );
+    if (newDB->video==0) { fprintf(stderr,"Could not allocate a video item\n"); free(newDB); return 0;}
+
+
+
     unsigned int count=0;
     struct stat st;
     struct dirent *dp= {0};
@@ -56,6 +65,9 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
             else
             {
                 ++count;
+                snprintf(newDB->video[count].filename,MAX_STR,dp->d_name);
+
+
                 //Now lets try to get filesize and modification date using stat.h
                 char * fullpath = path_cat(directoryPath,dp->d_name);
                 if (fullpath!=0 )
@@ -76,7 +88,6 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
 
                     if ( stat(fullpath, &st) == 0 )
                     {
-
                         char sizeStr[128]= {0};
                         snprintf(sizeStr,128,"%li",st.st_size);
 
@@ -109,5 +120,5 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
 
 
     closedir(dir);
-    return 0;
+    return newDB;
 }

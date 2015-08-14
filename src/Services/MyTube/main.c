@@ -35,24 +35,6 @@ char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db";
 
 struct videoCollection * myTube=0;
 
-/*! Dynamic content code ..! START!*/
-/* A few words about dynamic content here..
-   This is actually one of the key features on AmmarServer and maybe the reason that I started the whole project
-   What I am trying to do here is serve content by directly linking the webserver to binary ( NOT Interpreted ) code
-   in order to serve pages with the maximum possible efficiency and skipping all intermediate layers..
-
-   PHP , Ruby , Python and all other "web-languages" are very nice and handy and to be honest I can do most of my work fine using PHP , MySQL and Apache
-   However setting up , configuring and maintaining large projects with different database systems , separate configuration files for each of the sub parts
-   and re deploying everything is a very tiresome affair.. Not to mention that despite the great work done by the apache  , PHP etc teams performance is wasted
-   due to the interpreters of the various scripting languages used..
-
-   Things can't get any faster than AmmarServer and the whole programming interface exposed to the programmer is ( imho ) very friendly and familiar to even inexperienced
-   C developer..
-
-   What follows is the decleration of some "Dynamic Content Resources" their Constructors/Destructors and their callback routines that fill them with the content to be served
-   each time a client requests one of the pages..
-*/
-
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
@@ -64,9 +46,26 @@ struct AmmServer_RH_Context stats={0};
 struct AmmServer_MemoryHandler * indexPage=0;
 
 
+//This function prepares the content of  stats context , ( stats.content )
+void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
+{
+  char videoRequested[128]={0};
+  if ( _GET(default_server,rqst,"v",videoRequested,128) )
+              {
+                fprintf(stderr,"Video Requested is : %s \n",videoRequested);
+
+                unsigned int videoID=atoi(videoRequested);
+
+                AmmServer_Warning("Serving file (%s) ..!\n",myTube->video[videoID].filename );
+                //rqst->
+              }
+
+
+  return 0;
+}
 
 //This function prepares the content of  stats context , ( stats.content )
-void * serve_video(struct AmmServer_DynamicRequest  * rqst)
+void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
@@ -75,11 +74,18 @@ void * serve_video(struct AmmServer_DynamicRequest  * rqst)
               {
                 fprintf(stderr,"Video Requested is : %s \n",videoRequested);
 
-                fprintf(stderr,"Replacing Variables..!\n");
+                unsigned int videoID=atoi(videoRequested);
+
+
+
+                AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"+++++++++TITLE+++++++++"," Title Test ");
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++SOURCE+++++++++++++++++++++++++++","<source src=\"test.mp4\" type=\"video/mp4\">");
+
+                char data[256];
+                snprintf(data,256,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++SOURCE+++++++++++++++++++++++++++",data);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USER+++++++++","USERNAME");
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++","xxxxxxxx");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++","1");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Comment of video etc");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USERCOMMENTS+++++++++","Comment of user video etc");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++PLAYLIST+++++++++","Playlist");
@@ -87,10 +93,6 @@ void * serve_video(struct AmmServer_DynamicRequest  * rqst)
                memcpy( rqst->content , videoMH->content , videoMH->contentSize );
                rqst->contentSize = videoMH->contentSize;
                fprintf(stderr,"Gave back %u\n",rqst->contentSize);
-
-               //memcpy( rqst->content , indexPage->content , indexPage->contentSize );
-               //rqst->contentSize = indexPage->contentSize;
-               //fprintf(stderr,"Gave back %u\n",rqst->contentSize);
               }
 
 
@@ -121,7 +123,8 @@ void init_dynamic_content()
 
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/watch",webserver_root,4096,0,&serve_video,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&stats,"/watch",webserver_root,4096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&stats,"/video",webserver_root,4096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
 
 }
 

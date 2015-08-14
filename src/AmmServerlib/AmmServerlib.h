@@ -756,6 +756,12 @@ int AmmServer_FileExists(const char * filename);
 
 
 
+/**
+* @brief Check if file is a video
+* @ingroup tools
+* @param Path to file
+* @retval 1=Exists,0=Does not Exist
+*/
 int AmmServer_FileIsVideo(const char * filename);
 
 
