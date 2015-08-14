@@ -6,8 +6,13 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
 # Start AmmarServer
-src/Services/MyTube/mytube $@
 
+until src/Services/MyTube/mytube $@; do
+    echo "Server 'mytube' crashed with exit code $?.  Respawning.." >&2
+    sleep 1
+done
+ 
+#src/Services/MyTube/mytube $@
 
 cd "$STARTDIR"
 

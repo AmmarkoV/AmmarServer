@@ -22,6 +22,11 @@ char * path_cat2 (const char *str1,const char *str2)
     return result;
 }
 
+unsigned int getAVideoForQuery(struct videoCollection * db , const char * query)
+{
+
+}
+
 
 struct videoCollection * loadVideoDatabase(char * directoryPath)
 {

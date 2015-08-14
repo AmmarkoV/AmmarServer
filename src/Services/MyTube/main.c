@@ -43,6 +43,7 @@ struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context videoPageContext={0};
 struct AmmServer_RH_Context videoFileContext={0};
 struct AmmServer_RH_Context randomVideoFileContext={0};
+struct AmmServer_RH_Context thumbnailContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
@@ -52,7 +53,6 @@ struct AmmServer_MemoryHandler * indexPage=0;
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 {
-  AmmServer_Success("serve_videofile (%p) called ..!\n",serve_videofile);
   char videoRequested[128]={0};
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
@@ -84,8 +84,6 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
-  AmmServer_Success("serve_videopage (%p) called ..!\n",serve_videopage);
-
   char videoRequested[128]={0};
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
@@ -131,6 +129,16 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
+
+//This function prepares the content of  stats context , ( stats.content )
+void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
+{
+  unsigned int videoID=rand()%myTube->numberOfLoadedVideos;
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /></head></html>",videoID);
+  fprintf(stderr,"Giving back random video %u/%u \n",videoID,myTube->numberOfLoadedVideos);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
