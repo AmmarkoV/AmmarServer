@@ -57,9 +57,12 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
                 unsigned int videoID=atoi(videoRequested);
 
                 AmmServer_Warning("Serving file (%s) ..!\n",myTube->video[videoID].filename );
-                //rqst->
-              }
 
+                if (!AmmServer_DynamicRequestReturnFile(rqst,myTube->video[videoID].filename) )
+                {
+                 AmmServer_Error("Could not serve file (%s) ..!\n",myTube->video[videoID].filename );
+                }
+              }
 
   return 0;
 }

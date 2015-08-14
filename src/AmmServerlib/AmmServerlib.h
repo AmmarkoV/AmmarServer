@@ -392,6 +392,18 @@ int AmmServer_Stop(struct AmmServer_Instance * instance);
 */
 int AmmServer_Running(struct AmmServer_Instance * instance);
 
+
+/**
+* @brief Return a file instead of a Dynamic Request
+* @ingroup core
+* @param An AmmarServer Request
+* @param File to serve
+* @retval 1=Running,0=Stopped
+*/
+int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,const char * filename);
+
+
+
 /**
 * @brief Add a request handler to handle requests , before they get processed internally
 *        Calling this will bind a C function that will be called and produce output when someone asks for any resource using the specified method

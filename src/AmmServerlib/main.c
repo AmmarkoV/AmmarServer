@@ -243,6 +243,14 @@ int AmmServer_Running(struct AmmServer_Instance * instance)
 
 
 
+int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,const char * filename)
+{
+  return 0;
+}
+
+
+
+
 //This call , calls  callback every time a request hits the server..
 //The outer layer of the server can do interesting things with it :P
 //request_type is supposed to be GET , HEAD , POST , CONNECT , etc..
