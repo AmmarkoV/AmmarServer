@@ -50,7 +50,7 @@ int doHashMapTest()
 
 int doInjectTest()
 {
-
+ return 0;
 }
 
 
@@ -60,20 +60,6 @@ int main(int argc, char *argv[])
 {
   if (!doHashMapTest())   { fprintf(stderr,GREEN "Hash Map Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test .. Failed\n" NORMAL); }
   if (!doInjectTest())   { fprintf(stderr,GREEN "Injection Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Injection Test .. Failed\n" NORMAL); }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -191,7 +191,7 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,const char 
 
   if ( hashMap_GetULongPayload((struct hashMap *) instance->cacheHashMap,resource,&i) )
     {
-      fprintf(stderr,"HashMap Found %lu \n",i);
+      fprintf(stderr,"HashMap Found %lu (%s=%s) \n",i,resource,hashMap_GetKeyAtIndex((struct hashMap *) instance->cacheHashMap,i));
       *index=i;
       return 1;
     }else
@@ -578,7 +578,8 @@ if (cache_FindResource(instance,verified_filename,index))
              unsigned long memSize=0;
              char * mem = dynamicRequest_serveContent(
                                                        instance,
-                                                       request,cache[*index].dynamicRequest ,
+                                                       request,
+                                                       cache[*index].dynamicRequest,
                                                        verified_filename,
                                                        verified_filenameSize,
                                                        *index,
