@@ -100,14 +100,37 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++",myTube->video[videoID].title);
 
-                char data[256];
-                snprintf(data,256,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
+                char data[512];
+                snprintf(data,512,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++SOURCE+++++++++++++++++++++++++++",data);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USER+++++++++","USERNAME");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++","1");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Comment of video etc");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USERCOMMENTS+++++++++","Comment of user video etc");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++PLAYLIST+++++++++","Playlist");
+
+
+                unsigned int randVideoID=rand()%myTube->numberOfLoadedVideos;
+                snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"thumb.png?v=%u\" width=100></a></td><td><b>%s</b><br>by User<br>%u views</td></tr></table>",randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST1++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", data );
+
+                randVideoID=rand()%myTube->numberOfLoadedVideos;
+                snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"thumb.png?v=%u\" width=100></a></td><td><b>%s</b><br>by User<br>%u views</td></tr></table>",randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST2++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", data );
+
+                randVideoID=rand()%myTube->numberOfLoadedVideos;
+                snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"thumb.png?v=%u\" width=100></a></td><td><b>%s</b><br>by User<br>%u views</td></tr></table>",randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST3++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", data );
+
+                randVideoID=rand()%myTube->numberOfLoadedVideos;
+                snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"thumb.png?v=%u\" width=100></a></td><td><b>%s</b><br>by User<br>%u views</td></tr></table>",randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST4++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", data );
+
+                randVideoID=rand()%myTube->numberOfLoadedVideos;
+                snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"thumb.png?v=%u\" width=100></a></td><td><b>%s</b><br>by User<br>%u views</td></tr></table>",randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST5++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++", data );
+
+
 
                memcpy( rqst->content , videoMH->content , videoMH->contentSize );
                rqst->contentSize = videoMH->contentSize;
