@@ -40,7 +40,8 @@ struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context random_chars={0};
-struct AmmServer_RH_Context stats={0};
+struct AmmServer_RH_Context videoPageContext={0};
+struct AmmServer_RH_Context videoFileContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
@@ -61,7 +62,7 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
                 if (fullpath!=0 )
                 {
                  AmmServer_Warning("Trying to redirect request to file (%s) ..!\n",fullpath);
-                 //if (!AmmServer_DynamicRequestReturnFile(rqst,fullpath) )
+                 if (!AmmServer_DynamicRequestReturnFile(rqst,fullpath) )
                  {
                   AmmServer_Error("Could not redirect request to file (%s) ..!\n",fullpath);
                  }
@@ -124,11 +125,8 @@ void init_dynamic_content()
 
 
   //---------------
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/watch",webserver_root,4096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding serve video page\n"); }
-  //---------------
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/f",webserver_root,4096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding serve video file\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,4096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,4096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
   //---------------
 
 }
@@ -136,7 +134,8 @@ void init_dynamic_content()
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    AmmServer_RemoveResourceHandler(default_server,&stats,1);
+    AmmServer_RemoveResourceHandler(default_server,&videoPageContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&videoFileContext,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 
