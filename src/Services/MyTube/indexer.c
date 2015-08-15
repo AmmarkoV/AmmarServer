@@ -45,7 +45,7 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
     if (newDB==0) { fprintf(stderr,"Could not allocate a video collection \n"); return 0; }
 
 
-    newDB->MAX_numberOfVideos = 5000;
+    newDB->MAX_numberOfVideos = 9000;
     newDB->numberOfLoadedVideos=0;
     newDB->video = (struct videoItem *) malloc(  newDB->MAX_numberOfVideos * sizeof(struct videoItem) );
     if (newDB->video==0) { fprintf(stderr,"Could not allocate a video item\n"); free(newDB); return 0;}

@@ -144,7 +144,12 @@ char * dynamicRequest_serveContent
 
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
+
+                     struct time_snap callbackTimer;
+                     start_timer (&callbackTimer);
                      DoCallback(rqst);
+                     unsigned long elapsedCallbackTimeMS=end_timer (&callbackTimer);
+                     fprintf(stderr,"Callback done in %lu microseconds \n",elapsedCallbackTimeMS);
 
                      if (rqst->contentContainsPathToFileToBeStreamed)
                      {
