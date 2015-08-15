@@ -27,6 +27,17 @@ unsigned int getAVideoForQuery(struct videoCollection * db , const char * query)
 
 }
 
+unsigned int clearExtensionFAST(char * inputOutputStr)
+{
+  unsigned int lengthOfStr=strlen(inputOutputStr);
+  if (lengthOfStr>4)
+  {
+    if (inputOutputStr[lengthOfStr-3]=='.') {  inputOutputStr[lengthOfStr-3]=0; return 1; }
+    if (inputOutputStr[lengthOfStr-4]=='.') {  inputOutputStr[lengthOfStr-4]=0; return 1; }
+
+  }
+ return 0;
+}
 
 struct videoCollection * loadVideoDatabase(char * directoryPath)
 {
@@ -72,6 +83,7 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
                 ++newDB->numberOfLoadedVideos;
                 snprintf(newDB->video[newDB->numberOfLoadedVideos].filename,MAX_STR,dp->d_name);
                 snprintf(newDB->video[newDB->numberOfLoadedVideos].title,MAX_STR,dp->d_name);
+                clearExtensionFAST(newDB->video[newDB->numberOfLoadedVideos].title);
 
 
 
