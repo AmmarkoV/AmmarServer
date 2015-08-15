@@ -25,8 +25,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 #include "indexer.h"
+#include "thumbnailer.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+#define DO_DYNAMIC_THUMBNAILS 1
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -105,12 +107,33 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 char data[512];
                 snprintf(data,512,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++SOURCE+++++++++++++++++++++++++++",data);
+
+                snprintf(data,512,"dthumb.jpg?v=%u",videoID);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++THUMB+++++++++++++++++++++++++++",data);
+
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USER+++++++++","MyTube");
 
 
                 ++myTube->video[videoID].views;
                 snprintf(data,512,"%u",myTube->video[videoID].views);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++",data);
+
+
+                snprintf(data,512,"%u",myTube->video[videoID].likes);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++VOTESUP++++++",data);
+                snprintf(data,512,"%u",myTube->video[videoID].dislikes);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++VOTESDOWN++++++",data);
+
+
+                //snprintf(data,512,"/proc?upvote=%u",videoID);
+                snprintf(data,512,"command('upvote=%u');",videoID);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++UPVOTE+++++++++++",data);
+
+                //snprintf(data,512,"/proc?downvote=%u",videoID);
+                snprintf(data,512,"command('downvote=%u');",videoID);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++DOWNVOTE+++++++++++",data);
+
+
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Comment of video etc");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USERCOMMENTS+++++++++","Comment of user video etc");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++PLAYLIST+++++++++","Playlist");
@@ -119,11 +142,11 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 unsigned int randVideoID=0;
                 char tag[512];
                 unsigned int i=0;
-                for (i=1; i<=7; i++)
+                for (i=1; i<=8; i++)
                 {
                  snprintf(tag,512,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST%u+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",i);
                  randVideoID=rand()%myTube->numberOfLoadedVideos;
-                 snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"thumb.png?v=%u\" width=100></a></td><td><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%u views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                 snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%u views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
                  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,tag, data );
 
                 }
@@ -155,10 +178,33 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
 {
-  unsigned int videoID=rand()%myTube->numberOfLoadedVideos;
-  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /></head></html>",videoID);
-  fprintf(stderr,"Giving back random video %u/%u \n",videoID,myTube->numberOfLoadedVideos);
-  rqst->contentSize=strlen(rqst->content);
+ #if DO_DYNAMIC_THUMBNAILS
+  char videoRequested[128]={0};
+  if ( _GET(default_server,rqst,"v",videoRequested,128) )
+              {
+                fprintf(stderr,"Thumbnail Requested for Video  : %s \n",videoRequested);
+
+                unsigned int videoID=atoi(videoRequested);
+
+                if (videoID < myTube->numberOfLoadedVideos)
+                {
+                  char * thumbnailFile = generateThumbnailOfVideo(video_root,myTube->video[videoID].filename,database_root);
+                  if (thumbnailFile!=0)
+                   {
+                    AmmServer_DynamicRequestReturnFile(rqst,thumbnailFile);
+                    free(thumbnailFile);
+                    return 0;
+                   }
+
+                }
+              }
+   #endif // DO_DYNAMIC_THUMBNAILS
+
+  if (!AmmServer_DynamicRequestReturnFile(rqst,"public_html/thumb.jpg") )
+   {
+       AmmServer_Error("Could not return default thumbnail");
+   }
+
   return 0;
 }
 
@@ -167,11 +213,22 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
 void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
 {
   char videoRequested[128]={0};
+  unsigned int videoID=0;
   if ( _GET(default_server,rqst,"upvote",videoRequested,128) )
   {
+     videoID=atoi(videoRequested);
+     if (videoID < myTube->numberOfLoadedVideos)
+     {
+         ++myTube->video[videoID].likes;
+     }
   } else
   if ( _GET(default_server,rqst,"downvote",videoRequested,128) )
   {
+     videoID=atoi(videoRequested);
+     if (videoID < myTube->numberOfLoadedVideos)
+     {
+         ++myTube->video[videoID].dislikes;
+     }
   } else
   if ( _GET(default_server,rqst,"comment",videoRequested,128) )
   {
@@ -202,7 +259,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,14096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,14096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/thumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
 
   //---------------
