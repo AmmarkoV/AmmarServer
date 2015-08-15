@@ -32,8 +32,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
-char video_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/";
-char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db/";
+//char video_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/";
+char video_root[MAX_FILE_PATH]="/media/ammar/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/";
+//char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db/";
+char database_root[MAX_FILE_PATH]="/media/ammar/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/db/";
 
 struct videoCollection * myTube=0;
 
@@ -142,7 +144,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 unsigned int randVideoID=0;
                 char tag[512];
                 unsigned int i=0;
-                for (i=1; i<=8; i++)
+                for (i=1; i<=10; i++)
                 {
                  snprintf(tag,512,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST%u+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",i);
                  randVideoID=rand()%myTube->numberOfLoadedVideos;
@@ -243,6 +245,22 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+int thumbnailAllVideoDatabase(struct videoCollection * db)
+{
+   unsigned int i=0;
+   for (i=0; i<db->numberOfLoadedVideos; i++)
+   {
+     char * thumbnailFile = generateThumbnailOfVideo(video_root,myTube->video[i].filename,database_root);
+     if (thumbnailFile!=0)
+     {
+       free(thumbnailFile);
+     }
+   }
+  return 1;
+}
+
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
@@ -253,6 +271,10 @@ void init_dynamic_content()
 
 
   myTube = loadVideoDatabase(video_root);
+
+
+  //this will make boot incredibly slower
+  //thumbnailAllVideoDatabase(myTube);
 
 
   //---------------
@@ -273,7 +295,6 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&videoFileContext,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
-
 
 
 
