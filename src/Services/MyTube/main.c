@@ -170,7 +170,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
   unsigned int videoID=rand()%myTube->numberOfLoadedVideos;
-  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /></head></html>",videoID);
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html> <head> <meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /> </head> <body> </body> </html>",videoID);
   fprintf(stderr,"Giving back random video %u/%u \n",videoID,myTube->numberOfLoadedVideos);
   rqst->contentSize=strlen(rqst->content);
   return 0;
@@ -280,7 +280,7 @@ void init_dynamic_content()
   //---------------
   if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,14096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,14096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
 
