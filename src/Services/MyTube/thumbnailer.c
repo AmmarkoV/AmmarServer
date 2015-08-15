@@ -16,26 +16,30 @@ char * generateThumbnailOfVideo(const char * videoDirectory,const char * videofi
 
    if (thumbnailFile!=0)
    {
+    snprintf(thumbnailFile,thumbnailFileLength,"%s/%s_thumb.jpg",thumbDirectory,videofile);
     if (AmmServer_FileExists(thumbnailFile))
     {
+      fprintf(stderr,"Thumbnail already exists\n");
       return thumbnailFile;
-    }
-
-    snprintf(thumbnailFile,thumbnailFileLength,"%s/%s_thumb.jpg",thumbDirectory,videofile);
-    char what2Execute[1024];
-    snprintf(what2Execute,1024,"ffmpeg -y -i \"%s/%s\" -ss 00:00:14.435 -vframes 1 -vf scale=320:240 \"%s\" ",videoDirectory,videofile,thumbnailFile);
-
-    fprintf(stderr,"Spawning %s .. ",thumbnailFile);
-    int i=system(what2Execute);
-
-    if (i==0)
+    } else
     {
+     char what2Execute[1024];
+     snprintf(what2Execute,1024,"ffmpeg -y -i \"%s/%s\" -ss 00:00:14.435 -vframes 1 -vf scale=320:240 \"%s\" ",videoDirectory,videofile,thumbnailFile);
+
+     fprintf(stderr,"Spawning %s .. ",thumbnailFile);
+     int i=system(what2Execute);
+
+     if (i==0)
+     {
        fprintf(stderr,"success \n");
        return thumbnailFile;
-    }
-    fprintf(stderr,"failed\n");
+     }
+     fprintf(stderr,"failed\n");
 
      free(thumbnailFile);
+
+    }
+
    }
   return 0;
 }
