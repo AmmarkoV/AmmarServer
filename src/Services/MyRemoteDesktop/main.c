@@ -117,7 +117,8 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
    if (i!=0) { AmmServer_Error("Could not execute %s\n",commandStr); }
  }
 
-
+  strcpy(rqst->content,"<html>Ok</html>");
+  rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
