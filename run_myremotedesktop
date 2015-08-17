@@ -1,0 +1,14 @@
+#!/bin/bash
+
+STARTDIR=`pwd`
+#Switch to this directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+
+# Start AmmarServer
+src/Services/MyRemoteDesktop/myremotedesktop $@
+
+
+cd "$STARTDIR"
+
+exit 0

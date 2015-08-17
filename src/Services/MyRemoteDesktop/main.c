@@ -43,7 +43,7 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context indexPageContext={0};
 struct AmmServer_RH_Context screenContext={0};
 
-char indexPagePath[128]="src/Services/MyRemoteDesktop/res/myremotedesktop.html";
+char indexPagePath[128]="src/Services/MyRemoteDesktop/res/remotedesktop.html";
 char * indexPage=0;
 unsigned int indexPageLength=0;
 
@@ -87,7 +87,7 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void init_dynamic_content()
 {
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
-  if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); }
+  if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
 
   if (! AmmServer_AddResourceHandler(default_server,&screenContext,"/screen.jpg",webserver_root,1512000,0,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding screen page\n"); }
@@ -100,7 +100,8 @@ void init_dynamic_content()
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    AmmServer_RemoveResourceHandler(default_server,&stats,1);
+    AmmServer_RemoveResourceHandler(default_server,&screenContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&indexPageContext,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 
