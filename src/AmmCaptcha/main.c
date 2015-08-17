@@ -86,8 +86,10 @@ int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsign
 {
   struct Image * outputJPEGFile = createImage(width,height,channels);
 
-  //WriteJPEGFile(captcha,"captcha.jpg");
+  //WritePPM(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.pnm");
+  //WriteJPEGFile(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.jpg");
   WriteJPEGMemory(outputJPEGFile,mem,mem_size);
+
   fprintf(stderr,"Survived WriteJPEG");
   destroyImage(outputJPEGFile);
   fprintf(stderr,"Survived destroyImage");
