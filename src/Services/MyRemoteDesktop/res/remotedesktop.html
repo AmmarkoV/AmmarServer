@@ -1,0 +1,60 @@
+<html>
+ <head>
+   <meta http-equiv=\"refresh\" content=\"1\">
+   <title>MyRemoteDesktop</title>
+   <script type="text/javascript">  
+    
+   function httpGet(theUrl)
+    {
+    var xmlHttp = null;
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+    } 
+    
+    function command(theCommand)
+     {
+       var randomnumber=Math.floor(Math.random()*100000);
+       httpGet("cmd?"+theCommand+"&t="+randomnumber); 
+     } 
+
+   function refreshScreen()
+   {  
+      var randomnumber=Math.floor(Math.random()*100000);
+      document.getElementById("screen").url='screen.jpg?t='+randomnumber;
+   } 
+
+   function doMovement(e) 
+   {
+    var x = e.clientX;
+    var y = e.clientY;
+    var coor = "Coordinates: (" + x + "," + y + ")";
+    document.getElementById("coordinates").innerHTML = coor;
+    command("x="+x+"&y="+y);
+   }
+
+  function clearCoordinates() 
+  {
+    document.getElementById("coordinates").innerHTML = "";
+  }
+  </script>
+</head>
+<body onload="refreshScreen();">
+  <img 
+   id="screen" 
+   src="http://127.0.0.1:8080/screen.jpg?t=12345" 
+   width="100%" 
+   onclick="cmd?click=1" 
+   ondblclick="cmd?dblclick=1"
+   onmouseup="cmd?mouseup=1"
+   onmousedown="cmd?mousedown=1"
+   onmousemove="doMovement(event)" 
+   onmouseout="clearCoordinates()"
+  ><br>
+
+ <p id="coordinates"></p>
+</body>
+
+</head>
+

@@ -40,9 +40,12 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
-struct AmmServer_RH_Context random_chars={0};
-struct AmmServer_RH_Context stats={0};
+struct AmmServer_RH_Context indexPageContext={0};
+struct AmmServer_RH_Context screenContext={0};
 
+char indexPagePath[128]="src/Services/MyRemoteDesktop/res/myremotedesktop.html";
+char * indexPage=0;
+unsigned int indexPageLength=0;
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
@@ -70,47 +73,27 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
+void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
-
-  char hex[16+1]={0};
-  unsigned int i=0;
-  for (i=0; i<1024; i++)
-    {
-        snprintf(hex,16, "%x ", rand()%256 );
-        strcat(rqst->content,hex);
-    }
-
-
-
-
-
-  strcat(rqst->content,"</body></html>");
-
-  rqst->contentSize=strlen(rqst->content);
+  strncpy(rqst->content,indexPage,indexPageLength);
+  rqst->content[indexPageLength]=0;
+  rqst->contentSize=indexPageLength;
   return 0;
 }
 
 
-//This function could alter the content of the URI requested and then return 1
-void request_override_callback(void * request)
-{
-  //struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
-  return;
-}
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
+  indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
+  if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/screen.jpg",webserver_root,1512000,0,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"/screen.jpg",webserver_root,1512000,0,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
+     { AmmServer_Warning("Failed adding screen page\n"); }
 
-   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding random testing page\n"); }
+   if (! AmmServer_AddResourceHandler(default_server,&indexPageContext,"index.html",webserver_root,4096,0,&prepare_index_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     { AmmServer_Warning("Failed adding index page\n"); }
 
 }
 
