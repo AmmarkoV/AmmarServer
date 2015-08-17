@@ -85,7 +85,7 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
 int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsigned int height , unsigned int channels , char *mem,unsigned long * mem_size)
 {
   struct Image * outputJPEGFile = createImage(width,height,channels);
-
+  memcpy(outputJPEGFile->pixels,pixels,width*height*channels);
   //WritePPM(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.pnm");
   //WriteJPEGFile(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.jpg");
   WriteJPEGMemory(outputJPEGFile,mem,mem_size);
