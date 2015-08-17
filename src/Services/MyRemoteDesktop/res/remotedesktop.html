@@ -62,7 +62,11 @@
     clearInterval(autoRefreshJob); 
   }
 
-
+  document.onkeypress = function (e) 
+  {
+    e = e || window.event;
+    command('k='+e.keyCode);
+  };
   
   </script>
 </head>
