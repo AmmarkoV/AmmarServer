@@ -22,13 +22,18 @@
    function refreshScreen()
    {  
       var randomnumber=Math.floor(Math.random()*100000);
-      document.getElementById("screen").url='screen.jpg?t='+randomnumber;
+
+      var screenImage = document.getElementById('screenImage');
+      screenImage.src='screen.jpg?t='+randomnumber; 
    } 
 
    function doMovement(e) 
    {
-    var x = e.clientX;
-    var y = e.clientY;
+    img = document.getElementById("screenImage");
+
+    var x = img.naturalWidth * ( e.clientX / img.width ) ;
+    var y = img.naturalHeight * ( e.clientY / img.height );
+     
     var coor = "Coordinates: (" + x + "," + y + ")";
     document.getElementById("coordinates").innerHTML = coor;
     command("x="+x+"&y="+y);
@@ -38,12 +43,21 @@
   {
     document.getElementById("coordinates").innerHTML = "";
   }
+
+  function autoRefreshScreen()
+  {
+    refreshScreen();
+  }
+  
+
+
+
   </script>
 </head>
-<body onload="refreshScreen();">
+<body onload="setTimeout('autoRefreshScreen();',500);">
   <img 
-   id="screen" 
-   src="http://127.0.0.1:8080/screen.jpg?t=12345" 
+   id="screenImage" 
+   src="screen.jpg" 
    width="100%" 
    onclick="cmd?click=1" 
    ondblclick="cmd?dblclick=1"
@@ -54,6 +68,7 @@
   ><br>
 
  <p id="coordinates"></p>
+ <a href="#" onclick="refreshScreen();">Refresh</a>
 </body>
 
 </head>
