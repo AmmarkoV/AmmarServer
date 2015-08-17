@@ -42,6 +42,7 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context indexPageContext={0};
 struct AmmServer_RH_Context screenContext={0};
+struct AmmServer_RH_Context commandContext={0};
 
 char indexPagePath[128]="src/Services/MyRemoteDesktop/res/remotedesktop.html";
 char * indexPage=0;
@@ -82,6 +83,45 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+ unsigned int donothing=0;
+ unsigned int x=0,y=0,doclick=0;
+ char xCoord[128]={0};
+ char yCoord[128]={0};
+ char commandStr[128]={0};
+  if ( _GET(default_server,rqst,"x",xCoord,128) )  { x=atoi(xCoord); }
+  if ( _GET(default_server,rqst,"y",yCoord,128) )  { y=atoi(yCoord); }
+  if ( _GET(default_server,rqst,"click",commandStr,128) )  { doclick=atoi(commandStr); }
+
+
+ if (doclick)
+ {
+     snprintf(commandStr,128,"xdotool mousemove --sync %u %u click 1",x,y);
+ } else
+ if ( (x!=0) || (y!=0) )
+ {
+   {
+     snprintf(commandStr,128,"xdotool mousemove --sync %u %u  ",x,y);
+   }
+
+ } else
+ {
+  donothing=1;
+ }
+
+ if (!donothing)
+ {
+   int i=system(commandStr);
+   if (i!=0) { AmmServer_Error("Could not execute %s\n",commandStr); }
+ }
+
+
+  return 0;
+}
+
+
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
@@ -89,11 +129,14 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"/screen.jpg",webserver_root,1512000,0,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
+  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",webserver_root,1512000,10,&prepare_screen_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
      { AmmServer_Warning("Failed adding screen page\n"); }
 
-   if (! AmmServer_AddResourceHandler(default_server,&indexPageContext,"index.html",webserver_root,4096,0,&prepare_index_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+   if (! AmmServer_AddResourceHandler(default_server,&indexPageContext,"remote.html",webserver_root,4096,0,&prepare_index_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
      { AmmServer_Warning("Failed adding index page\n"); }
+
+   if (! AmmServer_AddResourceHandler(default_server,&commandContext,"/cmd",webserver_root,4096,0,&prepare_command_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     { AmmServer_Warning("Failed adding command page\n"); }
 
 }
 
@@ -102,6 +145,7 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&screenContext,1);
     AmmServer_RemoveResourceHandler(default_server,&indexPageContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&commandContext,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 
