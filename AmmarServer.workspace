@@ -16,5 +16,7 @@
 		<Project filename="src/Services/MyBlog/MyBlog.cbp" />
 		<Project filename="src/Services/SQLiteServer/SQLiteServer.cbp" />
 		<Project filename="src/Services/MyTube/MyTube.cbp" />
+		<Project filename="src/Services/MyRemoteDesktop/xwd-1.0.5/XwdLib.cbp" />
+		<Project filename="src/Services/MyRemoteDesktop/MyRemoteDesktop.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
