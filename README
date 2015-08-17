@@ -43,17 +43,32 @@ and fully customizable web service..
    You can run it by issuing ./run_ammarserver from root directory 
 
 -  A URL Shortner service like tinyurl , bitly , goo.gl etc..
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/MyURL/main.c
+   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyURL/
    You can run it by issuing ./run_myurl from root directory 
 
 -  A File Uploader service based on MyLoader , currently under construction..
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/MyLoader/main.c
+   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyLoader/
    You can run it by issuing ./run_myloader from root directory 
 
--  A Web Service that allows location sharing , currently under construction..
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/GeoPosShare/main.c
+-  A Web Service that allows location sharing ..
+   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/GeoPosShare/
    You can run it by issuing ./run_geoposshare from root directory 
 
+-  A Remote Desktop Sharing Web Service that allows controlling your linux desktop through a web browser  ..
+   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyRemoteDesktop/
+   You can run it by issuing ./run_geoposshare from root directory 
+
+-  A Youtube like clone ..
+   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyTube/
+   You can run it by issuing ./run_geoposshare from root directory 
+
+-  A Blog engine that can use Wordpress skins , currently under construction..
+   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyBlog/
+   You can run it by issuing ./run_myloader from root directory 
+
+-  A 4chan like  engine for hosting a small image board , currently under construction..
+   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/HabChan/
+   You can run it by issuing ./run_myloader from root directory 
 
 -------------------------------------------------------------------------------------------------
 
