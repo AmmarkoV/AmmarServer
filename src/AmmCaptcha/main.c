@@ -82,6 +82,20 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
 }
 
 
+int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsigned int height , unsigned int channels , char *mem,unsigned long * mem_size)
+{
+  struct Image * outputJPEGFile = createImage(width,height,channels);
+
+  //WriteJPEGFile(captcha,"captcha.jpg");
+  WriteJPEGMemory(outputJPEGFile,mem,mem_size);
+  fprintf(stderr,"Survived WriteJPEG");
+  destroyImage(outputJPEGFile);
+  fprintf(stderr,"Survived destroyImage");
+  return 1;
+}
+
+
+
 int AmmCaptcha_copyCaptchaJPEGImageWithCopy(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
   unsigned long frameLength = *mem_size; //10KB more than enough
@@ -94,10 +108,12 @@ int AmmCaptcha_copyCaptchaJPEGImageWithCopy(unsigned int captchaID, char *mem,un
    fprintf(stderr,"Survived , marking frameLength as %lu \n",frameLength);
    *mem_size=frameLength;
    free(captchaFrame);
+   return 1;
   } else
   {
    fprintf(stderr,"Could not allocate frame for captcha image ( size %lu ) \n",frameLength);
   }
+ return 0;
 }
 
 

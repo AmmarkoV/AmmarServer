@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="XwdLib" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="./libXwdLib" prefix_auto="0" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option host_application="/home/ammar/Documents/Programming/VisualBotNGine/VisualBotNGine" />
+				<Option run_host_application_in_terminal="0" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="./libXwdLib" prefix_auto="0" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Linker>
+			<Add library="X11" />
+		</Linker>
+		<Unit filename="XwdLib.h" />
+		<Unit filename="clientwin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="clientwin.h" />
+		<Unit filename="config.h" />
+		<Unit filename="dsimple.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="dsimple.h" />
+		<Unit filename="list.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="list.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="multiVis.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="multiVis.h" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

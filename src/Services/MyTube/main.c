@@ -32,10 +32,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
-//char video_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/";
-char video_root[MAX_FILE_PATH]="/media/ammar/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/";
-//char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db/";
-char database_root[MAX_FILE_PATH]="/media/ammar/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/db/";
+char video_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/";
+//char video_root[MAX_FILE_PATH]="/media/ammar/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/";
+char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db/";
+//char database_root[MAX_FILE_PATH]="/media/ammar/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/db/";
 
 struct videoCollection * myTube=0;
 
