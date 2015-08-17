@@ -56,11 +56,11 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
   unsigned char * pixels=(unsigned char *) malloc(sizeof(char)*1920*1080*3);
   unsigned int width=1920;
   unsigned int height=1080;
-  fprintf(stderr,"Getting it ..\n");
 
   if (pixels!=0)
   {
     #if XWDLIB_BRIDGE
+     fprintf(stderr,"Trying to get screen using xwd , this might fail if done with concurrent threads..\n");
      getScreen(pixels,&width,&height);
     #endif // XWDLIB_BRIDGE
 
@@ -129,6 +129,7 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
   fprintf(stderr,"---------------------- 2x Click \n");
   snprintf(commandStr,128,"xdotool click 1");
   int i=system(commandStr);
+   if (i!=0) { AmmServer_Error("Could not execute %s\n",commandStr); }
   usleep(1000);
  } else
  if (doclick)
