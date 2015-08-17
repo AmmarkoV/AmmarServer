@@ -1,0 +1,117 @@
+# depslib dependency file v1.0
+1255729231 source:/home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/clientwin.c
+	<X11/Xatom.h>
+	<X11/Xlib.h>
+	"clientwin.h"
+
+1255729231 /home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/clientwin.h
+	<X11/Xlib.h>
+
+1323831785 source:/home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/dsimple.c
+	<X11/Xos.h>
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	<X11/cursorfont.h>
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	"clientwin.h"
+	"dsimple.h"
+
+1323831785 /home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/dsimple.h
+
+1286422726 source:/home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/list.c
+	<stdio.h>
+	<stdlib.h>
+	"list.h"
+
+1286422726 /home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/list.h
+	<X11/Xfuncproto.h>
+
+1323831785 source:/home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/multiVis.c
+	<stdlib.h>
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	<X11/X.h>
+	<X11/Intrinsic.h>
+	<stdio.h>
+	"list.h"
+	"wsutils.h"
+	"multiVis.h"
+
+1317877044 /home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/wsutils.h
+
+1286422726 /home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/multiVis.h
+
+1305346763 source:/home/ammar/Documents/Programming/VisualBotNGine/xwd-1.0.5/xwd.c
+	<stdio.h>
+	<errno.h>
+	<X11/Xos.h>
+	<stdlib.h>
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	"X11/XWDFile.h"
+	"dsimple.h"
+	"list.h"
+	"wsutils.h"
+	"multiVis.h"
+	<X11/extensions/XKBbells.h>
+
+1255729231 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/clientwin.c
+	<X11/Xatom.h>
+	<X11/Xlib.h>
+	"clientwin.h"
+
+1255729231 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/clientwin.h
+	<X11/Xlib.h>
+
+1384025894 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/dsimple.c
+	<X11/Xos.h>
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	<X11/cursorfont.h>
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	"clientwin.h"
+	"dsimple.h"
+
+1384016268 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/dsimple.h
+
+1286422726 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/list.c
+	<stdio.h>
+	<stdlib.h>
+	"list.h"
+
+1286422726 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/list.h
+	<X11/Xfuncproto.h>
+
+1323831785 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/multiVis.c
+	<stdlib.h>
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	<X11/X.h>
+	<X11/Intrinsic.h>
+	<stdio.h>
+	"list.h"
+	"wsutils.h"
+	"multiVis.h"
+
+1317877044 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/wsutils.h
+
+1286422726 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/multiVis.h
+
+1305346763 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/xwd.c
+	<stdio.h>
+	<errno.h>
+	<X11/Xos.h>
+	<stdlib.h>
+	<X11/Xlib.h>
+	<X11/Xutil.h>
+	"X11/XWDFile.h"
+	"dsimple.h"
+	"list.h"
+	"wsutils.h"
+	"multiVis.h"
+	<X11/extensions/XKBbells.h>
+
