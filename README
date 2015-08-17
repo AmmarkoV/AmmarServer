@@ -8,20 +8,19 @@ and reducing loc.
 
 -------------------------------------------------------------------------------------------------
 
-The projects build dependencies are the gcc compiler , pthreads and pretty basic things 
+The projects build dependencies are the gcc compiler , pthreads , cmake and pretty basic things 
 so if you issue sudo apt-get install build-essential  ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
 
 Newer versions also support compression , so you might want to also apt-get install liblzma-dev if you enable ENABLE_COMPRESSION at server_configuration.h
 MyURL needs libjpeg in order to serve captchas , so to add it sudo apt-get install libjpeg-dev
 
 To perform a compilation you just need to issue 
-./make from the root directory
-it is a bash script that will start making evertyhing 
-You can also supply dynamic , or system as arguments in order to change linking behaviour
-For example "./make system" or "./make dynamic"
+mkdir build 
+cd build 
+cmake ..
+make
 
-./make system will only work if you first run ./make and then sudo ./install.sh so that /usr/lib/ammarserver will get populated .
-After that subsequent ./make system calls will work using the AmmarServer dynamic library located at /usr/lib/ammarserver 
+This should try to compile all of the project files which you can then run using the scripts listed in the list below 
 
 To update your version of the project you can use the provided script that updates directly from github
 It will remove any changes you have made to any of the files in the repository   
@@ -56,19 +55,19 @@ and fully customizable web service..
 
 -  A Remote Desktop Sharing Web Service that allows controlling your linux desktop through a web browser  ..
    https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyRemoteDesktop/
-   You can run it by issuing ./run_geoposshare from root directory 
+   You can run it by issuing ./run_myremotedesktop from root directory 
 
 -  A Youtube like clone ..
    https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyTube/
-   You can run it by issuing ./run_geoposshare from root directory 
+   You can run it by issuing ./run_mytube from root directory 
 
 -  A Blog engine that can use Wordpress skins , currently under construction..
    https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyBlog/
-   You can run it by issuing ./run_myloader from root directory 
+   You can run it by issuing ./run_myblog from root directory 
 
 -  A 4chan like  engine for hosting a small image board , currently under construction..
    https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/HabChan/
-   You can run it by issuing ./run_myloader from root directory 
+   You can run it by issuing ./run_habchan from root directory 
 
 -------------------------------------------------------------------------------------------------
 
