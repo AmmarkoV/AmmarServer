@@ -1,9 +1,11 @@
+<!DOCTYPE html>
 <html>
  <head>
    <meta http-equiv=\"refresh\" content=\"1\">
    <title>MyRemoteDesktop</title>
    <script type="text/javascript">  
-    
+   var autoRefreshJob;
+
    function httpGet(theUrl)
     {
     var xmlHttp = null;
@@ -19,13 +21,6 @@
        httpGet("cmd?"+theCommand+"&t="+randomnumber); 
      } 
 
-   function refreshScreen()
-   {  
-      var randomnumber=Math.floor(Math.random()*100000);
-
-      var screenImage = document.getElementById('screenImage');
-      screenImage.src='screen.jpg?t='+randomnumber; 
-   } 
 
    function doMovement(e) 
    {
@@ -44,26 +39,43 @@
     document.getElementById("coordinates").innerHTML = "";
   }
 
+   function refreshScreen()
+   {  
+      var randomnumber=Math.floor(Math.random()*100000);
+
+      var screenImage = document.getElementById('screenImage');
+      screenImage.src='screen.jpg?t='+randomnumber; 
+   } 
+
   function autoRefreshScreen()
   {
     refreshScreen();
   }
   
 
+  function initAutoRefresh() 
+  {
+    autoRefreshJob = setInterval(function() { autoRefreshScreen(); },500);
+  }
 
-  setTimeout(function() { autoRefreshScreen(); },500);
+  function stopAutoRefresh() 
+  {
+    clearInterval(autoRefreshJob); 
+  }
 
+
+  
   </script>
 </head>
-<body>
+<body onload="initAutoRefresh();" >
   <img 
    id="screenImage" 
    src="screen.jpg" 
    width="100%" 
-   onclick="cmd?click=1" 
-   ondblclick="cmd?dblclick=1"
-   onmouseup="cmd?mouseup=1"
-   onmousedown="cmd?mousedown=1"
+   onclick="command('click=1');" 
+   ondblclick="command('dblclick=1');"
+   onmouseup="command('mouseup=1');"
+   onmousedown="command('mousedown=1');"
    onmousemove="doMovement(event)" 
    onmouseout="clearCoordinates()"
   ><br>

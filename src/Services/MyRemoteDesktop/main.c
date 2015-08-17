@@ -93,21 +93,21 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
  char commandStr[128]={0};
   if ( _GET(default_server,rqst,"x",xCoord,128) )  { x=atoi(xCoord); }
   if ( _GET(default_server,rqst,"y",yCoord,128) )  { y=atoi(yCoord); }
-  if ( _GET(default_server,rqst,"click",commandStr,128) )  { doclick=atoi(commandStr); }
+  if ( _GET(default_server,rqst,"click",commandStr,128) )  { fprintf(stderr,"DOCLICK\n"); doclick=1;  }
 
 
- if (doclick)
- {
-     snprintf(commandStr,128,"xdotool mousemove --sync %u %u click 1",x,y);
- } else
  if ( (x!=0) || (y!=0) )
  {
-   {
-     snprintf(commandStr,128,"xdotool mousemove --sync %u %u  ",x,y);
-   }
-
+  fprintf(stderr,"---------------------- MouseMovement \n");
+  snprintf(commandStr,128,"xdotool mousemove --sync %u %u  ",x,y);
+ } else
+ if (doclick)
+ {
+  fprintf(stderr,"---------------------- Click \n");
+  snprintf(commandStr,128,"xdotool click 1");
  } else
  {
+  fprintf(stderr,"---------------------- Nothing \n");
   donothing=1;
  }
 
@@ -130,7 +130,7 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",webserver_root,1512000,10,&prepare_screen_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",webserver_root,512000,10,&prepare_screen_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
      { AmmServer_Warning("Failed adding screen page\n"); }
 
    if (! AmmServer_AddResourceHandler(default_server,&indexPageContext,"remote.html",webserver_root,4096,0,&prepare_index_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
