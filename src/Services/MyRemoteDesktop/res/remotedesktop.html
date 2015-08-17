@@ -4,8 +4,7 @@
    <meta http-equiv=\"refresh\" content=\"1\">
    <title>MyRemoteDesktop</title>
    <script type="text/javascript">  
-   var autoRefreshJob;
-
+   var autoRefreshJob; 
    function httpGet(theUrl)
     {
     var xmlHttp = null;
@@ -26,8 +25,8 @@
    {
     img = document.getElementById("screenImage");
 
-    var x = img.naturalWidth * ( e.clientX / img.width ) ;
-    var y = img.naturalHeight * ( e.clientY / img.height );
+    var x = 3+img.naturalWidth * ( e.clientX / img.width ) ;
+    var y = 3+img.naturalHeight * ( e.clientY / img.height );
      
     var coor = "Coordinates: (" + x + "," + y + ")";
     document.getElementById("coordinates").innerHTML = coor;
@@ -81,7 +80,7 @@
   ><br>
 
  <p id="coordinates"></p>
- <a href="#" onclick="refreshScreen();">Refresh</a>
+ <a href="#" onclick="refreshScreen();">Manual Refresh</a>  - Powered by <a href="https://github.com/AmmarkoV/AmmarServer/wiki">AmmarServer</a>
 </body>
 
 </head>
