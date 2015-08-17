@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../AmmCaptcha/AmmCaptcha.h"
 
 #define XWDLIB_BRIDGE 1
+#define ALLOW_REMOTE_CONTROL 1
 
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
@@ -86,6 +87,7 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+ #if ALLOW_REMOTE_CONTROL
  unsigned int donothing=0;
  unsigned int x=0,y=0,doclick=0,do2xclick=0,dokey=0;
  char xCoord[128]={0};
@@ -93,7 +95,8 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
  char commandStr[128]={0};
   if ( _GET(default_server,rqst,"x",xCoord,128) )  { x=atoi(xCoord); }
   if ( _GET(default_server,rqst,"y",yCoord,128) )  { y=atoi(yCoord); }
-  if ( _GET(default_server,rqst,"k",commandStr,128) )  { fprintf(stderr,"Keystroke %s",commandStr); dokey=1; }
+  if ( _GET(default_server,rqst,"k",commandStr,128) )  { fprintf(stderr,"Keystroke %s",commandStr);
+                                                         dokey=atoi(commandStr); }
   if ( _GET(default_server,rqst,"click",commandStr,128) )  { doclick=1;  }
   if ( _GET(default_server,rqst,"dblclick",commandStr,128) )  { do2xclick=1;  }
 
@@ -105,8 +108,21 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
  } else
  if (dokey)
  {
-  fprintf(stderr,"---------------------- Key \n");
-  donothing=1;
+  char keypressedFiltered[32]={0};
+  char keyPressed = (char) dokey;
+  if (keyPressed<200)
+  {
+   fprintf(stderr,"---------------------- Key (%c) \n",keyPressed);
+
+   snprintf(keypressedFiltered,32,"%c",keyPressed);
+   if (keyPressed==' ') {  snprintf(keypressedFiltered,32,"space"); } else
+   if (keyPressed==' ') {  snprintf(keypressedFiltered,10,"Return"); } else
+   if (keyPressed==' ') {  snprintf(keypressedFiltered,13,"Return"); }
+   snprintf(commandStr,128,"xdotool key '%s'",keypressedFiltered);
+  } else
+  {
+   donothing=1;
+  }
  } else
  if (do2xclick)
  {
@@ -133,6 +149,11 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
   strcpy(rqst->content,"<html>Ok</html>");
   rqst->contentSize=strlen(rqst->content);
+  #else
+   strcpy(rqst->content,"<html>Remote Control Disabled</html>");
+   rqst->contentSize=strlen(rqst->content);
+  #endif
+
   return 0;
 }
 
@@ -144,7 +165,7 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",webserver_root,512000,50,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
+  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",webserver_root,512000,50,&prepare_screen_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
      { AmmServer_Warning("Failed adding screen page\n"); }
 
    if (! AmmServer_AddResourceHandler(default_server,&indexPageContext,"remote.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
