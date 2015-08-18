@@ -105,19 +105,23 @@ char * dynamicRequest_serveContent
         {
          unsigned int waitTime=0;
          unsigned int maxWaitTime=0;
-         //Maybe instead of waiting here have a double buffer content and serve the old one ..!
+         /* ------------------------------------------
+           TODO:
+           Instead of waiting here have a double buffer content and serve the old one ..!
+           along with a not modified header..!
+         */
          if (CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC>0)
          {
-          fprintf(stderr,"Hit while another thread executing callback , waiting..");
-          maxWaitTime= (unsigned int) CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC / 100;
+          maxWaitTime= (unsigned int) CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC / CLIENT_SLEEP_TIME_INTERVAL_NSEC ;
+          fprintf(stderr,"Hit while another thread executing callback , waiting %u intervals of %u nsec..",maxWaitTime,CLIENT_SLEEP_TIME_INTERVAL_NSEC );
           while ( (shared_context->executedNow) && (waitTime < maxWaitTime) )
           {
-           usleep(100);
+           usleep(CLIENT_SLEEP_TIME_INTERVAL_NSEC );
            ++waitTime;
           }
          }
 
-         if (waitTime>100)
+         if (waitTime>maxWaitTime)
          {
            AmmServer_Error("Request requests for a callback that is TOO slow , returning nothing back :( ..\n");
            return 0;
