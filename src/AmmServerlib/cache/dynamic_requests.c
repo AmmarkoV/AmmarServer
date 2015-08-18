@@ -99,15 +99,38 @@ char * dynamicRequest_serveContent
           (shared_context-> callback_every_x_msec!=0) &&
           (shared_context->RH_Scenario == SAME_PAGE_FOR_ALL_CLIENTS)
         )
-     { //Dynamic pages without time limits dont have to call the "expensive" GetTickCountAmmServ
+     { //Only Dynamic pages with time limits have to call the "expensive" GetTickCountAmmServ
        now=GetTickCountAmmServ();
        if ( now-shared_context->last_callback < shared_context-> callback_every_x_msec )
         {
-         //The request came too fast.. We will serve our existing file..!
-         *compressionSupported=0;
-         shared_context->callback_cooldown=1;
-         *memSize=shared_context->requestContext.contentSize;
-         return cacheMemory;
+         unsigned int waitTime=0;
+         unsigned int maxWaitTime=0;
+         //Maybe instead of waiting here have a double buffer content and serve the old one ..!
+         if (CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC>0)
+         {
+          fprintf(stderr,"Hit while another thread executing callback , waiting..");
+          maxWaitTime= (unsigned int) CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC / 100;
+          while ( (shared_context->executedNow) && (waitTime < maxWaitTime) )
+          {
+           usleep(100);
+           ++waitTime;
+          }
+         }
+
+         if (waitTime>100)
+         {
+           AmmServer_Error("Request requests for a callback that is TOO slow , returning nothing back :( ..\n");
+           return 0;
+         } else
+         {
+          AmmServer_Success("Request gets canned dynamic request page ( size %u , callback every %u msec )..\n",shared_context->requestContext.contentSize , shared_context-> callback_every_x_msec);
+          //The request came too fast.. We will serve our existing file..!
+          *compressionSupported=0;
+          shared_context->callback_cooldown=1;
+          //cacheMemory =  shared_context->requestContext.content;
+          *memSize=shared_context->requestContext.contentSize;
+          return cacheMemory;
+         }
         } else
         {
          fprintf(stderr,"Request deserves fresh page , %u last gen, %lu now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
@@ -145,11 +168,14 @@ char * dynamicRequest_serveContent
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
 
+
+                     shared_context->executedNow=1;
                      struct time_snap callbackTimer;
                      start_timer (&callbackTimer);
                      DoCallback(rqst);
                      unsigned long elapsedCallbackTimeMS=end_timer (&callbackTimer);
                      fprintf(stderr,"Callback done in %lu microseconds \n",elapsedCallbackTimeMS);
+                     shared_context->executedNow=0;
 
                      if (rqst->contentContainsPathToFileToBeStreamed)
                      {
@@ -157,8 +183,10 @@ char * dynamicRequest_serveContent
                         snprintf(verified_filename,verified_filenameLength,"%s",rqst->content);
                      }
 
+                     //Keep the new content size so if the next call has a callback_every_x_msec attribute we know how much data to serve
+                     shared_context->requestContext.contentSize = rqst->contentSize;
                      *memSize = rqst->contentSize;
-                     fprintf(stderr,"After callback we got back %lu bytes\n",rqst->contentSize);
+                     fprintf(stderr,"After callback we got back %lu bytes @ pointer %p \n",rqst->contentSize,rqst->content);
                      free(rqst);
 
                      //This means we can call the callback to prepare the memory content..! END

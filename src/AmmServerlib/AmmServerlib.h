@@ -23,7 +23,7 @@ extern "C" {
 *        Of course not all of them are supported/used internally but they are listed in the same order to maintain spec compatibility
 * @bug   A potential bug might arise if the specs of the header file are changed and someone is linking with an older version libAmmServer.a thats why this value exists
 */
-#define AMMAR_SERVER_HTTP_HEADER_SPEC 129
+#define AMMAR_SERVER_HTTP_HEADER_SPEC 133
 
 
 
@@ -196,6 +196,7 @@ struct AmmServer_RH_Context
 {
    unsigned int RH_Scenario;
 
+   unsigned int executedNow;
    unsigned int last_callback;
    unsigned int callback_every_x_msec;
    char callback_cooldown;

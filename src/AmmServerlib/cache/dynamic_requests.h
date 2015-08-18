@@ -28,7 +28,9 @@ int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsig
 * @param Memory Size allocated by the new dynamic request
 * @param Outputs if compression was supported ( and used ) by client
 * @param Outputs if client wants to free buffer on it's own or it should be handled automatically
-* @retval Pointer To New Content or ,0=Failed*/
+* @retval Pointer To New Content or ,0=Failed
+* @bug Current implementation waits for new content , should add content double buffering to always have a valid buffer and serve it instantly , https://github.com/AmmarkoV/AmmarServer/issues/28
+*/
 char * dynamicRequest_serveContent
            (struct AmmServer_Instance * instance,
             struct HTTPHeader * request,

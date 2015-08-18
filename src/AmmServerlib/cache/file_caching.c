@@ -374,12 +374,12 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
   unsigned int index=0;
   if (! cache_CreateResource(instance,full_filename,&index) ) { error("Could not create a resource for cache\n"); return 0; }
 
-  cache[index].dynamicRequest = context;
   cache[index].content = context->requestContext.content;
   cache[index].contentSize = &context->requestContext.contentSize;
   cache[index].compressedContent=0;
   cache[index].compressedContentSize=0;
 
+  cache[index].dynamicRequest = context; // This should also pass the timeout value
   cache[index].dynamicRequestCallbackFunction = context->dynamicRequestCallbackFunction;
 
   return 1;
@@ -602,12 +602,17 @@ if (cache_FindResource(instance,verified_filename,index))
                   return 0;
              }
 
-
-             if ( (mem==0) || (memSize==0) )
+             if (mem==0)
              {
                warning("Tried to perform dynamicRequest_serveContent , but got back null , if there is no regular fallback file we will probably 404 now\n");
                return 0;
+             } else
+             if (memSize==0)
+             {
+               warning("Tried to perform dynamicRequest_serveContent , but got back an empty buffer , we will serve an empty page\n");
+               return 0;
              }
+
 
              fprintf(stderr,"dynamicRequest_ContentAvailiable produced %lu bytes of usable content ",memSize);
              *compressionSupported=0;

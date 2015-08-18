@@ -166,7 +166,7 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",webserver_root,512000,50,&prepare_screen_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+  if (! AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",webserver_root,512000,350,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding screen page\n"); }
 
    if (! AmmServer_AddResourceHandler(default_server,&indexPageContext,"remote.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     default_server = AmmServer_StartWithArgs(
-                                             "SimpleTemplate",
+                                             "MyRemoteDesktop",
                                               argc,argv , //The internal server will use the arguments to change settings
                                               //If you don't want this look at the AmmServer_Start call
                                               bindIP,
