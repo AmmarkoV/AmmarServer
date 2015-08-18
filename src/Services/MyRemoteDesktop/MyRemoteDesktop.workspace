@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
+		<Project filename="../../AmmServerlib/AmmServerlib.cbp" />
 		<Project filename="../../AmmCaptcha/AmmCaptcha.cbp" />
 		<Project filename="xwd-1.0.5/XwdLib.cbp" />
 		<Project filename="MyRemoteDesktop.cbp" />
