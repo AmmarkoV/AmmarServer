@@ -27,6 +27,7 @@ struct videoCollection
     unsigned int MAX_numberOfVideos;
 };
 
+extern unsigned int videoDefaultTestTranmission;
 
 char * path_cat2 (const char *str1,const char *str2);
 
