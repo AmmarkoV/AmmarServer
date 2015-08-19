@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "dynamic_requests.h"
 #include "file_caching.h"
 #include "../server_configuration.h"
 #include "../tools/logs.h"
 #include "../tools/time_provider.h"
+
 
 int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsigned int index)
 {
