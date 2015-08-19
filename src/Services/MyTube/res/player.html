@@ -4,6 +4,8 @@
  <title>MyTube - ++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++ </title> 
  <style>
    a { color: #000000; }
+   .views { font-size:18pt; } 
+   .votes { font-size:10pt; } 
  </style>
 
 
@@ -37,18 +39,19 @@
    <table> 
            <tr>
                <td><a href="index.html"><img src="mytube.png" alt="MyTube" height=50></a></td>
-               <td><a href="http://ammar.gr"><img src="avatar.png" alt="AmmarkoV" height=50></a></td>
            </tr>
    </table>
   </td> 
   <td width=100 align="center">&nbsp;</td>
   <td>
    <form>
-    <input type="text" name="q">
+    <input type="text" name="q" width=580>
    </form> 
   </td>
   <td width=100 align="center">&nbsp;</td>
-  <td align="center"> <h2>..everything is under construction..</h2> </td>
+  <td align="center"> <h2>..everything under construction..</h2> </td>
+  <td width=100 align="center">&nbsp;</td>
+  <td><a href="http://ammar.gr"><img src="avatar.png" alt="AmmarkoV" height=50></a></td>
  </tr>
 </table>
  
@@ -107,15 +110,47 @@
        <td>
         <!-- info -->
         <h2> ++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++ </h2>
-        by +++++++++USER+++++++++ - +++++++++VIEWS+++++++++ Views - <a href="#" onclick="+++++++++++UPVOTE+++++++++++">Up</a> ( ++++++VOTESUP++++++ ) - <a href="#" onclick="+++++++++++DOWNVOTE+++++++++++">Down</a>  ( ++++++VOTESDOWN++++++ ) - <a href="#">Add</a> - <a href="#">Share</a> 
+       
+        <table>
+           <tr>
+             <td>
+               by +++++++++USER+++++++++<br>
+               <a href="#">Add</a> - <a href="#">Share</a>
+             </td>
+             <td width=500>&nbsp;</td>
+             <td align="center"> 
+               <span class="views">+++++++++VIEWS+++++++++ Views</span><br>
+               <span class="votes">
+                <a href="#" onclick="+++++++++++UPVOTE+++++++++++">Up</a> ( ++++++VOTESUP++++++ ) 
+                <a href="#" onclick="+++++++++++DOWNVOTE+++++++++++">Down</a>  ( ++++++VOTESDOWN++++++ )
+               </span>
+             </td>
+           </tr>
+        </table>      
+
+           
        </td>
       </tr>  
+
+      <tr height=50>
+       <td>
+         <!-- SPACER -->
+         &nbsp; 
+        </td>
+      </tr> 
 
       <tr>
        <td>
         <!-- comment -->
         +++++++++COMMENT+++++++++  
        </td>
+      </tr> 
+
+      <tr height=50>
+       <td>
+         <!-- SPACER -->
+         &nbsp; 
+        </td>
       </tr> 
  
       <tr>
