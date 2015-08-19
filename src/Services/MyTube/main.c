@@ -37,6 +37,7 @@ char video_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/";
 char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db/";
 //char database_root[MAX_FILE_PATH]="/media/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/db/";
 
+
 struct videoCollection * myTube=0;
 
 //The decleration of some dynamic content resources..
@@ -49,6 +50,7 @@ struct AmmServer_RH_Context videoFileContext={0};
 struct AmmServer_RH_Context randomVideoFileContext={0};
 struct AmmServer_RH_Context thumbnailContext={0};
 struct AmmServer_RH_Context interactContext={0};
+struct AmmServer_RH_Context indexContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
@@ -178,6 +180,16 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 
 
 //This function prepares the content of  stats context , ( stats.content )
+void * serve_index(struct AmmServer_DynamicRequest  * rqst)
+{
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html> <head> <meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /> </head> <body> </body> </html>",videoDefaultTestTranmission);
+  fprintf(stderr,"Giving back index video %u/%u \n",videoDefaultTestTranmission,myTube->numberOfLoadedVideos);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+//This function prepares the content of  stats context , ( stats.content )
 void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
 {
  #if DO_DYNAMIC_THUMBNAILS
@@ -283,16 +295,23 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve index page\n"); }
 
   //---------------
 
+
+  AmmServer_Success("default transmission video is %u ",videoDefaultTestTranmission);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    AmmServer_RemoveResourceHandler(default_server,&videoPageContext,1);
     AmmServer_RemoveResourceHandler(default_server,&videoFileContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&videoPageContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&randomVideoFileContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&thumbnailContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&interactContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&indexContext,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 

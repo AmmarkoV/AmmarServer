@@ -6,6 +6,9 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#define DEFAULT_TEST_TRANSMISSION_VIDEO_TITLE "MyTube Test Broadcast"
+extern unsigned int videoDefaultTestTranmission=0;
+
 char * path_cat2 (const char *str1,const char *str2)
 {
     size_t str1_len = strlen(str1);
@@ -85,6 +88,12 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
                 snprintf(newDB->video[newDB->numberOfLoadedVideos].title,MAX_STR,dp->d_name);
                 clearExtensionFAST(newDB->video[newDB->numberOfLoadedVideos].title);
 
+                if (strcmp(newDB->video[newDB->numberOfLoadedVideos].title,DEFAULT_TEST_TRANSMISSION_VIDEO_TITLE)==0)
+                {
+                   AmmServer_Success("Found our default transmission video");
+                   videoDefaultTestTranmission=newDB->numberOfLoadedVideos;
+                }
+
 
 
                 //Now lets try to get filesize and modification date using stat.h
@@ -136,7 +145,6 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
 
 
     }
-
 
     closedir(dir);
     return newDB;
