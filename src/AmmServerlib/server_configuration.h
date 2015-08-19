@@ -21,7 +21,7 @@ extern "C" {
 #define CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC 1500000
 
 /** @brief Time sleeping when a dynamic request that serves a common file across all clients is busy   */
-#define CLIENT_SLEEP_TIME_INTERVAL_NSEC 100
+#define CLIENT_SLEEP_TIME_INTERVAL_NSEC 10000
 
 
 /** @brief Next prespawned thread , should be vigilant and ready to serve so it has a shorter delay than the other prespawned threads ( 0.7ms max delay seems like a good value ) */

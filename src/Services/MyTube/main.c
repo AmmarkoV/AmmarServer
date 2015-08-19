@@ -91,7 +91,6 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
                 }
 
                 }
-
               }
   return 0;
 }
