@@ -23,6 +23,7 @@ char * generateThumbnailOfVideo(const char * videoDirectory,const char * videofi
       return thumbnailFile;
     } else
     {
+     #if GENERATE_NEW_THUMBNAILS
      char what2Execute[1024];
      snprintf(what2Execute,1024,"ffmpeg -y -i \"%s/%s\" -ss 00:00:14.435 -vframes 1 -vf scale=320:240 \"%s\" ",videoDirectory,videofile,thumbnailFile);
 
@@ -35,9 +36,10 @@ char * generateThumbnailOfVideo(const char * videoDirectory,const char * videofi
        return thumbnailFile;
      }
      fprintf(stderr,"failed\n");
-
+     #else
+      fprintf(stderr,"Generating new thumbnails for %s is disabled in this build\n",videofile);
+     #endif // GENERATE_NEW_THUMBNAILS
      free(thumbnailFile);
-
     }
 
    }
