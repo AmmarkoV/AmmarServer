@@ -32,10 +32,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
-char video_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/";
-//char video_root[MAX_FILE_PATH]="/media/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/";
-char database_root[MAX_FILE_PATH]="/home/ammar/Videos/Internet/db/";
-//char database_root[MAX_FILE_PATH]="/media/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/db/";
+
+#define VIDEO_FILES_PATH_1 "/media/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/"
+#define VIDEO_FILES_PATH_2 "/home/ammar/Videos/Internet/"
+#define VIDEO_FILES_PATH_3 "~/Videos/"
+
+char video_root[MAX_FILE_PATH]="~/Videos/";
+char database_root[MAX_FILE_PATH]="~/Videos/db/";
 
 
 struct videoCollection * myTube=0;
@@ -51,9 +54,12 @@ struct AmmServer_RH_Context randomVideoFileContext={0};
 struct AmmServer_RH_Context thumbnailContext={0};
 struct AmmServer_RH_Context interactContext={0};
 struct AmmServer_RH_Context indexContext={0};
+struct AmmServer_RH_Context faviconContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
+struct AmmServer_MemoryHandler * favicon=0;
+
 
 
 
@@ -190,6 +196,19 @@ void * serve_index(struct AmmServer_DynamicRequest  * rqst)
 
 
 //This function prepares the content of  stats context , ( stats.content )
+void * serve_favicon(struct AmmServer_DynamicRequest  * rqst)
+{
+  if (favicon==0) { return 0; }
+  if (favicon->content==0) { return 0; }
+  if (favicon->contentSize==0) { return 0; }
+
+  memcpy(rqst->content,favicon->content,favicon->contentSize);
+  rqst->contentSize = favicon->contentSize;
+  return 0;
+}
+
+
+//This function prepares the content of  stats context , ( stats.content )
 void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
 {
  #if DO_DYNAMIC_THUMBNAILS
@@ -281,9 +300,31 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/player.html");
   fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
 
+  favicon=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/favicon.ico");
 
-  myTube = loadVideoDatabase(video_root);
 
+  //Try to adapt to the server running this :P
+  unsigned int i=0;
+  for (i=0; i<3; i++)
+  {
+   if (i==0) { strncpy(video_root,VIDEO_FILES_PATH_1,MAX_FILE_PATH); } else
+   if (i==1) { strncpy(video_root,VIDEO_FILES_PATH_2,MAX_FILE_PATH); } else
+   if (i==2) { strncpy(video_root,VIDEO_FILES_PATH_3,MAX_FILE_PATH); }
+
+   if ( AmmServer_DirectoryExists(video_root) )
+     {
+      fprintf(stderr,"Trying to load from %s \n ",video_root);
+      snprintf(database_root,MAX_FILE_PATH,"%s/db/",video_root);
+      myTube = loadVideoDatabase(video_root);
+      break;
+     }
+  }
+
+  if (myTube==0)
+  {
+    AmmServer_Error("Could not initialize video database from %s \n",video_root);
+    exit(1);
+  }
 
   //this will make boot incredibly slower
   //thumbnailAllVideoDatabase(myTube);
@@ -296,6 +337,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve index page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,4096,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
 
   //---------------
 
