@@ -29,6 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DO_DYNAMIC_THUMBNAILS 1
+#define UPDATE_ALL_THUMBNAILS_ON_LAUNCH 0 //<-- this will make booting the program incredibly slow
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -125,13 +126,13 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 
 
                 ++myTube->video[videoID].views;
-                snprintf(data,512,"%u",myTube->video[videoID].views);
+                snprintf(data,512,"%lu",myTube->video[videoID].views);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++",data);
 
 
-                snprintf(data,512,"%u",myTube->video[videoID].likes);
+                snprintf(data,512,"%lu",myTube->video[videoID].likes);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++VOTESUP++++++",data);
-                snprintf(data,512,"%u",myTube->video[videoID].dislikes);
+                snprintf(data,512,"%lu",myTube->video[videoID].dislikes);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++VOTESDOWN++++++",data);
 
 
@@ -156,7 +157,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 {
                  snprintf(tag,512,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST%u+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",i);
                  randVideoID=rand()%myTube->numberOfLoadedVideos;
-                 snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%u views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                 snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%lu views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
                  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,tag, data );
 
                 }
@@ -166,7 +167,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 
                memcpy( rqst->content , videoMH->content , videoMH->contentSize );
                rqst->contentSize = videoMH->contentSize;
-               fprintf(stderr,"Gave back %u\n",rqst->contentSize);
+               fprintf(stderr,"Gave back %lu\n",rqst->contentSize);
                AmmServer_FreeMemoryHandler(&videoMH);
                }
               }
@@ -327,7 +328,9 @@ void init_dynamic_content()
   }
 
   //this will make boot incredibly slower
-  //thumbnailAllVideoDatabase(myTube);
+  #if UPDATE_ALL_THUMBNAILS_ON_LAUNCH
+    thumbnailAllVideoDatabase(myTube);
+  #endif // UPDATE_ALL_THUMBNAILS_ON_LAUNCH
 
 
   //---------------
