@@ -145,8 +145,8 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++DOWNVOTE+++++++++++",data);
 
 
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Comment of video etc");
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USERCOMMENTS+++++++++","Comment of user video etc");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Test Video Service");
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USERCOMMENTS+++++++++","Comments are disabled..");
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++PLAYLIST+++++++++","Playlist");
 
 
