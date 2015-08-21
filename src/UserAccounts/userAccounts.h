@@ -24,8 +24,24 @@ struct UserAccountDatabase
 };
 
 
+struct UserAccountDatabase * uadb_initializeUserAccountDatabase(char * filename);
+
+int uadb_closeUserAccountDatabase(struct UserAccountDatabase **  uadb);
 
 
-struct UserAccountDatabase * loadUserAccountDatabase(char * filename);
+int uadb_authenticateUser(
+                           struct UserAccountDatabase *  uadb,
+                           struct UserAccountAuthenticationToken * outputToken,
+                           UserAccount_UserID userID
+                         );
+
+int uadb_loginUser(struct UserAccountDatabase *  uadb,
+                    struct UserAccountAuthenticationToken * outputToken,
+                    char * username,
+                    char * password,
+                    UserAccount_PasswordEncoding encoding,
+                    char * ip,
+                    char * browserFingerprint
+                    );
 
 #endif // USERACCOUNTS_H_INCLUDED
