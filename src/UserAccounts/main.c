@@ -4,34 +4,34 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct UserAccountDatabase * initializeUserAccountDatabase(char * filename)
+struct UserAccountDatabase * uadb_initializeUserAccountDatabase(char * filename)
 {
   return 0;
 };
 
-int closeUserAccountDatabase(struct UserAccountDatabase *  uadb)
+int uadb_closeUserAccountDatabase(struct UserAccountDatabase **  uadb)
 {
   return 0;
 };
 
 
-int userTokenIsOk(
-                  struct UserAccountDatabase *  uadb,
-                  struct UserAccountAuthenticationToken * outputToken,
-                  UserAccount_UserID userID
-                  )
+int uadb_authenticateUser(
+                           struct UserAccountDatabase *  uadb,
+                           struct UserAccountAuthenticationToken * outputToken,
+                           UserAccount_UserID userID
+                         )
 {
  return 0;
 }
 
 
-int userIsAuthentic(struct UserAccountDatabase *  uadb,
+int uadb_loginUser(struct UserAccountDatabase *  uadb,
                     struct UserAccountAuthenticationToken * outputToken,
                     char * username,
                     char * password,
                     UserAccount_PasswordEncoding encoding,
                     char * ip,
-                    char * fingerprint
+                    char * browserFingerprint
                     )
 {
 

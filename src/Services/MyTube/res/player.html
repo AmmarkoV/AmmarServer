@@ -26,6 +26,24 @@
        httpGet("/proc?"+theCommand+"&t="+randomnumber); 
     } 
 
+    function goRandomVideo() 
+    {
+      var randomnumber=Math.floor(Math.random()*100000);
+      window.location.href = "/random?t="+randomnumber; 
+    } 
+
+
+  document.onkeypress = function (e) 
+  {
+    e = e || window.event;
+    
+    var keypressed=(e.keyCode || e.which);
+    if (  keypressed == 114  ) //r
+     {
+      goRandomVideo();  
+     }
+  };
+
 </script> 
 
 
@@ -78,7 +96,7 @@
          <button onclick="makeSmall()">Small</button>
          <button onclick="makeNormal()">Normal</button>  
          <b> => </b>
-         <button onclick="document.getElementById('autoplay').checked=1;videoEndedHandler(0)">Random</button>  
+         <button onclick="document.getElementById('autoplay').checked=1;goRandomVideo();">Random</button>  
          <b> <= </b>
          <input type="checkbox" id="autoplay" value="autoplay" checked="checked" >Autoplay
 
@@ -94,12 +112,10 @@
               { 
                if (document.getElementById('autoplay').checked)
                  { 
-                  var randomnumber=Math.floor(Math.random()*100000);
-                  window.location.href = "/random?t="+randomnumber; 
                   //alert('Video ended');
+                  goRandomVideo(); 
                  } 
               }
-          function goRandomVideo() { myVideo.width = 875; } 
          </script> 
        </td>
       </tr>
