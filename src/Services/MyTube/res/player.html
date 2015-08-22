@@ -105,9 +105,9 @@
           myVideo.addEventListener('ended',videoEndedHandler,false);
 
           function playPause() { if (myVideo.paused) myVideo.play(); else myVideo.pause(); } 
-          function makeBig()    { myVideo.width = 1500; } 
+          function makeBig()    { myVideo.width = 1500; myVideo.height=700;  } 
           function makeSmall()  { myVideo.width = 320; } 
-          function makeNormal() { myVideo.width = 875; } 
+          function makeNormal() { myVideo.width = 875; myVideo.height=500;  } 
           function videoEndedHandler(e) 
               { 
                if (document.getElementById('autoplay').checked)
