@@ -6,7 +6,7 @@
 #include "../../AmmServerlib/AmmServerlib.h"
 
 
-char * generateThumbnailOfVideo(const char * videoDirectory,const char * videofile,const char * thumbDirectory)
+char * generateThumbnailOfVideo(int live,const char * videoDirectory,const char * videofile,const char * thumbDirectory)
 {
    unsigned int thumbDirectoryLength=strlen(thumbDirectory);
    unsigned int videoFileLength=strlen(videofile);
@@ -23,7 +23,15 @@ char * generateThumbnailOfVideo(const char * videoDirectory,const char * videofi
       return thumbnailFile;
     } else
     {
-     #if GENERATE_NEW_THUMBNAILS
+     if (live)
+     {
+      #if GENERATE_NEW_THUMBNAILS_LIVE
+       #warning "This build generates new thumbnails live ,this is not very good.."
+      #else
+       free(thumbnailFile);
+       return 0;
+      #endif // GENERATE_NEW_THUMBNAILS
+     }
      char what2Execute[1024];
      snprintf(what2Execute,1024,"ffmpeg -y -i \"%s/%s\" -ss 00:00:14.435 -vframes 1 -vf scale=320:240 \"%s\" ",videoDirectory,videofile,thumbnailFile);
 
@@ -36,9 +44,6 @@ char * generateThumbnailOfVideo(const char * videoDirectory,const char * videofi
        return thumbnailFile;
      }
      fprintf(stderr,"failed\n");
-     #else
-      fprintf(stderr,"Generating new thumbnails for %s is disabled in this build\n",videofile);
-     #endif // GENERATE_NEW_THUMBNAILS
      free(thumbnailFile);
     }
 

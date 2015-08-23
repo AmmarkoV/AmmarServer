@@ -221,7 +221,7 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
 
                 if (videoID < myTube->numberOfLoadedVideos)
                 {
-                  char * thumbnailFile = generateThumbnailOfVideo(video_root,myTube->video[videoID].filename,database_root);
+                  char * thumbnailFile = generateThumbnailOfVideo(1,video_root,myTube->video[videoID].filename,database_root);
                   if (thumbnailFile!=0)
                    {
                     AmmServer_DynamicRequestReturnFile(rqst,thumbnailFile);
@@ -281,7 +281,7 @@ int thumbnailAllVideoDatabase(struct videoCollection * db)
    unsigned int i=0;
    for (i=0; i<db->numberOfLoadedVideos; i++)
    {
-     char * thumbnailFile = generateThumbnailOfVideo(video_root,myTube->video[i].filename,database_root);
+     char * thumbnailFile = generateThumbnailOfVideo(0,video_root,myTube->video[i].filename,database_root);
      if (thumbnailFile!=0)
      {
        free(thumbnailFile);
@@ -392,6 +392,19 @@ int main(int argc, char *argv[])
     //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
+
+    int i=0;
+    for (i=0; i<argc; i++)
+    {
+     if (strcmp(argv[i],"-thumbnail")==0) {
+                                            fprintf(stderr,"Thumbnailing .. \n");
+                                            thumbnailAllVideoDatabase(myTube);
+                                            close_dynamic_content();
+                                            AmmServer_Stop(default_server);
+                                            exit(0);
+                                          }
+    }
+
 
          while ( (AmmServer_Running(default_server))  )
            {
