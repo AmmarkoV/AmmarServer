@@ -97,16 +97,20 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   int retres = pthread_create(&instance->threads_pool[threadID],0/*&instance->attr*/,ServeClient,(void*) &context);
   //It appears that in certain high loads pthread_create stops creating new threads ..
   //A good question is why..!
-  #if WEIRD_THING_THAT_WORKS
   if ( retres==0 )
-     {
+  {
+    #if WEIRD_THING_THAT_WORKS
        while (context.keep_var_on_stack==1)
            {
              /*TODO : POTENTIAL BUG HERE ? THIS WAS OPTIMIZED OUT?*/
              //fprintf(stderr,"?"); //<- Without this it crashes
              usleep(10);
             }
-     } else // <- Keep PeerServerContext in stack for long enough :P
+    #else
+       parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack); // <- Keep PeerServerContext in stack for long enough :P
+    #endif
+   }
+ else //Either code failed
      { warning("Could not create a new thread..\n ");
        switch (retres)
        {
@@ -115,13 +119,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
          case EPERM  : warning("No permission to set the scheduling policy and parameters"); break ;
        };
      }
-   #else
-  if ( retres==0 )
-    {
-      parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack);
-    } else // <- Keep PeerServerContext in stack for long enough :P
-    { warning("Could not create a new thread..\n "); }
-   #endif
+
+
 
   if (retres!=0) { retres = 0; } else { retres = 1; }
 

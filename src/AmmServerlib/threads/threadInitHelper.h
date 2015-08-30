@@ -23,7 +23,9 @@ int parentKeepMessageOnStackUntilReadyOrTimeout(volatile int * childSwitch,unsig
 * @brief A call to help waiting for a message to be consumed by a child thread , this should be called by the parent thread
 * @ingroup threads
 * @param Pointer to the switch signaling that the child has read the message , so that the parent will keep it in his stack
-* @retval 1=Success,0=Fail */
+* @retval 1=Success,0=Fail
+* @bug For some reason this doesnt have the desired effect :S there is a bug here..
+*/
 int parentKeepMessageOnStackUntilReady(volatile int * childSwitch);
 
 /**
