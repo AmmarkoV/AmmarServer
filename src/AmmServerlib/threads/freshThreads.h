@@ -37,6 +37,7 @@ struct PassToHTTPThread
 * @param Filename of root directory for this connection ( public_html )
 * @param Filename of template directory for this connection ( for 404.html etc )
 * @retval 1=Success,0=Fail
+* @bug There might be issues with the way the compiler optimizes the code that waits for the stack to be read before continuing on from the main thread..
 */
 int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen);
 
