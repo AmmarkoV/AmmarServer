@@ -201,7 +201,7 @@
 	<netinet/in.h>
 	"../server_configuration.h"
 
-1440406237 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadedServer.h
+1441025046 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadedServer.h
 	"../header_analysis/http_header_analysis.h"
 	"../server_configuration.h"
 
@@ -224,11 +224,12 @@
 	<netinet/in.h>
 	"../server_configuration.h"
 
-1441023609 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadInitHelper.c
+1441023861 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadInitHelper.c
 	"threadInitHelper.h"
 	"../tools/logs.h"
 	<stdio.h>
 	<unistd.h>
+	"../server_configuration.h"
 
 1441021549 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadedServer.c
 	<stdio.h>
