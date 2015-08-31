@@ -17,7 +17,7 @@ extern "C" {
 * @param Pointer to the switch signaling that the child has read the message , so that the parent will keep it in his stack
 * @param Maximum time to wait before terminating the wait to ensure no dead-locks
 * @retval 1=Success,0=Fail */
-int parentKeepMessageOnStackUntilReadyOrTimeout(volatile int * childSwitch,unsigned int maxWaitTime);
+static int parentKeepMessageOnStackUntilReadyOrTimeout(volatile int * childSwitch,unsigned int maxWaitTime);
 
 /**
 * @brief A call to help waiting for a message to be consumed by a child thread , this should be called by the parent thread
@@ -26,14 +26,14 @@ int parentKeepMessageOnStackUntilReadyOrTimeout(volatile int * childSwitch,unsig
 * @retval 1=Success,0=Fail
 * @bug For some reason this doesnt have the desired effect :S there is a bug here..
 */
-int parentKeepMessageOnStackUntilReady(volatile int * childSwitch);
+static int parentKeepMessageOnStackUntilReady(volatile int * childSwitch);
 
 /**
 * @brief A call to help waiting for a message to be consumed by a child thread , this should be called by the child thread when it finished copying the message
 * @ingroup threads
 * @param Pointer to the switch signaling that the child has read the message , so that the parent will keep it in his stack
 * @retval 1=Success,0=Fail */
-void childFinishedWithParentMessage(volatile int * childSwitch);
+static void childFinishedWithParentMessage(volatile int * childSwitch);
 
 
 #ifdef __cplusplus

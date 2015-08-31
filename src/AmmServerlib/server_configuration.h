@@ -27,6 +27,17 @@ extern "C" {
 /** @brief Next prespawned thread , should be vigilant and ready to serve so it has a shorter delay than the other prespawned threads ( 0.7ms max delay seems like a good value ) */
 #define THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT 700
 
+
+
+/** @brief Max sleep time while waiting for new thread to kick in and read parameters to unblock main thread.. */
+#define THREAD_MAXIMUM_TIME_TO_WAIT_FOR_A_NEWLY_CREATED_THREAD_MS 250000
+
+/** @brief Sleep time while waiting for new thread to kick in and read parameters to unblock main thread.. */
+#define THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS 20
+
+
+
+
 /** @brief Sleep time for threads that are prespawned until they check for potential new work , the lowest the value here ,
            the shortest the wait time for clients , but this causes higher CPU usage ( for idle tasks ) and ultimately more power consumption
            A good default time is 25000 , ( 25ms ) */

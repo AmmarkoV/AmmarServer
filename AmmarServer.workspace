@@ -3,6 +3,7 @@
 	<Workspace title="Workspace">
 		<Project filename="src/StringRecognizer/StringRecognizer.cbp" />
 		<Project filename="src/AmmServerNULLlib/AmmServerNULLlib.cbp" />
+		<Project filename="src/UserAccounts/UserAccounts.cbp" />
 		<Project filename="src/AmmServerlib/AmmServerlib.cbp" />
 		<Project filename="src/UnitTests/UnitTests.cbp" />
 		<Project filename="src/AmmCaptcha/AmmCaptcha.cbp" />
@@ -11,7 +12,6 @@
 		<Project filename="src/Services/AmmarServer/AmmarServer.cbp" />
 		<Project filename="src/Services/MyLoader/MyLoader.cbp" />
 		<Project filename="src/Services/GeoPosShare/GeoPosShare.cbp" />
-		<Project filename="src/ScriptRunner/ScriptRunner.cbp" />
 		<Project filename="src/Services/HabChan/HabChan.cbp" />
 		<Project filename="src/Services/MyBlog/MyBlog.cbp" />
 		<Project filename="src/Services/SQLiteServer/SQLiteServer.cbp" />
