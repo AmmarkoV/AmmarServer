@@ -1,7 +1,8 @@
 project( AmmarServer ) 
 cmake_minimum_required( VERSION 2.8.7 )
-
-#set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizations -s") 
+ 
+set(CMAKE_CXX_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
+set(CMAKE_C_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
  
@@ -39,14 +40,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 network/sendHTTPHeader.c
                 network/sendHTTPHeader.h
                 #Threads
-                threads/threadedServer.c
-                threads/threadedServer.h
+                threads/threadInitHelper.c
+                threads/threadInitHelper.h
                 threads/freshThreads.c
                 threads/freshThreads.h
                 threads/prespawnedThreads.c
                 threads/prespawnedThreads.h
-                threads/threadInitHelper.c
-                threads/threadInitHelper.h
+                threads/threadedServer.c
+                threads/threadedServer.h
                 #String Scanners , these get  automatically generated
                 stringscanners/applicationFiles.c
                 stringscanners/applicationFiles.h

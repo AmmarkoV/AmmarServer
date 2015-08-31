@@ -454,6 +454,17 @@ void * ServeClient(void * ptr)
 
 */
 
+
+#if WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR
+static int signalChildFinishedWithParentMessageLocal(volatile int * childSwitch)
+{
+    *childSwitch=2;
+    if (*childSwitch!=2) { error("WTF , i just changed the child switch"); return 0; }
+    return 1;
+}
+#endif // WORKAROUND_REALLOCATION_GCC_ERROR
+
+
 void * MainHTTPServerThread (void * ptr)
 {
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
@@ -495,8 +506,11 @@ void * MainHTTPServerThread (void * ptr)
                                             server.sin_addr.s_addr = inet_addr(bindingIP);
                                           }
 
-
-  childFinishedWithParentMessage(&context->keep_var_on_stack); //If we were not able to bind we still signal that we got the message so that parent thread can continue
+  #if WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR
+    signalChildFinishedWithParentMessageLocal(&context->keep_var_on_stack); //If we were not able to bind we still signal that we got the message so that parent thread can continue
+  #else
+   signalChildFinishedWithParentMessage(&context->keep_var_on_stack); //If we were not able to bind we still signal that we got the message so that parent thread can continue
+  #endif // WORKAROUND_REALLOCATION_GCC_ERROR
 
 
   //We bind to our port..!
