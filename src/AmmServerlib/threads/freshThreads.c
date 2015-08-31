@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <errno.h>
 
+#include "../server_configuration.h"
 #include "../threads/threadedServer.h"
 #include "../tools/logs.h"
 #include "threadInitHelper.h"
@@ -75,6 +76,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //We may want to keep a client for opening too many connections or ban him early on , before going through the expense
   //of creating a seperate thread for him..
 
+  unsigned int waitCounter=0,maxWaitCounter=(unsigned int) THREAD_MAXIMUM_TIME_TO_WAIT_FOR_A_NEWLY_CREATED_THREAD_MS/THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS;
   volatile struct PassToHTTPThread context={0};
   //memset((void*) &context,0,sizeof(struct PassToHTTPThread));
 
@@ -100,12 +102,24 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   if ( retres==0 )
   {
     #if WEIRD_THING_THAT_WORKS
-       while (context.keep_var_on_stack==1)
+       while (  (context.keep_var_on_stack==1) && (waitCounter<maxWaitCounter) )
            {
              /*TODO : POTENTIAL BUG HERE ? THIS WAS OPTIMIZED OUT?*/
              //fprintf(stderr,"?"); //<- Without this it crashes
-             usleep(10);
+             usleep(THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS);
+             ++waitCounter;
             }
+
+        if (waitCounter>=maxWaitCounter)
+        {
+          retres=1; //Mark this thread creation as failed
+          error("Timed out while waiting for a new thread to get created and consume its message\n");
+          #warning "The pthread_cancel code is not tested "
+          if ( pthread_cancel(instance->threads_pool[threadID]) !=0 )
+          { // http://man7.org/linux/man-pages/man3/pthread_cancel.3.html
+            error("Failed to cancel new thread creation\n");
+          }
+        }
     #else
        parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack); // <- Keep PeerServerContext in stack for long enough :P
     #endif
