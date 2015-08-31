@@ -8,6 +8,7 @@
 #include <errno.h>
 
 #include "../server_configuration.h"
+#include "../threads/clientServer.h"
 #include "../threads/threadedServer.h"
 #include "../tools/logs.h"
 #include "threadInitHelper.h"

@@ -142,6 +142,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="stringscanners/videoFiles.h" />
+		<Unit filename="threads/clientServer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/clientServer.h" />
 		<Unit filename="threads/freshThreads.c">
 			<Option compilerVar="CC" />
 		</Unit>

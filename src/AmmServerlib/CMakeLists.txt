@@ -46,6 +46,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 threads/freshThreads.h
                 threads/prespawnedThreads.c
                 threads/prespawnedThreads.h
+                threads/clientServer.c
+                threads/clientServer.h
                 threads/threadedServer.c
                 threads/threadedServer.h
                 #String Scanners , these get  automatically generated

@@ -18,6 +18,7 @@ extern "C" {
 #endif
 
 
+/** @brief Redeclares a function that causes linking problems..   */
 #define WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR 1
 
 

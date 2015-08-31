@@ -9,13 +9,6 @@
 #include "../server_configuration.h"
 
 /**
-* @brief Main Call to Serve a client , this will in turn pick a prespawned thread or create a new one
-* @ingroup threads
-* @param PassToHTTPThread with information to pass to the new thread ( prespawned or not )
-* @retval This function returns 0  */
-void * ServeClient(void * ptr);
-
-/**
 * @brief Start HTTP server
 * @ingroup threads
 * @param An AmmarServer Instance
