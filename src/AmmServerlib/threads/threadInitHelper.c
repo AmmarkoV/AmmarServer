@@ -1,8 +1,10 @@
 #include "threadInitHelper.h"
+
 #include "../tools/logs.h"
-#include <pthread.h>
+//#include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "../server_configuration.h"
 
 #define SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE 10
 
@@ -24,7 +26,6 @@ static int parentKeepMessageOnStackUntilReadyOrTimeout(volatile int * childSwitc
     return 1;
 }
 
-
 static int parentKeepMessageOnStackUntilReady(volatile int * childSwitch)
 {
     usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
@@ -41,14 +42,13 @@ static int parentKeepMessageOnStackUntilReady(volatile int * childSwitch)
     return 1;
 }
 
-
-static void childFinishedWithParentMessage(volatile int * childSwitch)
+static void signalChildFinishedWithParentMessage(volatile int * childSwitch)
 {
+    #if WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR
+      #warning "Using a workaround that does not call signalChildFinishedWithParentMessage due to an unsolvable reallocation error"
+    #endif // WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR
+
     *childSwitch=2;
-    if (*childSwitch!=2) { error("WTF , i just changed the child switch"); }
+    if (*childSwitch!=2) { error("WTF , i just changed the child switch"); return; }
     return;
 }
-
-
-
-

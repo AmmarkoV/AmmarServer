@@ -3,8 +3,8 @@
 *
 * @author Ammar Qammaz (AmmarkoV)
 */
-#ifndef THREADINITHELPER_H_INCLUDED
-#define THREADINITHELPER_H_INCLUDED
+#ifndef THREAD_INITHELPER_H_INCLUDED
+#define THREAD_INITHELPER_H_INCLUDED
 
 
 #ifdef __cplusplus
@@ -33,7 +33,7 @@ static int parentKeepMessageOnStackUntilReady(volatile int * childSwitch);
 * @ingroup threads
 * @param Pointer to the switch signaling that the child has read the message , so that the parent will keep it in his stack
 * @retval 1=Success,0=Fail */
-static void childFinishedWithParentMessage(volatile int * childSwitch);
+static void signalChildFinishedWithParentMessage(volatile int * childSwitch);
 
 
 #ifdef __cplusplus

@@ -17,6 +17,12 @@
 extern "C" {
 #endif
 
+
+#define WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR 1
+
+
+
+
 /** @brief Time sleeping when a dynamic request that serves a common file across all clients is busy   */
 #define CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC 1500000
 
