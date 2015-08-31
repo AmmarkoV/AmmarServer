@@ -1,6 +1,10 @@
+/** @file clientServer.h
+* @brief This is the entry point to serve a client that picks a prespawned thread or creates a fresh new one and then handles the requests..
+* @author Ammar Qammaz (AmmarkoV)
+*/
+
 #ifndef CLIENTSERVER_H_INCLUDED
 #define CLIENTSERVER_H_INCLUDED
-
 
 /**
 * @brief Main Call to Serve a client , this will in turn pick a prespawned thread or create a new one

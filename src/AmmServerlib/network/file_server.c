@@ -144,7 +144,19 @@ inline int TransmitFileToSocketInternal(
 
 
 
-
+/*
+*** glibc detected *** src/Services/MyTube/mytube: free(): invalid next size (normal): 0x00007f7b7bb731c0 ***
+======= Backtrace: =========
+/lib/x86_64-linux-gnu/libc.so.6(+0x7db26)[0x7f7b7aa77b26]
+src/Services/MyTube/mytube(TransmitFileToSocket+0x2c9)[0x7f7b7b4179a9]
+src/Services/MyTube/mytube(SendFile+0x7f5)[0x7f7b7b4183f5]
+src/Services/MyTube/mytube(ServeClientKeepAliveLoop+0x443)[0x7f7b7b414763]
+src/Services/MyTube/mytube(ServeClient+0x11b)[0x7f7b7b414b0b]
+/lib/x86_64-linux-gnu/libpthread.so.0(+0x7e9a)[0x7f7b7afc7e9a]
+/lib/x86_64-linux-gnu/libc.so.6(clone+0x6d)[0x7f7b7aaed38d]
+======= Memory map: ========
+7f7a54000000-7f7a54022000 rw-p 00000000 00:00 0
+*/
 
 
 int TransmitFileToSocket(

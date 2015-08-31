@@ -43,6 +43,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
 {
+ #warning "This has segfaulted with an invalid free error"
  *headerLength=0;
  int opres=0;
  unsigned int incomingRequestLength = 0 ;
@@ -59,7 +60,12 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
  {
   //Gather Header until http request contains two newlines..!
   opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
-  if (opres<=0) { free(incomingRequest); return 0;   /*TODO : Check opres here..!*/ } else
+  if (opres<=0)
+    {
+      /*TODO : Check opres here..!*/
+      free(incomingRequest);
+      return 0;
+    } else
     {
       incomingRequestLength+=opres;
       fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
