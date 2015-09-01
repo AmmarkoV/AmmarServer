@@ -41,6 +41,12 @@ int clientList_isClientAllowedToUseResource(struct clientListContext * clientLis
 }
 
 
+int clientList_isClientAllowedToMakeAConnection(char * ip)
+{
+  return 1;
+}
+
+
 int clientList_signalClientStoppedUsingResource(struct clientListContext * clientList,clientID client_id,char * resource)
 {
   if ( (clientList==0) || (client_id==0) || (resource==0) ) { return 1; }

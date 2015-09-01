@@ -48,7 +48,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
  int opres=0;
  unsigned int incomingRequestLength = 0 ;
  unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
- char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength) );
+ char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength+2) );
  if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
  incomingRequest[0]=0;
 
@@ -83,10 +83,8 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
                    { MAXincomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
 
 
-              #define BETTER_POST_REALLOC_CODE 1
-               char  * largerRequest = (char * )  realloc (incomingRequest, MAXincomingRequestLength );
+               char  * largerRequest = (char * )  realloc (incomingRequest, sizeof(char) * (MAXincomingRequestLength+2) );
 
-              #if  BETTER_POST_REALLOC_CODE
                if ( largerRequest!=0 )
                    { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength);
                      incomingRequest=largerRequest;
@@ -97,17 +95,6 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
                     free(incomingRequest);
                     return 0;
                    }
-              #else
-               #error "This realloc handling is wrong"
-              if ( incomingRequest != largerRequest )
-                   { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength); }
-                     else
-                   {
-                    fprintf(stderr,"The request would overflow POST limit , dropping client \n");
-                    free(incomingRequest);
-                    return 0;
-                   }
-              #endif // BETTER_POST_REALLOC_CODE
 
             }
           } else
