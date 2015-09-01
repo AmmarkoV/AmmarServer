@@ -49,7 +49,7 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
 
 int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
 {
-
+  if (instance==0) { error("Cannot SpawnThreadToServeNewClient without a valid instance value"); return 0; }
   //This Segfaults -> (inet_ntoa) fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
 
   fprintf(stderr,"SpawnThreadToServeNewClient instance pointing @ %p \n",instance);
@@ -78,6 +78,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //of creating a seperate thread for him..
 
   unsigned int waitCounter=0,maxWaitCounter=(unsigned int) THREAD_MAXIMUM_TIME_TO_WAIT_FOR_A_NEWLY_CREATED_THREAD_MS/THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS;
+
+
   volatile struct PassToHTTPThread context={0};
   //memset((void*) &context,0,sizeof(struct PassToHTTPThread));
 

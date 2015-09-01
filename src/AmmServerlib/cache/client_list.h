@@ -44,6 +44,9 @@ int clientList_isClientBanned(struct clientListContext * clientList,clientID cli
 * @retval 1=Allowed,0=Denied*/
 int clientList_isClientAllowedToUseResource(struct clientListContext * clientList,clientID client_id,char * resource);
 
+
+int clientList_isClientAllowedToMakeAConnection(char * ip);
+
 /**
 * @brief Signal that resource has stopped beeing used for internal statistics
 * @ingroup clientList

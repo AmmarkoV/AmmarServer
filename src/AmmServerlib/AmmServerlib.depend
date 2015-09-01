@@ -51,7 +51,7 @@
 	"../AmmServerlib.h"
 	"../cache/client_list.h"
 
-1441024660 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.h
+1441044418 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.h
 	"AmmServerlib.h"
 
 1440406237 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/logs.h
@@ -129,7 +129,7 @@
 
 1440406237 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/postHeader.h
 
-1440406237 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
+1441028212 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -184,7 +184,7 @@
 	"tools/logs.h"
 	"InputParser/InputParser_C.h"
 
-1440979883 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/freshThreads.c
+1441025095 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/freshThreads.c
 	"freshThreads.h"
 	<stdio.h>
 	<stdlib.h>
@@ -193,6 +193,7 @@
 	<pthread.h>
 	<errno.h>
 	"../server_configuration.h"
+	"../threads/clientServer.h"
 	"../threads/threadedServer.h"
 	"../tools/logs.h"
 	"threadInitHelper.h"
@@ -205,7 +206,7 @@
 	"../header_analysis/http_header_analysis.h"
 	"../server_configuration.h"
 
-1441023459 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadInitHelper.h
+1441044409 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadInitHelper.h
 
 1440406237 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/prespawnedThreads.c
 	<stdio.h>
@@ -224,14 +225,14 @@
 	<netinet/in.h>
 	"../server_configuration.h"
 
-1441023861 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadInitHelper.c
+1441044412 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadInitHelper.c
 	"threadInitHelper.h"
 	"../tools/logs.h"
 	<stdio.h>
 	<unistd.h>
 	"../server_configuration.h"
 
-1441021549 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadedServer.c
+1441025030 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadedServer.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -413,4 +414,35 @@
 
 1440978959 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.h
 	"../AmmServerlib.h"
+
+1441025010 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/clientServer.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<errno.h>
+	<sys/types.h>
+	<sys/socket.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<netdb.h>
+	<sys/uio.h>
+	<unistd.h>
+	<pthread.h>
+	"clientServer.h"
+	"threadedServer.h"
+	"../tools/directory_lists.h"
+	"../network/file_server.h"
+	"../network/sendHTTPHeader.h"
+	"../header_analysis/http_header_analysis.h"
+	"../tools/http_tools.h"
+	"../tools/logs.h"
+	"../cache/file_caching.h"
+	"../server_configuration.h"
+	"../threads/freshThreads.h"
+	"../threads/prespawnedThreads.h"
+	"../threads/threadInitHelper.h"
+	"../cache/client_list.h"
+	"../cache/dynamic_requests.h"
+
+1441025312 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/clientServer.h
 

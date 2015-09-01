@@ -275,7 +275,11 @@ int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigne
    if ( retres==0 )
      {
          //parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack); <-- This does not work on ARM devices , there is some problem
-         while (context.keep_var_on_stack==1) { usleep(100); /*wait;*/ fprintf(stderr,"."); } //<- it is ok to print a little stuff here , it only happens once
+         while (context.keep_var_on_stack==1)
+         {
+           usleep(THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS); /*wait;*/
+           fprintf(stderr,".");
+         } //<- it is ok to print a little stuff here , it only happens once
       }
 
    //We flip the retres
@@ -284,12 +288,6 @@ int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigne
    //After changing our priority , binding our port ( which could be 80 and could require superuser powers ) , it may be time to drop RootUID
    //There could be a user like www-run or something else that we could setuid to , but this isn't yet implemented...
    ServerThreads_DropRootUID();
-
-/*
-  //The next call simulates an incoming request that gets served by the server in order to test it and preload the index page for better performance..!
-  char * file = RequestHTTPWebPage("127.0.0.1",port,"\0",100);
-  if (file!=0) { free(file); fprintf(stderr,"Internal Index Request was succesful..\n"); } else
-               { fprintf(stderr,"Internal Index Request failed ..\n"); } */
 
   return retres;
 }
