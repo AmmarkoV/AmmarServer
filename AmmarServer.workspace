@@ -3,8 +3,8 @@
 	<Workspace title="Workspace">
 		<Project filename="src/StringRecognizer/StringRecognizer.cbp" />
 		<Project filename="src/AmmServerNULLlib/AmmServerNULLlib.cbp" />
-		<Project filename="src/UserAccounts/UserAccounts.cbp" />
 		<Project filename="src/AmmServerlib/AmmServerlib.cbp" />
+		<Project filename="src/UserAccounts/UserAccounts.cbp" />
 		<Project filename="src/UnitTests/UnitTests.cbp" />
 		<Project filename="src/AmmCaptcha/AmmCaptcha.cbp" />
 		<Project filename="src/Services/SimpleTemplate/SimpleTemplate.cbp" />

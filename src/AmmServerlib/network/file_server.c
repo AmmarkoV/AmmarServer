@@ -51,18 +51,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 unsigned int files_open = 0;
 
 
-int SendPart(int clientsock,char * message,unsigned int message_size)
+int SendPart(int clientsock,const char * message,unsigned int message_size)
 {
   int opres=send(clientsock,message,message_size,MSG_WAITALL|MSG_NOSIGNAL);
   if (opres<=0)
      {
-      error("Failed to SendPart `%s`..!\n",message);
+      fprintf(stderr,"Failed to SendPart `%s`..!\n",message);
       return 0;
      } else
   if ((unsigned int) opres!=message_size)
      {
       //TODO : send the rest of it maybe?
-      error("Failed SendPart to send the whole message (%s)..!\n",message);
+      fprintf(stderr,"Failed SendPart to send the whole message (%s)..!\n",message);
       return 0;
      }
   return 1;
@@ -154,7 +154,7 @@ inline int TransmitFileToSocketInternal(
 
 
 inline int TransmitFileHeaderToSocket(int clientsock,
-                                      char * verified_filename,
+                                      const char * verified_filename,
                                       unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
                                       unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
                                       unsigned long lSize
@@ -197,7 +197,7 @@ int TransmitFileToSocket(
     //If we can't open the file we fail to transmit the file
     if (pFile==0)
       {
-       error("Could not open file %s , files open %u \n",verified_filename,files_open);
+       fprintf(stderr,"Could not open file %s , files open %u \n",verified_filename,files_open);
        return 0;
       }
 
@@ -215,11 +215,12 @@ int TransmitFileToSocket(
 
     unsigned long lSize = ftell (pFile);
     if ( (end_at_byte!=0) && (lSize<end_at_byte) )
-      { warning("Incorrect range request , the file changed? ( from %u to %u file 0 to %u ..! ) ,forcing known size\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize);
+      {
+        fprintf(stderr,"Incorrect range request , the file changed? ( from %u to %u file 0 to %u ..! ) ,forcing known size\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize);
         end_at_byte=lSize;
       }
 
-    fprintf(stderr,"Sending => Size %0.2f KB / Open files %u / Filename %s \n",verified_filename,(double) lSize/1024,files_open);
+    fprintf(stderr,"Sending => Size %0.2f KB / Open files %u / Filename %s \n",(double) lSize/1024,files_open,verified_filename);
 
     int res = 0;
      if (
