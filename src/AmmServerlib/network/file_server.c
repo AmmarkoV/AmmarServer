@@ -54,8 +54,17 @@ unsigned int files_open = 0;
 int SendPart(int clientsock,char * message,unsigned int message_size)
 {
   int opres=send(clientsock,message,message_size,MSG_WAITALL|MSG_NOSIGNAL);
-  if (opres<=0) { fprintf(stderr,"Failed sending `%s`..!\n",message); return 0; } else
-  if ((unsigned int) opres!=message_size) { fprintf(stderr,"Failed sending the whole message (%s)..!\n",message); return 0; }
+  if (opres<=0)
+     {
+      error("Failed to SendPart `%s`..!\n",message);
+      return 0;
+     } else
+  if ((unsigned int) opres!=message_size)
+     {
+      //TODO : send the rest of it maybe?
+      error("Failed SendPart to send the whole message (%s)..!\n",message);
+      return 0;
+     }
   return 1;
 }
 
@@ -144,48 +153,14 @@ inline int TransmitFileToSocketInternal(
 
 
 
-/*
-*** glibc detected *** src/Services/MyTube/mytube: free(): invalid next size (normal): 0x00007f7b7bb731c0 ***
-======= Backtrace: =========
-/lib/x86_64-linux-gnu/libc.so.6(+0x7db26)[0x7f7b7aa77b26]
-src/Services/MyTube/mytube(TransmitFileToSocket+0x2c9)[0x7f7b7b4179a9]
-src/Services/MyTube/mytube(SendFile+0x7f5)[0x7f7b7b4183f5]
-src/Services/MyTube/mytube(ServeClientKeepAliveLoop+0x443)[0x7f7b7b414763]
-src/Services/MyTube/mytube(ServeClient+0x11b)[0x7f7b7b414b0b]
-/lib/x86_64-linux-gnu/libpthread.so.0(+0x7e9a)[0x7f7b7afc7e9a]
-/lib/x86_64-linux-gnu/libc.so.6(clone+0x6d)[0x7f7b7aaed38d]
-======= Memory map: ========
-7f7a54000000-7f7a54022000 rw-p 00000000 00:00 0
-*/
-
-
-int TransmitFileToSocket(
-                            int clientsock,
-                            char * verified_filename,
-                            unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
-                            unsigned long end_at_byte     // Optionally end at an offset ( resume download functionality )
-                         )
+inline int TransmitFileHeaderToSocket(int clientsock,
+                                      char * verified_filename,
+                                      unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
+                                      unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
+                                      unsigned long lSize
+                                     )
 {
-    FILE * pFile = fopen (verified_filename, "rb" );
-    if (pFile==0) { fprintf(stderr,"Could not open file %s , files open %u \n",verified_filename,files_open); return 0;}
-    ++files_open;
-
-    // obtain file size:
-    if ( fseek (pFile , 0 , SEEK_END)!=0 )
-      {
-        warning("Could not find file size..!\nUnable to serve client\n");
-        fclose(pFile);
-        --files_open;
-        return 0;
-      }
-
-    unsigned long lSize = ftell (pFile);
-    if ( (end_at_byte!=0) && (lSize<end_at_byte) )
-        { fprintf(stderr,"TODO: Handle  incorrect range request ( from %u to %u file 0 to %u ..!\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize); }
-
-    fprintf(stderr,"Sending file %s , size %0.2f Kbytes , Open files %u \n",verified_filename,(double) lSize/1024,files_open);
-
-    char reply_header[MAX_HTTP_REQUEST_SHORT_HEADER_REPLY]={0};
+    char reply_header[MAX_HTTP_REQUEST_SHORT_HEADER_REPLY+1]={0};
     //THIS ALSO EXISTS IN THE Cached resource response CODE around line 395
     if ( (start_at_byte!=0) || (end_at_byte!=0) )
        {
@@ -196,21 +171,76 @@ int TransmitFileToSocket(
           snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);
        } else
        {
-         //error("TransmitFileToSocket Plain Content-Length ");
          //This is the last header part , so we are appending an extra \n to mark the end of the header
          snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) lSize);
        }
-    if (!SendPart(clientsock,reply_header,strlen(reply_header))) { fprintf(stderr,"Failed sending Content-length @  SendFile ..!\n");  }
+    if (!SendPart(clientsock,reply_header,strlen(reply_header)))
+        {
+         fprintf(stderr,"Failed sending Content-length @  SendFile ..!\n");
+         return 0;
+        }
+  return 1;
+}
 
 
-    rewind (pFile);
-    if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
-    if (end_at_byte==0)   { end_at_byte=lSize-start_at_byte; }
 
 
-    int res = TransmitFileToSocketInternal(pFile,clientsock,end_at_byte);
+int TransmitFileToSocket(
+                         int clientsock,
+                         char * verified_filename,
+                         unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
+                         unsigned long end_at_byte     // Optionally end at an offset ( resume download functionality )
+                        )
+{
+    FILE * pFile = fopen (verified_filename, "rb" );
 
-    --files_open;
+    //If we can't open the file we fail to transmit the file
+    if (pFile==0)
+      {
+       error("Could not open file %s , files open %u \n",verified_filename,files_open);
+       return 0;
+      }
+
+    //Count the open file
+    ++files_open;
+
+    //Try to obtain file size if not fail to transmit the fail
+    if ( fseek (pFile , 0 , SEEK_END)!=0 )
+      {
+        warning("Could not find file size..!\nUnable to serve client\n");
+        fclose(pFile);
+        --files_open;  //Count the closed file
+        return 0;
+      }
+
+    unsigned long lSize = ftell (pFile);
+    if ( (end_at_byte!=0) && (lSize<end_at_byte) )
+      { warning("Incorrect range request , the file changed? ( from %u to %u file 0 to %u ..! ) ,forcing known size\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize);
+        end_at_byte=lSize;
+      }
+
+    fprintf(stderr,"Sending => Size %0.2f KB / Open files %u / Filename %s \n",verified_filename,(double) lSize/1024,files_open);
+
+    int res = 0;
+     if (
+          TransmitFileHeaderToSocket(
+                                     clientsock,
+                                     verified_filename,
+                                     start_at_byte,     // Optionally start with an offset ( resume download functionality )
+                                     end_at_byte,       // Optionally end at an offset ( resume download functionality )
+                                     lSize
+                                     )
+         )
+     {
+        rewind (pFile);
+        if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
+        if (end_at_byte==0)   { end_at_byte=lSize-start_at_byte; }
+
+        res = TransmitFileToSocketInternal(pFile,clientsock,end_at_byte);
+     }
+
+
+    --files_open; //Count the closed file
     fclose (pFile);
   return res;
 }
@@ -499,8 +529,10 @@ unsigned long SendMemoryBlockAsFile
     unsigned long mem_block // The size of the memory block to be sent
   )
 {
-  char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
   if (! SendSuccessCodeHeader(clientsock,200,filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+
+
+  char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
   snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\nConnection: close\n\n",(unsigned int) mem_block);
   //TODO : Location : path etc
 
