@@ -154,7 +154,6 @@ inline int TransmitFileToSocketInternal(
 
 
 inline int TransmitFileHeaderToSocket(int clientsock,
-                                      const char * verified_filename,
                                       unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
                                       unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
                                       unsigned long lSize
@@ -187,7 +186,7 @@ inline int TransmitFileHeaderToSocket(int clientsock,
 
 int TransmitFileToSocket(
                          int clientsock,
-                         char * verified_filename,
+                         const char * verified_filename,
                          unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
                          unsigned long end_at_byte     // Optionally end at an offset ( resume download functionality )
                         )
@@ -226,7 +225,6 @@ int TransmitFileToSocket(
      if (
           TransmitFileHeaderToSocket(
                                      clientsock,
-                                     verified_filename,
                                      start_at_byte,     // Optionally start with an offset ( resume download functionality )
                                      end_at_byte,       // Optionally end at an offset ( resume download functionality )
                                      lSize
