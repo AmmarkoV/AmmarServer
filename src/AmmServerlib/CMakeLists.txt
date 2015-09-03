@@ -76,6 +76,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 tools/time_provider.h
                 tools/http_tools.c
                 tools/http_tools.h
+                tools/serverMonitor.c
+                tools/serverMonitor.h
                 tools/directory_lists.c
                 tools/directory_lists.h 
               )
