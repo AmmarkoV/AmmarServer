@@ -321,3 +321,7 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
 }
 
 
+unsigned int GetActiveHTTPServerThreads(struct AmmServer_Instance * instance)
+{
+  return getActivePrespawnedThreads(instance) + getActiveFreshThreads(instance);
+}

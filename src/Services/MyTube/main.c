@@ -61,7 +61,7 @@ struct AmmServer_RH_Context faviconContext={0};
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * favicon=0;
 
-
+int enableMonitor=1;
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -330,6 +330,12 @@ void init_dynamic_content()
   #if UPDATE_ALL_THUMBNAILS_ON_LAUNCH
     thumbnailAllVideoDatabase(myTube);
   #endif // UPDATE_ALL_THUMBNAILS_ON_LAUNCH
+
+  if (enableMonitor)
+  {
+    AmmServer_Warning("Enabling monitor\n");
+    AmmServer_EnableMonitor(default_server);
+  }
 
 
   //---------------

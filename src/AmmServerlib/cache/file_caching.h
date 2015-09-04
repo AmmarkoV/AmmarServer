@@ -76,6 +76,13 @@ int cache_CountMemoryUsageAllocateOperation(struct AmmServer_Instance * instance
 
 
 /**
+* @brief Get Current memory usage
+* @ingroup cache
+* @param An AmmarServer Instance
+* @retval 1=Ok,0=Failed*/
+int cache_GetCacheSizeKB(struct AmmServer_Instance * instance);
+
+/**
 * @brief Tool to check if a malloc'ed chunk of memory should be freed
 * @ingroup cache
 * @param Pointer to memory
