@@ -16,7 +16,7 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
 {
   snprintf(rqst->content,rqst->MAXcontentSize,
   "<html><head><meta http-equiv=\"refresh\" content=\"1;URL='monitor.html'\" /></head><body>\
-   <h1>AMMARSERVER MONITOR PAGE</h1><hr> \
+   <h1>AMMARSERVER <a target=\"_new\" href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/tools/serverMonitor.c\">MONITOR PAGE</a></h1><hr> \
    active threads : %u <br>\
    active clients : %u <br>\
    served requests: %u <br>\
