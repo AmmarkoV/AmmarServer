@@ -47,8 +47,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
    the code that follows supposes everything else is ok ( socket / client wise )
    and starts reading and sending the file indicated by the function arguments..!
 */
-
+//Counters for performance , these should  be put inside the the server instance so this is work to do in the future..
 unsigned int files_open = 0;
+unsigned long dataSent_KB = 0;
+unsigned long dataReceived_KB = 0;
 
 
 int SendPart(int clientsock,const char * message,unsigned int message_size)
@@ -64,6 +66,9 @@ int SendPart(int clientsock,const char * message,unsigned int message_size)
       //TODO : send the rest of it maybe?
       fprintf(stderr,"Failed SendPart to send the whole message (%s)..!\n",message);
       return 0;
+     } else
+     {
+       dataSent_KB+=(unsigned long) opres/1024;
      }
   return 1;
 }
@@ -121,6 +126,7 @@ inline int TransmitFileToSocketInternal(
            if (opres == 0) {  /*Recepient stalling */ } else
            if (opres < 0) { warning("Connection closed , while sending the whole file..!\n"); }
                           {
+                           dataSent_KB+=(unsigned long) chunkToSend/1024;
                            chunkToSend -= opres;
                            bytesToSend -= opres;
                            rollingBuffer += opres;

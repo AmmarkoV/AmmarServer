@@ -41,4 +41,14 @@ struct PassToHTTPThread
 */
 int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen);
 
+
+
+/**
+* @brief Get the number of active prespawned threads
+* @ingroup threads
+* @param An AmmarServer Instance
+* @bug getActiveFreshThreads is not implemented yet
+* @retval Number of active prespawned threads */
+unsigned int getActiveFreshThreads(struct AmmServer_Instance * instance);
+
 #endif // FRESHTHREADS_H_INCLUDED

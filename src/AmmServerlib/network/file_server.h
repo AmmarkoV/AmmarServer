@@ -55,4 +55,10 @@ unsigned long SendMemoryBlockAsFile
     unsigned long mem_block
   );
 
+
+
+extern unsigned int files_open;
+extern unsigned long dataSent_KB;
+extern unsigned long dataReceived_KB;
+
 #endif // FILE_SERVER_H_INCLUDED

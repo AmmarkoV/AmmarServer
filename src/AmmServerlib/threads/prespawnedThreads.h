@@ -51,4 +51,14 @@ void PreSpawnThreads(struct AmmServer_Instance * instance);
 * @retval 1=Success,0=Fail */
 int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root);
 
+
+
+/**
+* @brief Get the number of active prespawned threads
+* @ingroup threads
+* @param An AmmarServer Instance
+* @bug getActivePrespawnedThreads is not implemented yet
+* @retval Number of active prespawned threads */
+unsigned int getActivePrespawnedThreads(struct AmmServer_Instance * instance);
+
 #endif // PRESPAWNEDTHREADS_H_INCLUDED

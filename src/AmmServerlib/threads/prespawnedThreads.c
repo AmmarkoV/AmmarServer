@@ -194,3 +194,7 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
   #endif // MAX_CLIENT_PRESPAWNED_THREADS not zero..
 }
 
+unsigned int getActivePrespawnedThreads(struct AmmServer_Instance * instance)
+{
+    return 0;
+}

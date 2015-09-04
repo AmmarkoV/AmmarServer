@@ -34,4 +34,11 @@ int StopHTTPServer(struct AmmServer_Instance * instance);
 * @retval 1=Success,0=Failure  */
 int HTTPServerIsRunning(struct AmmServer_Instance * instance);
 
+
+/**
+* @brief Ask about the number of threads running on the background
+* @ingroup threads
+* @param An AmmarServer Instance
+* @retval Total number of running threads  */
+unsigned int GetActiveHTTPServerThreads(struct AmmServer_Instance * instance);
 #endif // SERVER_THREADS_H_INCLUDED

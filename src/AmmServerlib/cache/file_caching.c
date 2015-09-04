@@ -37,6 +37,10 @@ int cache_CountMemoryUsageAllocateOperation(struct AmmServer_Instance * instance
   return 1;
 }
 
+int cache_GetCacheSizeKB(struct AmmServer_Instance * instance)
+{
+  return instance->loaded_cache_items_Kbytes;
+}
 
 
 

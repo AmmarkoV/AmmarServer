@@ -145,3 +145,10 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
   return retres;
 }
+
+
+
+unsigned int getActiveFreshThreads(struct AmmServer_Instance * instance)
+{
+ return 0;
+}

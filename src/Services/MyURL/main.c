@@ -51,6 +51,8 @@ char service_root_withoutfilename[128]="http://myurl.ammar.gr/";
 char * default_failed = (char*)"http://myurl.ammar.gr/error.html";
 //---------------------------------------------------------------
 
+int enableMonitor=0;
+
 char db_file[128]="myurl.db";
 pthread_mutex_t db_fileLock;
 pthread_mutex_t db_addIDLock;
@@ -577,6 +579,13 @@ void resolveRequest(void * request)
 //This function adds a Resource Handler for the pages and their callback functions
 void init_dynamic_content()
 {
+  if (enableMonitor)
+  {
+    AmmServer_Warning("Enabling monitor\n");
+    AmmServer_EnableMonitor(myurl_server);
+  }
+
+
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); }
 
