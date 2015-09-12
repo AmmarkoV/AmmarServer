@@ -31,11 +31,7 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
     add_subdirectory (src/Services/CinemaPilot) 
     add_subdirectory (src/Services/SQLiteServer)
     
- 
-    #Finally make a null version of ammarserver :P
-    add_subdirectory (src/AmmServerNULLlib) 
-
-
+   
 # TODO FIX INSTALLATION DIRECTORIES 
 
 #    install(TARGETS AmmarServer
