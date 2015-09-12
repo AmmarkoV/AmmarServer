@@ -394,23 +394,51 @@ void * ServeClient(void * ptr)
    }
 
   transaction.clientListID = findOutClientIDOfPeer(instance ,transaction.clientSock);
+
+
+
+  //----------------------------- ---------------------------- ----------------------------
+  // Check if client is banned
+  //----------------------------- ---------------------------- ----------------------------
+  int clientIsBanned = clientList_isClientBanned(instance->clientList,transaction.clientListID);
+  //----------------------------- ---------------------------- ----------------------------
+  if (!clientIsBanned)
+  {
+     //If client is ok go ahead to serve him..
+     while ( ( ServeClientKeepAliveLoop(instance,&transaction) ) && (instance->server_running) )
+    {
+      fprintf(stderr,"Another KeepAlive Loop Served"\n);
+      clientIsBanned = clientList_isClientBanned(instance->clientList,transaction.clientListID);
+      if (clientIsBanned)
+      {
+       warning("Client became banned during keep-alive\n");
+       SendErrorCodeHeader(transaction.clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
+       break;
+      }
+    }
+  }
+  //-----------------------------
+
+
+
+/*//Old way to loop over server..
   //Now the real fun starts :P <- helpful comment
   if ( clientList_isClientBanned(instance->clientList,transaction.clientListID) )
   {
-    SendErrorCodeHeader(transaction.clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
+    SendErrorCodeHeader(transaction.clientSock,403 ,"403.html",instance->templates_root); // Forbidden
   } else
-  { /*!START OF CLIENT IS NOT ON IP-BANNED-LIST!*/
+  { //!START OF CLIENT IS NOT ON IP-BANNED-LIST!
     while ( ( ServeClientKeepAliveLoop(instance,&transaction) ) && (instance->server_running) )
     {
       fprintf(stderr,"Another KeepAlive Loop Served");
       if ( clientList_isClientBanned(instance->clientList,transaction.clientListID) )
          {
            warning("Client became banned during keep-alive\n");
-           SendErrorCodeHeader(transaction.clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
+           SendErrorCodeHeader(transaction.clientSock,403 ,"403.html",instance->templates_root); // Forbidden
            break;
          }
     }
-  }
+  } */
 
   //fprintf(stderr,"Closing Socket ..");
   close(transaction.clientSock);
