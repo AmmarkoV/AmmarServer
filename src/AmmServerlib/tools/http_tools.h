@@ -150,6 +150,17 @@ int freeString(char ** str);
 * @retval 1=Success,0=Failure*/
 int setSocketTimeouts(int clientSock);
 
+
+/**
+* @brief Tool that resolve a client socket to its IP
+* @ingroup tools
+* @param An AmmarServer instance
+* @param client socket
+* @param output pointer to a string that will hold the IP string
+* @param output port of connection
+* @retval ClientID or ,0=Failure*/
+int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , char * ipstr , int * port);
+
 /**
 * @brief Tool that resolve a client socket to its IP , then uses it to try to clientList_GetClientId and returns the id number
 * @ingroup tools

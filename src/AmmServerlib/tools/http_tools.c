@@ -987,13 +987,16 @@ int setSocketTimeouts(int clientSock)
 
 
 
-clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int clientSock)
+
+
+int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , char * ipstr , int * port)
 {
   //Lets find out who we are talking to , and if we want to deny him service or not..!
   socklen_t len=0;
   struct sockaddr_storage addr;
-  char ipstr[INET6_ADDRSTRLEN]; ipstr[0]=0;
-  int port=0;
+
+  ipstr[0]=0;
+  *port=0;
 
   len = sizeof addr;
   if ( getpeername(clientSock, (struct sockaddr*)&addr, &len) == 0 )
@@ -1002,22 +1005,37 @@ clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int client
   if (addr.ss_family == AF_INET)
   {
     struct sockaddr_in *s = (struct sockaddr_in *)&addr;
-    port = ntohs(s->sin_port);
+    *port = ntohs(s->sin_port);
     inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
   } else
   { // AF_INET6
     struct sockaddr_in6 *s = (struct sockaddr_in6 *)&addr;
-    port = ntohs(s->sin6_port);
+    *port = ntohs(s->sin6_port);
     inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
   }
-  fprintf(stderr,"Peer IP address: %s , port %d \n", ipstr,port);
+  fprintf(stderr,"Peer IP address: %s , port %d \n", ipstr,*port);
  } else
  {
    warning("Could not get peer name..!"); //This could be a reason to drop this connection!
    return 0;
  }
 
- return  clientList_GetClientId(instance->clientList,"0.0.0.0"); // <- TODO add IPv4 , IPv6 IP here
+ return  1; // <- TODO add IPv4 , IPv6 IP here
+}
+
+
+
+clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int clientSock)
+{
+  #if INET6_ADDRSTRLEN>MAX_IP_STRING_SIZE
+   #error "Please readjust MAX_IP_STRING_SIZE to be more than INET6_ADDRSTRLEN"
+  #endif // INET6_ADDRSTRLEN
+  char ipstr[INET6_ADDRSTRLEN]; ipstr[0]=0;
+  int port=0;
+
+  getSocketIPAddress(instance,clientSock,ipstr,&port);
+
+  return  clientList_GetClientId(instance->clientList,ipstr);
 }
 
 
