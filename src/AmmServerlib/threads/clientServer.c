@@ -53,21 +53,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../cache/client_list.h"
 #include "../cache/dynamic_requests.h"
 
-/*
-  -----------------------------------------------------------------
-  -----------------------------------------------------------------
-  -----------------------------------------------------------------
-  -----------------------------------------------------------------
-          ||                                             ||
-          ||           PER CLIENT SERVING THREAD         ||
-          \/                                             \/
-  -----------------------------------------------------------------
-  -----------------------------------------------------------------
-
-*/
 
 
-inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+inline int handleClientSentHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
    if ( transaction->incomingHeader.headerRAW!=0 ) { free(transaction->incomingHeader.headerRAW); transaction->incomingHeader.headerRAW=0; }
 
@@ -81,8 +69,8 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    transaction->incomingHeader.POSTrequest=0;
    transaction->incomingHeader.POSTrequestSize=0;
 
-   int result = AnalyzeHTTPHeader(instance,transaction);
-   if (result)
+   int httpHeaderReceivedWithNoProblems = AnalyzeHTTPHeader(instance,transaction);
+   if (httpHeaderReceivedWithNoProblems)
       {
         if ( (transaction->incomingHeader.requestType==POST) && (ENABLE_POST) )
         {
@@ -94,7 +82,46 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
         callClientRequestHandler(instance,&transaction->incomingHeader);
       }
 
-   if (!result)
+   return httpHeaderReceivedWithNoProblems;
+}
+
+
+
+inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+{
+    /*
+   if ( transaction->incomingHeader.headerRAW!=0 ) { free(transaction->incomingHeader.headerRAW); transaction->incomingHeader.headerRAW=0; }
+
+   unsigned long headerRAWSizeTemp = 0;
+   transaction->incomingHeader.headerRAW = ReceiveHTTPHeader(instance,transaction->clientSock,&headerRAWSizeTemp);
+   transaction->incomingHeader.headerRAWSize = (unsigned int) headerRAWSizeTemp;
+
+   if (transaction->incomingHeader.headerRAW==0) { return 0; }
+
+   fprintf(stderr,"Received request header \n");
+   transaction->incomingHeader.POSTrequest=0;
+   transaction->incomingHeader.POSTrequestSize=0;
+
+   int httpHeaderReceivedWithNoProblems = AnalyzeHTTPHeader(instance,transaction);
+   if (httpHeaderReceivedWithNoProblems)
+      {
+        if ( (transaction->incomingHeader.requestType==POST) && (ENABLE_POST) )
+        {
+           //If we have a POST request
+           //Expand header to also receive the files uploaded
+           AppendPOSTRequestToHTTPHeader(transaction);
+        }
+        //If we use a client based request handler , call it now
+        callClientRequestHandler(instance,&transaction->incomingHeader);
+      }
+
+      */
+
+   //We have our connection / instancing /etc covered if we are here
+   //In order to serve our client we must first receive the request header , so we do it now..!
+   int httpHeaderReceivedWithNoProblems = handleClientSentHeader(instance,transaction);
+
+   if (!httpHeaderReceivedWithNoProblems)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       error("Bad Request!");
       SendErrorFile(instance,transaction,400);
@@ -407,7 +434,7 @@ void * ServeClient(void * ptr)
      //If client is ok go ahead to serve him..
      while ( ( ServeClientKeepAliveLoop(instance,&transaction) ) && (instance->server_running) )
     {
-      fprintf(stderr,"Another KeepAlive Loop Served"\n);
+      fprintf(stderr,"Another KeepAlive Loop Served\n");
       clientIsBanned = clientList_isClientBanned(instance->clientList,transaction.clientListID);
       if (clientIsBanned)
       {
@@ -417,8 +444,7 @@ void * ServeClient(void * ptr)
       }
     }
   }
-  //-----------------------------
-
+  //----------------------------- ---------------------------- ----------------------------
 
 
 /*//Old way to loop over server..
