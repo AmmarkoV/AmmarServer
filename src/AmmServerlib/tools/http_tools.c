@@ -1016,6 +1016,7 @@ int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , c
   fprintf(stderr,"Peer IP address: %s , port %d \n", ipstr,*port);
  } else
  {
+   strcpy(ipstr,"0.0.0.0");
    warning("Could not get peer name..!"); //This could be a reason to drop this connection!
    return 0;
  }

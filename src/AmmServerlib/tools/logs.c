@@ -46,9 +46,15 @@ int AccessLogAppend(char * IP,char * DateStr,char * Request,unsigned int Respons
     FILE * pFile = fopen (AccessLog, "a");
     if (pFile==0) { return 0; }
 
+
+    char autoDateBuffer[10]={"0/0/0"};
+    char * datePtr = 0;
+    if ( DateStr !=0 ) { datePtr = DateStr; } else
+                       { datePtr = autoDateBuffer;  }
+
     fprintf(pFile,"%s - - [%s] \"%s\" %u %u \"%s\" \"%s\"\n",
                   IP,
-                  DateStr,
+                  datePtr,
                   Request,
                   ResponseCode,
                   (unsigned int) ResponseLength,
@@ -64,12 +70,18 @@ int AccessLogAppend(char * IP,char * DateStr,char * Request,unsigned int Respons
 int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
 {
     if (!ErrorLogEnable) { return 0; }
-    FILE * pFile = fopen (AccessLog, "a");
+    FILE * pFile = fopen (ErrorLog, "a");
     if (pFile==0) { return 0; }
+
+
+    char autoDateBuffer[10]={"0/0/0"};
+    char * datePtr = 0;
+    if ( DateStr !=0 ) { datePtr = DateStr; } else
+                       { datePtr = autoDateBuffer;  }
 
     fprintf(pFile,"%s - - [%s] \"%s\" %u %u \"%s\" \"%s\"\n",
                   IP,
-                  DateStr,
+                  datePtr,
                   Request,
                   ResponseCode,
                   (unsigned int) ResponseLength,

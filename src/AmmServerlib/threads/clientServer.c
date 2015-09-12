@@ -53,6 +53,44 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../cache/client_list.h"
 #include "../cache/dynamic_requests.h"
 
+
+inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
+{
+  char ipstr[MAX_IP_STRING_SIZE]={0};
+  int  iport=0;
+
+  getSocketIPAddress(instance,transaction->clientSock,ipstr,&iport);
+
+  return AccessLogAppend( ipstr,
+                          0, // Auto Date It NOW!
+                          transaction->incomingHeader.resource
+                          ,logCode
+                          ,transaction->outgoingBodySize // <- This might be wrong
+                          ,filename
+                          ,transaction->incomingHeader.userAgent
+                         );
+}
+
+
+inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
+{
+  char ipstr[MAX_IP_STRING_SIZE]={0};
+  int  iport=0;
+
+  getSocketIPAddress(instance,transaction->clientSock,ipstr,&iport);
+
+  return ErrorLogAppend( ipstr,
+                          0, // Auto Date It NOW!
+                          transaction->incomingHeader.resource
+                          ,logCode
+                          ,transaction->outgoingBodySize // <- This might be wrong
+                          ,filename
+                          ,transaction->incomingHeader.userAgent
+                         );
+}
+
+
+
 inline int isResourceADirectory(const char * resource,unsigned int resourceLength)
 {
  if (strcmp(resource,"/")==0)
@@ -163,6 +201,8 @@ inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * in
      if (opres<=0) { fprintf(stderr,"Error sending authorization needed message\n"); }
      warning("Client Denied access to resource due to being anauthorized!");
 
+     logError(instance,transaction,200,"authorization_required");
+
   return 1;
 }
 
@@ -182,10 +222,12 @@ inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Inst
           //If Directory_listing enabled and directory is ok , send the generated site
           SendMemoryBlockAsFile("dir.html",transaction->clientSock,replyBody ,sendSize);
           if (replyBody !=0) { free(replyBody ); }
+          logSuccess(instance,transaction,200,servefile);
         } else
         {
           //If Directory listing disabled or directory is not ok send a 404
           SendErrorFile(instance,transaction,404);
+          logError(instance,transaction,404,servefile);
           return 0;
         }
 
@@ -225,28 +267,6 @@ inline int handleClientSentHeader(struct AmmServer_Instance * instance,struct HT
 }
 
 
-inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,const char * filename)
-{
-  return 1;
-}
-
-inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,const char * filename)
-{
-  char ipstr[MAX_IP_STRING_SIZE]={0};
-  int  iport=0;
-
-  getSocketIPAddress(instance,transaction->clientSock,ipstr,&iport);
-
-  return AccessLogAppend( ipstr,
-                          0, // Auto Date It NOW!
-                          transaction->incomingHeader.resource
-                          ,200
-                          ,transaction->outgoingBodySize // <- This might be wrong
-                          ,filename
-                          ,transaction->incomingHeader.userAgent
-                         );
-}
-
 
 inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
@@ -256,14 +276,19 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
    if (!httpHeaderReceivedWithNoProblems)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
-      error("Bad Request!"); SendErrorFile(instance,transaction,400); return 0;
+      error("Bad Request!");
+      SendErrorFile(instance,transaction,400);
+      logError(instance,transaction,400,"400.html");
+      return 0;
    }
       else
    if (!clientList_isClientAllowedToUseResource(instance->clientList,transaction->clientListID,transaction->incomingHeader.resource))
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
-     warning("Client Denied access to resource!"); SendErrorCodeHeader(transaction->clientSock,403 ,"403.html",instance->templates_root);  return 0;
+     warning("Client Denied access to resource!"); SendErrorCodeHeader(transaction->clientSock,403 ,"403.html",instance->templates_root);
+     logError(instance,transaction,403,"403.html");
+     return 0;
    } else
    if ((instance->settings.PASSWORD_PROTECTION)&&(!transaction->incomingHeader.authorized))
    {
@@ -341,7 +366,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
                       )
                 )
                 {
-                  logSuccess(instance,transaction,servefile);
+                  logSuccess(instance,transaction,200,servefile);
                 }
                  else
                 {
@@ -357,6 +382,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
      {
         fprintf(stderr,"404 not found..!!\n");
         SendErrorFile(instance,transaction,404);
+        logError(instance,transaction,404,servefile);
         return 0;
      }
    } else
@@ -365,17 +391,20 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
             fprintf(stderr,"BAD predatory Request sensed by header analysis!");
             //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
             SendErrorFile(instance,transaction,400);
+            logError(instance,transaction,400,"400.html");
             return 0;
            } else
           if (transaction->incomingHeader.requestType==NONE)
            { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
             fprintf(stderr,"Weird unrecognized Request!");
             SendErrorFile(instance,transaction,400);
+            logError(instance,transaction,400,"400.html");
             return 0;
            } else
            { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
             warning("Not Implemented Request!\n");
             SendErrorFile(instance,transaction,501);
+            logError(instance,transaction,501,"501.html");
             return 0;
            }
    } // Not a Bad request END
