@@ -225,10 +225,26 @@ inline int handleClientSentHeader(struct AmmServer_Instance * instance,struct HT
 }
 
 
+inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,const char * filename)
+{
+  return 1;
+}
 
 inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,const char * filename)
 {
-  return 1;
+  char ipstr[MAX_IP_STRING_SIZE]={0};
+  int  iport=0;
+
+  getSocketIPAddress(instance,transaction->clientSock,ipstr,&iport);
+
+  return AccessLogAppend( ipstr,
+                          0, // Auto Date It NOW!
+                          transaction->incomingHeader.resource
+                          ,200
+                          ,transaction->outgoingBodySize // <- This might be wrong
+                          ,filename
+                          ,transaction->incomingHeader.userAgent
+                         );
 }
 
 

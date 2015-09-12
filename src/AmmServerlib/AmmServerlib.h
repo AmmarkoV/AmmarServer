@@ -56,7 +56,7 @@ enum TypesOfRequests
 };
 
 
-#define MAX_IP_STRING_SIZE 32
+#define MAX_IP_STRING_SIZE 48 // This should be more than INET6_ADDRSTRLEN
 #define MAX_QUERY 2048
 #define MAX_RESOURCE 2048
 #define MAX_FILE_PATH 1024
