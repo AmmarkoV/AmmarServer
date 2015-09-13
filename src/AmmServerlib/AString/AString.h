@@ -19,7 +19,7 @@
 * @param needle we want to search in the haystack to replace
 * @param String that will replace existing one
 * @retval 1=Success,0=Fail
-* @bug astringInjectDataToMemoryHandler is not implemented correctly , it might be buggy..!
+* @bug astringInjectDataToMemoryHandler is not implemented correctly , it is be buggy..!
 */
 int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value);
 
