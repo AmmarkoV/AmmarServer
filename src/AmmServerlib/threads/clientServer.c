@@ -361,7 +361,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
                       (
                          instance,
                          transaction,
-                         transaction->incomingHeader.headerRAW ,  // -- Log What was asked to be served
+                         servefile,  // -- Log What was asked to be served
                          0 // <- We dont want to force an error code!
                       )
                 )
