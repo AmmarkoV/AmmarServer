@@ -461,7 +461,16 @@ void * serve_create_url_page(struct AmmServer_DynamicRequest  * rqst)
 
   char val[132+1]={0};
   snprintf(val ,132, "%u",loaded_links);
-  AmmServer_ReplaceVarInMemoryFile(rqst->content,indexPageLength,"$NUMBER_OF_LINKS$",val);
+
+
+  struct AmmServer_MemoryHandler create_url_page_mh={0};
+
+  create_url_page_mh.content=rqst->content;
+  create_url_page_mh.contentSize=rqst->contentSize;
+  create_url_page_mh.contentCurrentLength=rqst->contentSize;
+
+
+  AmmServer_ReplaceVariableInMemoryHandler(&create_url_page_mh,"$NUMBER_OF_LINKS$",val);
 
   return 0;
 }

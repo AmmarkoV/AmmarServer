@@ -519,33 +519,6 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 
 
 
-
-void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWith)
-{
-  char * cur = input;
-  char * inputEnd = input+strlen(input);
-  while ( cur < inputEnd )
-  {
-     if (*cur == findChar ) { *cur = replaceWith; }
-     ++cur;
-  }
-  return ;
-}
-
-
-
-int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value)
-{
-  return astringReplaceVarInMemoryFile(page,pageLength,var,value);
-}
-
-
-int AmmServer_ReplaceAllVarsInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value)
-{
-  return astringReplaceAllInstancesOfVarInMemoryFile(page,instances,pageLength,var,value);
-}
-
-
 void AmmServer_GlobalTerminationHandler(int signum)
 {
         fprintf(stderr,"Terminating AmmarServer with signum %i .. \n",signum);
@@ -630,9 +603,20 @@ int AmmServer_ReplaceVariableInMemoryHandler(struct AmmServer_MemoryHandler * mh
 
 int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh ,unsigned int instances,const char * var,const char * value)
 {
-  return astringReplaceAllInstancesOfVarInMemoryFile(mh->content,instances,mh->contentCurrentLength,var,value);
+  return astringReplaceAllInstancesOfVarInMemoryFile(mh,instances,var,value);
 }
 
+void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWith)
+{
+  char * cur = input;
+  char * inputEnd = input+strlen(input);
+  while ( cur < inputEnd )
+  {
+     if (*cur == findChar ) { *cur = replaceWith; }
+     ++cur;
+  }
+  return ;
+}
 
 
 struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int initialBufferLength, unsigned int growStep)
