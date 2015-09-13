@@ -32,7 +32,7 @@ int myStupidMemcpy(char * target , char * source , unsigned int sourceLength)
 
 int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,unsigned int *offset,const char * var,const char * value)
 {
-  fprintf(stderr,"We want to inject \n Value=`%s` \n to \n Var=`%s` \n",value,var);
+  fprintf(stderr,"astringInjectDataToMemoryHandlerOffset , offset %u inject \n Value=`%s` \n to \n Var=`%s` \n",*offset,value,var);
 
   if (value==0)        { fprintf(stderr,"injectDataToBuffer / Zero Data To Inject we are happy..\n"); return 1; }
   if (var==0)  { fprintf(stderr,"injectDataToBuffer / No entry point defined..\n");           return 0; }
@@ -51,15 +51,21 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
  unsigned int varLength = strlen(var);
 
  //Take advantage of offset when searching :) , this makes search faster
- char * where2start = mh->content + *offset;
+ char * where2startSearch = mh->content + *offset;
 
- char * where2inject = (unsigned char* ) strstr ((const char*) where2start ,(const char*) var);
+ char * where2inject = (unsigned char* ) strstr ((const char*) where2startSearch  ,(const char*) var);
  mh->lastOperationPosition_NOT_ThreadSafe_Var = where2inject ; // Remember where we did our last operation..!
   if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
  unsigned int injectOffset = where2inject - mh->content;
 
  unsigned int partToBeMovedLength = mh->contentCurrentLength - injectOffset - varLength;
 
+
+ if (valueLength<=varLength)
+ {
+   fprintf(stderr,"No need for reallocations etc..!\n");
+   //No need for reallocations..
+ } else
  if (mh->contentCurrentLength + partToBeMovedLength + 1 > mh->contentSize )
  {
   fprintf(stderr,"Reallocating buffer to astringInjectDataToMemoryHandler \n");
