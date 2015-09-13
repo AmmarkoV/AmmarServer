@@ -9,16 +9,7 @@
 
 #include "../AmmServerlib.h"
 
-int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value);
-int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value);
 
-char * astringReadFileToMemory(const char * filename,unsigned int *length );
-
-int astringWriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength);
-
-//int astringCopyOverlappingDataContent(unsigned char * buffer , unsigned int totalSize  , unsigned char * from , unsigned char * to , unsigned int blockSize);
-
-int astringInjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , unsigned char * buffer,  unsigned int currentBufferLength , unsigned int totalBufferLength);
 
 
 /**
@@ -31,5 +22,15 @@ int astringInjectDataToBuffer(unsigned char * entryPoint , unsigned char * data 
 * @bug This does not yet reallocate the buffer to make it bigger in case it is not big enough to accomodate the new string..
 */
 int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value);
+
+
+
+int astringReplaceAllInstancesOfVarInMemoryFile(struct AmmServer_MemoryHandler * mh,unsigned int instances,const char * var,const char * value);
+
+
+
+char * astringReadFileToMemory(const char * filename,unsigned int *length );
+int astringWriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength);
+
 
 #endif // ASTRING_H_INCLUDED

@@ -155,6 +155,8 @@ struct AmmServer_RequestOverride_Context
 */
 struct AmmServer_MemoryHandler
 {
+  char * lastOperationPosition_NOT_ThreadSafe_Var;
+
   unsigned int contentSize;
   unsigned int contentCurrentLength;
   char * content;
@@ -680,42 +682,6 @@ int AmmServer_ExecuteCommandLineNum(const char *  command , char * what2GetBack 
 int AmmServer_ExecuteCommandLine(const char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize);
 
 
-
-/**
-* @brief Hot-Replace a character inside a memory block , typically used to replace characters like '+' with ' '
-* @ingroup tools
-* @param Pointer to memory that contains the null terminated string
-* @param Character to be replaced
-* @param What to replace the character with
-*/
-void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWith);
-
-/**
-* @brief Hot-Replace a variable inside a memory block , typically used to replace placeholders inside text files , like $$$$$$$$NAME$$$$$$$$  , the value should be smaller or equal to the var beeing replaced
-* @ingroup tools
-* @param Pointer to memory that contains the document
-* @param Size of document
-* @param Variable to be replaced
-* @param What to replace it with
-* @retval 1=Ok,0=Failed
-* @bug Value should not be bigger than variable otherwise things won't fit in the same memory block , this should be handled
-*/
-int AmmServer_ReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value);
-
-
-/**
-* @brief Hot-Replace ALL variables inside a memory block , typically used to replace placeholders inside text files , like $$$$$$$$NAME$$$$$$$$  , the value should be smaller or equal to the var being replaced
-* @ingroup tools
-* @param Pointer to memory that contains the document
-* @param Maximum number of Variable instances , 0 means infinite ( until the end of the memory buffer )..
-* @param Size of document
-* @param Variable to be replaced
-* @param What to replace it with
-* @retval 1=Ok,0=Failed
-* @bug Value should not be bigger than variable otherwise things won't fit in the same memory block , this should be handled
-*/
-int AmmServer_ReplaceAllVarsInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value);
-
 /**
 * @brief Read a file and store it to a freshly allocated memory block
 * @ingroup tools
@@ -765,6 +731,16 @@ struct AmmServer_MemoryHandler *  AmmServer_CopyMemoryHandler(struct AmmServer_M
 */
 int AmmServer_ReplaceVariableInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value);
 
+
+
+/**
+* @brief Hot-Replace a character inside a memory block , typically used to replace characters like '+' with ' '
+* @ingroup tools
+* @param Pointer to memory that contains the null terminated string
+* @param Character to be replaced
+* @param What to replace the character with
+*/
+void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWith);
 
 /**
 * @brief Search for entryPoint pattern in buffer multiple times , and inject data in each one..!

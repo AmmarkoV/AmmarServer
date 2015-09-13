@@ -30,7 +30,7 @@ int myStupidMemcpy(char * target , char * source , unsigned int sourceLength)
  return 1;
 }
 
-int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
+int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,unsigned int *offset,const char * var,const char * value)
 {
   fprintf(stderr,"We want to inject \n Value=`%s` \n to \n Var=`%s` \n",value,var);
 
@@ -50,7 +50,11 @@ int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const c
  unsigned int valueLength = strlen(value);
  unsigned int varLength = strlen(var);
 
- char * where2inject = (unsigned char* ) strstr ((const char*) mh->content,(const char*) var);
+ //Take advantage of offset when searching :) , this makes search faster
+ char * where2start = mh->content + *offset;
+
+ char * where2inject = (unsigned char* ) strstr ((const char*) where2start ,(const char*) var);
+ mh->lastOperationPosition_NOT_ThreadSafe_Var = where2inject ; // Remember where we did our last operation..!
   if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
  unsigned int injectOffset = where2inject - mh->content;
 
@@ -83,76 +87,51 @@ int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const c
  //We append the partToBeMoved
  memcpy(where2inject+valueLength,partToBeMoved,partToBeMovedLength);
 
+ //Remember injection offset..!
+ *offset = injectOffset;
 
  mh->contentCurrentLength += valueLength;
  mh->content[mh->contentCurrentLength]=0; //Make sure that the end is clearly signaled
 
  free(partToBeMoved);
 
- return 0;
-}
-
-
-
-int astringReplaceVarInMemoryFile(char * page,unsigned int pageLength,const char * var,const char * value)
-{
-  if (page==0) { fprintf(stderr,"Replacing var in empty page\n"); return 0; }
-  if (var==0) { fprintf(stderr,"Given an empty variable to replace\n"); return 0; }
-
-  unsigned int varLength = strlen(var);
-  unsigned int valueLength = strlen(value);
-  if (varLength>pageLength) { fprintf(stderr,"This variable is larger than the whole page\n"); return 0; }
-  if (varLength<valueLength) { fprintf(stderr,"This variable payload is larger than the variable, this is not implemented yet\n"); return 0; }
-
-  char * location = strstr(page,var);
-  if (location == 0 ) { return 0; }
-  char * scanEnd = location+valueLength;
-  char * locationEnd = location+varLength;
-  const char * curValue = value;
-
-  while (location<scanEnd)
-  {
-    *location = *curValue;
-    ++location;
-    ++curValue;
-  }
-
-  while (location<locationEnd)
-  {
-    *location = ' ';
-    ++location;
-  }
-
-  return 1;
-}
-
-
-int astringReplaceAllInstancesOfVarInMemoryFile(char * page,unsigned int instances,unsigned int pageLength,const char * var,const char * value)
-{
-  if ( (page==0) || (pageLength==0) || (var==0) || (value==0) ) { return 0; }
-
-  unsigned int varLength = strlen(var);
-  unsigned int locatedInstaces=0;
-  char * location = strstr(page,var);
-  while  (location!=0)
-  {
-    ++locatedInstaces;
-
-    if ( (instances==0) || (instances>=locatedInstaces) )
-    {
-     unsigned int remainingLength = pageLength - (location-page);
-     astringReplaceVarInMemoryFile(location,remainingLength,var,value);
-     ++location;
-    }
-
-    if ( (instances!=0) && (instances==locatedInstaces) ) { return 1; } //We Finished with all instances we wanted to replace
-    if (location+1>=page+pageLength) { return 1; } //Never get out of memory on strstr
-    if (location+varLength>=page+pageLength) { return 1; } //We finished our buffer lets get out..
-    location = strstr(location,var);
-  }
 
  return 1;
 }
+
+
+
+int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
+{
+  unsigned int offset = 0;
+  return astringInjectDataToMemoryHandlerOffset(mh,&offset,var,value);
+}
+
+
+
+int astringReplaceAllInstancesOfVarInMemoryFile(struct AmmServer_MemoryHandler * mh,unsigned int instances,const char * var,const char * value)
+{
+  if ( (mh==0) || (mh->content==0) || (instances==0) || (var==0) || (value==0) ) { return 0; }
+
+  unsigned int offset = 0;
+  unsigned int remainingInstances=instances;
+
+  while  (remainingInstances>0)
+  {
+    if ( astringInjectDataToMemoryHandlerOffset(mh,&offset,var,value) )
+    {
+      --remainingInstances;
+    } else
+    {
+        break;
+    }
+  }
+
+ return (remainingInstances==0);
+}
+
+
+
 
 
 /*
