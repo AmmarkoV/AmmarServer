@@ -155,8 +155,6 @@ struct AmmServer_RequestOverride_Context
 */
 struct AmmServer_MemoryHandler
 {
-  char * lastOperationPosition_NOT_ThreadSafe_Var;
-
   unsigned int contentSize;
   unsigned int contentCurrentLength;
   char * content;

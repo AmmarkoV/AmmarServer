@@ -10,15 +10,6 @@
 #define YELLOW  "\033[33m"      /* Yellow */
 
 
-/*
-struct AmmServer_MemoryHandler
-{
-  unsigned int contentSize;
-  unsigned int contentCurrentLength;
-  char * content;
-};
-*/
-
 int myStupidMemcpy(char * target , char * source , unsigned int sourceLength)
 {
   while (sourceLength>0)
@@ -26,7 +17,6 @@ int myStupidMemcpy(char * target , char * source , unsigned int sourceLength)
     *target=*source;
     --sourceLength;
   }
-
  return 1;
 }
 
@@ -44,6 +34,9 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
 
    WE WANT :                               PART_TO_BE_MOVED
          S <----------------> VALUE <-------------------------------> NEWEND
+         or
+         S <----------------> VA <-------------------------------> NEWEND
+                                           PART_TO_BE_MOVED
  */
 
  //We need to know how long is our value and variable
@@ -54,18 +47,19 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
  char * where2startSearch = mh->content + *offset;
 
  char * where2inject = (unsigned char* ) strstr ((const char*) where2startSearch  ,(const char*) var);
- mh->lastOperationPosition_NOT_ThreadSafe_Var = where2inject ; // Remember where we did our last operation..!
   if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
  unsigned int injectOffset = where2inject - mh->content;
 
  unsigned int partToBeMovedLength = mh->contentCurrentLength - injectOffset - varLength;
 
-
+ //If the value is small enough then we dont need to do a lot of stuff..!
  if (valueLength<=varLength)
  {
    fprintf(stderr,"No need for reallocations etc..!\n");
+   mh->contentCurrentLength-=varLength; //Our String becomes shorter..
    //No need for reallocations..
  } else
+ //If the value is big we need to reallocate and copy our data around..!..!
  if (mh->contentCurrentLength + partToBeMovedLength + 1 > mh->contentSize )
  {
   fprintf(stderr,"Reallocating buffer to astringInjectDataToMemoryHandler \n");
@@ -84,7 +78,7 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
 
  //We save the part to be moved @ partToBeMoved
  memcpy(partToBeMoved,where2inject+varLength,partToBeMovedLength);
- //fprintf(stderr,"End Part is `%s`\n \n",partToBeMoved);
+ partToBeMoved[partToBeMovedLength]=0; // Null termination..
 
 
  //We write our value..
@@ -167,7 +161,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
   rewind (pFile);
 
   // allocate memory to contain the whole file:
-  char * buffer = (char*) malloc (sizeof(char)*lSize);
+  char * buffer = (char*) malloc (sizeof(char)*(lSize+1));
   if (buffer == 0 ) { fprintf(stderr,RED "Could not allocate enough memory for file %s " NORMAL,filename); fclose(pFile); return 0; }
 
   // copy the file into the buffer:
@@ -185,7 +179,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
   // terminate
   fclose (pFile);
 
-
+  buffer[lSize]=0; //Null Terminate Buffer!
   *length = (unsigned int) lSize;
   return buffer;
 }

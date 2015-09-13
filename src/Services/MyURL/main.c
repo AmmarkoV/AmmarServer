@@ -471,6 +471,9 @@ void * serve_create_url_page(struct AmmServer_DynamicRequest  * rqst)
   //Replace the number of served links..
   AmmServer_ReplaceVariableInMemoryHandler(&create_url_page_mh,"$NUMBER_OF_LINKS$",val);
 
+  //Update the new content size ( our page became a little smaller )..!
+  rqst->contentSize=strlen(rqst->content);
+
   return 0;
 }
 
