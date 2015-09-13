@@ -597,9 +597,7 @@ int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned
 int AmmServer_ReplaceVariableInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
 {
   return astringInjectDataToMemoryHandler(mh,var,value);
-  //return astringReplaceVarInMemoryFile(mh->content,mh->contentCurrentLength,var,value);
 }
-
 
 int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh ,unsigned int instances,const char * var,const char * value)
 {
