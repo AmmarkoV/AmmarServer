@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "../AmmServerlib/AmmServerlib.h"
 #include "../AmmServerlib/hashmap/hashmap.h"
 
 
@@ -50,7 +51,16 @@ int doHashMapTest()
 
 int doInjectTest()
 {
- return 0;
+   char indexPagePath[128]="src/Services/MyURL/myurl.html";
+
+   struct AmmServer_MemoryHandler * test_mh= AmmServer_ReadFileToMemoryHandler(indexPagePath);
+
+  //Replace the number of served links..
+  AmmServer_ReplaceVariableInMemoryHandler(test_mh,"$NUMBER_OF_LINKS$","95");
+
+  fprintf(stderr,"%s",test_mh->content);
+
+  return 0;
 }
 
 
@@ -58,8 +68,9 @@ int doInjectTest()
 
 int main(int argc, char *argv[])
 {
-  if (!doHashMapTest())   { fprintf(stderr,GREEN "Hash Map Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test .. Failed\n" NORMAL); }
   if (!doInjectTest())   { fprintf(stderr,GREEN "Injection Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Injection Test .. Failed\n" NORMAL); }
+
+  //if (!doHashMapTest())   { fprintf(stderr,GREEN "Hash Map Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test .. Failed\n" NORMAL); }
 
 
 
