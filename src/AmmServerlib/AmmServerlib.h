@@ -754,31 +754,27 @@ struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char *
 */
 struct AmmServer_MemoryHandler *  AmmServer_CopyMemoryHandler(struct AmmServer_MemoryHandler * inpt);
 
-/**
-* @brief Copy Content from one place of a buffer to another using an intermediate buffer..
-* @ingroup tools
-* @param Original Buffer
-* @param Size of Original Buffer
-* @param Pointer to the start of the source of the copy
-* @param Pointer to the start of the destination of the copy
-* @param Size of data to copy
-* @retval 1=Ok,0=Failed
-*/
-int AmmServer_CopyOverlappingDataContent(unsigned char * buffer , unsigned int totalSize  , unsigned char * from , unsigned char * to , unsigned int blockSize);
-
 
 /**
 * @brief Search for entryPoint pattern in buffer , and inject data there..!
 * @ingroup tools
+* @param Memory Handler for Buffer we want to inject to , see struct AmmServer_MemoryHandler
 * @param String to find in buffer and replace with new content
 * @param Data we want to inject
-* @param Memory Handler for Buffer we want to inject to , see struct AmmServer_MemoryHandler
 * @retval 1=Ok,0=Failed
 */
-int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , struct AmmServer_MemoryHandler * mh );
+int AmmServer_ReplaceVariableInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value);
 
 
-int AmmServer_ReplaceVarInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value);
+/**
+* @brief Search for entryPoint pattern in buffer multiple times , and inject data in each one..!
+* @ingroup tools
+* @param Memory Handler for Buffer we want to inject to , see struct AmmServer_MemoryHandler
+* @param Number of instances we want to replace
+* @param String to find in buffer and replace with new content
+* @param Data we want to inject
+* @retval 1=Ok,0=Failed
+*/
 int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh ,unsigned int instances,const char * var,const char * value);
 
 struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int initialBufferLength, unsigned int growStep);

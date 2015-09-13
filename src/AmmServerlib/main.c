@@ -187,6 +187,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
    if (StartHTTPServer(instance,ip,instance->settings.BINDING_PORT,web_root_path,templates_root_path))
       {
           //All is well , we return a valid instance
+            AccessLogAppend("127.0.0.1",0,"startup",1,0,"startup","ammarserver");
           return instance;
       } else
       {
@@ -619,17 +620,8 @@ int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned
   return astringWriteFileFromMemory(filename,memory,memoryLength);
 }
 
-int AmmServer_CopyOverlappingDataContent(unsigned char * buffer , unsigned int totalSize  , unsigned char * from , unsigned char * to , unsigned int blockSize)
-{
-  return astringCopyOverlappingDataContent(buffer,totalSize,from,to,blockSize);
-}
 
-int AmmServer_InjectDataToBuffer(unsigned char * entryPoint , unsigned char * data , struct AmmServer_MemoryHandler * mh )
-{
-  return astringInjectDataToMemoryHandler(mh,entryPoint,data);
-}
-
-int AmmServer_ReplaceVarInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
+int AmmServer_ReplaceVariableInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
 {
   return astringInjectDataToMemoryHandler(mh,var,value);
   //return astringReplaceVarInMemoryFile(mh->content,mh->contentCurrentLength,var,value);

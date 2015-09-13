@@ -330,29 +330,29 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   fprintf(stderr,"Injecting Menu List..!\n");
   unsigned char * htmlData = 0;
   htmlData = getMenuListHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++MENULIST+++++++++",htmlData,indexPage);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++MENULIST+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
 
   fprintf(stderr,"Injecting Widget List..!\n");
   htmlData = getWidgetListHTML(configuration);
   //This segfaults
-  //AmmServer_InjectDataToBuffer("+++++++++WIDGETLIST+++++++++",htmlData,indexPage);
+  //AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++WIDGETLIST+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Blog Roll Left..!\n");
   htmlData = getLeftBlogRollHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++LEFTBLOGROLL+++++++++",htmlData,indexPage);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++LEFTBLOGROLL+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Blog Roll Right..!\n");
   htmlData = getRightBlogRollHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++RIGHTBLOGROLL+++++++++",htmlData,indexPage);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++RIGHTBLOGROLL+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Footer List ..!\n");
   htmlData = getFooterLinksHTML(configuration);
-  AmmServer_InjectDataToBuffer("+++++++++FOOTERLINKS+++++++++",htmlData,indexPage);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++FOOTERLINKS+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
 
