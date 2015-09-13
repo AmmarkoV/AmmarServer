@@ -49,6 +49,8 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
  char * where2inject = (unsigned char* ) strstr ((const char*) where2startSearch  ,(const char*) var);
   if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
  unsigned int injectOffset = where2inject - mh->content;
+ //Remember injection offset..!
+ *offset = injectOffset;
 
  unsigned int partToBeMovedLength = mh->contentCurrentLength - injectOffset - varLength;
 
@@ -87,11 +89,11 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
  //We append the partToBeMoved
  memcpy(where2inject+valueLength,partToBeMoved,partToBeMovedLength);
 
- //Remember injection offset..!
- *offset = injectOffset;
 
  mh->contentCurrentLength += valueLength;
+ fprintf(stderr,"");
  mh->content[mh->contentCurrentLength]=0; //Make sure that the end is clearly signaled
+ mh->content[injectOffset + valueLength + partToBeMovedLength] = 0;
 
  free(partToBeMoved);
 
