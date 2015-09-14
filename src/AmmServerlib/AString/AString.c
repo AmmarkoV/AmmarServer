@@ -142,8 +142,9 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
          extraBuffer[extraBufferLength]=0; // Null termination..
 
 
-         //We move the end urther away
+         //We move the end further away
          reverseSyncMemcpy(varPtr+valueLength+extraBufferLength,varPtr+valueLength,endLength);
+         varPtr[valueLength+extraBufferLength+endLength]=0;
 
          //We write our value..
          memcpy(varPtr,value,valueLength);
