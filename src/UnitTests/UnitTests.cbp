@@ -32,7 +32,10 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>
-			<Add library="../AmmServerlib/libAmmServerlib.a" />
+			<Add option="../AmmServerlib/libAmmarServer.a" />
+			<Add option="-pthread" />
+			<Add option="-lrt" />
+			<Add option="-lz" />
 		</Linker>
 		<Unit filename="testHashMap.c">
 			<Option compilerVar="CC" />

@@ -7,8 +7,6 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 
     #This is the core library 
     add_subdirectory (src/AmmServerlib)
-    #These are unit tests for the core library
-    add_subdirectory (src/UnitTests)
  
     #After we are done with the basics make all our secondary libraries
     add_subdirectory (src/AmmCaptcha) 
@@ -31,6 +29,8 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
     add_subdirectory (src/Services/CinemaPilot) 
     add_subdirectory (src/Services/SQLiteServer)
     
+    #These are unit tests for the core library
+    add_subdirectory (src/UnitTests)
    
 # TODO FIX INSTALLATION DIRECTORIES 
 

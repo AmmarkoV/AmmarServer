@@ -10,7 +10,7 @@
 #define YELLOW  "\033[33m"      /* Yellow */
 
 
-int myStupidMemcpy(char * target , char * source , unsigned int sourceLength)
+int reverseMemcpy(char * target , char * source , unsigned int sourceLength)
 {
   while (sourceLength>0)
   {
@@ -20,86 +20,132 @@ int myStupidMemcpy(char * target , char * source , unsigned int sourceLength)
  return 1;
 }
 
+
+
 int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,unsigned int *offset,const char * var,const char * value)
 {
   fprintf(stderr,"astringInjectDataToMemoryHandlerOffset , offset %u inject \n Value=`%s` \n to \n Var=`%s` \n",*offset,value,var);
 
-  if (value==0)        { fprintf(stderr,"injectDataToBuffer / Zero Data To Inject we are happy..\n"); return 1; }
-  if (var==0)  { fprintf(stderr,"injectDataToBuffer / No entry point defined..\n");           return 0; }
-  if (mh==0)      { fprintf(stderr,"injectDataToBuffer / No Buffer To inject to..\n");           return 0; }
+  if (value==0) { fprintf(stderr,"injectDataToBuffer / Zero Data To Inject we are happy..\n"); return 1; }
+  if (var==0)   { fprintf(stderr,"injectDataToBuffer / No entry point defined..\n");           return 0; }
+  if (mh==0)    { fprintf(stderr,"injectDataToBuffer / No Buffer To inject to..\n");           return 0; }
 
  /*
-   WE HAVE :                              PART_TO_BE_MOVED
-         S <----------------> VAR <-------------------------------> OLDEND
+  We Have :
+                  StartLength                      VarLength                         EndLength
+  StartPtr <----------------------------> VarPtr <---VARIABLE---> EndPtr <-----------------------------------> NullTerminator
 
-   WE WANT :                               PART_TO_BE_MOVED
-         S <----------------> VALUE <-------------------------------> NEWEND
-         or
-         S <----------------> VA <-------------------------------> NEWEND
-                                           PART_TO_BE_MOVED
+  and we want to change VARIABLE with a new VALUE
+  There are 2 cases , if the VALUE is small then we can just go ahead and do the following
+
+
+                  StartLength                      VarLength                         EndLength
+  StartPtr <----------------------------> VarPtr <---VARIABLE---> EndPtr <-----------------------------------> NullTerminator
+
+  memcpy( VarPtr , ValuePtr , ValueLength );
+  memcpy( VarPtr+ValueLength , EndPtr , EndLength );
+  contentCurrentLength = StartLength + ValueLength + EndLength;
+  StartPtr[contentCurrentLength] = 0;
+
+
+  ELSE
+
+
+  if the Value is bigger than the variable things get trickier..!
+  We need to reallocate a bigger buffer , store the things that do not fit and then proceed with copying
+
+
+
  */
+
+ //Take advantage of offset when searching :) , this makes search faster
+ unsigned int injectOffset = 0;
+ char * where2startSearchForVar = mh->content + *offset;
+
+ char * varPtr   = (unsigned char* ) strstr ((const char*) where2startSearchForVar  ,(const char*) var);
+ if (varPtr==0)
+    {
+     fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n");
+     return 0;
+    } else
+    {
+     //Remember injection offset..!
+      injectOffset =varPtr - mh->content;
+     *offset = injectOffset;
+    }
+
 
  //We need to know how long is our value and variable
  unsigned int valueLength = strlen(value);
  unsigned int varLength = strlen(var);
 
- //Take advantage of offset when searching :) , this makes search faster
- char * where2startSearch = mh->content + *offset;
+ char *       valuePtr = (char*) value;
+ //char *     varPtr  --- Calculated above
+ char *       startPtr = mh->content;
+ unsigned int startLength = varPtr-startPtr;
+ char *       endPtr = varPtr+varLength;
+ unsigned int endLength = strlen(endPtr);
 
- char * where2inject = (unsigned char* ) strstr ((const char*) where2startSearch  ,(const char*) var);
-  if (where2inject==0) { fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point!\n"); return 0; }
- unsigned int injectOffset = where2inject - mh->content;
- //Remember injection offset..!
- *offset = injectOffset;
-
- unsigned int partToBeMovedLength = mh->contentCurrentLength - injectOffset - varLength;
 
  //If the value is small enough then we dont need to do a lot of stuff..!
  if (valueLength<=varLength)
  {
    fprintf(stderr,"No need for reallocations etc..!\n");
-   mh->contentCurrentLength-=varLength; //Our String becomes shorter..
-   //No need for reallocations..
+
+   memcpy( varPtr , valuePtr , valueLength );
+   memcpy( varPtr+valueLength , endPtr , endLength );
+   mh->contentCurrentLength = startLength + valueLength - varLength + endLength;
+   startPtr[mh->contentCurrentLength+1] = 0;
+
  } else
- //If the value is big we need to reallocate and copy our data around..!..!
- if (mh->contentCurrentLength + partToBeMovedLength + 1 > mh->contentSize )
  {
-  fprintf(stderr,"Reallocating buffer to astringInjectDataToMemoryHandler \n");
-  char * newBuffer = realloc( mh->content , mh->contentCurrentLength + partToBeMovedLength + 1);
-  if (newBuffer==0) { fprintf(stderr,"Could not Inject #1\n"); return 0; }
+  unsigned int extraBufferLength = valueLength - varLength;
 
-  where2inject = newBuffer + injectOffset; //We recalculate the pointer for where 2 inject based on the new reallocated buffer..!
+  char * newBuffer = realloc( mh->content , mh->contentCurrentLength + extraBufferLength + 1);
+  if (newBuffer==0)
+    {
+     fprintf(stderr,"Could not Inject #1\n");
+     return 0;
+    } else
+    {
+      mh->content = newBuffer;
+      mh->contentSize=mh->contentCurrentLength + extraBufferLength;
 
-  mh->content = newBuffer;
-  mh->contentSize=mh->contentCurrentLength + partToBeMovedLength + 1;
+      //We want to allocate enough space for the part to be moved
+      char * extraBuffer = (char* ) malloc( (extraBufferLength+1) * sizeof(char));
+      if (extraBuffer==0)
+        {
+          fprintf(stderr,"Could not allocate enough space for the part to be moved\n");
+          return 0;
+        } else
+        {
+         //We save our extra data to a memory block
+         memcpy(extraBuffer,varPtr+varLength,extraBufferLength);
+         extraBuffer[extraBufferLength]=0; // Null termination..
+
+
+         //We move the end urther away
+         reverseMemcpy(varPtr+valueLength+extraBufferLength,varPtr+valueLength,endLength);
+
+         //We write our value..
+         memcpy(varPtr,value,valueLength);
+
+         //We append the extraBuffer
+         memcpy(varPtr+valueLength,extraBuffer,extraBufferLength);
+
+
+         mh->contentCurrentLength += valueLength;
+         mh->content[mh->contentCurrentLength]=0;
+
+         free(extraBuffer);
+        }
+    }
  }
-
- //We want to allocate enough space for the part to be moved
- char * partToBeMoved = (char* ) malloc( (partToBeMovedLength+1) * sizeof(char));
- if (partToBeMoved==0) { fprintf(stderr,"Could not allocate enough space for the part to be moved\n"); return 0; }
-
- //We save the part to be moved @ partToBeMoved
- memcpy(partToBeMoved,where2inject+varLength,partToBeMovedLength);
- partToBeMoved[partToBeMovedLength]=0; // Null termination..
-
-
- //We write our value..
- memcpy(where2inject,value,valueLength);
-
- //We append the partToBeMoved
- memcpy(where2inject+valueLength,partToBeMoved,partToBeMovedLength);
-
-
- mh->contentCurrentLength += valueLength;
- fprintf(stderr,"");
- mh->content[mh->contentCurrentLength]=0; //Make sure that the end is clearly signaled
- mh->content[injectOffset + valueLength + partToBeMovedLength] = 0;
-
- free(partToBeMoved);
-
 
  return 1;
 }
+
+
 
 
 
