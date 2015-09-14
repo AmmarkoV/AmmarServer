@@ -12,6 +12,7 @@
 
 int reverseSyncMemcpy(char * target , char * source , unsigned int sourceLength)
 {
+  if (sourceLength==0) { return 0; }
   char * sourcePtr = source + sourceLength;
   char * targetPtr = target + sourceLength;
   while (sourceLength>0)
@@ -21,6 +22,7 @@ int reverseSyncMemcpy(char * target , char * source , unsigned int sourceLength)
     --targetPtr;
     --sourcePtr;
   }
+ *targetPtr=*sourcePtr;
  return 1;
 }
 
@@ -160,9 +162,6 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
 
  return 1;
 }
-
-
-
 
 
 int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)

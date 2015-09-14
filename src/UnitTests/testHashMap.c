@@ -54,11 +54,16 @@ int doInjectTest()
    char indexPagePath[128]="src/Services/MyURL/myurl.html";
 
    struct AmmServer_MemoryHandler * test_mh= AmmServer_ReadFileToMemoryHandler(indexPagePath);
+   AmmServer_ReplaceVariableInMemoryHandler(test_mh,"$NUMBER_OF_LINKS$","95");
+   fprintf(stderr,"%s",test_mh->content);
 
-  //Replace the number of served links..
-  AmmServer_ReplaceVariableInMemoryHandler(test_mh,"$NUMBER_OF_LINKS$","95");
+   struct AmmServer_MemoryHandler * test_mh2= AmmServer_ReadFileToMemoryHandler(indexPagePath);
+   AmmServer_ReplaceVariableInMemoryHandler(test_mh2,"$NUMBER_OF_LINKS$","00000000000000000000000000095");
+   fprintf(stderr,"%s",test_mh2->content);
 
-  fprintf(stderr,"%s",test_mh->content);
+  // AmmServer_FreeMemoryHandler(&test_mh2);
+  // AmmServer_FreeMemoryHandler(&test_mh);
+
 
   return 0;
 }
