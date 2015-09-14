@@ -152,7 +152,7 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
          memcpy(varPtr+valueLength,extraBuffer,extraBufferLength);
 
 
-         mh->contentCurrentLength += valueLength;
+         mh->contentCurrentLength += extraBufferLength;
          mh->content[mh->contentCurrentLength]=0;
 
          free(extraBuffer);
