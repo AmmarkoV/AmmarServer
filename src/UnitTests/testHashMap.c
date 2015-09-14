@@ -59,6 +59,7 @@ int doInjectTest()
 
    struct AmmServer_MemoryHandler * test_mh2= AmmServer_ReadFileToMemoryHandler(indexPagePath);
    AmmServer_ReplaceVariableInMemoryHandler(test_mh2,"$NUMBER_OF_LINKS$","00000000000000000000000000095");
+   AmmServer_ReplaceVariableInMemoryHandler(test_mh2,"AmmarkoV","AmmarkoVTheGreat");
    fprintf(stderr,"%s",test_mh2->content);
 
   // AmmServer_FreeMemoryHandler(&test_mh2);

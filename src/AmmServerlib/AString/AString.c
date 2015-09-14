@@ -127,7 +127,8 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
     } else
     {
       mh->content = newBuffer;
-      mh->contentSize=mh->contentCurrentLength + extraBufferLength;
+      mh->contentCurrentLength += extraBufferLength;
+      mh->contentSize=mh->contentSize;
 
       //We want to allocate enough space for the part to be moved
       char * extraBuffer = (char* ) malloc( (extraBufferLength+1) * sizeof(char));
@@ -152,8 +153,7 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
          //We append the extraBuffer
          memcpy(varPtr+valueLength,extraBuffer,extraBufferLength);
 
-
-         mh->contentCurrentLength += extraBufferLength;
+         //Null Terminator is not being created
          mh->content[mh->contentCurrentLength]=0;
 
          free(extraBuffer);
