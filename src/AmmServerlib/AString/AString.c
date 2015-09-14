@@ -10,16 +10,32 @@
 #define YELLOW  "\033[33m"      /* Yellow */
 
 
-int reverseMemcpy(char * target , char * source , unsigned int sourceLength)
+int reverseSyncMemcpy(char * target , char * source , unsigned int sourceLength)
+{
+  char * sourcePtr = source + sourceLength;
+  char * targetPtr = target + sourceLength;
+  while (sourceLength>0)
+  {
+    *targetPtr=*sourcePtr;
+    --sourceLength;
+    --targetPtr;
+    --sourcePtr;
+  }
+ return 1;
+}
+
+
+int straightSyncMemcpy(char * target , char * source , unsigned int sourceLength)
 {
   while (sourceLength>0)
   {
     *target=*source;
     --sourceLength;
+    ++target;
+    ++source;
   }
  return 1;
 }
-
 
 
 int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,unsigned int *offset,const char * var,const char * value)
@@ -86,17 +102,17 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
  char *       endPtr = varPtr+varLength;
  unsigned int endLength = strlen(endPtr);
 
+ fprintf(stderr,"End Pointer %s \n\n\n END POINTER \n\n\n ",endPtr);
+
 
  //If the value is small enough then we dont need to do a lot of stuff..!
  if (valueLength<=varLength)
  {
    fprintf(stderr,"No need for reallocations etc..!\n");
-
    memcpy( varPtr , valuePtr , valueLength );
-   memcpy( varPtr+valueLength , endPtr , endLength );
-   mh->contentCurrentLength = startLength + valueLength - varLength + endLength;
-   startPtr[mh->contentCurrentLength+1] = 0;
-
+   straightSyncMemcpy( varPtr+valueLength , endPtr , endLength );
+   mh->contentCurrentLength = startLength + valueLength + endLength;
+   startPtr[mh->contentCurrentLength] = 0;
  } else
  {
   unsigned int extraBufferLength = valueLength - varLength;
@@ -125,7 +141,7 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
 
 
          //We move the end urther away
-         reverseMemcpy(varPtr+valueLength+extraBufferLength,varPtr+valueLength,endLength);
+         reverseSyncMemcpy(varPtr+valueLength+extraBufferLength,varPtr+valueLength,endLength);
 
          //We write our value..
          memcpy(varPtr,value,valueLength);
