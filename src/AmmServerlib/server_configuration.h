@@ -22,7 +22,7 @@ extern "C" {
 #define WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR 1
 
 
-/** @brief Don't do realloc .   */
+/** @brief Don't do reallocs this disables part of the functionality but could be more .   */
 #define DO_NOT_ALLOW_MEMORY_REALLOCATIONS 0
 
 
