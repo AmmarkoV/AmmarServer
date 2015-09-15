@@ -22,6 +22,8 @@ extern "C" {
 #define WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR 1
 
 
+/** @brief Don't do realloc .   */
+#define DO_NOT_ALLOW_MEMORY_REALLOCATIONS 0
 
 
 /** @brief Time sleeping when a dynamic request that serves a common file across all clients is busy   */
