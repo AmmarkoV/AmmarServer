@@ -123,6 +123,10 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
    startPtr[mh->contentCurrentLength] = 0;
  } else
  {
+  fprintf(stderr,"Realloc code is not stable and is disabled for now :( sorry !\n");
+  return 0;
+
+
   unsigned int extraBufferLength = valueLength - varLength;
   unsigned int reallocatedBufferSize = mh->contentSize + extraBufferLength;
 
@@ -147,7 +151,6 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
       mh->contentCurrentLength += extraBufferLength;
       mh->contentSize=mh->contentCurrentLength;
 
-
       //Reallocate indexes to new buffer
       startPtr = newBuffer;
       varPtr =  newBuffer  + injectOffset;
@@ -155,6 +158,27 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
 
       mh->content = newBuffer;
 
+      fprintf(stderr,"We save our extra data ( %u ) to a memory block\n ",extraBufferLength);
+
+         fprintf(stderr,"We move the end further away\n ");
+         fprintf(stderr,"We will move : \n `%s` \n TO \n `%s` \n \n ",varPtr+valueLength,varPtr+valueLength+extraBufferLength);
+         reverseSyncMemcpy(varPtr+valueLength+extraBufferLength,varPtr+valueLength,endLength);
+
+         fprintf(stderr,"We write our value..\n ");
+         //We write our value..
+         memcpy(varPtr,value,valueLength);
+
+
+       fprintf(stderr,"We append Null Terminator ..\n ");
+       mh->content[mh->contentCurrentLength]=0;
+    }
+ }
+
+ return 1;
+}
+
+
+/*
       //We want to allocate enough space for the part to be moved
       char * extraBuffer = (char* ) malloc( (extraBufferLength+1) * sizeof(char));
       if (extraBuffer==0)
@@ -186,11 +210,7 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
          fprintf(stderr,"We append Null Terminator ..\n ");
          mh->content[mh->contentCurrentLength]=0;
         }
-    }
- }
-
- return 1;
-}
+*/
 
 
 int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
