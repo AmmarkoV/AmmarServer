@@ -163,10 +163,11 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-
-               memcpy( rqst->content , videoMH->content , videoMH->contentSize );
-               rqst->contentSize = videoMH->contentSize;
+               memcpy( rqst->content , videoMH->content , videoMH->contentCurrentLength );
+               rqst->contentSize = videoMH->contentCurrentLength;
+               rqst->content[rqst->contentSize]=0; //Make sure null termination is there..!
                fprintf(stderr,"Gave back %lu\n",rqst->contentSize);
+
                AmmServer_FreeMemoryHandler(&videoMH);
                }
               }

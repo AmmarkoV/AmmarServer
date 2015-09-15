@@ -19,7 +19,6 @@ int reverseSyncMemcpy(char * target , char * source , unsigned int sourceLength)
     }
     char * sourcePtr = source + sourceLength-1;
     //fprintf(stderr,"reverseSyncMemcpy : Final Source , %u \n" , (unsigned int) *sourcePtr);
-
     char * targetPtr = target + sourceLength-1;
     //fprintf(stderr,"reverseSyncMemcpy : Final Target , %u \n" , (unsigned int) *targetPtr);
 
@@ -31,7 +30,6 @@ int reverseSyncMemcpy(char * target , char * source , unsigned int sourceLength)
         --sourcePtr;
         --sourceLength;
     }
-//*targetPtr=*sourcePtr;
     return 1;
 }
 
@@ -115,15 +113,21 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
     unsigned int valueLength = strlen(value);
     unsigned int varLength = strlen(var);
 
-    fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )  inject \n Value[%u]=`%s`  \n to \n Var[%u]=`%s`  \n",
-            mh->contentSize,mh->contentCurrentLength,*offset,valueLength,value,varLength,var);
+    fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )\n",mh->contentSize,mh->contentCurrentLength,*offset);
+    //fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )  inject \n Value[%u]=`%s`  \n to \n Var[%u]=`%s`  \n",
+    //        mh->contentSize,mh->contentCurrentLength,*offset,valueLength,value,varLength,var);
 
     char *       startPtr = mh->content;
     unsigned int startLength = varPtr-startPtr;
     char *       endPtr = varPtr+varLength;
     unsigned int endLength = mh->contentCurrentLength - (endPtr-startPtr);
 
-//If the value is small enough then we dont need to do a lot of stuff..!
+    //If the value is small enough then we dont need to do a lot of stuff..!
+    if (valueLength==varLength)
+    {
+        fprintf(stderr,"No need for anything just copy and be done ..\n");
+        memcpy( varPtr , value , valueLength );
+    } else
     if (valueLength<=varLength)
     {
         fprintf(stderr,"No need for reallocations etc..!\n");
@@ -137,6 +141,8 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
       #if DO_NOT_ALLOW_MEMORY_REALLOCATIONS
         fprintf(stderr,"astringInjectDataToMemoryHandlerOffset : Realloc code is disabled in this build\n");
         return 0;
+      #else
+        #warning "astringInjectDataToMemoryHandlerOffset will try reallocations , not 100% this part of the code is sane..!"
       #endif // DO_NOT_ALLOW_MEMORY_REALLOCATIONS
 
       unsigned int extraBufferLength = valueLength - varLength;
@@ -178,7 +184,7 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
             memcpy(varPtr,value,valueLength);
 
             //We append Null Terminator..
-            mh->content[mh->contentCurrentLength]=0;
+            startPtr[mh->contentCurrentLength]=0;
         }
     }
 
