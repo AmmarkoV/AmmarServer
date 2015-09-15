@@ -134,18 +134,15 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
     }
     else
     {
-#if DO_NOT_ALLOW_MEMORY_REALLOCATIONS
+      #if DO_NOT_ALLOW_MEMORY_REALLOCATIONS
         fprintf(stderr,"astringInjectDataToMemoryHandlerOffset : Realloc code is disabled in this build\n");
         return 0;
-#endif // DO_NOT_ALLOW_MEMORY_REALLOCATIONS
+      #endif // DO_NOT_ALLOW_MEMORY_REALLOCATIONS
 
+      unsigned int extraBufferLength = valueLength - varLength;
+      unsigned int reallocatedBufferSize = mh->contentSize + extraBufferLength;
 
-        unsigned int extraBufferLength = valueLength - varLength;
-        unsigned int reallocatedBufferSize = mh->contentSize + extraBufferLength;
-
-
-
-        char * newBuffer = realloc( mh->content , reallocatedBufferSize + 1 ); //Also making space for null termination
+      char * newBuffer = realloc( mh->content , reallocatedBufferSize + 1 ); //Also making space for null termination
         if (newBuffer==0)
         {
             fprintf(stderr,"astringInjectDataToMemoryHandlerOffset could not allocate extra space to accommodate variable\n");
@@ -153,17 +150,17 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
         }
         else
         {
-            newBuffer[mh->contentSize]=0; // Keep our new buffer clean
-
+            newBuffer[mh->contentSize]=0; // Keep our new buffer clean at all times
             //We just realloced so we will now have to move all of our pointers to the new memory locations
 
+            //==========================================================================
             //Clean the rest of the buffer ( debug code )
             unsigned int i=0;
             for (i=mh->contentSize; i<mh->contentSize+extraBufferLength; i++)
             {
                 newBuffer[i]=0;
             }
-            //==================================================
+            //==========================================================================
 
             mh->content = newBuffer;
             mh->contentCurrentLength += extraBufferLength;
@@ -177,12 +174,10 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
             //fprintf(stderr,"We will move : \n `%s` \n TO \n `%s` \n \n ",varPtr+valueLength,varPtr+valueLength+extraBufferLength);
             reverseSyncMemcpy(varPtr+valueLength,varPtr+varLength,endLength);
 
-            //fprintf(stderr,"We write our value..\n ");
             //We write our value..
             memcpy(varPtr,value,valueLength);
 
-
-            //fprintf(stderr,"We append Null Terminator ..\n ");
+            //We append Null Terminator..
             mh->content[mh->contentCurrentLength]=0;
         }
     }
