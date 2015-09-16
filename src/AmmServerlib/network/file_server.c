@@ -74,7 +74,7 @@ int SendPart(int clientsock,const char * message,unsigned int message_size)
 }
 
 
-inline int TransmitFileToSocketInternal(
+ int TransmitFileToSocketInternal(
                                          FILE * pFile,
                                          int clientsock,
                                          unsigned long bytesToSendStart
@@ -83,7 +83,7 @@ inline int TransmitFileToSocketInternal(
     //We dont want the server to allocate a big enough space to reduce disk reading overheads
     //but we dont want to allocate huge portions of memory so we set a soft limit here
     unsigned long bytesToSend = bytesToSendStart;
-    unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB;
+    unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB*1024; // 17-09-15 <- I had forgotten the *1024 This was very small and caused weird high CPU loads that took me 2 days to debug
     //Of course in case that the size to send is smaller than our limit we will commit a smaller amount of memory
     if (bytesToSend < malloc_size) { malloc_size=bytesToSend; }
 
@@ -213,31 +213,30 @@ int TransmitFileToSocket(
                          unsigned long end_at_byte     // Optionally end at an offset ( resume download functionality )
                         )
 {
-    int res = 0;
-    FILE * pFile = fopen (verified_filename, "rb" );
+ int res = 0;
+ FILE * pFile = fopen (verified_filename, "rb" );
 
-    //If we can't open the file we fail to transmit the file
-    if (pFile==0)
-      {
-       fprintf(stderr,"Could not open file %s , files open %u \n",verified_filename,files_open);
-       return 0;
-      } else
-      {
-
-
+ //If we can't open the file we fail to transmit the file
+ if (pFile==0)
+   {
+    fprintf(stderr,"Could not open file %s , files open %u \n",verified_filename,files_open);
+    return 0;
+   } else
+   {
     //Count the open file
     ++files_open;
 
-    //Try to obtain file size if not fail to transmit the fail
-    if ( fseek (pFile , 0 , SEEK_END)!=0 )
+     //Try to obtain file size if not fail to transmit the fail
+     if ( fseek (pFile , 0 , SEEK_END)!=0 )
       {
         warning("Could not find file size..!\nUnable to serve client\n");
         fclose(pFile);
         --files_open;  //Count the closed file
         return 0;
       }
+      unsigned long lSize = ftell (pFile);
+      //-------------------------------------------------------
 
-    unsigned long lSize = ftell (pFile);
     if ( (end_at_byte!=0) && (lSize<end_at_byte) )
       {
         fprintf(stderr,"Incorrect range request , the file changed? ( from %u to %u file 0 to %u ..! ) ,forcing known size\n",(unsigned int) start_at_byte,(unsigned int) end_at_byte,(unsigned int) lSize);
@@ -246,7 +245,6 @@ int TransmitFileToSocket(
 
     fprintf(stderr,"Sending => Size %0.2f KB / Open files %u / Filename %s \n",(double) lSize/1024,files_open,verified_filename);
 
-    res = 0;
      if (
           TransmitFileHeaderToSocket(
                                      clientsock,
@@ -264,10 +262,9 @@ int TransmitFileToSocket(
      }
 
 
-    --files_open; //Count the closed file
     fclose (pFile);
-
-      }
+    --files_open; //Count the closed file
+  }
   return res;
 }
 
