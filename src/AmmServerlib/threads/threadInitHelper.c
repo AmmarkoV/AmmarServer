@@ -18,6 +18,7 @@ static int parentKeepMessageOnStackUntilReadyOrTimeout(volatile int * childSwitc
     unsigned int countSleepTime=0;
     while (*childSwitch!=1)
          {
+           fprintf(stderr,"?");
            usleep(SLEEP_FOR_N_NANOSECONDS_WAITING_STACK_MESSAGE);
            ++countSleepTime;
            if (countSleepTime>maxWaitTime) { return 0; }

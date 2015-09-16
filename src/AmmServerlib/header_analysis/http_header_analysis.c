@@ -72,7 +72,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 
 
  unsigned int currentHTTPHeaderWaitTime=0;
- unsigned int maxHTTPHeaderWaitTime=1000;
+ unsigned int maxHTTPHeaderWaitTime=100;
 
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
@@ -84,12 +84,17 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
   //Gather Header until http request contains two newlines..!
   opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
   if (opres<=0)
-    {
+   {
       printRecvError();
       free(incomingRequest);
       return 0;
-    } else
-    {
+   } else
+  if (opres==0)
+   {
+    //Stalling header receiving..!
+    fprintf(stderr,".");
+   } else
+   {
       incomingRequestLength+=opres;
       fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
       if (incomingRequestLength>=MAXincomingRequestLength)

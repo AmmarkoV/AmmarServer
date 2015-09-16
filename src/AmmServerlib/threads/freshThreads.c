@@ -37,6 +37,8 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
                  }
             ++starting_from;
           }
+
+       fprintf(stderr,"-");
        starting_from=0;
        ++tries;
      }
@@ -108,7 +110,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
        while (  (context.keep_var_on_stack==1) && (waitCounter<maxWaitCounter) )
            {
              /*TODO : POTENTIAL BUG HERE ? THIS WAS OPTIMIZED OUT?*/
-             //fprintf(stderr,"?"); //<- Without this it crashes
+             fprintf(stderr,"!"); //<- Without this it crashes
              usleep(THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS);
              ++waitCounter;
             }
