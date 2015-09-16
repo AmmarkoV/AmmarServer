@@ -148,6 +148,8 @@ inline int TransmitFileToSocketInternal(
                            bytesToSend -= opres;
                            rollingBuffer += opres;
                           }
+
+           fprintf(stderr,"*");
         }
       } // End of having a remaining file to send
 
