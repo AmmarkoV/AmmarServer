@@ -114,6 +114,7 @@ inline int TransmitFileToSocketInternal(
           {  //If we reached the end of the file and thats why we read fewer bytes , and it is ok
              //If we haven't reached the end of the file then we have encountered a read error!
              fprintf(stderr,"Reading error %u while reading file \n",ferror(pFile));
+             perror ("The following error occured : ");
              free (buffer);
              return 0;
           }
