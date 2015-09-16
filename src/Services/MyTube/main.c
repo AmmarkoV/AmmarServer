@@ -179,7 +179,16 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
   unsigned int videoID=rand()%myTube->numberOfLoadedVideos;
-  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\"/></head><body> </body></html> ",videoID);
+  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n\
+     <html>\n\
+       <head>\n\
+        <script type=\"text/javascript\">\n\
+         <!--\n\
+            function Redirect() {\n\
+                                  window.location=\"watch?v=%u\";\n\
+                                }\n\
+         //-->\n\
+      </script><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\"/></head><body onload=\"Redirect();\"> </body></html> ",videoID,videoID);
   fprintf(stderr,"Giving back random video %u/%u \n",videoID,myTube->numberOfLoadedVideos);
   rqst->contentSize=strlen(rqst->content);
   return 0;
