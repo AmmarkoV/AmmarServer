@@ -501,7 +501,7 @@ void * ServeClient(void * ptr)
   }
   //----------------------------- ---------------------------- ----------------------------
 
-  fprintf(stderr,"Done with client / Closing Socket ..");
+  fprintf(stderr,"Done with client / Closing Socket ( %u )  ..",transaction.clientSock);
   close(transaction.clientSock);
   //fprintf(stderr,"closed\n");
 
