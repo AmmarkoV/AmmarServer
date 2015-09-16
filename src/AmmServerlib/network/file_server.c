@@ -135,6 +135,7 @@ inline int TransmitFileToSocketInternal(
                           {
                             /*Recepient stalling */
                             ++currentStalling;
+                            fprintf(stderr,".");
                           } else
                           {
                            dataSent_KB+=(unsigned long) chunkToSend/1024;
@@ -142,8 +143,6 @@ inline int TransmitFileToSocketInternal(
                            bytesToSend -= opres;
                            rollingBuffer += opres;
                           }
-
-           fprintf(stderr,".");
         }
       } // End of having a remaining file to send
 
