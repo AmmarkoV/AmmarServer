@@ -87,6 +87,7 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 
   #if MAX_CLIENT_PRESPAWNED_THREADS==0
     warning("PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n");
+    return;
   #else
   if ( (instance==0)||(instance->prespawned_pool==0) ) { fprintf(stderr,"PreSpawnThreads called on an invalid instance..\n"); return; }
 
@@ -124,7 +125,6 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
 
   #if MAX_CLIENT_PRESPAWNED_THREADS==0
     warning("PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n");
-    fprintf(stderr,"Was trying to bind to port %u \n" ,client.sin_port);
     return 0;
   #else
    //Please note that this must only get called from the main process/thread..

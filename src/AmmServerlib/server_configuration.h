@@ -78,7 +78,7 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 
 /** @brief Maximum Target of concurrent clients being listened at the same time C10K tests require this to be 10000 ( http://en.wikipedia.org/wiki/C10k_problem ) */
-#define MAX_CLIENTS_LISTENING_FOR 1000 //C10K :P
+#define MAX_CLIENTS_LISTENING_FOR 5000 //C10K :P
 
 /** @brief Maximum Number of concurrent threads being created at the same time , depending on the size of the listen pool this can be smaller than the MAX_CLIENTS_LISTENING_FOR and connections will
            be queued and served sequentially */

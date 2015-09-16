@@ -149,7 +149,6 @@ inline int TransmitFileToSocketInternal(
                            rollingBuffer += opres;
                           }
 
-           fprintf(stderr,"*");
         }
       } // End of having a remaining file to send
 
@@ -187,10 +186,9 @@ inline int TransmitFileHeaderToSocket(int clientsock,
     //THIS ALSO EXISTS IN THE Cached resource response CODE around line 395
     if ( (start_at_byte!=0) || (end_at_byte!=0) )
        {
-         //error(" TransmitFileToSocket Content-Range response");
-         //Content-Range: bytes 1000-3979/3980
          int endAtBytePrinted = end_at_byte;
-         if (endAtBytePrinted == 0 ) { endAtBytePrinted = lSize; }
+         if (endAtBytePrinted == 0 )
+            { endAtBytePrinted = lSize; }
           snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);
        } else
        {
@@ -215,6 +213,7 @@ int TransmitFileToSocket(
                          unsigned long end_at_byte     // Optionally end at an offset ( resume download functionality )
                         )
 {
+    int res = 0;
     FILE * pFile = fopen (verified_filename, "rb" );
 
     //If we can't open the file we fail to transmit the file
@@ -222,7 +221,9 @@ int TransmitFileToSocket(
       {
        fprintf(stderr,"Could not open file %s , files open %u \n",verified_filename,files_open);
        return 0;
-      }
+      } else
+      {
+
 
     //Count the open file
     ++files_open;
@@ -245,7 +246,7 @@ int TransmitFileToSocket(
 
     fprintf(stderr,"Sending => Size %0.2f KB / Open files %u / Filename %s \n",(double) lSize/1024,files_open,verified_filename);
 
-    int res = 0;
+    res = 0;
      if (
           TransmitFileHeaderToSocket(
                                      clientsock,
@@ -265,6 +266,8 @@ int TransmitFileToSocket(
 
     --files_open; //Count the closed file
     fclose (pFile);
+
+      }
   return res;
 }
 
@@ -295,14 +298,6 @@ unsigned long SendFile
   {
      strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
   }
-
-/*
- fprintf(stderr,"SendFile(%s , resourceCacheID = %u , start = %lu , end = %lu , keepalive = %u , compression = %u )\n",
-                 verified_filename,
-                 resourceCacheID,
-                 start_at_byte,
-                 end_at_byte,
-                 compression_supported);*/
 
 
 
