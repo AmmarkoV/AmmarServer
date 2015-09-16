@@ -79,7 +79,9 @@ unsigned int ServerThreads_DropRootUID()
    char output[POPEN_BUFFER_SIZE]={0};
    /* Read the output a line at a time - output it. */
      unsigned int i=0;
-     while (fgets(output,POPEN_BUFFER_SIZE , fp) != 0) { ++i; /*fprintf(stderr,"\n\nline %u = %s \n",i,output);*/ break; }
+     //Why is this needed ?
+     while (fgets(output,POPEN_BUFFER_SIZE , fp) != 0)
+        { ++i; /*fprintf(stderr,"\n\nline %u = %s \n",i,output);*/ break; }
     /* close */
      pclose(fp);
 
