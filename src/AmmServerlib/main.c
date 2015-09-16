@@ -105,7 +105,16 @@ void AmmServer_Success( const char *format , ... )
 
 int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
+  warning("AmmServer_Stop called ..\n");
   if (!instance) { return 0; }
+
+
+
+  if ( instance->webserverMonitorEnabled )
+  {
+    AmmServer_RemoveResourceHandler(instance,&instance->webserverMonitorPage,1);
+  }
+
   StopHTTPServer(instance);
   cache_Destroy(instance);
 
@@ -328,6 +337,7 @@ int AmmServer_AddResourceHandler
 int AmmServer_EnableMonitor( struct AmmServer_Instance * instance)
 {
   warning("Enabling Monitor..");
+  instance->webserverMonitorEnabled=1;
   return AmmServer_AddResourceHandler
      ( instance,
        &instance->webserverMonitorPage,
@@ -501,14 +511,6 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
    };
   return 0;
 }
-
-
-struct AmmServer_Instance *  AmmServer_StartAdminInstance(const char * ip,unsigned int port)
-{
-  fprintf(stderr,"Admin instance asked to open at %s:%u , but this is not implemented\n",ip,port);
-  return 0;
-}
-
 
 
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance)

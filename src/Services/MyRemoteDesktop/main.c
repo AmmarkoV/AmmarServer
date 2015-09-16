@@ -235,6 +235,7 @@ int main(int argc, char *argv[])
              sleep(1);
            }
 
+
     //Delete dynamic content allocations and remove stats.html and formtest.html from the server
     close_dynamic_content();
 

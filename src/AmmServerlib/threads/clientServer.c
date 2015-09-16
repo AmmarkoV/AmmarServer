@@ -515,7 +515,11 @@ void * ServeClient(void * ptr)
      //We also only want to stop the thread if itsnot prespawned !
      //fprintf(stderr,"Exiting Thread\n");
      //pthread_join(instance->threads_pool[transaction.threadID],0);
-     pthread_exit(0);
+     //pthread_exit(0);
+
+
+     //This should make the thread release all of its resources (?)
+     pthread_detach(pthread_self());
    }
 
   return 0;

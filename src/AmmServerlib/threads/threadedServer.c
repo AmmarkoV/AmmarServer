@@ -216,7 +216,10 @@ void * MainHTTPServerThread (void * ptr)
 
   warning("Server Stopped..");
   //It should already be closed so skipping this : close(serversock);
-  pthread_exit(0);
+  //pthread_exit(0);
+
+  //This should make the thread release all of its resources (?)
+  pthread_detach(pthread_self());
   return 0;
 }
 
@@ -270,9 +273,8 @@ int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigne
 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
-   pthread_t server_thread_id;
-   retres = pthread_create( &server_thread_id , 0 /*&instance->attr*/ ,MainHTTPServerThread,(void*) &context);
-   instance->server_thread_id = server_thread_id;
+   retres = pthread_create( &instance->server_thread_id , 0 /*&instance->attr*/ ,MainHTTPServerThread,(void*) &context);
+
    //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
 
    if ( retres==0 )
@@ -319,6 +321,7 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
   clientList_close(instance->clientList);
 
   //pthread_attr_destroy(&instance->attr);
+  pthread_cancel(instance->server_thread_id); //This should try to kill the main thread
 
   return (instance->stop_server==2);
 }
