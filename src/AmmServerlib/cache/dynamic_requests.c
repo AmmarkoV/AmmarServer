@@ -224,7 +224,7 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
 
   clientOverride->request = output;
 
-
+  fprintf(stderr,"doing callClientRequestHandler \n");
   void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
   DoCallback = clientOverride->request_override_callback;
 
