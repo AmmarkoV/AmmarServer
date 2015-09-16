@@ -252,6 +252,11 @@ struct AmmServer_Instance_Statistics
     unsigned long totalUploadKB;
     unsigned long totalDownloadKB;
 
+
+    unsigned long recvOperationsStarted;
+    unsigned long recvOperationsFinished;
+
+
     struct AmmServer_ResponseCategory_Statistics notModifiedPages;
     struct AmmServer_ResponseCategory_Statistics notFonudPages;
     struct AmmServer_ResponseCategory_Statistics otherCategoriesHere;
@@ -298,6 +303,7 @@ struct AmmServer_Instance
 
     struct AmmServer_RequestOverride_Context * clientRequestHandlerOverrideContext;
     struct AmmServer_RH_Context webserverMonitorPage;
+    int webserverMonitorEnabled;
 
     char webserver_root[MAX_FILE_PATH];
     char templates_root[MAX_FILE_PATH];

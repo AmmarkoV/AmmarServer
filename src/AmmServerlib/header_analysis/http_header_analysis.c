@@ -83,7 +83,9 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
  {
   //Gather Header until http request contains two newlines..!
   fprintf(stderr,"recv called ( socket %u )\n",clientSock);
+  ++instance->statistics.recvOperationsStarted;
    opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0/*MSG_DONTWAIT*/);
+  ++instance->statistics.recvOperationsFinished;
   fprintf(stderr,"recv returned ( socket %u )\n",clientSock);
   if (opres<0)
    {

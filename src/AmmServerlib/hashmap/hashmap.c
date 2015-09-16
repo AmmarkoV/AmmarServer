@@ -158,6 +158,11 @@ void hashMap_Destroy(struct hashMap * hm)
 {
   if (hm==0) { return ; }
 
+  //This needs to be done before clearing
+    #if HASHMAP_BE_THREAD_SAFE
+      pthread_mutex_destroy(&hm->hm_addLock);
+    #endif // HASHMAP_BE_THREAD_SAFE
+
   if ( hm->entries != 0)
   {
    hashMap_Clear(hm);
@@ -168,9 +173,6 @@ void hashMap_Destroy(struct hashMap * hm)
   hm->clearItemCallbackFunction=0;
   free(hm);
 
-    #if HASHMAP_BE_THREAD_SAFE
-      pthread_mutex_destroy(&hm->hm_addLock);
-    #endif // HASHMAP_BE_THREAD_SAFE
 
   return ;
 }
