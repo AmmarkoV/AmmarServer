@@ -39,31 +39,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define LF 10
 
 
-
-
-
-char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
+void printRecvError()
 {
- #warning "This has segfaulted with an invalid free error"
- *headerLength=0;
- int opres=0;
- unsigned int incomingRequestLength = 0 ;
- unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
- char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength+2) );
- if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
- incomingRequest[0]=0;
-
- fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
- while (
-        (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
-        (instance->server_running)
-       )
- {
-  //Gather Header until http request contains two newlines..!
-  opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
-  if (opres<=0)
-    {
-      switch (errno)
+switch (errno)
       {
         //case EAGAIN :
         case EWOULDBLOCK :
@@ -78,9 +56,36 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
         case ENOTCONN : warning("The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2))."); break;
         case ENOTSOCK : warning("The argument sockfd does not refer to a socket.");  break;
       };
+}
 
 
-      /*TODO : Check opres here..!*/
+char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
+{
+ #warning "This has segfaulted with an invalid free error"
+ *headerLength=0;
+ int opres=0;
+ unsigned int incomingRequestLength = 0 ;
+ unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
+ char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength+2) );
+ if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
+ incomingRequest[0]=0;
+
+
+ unsigned int currentHTTPHeaderWaitTime=0;
+ unsigned int maxHTTPHeaderWaitTime=1000;
+
+ fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
+ while (
+        (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
+        (instance->server_running) &&
+        (currentHTTPHeaderWaitTime < maxHTTPHeaderWaitTime)
+       )
+ {
+  //Gather Header until http request contains two newlines..!
+  opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
+  if (opres<=0)
+    {
+      printRecvError();
       free(incomingRequest);
       return 0;
     } else
@@ -123,7 +128,15 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
           }
       }
     }
+
+   ++currentHTTPHeaderWaitTime;
   }
+
+  if (currentHTTPHeaderWaitTime>maxHTTPHeaderWaitTime)
+  {
+      error("HTTP Header waiting timed out.. ");
+  }
+
   fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
   *headerLength=incomingRequestLength;
   return incomingRequest;

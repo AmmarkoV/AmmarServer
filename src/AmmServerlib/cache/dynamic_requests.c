@@ -120,6 +120,7 @@ char * dynamicRequest_serveContent
           {
            usleep(CLIENT_SLEEP_TIME_INTERVAL_NSEC );
            ++waitTime;
+           fprintf(stderr,"_");
           }
          }
 
