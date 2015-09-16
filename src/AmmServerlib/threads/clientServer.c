@@ -59,7 +59,7 @@ inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransactio
   char ipstr[MAX_IP_STRING_SIZE]={0};
   int  iport=0;
 
-  getSocketIPAddress(instance,transaction->clientSock,ipstr,&iport);
+  getSocketIPAddress(instance,transaction->clientSock,ipstr,MAX_IP_STRING_SIZE,&iport);
 
   return AccessLogAppend( ipstr,
                           0, // Auto Date It NOW!
@@ -77,7 +77,7 @@ inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction 
   char ipstr[MAX_IP_STRING_SIZE]={0};
   int  iport=0;
 
-  getSocketIPAddress(instance,transaction->clientSock,ipstr,&iport);
+  getSocketIPAddress(instance,transaction->clientSock,ipstr,MAX_IP_STRING_SIZE,&iport);
 
   return ErrorLogAppend( ipstr,
                           0, // Auto Date It NOW!

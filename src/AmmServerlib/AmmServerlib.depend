@@ -47,11 +47,11 @@
 1442396356 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.h
 	"../AmmServerlib.h"
 
-1442091106 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/http_tools.h
+1442400411 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/http_tools.h
 	"../AmmServerlib.h"
 	"../cache/client_list.h"
 
-1442340728 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.h
+1442396648 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.h
 	"AmmServerlib.h"
 
 1409775406 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/logs.h
@@ -96,7 +96,7 @@
 	<string.h>
 	"hashmap.h"
 
-1441103741 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.c
+1442396342 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.c
 	"http_header_analysis.h"
 	"post_header_analysis.h"
 	"../tools/http_tools.h"
@@ -129,7 +129,7 @@
 
 1409946494 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/postHeader.h
 
-1441375470 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
+1442399683 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -151,7 +151,7 @@
 	"../tools/logs.h"
 	"sendHTTPHeader.h"
 
-1442396361 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1442400446 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1441375293 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -407,11 +407,12 @@
 
 1406281864 /home/ammar/Documents/Programming/AmmarServer/public_html/templates/directoryListEnd.html
 
-1442169395 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.c
+1442341692 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	"AString.h"
+	"../server_configuration.h"
 
 1442174072 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.h
 	"../AmmServerlib.h"
