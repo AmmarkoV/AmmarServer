@@ -32,13 +32,6 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction);
 
 /**
-* @brief Deallocate memory occupied by an HTTP Header
-* @ingroup HTTPanalysis
-* @param HTTPHeader to be deallocated
-* @retval 1=Success,0=Failure */
-int FreeHTTPHeader(struct HTTPHeader * output);
-
-/**
 * @brief Ask if a header is complete inside an incoming request , detected by four consecutive bytes CR LF CR LF that mark the end of a header
 * @ingroup HTTPanalysis
 * @param Pointer to incoming request (streaming) string

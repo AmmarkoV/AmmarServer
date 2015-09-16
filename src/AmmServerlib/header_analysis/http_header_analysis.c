@@ -127,19 +127,6 @@ int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction)
 
 
 
-int FreeHTTPHeader(struct HTTPHeader * output)
-{
-   if (output==0) { /*Already Freed*/ return 1; }
-/* Getting a consistent segfault on the raspberry pi The last console line is
-   ->  Freeing HTTP Request : ETag *** glibc detected *** src/ammarserver: free(): invalid next size (fast): 0x01ad7ac8 *** */
-
-   //unsigned int fields_I_try_to_clean=0;
-
-   //This does nothing any more , to be removed
-
-   return 1;
-}
-
 int HTTPHeaderComplete(char * request,unsigned int request_length)
 {
   /*  This call returns 1 when we find two subsequent newline characters
