@@ -203,6 +203,8 @@ extern int varSocketTimeoutREAD_seconds;
 #define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 5
 extern int varSocketTimeoutWRITE_seconds;
 
+/**  @brief Max Send requests that return without transmitting anything */
+#define MAX_TRANSMISSION_STALL 100
 // ----------------- CACHE OPTIONS -----------------
 
 /**  @brief If caching is disabled server becomes a very simple file server , dynamic requests are also disabled*/
