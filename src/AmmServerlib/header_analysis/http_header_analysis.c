@@ -29,6 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,6 +63,23 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
   opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
   if (opres<=0)
     {
+      switch (errno)
+      {
+        //case EAGAIN :
+        case EWOULDBLOCK :
+               warning("The socket is marked nonblocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received. POSIX.1-2001 allows either error to be returned for this case, and does not require these constants to have the same value, so a portable application should check for both possibilities.");
+               break;
+        case EBADF : warning("The argument sockfd is an invalid descriptor."); break;
+        case ECONNREFUSED : warning("A remote host refused to allow the network connection (typically because it is not running the requested service)."); break;
+        case EFAULT : warning("The receive buffer pointer(s) point outside the process's address space.");  break;
+        case EINTR : warning("The receive was interrupted by delivery of a signal before any data were available; see signal(7).");  break;
+        case EINVAL : warning("Invalid argument passed.");  break;
+        case ENOMEM : warning("Could not allocate memory for recvmsg()."); break;
+        case ENOTCONN : warning("The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2))."); break;
+        case ENOTSOCK : warning("The argument sockfd does not refer to a socket.");  break;
+      };
+
+
       /*TODO : Check opres here..!*/
       free(incomingRequest);
       return 0;
