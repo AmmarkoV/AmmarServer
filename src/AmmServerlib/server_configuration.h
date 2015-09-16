@@ -68,6 +68,11 @@ extern "C" {
 /** @brief Setting this to 1 will signal that all instances of AmmarServer need to die at once */
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
+
+/** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
+#define MAX_CLIENT_PRESPAWNED_THREADS 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
+
+
 /** @brief Maximum Target of concurrent clients being listened at the same time C10K tests require this to be 10000 ( http://en.wikipedia.org/wiki/C10k_problem ) */
 #define MAX_CLIENTS_LISTENING_FOR 5000 //C10K :P
 
@@ -75,8 +80,7 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
            be queued and served sequentially */
 #define MAX_CLIENT_THREADS 3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
 
-/** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
-#define MAX_CLIENT_PRESPAWNED_THREADS 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
+
 /** @brief Maximum connections per IP , this is a little dangerous since multiple PC's can have a single gateway , but it is a good heuristic to better share resources
            @bug MAX_CLIENTS_PER_IP is not used if there is no client list declared */
 #define MAX_CLIENTS_PER_IP 3 //<- Not implemented yet
