@@ -56,12 +56,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
 {
-  char ipstr[MAX_IP_STRING_SIZE]={0};
-  int  iport=0;
-
-  getSocketIPAddress(instance,transaction->clientSock,ipstr,MAX_IP_STRING_SIZE,&iport);
-
-  return AccessLogAppend( ipstr,
+  return AccessLogAppend( transaction->ipStr,
                           0, // Auto Date It NOW!
                           transaction->incomingHeader.resource
                           ,logCode
@@ -74,12 +69,7 @@ inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransactio
 
 inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
 {
-  char ipstr[MAX_IP_STRING_SIZE]={0};
-  int  iport=0;
-
-  getSocketIPAddress(instance,transaction->clientSock,ipstr,MAX_IP_STRING_SIZE,&iport);
-
-  return ErrorLogAppend( ipstr,
+  return ErrorLogAppend(  transaction->ipStr ,
                           0, // Auto Date It NOW!
                           transaction->incomingHeader.resource
                           ,logCode
@@ -270,6 +260,9 @@ inline int handleClientSentHeader(struct AmmServer_Instance * instance,struct HT
 
 inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
+  //Remember the IP of this client..
+  getSocketIPAddress(instance,transaction->clientSock,transaction->ipStr,MAX_IP_STRING_SIZE,&transaction->port);
+
    //We have our connection / instancing /etc covered if we are here
    //In order to serve our client we must first receive the request header , so we do it now..!
    int httpHeaderReceivedWithNoProblems = handleClientSentHeader(instance,transaction);

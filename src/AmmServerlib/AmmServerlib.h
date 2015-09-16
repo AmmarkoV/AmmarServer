@@ -320,6 +320,9 @@ struct HTTPTransaction
   unsigned int clientListID;
   unsigned int threadID;
   int prespawnedThreadFlag;
+
+  char ipStr[MAX_IP_STRING_SIZE];
+  unsigned int port;
 };
 
 /** @brief Enumerator for calls AmmServer_GetInfo */

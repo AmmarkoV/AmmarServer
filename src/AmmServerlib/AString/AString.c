@@ -114,10 +114,15 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
     unsigned int varLength = strlen(var);
 
     #if DEBUG_MESSAGES
-     fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )\n",mh->contentSize,mh->contentCurrentLength,*offset);
+     unsigned int printDMesg=1;
+    #else
+     unsigned int printDMesg=0;
+    #endif // DEBUG_MESSAGES
+
+    if (printDMesg)
+    { fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )\n",mh->contentSize,mh->contentCurrentLength,*offset); }
      //fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )  inject \n Value[%u]=`%s`  \n to \n Var[%u]=`%s`  \n",
      //        mh->contentSize,mh->contentCurrentLength,*offset,valueLength,value,varLength,var);
-    #endif // DEBUG_MESSAGES
 
     char *       startPtr = mh->content;
     unsigned int startLength = varPtr-startPtr;
@@ -127,12 +132,12 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
     //If the value is small enough then we dont need to do a lot of stuff..!
     if (valueLength==varLength)
     {
-        fprintf(stderr,"No need for anything just copy and be done ..\n");
+        if (printDMesg) { fprintf(stderr,"No need for anything just copy and be done ..\n"); }
         memcpy( varPtr , value , valueLength );
     } else
     if (valueLength<=varLength)
     {
-        fprintf(stderr,"No need for reallocations etc..!\n");
+        if (printDMesg) { fprintf(stderr,"No need for reallocations etc..!\n"); }
         memcpy( varPtr , value , valueLength );
         straightSyncMemcpy( varPtr+valueLength , endPtr , endLength );
         mh->contentCurrentLength = startLength + valueLength + endLength;
