@@ -51,8 +51,8 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
 {
     if (value==0)
     {
-        fprintf(stderr,"injectDataToBuffer / Zero Data To Inject we are happy..\n");
-        return 1;
+        fprintf(stderr,"injectDataToBuffer / Zero Data To Inject , we should just remove the var..\n");
+        return 0;
     }
     if (var==0)
     {
@@ -113,9 +113,11 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
     unsigned int valueLength = strlen(value);
     unsigned int varLength = strlen(var);
 
-    fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )\n",mh->contentSize,mh->contentCurrentLength,*offset);
-    //fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )  inject \n Value[%u]=`%s`  \n to \n Var[%u]=`%s`  \n",
-    //        mh->contentSize,mh->contentCurrentLength,*offset,valueLength,value,varLength,var);
+    #if DEBUG_MESSAGES
+     fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )\n",mh->contentSize,mh->contentCurrentLength,*offset);
+     //fprintf(stderr,"astringInjectDataToMemoryHandlerOffset ( contentSize = %u , contentCurrentLength = %u , offset %u )  inject \n Value[%u]=`%s`  \n to \n Var[%u]=`%s`  \n",
+     //        mh->contentSize,mh->contentCurrentLength,*offset,valueLength,value,varLength,var);
+    #endif // DEBUG_MESSAGES
 
     char *       startPtr = mh->content;
     unsigned int startLength = varPtr-startPtr;
@@ -151,7 +153,7 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
       char * newBuffer = realloc( mh->content , reallocatedBufferSize + 1 ); //Also making space for null termination
         if (newBuffer==0)
         {
-            fprintf(stderr,"astringInjectDataToMemoryHandlerOffset could not allocate extra space to accommodate variable\n");
+            fprintf(stderr,RED "astringInjectDataToMemoryHandlerOffset could not allocate extra space to accommodate variable\n" NORMAL);
             return 0;
         }
         else
@@ -299,15 +301,15 @@ int astringWriteFileFromMemory(const char * filename,char * memory , unsigned in
     pFile = fopen ( filename , "wb" );
     if (pFile==0)
     {
-        fprintf(stderr,"Could not write file %s \n",filename);
+        fprintf(stderr,RED "Could not write file %s \n" NORMAL,filename);
         return 0;
     }
 
     result = fwrite (memory,1,memoryLength,pFile);
     if (result != memoryLength)
     {
-        fprintf(stderr,"Could not write the whole file onto disk %s \n",filename);
-        fprintf(stderr,"We wrote %zu / %u  \n",result,memoryLength);
+        fprintf(stderr,RED "Could not write the whole file onto disk %s \n" NORMAL,filename);
+        fprintf(stderr,RED "We wrote %zu / %u  \n" NORMAL,result,memoryLength);
         fclose(pFile);
         return 0;
     }

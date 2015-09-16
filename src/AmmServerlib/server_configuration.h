@@ -18,6 +18,10 @@ extern "C" {
 #endif
 
 
+/** @brief Enable a variety of debug messages in parts of the code that are not 100% bulletproof*/
+#define DEBUG_MESSAGES 0
+
+
 /** @brief Redeclares a function that causes linking problems..   */
 #define WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR 1
 
