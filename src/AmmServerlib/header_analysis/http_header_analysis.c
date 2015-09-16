@@ -72,7 +72,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 
 
  unsigned int currentHTTPHeaderWaitTime=0;
- unsigned int maxHTTPHeaderWaitTime=100;
+ unsigned int maxHTTPHeaderWaitTime=MAX_TRANSMISSION_STALL;
 
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
@@ -82,19 +82,23 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
        )
  {
   //Gather Header until http request contains two newlines..!
-  fprintf(stderr,"recv called ( socket %u ) ..\n",clientSock);
+  fprintf(stderr,"recv called ( socket %u )\n",clientSock);
    opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
-  fprintf(stderr,"recv returned ( socket %u )..\n",clientSock);
-  if (opres<=0)
+  fprintf(stderr,"recv returned ( socket %u )\n",clientSock);
+  if (opres<0)
    {
       printRecvError();
+      *headerLength=0;
       free(incomingRequest);
       return 0;
    } else
   if (opres==0)
    {
     //Stalling header receiving..!
-    fprintf(stderr,".");
+    fprintf(stderr,"recv stalls");
+      *headerLength=0;
+    free(incomingRequest);
+    return 0;
    } else
    {
       incomingRequestLength+=opres;
@@ -130,6 +134,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
           } else
           {
             fprintf(stderr,"The request would overflow , dropping client \n");
+            *headerLength=0;
             free(incomingRequest);
             return 0;
           }
@@ -142,6 +147,9 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
   if (currentHTTPHeaderWaitTime>maxHTTPHeaderWaitTime)
   {
       error("HTTP Header waiting timed out.. ");
+      *headerLength=0;
+      free(incomingRequest);
+      return 0;
   }
 
   fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
