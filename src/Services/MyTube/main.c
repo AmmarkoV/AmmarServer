@@ -391,6 +391,8 @@ void close_dynamic_content()
 
     AmmServer_FreeMemoryHandler(&indexPage);
     AmmServer_FreeMemoryHandler(&favicon);
+
+    unloadVideoDatabase(myTube);
 }
 /*! Dynamic content code ..! END ------------------------*/
 

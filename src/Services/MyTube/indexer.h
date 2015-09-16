@@ -31,6 +31,7 @@ extern unsigned int videoDefaultTestTranmission;
 
 char * path_cat2 (const char *str1,const char *str2);
 
+int unloadVideoDatabase(struct videoCollection* vc);
 struct videoCollection * loadVideoDatabase(char * directoryPath);
 
 

@@ -42,6 +42,19 @@ unsigned int clearExtensionFAST(char * inputOutputStr)
  return 0;
 }
 
+int unloadVideoDatabase(struct videoCollection* vc)
+{
+   if (vc!=0)
+   {
+       if (vc->video!=0)
+       {
+         free(vc->video);
+       }
+    free(vc);
+   }
+  return 1;
+}
+
 struct videoCollection * loadVideoDatabase(char * directoryPath)
 {
     struct videoCollection * newDB=(struct videoCollection * ) malloc(sizeof(struct videoCollection));
@@ -61,6 +74,8 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
     DIR *dir = opendir(directoryPath);
     if (dir==0)
     {
+        free(newDB->video);
+        free(newDB);
         return 0;
     }
     while ((dp=readdir(dir)) != 0)
