@@ -120,7 +120,6 @@ inline int TransmitFileToSocketInternal(
         }
 
 
-        unsigned int maxStalling=1000;
         unsigned int currentStalling=0;
         rollingBuffer = buffer;
         opres=1; // <- This needs to be 1 so that the initial while statement won't fail
@@ -135,9 +134,9 @@ inline int TransmitFileToSocketInternal(
                           {
                             /*Recepient stalling */
                             ++currentStalling;
-                            if (currentStalling>=maxStalling)
+                            if (currentStalling>=MAX_TRANSMISSION_STALL)
                                 {
-                                  warning("Reached max stall , stopping file transmission\n");
+                                  warning("Reached max transmission stall , stopping file transmission\n");
                                   stopFileTransmission=1;
                                 }
                             fprintf(stderr,".");
