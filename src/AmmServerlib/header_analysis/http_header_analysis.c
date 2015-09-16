@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "http_header_analysis.h"
 #include "post_header_analysis.h"
+#include "../network/file_server.h"
 #include "../tools/http_tools.h"
 #include "../tools/logs.h"
 #include "../server_configuration.h"
@@ -103,6 +104,9 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
     return 0;
    } else
    {
+      //Cound incoming data
+      dataReceived_KB+=opres;
+
       incomingRequestLength+=opres;
       fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
       if (incomingRequestLength>=MAXincomingRequestLength)
