@@ -83,7 +83,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
  {
   //Gather Header until http request contains two newlines..!
   fprintf(stderr,"recv called ( socket %u )\n",clientSock);
-   opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
+   opres=recv(clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,MSG_WAITALL);
   fprintf(stderr,"recv returned ( socket %u )\n",clientSock);
   if (opres<0)
    {
@@ -95,8 +95,8 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
   if (opres==0)
    {
     //Stalling header receiving..!
-    fprintf(stderr,"recv stalls");
-      *headerLength=0;
+    fprintf(stderr,"client shutdown ..\n");
+    *headerLength=0;
     free(incomingRequest);
     return 0;
    } else

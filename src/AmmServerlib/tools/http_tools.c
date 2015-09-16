@@ -946,7 +946,7 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
       if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
       {
         buffer[0]=0;
-        opres = recv(sockfd,buffer,max_content,MSG_WAITALL|MSG_NOSIGNAL);
+        opres = recv(sockfd,buffer,max_content,MSG_WAITALL);
         if (opres<=0) { fprintf(stderr,"Error Receiving Request data\n"); }
       }
 
