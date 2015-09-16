@@ -200,15 +200,15 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 extern int CHANGE_PRIORITY;
 
 /**  @brief Default timeout value before which a socket blocking on a read call should be considered dead */
-#define DEFAULT_SOCKET_READ_TIMEOUT_SECS 5
+#define DEFAULT_SOCKET_READ_TIMEOUT_SECS 3
 extern int varSocketTimeoutREAD_seconds;
 
 /**  @brief Default timeout value before which a socket blocking on a write call should be considered dead */
-#define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 5
+#define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 3
 extern int varSocketTimeoutWRITE_seconds;
 
 /**  @brief Max Send requests that return without transmitting anything */
-#define MAX_TRANSMISSION_STALL 100
+#define MAX_TRANSMISSION_STALL 1
 // ----------------- CACHE OPTIONS -----------------
 
 /**  @brief If caching is disabled server becomes a very simple file server , dynamic requests are also disabled*/
