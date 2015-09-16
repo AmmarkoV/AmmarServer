@@ -31,6 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "http_tools.h"
 #include "logs.h"
@@ -1018,6 +1019,15 @@ int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , c
  } else
  {
    warning("Could not get peer name..!"); //This could be a reason to drop this connection!
+   switch ( errno )
+   {
+     case EBADF    : warning("The argument sockfd is not a valid descriptor.");                                       break;
+     case EFAULT   : warning("The addr argument points to memory not in a valid part of the process address space."); break;
+     case EINVAL   : warning("addrlen is invalid (e.g., is negative).");                                              break;
+     case ENOBUFS  : warning("Insufficient resources were available in the system to perform the operation.");        break;
+     case ENOTCONN : warning("The socket is not connected.");                                                         break;
+     case ENOTSOCK : warning("The argument sockfd is a file, not a socket.");                                         break;
+   };
    return 0;
  }
 
