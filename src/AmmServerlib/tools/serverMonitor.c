@@ -14,19 +14,22 @@
 //This function prepares the content of  stats context , ( stats.content )
 void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
 {
+  struct AmmServer_Instance * instance = rqst->instance;
   snprintf(rqst->content,rqst->MAXcontentSize,
   "<html><head><meta http-equiv=\"refresh\" content=\"1;URL='monitor.html'\" /></head><body>\
    <h1>AMMARSERVER <a target=\"_new\" href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/tools/serverMonitor.c\">MONITOR PAGE</a></h1><hr> \
    active threads : %u <br>\
    active clients : %u <br>\
+   active recv calls : %u <br>\
    served requests: %u <br>\
    current memory consumption ( cache ) : %u KB<br>\
    data sent/recvd : %lu KB/%lu KB<br>\
    <hr>\
    </body></html>",
-   GetActiveHTTPServerThreads(rqst->instance),
+   GetActiveHTTPServerThreads(instance),
    files_open,
-   cache_GetCacheSizeKB(rqst->instance),
+   (unsigned int) instance->statistics.recvOperationsStarted-instance->statistics.recvOperationsFinished ,
+   cache_GetCacheSizeKB(instance),
    dataSent_KB,
    dataReceived_KB
    );
