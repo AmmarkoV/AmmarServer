@@ -276,7 +276,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
    if (!httpHeaderReceivedWithNoProblems)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
-      error("Bad Request!");
+      error("Failed to receive HTTP header without problems!");
       SendErrorFile(instance,transaction,400);
       logError(instance,transaction,400,"400.html");
       return 0;
@@ -510,7 +510,7 @@ void * ServeClient(void * ptr)
   }
   //----------------------------- ---------------------------- ----------------------------
 
-  //fprintf(stderr,"Closing Socket ..");
+  fprintf(stderr,"Done with client / Closing Socket ..");
   close(transaction.clientSock);
   //fprintf(stderr,"closed\n");
 
