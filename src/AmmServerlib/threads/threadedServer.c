@@ -177,7 +177,9 @@ void * MainHTTPServerThread (void * ptr)
   //If we made it this far , it means we got ourselves the port we wanted and we can start serving requests , but before we do that..
   //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
-  PreSpawnThreads(instance);
+  #if MAX_CLIENT_PRESPAWNED_THREADS
+   PreSpawnThreads(instance);
+  #endif // MAX_CLIENT_PRESPAWNED_THREADS
 
   while ( (instance->server_running) && (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
   {
@@ -187,7 +189,7 @@ void * MainHTTPServerThread (void * ptr)
     if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0) { error("Server Thread : Failed to accept client connection"); }
       else
       {
-           fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
+        fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
 
            if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root))
             {
@@ -202,11 +204,12 @@ void * MainHTTPServerThread (void * ptr)
               // if we failed then nothing can be done for this client
             } else
             {
-                warning("Server Thread : We dont have enough resources to serve client\n");
+                error("Server Thread : We dont have enough resources to serve client\n");
                 close(clientsock);
             }
 
       }
+    usleep(10); fprintf(stderr,".-.");
  }
   instance->server_running=0;
   instance->stop_server=2;

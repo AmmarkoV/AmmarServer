@@ -8,6 +8,7 @@
 
 char * generateThumbnailOfVideo(int live,const char * videoDirectory,const char * videofile,const char * thumbDirectory)
 {
+   fprintf(stderr,"generateThumbnailOfVideo(%s,%s,%s)\n",videoDirectory,videofile,thumbDirectory);
    unsigned int thumbDirectoryLength=strlen(thumbDirectory);
    unsigned int videoFileLength=strlen(videofile);
 

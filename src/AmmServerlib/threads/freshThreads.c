@@ -36,9 +36,9 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
                    return starting_from;
                  }
             ++starting_from;
+            fprintf(stderr,"-");
           }
 
-       fprintf(stderr,"-");
        starting_from=0;
        ++tries;
      }
@@ -83,7 +83,6 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
 
   volatile struct PassToHTTPThread context={0};
-  //memset((void*) &context,0,sizeof(struct PassToHTTPThread));
 
   context.keep_var_on_stack=1;
 
@@ -138,8 +137,6 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
          case EPERM  : warning("No permission to set the scheduling policy and parameters"); break ;
        };
      }
-
-
 
   if (retres!=0) { retres = 0; } else { retres = 1; }
 

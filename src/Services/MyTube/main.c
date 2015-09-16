@@ -28,7 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "thumbnailer.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
-#define DO_DYNAMIC_THUMBNAILS 1
+#define DO_DYNAMIC_THUMBNAILS 0
 #define UPDATE_ALL_THUMBNAILS_ON_LAUNCH 0 //<-- this will make booting the program incredibly slow
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -41,6 +41,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 char video_root[MAX_FILE_PATH]="~/Videos/";
 char database_root[MAX_FILE_PATH]="~/Videos/db/";
 
+unsigned int stop=0;
 
 struct videoCollection * myTube=0;
 
@@ -56,6 +57,7 @@ struct AmmServer_RH_Context thumbnailContext={0};
 struct AmmServer_RH_Context interactContext={0};
 struct AmmServer_RH_Context indexContext={0};
 struct AmmServer_RH_Context faviconContext={0};
+struct AmmServer_RH_Context stopContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
@@ -206,6 +208,17 @@ void * serve_index(struct AmmServer_DynamicRequest  * rqst)
 
 
 //This function prepares the content of  stats context , ( stats.content )
+void * serve_stop(struct AmmServer_DynamicRequest  * rqst)
+{
+  AmmServer_Error("Stopping Server after request\n");
+  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Stopping</body></html>");
+  stop=1;
+  rqst->contentSize=strlen(rqst->content);
+
+  return 0;
+}
+
+//This function prepares the content of  stats context , ( stats.content )
 void * serve_favicon(struct AmmServer_DynamicRequest  * rqst)
 {
   if (favicon==0) { return 0; }
@@ -345,6 +358,8 @@ void init_dynamic_content()
   {
     AmmServer_Warning("Enabling monitor\n");
     AmmServer_EnableMonitor(default_server);
+    if (! AmmServer_AddResourceHandler(default_server,&stopContext,"/stop.html",webserver_root,4096,1000,&serve_stop,SAME_PAGE_FOR_ALL_CLIENTS) )
+         { AmmServer_Warning("Failed adding serve stop page\n"); }
   }
 
 
@@ -356,6 +371,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve index page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,4096,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
+
 
   //---------------
 
@@ -372,6 +388,9 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&thumbnailContext,1);
     AmmServer_RemoveResourceHandler(default_server,&interactContext,1);
     AmmServer_RemoveResourceHandler(default_server,&indexContext,1);
+
+    AmmServer_FreeMemoryHandler(&indexPage);
+    AmmServer_FreeMemoryHandler(&favicon);
 }
 /*! Dynamic content code ..! END ------------------------*/
 
@@ -422,7 +441,7 @@ int main(int argc, char *argv[])
     }
 
 
-         while ( (AmmServer_Running(default_server))  )
+         while ( (AmmServer_Running(default_server)) && (!stop)  )
            {
              //Main thread should just sleep and let the background threads do the hard work..!
              //In other applications the programmer could use the main thread to do anything he likes..
