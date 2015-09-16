@@ -179,7 +179,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
   unsigned int videoID=rand()%myTube->numberOfLoadedVideos;
-  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\"/></head><body> </body></html> ",videoID);
+  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\"/></head><body> </body></html> ",videoID);
   fprintf(stderr,"Giving back random video %u/%u \n",videoID,myTube->numberOfLoadedVideos);
   rqst->contentSize=strlen(rqst->content);
   return 0;
@@ -189,7 +189,7 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_index(struct AmmServer_DynamicRequest  * rqst)
 {
-  snprintf(rqst->content,rqst->MAXcontentSize,"<html> <head> <meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /> </head> <body> </body> </html>",videoDefaultTestTranmission);
+  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /></head><body> </body> </html> ",videoDefaultTestTranmission);
   fprintf(stderr,"Giving back index video %u/%u \n",videoDefaultTestTranmission,myTube->numberOfLoadedVideos);
   rqst->contentSize=strlen(rqst->content);
   return 0;
