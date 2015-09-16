@@ -946,7 +946,7 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
       if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
       {
         buffer[0]=0;
-        opres = recv(sockfd,buffer,max_content,MSG_WAITALL);
+        opres = recv(sockfd,buffer,max_content,0);
         if (opres<=0) { fprintf(stderr,"Error Receiving Request data\n"); }
       }
 
@@ -977,6 +977,7 @@ int freeString(char ** str)
 
 int setSocketTimeouts(int clientSock)
 {
+ fprintf(stderr,"setSocketTimeouts(%u)\n",clientSock);
  int errorSettingTimeouts = 1;
  struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
