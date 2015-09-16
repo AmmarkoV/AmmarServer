@@ -101,8 +101,9 @@ inline int TransmitFileToSocketInternal(
       start_timer (&time_to_serve_file_s);
       #endif
 
+      int stopFileTransmission=0;
       int opres=1; // <- This needs to be 1 so that the initial while statement won't fail
-      while ( ( bytesToSend>0 ) && ( opres >=0 ) )
+      while ( ( bytesToSend>0 ) && ( opres >=0 ) && (!stopFileTransmission) )
       {
         // copy the file into the buffer:
         chunkToSend = fread (buffer,1,malloc_size,pFile);
@@ -118,23 +119,33 @@ inline int TransmitFileToSocketInternal(
           }
         }
 
+
+        unsigned int maxStalling=10;
+        unsigned int currentStalling=0;
         rollingBuffer = buffer;
         opres=1; // <- This needs to be 1 so that the initial while statement won't fail
-        while ( (chunkToSend>0) && (opres>=0) )
+        while ( (chunkToSend>0) && (opres>=0) && (!stopFileTransmission) )
         {
            opres=send(clientsock,rollingBuffer,chunkToSend,MSG_WAITALL|MSG_NOSIGNAL);  //Send file parts as soon as we've got them
-           if (opres == 0) {  /*Recepient stalling */ } else
-           if (opres < 0) { warning("Connection closed , while sending the whole file..!\n"); }
+           if (opres < 0) {
+                            warning("Connection closed , while sending the whole file..!\n");
+                            stopFileTransmission=1;
+                          } else
+           if (opres == 0)
+                          {
+                            /*Recepient stalling */
+                            ++currentStalling;
+                          } else
                           {
                            dataSent_KB+=(unsigned long) chunkToSend/1024;
                            chunkToSend -= opres;
                            bytesToSend -= opres;
                            rollingBuffer += opres;
                           }
-           //fprintf(stderr,".");
+
+           fprintf(stderr,".");
         }
       } // End of having a remaining file to send
-
 
       #if CALCULATE_TIME_FOR_UPLOADS
       double time_to_serve_file_in_seconds = (double ) end_timer(&time_to_serve_file_s) / 1000000; // go to seconds
@@ -150,7 +161,8 @@ inline int TransmitFileToSocketInternal(
       #endif
 
       // terminate
-      free (buffer);
+      if (buffer!=0)
+         { free (buffer); }
       return 1;
 }
 
