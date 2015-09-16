@@ -410,8 +410,6 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    } // Not a Bad request END
 
     clientList_signalClientStoppedUsingResource(instance->clientList,transaction->clientListID,transaction->incomingHeader.resource); // This in order for client_list to correctly track client behaviour..!
-    if (!FreeHTTPHeader(&transaction->incomingHeader))
-        { fprintf(stderr,"WARNING: Could not Free HTTP request\n"); }
 
 
   if ( transaction->incomingHeader.headerRAW!=0 )
