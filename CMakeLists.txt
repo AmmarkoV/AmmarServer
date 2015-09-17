@@ -20,6 +20,7 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
     add_subdirectory (src/Services/MyLoader) 
     add_subdirectory (src/Services/MyBlog) 
     add_subdirectory (src/Services/MyTube)
+    add_subdirectory (src/Services/MySearch)
     #XWD is listed here maybe it should be inside remote desktop
     add_subdirectory (src/Services/MyRemoteDesktop/xwd-1.0.5/) 
     add_subdirectory (src/Services/MyRemoteDesktop)

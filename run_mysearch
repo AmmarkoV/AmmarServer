@@ -1,0 +1,15 @@
+#!/bin/bash
+
+STARTDIR=`pwd`
+#Switch to this directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+ 
+until false; do
+    src/Services/MySearch/mysearch -p 8084 $@ 
+    echo "Server 'mysearch' stopped with exit code $?.  Respawning.." >&2
+done
+  
+cd "$STARTDIR"
+
+exit 0
