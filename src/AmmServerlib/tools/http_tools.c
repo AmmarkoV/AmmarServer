@@ -977,7 +977,6 @@ int freeString(char ** str)
 
 int setSocketTimeouts(int clientSock)
 {
- fprintf(stderr,"setSocketTimeouts(%u)\n",clientSock);
  int errorSettingTimeouts = 1;
  struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;

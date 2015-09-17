@@ -186,7 +186,11 @@ void * MainHTTPServerThread (void * ptr)
     fprintf(stderr,"\nServer Thread : Waiting for a new client\n");
     /* Wait for client connection */
     int clientsock=0;
-    if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0) { error("Server Thread : Failed to accept client connection"); }
+    if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0)
+      {
+        error("Server Thread : Failed to accept client connection");
+        usleep(1000);
+      }
       else
       {
         fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
@@ -206,10 +210,9 @@ void * MainHTTPServerThread (void * ptr)
             {
                 error("Server Thread : We dont have enough resources to serve client\n");
                 close(clientsock);
+                usleep(10000);
             }
-
       }
-    usleep(10); fprintf(stderr,".-.");
  }
   instance->server_running=0;
   instance->stop_server=2;
