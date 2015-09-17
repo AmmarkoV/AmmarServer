@@ -58,7 +58,8 @@ inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransactio
 {
   return AccessLogAppend( transaction->ipStr,
                           0, // Auto Date It NOW!
-                          transaction->incomingHeader.resource
+                          transaction->incomingHeader.GETquery
+                          //transaction->incomingHeader.resource
                           ,logCode
                           ,transaction->outgoingBodySize // <- This might be wrong
                           ,filename
@@ -71,7 +72,8 @@ inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction 
 {
   return ErrorLogAppend(  transaction->ipStr ,
                           0, // Auto Date It NOW!
-                          transaction->incomingHeader.resource
+                          transaction->incomingHeader.GETquery
+                          //transaction->incomingHeader.resource
                           ,logCode
                           ,transaction->outgoingBodySize // <- This might be wrong
                           ,filename
