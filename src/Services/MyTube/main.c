@@ -67,6 +67,39 @@ int enableMonitor=1;
 
 
 //This function prepares the content of  stats context , ( stats.content )
+void * serve_index(struct AmmServer_DynamicRequest  * rqst)
+{
+  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /></head><body> </body> </html> ",videoDefaultTestTranmission);
+  fprintf(stderr,"Giving back index video %u/%u \n",videoDefaultTestTranmission,myTube->numberOfLoadedVideos);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+//This function prepares the content of  stats context , ( stats.content )
+void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
+{
+  unsigned int videoID=rand()%myTube->numberOfLoadedVideos;
+  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n\
+     <html>\n\
+       <head>\n\
+        <script type=\"text/javascript\">\n\
+         <!--\n\
+            function Redirect() {\n\
+                                  window.location=\"watch?v=%u\";\n\
+                                }\n\
+         //-->\n\
+      </script><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\"/></head><body onload=\"Redirect();\"> </body></html> ",videoID,videoID);
+  fprintf(stderr,"Giving back random video %u/%u \n",videoID,myTube->numberOfLoadedVideos);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
+
+
+//This function prepares the content of  stats context , ( stats.content )
 void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 {
   char videoRequested[128]={0};
@@ -101,6 +134,12 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
   char videoRequested[128]={0};
+
+  if ( _GET(default_server,rqst,"q",videoRequested,128) )
+              {
+                snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\" /></head><body><h2>We got your query for %s but unfortunately searching is not yet implemented</h2></body> </html> ");
+                rqst->contentSize=strlen(rqst->content);
+              } else
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
                 fprintf(stderr,"Video Requested is : %s \n",videoRequested);
@@ -173,36 +212,12 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                AmmServer_FreeMemoryHandler(&videoMH);
                }
               }
-  return 0;
-}
-
-
-//This function prepares the content of  stats context , ( stats.content )
-void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
-{
-  unsigned int videoID=rand()%myTube->numberOfLoadedVideos;
-  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n\
-     <html>\n\
-       <head>\n\
-        <script type=\"text/javascript\">\n\
-         <!--\n\
-            function Redirect() {\n\
-                                  window.location=\"watch?v=%u\";\n\
-                                }\n\
-         //-->\n\
-      </script><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\"/></head><body onload=\"Redirect();\"> </body></html> ",videoID,videoID);
-  fprintf(stderr,"Giving back random video %u/%u \n",videoID,myTube->numberOfLoadedVideos);
+    else
+ {
+  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\" /></head><body><h2>Redirecting..</h2></body> </html> ");
   rqst->contentSize=strlen(rqst->content);
-  return 0;
-}
+ }
 
-
-//This function prepares the content of  stats context , ( stats.content )
-void * serve_index(struct AmmServer_DynamicRequest  * rqst)
-{
-  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u'\" /></head><body> </body> </html> ",videoDefaultTestTranmission);
-  fprintf(stderr,"Giving back index video %u/%u \n",videoDefaultTestTranmission,myTube->numberOfLoadedVideos);
-  rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
