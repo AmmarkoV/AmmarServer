@@ -4,10 +4,11 @@ STARTDIR=`pwd`
 #Switch to this directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
-
-# Start AmmarServer
-src/Services/HabChan/habchan $@
-
+ 
+until false; do
+    src/Services/HabChan/habchan -p 8083 $@ 
+    echo "Server 'habchan' stopped with exit code $?.  Respawning.." >&2
+done
 
 cd "$STARTDIR"
 
