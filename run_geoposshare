@@ -6,7 +6,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
  
 until false; do
-    src/Services/GeoPosShare/geoposshare -p 8082 $@ 
+    src/Services/GeoPosShare/geoposshare -p 8081 $@ 
     echo "Server 'geoposshare' stopped with exit code $?.  Respawning.." >&2
 done
   
