@@ -3,6 +3,15 @@
   <title>My Search</title>
 
    <style>
+     .linkButton
+    { 
+     background: none;
+     border: none;
+     color: #555555;
+     text-decoration: none;
+     cursor: pointer; 
+    }
+
     #q
     {
      font-size:18pt;
@@ -15,14 +24,15 @@
      background-color: #EEEEEE;
     } 
 
+
     /* unvisited link */
-    a:link { color: #AAAAAA; text-decoration: none;}
+    a:link { color: #555555; text-decoration: none;}
 
     /* visited link */
-    a:visited { color: #AAAAAA; text-decoration: none;}
+    a:visited { color: #555555; text-decoration: none;}
 
    /* mouse over link */
-   a:hover { color: #000000; }
+   a:hover { color: #555555; }
 
    /* selected link */
    a:active { color: #FF0000; }
@@ -31,8 +41,9 @@
 
  </head>
  <body> 
- 
+  <form action="search.html" method="get">
   <center>
+  <div>
   <table width=50%>
    <tr><td height=200 colspan=4>&nbsp;</td></tr>
 
@@ -43,7 +54,7 @@
    </tr>
    <tr>
      <td align="center" valign="middle" colspan=4>
-        <input id="q" type="text" size="35" >
+        <input id="q" name="q" type="text" size="35" >
      </td>
    </tr>
 
@@ -54,7 +65,7 @@
    <tr>
      <td width=70></td>
      <td align="center" valign="middle">
-        <div class="buttons" ><br><a href="#">Search</a><br><br></div> 
+        <div class="buttons" ><br><input type="submit" class="linkButton" /><br><br></div> 
      </td>
      <td align="center" valign="middle">
         <div class="buttons" ><br><a href="#">1st Result</a><br><br></div> 
@@ -67,5 +78,7 @@
 
   </table>
   </div>
- </body>
+ </center> 
+  </form>
+</body>
 </html>
