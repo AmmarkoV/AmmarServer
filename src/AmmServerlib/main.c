@@ -143,8 +143,9 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
   fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
 
-  snprintf(AccessLog,MAX_FILE_PATH,"%s_access.log",name);
-  snprintf(ErrorLog,MAX_FILE_PATH,"%s_error.log",name);
+  //log/ could be a global directory
+  snprintf(AccessLog,MAX_FILE_PATH,"log/%s_access.log",name);
+  snprintf(ErrorLog,MAX_FILE_PATH,"log/%s_error.log",name);
   fprintf(stderr,"Access logged @ %s , Errors logged @ %s \n ",AccessLog,ErrorLog);
 
   //Allocate and Clear instance..
