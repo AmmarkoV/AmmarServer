@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8081  // <--- Change this to 80 if you want to bind to the default http port..!
 
-char webserver_root[MAX_FILE_PATH]="src/MyLoader/htmlData/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
@@ -40,16 +40,30 @@ struct AmmServer_RH_Context indexProcessor={0};
 
 struct AmmServer_RH_Context stats={0};
 
+struct AmmServer_MemoryHandler * indexPage=0;
 
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head>\
-            <body> My Loader </body></html>");
-  rqst->contentSize=strlen(rqst->content);
+  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
+
+
+  unsigned int linkID=1+rand()%6;
+
+
+
+  char bannerLink[28];
+  snprintf(bannerLink,28,"banner_%u",linkID);
+
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$BANNERLINK$",bannerLink);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_SHARED_DATA$", "0");
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_UPLOAD_SIZE$", "0");
+
+  memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
+  rqst->contentSize=videoMH->contentCurrentLength ;
+
+  AmmServer_FreeMemoryHandler(&videoMH);
   return 0;
 }
 
@@ -150,6 +164,9 @@ void init_dynamic_content()
      { AmmServer_Warning("Failed adding upload processor page\n"); }
 
 
+  fprintf(stderr,"Reading master index file..  ");
+  indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyLoader/res/index.html");
+  fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
 
 }
 
@@ -159,6 +176,7 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
     AmmServer_RemoveResourceHandler(default_server,&uploadProcessor,1);
     AmmServer_RemoveResourceHandler(default_server,&testProcessor,1);
+    AmmServer_FreeMemoryHandler(&indexPage);
 }
 
 
