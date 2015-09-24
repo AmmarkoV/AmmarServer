@@ -1,0 +1,8 @@
+#!/bin/bash
+clear
+killall memcheck-amd64-
+#valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes  --track-origins=yes  src/Services/MyTube/mytubeD 2> MyTubeDebug.log&
+
+
+valgrind  --tool=callgrind  src/Services/MyTube/mytubeD 2> MyTubeDebug.log&
+exit 0
