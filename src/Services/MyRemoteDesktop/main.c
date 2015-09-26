@@ -49,6 +49,9 @@ char indexPagePath[128]="src/Services/MyRemoteDesktop/res/remotedesktop.html";
 char * indexPage=0;
 unsigned int indexPageLength=0;
 
+unsigned int allowControl=0;
+
+
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -87,6 +90,13 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+ if (!allowControl)
+ {
+   strcpy(rqst->content,"<html>Disabled</html>");
+   rqst->contentSize=strlen(rqst->content);
+   return 0;
+ }
+
  #if ALLOW_REMOTE_CONTROL
  unsigned int donothing=0;
  unsigned int x=0,y=0,doclick=0,do2xclick=0,dokey=0;
@@ -195,6 +205,17 @@ int main(int argc, char *argv[])
     #if XWDLIB_BRIDGE
        initXwdLib(argc,argv);
     #endif // XWDLIB_BRIDGE
+
+
+
+  int i=0;
+  for (i=0; i<argc; i++)
+  {
+    if (strcmp(argv[i],"--control")==0) {
+                                          fprintf(stderr,"Allowing Control\n");
+                                           allowControl=1;
+                                        }
+  }
 
     //Check binary and header spec
     AmmServer_CheckIfHeaderBinaryAreTheSame(AMMAR_SERVER_HTTP_HEADER_SPEC);
