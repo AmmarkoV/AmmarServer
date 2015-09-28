@@ -9,6 +9,12 @@ struct UserAccountDatabase * uadb_initializeUserAccountDatabase(char * filename)
   return 0;
 };
 
+
+int uadb_saveUserAccountDatabase(struct UserAccountDatabase * uadb)
+{
+  return 0;
+}
+
 int uadb_closeUserAccountDatabase(struct UserAccountDatabase **  uadb)
 {
   return 0;
