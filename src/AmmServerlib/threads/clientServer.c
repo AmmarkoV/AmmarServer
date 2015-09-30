@@ -227,31 +227,45 @@ inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Inst
 }
 
 
-
-inline int handleClientSentHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
    if ( transaction->incomingHeader.headerRAW!=0 ) { free(transaction->incomingHeader.headerRAW); transaction->incomingHeader.headerRAW=0; }
 
+
+   //! Please note that receiveAndHandleHTTPHeaderSentByClient first waits for an http header and then tries to understand/parse it ..!
+   //Start receiving what the client has to say in this HTTPTransaction headers
    unsigned long headerRAWSizeTemp = 0;
+   transaction->incomingHeader.POSTrequest=0;
+   transaction->incomingHeader.POSTrequestSize=0;
    transaction->incomingHeader.headerRAW = ReceiveHTTPHeader(instance,transaction->clientSock,&headerRAWSizeTemp);
    transaction->incomingHeader.headerRAWSize = (unsigned int) headerRAWSizeTemp;
 
-   if (transaction->incomingHeader.headerRAW==0) { return 0; }
+   //We now proceed to find out what the message was about..!
+   if (transaction->incomingHeader.headerRAW==0) { fprintf(stderr,RED "No HTTP Header received\n" NORMAL); return 0; } else
+                                                 { fprintf(stderr,"Received request header \n");                     }
 
-   fprintf(stderr,"Received request header \n");
-   transaction->incomingHeader.POSTrequest=0;
-   transaction->incomingHeader.POSTrequestSize=0;
-
+   // Will now analyze HTTP header , and transaction
    int httpHeaderReceivedWithNoProblems = AnalyzeHTTPHeader(instance,transaction);
+   //transaction will be cleared
+
    if (httpHeaderReceivedWithNoProblems)
       {
         if ( (transaction->incomingHeader.requestType==POST) && (ENABLE_POST) )
         {
            //If we have a POST request
            //Expand header to also receive the files uploaded
+
+           //!TODO : this is wrong..! , maybe AppendPOSTRequestToHTTPHeader is not needed at all
            AppendPOSTRequestToHTTPHeader(transaction);
+
+           fprintf(stderr,CYAN "Redirecting POST Request \n" NORMAL);
+           transaction->incomingHeader.POSTrequest=transaction->incomingHeader.headerRAW;
+           transaction->incomingHeader.POSTrequestSize=transaction->incomingHeader.headerRAWSize;
+           fprintf(stderr,CYAN " POST Request %s \n" NORMAL , transaction->incomingHeader.headerRAW);
         }
         //If we use a client based request handler , call it now
+
+
         callClientRequestHandler(instance,&transaction->incomingHeader);
       }
 
@@ -267,7 +281,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
    //We have our connection / instancing /etc covered if we are here
    //In order to serve our client we must first receive the request header , so we do it now..!
-   int httpHeaderReceivedWithNoProblems = handleClientSentHeader(instance,transaction);
+   int httpHeaderReceivedWithNoProblems = receiveAndHandleHTTPHeaderSentByClient(instance,transaction);
 
    if (!httpHeaderReceivedWithNoProblems)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
@@ -294,11 +308,14 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
       //This is a hack and should be probably be changed..!
       if ( ( transaction->incomingHeader.requestType==POST ) && (ENABLE_POST) )
        {
-         fprintf(stderr,"POST HEADER : \n %s \n",transaction->incomingHeader.headerRAW);
+
+         fprintf(stderr,GREEN "POST HEADER : %u length \n %s \n" NORMAL,transaction->incomingHeader.ContentLength,transaction->incomingHeader.headerRAW);
          //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
          //TODO TODO TODO
-         transaction->incomingHeader.POSTrequest = transaction->incomingHeader.headerRAW;
-         transaction->incomingHeader.POSTrequestSize =  transaction->incomingHeader.ContentLength;
+
+         //This is done internally
+         //transaction->incomingHeader.POSTrequest = transaction->incomingHeader.headerRAW;
+         //transaction->incomingHeader.POSTrequestSize =  transaction->incomingHeader.ContentLength;
 
          fprintf(stderr,"Found a POST query %lu bytes long , %s \n",transaction->incomingHeader.POSTrequestSize, transaction->incomingHeader.POSTrequest);
          warning("Will now pretend that we are a GET request for the rest of the page to be served nicely until I fix it :P\n");

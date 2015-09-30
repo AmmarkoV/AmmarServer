@@ -486,7 +486,7 @@ int AnalyzeHTTPLineRequest(
   return 0;
 }
 
-//int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
+
 int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
   struct HTTPHeader * output  = &transaction->incomingHeader;
@@ -505,6 +505,10 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
   output->range_start=0;
   output->range_end=0;
   output->authorized=0;
+
+  //Retain raw header..
+  output->headerRAW = request;
+  output->headerRAWSize = request_length;
 
   fprintf(stderr,"Started New Analyzing Header\n");
   char * startOfNewLine=request;
