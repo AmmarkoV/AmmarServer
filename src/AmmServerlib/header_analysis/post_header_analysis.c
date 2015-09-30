@@ -94,7 +94,7 @@ int AnalyzePOSTLineRequest(
          unsigned int payload_start = 0;
 
 
-          unsigned int requestType = scanFor_httpHeader(request,request_length);
+          unsigned int requestType = scanFor_postHeader(request,request_length);
           //fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
           switch (requestType)
           {
