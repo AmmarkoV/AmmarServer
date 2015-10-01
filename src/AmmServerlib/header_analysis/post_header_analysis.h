@@ -33,6 +33,21 @@ int AnalyzePOSTLineRequest(
 
 
 
+/**
+* @brief Analyze a POST request and cut it in files
+* @ingroup POSTanalysis
+* @param An AmmarServer Instance
+* @param Output HTTPHeader with information
+* @param Memory block with the incoming header to be analyzed
+* @param Length of Memory block of the incoming request
+* @retval 1=Success,0=Failure */
+int TokenizePOSTFiles(
+                       struct AmmServer_Instance * instance,
+                       struct HTTPHeader * output,
+                       char * POSTRequest,
+                       unsigned int POSTRequestLength
+                     );
+
 #ifdef __cplusplus
 }
 #endif

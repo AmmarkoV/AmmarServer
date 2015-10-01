@@ -115,6 +115,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
          //so that we can upload files
          if ( ( HTTPHeaderIsPOST(incomingRequest,incomingRequestLength ) ) && ( ENABLE_POST ) )
           {
+            fprintf(stderr,"Growing our header..\n");
             //unsigned long oldLimit = MAXincomingRequestLength;
             if (MAXincomingRequestLength < MAX_HTTP_POST_REQUEST_HEADER )
             {
@@ -162,18 +163,6 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
   *headerLength=incomingRequestLength;
   return incomingRequest;
 }
-
-
-int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction)
-{
- //unsigned int incomingRequestLength = transaction->incomingHeader.headerRAWSize;
-
- transaction->incomingHeader.headerRAWSize  = HTTPHeaderComplete(transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize);
- fprintf(stderr,"Header Size  =  %u / %u \n",transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.headerRAWSize);
- transaction->incomingHeader.POSTrequestSize = transaction->incomingHeader.headerRAWSize;
- return 1;
-}
-
 
 
 

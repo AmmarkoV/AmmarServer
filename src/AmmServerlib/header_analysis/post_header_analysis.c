@@ -136,5 +136,15 @@ int AnalyzePOSTLineRequest(
 
 
 
+int TokenizePOSTFiles(
+                       struct AmmServer_Instance * instance,
+                       struct HTTPHeader * output,
+                       char * POSTRequest,
+                       unsigned int POSTRequestLength
+                     )
+{
+
+}
+
 
 

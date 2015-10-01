@@ -254,18 +254,20 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
         {
            //If we have a POST request
            //Expand header to also receive the files uploaded
-
-           //!TODO : this is wrong..! , maybe AppendPOSTRequestToHTTPHeader is not needed at all
-           AppendPOSTRequestToHTTPHeader(transaction);
+           fprintf(stderr,"Header Size  =  %u / %u \n",transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.headerRAWSize);
 
            fprintf(stderr,CYAN "Redirecting POST Request \n" NORMAL);
            transaction->incomingHeader.POSTrequest=transaction->incomingHeader.headerRAW;
            transaction->incomingHeader.POSTrequestSize=transaction->incomingHeader.headerRAWSize;
            fprintf(stderr,CYAN " POST Request %s \n" NORMAL , transaction->incomingHeader.headerRAW);
+
+           if (!TokenizePOSTFiles(instance,transaction->incomingHeader,transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize))
+           {
+               error("Could not tokenize POST request to files..\n");
+           }
+
         }
         //If we use a client based request handler , call it now
-
-
         callClientRequestHandler(instance,&transaction->incomingHeader);
       }
 
@@ -301,7 +303,8 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    } else
    if ((instance->settings.PASSWORD_PROTECTION)&&(!transaction->incomingHeader.authorized))
    {
-     error("Unauthorized Request!");  respondToClientRequestingAuthorization(instance,transaction); return 0;
+     error("Unauthorized Request!");  respondToClientRequestingAuthorization(instance,transaction);
+     return 0;
    }
      else
    { // Not a Bad request Start
