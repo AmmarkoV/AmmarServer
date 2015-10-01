@@ -24,12 +24,6 @@ extern "C" {
 */
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength);
 
-/**
-* @brief POST requests also have a payload appended that we consider part of the whole "header" so we need to keep on reading it..!
-* @ingroup POSTanalysis
-* @param HTTPTransaction
-* @retval 1=Success,0=Failure */
-int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction);
 
 /**
 * @brief Ask if a header is complete inside an incoming request , detected by four consecutive bytes CR LF CR LF that mark the end of a header
