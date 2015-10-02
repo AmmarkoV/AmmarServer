@@ -212,7 +212,7 @@ inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Inst
   if (replyBody !=0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
-          SendMemoryBlockAsFile("dir.html",transaction->clientSock,replyBody ,sendSize);
+          SendMemoryBlockAsFile(instance,"dir.html",transaction->clientSock,replyBody ,sendSize);
           if (replyBody !=0) { free(replyBody ); }
           logSuccess(instance,transaction,200,servefile);
         } else
@@ -231,7 +231,10 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
 {
    if ( transaction->incomingHeader.headerRAW!=0 ) { free(transaction->incomingHeader.headerRAW); transaction->incomingHeader.headerRAW=0; }
 
+   #define USE_OLD_RECEIVING_CODE 1
 
+   #if USE_OLD_RECEIVING_CODE
+     #warning "Using old code to receive HTTP headers , this does not handle POST requests correctly"
    //! Please note that receiveAndHandleHTTPHeaderSentByClient first waits for an http header and then tries to understand/parse it ..!
    //Start receiving what the client has to say in this HTTPTransaction headers
    unsigned long headerRAWSizeTemp = 0;
@@ -246,6 +249,14 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
 
    // Will now analyze HTTP header , and transaction
    int httpHeaderReceivedWithNoProblems = AnalyzeHTTPHeader(instance,transaction);
+
+   #else
+     #error "Using new code to receive HTTP headers , which is not yet done..!"
+     httpHeaderReceivedWithNoProblems = receiveAndParseIncomingHTTPRequest(instance,transaction)
+   #endif // USE_OLD_RECEIVING
+
+
+
    //transaction will be cleared
 
    if (httpHeaderReceivedWithNoProblems)

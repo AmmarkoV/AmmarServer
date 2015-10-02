@@ -681,9 +681,9 @@ int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh)
 int AmmServer_ConvertBufferToMemoryHandler(struct AmmServer_MemoryHandler * mh, unsigned char * buffer,unsigned int bufferLength)
 {
   if (mh==0) { return 0; }
-  mh->content = buffer;
+  mh->content = (char*) buffer;
   mh->contentSize = bufferLength;
-  mh->contentCurrentLength;
+  mh->contentCurrentLength = bufferLength;
   return 1;
 }
 

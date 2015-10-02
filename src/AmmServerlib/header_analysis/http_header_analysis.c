@@ -133,8 +133,8 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
     return 0;
    } else
    {
-      //Cound incoming data
-      dataReceived_KB+=opres;
+      //Count incoming data
+      instance->statistics.totalDownloadKB+=opres;
 
       incomingRequestLength+=opres;
       fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
@@ -543,3 +543,29 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
   return 1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+{
+  struct HTTPHeader * output  = &transaction->incomingHeader;
+  char * request = transaction->incomingHeader.headerRAW;
+  unsigned int request_length = transaction->incomingHeader.headerRAWSize;
+  char * webserver_root = instance->webserver_root;
+
+  //!TODO : HERE
+
+       // (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
+  return 1;
+}
+
+

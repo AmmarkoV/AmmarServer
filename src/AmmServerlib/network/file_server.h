@@ -41,6 +41,7 @@ unsigned long SendErrorFile
 /**
 * @brief Send a memory block to a client as a file
 * @ingroup network
+* @param An AmmarServer Instance
 * @param Filename to pretend that we are sending for
 * @param Socket we want to write to
 * @param Pointer to memory that holds what we want to send to the client
@@ -48,6 +49,7 @@ unsigned long SendErrorFile
 * @retval 1=Success,0=Failure*/
 unsigned long SendMemoryBlockAsFile
   (
+    struct AmmServer_Instance * instance,
     char * filename,
     int clientsock, // The socket that will be used to send the data
     //char * path, // The filename to be served on the socket above
@@ -55,10 +57,5 @@ unsigned long SendMemoryBlockAsFile
     unsigned long mem_block
   );
 
-
-
-extern unsigned int files_open;
-extern unsigned long dataSent_KB;
-extern unsigned long dataReceived_KB;
 
 #endif // FILE_SERVER_H_INCLUDED
