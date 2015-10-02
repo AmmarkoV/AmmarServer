@@ -60,6 +60,39 @@ switch (errno)
 }
 
 
+
+inline char * growPOSTHeader(unsigned int * MaxIncomingRequestLength , char * incomingRequest)
+{
+ fprintf(stderr,"Growing our header..\n");
+ char  * largerRequest = 0;
+
+ if (*MaxIncomingRequestLength < MAX_HTTP_POST_REQUEST_HEADER )
+   {
+     *MaxIncomingRequestLength += HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
+     if (*MaxIncomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
+            { *MaxIncomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
+
+
+     largerRequest = (char * )  realloc (incomingRequest, sizeof(char) * (*MaxIncomingRequestLength+2) );
+
+     if ( largerRequest!=0 )
+        {
+         fprintf(stderr,"Successfully grown input header using %u bytes\n",*MaxIncomingRequestLength);
+         incomingRequest=largerRequest;
+        } else
+        {
+          //Could not grow POST
+          free(incomingRequest);
+          return 0;
+        }
+   }
+
+  return largerRequest;
+}
+
+
+
+//! TODO : Simplify ReceiveHTTPHeader , unify it with the header processing for content-length etc
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
 {
  #warning "This has segfaulted with an invalid free error"
@@ -72,14 +105,10 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
  incomingRequest[0]=0;
 
 
- unsigned int currentHTTPHeaderWaitTime=0;
- unsigned int maxHTTPHeaderWaitTime=MAX_TRANSMISSION_STALL;
-
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
         (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
-        (instance->server_running) &&
-        (currentHTTPHeaderWaitTime < maxHTTPHeaderWaitTime)
+        (instance->server_running)
        )
  {
   //Gather Header until http request contains two newlines..!
@@ -115,48 +144,23 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
          //so that we can upload files
          if ( ( HTTPHeaderIsPOST(incomingRequest,incomingRequestLength ) ) && ( ENABLE_POST ) )
           {
-            fprintf(stderr,"Growing our header..\n");
-            //unsigned long oldLimit = MAXincomingRequestLength;
-            if (MAXincomingRequestLength < MAX_HTTP_POST_REQUEST_HEADER )
+            incomingRequest = growPOSTHeader(&MAXincomingRequestLength,incomingRequest);
+            if (incomingRequest==0)
             {
-              MAXincomingRequestLength += HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
-              if (MAXincomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
-                   { MAXincomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
-
-
-               char  * largerRequest = (char * )  realloc (incomingRequest, sizeof(char) * (MAXincomingRequestLength+2) );
-
-               if ( largerRequest!=0 )
-                   { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength);
-                     incomingRequest=largerRequest;
-                   }
-                     else
-                   {
-                    fprintf(stderr,"The request would overflow POST limit , dropping client \n");
-                    free(incomingRequest);
-                    return 0;
-                   }
-
+             fprintf(stderr,"Could not grow POST header, dropping client \n");
+             *headerLength=0;
+             return 0;
             }
           } else
           {
-            fprintf(stderr,"The request would overflow , dropping client \n");
+            fprintf(stderr,RED "The request would overflow , dropping client \n" NORMAL);
             *headerLength=0;
             free(incomingRequest);
             return 0;
           }
       }
-    }
+    } // --  --  --  --  --
 
-   ++currentHTTPHeaderWaitTime;
-  }
-
-  if (currentHTTPHeaderWaitTime>maxHTTPHeaderWaitTime)
-  {
-      error("HTTP Header waiting timed out.. ");
-      *headerLength=0;
-      free(incomingRequest);
-      return 0;
   }
 
   fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
