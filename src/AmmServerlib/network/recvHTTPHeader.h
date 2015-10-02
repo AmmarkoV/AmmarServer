@@ -9,6 +9,6 @@
 
 #include "../AmmServerlib.h"
 
-receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int clientSock);
+receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
 
 #endif // RECEIVEHTTPHEADER_H_INCLUDED
