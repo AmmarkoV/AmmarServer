@@ -316,10 +316,6 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
          //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
          //TODO TODO TODO
 
-         //This is done internally
-         //transaction->incomingHeader.POSTrequest = transaction->incomingHeader.headerRAW;
-         //transaction->incomingHeader.POSTrequestSize =  transaction->incomingHeader.ContentLength;
-
          fprintf(stderr,"Found a POST query %lu bytes long , %s \n",transaction->incomingHeader.POSTrequestSize, transaction->incomingHeader.POSTrequest);
          warning("Will now pretend that we are a GET request for the rest of the page to be served nicely until I fix it :P\n");
 
