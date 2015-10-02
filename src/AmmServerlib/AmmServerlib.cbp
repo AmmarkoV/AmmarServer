@@ -98,6 +98,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="network/file_server.h" />
+		<Unit filename="network/recvHTTPHeader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network/recvHTTPHeader.h" />
 		<Unit filename="network/sendHTTPHeader.c">
 			<Option compilerVar="CC" />
 		</Unit>

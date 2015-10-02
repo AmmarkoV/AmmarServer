@@ -39,6 +39,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 network/file_server.h
                 network/sendHTTPHeader.c
                 network/sendHTTPHeader.h
+                network/recvHTTPHeader.c
+                network/recvHTTPHeader.h
                 #Threads
                 threads/threadInitHelper.c
                 threads/threadInitHelper.h

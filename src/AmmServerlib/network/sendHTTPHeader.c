@@ -1,4 +1,3 @@
-
 #include "sendHTTPHeader.h"
 
 #include <stdio.h>
