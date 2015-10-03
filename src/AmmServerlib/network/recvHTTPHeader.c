@@ -14,6 +14,7 @@
 #include "../AmmServerlib.h"
 #include "../server_configuration.h"
 
+#include "../header_analysis/generic_header_tools.h"
 #include "../header_analysis/http_header_analysis.h"
 #include "../header_analysis/post_header_analysis.h"
 

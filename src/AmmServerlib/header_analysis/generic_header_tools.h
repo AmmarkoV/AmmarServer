@@ -15,7 +15,7 @@ extern "C" {
 
 
 int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * transaction);
-char * growHeader(unsigned int * MaxIncomingRequestLength , char * incomingRequest);
+int growHeader(struct HTTPTransaction * transaction);
 
 
 
