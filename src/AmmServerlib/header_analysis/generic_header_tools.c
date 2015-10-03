@@ -32,19 +32,24 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * trans
 
 
 
-char * growHeader(unsigned int * MaxIncomingRequestLength , char * incomingRequest)
+int growHeader(struct HTTPTransaction * transaction)
 {
- fprintf(stderr,"Growing our header..\n");
- char  * largerRequest = 0;
+ if (transaction==0) { return 0; }
 
- if (*MaxIncomingRequestLength < MAX_HTTP_POST_REQUEST_HEADER )
-   {
+  struct HTTPHeader * hdr =  &transaction->incomingHeader;
+
+ //hdr->headerRAW
+
+/*
+
+ if (hdr->MAXheaderRAWSize < MAX_HTTP_POST_REQUEST_HEADER )
+   { //There is still room for incrementing the size of the buffer
      *MaxIncomingRequestLength += HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
      if (*MaxIncomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
             { *MaxIncomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
 
 
-     largerRequest = (char * )  realloc (incomingRequest, sizeof(char) * (*MaxIncomingRequestLength+2) );
+     char  * largerRequest = (char * )  realloc (incomingRequest, sizeof(char) * (*MaxIncomingRequestLength+2) );
 
      if ( largerRequest!=0 )
         {
@@ -56,7 +61,7 @@ char * growHeader(unsigned int * MaxIncomingRequestLength , char * incomingReque
           free(incomingRequest);
           return 0;
         }
-   }
+   }*/
 
-  return largerRequest;
+  return 0;
 }
