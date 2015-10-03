@@ -21,10 +21,19 @@
 
 
 
-
-
-int handleHeaderGrowingHere()
+int handleHeaderGrowingHere(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
+   //!TODO : Also update the parsing point if realloc
+   char * parsingStartPoint;
+   unsigned int parsingStartingLine;
+
+
+
+
+
+
+    recalculateHeaderFieldsBasedOnANewBaseAddress(transaction);
+
     /*
          //We filled our buffer , if we have a POST request there is a different limit
          //so that we can upload files
@@ -44,7 +53,7 @@ int handleHeaderGrowingHere()
             break;
           }
 */
-
+ return 1;
 }
 
 
@@ -97,7 +106,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
         //We have a chunk of input but not done yet , have we run out of space ?
         if (incomingRequestLength>=MAXincomingRequestLength)
         {
-         handleHeaderGrowingHere();
+         handleHeaderGrowingHere(instance,transaction);
         } else
         {
           //Just got a small chunk of input if we ended up here..

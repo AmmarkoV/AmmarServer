@@ -34,6 +34,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 header_analysis/http_header_analysis.h  
                 header_analysis/post_header_analysis.c
                 header_analysis/post_header_analysis.h
+                header_analysis/generic_header_tools.c
+                header_analysis/generic_header_tools.h
                 #Network I/O
                 network/file_server.c
                 network/file_server.h
