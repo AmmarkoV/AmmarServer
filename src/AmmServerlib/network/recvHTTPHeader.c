@@ -22,40 +22,6 @@
 
 
 
-int handleHeaderGrowingHere(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
-{
-   //!TODO : Also update the parsing point if realloc
-   char * parsingStartPoint;
-   unsigned int parsingStartingLine;
-
-
-
-
-
-
-    recalculateHeaderFieldsBasedOnANewBaseAddress(transaction);
-
-    /*
-         //We filled our buffer , if we have a POST request there is a different limit
-         //so that we can upload files
-         if ( ( HTTPHeaderIsPOST(incomingRequest,incomingRequestLength ) ) && ( ENABLE_POST ) )
-          {
-            incomingRequest = growPOSTHeader(&MAXincomingRequestLength,incomingRequest);
-            if (incomingRequest==0)
-            {
-             fprintf(stderr,"Could not grow POST header, dropping client \n");
-             result=0;
-             break;
-            }
-          } else
-          {
-            fprintf(stderr,"The request would overflow , dropping client \n");
-            result=0;
-            break;
-          }
-*/
- return 1;
-}
 
 
 int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
@@ -107,7 +73,11 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
         //We have a chunk of input but not done yet , have we run out of space ?
         if (incomingRequestLength>=MAXincomingRequestLength)
         {
-         handleHeaderGrowingHere(instance,transaction);
+           if (!growHeader(transaction))
+           {
+                result=0;
+                break;
+           }
         } else
         {
           //Just got a small chunk of input if we ended up here..

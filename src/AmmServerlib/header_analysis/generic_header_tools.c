@@ -38,30 +38,29 @@ int growHeader(struct HTTPTransaction * transaction)
 
   struct HTTPHeader * hdr =  &transaction->incomingHeader;
 
- //hdr->headerRAW
-
-/*
-
+ unsigned wannabeHeaderSize = hdr->MAXheaderRAWSize + HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
  if (hdr->MAXheaderRAWSize < MAX_HTTP_POST_REQUEST_HEADER )
    { //There is still room for incrementing the size of the buffer
-     *MaxIncomingRequestLength += HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
-     if (*MaxIncomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
-            { *MaxIncomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
+     if (wannabeHeaderSize > MAX_HTTP_POST_REQUEST_HEADER )
+            { wannabeHeaderSize = MAX_HTTP_POST_REQUEST_HEADER; }
 
+     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (hdr->MAXheaderRAWSize+1) );
 
-     char  * largerRequest = (char * )  realloc (incomingRequest, sizeof(char) * (*MaxIncomingRequestLength+2) );
+     if (newBuffer!=0 )
+     {
+       hdr->headerRAW=newBuffer;
+       hdr->MAXheaderRAWSize = wannabeHeaderSize;
+       recalculateHeaderFieldsBasedOnANewBaseAddress(transaction);
+       return 1;
+     } else
+     {
+       fprintf(stderr,"Failed to grow header , out of memory ? \n");
+     }
+    } else
+    {
+      fprintf(stderr,"Failed to grow header , reached max header limit \n");
+    }
 
-     if ( largerRequest!=0 )
-        {
-         fprintf(stderr,"Successfully grown input header using %u bytes\n",*MaxIncomingRequestLength);
-         incomingRequest=largerRequest;
-        } else
-        {
-          //Could not grow POST
-          free(incomingRequest);
-          return 0;
-        }
-   }*/
 
   return 0;
 }
