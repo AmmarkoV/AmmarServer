@@ -75,8 +75,12 @@ enum TypesOfRequests
 */
 struct HTTPHeader
 {
+   char * parsingStartPoint;
+   unsigned int parsingStartingLine;
+
    char * headerRAW;
    unsigned int headerRAWSize;
+   unsigned int MAXheaderRAWSize;
 
    int  requestType; //See enum TypesOfRequests
    char resource[MAX_RESOURCE+1];
@@ -86,9 +90,13 @@ struct HTTPHeader
    char * POSTrequest;
    unsigned long POSTrequestSize;
 
+
+
+
    unsigned char authorized;
    unsigned char keepalive;
    unsigned char supports_compression;
+
 
    //RANGE DATA
    unsigned long range_start;
@@ -98,31 +106,39 @@ struct HTTPHeader
    unsigned long ContentLength; //<- for POST requests
 
    //The next strings point directly on the header to keep memory usage on a minimum
-   //and performance on the maximum :P
+   //and performance on the maximum , they have to be refreshed if memory gets reallocated:P
+
+   unsigned int cookieIndex;
    char * cookie; //<-   *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int cookieLength;
 
+   unsigned int hostIndex;
    char * host; //<-     *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int hostLength;
 
+   unsigned int refererIndex;
    char * referer; //<-  *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int refererLength;
 
+   unsigned int eTagIndex;
    char * eTag; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int eTagLength;
 
+   unsigned int userAgentIndex;
    char * userAgent; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int userAgentLength;
 
+   unsigned int contentTypeIndex;
    char * contentType; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int contentTypeLength;
 
+   unsigned int contentDispositionIndex;
    char * contentDisposition;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int contentDispositionLength;
 
+   unsigned int boundaryIndex;
    char * boundary;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int boundaryLength;
-
 };
 
 

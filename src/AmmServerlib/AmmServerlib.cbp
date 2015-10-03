@@ -83,6 +83,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="hashmap/hashmap.h" />
+		<Unit filename="header_analysis/generic_header_tools.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="header_analysis/generic_header_tools.h" />
 		<Unit filename="header_analysis/http_header_analysis.c">
 			<Option compilerVar="CC" />
 		</Unit>

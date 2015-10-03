@@ -383,7 +383,6 @@ int AnalyzeHTTPLineRequest(
    } else
    {
      unsigned int payload_start = 0;
-
      unsigned int requestType = scanFor_httpHeader(request,request_length);
      //fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
      switch (requestType)
@@ -407,6 +406,7 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_COOKIE :
          payload_start+=strlen("COOKIE:");
+         output->cookieIndex=payload_start;
          output->cookie=request+payload_start;
          output->cookieLength = request_length-payload_start;
          return 1;
@@ -420,6 +420,7 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_HOST :
           payload_start+=strlen("HOST:");
+          output->hostIndex=payload_start;
           output->host=request+payload_start;
           output->hostLength=request_length-payload_start;
           return 1;
@@ -427,6 +428,7 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_IF_NONE_MATCH :
          payload_start+=strlen("IF-NONE-MATCH:");
+         output->eTagIndex=payload_start;
          output->eTag=request+payload_start;
          output->eTagLength = request_length-payload_start;
          //This is a hacky way to get past the space and " character -> IF-NONE_MATCH: "19392391932"
@@ -460,6 +462,7 @@ int AnalyzeHTTPLineRequest(
             payload_start+=strlen("REFERRER:");
         case HTTPHEADER_REFERER :
              if (HTTPHEADER_REFERER==requestType) {payload_start+=strlen("REFERER:");  }
+             output->refererIndex=payload_start;
              output->referer=request+payload_start;
              output->refererLength=request_length-payload_start;
              return 1;
