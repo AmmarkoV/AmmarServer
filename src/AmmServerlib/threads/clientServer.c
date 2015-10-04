@@ -212,7 +212,7 @@ inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Inst
   if (replyBody !=0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
-          SendMemoryBlockAsFile("dir.html",transaction->clientSock,replyBody ,sendSize);
+          SendMemoryBlockAsFile(instance,"dir.html",transaction->clientSock,replyBody ,sendSize);
           if (replyBody !=0) { free(replyBody ); }
           logSuccess(instance,transaction,200,servefile);
         } else
@@ -227,29 +227,56 @@ inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Inst
 }
 
 
-
-inline int handleClientSentHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
    if ( transaction->incomingHeader.headerRAW!=0 ) { free(transaction->incomingHeader.headerRAW); transaction->incomingHeader.headerRAW=0; }
 
+   #define USE_OLD_RECEIVING_CODE 1
+
+   #if USE_OLD_RECEIVING_CODE
+     #warning "Using old code to receive HTTP headers , this does not handle POST requests correctly"
+   //! Please note that receiveAndHandleHTTPHeaderSentByClient first waits for an http header and then tries to understand/parse it ..!
+   //Start receiving what the client has to say in this HTTPTransaction headers
    unsigned long headerRAWSizeTemp = 0;
+   transaction->incomingHeader.POSTrequest=0;
+   transaction->incomingHeader.POSTrequestSize=0;
    transaction->incomingHeader.headerRAW = ReceiveHTTPHeader(instance,transaction->clientSock,&headerRAWSizeTemp);
    transaction->incomingHeader.headerRAWSize = (unsigned int) headerRAWSizeTemp;
 
-   if (transaction->incomingHeader.headerRAW==0) { return 0; }
+   //We now proceed to find out what the message was about..!
+   if (transaction->incomingHeader.headerRAW==0) { fprintf(stderr,RED "No HTTP Header received\n" NORMAL); return 0; } else
+                                                 { fprintf(stderr,"Received request header \n");                     }
 
-   fprintf(stderr,"Received request header \n");
-   transaction->incomingHeader.POSTrequest=0;
-   transaction->incomingHeader.POSTrequestSize=0;
-
+   // Will now analyze HTTP header , and transaction
    int httpHeaderReceivedWithNoProblems = AnalyzeHTTPHeader(instance,transaction);
+
+   #else
+     #error "Using new code to receive HTTP headers , which is not yet done..!"
+     httpHeaderReceivedWithNoProblems = receiveAndParseIncomingHTTPRequest(instance,transaction)
+   #endif // USE_OLD_RECEIVING
+
+
+
+   //transaction will be cleared
+
    if (httpHeaderReceivedWithNoProblems)
       {
         if ( (transaction->incomingHeader.requestType==POST) && (ENABLE_POST) )
         {
            //If we have a POST request
            //Expand header to also receive the files uploaded
-           AppendPOSTRequestToHTTPHeader(transaction);
+           fprintf(stderr,"Header Size  =  %u / %u \n",transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.headerRAWSize);
+
+           fprintf(stderr,CYAN "Redirecting POST Request \n" NORMAL);
+           transaction->incomingHeader.POSTrequest=transaction->incomingHeader.headerRAW;
+           transaction->incomingHeader.POSTrequestSize=transaction->incomingHeader.headerRAWSize;
+           fprintf(stderr,CYAN " POST Request %s \n" NORMAL , transaction->incomingHeader.headerRAW);
+
+           if (!TokenizePOSTFiles(instance,transaction->incomingHeader,transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize))
+           {
+               error("Could not tokenize POST request to files..\n");
+           }
+
         }
         //If we use a client based request handler , call it now
         callClientRequestHandler(instance,&transaction->incomingHeader);
@@ -267,7 +294,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
    //We have our connection / instancing /etc covered if we are here
    //In order to serve our client we must first receive the request header , so we do it now..!
-   int httpHeaderReceivedWithNoProblems = handleClientSentHeader(instance,transaction);
+   int httpHeaderReceivedWithNoProblems = receiveAndHandleHTTPHeaderSentByClient(instance,transaction);
 
    if (!httpHeaderReceivedWithNoProblems)
    {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
@@ -287,18 +314,18 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    } else
    if ((instance->settings.PASSWORD_PROTECTION)&&(!transaction->incomingHeader.authorized))
    {
-     error("Unauthorized Request!");  respondToClientRequestingAuthorization(instance,transaction); return 0;
+     error("Unauthorized Request!");  respondToClientRequestingAuthorization(instance,transaction);
+     return 0;
    }
      else
    { // Not a Bad request Start
       //This is a hack and should be probably be changed..!
       if ( ( transaction->incomingHeader.requestType==POST ) && (ENABLE_POST) )
        {
-         fprintf(stderr,"POST HEADER : \n %s \n",transaction->incomingHeader.headerRAW);
+
+         fprintf(stderr,GREEN "POST HEADER : %u length \n %s \n" NORMAL,transaction->incomingHeader.ContentLength,transaction->incomingHeader.headerRAW);
          //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
          //TODO TODO TODO
-         transaction->incomingHeader.POSTrequest = transaction->incomingHeader.headerRAW;
-         transaction->incomingHeader.POSTrequestSize =  transaction->incomingHeader.ContentLength;
 
          fprintf(stderr,"Found a POST query %lu bytes long , %s \n",transaction->incomingHeader.POSTrequestSize, transaction->incomingHeader.POSTrequest);
          warning("Will now pretend that we are a GET request for the rest of the page to be served nicely until I fix it :P\n");

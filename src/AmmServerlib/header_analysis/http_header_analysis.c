@@ -60,6 +60,39 @@ switch (errno)
 }
 
 
+
+inline char * growPOSTHeader(unsigned int * MaxIncomingRequestLength , char * incomingRequest)
+{
+ fprintf(stderr,"Growing our header..\n");
+ char  * largerRequest = 0;
+
+ if (*MaxIncomingRequestLength < MAX_HTTP_POST_REQUEST_HEADER )
+   {
+     *MaxIncomingRequestLength += HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
+     if (*MaxIncomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
+            { *MaxIncomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
+
+
+     largerRequest = (char * )  realloc (incomingRequest, sizeof(char) * (*MaxIncomingRequestLength+2) );
+
+     if ( largerRequest!=0 )
+        {
+         fprintf(stderr,"Successfully grown input header using %u bytes\n",*MaxIncomingRequestLength);
+         incomingRequest=largerRequest;
+        } else
+        {
+          //Could not grow POST
+          free(incomingRequest);
+          return 0;
+        }
+   }
+
+  return largerRequest;
+}
+
+
+
+//! TODO : Simplify ReceiveHTTPHeader , unify it with the header processing for content-length etc
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength)
 {
  #warning "This has segfaulted with an invalid free error"
@@ -72,14 +105,10 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
  incomingRequest[0]=0;
 
 
- unsigned int currentHTTPHeaderWaitTime=0;
- unsigned int maxHTTPHeaderWaitTime=MAX_TRANSMISSION_STALL;
-
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
         (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
-        (instance->server_running) &&
-        (currentHTTPHeaderWaitTime < maxHTTPHeaderWaitTime)
+        (instance->server_running)
        )
  {
   //Gather Header until http request contains two newlines..!
@@ -104,8 +133,8 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
     return 0;
    } else
    {
-      //Cound incoming data
-      dataReceived_KB+=opres;
+      //Count incoming data
+      instance->statistics.totalDownloadKB+=opres;
 
       incomingRequestLength+=opres;
       fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
@@ -115,65 +144,29 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
          //so that we can upload files
          if ( ( HTTPHeaderIsPOST(incomingRequest,incomingRequestLength ) ) && ( ENABLE_POST ) )
           {
-            //unsigned long oldLimit = MAXincomingRequestLength;
-            if (MAXincomingRequestLength < MAX_HTTP_POST_REQUEST_HEADER )
+            incomingRequest = growPOSTHeader(&MAXincomingRequestLength,incomingRequest);
+            if (incomingRequest==0)
             {
-              MAXincomingRequestLength += HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
-              if (MAXincomingRequestLength > MAX_HTTP_POST_REQUEST_HEADER )
-                   { MAXincomingRequestLength = MAX_HTTP_POST_REQUEST_HEADER; }
-
-
-               char  * largerRequest = (char * )  realloc (incomingRequest, sizeof(char) * (MAXincomingRequestLength+2) );
-
-               if ( largerRequest!=0 )
-                   { fprintf(stderr,"Successfully grown input header using %u/%u bytes\n",incomingRequestLength,MAXincomingRequestLength);
-                     incomingRequest=largerRequest;
-                   }
-                     else
-                   {
-                    fprintf(stderr,"The request would overflow POST limit , dropping client \n");
-                    free(incomingRequest);
-                    return 0;
-                   }
-
+             fprintf(stderr,"Could not grow POST header, dropping client \n");
+             *headerLength=0;
+             return 0;
             }
           } else
           {
-            fprintf(stderr,"The request would overflow , dropping client \n");
+            fprintf(stderr,RED "The request would overflow , dropping client \n" NORMAL);
             *headerLength=0;
             free(incomingRequest);
             return 0;
           }
       }
-    }
+    } // --  --  --  --  --
 
-   ++currentHTTPHeaderWaitTime;
-  }
-
-  if (currentHTTPHeaderWaitTime>maxHTTPHeaderWaitTime)
-  {
-      error("HTTP Header waiting timed out.. ");
-      *headerLength=0;
-      free(incomingRequest);
-      return 0;
   }
 
   fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
   *headerLength=incomingRequestLength;
   return incomingRequest;
 }
-
-
-int AppendPOSTRequestToHTTPHeader(struct HTTPTransaction * transaction)
-{
- //unsigned int incomingRequestLength = transaction->incomingHeader.headerRAWSize;
-
- transaction->incomingHeader.headerRAWSize  = HTTPHeaderComplete(transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize);
- fprintf(stderr,"Header Size  =  %u / %u \n",transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.headerRAWSize);
- transaction->incomingHeader.POSTrequestSize = transaction->incomingHeader.headerRAWSize;
- return 1;
-}
-
 
 
 
@@ -390,7 +383,6 @@ int AnalyzeHTTPLineRequest(
    } else
    {
      unsigned int payload_start = 0;
-
      unsigned int requestType = scanFor_httpHeader(request,request_length);
      //fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
      switch (requestType)
@@ -414,6 +406,7 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_COOKIE :
          payload_start+=strlen("COOKIE:");
+         output->cookieIndex=payload_start;
          output->cookie=request+payload_start;
          output->cookieLength = request_length-payload_start;
          return 1;
@@ -427,6 +420,7 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_HOST :
           payload_start+=strlen("HOST:");
+          output->hostIndex=payload_start;
           output->host=request+payload_start;
           output->hostLength=request_length-payload_start;
           return 1;
@@ -434,6 +428,7 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_IF_NONE_MATCH :
          payload_start+=strlen("IF-NONE-MATCH:");
+         output->eTagIndex=payload_start;
          output->eTag=request+payload_start;
          output->eTagLength = request_length-payload_start;
          //This is a hacky way to get past the space and " character -> IF-NONE_MATCH: "19392391932"
@@ -467,6 +462,7 @@ int AnalyzeHTTPLineRequest(
             payload_start+=strlen("REFERRER:");
         case HTTPHEADER_REFERER :
              if (HTTPHEADER_REFERER==requestType) {payload_start+=strlen("REFERER:");  }
+             output->refererIndex=payload_start;
              output->referer=request+payload_start;
              output->refererLength=request_length-payload_start;
              return 1;
@@ -486,7 +482,7 @@ int AnalyzeHTTPLineRequest(
   return 0;
 }
 
-//int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
+
 int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
   struct HTTPHeader * output  = &transaction->incomingHeader;
@@ -505,6 +501,10 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
   output->range_start=0;
   output->range_end=0;
   output->authorized=0;
+
+  //Retain raw header..
+  output->headerRAW = request;
+  output->headerRAWSize = request_length;
 
   fprintf(stderr,"Started New Analyzing Header\n");
   char * startOfNewLine=request;
@@ -546,3 +546,29 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
   return 1;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+{
+  struct HTTPHeader * output  = &transaction->incomingHeader;
+  char * request = transaction->incomingHeader.headerRAW;
+  unsigned int request_length = transaction->incomingHeader.headerRAWSize;
+  char * webserver_root = instance->webserver_root;
+
+  //!TODO : HERE
+
+       // (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
+  return 1;
+}
+
+

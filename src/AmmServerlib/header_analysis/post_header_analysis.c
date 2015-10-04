@@ -94,13 +94,14 @@ int AnalyzePOSTLineRequest(
          unsigned int payload_start = 0;
 
 
-          unsigned int requestType = scanFor_httpHeader(request,request_length);
+          unsigned int requestType = scanFor_postHeader(request,request_length);
           //fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
           switch (requestType)
           {
             case POSTHEADER_CONTENT_TYPE :
                  payload_start+=strlen("CONTENT-TYPE:");
                  //if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
+                 output->contentTypeIndex=payload_start;
                  output->contentType=request+payload_start;
                  output->contentTypeLength=request_length-payload_start;
                  char * boundary = strstr(request+payload_start,"boundary=");
@@ -116,6 +117,7 @@ int AnalyzePOSTLineRequest(
 
             case POSTHEADER_CONTENT_DISPOSITION :
                 payload_start+=strlen("CONTENT-DISPOSITION:");
+                output->contentDispositionIndex=payload_start;
                 output->contentDisposition=request+payload_start;
                 output->contentDispositionLength=request_length-payload_start;
                 return 1;
@@ -135,6 +137,16 @@ int AnalyzePOSTLineRequest(
 
 
 
+
+int TokenizePOSTFiles(
+                       struct AmmServer_Instance * instance,
+                       struct HTTPHeader * output,
+                       char * POSTRequest,
+                       unsigned int POSTRequestLength
+                     )
+{
+  //! TODO strstr ( output->boundary )
+}
 
 
 

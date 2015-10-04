@@ -27,11 +27,11 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
    <hr>\
    </body></html>",
    GetActiveHTTPServerThreads(instance),
-   files_open,
+   instance->statistics.filesCurrentlyOpen ,
    (unsigned int) instance->statistics.recvOperationsStarted-instance->statistics.recvOperationsFinished ,
    cache_GetCacheSizeKB(instance),
-   dataSent_KB,
-   dataReceived_KB
+   instance->statistics.totalUploadKB,
+   instance->statistics.totalDownloadKB
    );
   rqst->contentSize=strlen(rqst->content);
   return 0;
