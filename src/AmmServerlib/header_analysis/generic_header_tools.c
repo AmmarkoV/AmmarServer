@@ -12,6 +12,14 @@
 
 
 
+int clearHeader(struct HTTPHeader * hdr)
+{
+ //Clear incoming header structure..!
+  memset ( hdr ,0 , sizeof(struct HTTPHeader) );
+ return 1;
+}
+
+
 int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * transaction)
 {
   if ( (transaction==0) || (transaction->incomingHeader.headerRAW==0) )

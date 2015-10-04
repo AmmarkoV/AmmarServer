@@ -26,11 +26,9 @@
 
 int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
- //Clear incoming header structure..!
- memset ( &transaction->incomingHeader ,0 , sizeof(struct HTTPHeader) );
-  //transaction->clientSock;
-
  int opres=0;
+
+ clearHeader(&transaction->incomingHeader);
 
  unsigned int result=1;
  unsigned int doneReceiving=0;
