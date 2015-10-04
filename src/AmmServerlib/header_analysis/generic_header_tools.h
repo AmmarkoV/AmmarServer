@@ -18,6 +18,7 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * trans
 int growHeader(struct HTTPTransaction * transaction);
 
 
+int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
 
 #ifdef __cplusplus
 }

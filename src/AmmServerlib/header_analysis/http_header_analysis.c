@@ -523,7 +523,7 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
         case LF :
                   if (newLineLength>0)
                   {
-                    //We've reached a new line! , lets process the previous one
+                    //We've reached keepAnalyzingHTTPHeadera new line! , lets process the previous one
                     ++lines_gathered;
                     AnalyzeHTTPLineRequest(instance,output,startOfNewLine,newLineLength,lines_gathered,webserver_root);
                     newLineLength=0;
@@ -551,24 +551,5 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
 
 
-
-
-
-
-
-
-
-int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
-{
-  struct HTTPHeader * output  = &transaction->incomingHeader;
-  char * request = transaction->incomingHeader.headerRAW;
-  unsigned int request_length = transaction->incomingHeader.headerRAWSize;
-  char * webserver_root = instance->webserver_root;
-
-  //!TODO : HERE
-
-       // (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
-  return 1;
-}
 
 
