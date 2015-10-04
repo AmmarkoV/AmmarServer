@@ -51,7 +51,6 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
 
 
-int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
 
 
 #ifdef __cplusplus

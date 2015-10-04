@@ -19,11 +19,6 @@
 #include "../header_analysis/post_header_analysis.h"
 
 
-
-
-
-
-
 int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
  //Clear incoming header structure..!
@@ -62,7 +57,6 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
       incomingRequestLength+=opres;
       fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
 
-      //!TODO : also accommodate parsing progress inside transaction
       if (!keepAnalyzingHTTPHeader(instance,transaction))
       {
         fprintf(stderr,"We are done receiving and analyzing this HTTPHeader\n");
