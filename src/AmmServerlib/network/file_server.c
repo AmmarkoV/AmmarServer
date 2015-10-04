@@ -48,12 +48,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
    and starts reading and sending the file indicated by the function arguments..!
 */
 //Counters for performance , these should  be put inside the the server instance so this is work to do in the future..
-unsigned int files_open = 0;
-unsigned long dataSent_KB = 0;
-unsigned long dataReceived_KB = 0;
 
 
-int SendPart(int clientsock,const char * message,unsigned int message_size)
+int SendPart(
+              struct AmmServer_Instance * instance,
+              int clientsock,
+              const char * message,
+              unsigned int message_size
+             )
 {
   int opres=send(clientsock,message,message_size,MSG_WAITALL|MSG_NOSIGNAL);
   if (opres<=0)
@@ -68,13 +70,14 @@ int SendPart(int clientsock,const char * message,unsigned int message_size)
       return 0;
      } else
      {
-       dataSent_KB+=(unsigned long) opres/1024;
+       instance->statistics.totalUploadKB+=(unsigned long) opres/1024;
      }
   return 1;
 }
 
 
  int TransmitFileToSocketInternal(
+                                         struct AmmServer_Instance * instance,
                                          FILE * pFile,
                                          int clientsock,
                                          unsigned long bytesToSendStart
@@ -143,7 +146,7 @@ int SendPart(int clientsock,const char * message,unsigned int message_size)
                             fprintf(stderr,".");
                           } else
                           {
-                           dataSent_KB+=(unsigned long) chunkToSend/1024;
+                           instance->statistics.totalUploadKB+=(unsigned long) chunkToSend/1024;
                            chunkToSend -= opres;
                            bytesToSend -= opres;
                            rollingBuffer += opres;
@@ -176,7 +179,9 @@ int SendPart(int clientsock,const char * message,unsigned int message_size)
 
 
 
-inline int TransmitFileHeaderToSocket(int clientsock,
+inline int TransmitFileHeaderToSocket(
+                                      struct AmmServer_Instance * instance,
+                                      int clientsock,
                                       unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
                                       unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
                                       unsigned long lSize
@@ -195,7 +200,7 @@ inline int TransmitFileHeaderToSocket(int clientsock,
          //This is the last header part , so we are appending an extra \n to mark the end of the header
          snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) lSize);
        }
-    if (!SendPart(clientsock,reply_header,strlen(reply_header)))
+    if (!SendPart(instance,clientsock,reply_header,strlen(reply_header)))
         {
          fprintf(stderr,"Failed sending Content-length @  SendFile ..!\n");
          return 0;
@@ -207,6 +212,7 @@ inline int TransmitFileHeaderToSocket(int clientsock,
 
 
 int TransmitFileToSocket(
+                         struct AmmServer_Instance * instance,
                          int clientsock,
                          const char * verified_filename,
                          unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
@@ -219,19 +225,19 @@ int TransmitFileToSocket(
  //If we can't open the file we fail to transmit the file
  if (pFile==0)
    {
-    fprintf(stderr,"Could not open file %s , files open %u \n",verified_filename,files_open);
+    fprintf(stderr,"Could not open file %s , files open %lu \n",verified_filename,instance->statistics.filesCurrentlyOpen);
     return 0;
    } else
    {
     //Count the open file
-    ++files_open;
+    ++instance->statistics.filesCurrentlyOpen;
 
      //Try to obtain file size if not fail to transmit the fail
      if ( fseek (pFile , 0 , SEEK_END)!=0 )
       {
         warning("Could not find file size..!\nUnable to serve client\n");
         fclose(pFile);
-        --files_open;  //Count the closed file
+        --instance->statistics.filesCurrentlyOpen;  //Count the closed file
         return 0;
       }
       unsigned long lSize = ftell (pFile);
@@ -243,10 +249,11 @@ int TransmitFileToSocket(
         end_at_byte=lSize;
       }
 
-    fprintf(stderr,"Sending => Size %0.2f KB / Open files %u / Filename %s \n",(double) lSize/1024,files_open,verified_filename);
+    fprintf(stderr,"Sending => Size %0.2f KB / Open files %lu / Filename %s \n",(double) lSize/1024,instance->statistics.filesCurrentlyOpen,verified_filename);
 
      if (
           TransmitFileHeaderToSocket(
+                                     instance,
                                      clientsock,
                                      start_at_byte,     // Optionally start with an offset ( resume download functionality )
                                      end_at_byte,       // Optionally end at an offset ( resume download functionality )
@@ -258,12 +265,12 @@ int TransmitFileToSocket(
         if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
         if (end_at_byte==0)   { end_at_byte=lSize-start_at_byte; }
 
-        res = TransmitFileToSocketInternal(pFile,clientsock,end_at_byte);
+        res = TransmitFileToSocketInternal(instance,pFile,clientsock,end_at_byte);
      }
 
 
     fclose (pFile);
-    --files_open; //Count the closed file
+    --instance->statistics.filesCurrentlyOpen; //Count the closed file
   }
   return res;
 }
@@ -388,7 +395,7 @@ unsigned long SendFile
               //The Etag is mandatory on 304 messages..!
               char ETagSendChunk[MAX_ETAG_SIZE+64]={0};
               snprintf(ETagSendChunk,MAX_ETAG_SIZE+64,"ETag: \"%s\" \n",LocalETag);
-              if (!SendPart(clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
+              if (!SendPart(instance,clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
               WeWantA200OK=0;
               request->requestType=HEAD;
@@ -435,8 +442,8 @@ unsigned long SendFile
                      The Keep-Alive header is completely optional; it is defined primarily because the keep-alive connection token implies that such a header exists, not because anyone actually uses it.
                     Some implementations (e.g., Apache) do generate a Keep-Alive header to convey how many requests they're willing to serve on a single connection, what the connection timeout is and other information. However, this isn't usually used by clients.
                     It's safe to remove this header if you wish to save a few bytes in the response.*/
-  if (keepalive) { if (!SendPart(clientsock,"Connection: keep-alive\n",strlen("Connection: keep-alive\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
-                 { if (!SendPart(clientsock,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
+  if (keepalive) { if (!SendPart(instance,clientsock,"Connection: keep-alive\n",strlen("Connection: keep-alive\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
+                 { if (!SendPart(instance,clientsock,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
 
 
 if (request->requestType!=HEAD)
@@ -501,7 +508,7 @@ if (request->requestType!=HEAD)
     if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
 
 
-     if ( !TransmitFileToSocket(clientsock,verified_filename,start_at_byte,end_at_byte) )
+     if ( !TransmitFileToSocket(instance,clientsock,verified_filename,start_at_byte,end_at_byte) )
       {
          fprintf(stderr,"Could not transmit file %s \n",verified_filename);
          return 0;
@@ -537,6 +544,7 @@ unsigned long SendErrorFile
 
 unsigned long SendMemoryBlockAsFile
   (
+    struct AmmServer_Instance * instance,
     char * filename,
     int clientsock, // The socket that will be used to send the data
     //char * path, // The filename to be served on the socket above
@@ -551,10 +559,10 @@ unsigned long SendMemoryBlockAsFile
   snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\nConnection: close\n\n",(unsigned int) mem_block);
   //TODO : Location : path etc
 
-  if (!SendPart(clientsock,reply_header,strlen(reply_header)))
+  if (!SendPart(instance,clientsock,reply_header,strlen(reply_header)))
       { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
-  if (!SendPart(clientsock,mem,mem_block))
+  if (!SendPart(instance,clientsock,mem,mem_block))
       { fprintf(stderr,"Failed sending content body @  SendMemoryBlockAsFile ..!\n");  }
 
  return 0;

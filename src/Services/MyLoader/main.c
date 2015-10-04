@@ -25,7 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
-#define DEFAULT_BINDING_PORT 8081  // <--- Change this to 80 if you want to bind to the default http port..!
+#define DEFAULT_BINDING_PORT 8085
 
 char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -108,13 +108,13 @@ void request_override_callback(void * request)
 //This function prepares the content of  stats context , ( stats.content )
 void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  AmmServer_WriteFileFromMemory("test.jpg",rqst->POST_request,rqst->POST_request_length);
+  AmmServer_WriteFileFromMemory("test.bin",rqst->POST_request,rqst->POST_request_length);
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   snprintf(rqst->content,rqst->MAXcontentSize,"<html>\
                            <head>\
                              <title>Dynamic Content Enabled</title>\
                            </head>\
-                           <body>Uploaded<br>\
+                           <body>Uploaded test.bin<br>\
                            </body></html>");
 
 
@@ -127,7 +127,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * internalTestCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  char command[512]={"curl \"http://127.0.0.1:8080/upload.html\" -F myfile=@\"public_html/image.png\" "};
+  char command[512]={"curl \"http://127.0.0.1:8085/upload.html\" -F myfile=@\"public_html/image.png\" "};
 
   AmmServer_WriteFileFromMemory("test.jpg",rqst->POST_request,rqst->POST_request_length);
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!

@@ -83,6 +83,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="hashmap/hashmap.h" />
+		<Unit filename="header_analysis/generic_header_tools.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="header_analysis/generic_header_tools.h" />
 		<Unit filename="header_analysis/http_header_analysis.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -98,6 +102,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="network/file_server.h" />
+		<Unit filename="network/recvHTTPHeader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network/recvHTTPHeader.h" />
 		<Unit filename="network/sendHTTPHeader.c">
 			<Option compilerVar="CC" />
 		</Unit>

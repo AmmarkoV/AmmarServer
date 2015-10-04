@@ -2,13 +2,36 @@
 # I clear the terminal to make easier debugging between different starts of the program
 clear
 
+
+
+PROJECTNAMERELEASE="MyLoader/myloader"
+PROJECTNAMEDEBUG="MyLoader/myloaderD"
+
+
 STARTDIR=`pwd`
 #Switch to this directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-# Start AmmarServer
-src/Services/MyLoader/myloader -p 8085 $@
+
+if [ -e src/Services/$PROJECTNAMERELEASE ]
+then
+  echo "Running release mode"
+  src/Services/$PROJECTNAMERELEASE -p 8085 $@
+  cd "$STARTDIR"
+  exit 0
+fi
+
+
+if [ -e src/Services/$PROJECTNAMEDEBUG ]
+then
+  echo "Running release mode"
+  src/Services/$PROJECTNAMEDEBUG -p 8085 $@
+  cd "$STARTDIR"
+  exit 0
+fi
+
+
 
 cd "$STARTDIR"
 
