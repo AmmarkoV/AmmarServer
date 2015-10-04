@@ -546,10 +546,3 @@ int AnalyzeHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransactio
 
   return 1;
 }
-
-
-
-
-
-
-
