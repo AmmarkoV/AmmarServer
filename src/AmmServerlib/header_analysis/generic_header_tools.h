@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+int clearHeader(struct HTTPHeader * hdr);
 
 int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * transaction);
 int growHeader(struct HTTPTransaction * transaction);
