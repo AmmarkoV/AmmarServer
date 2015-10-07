@@ -18,6 +18,13 @@ extern "C" {
 #endif
 
 
+
+
+
+/** @brief Enable new , better , header receiving or not .. Please note that New header receiving is broken xD*/
+#define USE_OLD_HEADER_RECEIVING_CODE 1
+
+
 /** @brief Enable a variety of debug messages in parts of the code that are not 100% bulletproof*/
 #define DEBUG_MESSAGES 0
 
