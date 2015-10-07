@@ -88,15 +88,11 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
     } // --  --  --  --  --
 
 
-    fprintf(stderr,"Checking if HTTPHeader is complete\n");
     if ( HTTPHeaderIsComplete(instance,transaction) )
     {
-       fprintf(stderr,"It Is\n");
+       result=1;
        doneReceiving=1;
        break;
-    } else
-    {
-       fprintf(stderr,"It Is Not\n");
     }
 
   }
@@ -115,7 +111,6 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   {
     transaction->incomingHeader.headerRAW = incomingRequest;
     transaction->incomingHeader.headerRAWSize = incomingRequestLength;
-
   }
 
  return result;

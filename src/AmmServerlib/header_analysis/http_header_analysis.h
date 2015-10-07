@@ -25,21 +25,6 @@ extern "C" {
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength);
 
 
-/**
-* @brief Ask if a header is complete inside an incoming request , detected by four consecutive bytes CR LF CR LF that mark the end of a header
-* @ingroup HTTPanalysis
-* @param Pointer to incoming request (streaming) string
-* @param Length of incoming string
-* @retval 1=Complete,0=Incomplete*/
-int HTTPHeaderScanForEnding(char * request,unsigned int request_length);
-
-/**
-* @brief Ask if a header is a POST request, detected by the first four consecutive bytes being P O S T
-* @ingroup HTTPanalysis
-* @param Pointer to incoming request (streaming) string
-* @param Length of incoming string
-* @retval 1=POST,0=Not POST request*/
-int HTTPHeaderIsPOST(char * request , unsigned int requestLength);
 
 /**
 * @brief Analyze HTTP header ( after it has been accumulated into memory )
