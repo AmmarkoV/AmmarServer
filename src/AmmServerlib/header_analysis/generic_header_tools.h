@@ -20,6 +20,8 @@ int growHeader(struct HTTPTransaction * transaction);
 
 int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
 
+int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
+
 #ifdef __cplusplus
 }
 #endif

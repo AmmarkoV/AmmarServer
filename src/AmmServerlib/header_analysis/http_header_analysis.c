@@ -107,7 +107,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
-        (HTTPHeaderComplete(incomingRequest,incomingRequestLength)==0) &&
+        (HTTPHeaderScanForEnding(incomingRequest,incomingRequestLength)==0) &&
         (instance->server_running)
        )
  {
@@ -172,12 +172,12 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 
 
 
-int HTTPHeaderComplete(char * request,unsigned int request_length)
+int HTTPHeaderScanForEnding(char * request,unsigned int request_length)
 {
   /*  This call returns 1 when we find two subsequent newline characters
       which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
 
-  if (request_length<2) { return 0; } // at least LF LF is expected :P
+  if (request_length<4) {  fprintf(stderr,"Header too small ( %u ) to check for an ending..!\n",request_length); return 0; } // at least LF LF is expected :P
 
   fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
   unsigned int i=request_length-1;

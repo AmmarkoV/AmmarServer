@@ -32,6 +32,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  unsigned int incomingRequestLength = 0 ;
  unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
  char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength+2) );
+ transaction->incomingHeader.headerRAW = incomingRequest ;
  if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
  incomingRequest[0]=0;
 
@@ -44,23 +45,29 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  {
   ++instance->statistics.recvOperationsStarted;
    opres=recv(transaction->clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
+
   ++instance->statistics.recvOperationsFinished;
 
   //Error Receiving..
-  if (opres<0)  { printRecvError(); result=0; break; } else
+  if (opres<0)  { printRecvError(); result=0; break; }
+  else
   //Client shutdown connection..
-  if (opres==0) { fprintf(stderr,"client shutdown ..\n"); result=0; break; } else
+  if (opres==0) { fprintf(stderr,"Client shutdown while receiving HTTP Header..\n"); result=0; break; }
+  else
   //Received new data
    {
       //Count incoming data
       instance->statistics.totalDownloadKB+=opres;
       incomingRequestLength+=opres;
+      transaction->incomingHeader.headerRAWSize = incomingRequestLength;
       fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
+      fprintf(stderr,"BODY : %s \n",incomingRequest);
 
       if (!keepAnalyzingHTTPHeader(instance,transaction))
       {
         fprintf(stderr,"We are done receiving and analyzing this HTTPHeader\n");
         result=1;
+        doneReceiving=1;
         break;
       } else
       {
@@ -70,6 +77,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
            if (!growHeader(transaction))
            {
                 result=0;
+                doneReceiving=1;
                 break;
            }
         } else
@@ -78,15 +86,31 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
         }
       }
     } // --  --  --  --  --
+
+
+    fprintf(stderr,"Checking if HTTPHeader is complete\n");
+    if ( HTTPHeaderIsComplete(instance,transaction) )
+    {
+       fprintf(stderr,"It Is\n");
+       doneReceiving=1;
+       break;
+    } else
+    {
+       fprintf(stderr,"It Is Not\n");
+    }
+
   }
 
-  fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
+  fprintf(stderr,"Finished receiving and parsing HTTP header..\n");
 
   if (!result)
   {
     //Remove incoming request here
     incomingRequestLength=0;
     if (incomingRequest!=0) { free(incomingRequest); }
+
+    transaction->incomingHeader.headerRAW = 0;
+    transaction->incomingHeader.headerRAWSize = 0;
   } else
   {
     transaction->incomingHeader.headerRAW = incomingRequest;

@@ -31,7 +31,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
 * @param Pointer to incoming request (streaming) string
 * @param Length of incoming string
 * @retval 1=Complete,0=Incomplete*/
-int HTTPHeaderComplete(char * request,unsigned int request_length);
+int HTTPHeaderScanForEnding(char * request,unsigned int request_length);
 
 /**
 * @brief Ask if a header is a POST request, detected by the first four consecutive bytes being P O S T

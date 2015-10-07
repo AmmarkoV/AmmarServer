@@ -138,3 +138,8 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
   return 1;
 }
 
+
+int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+{
+  return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize );
+}
