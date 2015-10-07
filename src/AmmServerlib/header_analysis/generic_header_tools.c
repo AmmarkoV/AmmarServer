@@ -94,6 +94,7 @@ int growHeader(struct HTTPTransaction * transaction)
  if (transaction==0) { return 0; }
 
   struct HTTPHeader * hdr =  &transaction->incomingHeader;
+  fprintf(stderr,"growHeader called \n");
 
   //We have a requested header Size
   unsigned int wannabeHeaderSize = hdr->MAXheaderRAWSize + HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
@@ -114,8 +115,8 @@ int growHeader(struct HTTPTransaction * transaction)
    { //There is still room for incrementing the size of the buffer
      if (wannabeHeaderSize > MAX_HTTP_POST_REQUEST_HEADER )
             { wannabeHeaderSize = MAX_HTTP_POST_REQUEST_HEADER; }
-
-     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (hdr->MAXheaderRAWSize+1) );
+      fprintf(stderr,"Growing ");
+     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (hdr->MAXheaderRAWSize+2) );
 
      if (newBuffer!=0 )
      {
@@ -200,8 +201,21 @@ int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransac
   if (transaction->incomingHeader.requestType == POST)
   {
      fprintf(stderr,"Our header length is %u , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
-
-     return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize );
+     if (transaction->incomingHeader.ContentLength>MAX_HTTP_POST_REQUEST_HEADER)
+     {
+       fprintf(stderr,"Requested POST Size is too big calling it a day if we got the initial..!");
+       return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize );
+     } else
+     if (transaction->incomingHeader.ContentLength>transaction->incomingHeader.headerRAWSize)
+     {
+       fprintf(stderr,"Header needs more bytes..!");
+       transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength;
+       return 0;
+     } else
+     if (transaction->incomingHeader.ContentLength<=transaction->incomingHeader.headerRAWSize)
+     {
+       return 1;
+     }
   }
 
   //In other cases just scan for the two consecutive new lines

@@ -29,12 +29,12 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
 
  unsigned int result=1;
  unsigned int doneReceiving=0;
- unsigned int incomingRequestLength = 0 ;
- unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
- char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength+2) );
+ transaction->incomingHeader.headerRAWSize = 0 ;
+ transaction->incomingHeader.MAXheaderRAWSize = MAX_HTTP_REQUEST_HEADER+1 ;
+ char  * incomingRequest = (char*)  malloc(sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
  transaction->incomingHeader.headerRAW = incomingRequest ;
  if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
- incomingRequest[0]=0;
+ transaction->incomingHeader.headerRAW[0]=0;
 
 
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
@@ -44,8 +44,14 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
        )
  {
   ++instance->statistics.recvOperationsStarted;
-   opres=recv(transaction->clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
-
+   opres=recv(
+              transaction->clientSock,
+              &transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize],
+              (unsigned int) transaction->incomingHeader.MAXheaderRAWSize - transaction->incomingHeader.headerRAWSize ,
+              0
+             );
+   // More input => Null Terminate , we have allocated extra space so this is always ok..!
+   if (opres>0) { transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize + opres]=0; }
   ++instance->statistics.recvOperationsFinished;
 
   //Error Receiving..
@@ -58,10 +64,9 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
    {
       //Count incoming data
       instance->statistics.totalDownloadKB+=opres;
-      incomingRequestLength+=opres;
-      transaction->incomingHeader.headerRAWSize = incomingRequestLength;
-      fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
-      fprintf(stderr,"BODY : %s \n",incomingRequest);
+      transaction->incomingHeader.headerRAWSize+=opres;
+      fprintf(stderr,"Got %d bytes ( %u total / %u max )\n",opres,transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.MAXheaderRAWSize);
+      fprintf(stderr,"BODY : %s \n",transaction->incomingHeader.headerRAW);
 
       if (!keepAnalyzingHTTPHeader(instance,transaction))
       {
@@ -69,21 +74,6 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
         result=1;
         doneReceiving=1;
         break;
-      } else
-      {
-        //We have a chunk of input but not done yet , have we run out of space ?
-        if (incomingRequestLength>=MAXincomingRequestLength)
-        {
-           if (!growHeader(transaction))
-           {
-                result=0;
-                doneReceiving=1;
-                break;
-           }
-        } else
-        {
-          //Just got a small chunk of input if we ended up here..
-        }
       }
     } // --  --  --  --  --
 
@@ -93,7 +83,22 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
        result=1;
        doneReceiving=1;
        break;
-    }
+    } else
+     if (
+             (transaction->incomingHeader.headerRAWSize>=transaction->incomingHeader.MAXheaderRAWSize) &&
+             (transaction->incomingHeader.requestType == POST ) &&
+             (ENABLE_POST)
+           )
+        {
+           if (!growHeader(transaction))
+           {
+                fprintf(stderr,"Failed to grow the header :( \n");
+                result=0;
+                doneReceiving=1;
+                break;
+           }
+        }
+
 
   }
 
@@ -102,15 +107,11 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   if (!result)
   {
     //Remove incoming request here
-    incomingRequestLength=0;
-    if (incomingRequest!=0) { free(incomingRequest); }
+    if (transaction->incomingHeader.headerRAW!=0)
+         { free(transaction->incomingHeader.headerRAW); }
 
     transaction->incomingHeader.headerRAW = 0;
     transaction->incomingHeader.headerRAWSize = 0;
-  } else
-  {
-    transaction->incomingHeader.headerRAW = incomingRequest;
-    transaction->incomingHeader.headerRAWSize = incomingRequestLength;
   }
 
  return result;
