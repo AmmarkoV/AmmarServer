@@ -46,11 +46,12 @@ int HTTPHeaderIsGET(char * request , unsigned int requestLength)
 }
 
 
-int HTTPHeaderScanForEnding(char * request,unsigned int request_length)
+int HTTPHeaderScanForEnding(char * request,unsigned int request_length,unsigned int *endOfHTTPHeader)
 {
   /*  This call returns 1 when we find two subsequent newline characters
       which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
   if (request_length<4) {  fprintf(stderr,"Header too small ( %u ) to check for an ending..!\n",request_length); return 0; } // at least LF LF is expected :P
+  *endOfHTTPHeader=0;
 
   fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
   unsigned int i=request_length-1;
@@ -58,8 +59,23 @@ int HTTPHeaderScanForEnding(char * request,unsigned int request_length)
    {
       if ( request[i]==LF )
        {
-        if (i>=1) { if (( request[i-1]==LF )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return i; }  } /* unix 2x new line sequence */
-        if (i>=3) { if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return i; } } /* windows 2x new line sequence */
+        if (i>=1) {
+                    if (( request[i-1]==LF )&&( request[i]==LF ))
+                     {
+                      fprintf(stderr,"it is \n");
+                      *endOfHTTPHeader=i;
+                      return i;
+                     }
+                  } /* unix 2x new line sequence */
+
+        if (i>=3) {
+                    if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF ))
+                    {
+                     fprintf(stderr,"it is \n");
+                     *endOfHTTPHeader=i;
+                     return i;
+                    }
+                  } /* windows 2x new line sequence */
        }
      --i;
    }
@@ -102,7 +118,7 @@ int growHeader(struct HTTPTransaction * transaction)
   {
    if (hdr->headerRAWRequestedSize<=MAX_HTTP_POST_REQUEST_HEADER)
    {
-    wannabeHeaderSize = hdr->headerRAWRequestedSize;
+    wannabeHeaderSize = hdr->headerRAWRequestedSize ; // + transaction->incomingHeader.headerHeadSize;
    } else
    {
     fprintf(stderr,"Cannot grow header , requested size ( %u is more than our limit %u )\n",hdr->headerRAWRequestedSize,MAX_HTTP_POST_REQUEST_HEADER);
@@ -116,7 +132,7 @@ int growHeader(struct HTTPTransaction * transaction)
      if (wannabeHeaderSize > MAX_HTTP_POST_REQUEST_HEADER )
             { wannabeHeaderSize = MAX_HTTP_POST_REQUEST_HEADER; }
       fprintf(stderr,"Growing ");
-     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (hdr->MAXheaderRAWSize+2) );
+     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+2) );
 
      if (newBuffer!=0 )
      {
@@ -200,24 +216,26 @@ int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransac
   fprintf(stderr,"HTTPHeaderIsComplete asked for request of type %u ( GET %u , HEAD %u , POST %u )\n ",transaction->incomingHeader.requestType  ,  GET , HEAD , POST );
   if (transaction->incomingHeader.requestType == POST)
   {
+     unsigned int foundHTTPHeadEnd =  HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize , &transaction->incomingHeader.headerHeadSize );
      fprintf(stderr,"Our header length is %u , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
+     fprintf(stderr," Header head size %u \n ", transaction->incomingHeader.headerHeadSize);
      if (transaction->incomingHeader.ContentLength>MAX_HTTP_POST_REQUEST_HEADER)
      {
        fprintf(stderr,"Requested POST Size is too big calling it a day if we got the initial..!");
-       return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize );
+       return foundHTTPHeadEnd;
      } else
-     if (transaction->incomingHeader.ContentLength>transaction->incomingHeader.headerRAWSize)
+     if (transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize> transaction->incomingHeader.headerRAWSize )
      {
        fprintf(stderr,"Header needs more bytes..!");
-       transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength;
+       transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize;
        return 0;
      } else
-     if (transaction->incomingHeader.ContentLength<=transaction->incomingHeader.headerRAWSize)
+     if (transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize <= transaction->incomingHeader.headerRAWSize)
      {
        return 1;
      }
   }
 
   //In other cases just scan for the two consecutive new lines
-  return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize );
+  return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize , &transaction->incomingHeader.headerHeadSize );
 }

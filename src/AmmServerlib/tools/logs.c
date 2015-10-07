@@ -47,19 +47,40 @@ int AccessLogAppend(char * IP,char * DateStr,char * Request,unsigned int Respons
     if (pFile==0) { return 0; }
 
 
+    char nullIP[10]={"0.0.0.0"};
+    char * ipPTR = 0;
+    if ( IP !=0 ) { ipPTR  = IP; } else
+                  { ipPTR  = nullIP;  }
+
     char autoDateBuffer[10]={"0/0/0"};
     char * datePtr = 0;
     if ( DateStr !=0 ) { datePtr = DateStr; } else
                        { datePtr = autoDateBuffer;  }
 
+
+    char nullBuffer[10]={" "};
+    char * locationPtr = 0;
+    if ( Location !=0 ) { locationPtr = Location; } else
+                        { locationPtr = nullBuffer;  }
+
+
+    char * UseragentPtr = 0;
+    if ( Useragent !=0 ) { UseragentPtr = Useragent; } else
+                         { UseragentPtr = nullBuffer;  }
+
+
+    char * RequestPtr = 0;
+    if ( Request !=0 ) { RequestPtr = Request; } else
+                       { RequestPtr = nullBuffer;  }
+
     fprintf(pFile,"%s - - [%s] \"%s\" %u %u \"%s\" \"%s\"\n",
-                  IP,
+                  ipPTR,
                   datePtr,
-                  Request,
+                  RequestPtr,
                   ResponseCode,
                   (unsigned int) ResponseLength,
-                  Location,
-                  Useragent
+                  locationPtr,
+                  UseragentPtr
              );
 
     fclose(pFile);
@@ -74,19 +95,41 @@ int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int Response
     if (pFile==0) { return 0; }
 
 
+
+    char nullIP[10]={"0.0.0.0"};
+    char * ipPTR = 0;
+    if ( IP !=0 ) { ipPTR  = IP; } else
+                  { ipPTR  = nullIP;  }
+
     char autoDateBuffer[10]={"0/0/0"};
     char * datePtr = 0;
     if ( DateStr !=0 ) { datePtr = DateStr; } else
                        { datePtr = autoDateBuffer;  }
 
+
+    char nullBuffer[10]={" "};
+    char * locationPtr = 0;
+    if ( Location !=0 ) { locationPtr = Location; } else
+                        { locationPtr = nullBuffer;  }
+
+
+    char * UseragentPtr = 0;
+    if ( Useragent !=0 ) { UseragentPtr = Useragent; } else
+                         { UseragentPtr = nullBuffer;  }
+
+
+    char * RequestPtr = 0;
+    if ( Request !=0 ) { RequestPtr = Request; } else
+                       { RequestPtr = nullBuffer;  }
+
     fprintf(pFile,"%s - - [%s] \"%s\" %u %u \"%s\" \"%s\"\n",
-                  IP,
+                  ipPTR,
                   datePtr,
-                  Request,
+                  RequestPtr,
                   ResponseCode,
                   (unsigned int) ResponseLength,
-                  Location,
-                  Useragent
+                  locationPtr,
+                  UseragentPtr
              );
 
     fclose(pFile);
