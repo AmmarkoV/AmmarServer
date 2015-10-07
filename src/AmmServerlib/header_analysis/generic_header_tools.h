@@ -50,8 +50,9 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 * @ingroup HTTPanalysis
 * @param Pointer to incoming request (streaming) string
 * @param Length of incoming string
+* @param Output pointer to length of http header
 * @retval 1=Complete,0=Incomplete*/
-int HTTPHeaderScanForEnding(char * request,unsigned int request_length);
+int HTTPHeaderScanForEnding(char * request,unsigned int request_length,unsigned int *endOfHTTPHeader);
 
 int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
 

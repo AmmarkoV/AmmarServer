@@ -81,6 +81,7 @@ struct HTTPHeader
    unsigned int parsingCurrentLine;
 
    char * headerRAW;
+   unsigned int headerHeadSize;
    unsigned int headerRAWSize;
    unsigned int headerRAWRequestedSize; // The size that the client requests ( we have our own limits and agenda though )
    unsigned int MAXheaderRAWSize;
