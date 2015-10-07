@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "generic_header_tools.h"
 #include "http_header_analysis.h"
 #include "post_header_analysis.h"
 #include "../network/file_server.h"
@@ -168,43 +169,6 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
   return incomingRequest;
 }
 
-
-
-
-
-int HTTPHeaderScanForEnding(char * request,unsigned int request_length)
-{
-  /*  This call returns 1 when we find two subsequent newline characters
-      which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
-
-  if (request_length<4) {  fprintf(stderr,"Header too small ( %u ) to check for an ending..!\n",request_length); return 0; } // at least LF LF is expected :P
-
-  fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
-  unsigned int i=request_length-1;
-  while (i>1)
-   {
-      if ( request[i]==LF )
-       {
-        if (i>=1) { if (( request[i-1]==LF )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return i; }  } /* unix 2x new line sequence */
-        if (i>=3) { if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return i; } } /* windows 2x new line sequence */
-       }
-     --i;
-   }
-
-   fprintf(stderr,"it isn't \n");
-   return 0;
-}
-
-
-int HTTPHeaderIsPOST(char * request , unsigned int requestLength)
-{
-  if (requestLength<4) { return 0; }
-  if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T'))
-  {
-    return 1;
-  }
-  return 0;
-}
 
 
 int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)

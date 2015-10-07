@@ -15,6 +15,60 @@
 
 
 
+int HTTPHeaderIsHEAD(char * request , unsigned int requestLength)
+{
+  if (requestLength<4) { return 0; }
+  if ((request[0]=='H')&&(request[1]=='E')&&(request[2]=='A')&&(request[3]=='D'))
+  {
+    return 1;
+  }
+  return 0;
+}
+
+int HTTPHeaderIsPOST(char * request , unsigned int requestLength)
+{
+  if (requestLength<4) { return 0; }
+  if ((request[0]=='P')&&(request[1]=='O')&&(request[2]=='S')&&(request[3]=='T'))
+  {
+    return 1;
+  }
+  return 0;
+}
+
+int HTTPHeaderIsGET(char * request , unsigned int requestLength)
+{
+  if (requestLength<3) { return 0; }
+  if ((request[0]=='G')&&(request[1]=='E')&&(request[2]=='T'))
+  {
+    return 1;
+  }
+  return 0;
+}
+
+
+int HTTPHeaderScanForEnding(char * request,unsigned int request_length)
+{
+  /*  This call returns 1 when we find two subsequent newline characters
+      which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
+  if (request_length<4) {  fprintf(stderr,"Header too small ( %u ) to check for an ending..!\n",request_length); return 0; } // at least LF LF is expected :P
+
+  fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
+  unsigned int i=request_length-1;
+  while (i>1)
+   {
+      if ( request[i]==LF )
+       {
+        if (i>=1) { if (( request[i-1]==LF )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return i; }  } /* unix 2x new line sequence */
+        if (i>=3) { if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF )) { fprintf(stderr,"it is \n"); return i; } } /* windows 2x new line sequence */
+       }
+     --i;
+   }
+
+   fprintf(stderr,"it isn't \n");
+   return 0;
+}
+
+
 int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * transaction)
 {
   if ( (transaction==0) || (transaction->incomingHeader.headerRAW==0) )
@@ -116,6 +170,7 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
                     //We've reached keepAnalyzingHTTPHeadera new line! , lets process the previous one
                     ++output->parsingCurrentLine;
                     AnalyzeHTTPLineRequest(instance,output,startOfNewLine,newLineLength,output->parsingCurrentLine,webserver_root);
+                    output->parsingStartOffset+=newLineLength; //Remember where we are
                     newLineLength=0;
 
                     startOfNewLine = request+i+1; //+1 gets past current CR or LF
@@ -141,5 +196,14 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 
 int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
+  fprintf(stderr,"HTTPHeaderIsComplete asked for request of type %u ( GET %u , HEAD %u , POST %u )\n ",transaction->incomingHeader.requestType  ,  GET , HEAD , POST );
+  if (transaction->incomingHeader.requestType == POST)
+  {
+     fprintf(stderr,"Our header length is %u , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
+
+     return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize );
+  }
+
+  //In other cases just scan for the two consecutive new lines
   return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize );
 }
