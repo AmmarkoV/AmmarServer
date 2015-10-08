@@ -49,10 +49,11 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 * @brief Ask if a header is complete inside an incoming request , detected by four consecutive bytes CR LF CR LF that mark the end of a header
 * @ingroup HTTPanalysis
 * @param Pointer to incoming request (streaming) string
+* @param Where to stop searching ( 0 means everything )
 * @param Length of incoming string
 * @param Output pointer to length of http header
 * @retval 1=Complete,0=Incomplete*/
-int HTTPHeaderScanForEnding(char * request,unsigned int request_length,unsigned int *endOfHTTPHeader);
+int HTTPHeaderScanForEnding(char * request,unsigned int dontSearchBefore,unsigned int request_length,unsigned int *endOfHTTPHeader);
 
 int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
 
