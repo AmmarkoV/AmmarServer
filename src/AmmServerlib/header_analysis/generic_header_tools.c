@@ -46,7 +46,7 @@ int HTTPHeaderIsGET(char * request , unsigned int requestLength)
 }
 
 
-int HTTPHeaderScanForEnding(char * request,unsigned int request_length,unsigned int *endOfHTTPHeader)
+int HTTPHeaderScanForEnding(char * request,unsigned int dontSearchBefore,unsigned int request_length,unsigned int *endOfHTTPHeader)
 {
   /*  This call returns 1 when we find two subsequent newline characters
       which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
@@ -55,14 +55,14 @@ int HTTPHeaderScanForEnding(char * request,unsigned int request_length,unsigned 
 
   fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
   unsigned int i=request_length-1;
-  while (i>1)
+  while (i>dontSearchBefore+1)
    {
       if ( request[i]==LF )
        {
         if (i>=1) {
                     if (( request[i-1]==LF )&&( request[i]==LF ))
                      {
-                      fprintf(stderr,"it is \n");
+                      fprintf(stderr,"it is ( ux ) \n");
                       *endOfHTTPHeader=i;
                       return i;
                      }
@@ -71,7 +71,7 @@ int HTTPHeaderScanForEnding(char * request,unsigned int request_length,unsigned 
         if (i>=3) {
                     if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF ))
                     {
-                     fprintf(stderr,"it is \n");
+                     fprintf(stderr,"it is ( win )\n");
                      *endOfHTTPHeader=i;
                      return i;
                     }
@@ -216,7 +216,12 @@ int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransac
   fprintf(stderr,"HTTPHeaderIsComplete asked for request of type %u ( GET %u , HEAD %u , POST %u )\n ",transaction->incomingHeader.requestType  ,  GET , HEAD , POST );
   if (transaction->incomingHeader.requestType == POST)
   {
-     unsigned int foundHTTPHeadEnd =  HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize , &transaction->incomingHeader.headerHeadSize );
+     unsigned int foundHTTPHeadEnd =  HTTPHeaderScanForEnding(
+                                                               transaction->incomingHeader.headerRAW ,
+                                                               transaction->incomingHeader.headerHeadSize ,
+                                                               transaction->incomingHeader.headerRAWSize ,
+                                                               &transaction->incomingHeader.headerHeadSize
+                                                              );
      fprintf(stderr,"Our header length is %u , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
      fprintf(stderr," Header head size %u \n ", transaction->incomingHeader.headerHeadSize);
      if (transaction->incomingHeader.ContentLength>MAX_HTTP_POST_REQUEST_HEADER)
@@ -224,18 +229,18 @@ int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransac
        fprintf(stderr,"Requested POST Size is too big calling it a day if we got the initial..!");
        return foundHTTPHeadEnd;
      } else
-     if (transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize> transaction->incomingHeader.headerRAWSize )
+     if (transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize > transaction->incomingHeader.headerRAWSize )
      {
        fprintf(stderr,"Header needs more bytes..!");
-       transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize;
+       transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize ;
        return 0;
      } else
-     if (transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize <= transaction->incomingHeader.headerRAWSize)
+     if (transaction->incomingHeader.ContentLength  + transaction->incomingHeader.headerHeadSize  <= transaction->incomingHeader.headerRAWSize)
      {
        return 1;
      }
   }
 
   //In other cases just scan for the two consecutive new lines
-  return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW , transaction->incomingHeader.headerRAWSize , &transaction->incomingHeader.headerHeadSize );
+  return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW ,transaction->incomingHeader.headerHeadSize , transaction->incomingHeader.headerRAWSize , &transaction->incomingHeader.headerHeadSize );
 }
