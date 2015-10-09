@@ -252,6 +252,7 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
     httpHeaderReceivedWithNoProblems = AnalyzeHTTPHeader(instance,transaction);
 
    #else
+     fprintf(stderr,"Using new experimental HTTP receive code \n");
      httpHeaderReceivedWithNoProblems = receiveAndParseIncomingHTTPRequest(instance,transaction);
    #endif // USE_OLD_HEADER_RECEIVING_CODE
 
