@@ -25,21 +25,23 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  memset ( &transaction->incomingHeader ,0 , sizeof(struct HTTPHeader) );
   //transaction->clientSock;
 
+ unsigned int result=1 , doneReceiving=0;
  int opres=0;
 
- unsigned int result=1;
- unsigned int doneReceiving=0;
  transaction->incomingHeader.headerRAWSize = 0 ;
  transaction->incomingHeader.MAXheaderRAWSize = MAX_HTTP_REQUEST_HEADER+1 ;
  char  * incomingRequest = (char*)  malloc(sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
- transaction->incomingHeader.headerRAW = incomingRequest ;
  if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
+ memset(incomingRequest,0,sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
+
+ transaction->incomingHeader.headerRAW = incomingRequest ;
  transaction->incomingHeader.headerRAW[0]=0;
 
 
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
         (!doneReceiving) &&
+        (!transaction->incomingHeader.failed) &&
         (instance->server_running)
        )
  {
@@ -65,8 +67,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
       //Count incoming data
       instance->statistics.totalDownloadKB+=opres;
       transaction->incomingHeader.headerRAWSize+=opres;
-      fprintf(stderr,"Got %d bytes ( %u total / %u max )\n",opres,transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.MAXheaderRAWSize);
-      fprintf(stderr,"BODY : %s \n",transaction->incomingHeader.headerRAW);
+      fprintf(stderr,"Got %d more bytes ( %u total / %u max )\n",opres,transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.MAXheaderRAWSize);
 
       if (!keepAnalyzingHTTPHeader(instance,transaction))
       {
@@ -77,19 +78,23 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
       }
     } // --  --  --  --  --
 
-
-    if ( HTTPHeaderIsComplete(instance,transaction) )
+    //Check if what we have received is all that there is
+    if ( HTTPRequestIsComplete(instance,transaction) )
     {
        result=1;
        doneReceiving=1;
        break;
     } else
      if (
-             (transaction->incomingHeader.headerRAWSize>=transaction->incomingHeader.MAXheaderRAWSize) &&
-             (transaction->incomingHeader.requestType == POST ) &&
-             (ENABLE_POST)
-           )
+          //We filled our headerRAW buffer
+          (transaction->incomingHeader.headerRAWSize >= transaction->incomingHeader.MAXheaderRAWSize) &&
+          //And we are talking about a POST request
+          (transaction->incomingHeader.requestType == POST ) &&
+          //And POST is enabled
+          (ENABLE_POST)
+         )
         {
+           //Try to grow our header , If we can't then stop
            if (!growHeader(transaction))
            {
                 fprintf(stderr,"Failed to grow the header :( \n");
@@ -100,9 +105,26 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
         }
 
 
-  }
+  } // END OF RECEIVE LOOP
 
   fprintf(stderr,"Finished receiving and parsing HTTP header..\n");
+
+  if (
+       (!transaction->incomingHeader.failed) &&
+       (transaction->incomingHeader.requestType == POST ) &&
+       (ENABLE_POST)
+      )
+  {
+    transaction->incomingHeader.POSTrequestBody = transaction->incomingHeader.headerRAW+transaction->incomingHeader.headerRAWHeadSize;
+    transaction->incomingHeader.POSTrequestBodySize = transaction->incomingHeader.headerRAWSize-transaction->incomingHeader.headerRAWHeadSize;
+  }
+
+
+  if (transaction->incomingHeader.failed)
+   {
+     fprintf(stderr,"Failed receiving header , marking it ..\n");
+     result = 0;
+   }
 
   if (!result)
   {
@@ -112,6 +134,11 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
 
     transaction->incomingHeader.headerRAW = 0;
     transaction->incomingHeader.headerRAWSize = 0;
+    //
+    transaction->incomingHeader.POSTrequestBody = 0;
+    transaction->incomingHeader.POSTrequestBodySize = 0;
+    transaction->incomingHeader.POSTrequest = 0;
+    transaction->incomingHeader.POSTrequestSize = 0;
   }
 
  return result;

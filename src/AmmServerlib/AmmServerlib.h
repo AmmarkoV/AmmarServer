@@ -75,13 +75,14 @@ enum TypesOfRequests
 */
 struct HTTPHeader
 {
+   unsigned int failed;
    unsigned int dumpedToFile; //This is dummy
 
    unsigned int parsingStartOffset;
    unsigned int parsingCurrentLine;
 
    char * headerRAW;
-   unsigned int headerHeadSize;
+   unsigned int headerRAWHeadSize;
    unsigned int headerRAWSize;
    unsigned int headerRAWRequestedSize; // The size that the client requests ( we have our own limits and agenda though )
    unsigned int MAXheaderRAWSize;
@@ -93,6 +94,8 @@ struct HTTPHeader
 
    char * POSTrequest;
    unsigned long POSTrequestSize;
+   char * POSTrequestBody;
+   unsigned long POSTrequestBodySize;
 
 
 

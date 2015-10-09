@@ -45,13 +45,65 @@ int HTTPHeaderIsGET(char * request , unsigned int requestLength)
   return 0;
 }
 
+void printNBytes(char * buf,unsigned int n)
+{
+  unsigned int i=0;
+  for (i=0; i<n; i++)
+  {
+      fprintf(stderr,"%c",buf[i]);
+  }
+}
 
-int HTTPHeaderScanForEnding(char * request,unsigned int dontSearchBefore,unsigned int request_length,unsigned int *endOfHTTPHeader)
+
+
+
+
+int HTTPHeaderScanForHeaderEndFromStart(char * request,unsigned int request_length,unsigned int *thisScanResult)
 {
   /*  This call returns 1 when we find two subsequent newline characters
       which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
   if (request_length<4) {  fprintf(stderr,"Header too small ( %u ) to check for an ending..!\n",request_length); return 0; } // at least LF LF is expected :P
-  *endOfHTTPHeader=0;
+
+  fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
+  unsigned int i=3;
+  while (i<request_length)
+   {
+      if ( request[i]==LF )
+       {
+        if (i>=1) {
+                    if (( request[i-1]==LF )&&( request[i]==LF ))
+                     {
+                      fprintf(stderr,"it is ( ux @%u [ %u %u ] ) \n",i,request[i-1],request[i]);
+                      *thisScanResult=i;
+                      return i;
+                     }
+                  } /* unix 2x new line sequence */
+
+        if (i>=3) {
+                    if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF ))
+                    {
+                     fprintf(stderr,"it is ( win @%u [ %u %u %u %u ] )\n",i,request[i-3],request[i-2],request[i-1],request[i]);
+                     *thisScanResult=i;
+                     return i;
+                    }
+                  } /* windows 2x new line sequence */
+       }
+     ++i;
+   }
+
+   fprintf(stderr,"it isn't \n");
+   return 0;
+}
+
+
+
+
+
+int HTTPHeaderScanForHeaderEndFromEnd(char * request,unsigned int dontSearchBefore,unsigned int request_length,unsigned int *thisScanResult)
+{
+  /*  This call returns 1 when we find two subsequent newline characters
+      which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
+  if (request_length<4) {  fprintf(stderr,"Header too small ( %u ) to check for an ending..!\n",request_length); return 0; } // at least LF LF is expected :P
 
   fprintf(stderr,"Checking if request with %u chars is complete .. ",request_length);
   unsigned int i=request_length-1;
@@ -62,8 +114,8 @@ int HTTPHeaderScanForEnding(char * request,unsigned int dontSearchBefore,unsigne
         if (i>=1) {
                     if (( request[i-1]==LF )&&( request[i]==LF ))
                      {
-                      fprintf(stderr,"it is ( ux ) \n");
-                      *endOfHTTPHeader=i;
+                      fprintf(stderr,"it is ( ux @%u [ %u %u ] ) \n",i,request[i-1],request[i]);
+                      *thisScanResult=i;
                       return i;
                      }
                   } /* unix 2x new line sequence */
@@ -71,8 +123,8 @@ int HTTPHeaderScanForEnding(char * request,unsigned int dontSearchBefore,unsigne
         if (i>=3) {
                     if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF ))
                     {
-                     fprintf(stderr,"it is ( win )\n");
-                     *endOfHTTPHeader=i;
+                     fprintf(stderr,"it is ( win @%u [ %u %u %u %u ] )\n",i,request[i-3],request[i-2],request[i-1],request[i]);
+                     *thisScanResult=i;
                      return i;
                     }
                   } /* windows 2x new line sequence */
@@ -108,6 +160,8 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * trans
 int growHeader(struct HTTPTransaction * transaction)
 {
  if (transaction==0) { return 0; }
+  if (transaction->incomingHeader.failed) { fprintf(stderr,"Will not try to grow a failed Header \n"); return 0; }
+
 
   struct HTTPHeader * hdr =  &transaction->incomingHeader;
   fprintf(stderr,"growHeader called \n");
@@ -210,37 +264,48 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
   return 1;
 }
 
-
-int HTTPHeaderIsComplete(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+/*
+   The purpose of this function is dual , to findout if HTTPReceive can
+*/
+int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-  fprintf(stderr,"HTTPHeaderIsComplete asked for request of type %u ( GET %u , HEAD %u , POST %u )\n ",transaction->incomingHeader.requestType  ,  GET , HEAD , POST );
+  unsigned int HeaderEndDetectedByCurrentScan=0;
   if (transaction->incomingHeader.requestType == POST)
   {
-     unsigned int foundHTTPHeadEnd =  HTTPHeaderScanForEnding(
-                                                               transaction->incomingHeader.headerRAW ,
-                                                               transaction->incomingHeader.headerHeadSize ,
-                                                               transaction->incomingHeader.headerRAWSize ,
-                                                               &transaction->incomingHeader.headerHeadSize
-                                                              );
+     //POST Requests have a Content-Length , and we detect their end using that..
+       HTTPHeaderScanForHeaderEndFromStart(
+                                           transaction->incomingHeader.headerRAW ,
+                                           transaction->incomingHeader.headerRAWSize ,
+                                           &transaction->incomingHeader.headerRAWHeadSize
+                                          );
+     unsigned int totalHTTPRecvSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
+
      fprintf(stderr,"Our header length is %u , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
-     fprintf(stderr," Header head size %u \n ", transaction->incomingHeader.headerHeadSize);
      if (transaction->incomingHeader.ContentLength>MAX_HTTP_POST_REQUEST_HEADER)
      {
        fprintf(stderr,"Requested POST Size is too big calling it a day if we got the initial..!");
-       return foundHTTPHeadEnd;
+       transaction->incomingHeader.failed=1;
+       return 1;
      } else
-     if (transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize > transaction->incomingHeader.headerRAWSize )
+     if (totalHTTPRecvSize >  transaction->incomingHeader.headerRAWSize )
      {
-       fprintf(stderr,"Header needs more bytes..!");
-       transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerHeadSize ;
+       fprintf(stderr,"Header needs more bytes taking into account %u bytes of header..!",transaction->incomingHeader.headerRAWHeadSize);
+
+       transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
        return 0;
      } else
-     if (transaction->incomingHeader.ContentLength  + transaction->incomingHeader.headerHeadSize  <= transaction->incomingHeader.headerRAWSize)
+     if (transaction->incomingHeader.headerRAWSize <=  totalHTTPRecvSize )
      {
        return 1;
      }
   }
 
+
   //In other cases just scan for the two consecutive new lines
-  return HTTPHeaderScanForEnding( transaction->incomingHeader.headerRAW ,transaction->incomingHeader.headerHeadSize , transaction->incomingHeader.headerRAWSize , &transaction->incomingHeader.headerHeadSize );
+  return HTTPHeaderScanForHeaderEndFromEnd(
+                                        transaction->incomingHeader.headerRAW ,
+                                        0,
+                                        transaction->incomingHeader.headerRAWSize ,
+                                        &HeaderEndDetectedByCurrentScan
+                                       );
 }

@@ -109,7 +109,7 @@ char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , u
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  unsigned int dummyHTTPHeaderEnd=0;
  while (
-        (HTTPHeaderScanForEnding(incomingRequest,0,incomingRequestLength,&dummyHTTPHeaderEnd)==0) &&
+        (HTTPHeaderScanForHeaderEndFromEnd(incomingRequest,0,incomingRequestLength,&dummyHTTPHeaderEnd)==0) &&
         (instance->server_running)
        )
  {
