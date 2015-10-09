@@ -303,9 +303,9 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
 
   //In other cases just scan for the two consecutive new lines
   return HTTPHeaderScanForHeaderEndFromEnd(
-                                        transaction->incomingHeader.headerRAW ,
-                                        0,
-                                        transaction->incomingHeader.headerRAWSize ,
-                                        &HeaderEndDetectedByCurrentScan
-                                       );
+                                           transaction->incomingHeader.headerRAW ,
+                                           0,
+                                           transaction->incomingHeader.headerRAWSize ,
+                                           &HeaderEndDetectedByCurrentScan
+                                          );
 }
