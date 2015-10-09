@@ -233,32 +233,7 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
 {
    if ( transaction->incomingHeader.headerRAW!=0 ) { free(transaction->incomingHeader.headerRAW); transaction->incomingHeader.headerRAW=0; }
 
-   int httpHeaderReceivedWithNoProblems = 0;
-   #if USE_OLD_HEADER_RECEIVING_CODE
-     #warning "Using old code to receive HTTP headers , this does not handle POST requests correctly"
-   //! Please note that receiveAndHandleHTTPHeaderSentByClient first waits for an http header and then tries to understand/parse it ..!
-   //Start receiving what the client has to say in this HTTPTransaction headers
-   unsigned long headerRAWSizeTemp = 0;
-   transaction->incomingHeader.POSTrequest=0;
-   transaction->incomingHeader.POSTrequestSize=0;
-   transaction->incomingHeader.headerRAW = ReceiveHTTPHeader(instance,transaction->clientSock,&headerRAWSizeTemp);
-   transaction->incomingHeader.headerRAWSize = (unsigned int) headerRAWSizeTemp;
-
-   //We now proceed to find out what the message was about..!
-   if (transaction->incomingHeader.headerRAW==0) { fprintf(stderr,RED "No HTTP Header received\n" NORMAL); return 0; } else
-                                                 { fprintf(stderr,"Received request header \n");                     }
-
-   // Will now analyze HTTP header , and transaction
-    httpHeaderReceivedWithNoProblems = AnalyzeHTTPHeader(instance,transaction);
-
-   #else
-     fprintf(stderr,"Using new experimental HTTP receive code \n");
-     httpHeaderReceivedWithNoProblems = receiveAndParseIncomingHTTPRequest(instance,transaction);
-   #endif // USE_OLD_HEADER_RECEIVING_CODE
-
-
-
-   //transaction will be cleared
+   int httpHeaderReceivedWithNoProblems = receiveAndParseIncomingHTTPRequest(instance,transaction);
 
    if (httpHeaderReceivedWithNoProblems)
       {

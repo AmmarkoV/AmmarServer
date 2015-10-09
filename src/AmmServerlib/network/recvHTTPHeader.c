@@ -115,7 +115,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
        (ENABLE_POST)
       )
   {
-    transaction->incomingHeader.POSTrequestBody = transaction->incomingHeader.headerRAW+transaction->incomingHeader.headerRAWHeadSize;
+    transaction->incomingHeader.POSTrequestBody = transaction->incomingHeader.headerRAW+transaction->incomingHeader.headerRAWHeadSize+1;
     transaction->incomingHeader.POSTrequestBodySize = transaction->incomingHeader.headerRAWSize-transaction->incomingHeader.headerRAWHeadSize;
   }
 
