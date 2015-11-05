@@ -169,7 +169,8 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",webserver_root,512000,400,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding screen page\n"); }
 
-   if (! AmmServer_AddResourceHandler(default_server,&indexPageContext,"remote.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
+
+   if (! AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding index page\n"); }
 
    if (! AmmServer_AddResourceHandler(default_server,&commandContext,"/cmd",webserver_root,4096,0,&prepare_command_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
