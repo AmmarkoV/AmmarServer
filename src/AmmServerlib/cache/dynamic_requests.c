@@ -158,9 +158,17 @@ char * dynamicRequest_serveContent
        if (shared_context->requestContext.GET_request!=0) { shared_context->requestContext.GET_request_length = strlen(shared_context->requestContext.GET_request); } else
                                                           { shared_context->requestContext.GET_request_length = 0; }
 
-       shared_context->requestContext.POST_request = request->POSTrequest;
-       shared_context->requestContext.POST_request_length = request->POSTrequestSize;
 
+       if (request->POSTrequestBody!=0)
+       {
+        shared_context->requestContext.POST_request = request->POSTrequestBody;
+        shared_context->requestContext.POST_request_length = request->POSTrequestBodySize;
+       } else
+         if (request->POSTrequest!=0)
+       {
+        shared_context->requestContext.POST_request = request->POSTrequest;
+        shared_context->requestContext.POST_request_length = request->POSTrequestSize;
+       }
        fprintf(stderr,"Survived adjusting GET_request length \n");
 
         struct AmmServer_DynamicRequest * rqst = (struct AmmServer_DynamicRequest * ) malloc(sizeof(struct AmmServer_DynamicRequest));

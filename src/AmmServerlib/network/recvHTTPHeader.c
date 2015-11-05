@@ -19,13 +19,9 @@
 #include "../header_analysis/post_header_analysis.h"
 
 
-
-
-
-
-
 int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
+<<<<<<< HEAD
  int opres=0;
 
  clearHeader(&transaction->incomingHeader);
@@ -35,67 +31,126 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  unsigned int incomingRequestLength = 0 ;
  unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
  char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength+2) );
+=======
+ //Clear incoming header structure..!
+ memset ( &transaction->incomingHeader ,0 , sizeof(struct HTTPHeader) );
+  //transaction->clientSock;
+
+ unsigned int result=1 , doneReceiving=0;
+ int opres=0;
+
+ transaction->incomingHeader.headerRAWSize = 0 ;
+ transaction->incomingHeader.MAXheaderRAWSize = MAX_HTTP_REQUEST_HEADER+1 ;
+ char  * incomingRequest = (char*)  malloc(sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
+>>>>>>> 64c91d1da1fbf81a3394efbd8847e24fe5979e2b
  if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
- incomingRequest[0]=0;
+ memset(incomingRequest,0,sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
+
+ transaction->incomingHeader.headerRAW = incomingRequest ;
+ transaction->incomingHeader.headerRAW[0]=0;
 
 
  fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
         (!doneReceiving) &&
+        (!transaction->incomingHeader.failed) &&
         (instance->server_running)
        )
  {
   ++instance->statistics.recvOperationsStarted;
-   opres=recv(transaction->clientSock,&incomingRequest[incomingRequestLength],MAXincomingRequestLength-incomingRequestLength,0);
+   opres=recv(
+              transaction->clientSock,
+              &transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize],
+              (unsigned int) transaction->incomingHeader.MAXheaderRAWSize - transaction->incomingHeader.headerRAWSize ,
+              0
+             );
+   // More input => Null Terminate , we have allocated extra space so this is always ok..!
+   if (opres>0) { transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize + opres]=0; }
   ++instance->statistics.recvOperationsFinished;
 
   //Error Receiving..
-  if (opres<0)  { printRecvError(); result=0; break; } else
+  if (opres<0)  { printRecvError(); result=0; break; }
+  else
   //Client shutdown connection..
-  if (opres==0) { fprintf(stderr,"client shutdown ..\n"); result=0; break; } else
+  if (opres==0) { fprintf(stderr,"Client shutdown while receiving HTTP Header..\n"); result=0; break; }
+  else
   //Received new data
    {
       //Count incoming data
       instance->statistics.totalDownloadKB+=opres;
-      incomingRequestLength+=opres;
-      fprintf(stderr,"Got %d bytes ( %u total )\n",opres,incomingRequestLength);
+      transaction->incomingHeader.headerRAWSize+=opres;
+      fprintf(stderr,"Got %d more bytes ( %u total / %u max )\n",opres,transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.MAXheaderRAWSize);
 
-      //!TODO : also accommodate parsing progress inside transaction
       if (!keepAnalyzingHTTPHeader(instance,transaction))
       {
         fprintf(stderr,"We are done receiving and analyzing this HTTPHeader\n");
         result=1;
+        doneReceiving=1;
         break;
-      } else
-      {
-        //We have a chunk of input but not done yet , have we run out of space ?
-        if (incomingRequestLength>=MAXincomingRequestLength)
-        {
-           if (!growHeader(transaction))
-           {
-                result=0;
-                break;
-           }
-        } else
-        {
-          //Just got a small chunk of input if we ended up here..
-        }
       }
     } // --  --  --  --  --
+
+    //Check if what we have received is all that there is
+    if ( HTTPRequestIsComplete(instance,transaction) )
+    {
+       result=1;
+       doneReceiving=1;
+       break;
+    } else
+     if (
+          //We filled our headerRAW buffer
+          (transaction->incomingHeader.headerRAWSize >= transaction->incomingHeader.MAXheaderRAWSize) &&
+          //And we are talking about a POST request
+          (transaction->incomingHeader.requestType == POST ) &&
+          //And POST is enabled
+          (ENABLE_POST)
+         )
+        {
+           //Try to grow our header , If we can't then stop
+           if (!growHeader(transaction))
+           {
+                fprintf(stderr,"Failed to grow the header :( \n");
+                result=0;
+                doneReceiving=1;
+                break;
+           }
+        }
+
+
+  } // END OF RECEIVE LOOP
+
+  fprintf(stderr,"Finished receiving and parsing HTTP header..\n");
+
+  if (
+       (!transaction->incomingHeader.failed) &&
+       (transaction->incomingHeader.requestType == POST ) &&
+       (ENABLE_POST)
+      )
+  {
+    transaction->incomingHeader.POSTrequestBody = transaction->incomingHeader.headerRAW+transaction->incomingHeader.headerRAWHeadSize+1;
+    transaction->incomingHeader.POSTrequestBodySize = transaction->incomingHeader.headerRAWSize-transaction->incomingHeader.headerRAWHeadSize;
   }
 
-  fprintf(stderr,"Finished Waiting for a valid HTTP header..\n");
+
+  if (transaction->incomingHeader.failed)
+   {
+     fprintf(stderr,"Failed receiving header , marking it ..\n");
+     result = 0;
+   }
 
   if (!result)
   {
     //Remove incoming request here
-    incomingRequestLength=0;
-    if (incomingRequest!=0) { free(incomingRequest); }
-  } else
-  {
-    transaction->incomingHeader.headerRAW = incomingRequest;
-    transaction->incomingHeader.headerRAWSize = incomingRequestLength;
+    if (transaction->incomingHeader.headerRAW!=0)
+         { free(transaction->incomingHeader.headerRAW); }
 
+    transaction->incomingHeader.headerRAW = 0;
+    transaction->incomingHeader.headerRAWSize = 0;
+    //
+    transaction->incomingHeader.POSTrequestBody = 0;
+    transaction->incomingHeader.POSTrequestBodySize = 0;
+    transaction->incomingHeader.POSTrequest = 0;
+    transaction->incomingHeader.POSTrequestSize = 0;
   }
 
  return result;

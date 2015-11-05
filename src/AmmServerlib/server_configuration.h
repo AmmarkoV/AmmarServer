@@ -18,6 +18,12 @@ extern "C" {
 #endif
 
 
+/** @brief Enable POST request handling , switching this to 0 will completely deny them reducing attack surface */
+#define ENABLE_POST 0
+#if ENABLE_POST
+ #error "POST Support is under construction and unsafe to use ( for now ) "
+#endif // ENABLE_POST
+
 /** @brief Enable a variety of debug messages in parts of the code that are not 100% bulletproof*/
 #define DEBUG_MESSAGES 0
 
@@ -145,8 +151,6 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 /** @brief If this enabled and we haven't specified a configuration file we will try to open an ammarServer.conf */
 #define ENABLE_AUTOMATIC_CONFIGURATION_LOADING 1
 
-/** @brief Enable POST request handling , switching this to 0 will completely deny them reducing attack surface */
-#define ENABLE_POST 1
 /** @brief Enable Compression using ZLib , this increases CPU usage , code surface , requires the zlib library to be linked , but on the other hand conserves bandwidth and memory */
 #define ENABLE_COMPRESSION 0 //Compression doesn't work all that well yet
 
