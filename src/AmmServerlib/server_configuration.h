@@ -92,7 +92,7 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 
 #if MAX_CLIENT_THREADS == 1
- #define SINGLE_THREAD_MODE 1
+   #define SINGLE_THREAD_MODE 1
 #endif // MAX_CLIENT_THREADS
 
 /** @brief Maximum connections per IP , this is a little dangerous since multiple PC's can have a single gateway , but it is a good heuristic to better share resources
