@@ -540,7 +540,7 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
     //SUCCESS
   } else
   {
-    //FAILURE
+    warning("Could not successfully serve client..\n");
   }
 
   return 0;
