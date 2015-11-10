@@ -88,8 +88,12 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 /** @brief Maximum Number of concurrent threads being created at the same time , depending on the size of the listen pool this can be smaller than the MAX_CLIENTS_LISTENING_FOR and connections will
            be queued and served sequentially */
-#define MAX_CLIENT_THREADS 3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
+#define MAX_CLIENT_THREADS 3000 //3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
 
+
+#if MAX_CLIENT_THREADS == 1
+ #define SINGLE_THREAD_MODE 1
+#endif // MAX_CLIENT_THREADS
 
 /** @brief Maximum connections per IP , this is a little dangerous since multiple PC's can have a single gateway , but it is a good heuristic to better share resources
            @bug MAX_CLIENTS_PER_IP is not used if there is no client list declared */
