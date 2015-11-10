@@ -135,7 +135,6 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
 
 
-
   fprintf(stderr,"\n\nDISCLAIMER : \n");
   fprintf(stderr,"Please note that this server version is not thoroughly\n");
   fprintf(stderr," pen-tested so it is not meant for production deployment..\n");
