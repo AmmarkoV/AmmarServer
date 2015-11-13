@@ -21,17 +21,6 @@
 
 int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-<<<<<<< HEAD
- int opres=0;
-
- clearHeader(&transaction->incomingHeader);
-
- unsigned int result=1;
- unsigned int doneReceiving=0;
- unsigned int incomingRequestLength = 0 ;
- unsigned int MAXincomingRequestLength = MAX_HTTP_REQUEST_HEADER+1 ;
- char  * incomingRequest = (char*)  malloc(sizeof(char) * (MAXincomingRequestLength+2) );
-=======
  //Clear incoming header structure..!
  memset ( &transaction->incomingHeader ,0 , sizeof(struct HTTPHeader) );
   //transaction->clientSock;
@@ -42,7 +31,6 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  transaction->incomingHeader.headerRAWSize = 0 ;
  transaction->incomingHeader.MAXheaderRAWSize = MAX_HTTP_REQUEST_HEADER+1 ;
  char  * incomingRequest = (char*)  malloc(sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
->>>>>>> 64c91d1da1fbf81a3394efbd8847e24fe5979e2b
  if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
  memset(incomingRequest,0,sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
 
@@ -155,3 +143,4 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
 
  return result;
 }
+
