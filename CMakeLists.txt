@@ -29,6 +29,7 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
     add_subdirectory (src/Services/HabChan) 
     add_subdirectory (src/Services/CinemaPilot) 
     add_subdirectory (src/Services/SQLiteServer)
+    add_subdirectory (src/Services/Various)
     
     #These are unit tests for the core library
     add_subdirectory (src/UnitTests)
