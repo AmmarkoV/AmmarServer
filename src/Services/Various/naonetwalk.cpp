@@ -38,10 +38,30 @@ struct AmmServer_RH_Context termination={0};
 
 int externalCommand=0;
 
+
+//This function destroys all Resource Handlers and free's all allocated memory..!
+void close_dynamic_content()
+{
+    AmmServer_RemoveResourceHandler(default_server,&control,1);
+    AmmServer_RemoveResourceHandler(default_server,&termination,1);
+}
+
+int closeAmmarServer()
+{
+    //Delete dynamic content allocations and remove stats.html and formtest.html from the server
+    close_dynamic_content();
+
+    //Stop the server and clean state
+    AmmServer_Stop(default_server);
+    AmmServer_Warning("Ammar Server stopped\n");
+    return 1;
+}
+
 //This function prepares the content of  stats context , ( stats.content )
 void * terminate_callback(struct AmmServer_DynamicRequest  * rqst)
 {
      fprintf(stderr,"TERMINATE Called\n");
+     closeAmmarServer();
     exit(0);
 }
 
@@ -81,29 +101,12 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&control,"/control.html",webserver_root,4096,0,(void*) &control_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&termination,"/terminate.html",webserver_root,4096,0,(void*) &control_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
+  if (! AmmServer_AddResourceHandler(default_server,&termination,"/terminate.html",webserver_root,4096,0,(void*) &terminate_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding stats page\n"); }
 
 
 }
 
-//This function destroys all Resource Handlers and free's all allocated memory..!
-void close_dynamic_content()
-{
-    AmmServer_RemoveResourceHandler(default_server,&control,1);
-    AmmServer_RemoveResourceHandler(default_server,&termination,1);
-}
-
-int closeAmmarServer()
-{
-    //Delete dynamic content allocations and remove stats.html and formtest.html from the server
-    close_dynamic_content();
-
-    //Stop the server and clean state
-    AmmServer_Stop(default_server);
-    AmmServer_Warning("Ammar Server stopped\n");
-    return 1;
-}
 
 int initAmmarServer()
 {
