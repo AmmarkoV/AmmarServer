@@ -105,7 +105,7 @@ void AmmServer_Success( const char *format , ... )
 
 int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
-  warning("AmmServer_Stop called ..\n");
+  warning("AmmServer_Stop started ..\n");
   if (!instance) { return 0; }
 
 
@@ -121,6 +121,9 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   if (instance->threads_pool!=0) { free(instance->threads_pool); instance->threads_pool=0; }
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
   if (instance!=0) { free(instance); }
+
+
+  warning("AmmServer_Stop completed ..\n");
   return 1;
 }
 
@@ -235,15 +238,18 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
 
 
    //If we have a command line arguments we overwrite our buffers
-  int i=0;
-  for (i=0; i<argc; i++)
+  if ( (argc>0) && (argv!=0) )
   {
+   unsigned int i=0;
+   for (i=0; i<argc; i++)
+   {
     if ((strcmp(argv[i],"-bind")==0)&&(argc>i+1)) { strncpy(bindIP,argv[i+1],MAX_IP_STRING_SIZE); fprintf(stderr,"Binding to %s \n",bindIP); } else
     if ((strcmp(argv[i],"-p")==0)&&(argc>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-port")==0)&&(argc>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-rootdir")==0)&&(argc>i+1)) { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
     if ((strcmp(argv[i],"-templatedir")==0)&&(argc>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
     if (strcmp(argv[i],"-conf")==0)  { strncpy(configuration_file,conf_file,MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
+   }
   }
 
   return AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
