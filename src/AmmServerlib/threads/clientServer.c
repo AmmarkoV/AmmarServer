@@ -463,6 +463,16 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
 
   fprintf(stderr,"Done with client / Closing Socket ( %u )  ..",transaction->clientSock);
   close(transaction->clientSock);
+  //shutdown(transaction->clientSock,SHUT_RDWR);
+
+
+  if (transaction->incomingHeader.headerRAW!=0)
+  {
+   fprintf(stderr,"Done with client / Freeing incoming memory..\n");
+   free(transaction->incomingHeader.headerRAW);
+   transaction->incomingHeader.headerRAW=0;
+  }
+
   //fprintf(stderr,"closed\n");
 
   if (!transaction->prespawnedThreadFlag)

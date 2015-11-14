@@ -237,7 +237,7 @@ void * MainHTTPServerThread (void * ptr)
   instance->server_running=0;
   instance->stop_server=2;
 
-  warning("Server Stopped..");
+  warning("Main AmmarServer Thread Stopped..");
   //It should already be closed so skipping this : close(serversock);
   //pthread_exit(0);
 
@@ -329,7 +329,8 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
   */
   if ( (instance->stop_server==2)||(instance->stop_server==0)) { fprintf(stderr,"Server has stopped working on its own..\n"); return 1;}
   fprintf(stderr,"Force closing bind socket... ");
-  close(instance->serversock);
+  //close(instance->serversock);
+  shutdown(instance->serversock,SHUT_RDWR);
 
   instance->stop_server=1;
   fprintf(stderr,"Waiting for Server to stop.. ");
