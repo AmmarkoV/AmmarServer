@@ -41,6 +41,7 @@ int externalCommand=0;
 //This function prepares the content of  stats context , ( stats.content )
 void * terminate_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+     fprintf(stderr,"TERMINATE Called\n");
     exit(0);
 }
 
@@ -93,9 +94,22 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&termination,1);
 }
 
+int closeAmmarServer()
+{
+    //Delete dynamic content allocations and remove stats.html and formtest.html from the server
+    close_dynamic_content();
+
+    //Stop the server and clean state
+    AmmServer_Stop(default_server);
+    AmmServer_Warning("Ammar Server stopped\n");
+    return 1;
+}
 
 int initAmmarServer()
 {
+    AmmServer_CheckIfHeaderBinaryAreTheSame(AMMAR_SERVER_HTTP_HEADER_SPEC);
+    //Register termination signal for when we receive SIGKILL etc
+    AmmServer_RegisterTerminationSignal((void*) &closeAmmarServer);
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     default_server = AmmServer_StartWithArgs(
                                              "SimpleTemplate",
@@ -116,16 +130,6 @@ int initAmmarServer()
  }
 
 
-int closeAmmarServer()
-{
-    //Delete dynamic content allocations and remove stats.html and formtest.html from the server
-    close_dynamic_content();
-
-    //Stop the server and clean state
-    AmmServer_Stop(default_server);
-    AmmServer_Warning("Ammar Server stopped\n");
-    return 1;
-}
 
 
 int main(int argc, char *argv[])
