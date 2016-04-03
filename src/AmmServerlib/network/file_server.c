@@ -521,6 +521,7 @@ if (request->requestType!=HEAD)
 {
   //We only served a header so lets append the last new line char..!
   send(clientsock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+  return 1; //This does not mean we failed..! 2016-04-03
 }
 
 

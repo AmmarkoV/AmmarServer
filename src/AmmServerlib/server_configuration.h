@@ -207,6 +207,10 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 /**  @brief Value that gets set from configuration files , and if it is non-zero it will trigger a priority change ( change nice value ) */
 extern int CHANGE_PRIORITY;
 
+
+/**  @brief Use Timeouts For Sending And Receiving */
+#define USE_TIMEOUTS 1
+
 /**  @brief Default timeout value before which a socket blocking on a read call should be considered dead */
 #define DEFAULT_SOCKET_READ_TIMEOUT_SECS 3
 extern int varSocketTimeoutREAD_seconds;

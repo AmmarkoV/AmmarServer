@@ -927,13 +927,16 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
    if(connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1) { error("Could not connect the created socket \n");  return 0; } else
                                                                                          { printf("Starting Request for filename %s \n",filename); }
 
-
+#if USE_TIMEOUTS
     struct timeval timeout;
-    timeout.tv_sec = (unsigned int) 1/1000; timeout.tv_usec = 0;
+    timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
     if (setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Receive timeout \n"); }
 
-    timeout.tv_sec = (unsigned int) 1/1000; timeout.tv_usec = 0;
+    timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
     if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
+#else
+    #warning "Not using socket timeouts , this will make the webserver susceptible to DoS attacks..!"
+#endif // USE_TIMEOUTS
 
 
 
