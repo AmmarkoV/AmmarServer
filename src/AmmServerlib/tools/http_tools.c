@@ -935,7 +935,7 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
     if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
 #else
-    #warning "Not using socket timeouts , this will make the webserver susceptible to DoS attacks..!"
+    #error "It is a terrible idea not to use socket timeouts , this will make the webserver susceptible to DoS attacks..!"
 #endif // USE_TIMEOUTS
 
 
@@ -990,7 +990,7 @@ int setSocketTimeouts(int clientSock)
  timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
  if (setsockopt (clientSock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); errorSettingTimeouts=0; }
 #else
-    #warning "Not using socket timeouts , this will make the webserver susceptible to DoS attacks..!"
+    #error "It is a terrible idea not to use socket timeouts , this will make the webserver susceptible to DoS attacks..!"
 #endif // USE_TIMEOUTS
 
  return errorSettingTimeouts;
