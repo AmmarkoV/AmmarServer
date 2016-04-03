@@ -346,6 +346,7 @@ struct HTTPTransaction
   unsigned int resourceCacheID;
 
   int clientSock;
+  int clientDisconnected;
   unsigned int clientListID;
   unsigned int threadID;
   int prespawnedThreadFlag;

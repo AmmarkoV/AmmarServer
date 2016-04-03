@@ -47,8 +47,8 @@ switch (errno)
       {
         //case EAGAIN :
         case EWOULDBLOCK :
-               warning("The socket is marked nonblocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received. POSIX.1-2001 allows either error to be returned for this case, and does not require these constants to have the same value, so a portable application should check for both possibilities.");
-               break;
+         warning("The socket is marked nonblocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received. POSIX.1-2001 allows either error to be returned for this case, and does not require these constants to have the same value, so a portable application should check for both possibilities.");
+        break;
         case EBADF : warning("The argument sockfd is an invalid descriptor."); break;
         case ECONNREFUSED : warning("A remote host refused to allow the network connection (typically because it is not running the requested service)."); break;
         case EFAULT : warning("The receive buffer pointer(s) point outside the process's address space.");  break;
