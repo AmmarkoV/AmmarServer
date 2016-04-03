@@ -981,12 +981,17 @@ int freeString(char ** str)
 int setSocketTimeouts(int clientSock)
 {
  int errorSettingTimeouts = 1;
+
+#if USE_TIMEOUTS
  struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
  if (setsockopt (clientSock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); errorSettingTimeouts=0; }
 
  timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
  if (setsockopt (clientSock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); errorSettingTimeouts=0; }
+#else
+    #warning "Not using socket timeouts , this will make the webserver susceptible to DoS attacks..!"
+#endif // USE_TIMEOUTS
 
  return errorSettingTimeouts;
 }

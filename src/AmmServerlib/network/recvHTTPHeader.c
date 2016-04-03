@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <errno.h>
 #include <sys/uio.h>
 
 #include "../AmmServerlib.h"
@@ -57,7 +58,21 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   ++instance->statistics.recvOperationsFinished;
 
   //Error Receiving..
-  if (opres<0)  { fprintf(stderr,"Error receiving (%u bytes recvd) ..\n",transaction->incomingHeader.headerRAWSize); printRecvError(); result=0; break; }
+  if (opres<0)
+   {
+     if ( (errno==EWOULDBLOCK) && (transaction->incomingHeader.headerRAWSize==0) )
+     {
+       //fprintf(stderr,"KeepAlive Connection Timed Out\n");
+       transaction->clientDisconnected=1;
+     } else
+     {
+      fprintf(stderr,"Error receiving (%u bytes recvd) ..\n",transaction->incomingHeader.headerRAWSize);
+      printRecvError();
+     }
+
+     result=0;
+     break;
+   }
   else
   //Client shutdown connection..
   if (opres==0) { fprintf(stderr,"Client shutdown while receiving HTTP Header..\n"); result=0; break; }

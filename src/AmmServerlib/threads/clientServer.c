@@ -273,10 +273,17 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    int httpHeaderReceivedWithNoProblems = receiveAndHandleHTTPHeaderSentByClient(instance,transaction);
 
    if (!httpHeaderReceivedWithNoProblems)
-   {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
+   {
+     if (transaction->clientDisconnected)
+     {
+      warning("Client connection closed while waiting for keepalive..");
+     } else
+     {
+      /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       error("Failed to receive HTTP header without problems!");
       SendErrorFile(instance,transaction,400);
       logError(instance,transaction,400,"400.html");
+     }
       return 0;
    }
       else
@@ -447,9 +454,11 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
   if (!clientIsBanned)
   {
      //If client is ok go ahead to serve him..
+     unsigned int keepAliveShots = 1;
      while ( ( ServeClientKeepAliveLoop(instance,transaction) ) && (instance->server_running) )
     {
-      fprintf(stderr,"Another KeepAlive Loop Served\n");
+      fprintf(stderr,"Another KeepAlive Loop Served ( %u ) \n",keepAliveShots);
+      ++keepAliveShots;
       clientIsBanned = clientList_isClientBanned(instance->clientList,transaction->clientListID);
       if (clientIsBanned)
       {
@@ -461,9 +470,9 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
   }
   //----------------------------- ---------------------------- ----------------------------
 
-  fprintf(stderr,"Done with client / Closing Socket ( %u )  ..",transaction->clientSock);
+  fprintf(stderr,"Done with client / Closing Socket ( %u )  ..\n",transaction->clientSock);
   close(transaction->clientSock);
-  //shutdown(transaction->clientSock,SHUT_RDWR);
+//  shutdown(transaction->clientSock,SHUT_RDWR);
 
 
   if (transaction->incomingHeader.headerRAW!=0)

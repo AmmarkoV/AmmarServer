@@ -212,11 +212,11 @@ extern int CHANGE_PRIORITY;
 #define USE_TIMEOUTS 1
 
 /**  @brief Default timeout value before which a socket blocking on a read call should be considered dead */
-#define DEFAULT_SOCKET_READ_TIMEOUT_SECS 3
+#define DEFAULT_SOCKET_READ_TIMEOUT_SECS 5
 extern int varSocketTimeoutREAD_seconds;
 
 /**  @brief Default timeout value before which a socket blocking on a write call should be considered dead */
-#define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 3
+#define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 5
 extern int varSocketTimeoutWRITE_seconds;
 
 /**  @brief Max Send requests that return without transmitting anything */
