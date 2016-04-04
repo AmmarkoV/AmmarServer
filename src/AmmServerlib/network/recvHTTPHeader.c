@@ -118,11 +118,10 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
                 break;
            }
         }
-
-
   } // END OF RECEIVE LOOP
 
-  fprintf(stderr,"Finished receiving and parsing HTTP header..\n");
+  //Less spam
+  //fprintf(stderr,"Finished receiving and parsing HTTP header..\n");
 
   if (
        (!transaction->incomingHeader.failed) &&

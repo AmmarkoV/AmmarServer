@@ -553,14 +553,17 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
 
   int i= ServeClientInternal(instance,&transaction);
 
-
+/*
+  //Removed to reduce spam..!
   if (i)
   {
     //SUCCESS
   } else
   {
-    warning("Could not successfully serve client..\n");
+    //FAILURE
+    warning("Could not successfully serve client..");
   }
+*/
 
   return 0;
 }
