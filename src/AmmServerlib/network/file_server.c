@@ -237,7 +237,7 @@ int TransmitFileToSocket(
       {
         warning("Could not find file size..!\nUnable to serve client\n");
         fclose(pFile);
-        --instance->statistics.filesCurrentlyOpen;  //Count the closed file
+        if (instance->statistics.filesCurrentlyOpen>0) { --instance->statistics.filesCurrentlyOpen; }  //Count the closed file
         return 0;
       }
       unsigned long lSize = ftell (pFile);
@@ -270,7 +270,7 @@ int TransmitFileToSocket(
 
 
     fclose (pFile);
-    --instance->statistics.filesCurrentlyOpen; //Count the closed file
+    if (instance->statistics.filesCurrentlyOpen>0) { --instance->statistics.filesCurrentlyOpen; }  //Count the closed file
   }
   return res;
 }
