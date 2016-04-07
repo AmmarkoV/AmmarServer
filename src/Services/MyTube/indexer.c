@@ -74,6 +74,40 @@ int loadVideoStats(struct videoCollection* vc ,  const char * databasePath , uns
 {
  char statsFilePath[512]={0};
  snprintf(statsFilePath,512,"%s/%s_stats",databasePath,vc->video[videoID].filename);
+
+
+ FILE *fp = fopen(statsFilePath,"r");
+ if( fp )
+    {
+      fscanf(fp, "%d\n", &vc->video[videoID].views);
+      fscanf(fp, "%d\n", &vc->video[videoID].likes);
+      fscanf(fp, "%d\n", &vc->video[videoID].dislikes);
+      vc->video[videoID].stateChanges=0;
+      fclose(fp);
+      return 1;
+    }
+
+ return 0;
+}
+
+
+int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , unsigned int videoID)
+{
+ char statsFilePath[512]={0};
+ snprintf(statsFilePath,512,"%s/%s_stats",databasePath,vc->video[videoID].filename);
+
+ FILE *fp = fopen(statsFilePath,"w");
+ if( fp )
+    {
+      fprintf(fp, "%d\n",vc->video[videoID].views);
+      fprintf(fp, "%d\n",vc->video[videoID].likes);
+      fprintf(fp, "%d\n",vc->video[videoID].dislikes);
+      vc->video[videoID].stateChanges=0;
+      fclose(fp);
+      return 1;
+    }
+
+ return 0;
 }
 
 

@@ -488,6 +488,28 @@ int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,c
 */
 int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,const char * request_type,void * callback);
 
+
+
+
+/**
+* @brief Add a scheduler that fires every X seconds  in order to perform mainenance ( defragment databases , save stuff to disk etc )
+* @ingroup core
+* @param An AmmarServer Instance
+* @param Name of resource that will do the callback
+* @param Function to be called and provides output when someone asks for resource
+* @param Number of seconds between 2 subsequent calls
+* @param Number of repetitions to do ( 0 = infinite )
+* @retval 1=Success,0=Fail
+*/
+int AmmServer_AddScheduler
+     ( struct AmmServer_Instance * instance,
+       const char * resource_name ,
+       void * callback,
+       unsigned int seconds,
+       unsigned int repetitions
+    );
+
+
 /**
 * @brief Add a request handler to handle dynamic requests , the core mechanic of AmmarServer
 *        Calling this will bind a C function that will be called and produce output when someone asks for a resource
