@@ -133,19 +133,29 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
+  int queryFoundVideo =0 ;
+  unsigned int videoID=0;
   char videoRequested[128]={0};
 
   if ( _GET(default_server,rqst,"q",videoRequested,128) )
               {
                 snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\" /></head><body><h2>We got your query for %s but unfortunately searching is not yet implemented</h2></body> </html> ");
                 rqst->contentSize=strlen(rqst->content);
-              } else
+
+                videoID= getAVideoForQuery(myTube,videoRequested,&queryFoundVideo);
+              }
+         else
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
                 fprintf(stderr,"Video Requested is : %s \n",videoRequested);
+                videoID=atoi(videoRequested);
+                queryFoundVideo=1;
+              }
 
-                unsigned int videoID=atoi(videoRequested);
 
+
+
+  if ( queryFoundVideo )
                 if (videoID >= myTube->numberOfLoadedVideos)
                 {
                   rqst->headerResponse=404;
@@ -211,7 +221,6 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 
                AmmServer_FreeMemoryHandler(&videoMH);
                }
-              }
     else
  {
   snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\" /></head><body><h2>Redirecting..</h2></body> </html> ");
@@ -353,7 +362,7 @@ void init_dynamic_content()
      {
       fprintf(stderr,"Trying to load from %s \n ",video_root);
       snprintf(database_root,MAX_FILE_PATH,"%s/db/",video_root);
-      myTube = loadVideoDatabase(video_root);
+      myTube = loadVideoDatabase(video_root,database_root);
       break;
      }
   }

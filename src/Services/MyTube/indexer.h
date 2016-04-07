@@ -10,6 +10,7 @@ struct videoItem
   unsigned long views;
   unsigned long likes;
   unsigned long dislikes;
+  unsigned long viewsPLikesPDislikesStored;
   unsigned int visibility;
 
   char title[MAX_STR];
@@ -17,6 +18,7 @@ struct videoItem
   char filename[MAX_STR];
   char comment[MAX_STR];
   char thumbnail[MAX_STR];
+  char stats[MAX_STR];
 };
 
 
@@ -30,9 +32,10 @@ struct videoCollection
 extern unsigned int videoDefaultTestTranmission;
 
 char * path_cat2 (const char *str1,const char *str2);
+unsigned int getAVideoForQuery(struct videoCollection * db , const char * query , int * foundVideo);
 
 int unloadVideoDatabase(struct videoCollection* vc);
-struct videoCollection * loadVideoDatabase(char * directoryPath);
+struct videoCollection * loadVideoDatabase(const char * directoryPath,const char * databasePath);
 
 
 #endif // INDEXER_H_INCLUDED
