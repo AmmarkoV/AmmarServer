@@ -176,6 +176,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 
 
                 ++myTube->video[videoID].views;
+                ++myTube->video[videoID].stateChanges;
                 snprintf(data,512,"%lu",myTube->video[videoID].views);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++",data);
 
@@ -218,6 +219,10 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                rqst->contentSize = videoMH->contentCurrentLength;
                rqst->content[rqst->contentSize]=0; //Make sure null termination is there..!
                fprintf(stderr,"Gave back %lu\n",rqst->contentSize);
+
+               if (myTube->video[videoID].stateChanges)
+                     { saveVideoStats(myTube,database_root,videoID); }
+
 
                AmmServer_FreeMemoryHandler(&videoMH);
                }
@@ -294,12 +299,14 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
 {
   char videoRequested[128]={0};
   unsigned int videoID=0;
+
   if ( _GET(default_server,rqst,"upvote",videoRequested,128) )
   {
      videoID=atoi(videoRequested);
      if (videoID < myTube->numberOfLoadedVideos)
      {
          ++myTube->video[videoID].likes;
+         ++myTube->video[videoID].stateChanges;
      }
   } else
   if ( _GET(default_server,rqst,"downvote",videoRequested,128) )
@@ -308,6 +315,7 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
      if (videoID < myTube->numberOfLoadedVideos)
      {
          ++myTube->video[videoID].dislikes;
+         ++myTube->video[videoID].stateChanges;
      }
   } else
   if ( _GET(default_server,rqst,"comment",videoRequested,128) )
@@ -316,6 +324,9 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
   {
 
   }
+
+  if (myTube->video[videoID].stateChanges)
+   { saveVideoStats(myTube,database_root,videoID); }
 
   snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Ok</body></html>");
   rqst->contentSize=strlen(rqst->content);
@@ -339,6 +350,13 @@ int thumbnailAllVideoDatabase(struct videoCollection * db)
 
 
 
+//This function prepares the content of  stats context , ( stats.content )
+void * schedulerSaveStatistics()
+{
+
+}
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
@@ -348,6 +366,10 @@ void init_dynamic_content()
   fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
 
   favicon=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/favicon.ico");
+
+
+
+  AmmServer_AddScheduler( default_server,"Stats",(void*) schedulerSaveStatistics, 30 /*mins*/* 60 /*seconds*/  , 0 );
 
 
   //Try to adapt to the server running this :P

@@ -293,6 +293,19 @@ int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmS
 
 
 
+int AmmServer_AddScheduler
+     ( struct AmmServer_Instance * instance,
+       const char * resource_name ,
+       void * callback,
+       unsigned int delayMilliseconds,
+       unsigned int repetitions
+    )
+{
+  AmmServer_Error("Scheduler Code not implemented\n");
+}
+
+
+
 int AmmServer_AddResourceHandler
      ( struct AmmServer_Instance * instance,
        struct AmmServer_RH_Context * context,
