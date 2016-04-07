@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include "../../AmmServerlib/AmmServerlib.h"
 
 #define DEFAULT_TEST_TRANSMISSION_VIDEO_TITLE "MyTube Test Broadcast"
 extern unsigned int videoDefaultTestTranmission=0;
@@ -25,9 +26,22 @@ char * path_cat2 (const char *str1,const char *str2)
     return result;
 }
 
-unsigned int getAVideoForQuery(struct videoCollection * db , const char * query)
+unsigned int getAVideoForQuery(struct videoCollection * db , const char * query , int * foundVideo)
 {
-
+  AmmServer_Warning("Searching for `%s` among %u videos  \n\n",query,db->numberOfLoadedVideos);
+  unsigned int i=0;
+  *foundVideo=0;
+  for (i=0; i<db->numberOfLoadedVideos; i++)
+  {
+      if (strstr(db->video[i].filename , query)!=0)
+      {
+        AmmServer_Success("Found it @ %u \n\n",i);
+        *foundVideo=1;
+        return i;
+      }
+  }
+  AmmServer_Error("Could not Find it %s \n\n",query);
+  return 0;
 }
 
 unsigned int clearExtensionFAST(char * inputOutputStr)
@@ -55,7 +69,17 @@ int unloadVideoDatabase(struct videoCollection* vc)
   return 1;
 }
 
-struct videoCollection * loadVideoDatabase(char * directoryPath)
+
+int loadVideoStats(struct videoCollection* vc ,  const char * databasePath , unsigned int videoID)
+{
+ char statsFilePath[512]={0};
+ snprintf(statsFilePath,512,"%s/%s_stats",databasePath,vc->video[videoID].filename);
+}
+
+
+
+
+struct videoCollection * loadVideoDatabase(const char * directoryPath,const char * databasePath)
 {
     struct videoCollection * newDB=(struct videoCollection * ) malloc(sizeof(struct videoCollection));
     if (newDB==0) { fprintf(stderr,"Could not allocate a video collection \n"); return 0; }
@@ -101,6 +125,9 @@ struct videoCollection * loadVideoDatabase(char * directoryPath)
                 ++newDB->numberOfLoadedVideos;
                 snprintf(newDB->video[newDB->numberOfLoadedVideos].filename,MAX_STR,dp->d_name);
                 snprintf(newDB->video[newDB->numberOfLoadedVideos].title,MAX_STR,dp->d_name);
+
+                loadVideoStats(newDB , databasePath , newDB->numberOfLoadedVideos);
+
                 clearExtensionFAST(newDB->video[newDB->numberOfLoadedVideos].title);
 
                 if (strcmp(newDB->video[newDB->numberOfLoadedVideos].title,DEFAULT_TEST_TRANSMISSION_VIDEO_TITLE)==0)
