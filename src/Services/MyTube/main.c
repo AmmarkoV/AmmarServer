@@ -27,6 +27,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "indexer.h"
 #include "thumbnailer.h"
 
+#include "renderVideoPage.h"
+
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DO_DYNAMIC_THUMBNAILS 1
 #define UPDATE_ALL_THUMBNAILS_ON_LAUNCH 0 //<-- this will make booting the program incredibly slow
@@ -133,9 +135,17 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
+  int sessionFoundVideo =0 ;
   int queryFoundVideo =0 ;
+  unsigned int userID=0;
   unsigned int videoID=0;
+  char sessionRequested[128]={0};
+  char sessionToken[128]={0};
   char videoRequested[128]={0};
+  if ( _GET(default_server,rqst,"s",sessionRequested,128) )
+              {
+                userID = getAUserIDForSession(myTube,sessionRequested,sessionToken,&sessionFoundVideo );
+              }
 
   if ( _GET(default_server,rqst,"q",videoRequested,128) )
               {
@@ -161,70 +171,20 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                   rqst->headerResponse=404;
                 } else
                 {
-                struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
-                AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++",myTube->video[videoID].title);
+                   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
-                char data[512];
-                snprintf(data,512,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++SOURCE+++++++++++++++++++++++++++",data);
+                   if (renderVideoPage(myTube , videoMH , videoID , userID ))
+                   {
+                    memcpy( rqst->content , videoMH->content , videoMH->contentCurrentLength );
+                    rqst->contentSize = videoMH->contentCurrentLength;
+                    rqst->content[rqst->contentSize]=0; //Make sure null termination is there..!
+                    fprintf(stderr,"Gave back %lu\n",rqst->contentSize);
 
-                snprintf(data,512,"dthumb.jpg?v=%u",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++THUMB+++++++++++++++++++++++++++",data);
-
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USER+++++++++","MyTube");
-
-
-                ++myTube->video[videoID].views;
-                ++myTube->video[videoID].stateChanges;
-                snprintf(data,512,"%lu",myTube->video[videoID].views);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++",data);
-
-
-                snprintf(data,512,"%lu",myTube->video[videoID].likes);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++VOTESUP++++++",data);
-                snprintf(data,512,"%lu",myTube->video[videoID].dislikes);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++VOTESDOWN++++++",data);
-
-
-                //snprintf(data,512,"/proc?upvote=%u",videoID);
-                snprintf(data,512,"command('upvote=%u');",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++UPVOTE+++++++++++",data);
-
-                //snprintf(data,512,"/proc?downvote=%u",videoID);
-                snprintf(data,512,"command('downvote=%u');",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++DOWNVOTE+++++++++++",data);
-
-
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Test Video Service");
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USERCOMMENTS+++++++++","Comments are disabled..");
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++PLAYLIST+++++++++","Playlist");
-
-
-                unsigned int randVideoID=0;
-                char tag[512];
-                unsigned int i=0;
-                for (i=1; i<=10; i++)
-                {
-                 snprintf(tag,512,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST%u+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",i);
-                 randVideoID=rand()%myTube->numberOfLoadedVideos;
-                 snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%lu views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
-                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,tag, data );
-
-                }
-
-
-
-               memcpy( rqst->content , videoMH->content , videoMH->contentCurrentLength );
-               rqst->contentSize = videoMH->contentCurrentLength;
-               rqst->content[rqst->contentSize]=0; //Make sure null termination is there..!
-               fprintf(stderr,"Gave back %lu\n",rqst->contentSize);
-
-               if (myTube->video[videoID].stateChanges)
+                    if (myTube->video[videoID].stateChanges)
                      { saveVideoStats(myTube,database_root,videoID); }
+                   }
 
-
-               AmmServer_FreeMemoryHandler(&videoMH);
+                   AmmServer_FreeMemoryHandler(&videoMH);
                }
     else
  {
