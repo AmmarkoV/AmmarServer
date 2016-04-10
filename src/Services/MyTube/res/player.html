@@ -7,14 +7,22 @@
    a { color: #000000; }
    .views { font-size:18pt; } 
    .votes { font-size:10pt; } 
-   hr { border: 0; height: 0; border-top: 1px solid rgba(0, 0, 0, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
-   #form input.styled 
+   hr { border: 0; height: 0; border-top: 1px solid rgba(0, 0, 0, 0.1); border-bottom: 1px solid rgba(255, 255, 255, 0.3); } 
+   .searchbox 
    {
-    border: 1px solid #FFFFFF;
+    border: 1px solid #DDDDDD;
     font-size: 16px;
     padding: 5px;
     width: 500px;
     }
+   .searchimg
+   {
+    background:url(magnify.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    height : 30px; 
+    width: 30px;
+   }  
  </style>
 
 
@@ -72,7 +80,17 @@
   <td width=100 align="center">&nbsp;</td>
   <td>
    <form>
-    <input class="styled" type="text" name="q" width=580>
+    <table> 
+     <tr>
+      <td>
+       <input class="searchbox" type="text" name="q" width=580>
+      </td>
+      <td>
+       <input class="searchimg" type="submit" value=" " >
+       <!--input type="image" src="magnify.png"-->
+      </td>
+     </tr>
+     </table>
    </form> 
   </td>
   <td width=100 align="center">&nbsp;</td>
