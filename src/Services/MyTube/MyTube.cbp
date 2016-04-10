@@ -44,6 +44,10 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="renderVideoPage.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="renderVideoPage.h" />
 		<Unit filename="thumbnailer.c">
 			<Option compilerVar="CC" />
 		</Unit>

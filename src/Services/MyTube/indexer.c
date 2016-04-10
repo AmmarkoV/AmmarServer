@@ -26,6 +26,9 @@ char * path_cat2 (const char *str1,const char *str2)
     return result;
 }
 
+
+
+
 unsigned int getAVideoForQuery(struct videoCollection * db , const char * query , int * foundVideo)
 {
   AmmServer_Warning("Searching for `%s` among %u videos  \n\n",query,db->numberOfLoadedVideos);
@@ -112,6 +115,14 @@ int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , uns
 
 
 
+void clear_line()
+{
+  fputs("\033[A\033[2K\033[A\033[2K",stdout);
+  rewind(stdout);
+  int i=ftruncate(1,0);
+  if (i!=0) { /*fprintf(stderr,"Error with ftruncate\n");*/ }
+}
+
 
 struct videoCollection * loadVideoDatabase(const char * directoryPath,const char * databasePath)
 {
@@ -173,20 +184,16 @@ struct videoCollection * loadVideoDatabase(const char * directoryPath,const char
 
 
                 //Now lets try to get filesize and modification date using stat.h
+
                 char * fullpath = path_cat2(directoryPath,dp->d_name);
                 if (fullpath!=0 )
                 {
 
-                fprintf(stderr,"%u - %s  ",newDB->numberOfLoadedVideos,dp->d_name);
-
-                if (AmmServer_FileIsVideo(fullpath))
-                {
-                 fprintf(stderr," is video ");
-                } else
-                {
-                  fprintf(stderr," is nothing ");
-                }
-                 fprintf(stderr,"\n");
+                clear_line();
+                fprintf(stdout,"%u - %s ",newDB->numberOfLoadedVideos,dp->d_name);
+                if (AmmServer_FileIsVideo(fullpath))  { fprintf(stdout," is video "); } else
+                                                      { fprintf(stdout," is nothing "); }
+                fprintf(stdout,"\n");
 
 
 
