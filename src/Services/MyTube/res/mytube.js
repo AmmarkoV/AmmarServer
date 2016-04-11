@@ -1,3 +1,16 @@
+
+var keyboardShortcutsEnabled = 1;
+
+function enableKeyboardShortcuts()
+{
+  keyboardShortcutsEnabled = 1;
+}
+function disableKeyboardShortcuts()
+{
+  keyboardShortcutsEnabled = 0;
+}
+
+
 function httpGet(theUrl)
     {
     var xmlHttp = null;
@@ -23,6 +36,8 @@ function httpGet(theUrl)
 
   document.onkeypress = function (e) 
   {
+    if (!keyboardShortcutsEnabled) { return; }
+
     e = e || window.event;
     
     var keypressed=(e.keyCode || e.which);
