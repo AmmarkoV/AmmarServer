@@ -44,10 +44,18 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="renderVideoList.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="renderVideoList.h" />
 		<Unit filename="renderVideoPage.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="renderVideoPage.h" />
+		<Unit filename="sessions.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sessions.h" />
 		<Unit filename="thumbnailer.c">
 			<Option compilerVar="CC" />
 		</Unit>
