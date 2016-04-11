@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "thumbnailer.h"
 
 #include "renderVideoPage.h"
+#include "renderVideoList.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DO_DYNAMIC_THUMBNAILS 1
@@ -63,6 +64,7 @@ struct AmmServer_RH_Context stopContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
+struct AmmServer_MemoryHandler * headerPage=0;
 struct AmmServer_MemoryHandler * favicon=0;
 
 int enableMonitor=1;
@@ -149,10 +151,15 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 
   if ( _GET(default_server,rqst,"q",videoRequested,128) )
               {
-                snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\" /></head><body><h2>We got your query for %s but unfortunately searching is not yet implemented</h2></body> </html> ");
-                rqst->contentSize=strlen(rqst->content);
-
-                videoID= getAVideoForQuery(myTube,videoRequested,&queryFoundVideo);
+                if (renderVideoList(myTube,headerPage,rqst,videoRequested,userID,&videoID))
+                {
+                  //renderVideoList handled the query on its own ( no results or many results )
+                  return 0;
+                }  else
+                {
+                  //Only one result renderVideoList failed to server we will with the videoID provided
+                  queryFoundVideo=1;
+                }
               }
          else
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
@@ -324,6 +331,9 @@ void init_dynamic_content()
   fprintf(stderr,"Reading master index file..  ");
   indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/player.html");
   fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
+  headerPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/header.html");
+  fprintf(stderr,"current length %u , size is %u \n",headerPage->contentCurrentLength , headerPage->contentSize);
+
 
   favicon=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/favicon.ico");
 
@@ -371,7 +381,7 @@ void init_dynamic_content()
 
   //---------------
   if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,14096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,25000,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) )         { AmmServer_Warning("Failed adding serve random video page\n"); }
