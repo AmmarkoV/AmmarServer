@@ -33,7 +33,6 @@ extern unsigned int videoDefaultTestTranmission;
 
 char * path_cat2 (const char *str1,const char *str2);
 unsigned int getAUserIDForSession(struct videoCollection * db , const char * sessionQuery , const char * sessionToken , int * foundSession);
-unsigned int getAVideoForQuery(struct videoCollection * db , const char * query , int * foundVideo);
 
 int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , unsigned int videoID);
 

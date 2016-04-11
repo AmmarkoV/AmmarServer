@@ -29,23 +29,6 @@ char * path_cat2 (const char *str1,const char *str2)
 
 
 
-unsigned int getAVideoForQuery(struct videoCollection * db , const char * query , int * foundVideo)
-{
-  AmmServer_Warning("Searching for `%s` among %u videos  \n\n",query,db->numberOfLoadedVideos);
-  unsigned int i=0;
-  *foundVideo=0;
-  for (i=0; i<db->numberOfLoadedVideos; i++)
-  {
-      if (strstr(db->video[i].filename , query)!=0)
-      {
-        AmmServer_Success("Found it @ %u \n\n",i);
-        *foundVideo=1;
-        return i;
-      }
-  }
-  AmmServer_Error("Could not Find it %s \n\n",query);
-  return 0;
-}
 
 unsigned int clearExtensionFAST(char * inputOutputStr)
 {
