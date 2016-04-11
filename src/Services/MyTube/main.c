@@ -60,12 +60,14 @@ struct AmmServer_RH_Context thumbnailContext={0};
 struct AmmServer_RH_Context interactContext={0};
 struct AmmServer_RH_Context indexContext={0};
 struct AmmServer_RH_Context faviconContext={0};
+struct AmmServer_RH_Context cssContext={0};
 struct AmmServer_RH_Context stopContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * headerPage=0;
 struct AmmServer_MemoryHandler * favicon=0;
+struct AmmServer_MemoryHandler * cssFile=0;
 
 int enableMonitor=1;
 
@@ -214,6 +216,21 @@ void * serve_stop(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
+
+
+void * serve_css(struct AmmServer_DynamicRequest  * rqst)
+{
+  if (cssFile==0) { return 0; }
+  if (cssFile->content==0) { return 0; }
+  if (cssFile->contentSize==0) { return 0; }
+
+  memcpy(rqst->content,cssFile->content,cssFile->contentSize);
+  rqst->contentSize = cssFile->contentSize;
+  return 0;
+}
+
+
+
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_favicon(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -336,6 +353,7 @@ void init_dynamic_content()
 
 
   favicon=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/favicon.ico");
+  cssFile=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/mytube.css");
 
 
 
@@ -387,6 +405,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) )         { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) )    { AmmServer_Warning("Failed adding serve index page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,4096,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&cssContext,"/mytube.css",webserver_root,4096,1000,&serve_css,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
 
 
   //---------------
