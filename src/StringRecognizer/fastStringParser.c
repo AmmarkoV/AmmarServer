@@ -305,6 +305,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
   FILE * fp = fopen(filenameWithExtension,"w");
   if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
+  fprintf(fp," ");
 
 
   fprintf(fp,"/** @file %s.h\n",functionName);
