@@ -276,6 +276,10 @@ struct AmmServer_Instance_Statistics
     unsigned long totalDownloadKB;
 
 
+    unsigned long totalUploadBytes;
+    unsigned long totalDownloadBytes;
+
+
     unsigned long recvOperationsStarted;
     unsigned long recvOperationsFinished;
 

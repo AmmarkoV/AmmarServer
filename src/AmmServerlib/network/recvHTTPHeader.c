@@ -47,7 +47,8 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
        )
  {
   ++instance->statistics.recvOperationsStarted;
-   opres=recv(
+   opres=ASRV_Recv(
+              instance ,
               transaction->clientSock,
               &transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize],
               (unsigned int) transaction->incomingHeader.MAXheaderRAWSize - transaction->incomingHeader.headerRAWSize ,
