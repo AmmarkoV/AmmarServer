@@ -184,6 +184,7 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
    case VIDEOFILES_MPEG4    :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
    case VIDEOFILES_MPEG     :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
    case VIDEOFILES_MP4      :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
+   case VIDEOFILES_OGV      :  strcpy(content_type,"video/ogv");   content_type[9]=0; return 1; break;
    case VIDEOFILES_WEBM     :  strcpy(content_type,"video/webm");  content_type[10]=0; return 1; break;
    case VIDEOFILES_MKV      :  strcpy(content_type,"video/mkv");   content_type[9]=0; return 1; break;
    case VIDEOFILES_3GP      :  strcpy(content_type,"video/3gp");   content_type[9]=0; return 1; break;
@@ -251,13 +252,14 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
 
 int GetExtentionType(const char * theextension)
 { //Crude and fast lookup
+  //fprintf(stderr,"GetExtentionType %s \n",theextension);
   if (theextension==0) { return NO_FILETYPE; }
   switch (theextension[0])
   {
    case 0   : return NO_FILETYPE; break;
-   case 't' : return TEXT;      break;
-   case 'i' : return IMAGE;     break;
-   case 'v' : return VIDEO;     break;
+   case 't' : return TEXT;        break;
+   case 'i' : return IMAGE;       break;
+   case 'v' : return VIDEO;       break;
    case 'a' :
               if (theextension[1]=='u') { return AUDIO; } else
               if (theextension[1]=='p') { return EXECUTABLE; }
@@ -328,8 +330,8 @@ int CheckIfFileIsVideo(const char * filename)
 {
   if (AmmServer_FileExists(filename))
   {
-    char contentType[128];
-    GetContentType(filename,contentType,128);
+    char contentType[512];
+    GetContentType(filename,contentType,512);
     if ( GetExtentionType(contentType)==VIDEO)
     {
       //Todo also check internals of files ( file magic number headers etc )

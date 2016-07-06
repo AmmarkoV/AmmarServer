@@ -13,12 +13,12 @@ struct videoItem
   unsigned long stateChanges;
   unsigned int visibility;
 
-  char title[MAX_STR];
-  char tagsStr[MAX_STR]; //To become a list
-  char filename[MAX_STR];
-  char comment[MAX_STR];
-  char thumbnail[MAX_STR];
-  char stats[MAX_STR];
+  char title[MAX_STR+1];
+  char tagsStr[MAX_STR+1]; //To become a list
+  char filename[MAX_STR+1];
+  char comment[MAX_STR+1];
+  char thumbnail[MAX_STR+1];
+  char stats[MAX_STR+1];
 };
 
 

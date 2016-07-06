@@ -1,4 +1,4 @@
-/** @file firstLines.h
+ /** @file firstLines.h
 * @brief A tool that scans for a string in a very fast and robust way
 * @author Ammar Qammaz (AmmarkoV)
 */
@@ -10,15 +10,15 @@
 /** @brief Enumerator for the IDs of firstLines so we can know what the result was*/
 enum { 
  FIRSTLINES_EMPTY=0,
- FIRSTLINES_GET,
- FIRSTLINES_HEAD,
- FIRSTLINES_POST,
- FIRSTLINES_PUT,
- FIRSTLINES_DELETE,
- FIRSTLINES_TRACE,
- FIRSTLINES_OPTIONS,
- FIRSTLINES_CONNECT,
- FIRSTLINES_PATCH,
+ FIRSTLINES_GET, // 1 
+ FIRSTLINES_HEAD, // 2 
+ FIRSTLINES_POST, // 3 
+ FIRSTLINES_PUT, // 4 
+ FIRSTLINES_DELETE, // 5 
+ FIRSTLINES_TRACE, // 6 
+ FIRSTLINES_OPTIONS, // 7 
+ FIRSTLINES_CONNECT, // 8 
+ FIRSTLINES_PATCH, // 9 
  FIRSTLINES_END_OF_ITEMS
 };
 
