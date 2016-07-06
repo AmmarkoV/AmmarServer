@@ -80,7 +80,7 @@ int cache_CountMemoryUsageAllocateOperation(struct AmmServer_Instance * instance
 * @ingroup cache
 * @param An AmmarServer Instance
 * @retval 1=Ok,0=Failed*/
-int cache_GetCacheSizeKB(struct AmmServer_Instance * instance);
+unsigned long cache_GetCacheSizeKB(struct AmmServer_Instance * instance);
 
 /**
 * @brief Tool to check if a malloc'ed chunk of memory should be freed
