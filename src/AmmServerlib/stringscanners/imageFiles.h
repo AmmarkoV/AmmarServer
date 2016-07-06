@@ -1,4 +1,4 @@
-/** @file imageFiles.h
+ /** @file imageFiles.h
 * @brief A tool that scans for a string in a very fast and robust way
 * @author Ammar Qammaz (AmmarkoV)
 */
@@ -10,21 +10,21 @@
 /** @brief Enumerator for the IDs of imageFiles so we can know what the result was*/
 enum { 
  IMAGEFILES_EMPTY=0,
- IMAGEFILES_GIF,
- IMAGEFILES_PNG,
- IMAGEFILES_JPG,
- IMAGEFILES_JPEG,
- IMAGEFILES_WEBP,
- IMAGEFILES_BMP,
- IMAGEFILES_TIFF,
- IMAGEFILES_DIB,
- IMAGEFILES_RLE,
- IMAGEFILES_J2C,
- IMAGEFILES_ICO,
- IMAGEFILES_PPM,
- IMAGEFILES_PNM,
- IMAGEFILES_RAW,
- IMAGEFILES_SVG,
+ IMAGEFILES_GIF, // 1 
+ IMAGEFILES_PNG, // 2 
+ IMAGEFILES_JPG, // 3 
+ IMAGEFILES_JPEG, // 4 
+ IMAGEFILES_WEBP, // 5 
+ IMAGEFILES_BMP, // 6 
+ IMAGEFILES_TIFF, // 7 
+ IMAGEFILES_DIB, // 8 
+ IMAGEFILES_RLE, // 9 
+ IMAGEFILES_J2C, // 10 
+ IMAGEFILES_ICO, // 11 
+ IMAGEFILES_PPM, // 12 
+ IMAGEFILES_PNM, // 13 
+ IMAGEFILES_RAW, // 14 
+ IMAGEFILES_SVG, // 15 
  IMAGEFILES_END_OF_ITEMS
 };
 

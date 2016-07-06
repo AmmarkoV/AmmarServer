@@ -100,6 +100,7 @@ int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , uns
 
 void clear_line()
 {
+  //return ;
   fputs("\033[A\033[2K\033[A\033[2K",stdout);
   rewind(stdout);
   int i=ftruncate(1,0);
@@ -150,12 +151,17 @@ struct videoCollection * loadVideoDatabase(const char * directoryPath,const char
             }
             else
             {
+              if (newDB->numberOfLoadedVideos+1<newDB->MAX_numberOfVideos)
+              {
+                //fprintf(stderr,"do 0 %u (%s) ",newDB->numberOfLoadedVideos,dp->d_name);
                 ++newDB->numberOfLoadedVideos;
-                snprintf(newDB->video[newDB->numberOfLoadedVideos].filename,MAX_STR,dp->d_name);
-                snprintf(newDB->video[newDB->numberOfLoadedVideos].title,MAX_STR,dp->d_name);
+                snprintf(newDB->video[newDB->numberOfLoadedVideos].filename,MAX_STR,"%s",dp->d_name);
+                snprintf(newDB->video[newDB->numberOfLoadedVideos].title,MAX_STR,"%s",dp->d_name);
 
+                //fprintf(stderr,"do 1 %u ",newDB->numberOfLoadedVideos);
                 loadVideoStats(newDB , databasePath , newDB->numberOfLoadedVideos);
 
+                //fprintf(stderr,"do 2 %u ",newDB->numberOfLoadedVideos);
                 clearExtensionFAST(newDB->video[newDB->numberOfLoadedVideos].title);
 
                 if (strcmp(newDB->video[newDB->numberOfLoadedVideos].title,DEFAULT_TEST_TRANSMISSION_VIDEO_TITLE)==0)
@@ -168,12 +174,16 @@ struct videoCollection * loadVideoDatabase(const char * directoryPath,const char
 
                 //Now lets try to get filesize and modification date using stat.h
 
+                //fprintf(stderr,"do 3 %u ",newDB->numberOfLoadedVideos);
                 char * fullpath = path_cat2(directoryPath,dp->d_name);
                 if (fullpath!=0 )
                 {
 
                 clear_line();
-                fprintf(stdout,"%u - %s ",newDB->numberOfLoadedVideos,dp->d_name);
+                fprintf(stdout,"%u (%0.2f%%) - %s ",
+                         newDB->numberOfLoadedVideos,
+                         (float) (100*newDB->numberOfLoadedVideos)/ newDB->MAX_numberOfVideos,
+                         dp->d_name);
                 if (AmmServer_FileIsVideo(fullpath))  { fprintf(stdout," is video "); } else
                                                       { fprintf(stdout," is nothing "); }
                 fprintf(stdout,"\n");
@@ -182,14 +192,14 @@ struct videoCollection * loadVideoDatabase(const char * directoryPath,const char
 
                     if ( stat(fullpath, &st) == 0 )
                     {
-                        char sizeStr[128]= {0};
-                        snprintf(sizeStr,128,"%li",st.st_size);
+                        char sizeStr[512]= {0};
+                        snprintf(sizeStr,512,"%li",st.st_size);
 
                         //Append FileSize information
                         /*
                         strncat(memory,tag_pre_date,mem_remaining);
                         mem_remaining-=tag_pre_date_size;
-                        strftime(sizeStr, 128, "%Y-%m-%d %H:%M:%S", localtime(&st.st_mtime ) );
+                        strftime(sizeStr, 512, "%Y-%m-%d %H:%M:%S", localtime(&st.st_mtime ) );
                         strncat(memory,sizeStr,mem_remaining);
                         mem_remaining-=strlen(sizeStr);
                         strncat(memory,tag_after_date,mem_remaining);
@@ -204,7 +214,7 @@ struct videoCollection * loadVideoDatabase(const char * directoryPath,const char
                     fullpath=0;
                 }
                 //---------------------------------
-
+              }// <- we still have space
             }
 
         }

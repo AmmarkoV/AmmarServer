@@ -393,6 +393,7 @@ void init_dynamic_content()
       break;
      }
   }
+  fprintf(stderr,"Done loading.. \n ");
 
   if (myTube==0)
   {

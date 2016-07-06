@@ -1,5 +1,5 @@
 /*                  
-This file was automatically generated @ 05-09-2014 22:48:14 using StringRecognizer                  
+This file was automatically generated @ 06-07-2016 18:02:43 using StringRecognizer                  
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/StringRecognizer                 
 Please note that changes you make here may be automatically overwritten                  
 if the String Recognizer generator runs again..!              
@@ -54,6 +54,10 @@ int scanFor_videoFiles(const char * str,unsigned int strLength)
         }; 
      break; 
     }; 
+ break; 
+ case 'O' : 
+     if (strLength<3) { return 0; } 
+     if ( strncasecmp(str,"OGV",3) == 0 ) { return VIDEOFILES_OGV; } 
  break; 
  case 'W' : 
      if (strLength<4) { return 0; } 
