@@ -903,7 +903,7 @@ int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,cha
 
 
 
-char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsigned int max_content)
+char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,unsigned int port,char * filename,unsigned int max_content)
 {
   int sockfd;
   struct hostent *he=0;
@@ -944,7 +944,7 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     if (buffer!=0)
     {
       snprintf(buffer,max_content,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
-      int opres =  send(sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      int opres =  ASRV_Send(instance,sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
 
       if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
       {

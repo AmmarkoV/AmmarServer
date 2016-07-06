@@ -185,7 +185,7 @@ inline void decideAboutHowToHandleRequestedResource
 
 inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-     SendAuthorizationHeader(transaction->clientSock,"AmmarServer authorization..!","authorization.html");
+     SendAuthorizationHeader(instance,transaction->clientSock,"AmmarServer authorization..!","authorization.html");
 
      char reply_header[256]={0};
      strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
@@ -291,7 +291,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
-     warning("Client Denied access to resource!"); SendErrorCodeHeader(transaction->clientSock,403 ,"403.html",instance->templates_root);
+     warning("Client Denied access to resource!"); SendErrorCodeHeader(instance,transaction->clientSock,403 ,"403.html",instance->templates_root);
      logError(instance,transaction,403,"403.html");
      return 0;
    } else
@@ -463,7 +463,7 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
       if (clientIsBanned)
       {
        warning("Client became banned during keep-alive\n");
-       SendErrorCodeHeader(transaction->clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
+       SendErrorCodeHeader(instance,transaction->clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
        break;
       }
     }

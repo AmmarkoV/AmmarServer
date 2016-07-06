@@ -34,7 +34,7 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
    (unsigned int) instance->statistics.recvOperationsStarted - instance->statistics.recvOperationsFinished ,
    cache_GetCacheSizeKB(instance),
    instance->statistics.totalUploadKB,
-   instance->statistics.totalDownloadKB
+   (unsigned long) instance->statistics.totalDownloadBytes/1024
    );
   strcpy(rqst->content,buffer);
 
