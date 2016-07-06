@@ -14,26 +14,58 @@
 //This function prepares the content of  stats context , ( stats.content )
 void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
 {
+  char buffer[4096]={0};
   struct AmmServer_Instance * instance = rqst->instance;
-  snprintf(rqst->content,rqst->MAXcontentSize,
+  snprintf(buffer,4096,
   "<html><head><meta http-equiv=\"refresh\" content=\"1;URL='monitor.html'\" /></head><body>\
    <h1>AMMARSERVER <a target=\"_new\" href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/tools/serverMonitor.c\">MONITOR PAGE</a></h1><hr> \
    active threads : %u <br>\
    active clients : %u <br>\
-   active recv calls : %u <br>\
-   served requests: %u <br>\
-   current memory consumption ( cache ) : %u KB<br>\
+   started recv calls : %u <br>\
+   finished recv calls : %u <br>\
+   actively served requests: %u <br>\
+   current memory consumption ( cache ) : %lu KB<br>\
    data sent/recvd : %lu KB/%lu KB<br>\
-   <hr>\
-   </body></html>",
+   <hr>",
    GetActiveHTTPServerThreads(instance),
    instance->statistics.filesCurrentlyOpen ,
-   (unsigned int) instance->statistics.recvOperationsStarted-instance->statistics.recvOperationsFinished ,
+   (unsigned int) instance->statistics.recvOperationsStarted,
+   (unsigned int) instance->statistics.recvOperationsFinished ,
+   (unsigned int) instance->statistics.recvOperationsStarted - instance->statistics.recvOperationsFinished ,
    cache_GetCacheSizeKB(instance),
    instance->statistics.totalUploadKB,
    instance->statistics.totalDownloadKB
    );
+  strcpy(rqst->content,buffer);
+
+
+  unsigned int i=0;
+
+  for (i=0; i<GetActiveHTTPServerThreads(instance); i++)
+  {
+   snprintf(buffer,4096," %u - <a href=\"monitor.html?stop=%u\">STOP</a> \n",i,i);
+   strcat(rqst->content,buffer);
+  }
+
+
+
+  snprintf(buffer,4096,"</body></html>");
+  strcat(rqst->content,buffer);
+
+
   rqst->contentSize=strlen(rqst->content);
+
+
+
+
+   char command[1024]={0};
+  if ( _GET(instance,rqst,(char*) "stop",command,1024) )
+      {
+         fprintf(stderr,"stop %u requested\n",atoi(command));
+      }
+
+
+
   return 0;
 }
 

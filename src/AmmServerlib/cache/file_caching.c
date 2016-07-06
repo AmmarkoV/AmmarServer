@@ -25,19 +25,22 @@
 int cache_CountMemoryUsageFreeOperation(struct AmmServer_Instance * instance , unsigned long freedSize)
 {
   if (instance==0) { return 0; }
-  if (instance->loaded_cache_items_Kbytes > freedSize ) { instance->loaded_cache_items_Kbytes -= (unsigned long) freedSize/1024; } else
-                                                        { instance->loaded_cache_items_Kbytes = 0; }
+
+  unsigned long freedSizeKB = (unsigned long) freedSize/1024;
+  if (instance->loaded_cache_items_Kbytes > freedSizeKB ) { instance->loaded_cache_items_Kbytes -= freedSizeKB; } else
+                                                          { instance->loaded_cache_items_Kbytes = 0; }
   return 1;
 }
 
 int cache_CountMemoryUsageAllocateOperation(struct AmmServer_Instance * instance , unsigned long allocatedSize)
 {
   if (instance==0) { return 0; }
-   instance->loaded_cache_items_Kbytes += (unsigned long) allocatedSize/1024;
+  unsigned long allocatedSizeKB = (unsigned long) allocatedSize/1024;
+   instance->loaded_cache_items_Kbytes += allocatedSizeKB;
   return 1;
 }
 
-int cache_GetCacheSizeKB(struct AmmServer_Instance * instance)
+unsigned long cache_GetCacheSizeKB(struct AmmServer_Instance * instance)
 {
   return instance->loaded_cache_items_Kbytes;
 }

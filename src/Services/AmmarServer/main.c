@@ -45,6 +45,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define ENABLE_PASSWORD_PROTECTION 0
 #define ENABLE_CHAT_BOX 0
+#define ENABLE_MONITOR 1
 
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
@@ -394,6 +395,13 @@ void init_dynamic_content()
     if (! AmmServer_AddResourceHandler(default_server,&stop,"/stop.html",webserver_root,4096,0,&stop_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding stop\n"); }
   #endif
 
+
+   #if ENABLE_MONITOR
+     #warning "WebServer Monitor is Enabled"
+     fprintf(stderr,"WebServer Monitor is Enabled\n");
+     AmmServer_EnableMonitor(default_server);
+   #endif // ENABLE_MONITOR
+
 #if ENABLE_GET_DEBUGGING
   if (! AmmServer_AddResourceHandler(default_server,&getdbg,"/debugGET.html",webserver_root,4096,0,&debug_get_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding debug GET\n"); }
 #endif // ENABLE_GET_DEBUGGING
@@ -503,7 +511,6 @@ int main(int argc, char *argv[])
          );
        if (!admin_server) { AmmServer_Warning("Could not create admin server carying on though...");  }
      }
-
 
 
     //If we want password protection ( variable defined in the start of this file ) we will have to set a username and a password

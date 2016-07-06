@@ -80,7 +80,8 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   //Received new data
    {
       //Count incoming data
-      instance->statistics.totalDownloadKB+=opres;
+      if (opres>0)
+       { instance->statistics.totalDownloadKB+=(unsigned long) opres/1024; }
       transaction->incomingHeader.headerRAWSize+=opres;
       fprintf(stderr,"Got %d more bytes ( %u total / %u max )\n",opres,transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.MAXheaderRAWSize);
 
