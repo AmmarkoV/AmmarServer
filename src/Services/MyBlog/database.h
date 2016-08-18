@@ -14,17 +14,7 @@
 
 
 
-#include <sqlite3.h>
 #include "../../AmmServerlib/AmmServerlib.h"
-
-struct SQLiteSession
-{
- sqlite3 *db;
- sqlite3_stmt *res;
- char *err_msg;
-
- int rc;
-};
 
 
 struct htmlContent
@@ -131,15 +121,8 @@ struct website
 };
 
 extern struct website myblog;
-extern struct SQLiteSession sqlserver;
 
+int databaseDummy();
 
-
-int SQL_init(struct SQLiteSession * sqlserver , const char * dbFilename);
-int SQL_close(struct SQLiteSession * sqlserver);
-
-int loadPostsFromSQL(struct SQLiteSession * sqlserver , struct website * websiteContext);
-
-int SQL_createInitialTables(struct SQLiteSession * sqlserver );
 
 #endif // DATABASE_H_INCLUDED
