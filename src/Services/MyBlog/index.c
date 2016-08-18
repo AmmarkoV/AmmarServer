@@ -108,14 +108,14 @@ unsigned char * getWidgetListHTML(struct website * configuration)
  return buffer;
 }
 
-unsigned char * getPostListHTML(struct website * configuration)
+unsigned char * getPostListHTML(struct website * configuration,int startPost)
 {
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   unsigned int i=0;
-  for (i=0; i<configuration->menu.currentItems; i++)
+  for (i=0; i<configuration->post.currentPosts; i++)
   {
      currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
 
@@ -203,11 +203,11 @@ int loadPosts(struct website * configuration)
     snprintf(configuration->post.item[configuration->post.currentPosts].title , MAX_STR , "post %u title", number);
 
    struct tagItemList tags;
-   configuration->post.item[configuration->post.currentPosts].content.data;
-
+   configuration->post.item[configuration->post.currentPosts].content.data = tmp->content;
 
     //-------------
-    AmmServer_FreeMemoryHandler(&tmp);
+    //tmp->content=0;
+    //AmmServer_FreeMemoryHandler(&tmp);
     ++configuration->post.currentPosts;
    }
 
@@ -386,15 +386,10 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   loadPosts(configuration);
 
   fprintf(stderr,"Injecting Post List ..!\n");
-  htmlData = getPostListHTML(configuration);
+  htmlData = getPostListHTML(configuration,0);
   AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++POSTS+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
-  unsigned int i=0;
-  for (i=0; i<configuration->post.currentPosts; i++)
-  {
-
-  }
 
   fprintf(stderr,"Done with index..\n");
 
