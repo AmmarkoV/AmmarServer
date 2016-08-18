@@ -148,7 +148,7 @@ unsigned char * getPostListHTML(struct website * configuration)
     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"</small></div>\
 	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
                       <div class=\"entry\">%s</div>\
-	                 </div>"
+	                 </div>\n"
             , i , configuration->post.item[i].title  , configuration->post.item[i].content.data );
 
   }
