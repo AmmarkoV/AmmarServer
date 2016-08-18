@@ -84,9 +84,13 @@ unsigned char * getMenuListHTML(struct website * configuration)
 
 unsigned char * getWidgetListHTML(struct website * configuration)
 {
-  unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
+  fprintf(stderr,"widget list consists of %u items \n",configuration->widget.currentItems);
+
+  unsigned int totalSize=(3*CONTENT_BUFFER)*configuration->widget.currentItems,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
+
+  fprintf(stderr," allocating %u bytes for widgets \n Populating : ",totalSize);
 
   unsigned int i=0;
   for (i=0; i<configuration->menu.currentItems; i++)
@@ -97,7 +101,9 @@ unsigned char * getWidgetListHTML(struct website * configuration)
                        <div class=\"textwidget\">%s</div>\
 		               </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.data);
 
+  fprintf(stderr," %u , ",currentSize);
   }
+  fprintf(stderr," done\n ",currentSize);
 
  return buffer;
 }
@@ -173,26 +179,28 @@ int strlimcpy(char * output , unsigned int outputLimit , const char * source )
 
 int loadPosts(struct website * configuration)
 {
-  return 0;
+  fprintf(stderr," Loading posts .. \n");
+  //return 0;
 
   configuration->post.currentPosts=0;
 
   char filename[FILENAME_MAX]={0};
   FILE *fp = 0;
 
-  unsigned int number=0;
+  unsigned int number=1;
 
-  snprintf(filename,FILENAME_MAX,"res/posts/post%u.html",number);
+  snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",number);
   while (AmmServer_FileExists(filename))
   {
 
    struct AmmServer_MemoryHandler *  tmp = AmmServer_ReadFileToMemoryHandler(filename);
    if (tmp!=0)
    {
-    char * mouf="moufa";
+    fprintf(stderr," Loading post %u (%s) .. \n",number,filename);
+    char * mouf="admin";
     snprintf(configuration->post.item[configuration->post.currentPosts].author , MAX_STR , "%s", mouf );
-    snprintf(configuration->post.item[configuration->post.currentPosts].dateStr , MAX_STR , "%s", mouf );
-    snprintf(configuration->post.item[configuration->post.currentPosts].title , MAX_STR , "%s", mouf );
+    snprintf(configuration->post.item[configuration->post.currentPosts].dateStr , MAX_STR , "%s date", mouf );
+    snprintf(configuration->post.item[configuration->post.currentPosts].title , MAX_STR , "post %u title", number);
 
    struct tagItemList tags;
    configuration->post.item[configuration->post.currentPosts].content.data;
@@ -204,7 +212,7 @@ int loadPosts(struct website * configuration)
    }
 
     ++number;
-    snprintf(filename,FILENAME_MAX,"res/posts/post%u.html",number);
+    snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",number);
   }
 
 
@@ -374,6 +382,8 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++RESOURCES+++","res");
 
 
+
+  loadPosts(configuration);
 
   fprintf(stderr,"Done with index..\n");
 
