@@ -65,41 +65,6 @@ from 60ms ( transaction latency ) + 150ms ( network latency )  in say
 20ms  ( transaction latency )  + 150 ms ( network latency ) the 
 perceived difference from the average client will be very small..</p>
 <p>Thats it for now.. <img src="+++RESOURCES+++/icon_smile.gif" alt=":)" class="wp-smiley">  </p>
-				</div>
 				
-								
-			</div>
-		          			<div class="post-520 post type-post status-publish format-standard hentry category-post tag-ammarserver tag-http tag-web-server" id="post-520">
-				<div class="posttitle">
-					<h2 class="pagetitle"><a href="+++WEBROOT+++index.html@p=520.html" rel="bookmark" title="Permanent Link to ETags 304 Not Modified and 200 OK headers..!">ETags 304 Not Modified and 200 OK headers..!</a></h2>
-				<small>Posted: 17th October 2012 by <strong>Ammar Qammaz</strong> in <a href="+++WEBROOT+++index.html@cat=1.html" title="View all posts in Post" rel="category">Post</a><br>
-				Tags: <a href="+++WEBROOT+++index.html@tag=ammarserver.html" rel="tag">AmmarServer</a>, <a href="+++WEBROOT+++index.html@tag=http.html" rel="tag">HTTP</a>, <a href="+++WEBROOT+++index.html@tag=web-server.html" rel="tag">Web Server</a></small>
-				</div>
-				<div class="postcomments"><a href="+++WEBROOT+++index.html@p=520.html#respond" title="Comment on ETags 304 Not Modified and 200 OK headers..!">0</a></div>
-
-				<div class="entry">
-					<p>For the last couple of days I have been implementing <a href="http://en.wikipedia.org/wiki/HTTP_ETag">ETags</a> on <a href="https://github.com/AmmarkoV/AmmarServer">AmmarServer</a> which seem to be a nice way for cache handshaking ( and work very well with my internal server side caching mechanism )   ..</p>
-<p>To profile my server’s behaviour I am using chromium and the very 
-handy Developer Tools that come integrated in it , Especially the 
-Network Timeline feature is great for debugging this sort of things.. <a href="http://redbot.org/?uri=http%3A%2F%2Fammar.gr%3A8080%2F">RedBot is also a very useful tool!</a> that I use for debugging HTTP handshakes..</p>
-<p>Although my implementation isn’t ready yet I am getting some very 
-weird results when I emmit 304 Not Changed responses illustrated in the 
-screenshots bellow ..!</p>
-<p>The screenshots are that big due to my dual 1080p screen setup <img src="+++RESOURCES+++/icon_razz.gif" alt=":P" class="wp-smiley"> </p>
-<p><a href="+++WEBROOT+++wp-content/uploads/2012/10/apache_and_ammarserver_200_ok.png"><img src="+++RESOURCES+++/apache_and_ammarserver_200_ok-300x84.png" alt="Apache And AmmarServer both serving 200 OK responses.." title="Apache And AmmarServer both serving 200 OK responses.." class="alignnone size-medium wp-image-521" height="84" width="300"></a></p>
-<p><a href="+++WEBROOT+++wp-content/uploads/2012/10/apache_and_ammarserver_304_and_200.png"><img src="+++RESOURCES+++/apache_and_ammarserver_304_and_200-300x84.png" alt="Apache and AmmarServer , AmmarServer emmiting 304 responses and Apache 200 OK " title="Apache and AmmarServer , AmmarServer emmiting 304 responses and Apache 200 OK " class="alignnone size-medium wp-image-522" height="84" width="300"></a></p>
-<p>I can’t seem to grasp the reason why a 304 response has such a large 
-“Waiting Time” , Is it my Response header that is missing something , is
- it the whole  Keep Alive thing not being handled properly , or is the 
-waiting time supposed to mean something else in the graph..<br>
-How is it possible when only 200 byte headers get served that the 
-response time is 4 times worse than when the full files get served from 
-memory ?  </p>
-<p>I haven’t still figured it out and it is driving me crazy , but I will get to the bottom of this <img src="+++RESOURCES+++/icon_razz.gif" alt=":P" class="wp-smiley">  ..  </p>
-<p><strong>UPDATE </strong><br>
-After some tweaking around and with the help of <a href="http://redbot.org/?uri=http%3A%2F%2Fammar.gr%3A8080%2F">redbot</a>
- it turns out that the 304 Not Modified header should retransmit all of 
-the original fields transmitted with the first “200 OK” message.. This 
-means all of the E-Tag , Date etc fields.. I was missing out some of 
-them so including them fixed the behaviour.. </p>
+					
 				
