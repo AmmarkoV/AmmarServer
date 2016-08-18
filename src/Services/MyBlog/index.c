@@ -208,7 +208,7 @@ int loadPosts(struct website * configuration)
 
     //-------------
     AmmServer_FreeMemoryHandler(&tmp);
-    ++configuration->widget.currentItems;
+    ++configuration->post.currentPosts;
    }
 
     ++number;
@@ -384,6 +384,17 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
 
   loadPosts(configuration);
+
+  fprintf(stderr,"Injecting Post List ..!\n");
+  htmlData = getPostListHTML(configuration);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++POSTS+++++++++",htmlData);
+  if (htmlData!=0) { free(htmlData); htmlData=0; }
+
+  unsigned int i=0;
+  for (i=0; i<configuration->post.currentPosts; i++)
+  {
+
+  }
 
   fprintf(stderr,"Done with index..\n");
 
