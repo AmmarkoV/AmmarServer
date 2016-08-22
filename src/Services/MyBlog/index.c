@@ -93,7 +93,7 @@ unsigned char * getWidgetListHTML(struct website * configuration)
   fprintf(stderr," allocating %u bytes for widgets \n Populating : ",totalSize);
 
   unsigned int i=0;
-  for (i=0; i<configuration->menu.currentItems; i++)
+  for (i=0; i<configuration->widget.currentItems; i++)
   {
     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
                       "<li id=\"text-%u\" class=\"widget widget_text\">\
@@ -281,7 +281,8 @@ int setupMyBlog(struct website * configuration)
     configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
     configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
     configuration->widget.item[configuration->widget.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
-    AmmServer_FreeMemoryHandler(&tmp);
+    fprintf(stderr," Loading widget %u (%s) .. \n",loadedWidgets,tmp->content);
+    //AmmServer_FreeMemoryHandler(&tmp);
     ++configuration->widget.currentItems;
    }
   //-------------------------------
@@ -345,7 +346,7 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   fprintf(stderr,"Injecting Widget List..!\n");
   htmlData = getWidgetListHTML(configuration);
   //This segfaults
-  //AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++WIDGETLIST+++++++++",htmlData);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++WIDGETLIST+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Blog Roll Left..!\n");
