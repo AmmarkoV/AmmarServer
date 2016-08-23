@@ -10,13 +10,15 @@ struct videoItem
   unsigned long views;
   unsigned long likes;
   unsigned long dislikes;
+  unsigned long stateChanges;
   unsigned int visibility;
 
-  char title[MAX_STR];
-  char tagsStr[MAX_STR]; //To become a list
-  char filename[MAX_STR];
-  char comment[MAX_STR];
-  char thumbnail[MAX_STR];
+  char title[MAX_STR+1];
+  char tagsStr[MAX_STR+1]; //To become a list
+  char filename[MAX_STR+1];
+  char comment[MAX_STR+1];
+  char thumbnail[MAX_STR+1];
+  char stats[MAX_STR+1];
 };
 
 
@@ -30,9 +32,12 @@ struct videoCollection
 extern unsigned int videoDefaultTestTranmission;
 
 char * path_cat2 (const char *str1,const char *str2);
+unsigned int getAUserIDForSession(struct videoCollection * db , const char * sessionQuery , const char * sessionToken , int * foundSession);
+
+int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , unsigned int videoID);
 
 int unloadVideoDatabase(struct videoCollection* vc);
-struct videoCollection * loadVideoDatabase(char * directoryPath);
+struct videoCollection * loadVideoDatabase(const char * directoryPath,const char * databasePath);
 
 
 #endif // INDEXER_H_INCLUDED

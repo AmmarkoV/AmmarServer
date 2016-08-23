@@ -62,7 +62,7 @@ void * PreSpawnedThread(void * ptr)
 
               //ServeClient from this thread ( without forking..! )
               fprintf(stderr,"Prespawned thread %u/%u starting to serve new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
-                ServeClient((void *)  &context);
+                ServeClientAfterUnpackingThreadMessage((void *)  &context);
               fprintf(stderr,"Prespawned thread %u/%u finished serving new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
               //---------------------------------------------------
 

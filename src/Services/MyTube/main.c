@@ -27,6 +27,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "indexer.h"
 #include "thumbnailer.h"
 
+#include "renderVideoPage.h"
+#include "renderVideoList.h"
+
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DO_DYNAMIC_THUMBNAILS 1
 #define UPDATE_ALL_THUMBNAILS_ON_LAUNCH 0 //<-- this will make booting the program incredibly slow
@@ -57,11 +60,17 @@ struct AmmServer_RH_Context thumbnailContext={0};
 struct AmmServer_RH_Context interactContext={0};
 struct AmmServer_RH_Context indexContext={0};
 struct AmmServer_RH_Context faviconContext={0};
+struct AmmServer_RH_Context cssContext={0};
+struct AmmServer_RH_Context jsContext={0};
 struct AmmServer_RH_Context stopContext={0};
 
 
 struct AmmServer_MemoryHandler * indexPage=0;
+struct AmmServer_MemoryHandler * headerPage=0;
 struct AmmServer_MemoryHandler * favicon=0;
+struct AmmServer_MemoryHandler * cssFile=0;
+struct AmmServer_MemoryHandler * jsFile=0;
+
 
 int enableMonitor=1;
 
@@ -133,85 +142,62 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 {
+  int sessionFoundVideo =0 ;
+  int queryFoundVideo =0 ;
+  unsigned int userID=0;
+  unsigned int videoID=0;
+  char sessionRequested[128]={0};
+  char sessionToken[128]={0};
   char videoRequested[128]={0};
+  if ( _GET(default_server,rqst,"s",sessionRequested,128) )
+              {
+                userID = getAUserIDForSession(myTube,sessionRequested,sessionToken,&sessionFoundVideo );
+              }
 
   if ( _GET(default_server,rqst,"q",videoRequested,128) )
               {
-                snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\" /></head><body><h2>We got your query for %s but unfortunately searching is not yet implemented</h2></body> </html> ");
-                rqst->contentSize=strlen(rqst->content);
-              } else
+                if (renderVideoList(myTube,headerPage,rqst,videoRequested,userID,&videoID))
+                {
+                  //renderVideoList handled the query on its own ( no results or many results )
+                  return 0;
+                }  else
+                {
+                  //Only one result renderVideoList failed to server we will with the videoID provided
+                  queryFoundVideo=1;
+                }
+              }
+         else
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
                 fprintf(stderr,"Video Requested is : %s \n",videoRequested);
+                videoID=atoi(videoRequested);
+                queryFoundVideo=1;
+              }
 
-                unsigned int videoID=atoi(videoRequested);
 
+
+
+  if ( queryFoundVideo )
                 if (videoID >= myTube->numberOfLoadedVideos)
                 {
                   rqst->headerResponse=404;
                 } else
                 {
-                struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
-                AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++",myTube->video[videoID].title);
+                   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
-                char data[512];
-                snprintf(data,512,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++SOURCE+++++++++++++++++++++++++++",data);
+                   if (renderVideoPage(myTube , videoMH , videoID , userID ))
+                   {
+                    memcpy( rqst->content , videoMH->content , videoMH->contentCurrentLength );
+                    rqst->contentSize = videoMH->contentCurrentLength;
+                    rqst->content[rqst->contentSize]=0; //Make sure null termination is there..!
+                    fprintf(stderr,"Gave back %lu\n",rqst->contentSize);
 
-                snprintf(data,512,"dthumb.jpg?v=%u",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++THUMB+++++++++++++++++++++++++++",data);
+                    if (myTube->video[videoID].stateChanges)
+                     { saveVideoStats(myTube,database_root,videoID); }
+                   }
 
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USER+++++++++","MyTube");
-
-
-                ++myTube->video[videoID].views;
-                snprintf(data,512,"%lu",myTube->video[videoID].views);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++VIEWS+++++++++",data);
-
-
-                snprintf(data,512,"%lu",myTube->video[videoID].likes);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++VOTESUP++++++",data);
-                snprintf(data,512,"%lu",myTube->video[videoID].dislikes);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++VOTESDOWN++++++",data);
-
-
-                //snprintf(data,512,"/proc?upvote=%u",videoID);
-                snprintf(data,512,"command('upvote=%u');",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++UPVOTE+++++++++++",data);
-
-                //snprintf(data,512,"/proc?downvote=%u",videoID);
-                snprintf(data,512,"command('downvote=%u');",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++DOWNVOTE+++++++++++",data);
-
-
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++COMMENT+++++++++","Test Video Service");
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USERCOMMENTS+++++++++","Comments are disabled..");
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++PLAYLIST+++++++++","Playlist");
-
-
-                unsigned int randVideoID=0;
-                char tag[512];
-                unsigned int i=0;
-                for (i=1; i<=10; i++)
-                {
-                 snprintf(tag,512,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST%u+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",i);
-                 randVideoID=rand()%myTube->numberOfLoadedVideos;
-                 snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%lu views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
-                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,tag, data );
-
-                }
-
-
-
-               memcpy( rqst->content , videoMH->content , videoMH->contentCurrentLength );
-               rqst->contentSize = videoMH->contentCurrentLength;
-               rqst->content[rqst->contentSize]=0; //Make sure null termination is there..!
-               fprintf(stderr,"Gave back %lu\n",rqst->contentSize);
-
-               AmmServer_FreeMemoryHandler(&videoMH);
+                   AmmServer_FreeMemoryHandler(&videoMH);
                }
-              }
     else
  {
   snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\" /></head><body><h2>Redirecting..</h2></body> </html> ");
@@ -232,6 +218,34 @@ void * serve_stop(struct AmmServer_DynamicRequest  * rqst)
 
   return 0;
 }
+
+
+
+void * serve_js(struct AmmServer_DynamicRequest  * rqst)
+{
+  if (jsFile==0) { return 0; }
+  if (jsFile->content==0) { return 0; }
+  if (jsFile->contentSize==0) { return 0; }
+
+  memcpy(rqst->content,jsFile->content,jsFile->contentSize);
+  rqst->contentSize = jsFile->contentSize;
+  return 0;
+}
+
+
+
+void * serve_css(struct AmmServer_DynamicRequest  * rqst)
+{
+  if (cssFile==0) { return 0; }
+  if (cssFile->content==0) { return 0; }
+  if (cssFile->contentSize==0) { return 0; }
+
+  memcpy(rqst->content,cssFile->content,cssFile->contentSize);
+  rqst->contentSize = cssFile->contentSize;
+  return 0;
+}
+
+
 
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_favicon(struct AmmServer_DynamicRequest  * rqst)
@@ -285,12 +299,14 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
 {
   char videoRequested[128]={0};
   unsigned int videoID=0;
+
   if ( _GET(default_server,rqst,"upvote",videoRequested,128) )
   {
      videoID=atoi(videoRequested);
      if (videoID < myTube->numberOfLoadedVideos)
      {
          ++myTube->video[videoID].likes;
+         ++myTube->video[videoID].stateChanges;
      }
   } else
   if ( _GET(default_server,rqst,"downvote",videoRequested,128) )
@@ -299,6 +315,7 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
      if (videoID < myTube->numberOfLoadedVideos)
      {
          ++myTube->video[videoID].dislikes;
+         ++myTube->video[videoID].stateChanges;
      }
   } else
   if ( _GET(default_server,rqst,"comment",videoRequested,128) )
@@ -307,6 +324,9 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
   {
 
   }
+
+  if (myTube->video[videoID].stateChanges)
+   { saveVideoStats(myTube,database_root,videoID); }
 
   snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Ok</body></html>");
   rqst->contentSize=strlen(rqst->content);
@@ -330,6 +350,13 @@ int thumbnailAllVideoDatabase(struct videoCollection * db)
 
 
 
+//This function prepares the content of  stats context , ( stats.content )
+void * schedulerSaveStatistics()
+{
+
+}
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
@@ -337,8 +364,17 @@ void init_dynamic_content()
   fprintf(stderr,"Reading master index file..  ");
   indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/player.html");
   fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
+  headerPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/header.html");
+  fprintf(stderr,"current length %u , size is %u \n",headerPage->contentCurrentLength , headerPage->contentSize);
+
 
   favicon=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/favicon.ico");
+  cssFile=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/mytube.css");
+  jsFile=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/mytube.js");
+
+
+
+  AmmServer_AddScheduler( default_server,"Stats",(void*) schedulerSaveStatistics, 30 /*mins*/* 60 /*seconds*/  , 0 );
 
 
   //Try to adapt to the server running this :P
@@ -353,10 +389,11 @@ void init_dynamic_content()
      {
       fprintf(stderr,"Trying to load from %s \n ",video_root);
       snprintf(database_root,MAX_FILE_PATH,"%s/db/",video_root);
-      myTube = loadVideoDatabase(video_root);
+      myTube = loadVideoDatabase(video_root,database_root);
       break;
      }
   }
+  fprintf(stderr,"Done loading.. \n ");
 
   if (myTube==0)
   {
@@ -380,12 +417,14 @@ void init_dynamic_content()
 
   //---------------
   if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,14096,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,25000,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve index page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) )         { AmmServer_Warning("Failed adding serve random video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) )    { AmmServer_Warning("Failed adding serve index page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,4096,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&cssContext,"/mytube.css",webserver_root,4096,1000,&serve_css,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&jsContext,"/mytube.js",webserver_root,4096,1000,&serve_js,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
 
 
   //---------------

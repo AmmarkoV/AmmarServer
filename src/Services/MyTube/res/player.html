@@ -3,51 +3,8 @@
 <head>
  <meta charset="UTF-8">
  <title>MyTube - ++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++ </title> 
- <style>
-   a { color: #000000; }
-   .views { font-size:18pt; } 
-   .votes { font-size:10pt; } 
- </style>
-
-
-<script> 
-   function httpGet(theUrl)
-    {
-    var xmlHttp = null;
-    xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
-    xmlHttp.send( null );
-    return xmlHttp.responseText;
-    }
-
-
-    function command(theCommand)
-    {
-       var randomnumber=Math.floor(Math.random()*100000);
-       httpGet("/proc?"+theCommand+"&t="+randomnumber); 
-    } 
-
-    function goRandomVideo() 
-    {
-      var randomnumber=Math.floor(Math.random()*100000);
-      window.location.href = "/random?t="+randomnumber; 
-    } 
-
-
-  document.onkeypress = function (e) 
-  {
-    e = e || window.event;
-    
-    var keypressed=(e.keyCode || e.which);
-    if (  keypressed == 114  ) //r
-     {
-      goRandomVideo();  
-     }
-  };
-
-</script> 
-
-
+ <link rel="stylesheet" type="text/css" href="mytube.css">
+ <script src="mytube.js" type="text/javascript"></script> 
 </head>
 <body>
  
@@ -64,18 +21,31 @@
   <td width=100 align="center">&nbsp;</td>
   <td>
    <form>
-    <input type="text" name="q" width=580>
+    <table> 
+     <tr>
+      <td>
+       <input class="searchbox" type="text" name="q" width=580 onclick="disableKeyboardShortcuts()" onfocusout="enableKeyboardShortcuts()">
+      </td>
+      <td>
+       <input class="searchimg" type="submit" value=" " >
+       <!--input type="image" src="magnify.png"-->
+      </td>
+     </tr>
+     </table>
    </form> 
   </td>
   <td width=100 align="center">&nbsp;</td>
-  <td align="center"> <h2>..everything under construction..</h2> </td>
+  <td align="center"> <h4>..everything under construction..</h4> </td>
   <td width=100 align="center">&nbsp;</td>
-  <td><a href="http://ammar.gr"><img src="avatar.png" alt="AmmarkoV" height=50></a></td>
+  <td>
+    <a href="++++++++++++CURRENTVIDEOLINK++++++++++++"><img src="+++++++++++++++++++++++++++THUMB+++++++++++++++++++++++++++" alt="Video Thumbnail" height=50></a>
+    <!--a href="http://ammar.gr"><img src="avatar.png" alt="AmmarkoV" height=50></a-->
+  </td>
  </tr>
 </table>
+<hr>
  
 <!-- main page -->
-<hr>
 <table>
  <tr>
   <td valign="top">
@@ -190,15 +160,15 @@
      +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST7+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ <br>     
      +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST8+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ <br>     
      +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST9+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ <br>     
-     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST10+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ <br>         
-      
- 
-  </td>
+     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST10+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ <br>     
+     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST11+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ <br>     
+     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST12+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ <br> 
+ </td>
  </tr>
 </table>
 <br>
 
-<br><br><br><br>
+<br><br><br><br><hr>
 Powered by <a href="https://github.com/AmmarkoV/AmmarServer/wiki">AmmarServer</a>
 
 </body>

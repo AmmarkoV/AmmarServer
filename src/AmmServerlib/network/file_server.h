@@ -7,6 +7,15 @@
 #define FILE_SERVER_H_INCLUDED
 
 #include "../header_analysis/http_header_analysis.h"
+#include <unistd.h>
+
+
+int ASRV_Send(struct AmmServer_Instance * instance,
+              int sockfd, const void *buf, size_t len, int flags);
+
+ssize_t ASRV_Recv(
+                  struct AmmServer_Instance * instance,
+                  int sockfd, void *buf, size_t len, int flags);
 
 /**
 * @brief Send a File to a client

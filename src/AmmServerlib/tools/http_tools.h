@@ -129,12 +129,13 @@ int FilenameStripperOk(char * filename);
 /**
 * @brief A very basic http client for testing connections and maybe in the future make AmmarServers communicate with each other
 * @ingroup tools
+* @param An AmmarServer instance
 * @param Hostname to connect to
 * @param Port to connect to
 * @param Filename to download
 * @param Maximum size of response to carry
 * @retval Pointer to requested page,0=Failure*/
-char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsigned int max_content);
+char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,unsigned int port,char * filename,unsigned int max_content);
 
 /**
 * @brief Free C string and set it to 0

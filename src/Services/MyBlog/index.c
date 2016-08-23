@@ -84,12 +84,16 @@ unsigned char * getMenuListHTML(struct website * configuration)
 
 unsigned char * getWidgetListHTML(struct website * configuration)
 {
-  unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
+  fprintf(stderr,"widget list consists of %u items \n",configuration->widget.currentItems);
+
+  unsigned int totalSize=(3*CONTENT_BUFFER)*configuration->widget.currentItems,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
+  fprintf(stderr," allocating %u bytes for widgets \n Populating : ",totalSize);
+
   unsigned int i=0;
-  for (i=0; i<configuration->menu.currentItems; i++)
+  for (i=0; i<configuration->widget.currentItems; i++)
   {
     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
                       "<li id=\"text-%u\" class=\"widget widget_text\">\
@@ -97,19 +101,21 @@ unsigned char * getWidgetListHTML(struct website * configuration)
                        <div class=\"textwidget\">%s</div>\
 		               </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.data);
 
+  fprintf(stderr," %u , ",currentSize);
   }
+  fprintf(stderr," done\n ",currentSize);
 
  return buffer;
 }
 
-unsigned char * getPostListHTML(struct website * configuration)
+unsigned char * getPostListHTML(struct website * configuration,int startPost)
 {
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   unsigned int i=0;
-  for (i=0; i<configuration->menu.currentItems; i++)
+  for (i=0; i<configuration->post.currentPosts; i++)
   {
      currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
 
@@ -142,7 +148,7 @@ unsigned char * getPostListHTML(struct website * configuration)
     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"</small></div>\
 	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
                       <div class=\"entry\">%s</div>\
-	                 </div>"
+	                 </div>\n"
             , i , configuration->post.item[i].title  , configuration->post.item[i].content.data );
 
   }
@@ -171,52 +177,6 @@ int strlimcpy(char * output , unsigned int outputLimit , const char * source )
 }
 
 
-int loadPosts(struct website * configuration)
-{
-  return 0;
-
-  configuration->post.currentPosts=0;
-
-  char filename[FILENAME_MAX]={0};
-  FILE *fp = 0;
-
-  unsigned int number=0;
-
-  snprintf(filename,FILENAME_MAX,"res/posts/post%u.html",number);
-  while (AmmServer_FileExists(filename))
-  {
-
-   struct AmmServer_MemoryHandler *  tmp = AmmServer_ReadFileToMemoryHandler(filename);
-   if (tmp!=0)
-   {
-    char * mouf="moufa";
-    snprintf(configuration->post.item[configuration->post.currentPosts].author , MAX_STR , "%s", mouf );
-    snprintf(configuration->post.item[configuration->post.currentPosts].dateStr , MAX_STR , "%s", mouf );
-    snprintf(configuration->post.item[configuration->post.currentPosts].title , MAX_STR , "%s", mouf );
-
-   struct tagItemList tags;
-   configuration->post.item[configuration->post.currentPosts].content.data;
-
-
-    //-------------
-    AmmServer_FreeMemoryHandler(&tmp);
-    ++configuration->widget.currentItems;
-   }
-
-    ++number;
-    snprintf(filename,FILENAME_MAX,"res/posts/post%u.html",number);
-  }
-
-
-
-
-  return 0;
-}
-
-
-
-
-
 
 
 int setupMyBlog(struct website * configuration)
@@ -225,9 +185,6 @@ int setupMyBlog(struct website * configuration)
   strlimcpy( configuration->siteName  , MAX_STR  , "AmmarkoV's Website");
   //strlimcpy( configuration->siteDescription  , MAX_STR  , "I would love to change the world , but they won`t give me the source code");
   strlimcpy( configuration->siteDescription  , MAX_STR  , "AmmarServer&trade;");
-
-
-
 
 
   //HARDCODED MENUS
@@ -254,32 +211,6 @@ int setupMyBlog(struct website * configuration)
   ++configuration->menu.currentItems;
   //-------------------------------
 
-
-  const char * const widgetLabelList[] = { "Donation box!", "Featured Projects", "Project Statistics", "Browser Detector :P" };
-  char tmpPath[512]={0};
-  struct AmmServer_MemoryHandler *  tmp=0;
-  configuration->widget.currentItems=0;
-
-  unsigned int loadedWidgets=0;
-  for (loadedWidgets=0; loadedWidgets<4; loadedWidgets++)
-  {
-   //-------------------------------
-   snprintf(tmpPath,512,"src/Services/MyBlog/res/widgets/widget%u.html",loadedWidgets);
-   tmp = AmmServer_ReadFileToMemoryHandler(tmpPath);
-   if (tmp!=0)
-   {
-    snprintf(configuration->widget.item[configuration->widget.currentItems].label , MAX_STR , "%s", widgetLabelList[loadedWidgets] );
-    snprintf(configuration->widget.item[configuration->widget.currentItems].link , MAX_STR , "widget%u.html",loadedWidgets );
-    configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
-    configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
-    configuration->widget.item[configuration->widget.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
-    AmmServer_FreeMemoryHandler(&tmp);
-    ++configuration->widget.currentItems;
-   }
-  //-------------------------------
-  }
-
-
    const char * const leftBlogRollList[] = { "Best Links in the world", "bestlinks.html"          ,
                                              "ELLAK Planet"           , "http://planet.ellak.gr/" ,
                                              "FOSS AUEB"              , "http://foss.aueb.gr/" };
@@ -303,6 +234,11 @@ int setupMyBlog(struct website * configuration)
       snprintf(configuration->linksRight.item[i].link , MAX_STR , "%s", rightBlogRollList[i*2+1] );
       ++configuration->linksRight.currentItems;
   }
+
+
+
+  loadWidgets(configuration);
+
 
 
   loadPosts(configuration);
@@ -337,7 +273,7 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   fprintf(stderr,"Injecting Widget List..!\n");
   htmlData = getWidgetListHTML(configuration);
   //This segfaults
-  //AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++WIDGETLIST+++++++++",htmlData);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++WIDGETLIST+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
   fprintf(stderr,"Injecting Blog Roll Left..!\n");
@@ -373,6 +309,11 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++RESOURCES+++","res");
 
+
+  fprintf(stderr,"Injecting Post List ..!\n");
+  htmlData = getPostListHTML(configuration,0);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++POSTS+++++++++",htmlData);
+  if (htmlData!=0) { free(htmlData); htmlData=0; }
 
 
   fprintf(stderr,"Done with index..\n");
