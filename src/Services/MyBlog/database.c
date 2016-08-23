@@ -65,8 +65,6 @@ int loadPosts(struct website * configuration)
   configuration->post.currentPosts=0;
 
   char filename[FILENAME_MAX]={0};
-  FILE *fp = 0;
-
   snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",configuration->post.currentPosts);
   while (AmmServer_FileExists(filename))
   {
@@ -88,11 +86,7 @@ int loadPosts(struct website * configuration)
    }
 
   }
-
-
-
-
-  return 0;
+  return 1;
 }
 
 
@@ -102,6 +96,43 @@ int loadPosts(struct website * configuration)
 
 
 
+int loadWidgetInfo(struct website * configuration,unsigned int postNum)
+{
+ char filename[FILENAME_MAX]={0};
+ snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/widgets/info%u.html",postNum);
+ fprintf(stderr," Loading widget info %u (%s) .. \n",postNum,filename);
+
+ ssize_t read;
+ FILE * fp = fopen(filename,"r");
+ if (fp!=0)
+  {
+   struct InputParserC * ipc = InputParser_Create(512,4);
+   InputParser_SetDelimeter(ipc,1,'(');
+   InputParser_SetDelimeter(ipc,2,',');
+   InputParser_SetDelimeter(ipc,3,')');
+
+   struct tagItemList tags;
+   char * line = NULL;
+   size_t len = 0;
+
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+       InputParser_SeperateWords(ipc,line,0);
+
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TITLE")  )   { InputParser_GetWord(ipc,1,configuration->widget.item[postNum].label  ,MAX_STR);   }
+    }
+
+    fprintf(stderr," Widget Title %u --------------\n",postNum);
+    fprintf(stderr,"   Title : %s \n",configuration->widget.item[postNum].label);
+
+    fclose(fp);
+    if (line) { free(line); }
+
+    InputParser_Destroy(ipc);
+    return 1;
+  }
+ return 0;
+}
 
 
 
@@ -109,7 +140,6 @@ int loadWidgets(struct website * configuration)
 {
   fprintf(stderr," Loading widgets .. \n");
 
-  const char * const widgetLabelList[] = { "Donation box!", "Featured Projects", "Project Statistics", "Browser Detector :P" };
   char tmpPath[512]={0};
   struct AmmServer_MemoryHandler *  tmp=0;
   configuration->widget.currentItems=0;
@@ -122,13 +152,12 @@ int loadWidgets(struct website * configuration)
    tmp = AmmServer_ReadFileToMemoryHandler(tmpPath);
    if (tmp!=0)
    {
-    snprintf(configuration->widget.item[configuration->widget.currentItems].label , MAX_STR , "%s", widgetLabelList[loadedWidgets] );
     snprintf(configuration->widget.item[configuration->widget.currentItems].link , MAX_STR , "widget%u.html",loadedWidgets );
     configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
     configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
     configuration->widget.item[configuration->widget.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
-    //fprintf(stderr," Loading widget %u (%s) .. \n",loadedWidgets,tmp->content);
-    //AmmServer_FreeMemoryHandler(&tmp);
+
+    loadWidgetInfo(configuration,configuration->widget.currentItems);
     ++configuration->widget.currentItems;
    }
   //-------------------------------
