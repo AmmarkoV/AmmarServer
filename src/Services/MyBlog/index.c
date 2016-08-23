@@ -295,7 +295,7 @@ int destroy_index_prototype()
   return 0;
 }
 
-unsigned char * prepare_index_prototype(char * filename , struct website * configuration)
+unsigned char * prepare_index_prototype(char * filename , struct website * configuration ,unsigned int pageNumber)
 {
   fprintf(stderr,"Generating Index File ..!\n");
 
@@ -353,11 +353,11 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
 
   fprintf(stderr,"Injecting Post List ..!\n");
-  htmlData = getPostListHTML(configuration,0);
+  htmlData = getPostListHTML(configuration,pageNumber);
   AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++POSTS+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 
-  htmlData = getPreviousNextPageHTML(configuration,1);
+  htmlData = getPreviousNextPageHTML(configuration,pageNumber);
   AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++PREVNEXT+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
 

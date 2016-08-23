@@ -76,7 +76,7 @@ void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog);
+  unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog,0);
 
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/index.html",webserver_root,44096,0,&prepare_index,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding index page\n"); }
