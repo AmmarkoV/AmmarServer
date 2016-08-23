@@ -116,6 +116,7 @@ struct website
    struct linkItemList linksLeft;
    struct linkItemList linksRight;
    struct postItemList post;
+   unsigned int postsPerPage;
 
    struct widgetItemList widget;
 };

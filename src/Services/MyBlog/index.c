@@ -10,6 +10,45 @@ struct AmmServer_MemoryHandler * indexPage=0;
 #warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
 
 
+unsigned char * getPreviousNextPageHTML(struct website * configuration,unsigned int currentpage)
+{
+  unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
+  buffer[0]=0;
+
+
+if (currentpage>0)
+{
+currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
+    "</div>\
+		<div id=\"nav-post\">\
+			<div class=\"navigation-bott\">\
+								<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Newer Entries</a></div>\
+							</div>\
+		</div>\
+	</div>"
+	,currentpage-1);
+}
+
+if ((unsigned int) configuration->post.currentPosts / configuration->postsPerPage > 0 )
+{
+  currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
+    "</div>\
+		<div id=\"nav-post\">\
+			<div class=\"navigation-bott\">\
+								<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Older Entries</a></div>\
+							</div>\
+		</div>\
+	</div>"
+	,currentpage+1);
+}
+
+ return buffer;
+
+}
+
+
 unsigned char * getLeftBlogRollHTML(struct website * configuration)
 {
   unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
@@ -236,6 +275,9 @@ int setupMyBlog(struct website * configuration)
   }
 
 
+  configuration->postsPerPage=5;
+
+
 
   loadWidgets(configuration);
 
@@ -314,6 +356,11 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   htmlData = getPostListHTML(configuration,0);
   AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++POSTS+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
+
+  htmlData = getPreviousNextPageHTML(configuration,1);
+  AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++PREVNEXT+++++++++",htmlData);
+  if (htmlData!=0) { free(htmlData); htmlData=0; }
+
 
 
   fprintf(stderr,"Done with index..\n");
