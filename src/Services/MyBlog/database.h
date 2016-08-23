@@ -122,7 +122,7 @@ struct website
 
 extern struct website myblog;
 
-int databaseDummy();
 
+int loadPosts(struct website * configuration);
 
 #endif // DATABASE_H_INCLUDED
