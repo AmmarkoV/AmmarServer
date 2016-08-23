@@ -187,9 +187,6 @@ int setupMyBlog(struct website * configuration)
   strlimcpy( configuration->siteDescription  , MAX_STR  , "AmmarServer&trade;");
 
 
-
-
-
   //HARDCODED MENUS
   configuration->menu.currentItems=0;
 
@@ -214,11 +211,6 @@ int setupMyBlog(struct website * configuration)
   ++configuration->menu.currentItems;
   //-------------------------------
 
-
-
-  loadWidgets(configuration);
-
-
    const char * const leftBlogRollList[] = { "Best Links in the world", "bestlinks.html"          ,
                                              "ELLAK Planet"           , "http://planet.ellak.gr/" ,
                                              "FOSS AUEB"              , "http://foss.aueb.gr/" };
@@ -242,6 +234,11 @@ int setupMyBlog(struct website * configuration)
       snprintf(configuration->linksRight.item[i].link , MAX_STR , "%s", rightBlogRollList[i*2+1] );
       ++configuration->linksRight.currentItems;
   }
+
+
+
+  loadWidgets(configuration);
+
 
 
   loadPosts(configuration);
@@ -312,9 +309,6 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++RESOURCES+++","res");
 
-
-
-  loadPosts(configuration);
 
   fprintf(stderr,"Injecting Post List ..!\n");
   htmlData = getPostListHTML(configuration,0);
