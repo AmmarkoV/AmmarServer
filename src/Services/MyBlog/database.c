@@ -11,7 +11,6 @@ struct website myblog={0};
 
 int loadPostInfo(struct website * configuration,unsigned int postNum)
 {
- if (postNum==0) { fprintf(stderr,"Wrong enumeration on post info \n"); return 0; }
  char filename[FILENAME_MAX]={0};
  snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/info%u.html",postNum);
  fprintf(stderr," Loading post info %u (%s) .. \n",postNum,filename);
@@ -37,17 +36,17 @@ int loadPostInfo(struct website * configuration,unsigned int postNum)
        //printf("%s", line);
        InputParser_SeperateWords(ipc,line,0);
 
-       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TITLE")  )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum-1].title  ,MAX_STR);   } else
-       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"DATE")   )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum-1].dateStr,MAX_STR);   } else
-       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"AUTHOR") )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum-1].author ,MAX_STR);   }
-       //if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TAGS") )     { InputParser_GetWord(ipc,0,configuration->post.item[postNum-1].tags ,MAX_STR); } else
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TITLE")  )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum].title  ,MAX_STR);   } else
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"DATE")   )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum].dateStr,MAX_STR);   } else
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"AUTHOR") )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum].author ,MAX_STR);   }
+       //if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TAGS") )     { InputParser_GetWord(ipc,0,configuration->post.item[postNum].tags ,MAX_STR); } else
        //if ( InputParser_WordCompareNoCaseAuto(ipc,0,"COMMENTS") ) { InputParser_GetWord(ipc,0,line,MAX_STR); }
     }
 
     fprintf(stderr," Post Info %u --------------\n",postNum);
-    fprintf(stderr,"   Title : %s \n",configuration->post.item[postNum-1].title);
-    fprintf(stderr,"   Date : %s \n",configuration->post.item[postNum-1].dateStr);
-    fprintf(stderr,"   Author : %s \n",configuration->post.item[postNum-1].author);
+    fprintf(stderr,"   Title : %s \n",configuration->post.item[postNum].title);
+    fprintf(stderr,"   Date : %s \n",configuration->post.item[postNum].dateStr);
+    fprintf(stderr,"   Author : %s \n",configuration->post.item[postNum].author);
 
     fclose(fp);
     if (line) { free(line); }
@@ -68,26 +67,26 @@ int loadPosts(struct website * configuration)
   char filename[FILENAME_MAX]={0};
   FILE *fp = 0;
 
-  unsigned int number=1;
-
-  snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",number);
+  snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",configuration->post.currentPosts);
   while (AmmServer_FileExists(filename))
   {
 
    struct AmmServer_MemoryHandler *  tmp = AmmServer_ReadFileToMemoryHandler(filename);
    if (tmp!=0)
    {
-    fprintf(stderr," Loading post %u (%s) .. \n",number,filename);
+    fprintf(stderr," Loading post %u (%s) .. \n",configuration->post.currentPosts,filename);
     configuration->post.item[configuration->post.currentPosts].content.data = tmp->content;
     //If we didnt use this we shold -> AmmServer_FreeMemoryHandler(&tmp); tmp->content=0;
 
-    loadPostInfo(configuration,number);
+    loadPostInfo(configuration,configuration->post.currentPosts);
     //-------------
     ++configuration->post.currentPosts;
+    snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",configuration->post.currentPosts);
+   } else
+   {
+     break;
    }
 
-    ++number;
-    snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",number);
   }
 
 
@@ -95,6 +94,50 @@ int loadPosts(struct website * configuration)
 
   return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+int loadWidgets(struct website * configuration)
+{
+  fprintf(stderr," Loading widgets .. \n");
+
+  const char * const widgetLabelList[] = { "Donation box!", "Featured Projects", "Project Statistics", "Browser Detector :P" };
+  char tmpPath[512]={0};
+  struct AmmServer_MemoryHandler *  tmp=0;
+  configuration->widget.currentItems=0;
+
+  unsigned int loadedWidgets=0;
+  for (loadedWidgets=0; loadedWidgets<3; loadedWidgets++)
+  {
+   //-------------------------------
+   snprintf(tmpPath,512,"src/Services/MyBlog/res/widgets/widget%u.html",loadedWidgets);
+   tmp = AmmServer_ReadFileToMemoryHandler(tmpPath);
+   if (tmp!=0)
+   {
+    snprintf(configuration->widget.item[configuration->widget.currentItems].label , MAX_STR , "%s", widgetLabelList[loadedWidgets] );
+    snprintf(configuration->widget.item[configuration->widget.currentItems].link , MAX_STR , "widget%u.html",loadedWidgets );
+    configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
+    configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
+    configuration->widget.item[configuration->widget.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
+    //fprintf(stderr," Loading widget %u (%s) .. \n",loadedWidgets,tmp->content);
+    //AmmServer_FreeMemoryHandler(&tmp);
+    ++configuration->widget.currentItems;
+   }
+  //-------------------------------
+  }
+
+  return 0;
+}
+
+
 
 
 

@@ -215,30 +215,8 @@ int setupMyBlog(struct website * configuration)
   //-------------------------------
 
 
-  const char * const widgetLabelList[] = { "Donation box!", "Featured Projects", "Project Statistics", "Browser Detector :P" };
-  char tmpPath[512]={0};
-  struct AmmServer_MemoryHandler *  tmp=0;
-  configuration->widget.currentItems=0;
 
-  unsigned int loadedWidgets=0;
-  for (loadedWidgets=0; loadedWidgets<3; loadedWidgets++)
-  {
-   //-------------------------------
-   snprintf(tmpPath,512,"src/Services/MyBlog/res/widgets/widget%u.html",loadedWidgets);
-   tmp = AmmServer_ReadFileToMemoryHandler(tmpPath);
-   if (tmp!=0)
-   {
-    snprintf(configuration->widget.item[configuration->widget.currentItems].label , MAX_STR , "%s", widgetLabelList[loadedWidgets] );
-    snprintf(configuration->widget.item[configuration->widget.currentItems].link , MAX_STR , "widget%u.html",loadedWidgets );
-    configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
-    configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
-    configuration->widget.item[configuration->widget.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
-    //fprintf(stderr," Loading widget %u (%s) .. \n",loadedWidgets,tmp->content);
-    //AmmServer_FreeMemoryHandler(&tmp);
-    ++configuration->widget.currentItems;
-   }
-  //-------------------------------
-  }
+  loadWidgets(configuration);
 
 
    const char * const leftBlogRollList[] = { "Best Links in the world", "bestlinks.html"          ,
