@@ -3,8 +3,12 @@
 
 
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "database.h"
 
 int destroy_index_prototype();
+
+unsigned char * prepare_index_prototype(char * filename , struct website * configuration ,unsigned int pageNumber);
+
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst);
 
 
