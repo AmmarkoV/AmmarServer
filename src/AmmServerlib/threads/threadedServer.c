@@ -184,6 +184,11 @@ void * MainHTTPServerThread (void * ptr)
   while ( (instance->server_running) && (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
   {
     fprintf(stderr,"\nServer Thread : Waiting for a new client\n");
+    #if SINGLE_THREAD_MODE
+      fprintf(stderr,"\n\nCompiled for Single Thread Mode..! \n");
+    #endif // SINGLE_THREAD_MODE
+
+
     /* Wait for client connection */
     int clientsock=0;
     if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0)
@@ -193,8 +198,20 @@ void * MainHTTPServerThread (void * ptr)
       }
       else
       {
-        fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
-
+         #if SINGLE_THREAD_MODE
+            if (SingleThreadToServeNewClient(instance,clientsock,client,clientlen))
+            {
+              // This request got served by a freshly spawned thread..!
+              // Nothing to do here , proceeding to the next incoming connection..
+              // if we failed then nothing can be done for this client
+            } else
+            {
+                error("Server Thread : Couldn't serve client ( we are on single thread mode ) \n");
+                close(clientsock);
+                usleep(100);
+            }
+         #else
+           fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
            if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root))
             {
               // This request got served by a prespawned thread..!
@@ -212,12 +229,15 @@ void * MainHTTPServerThread (void * ptr)
                 close(clientsock);
                 usleep(10000);
             }
+         #endif // SINGLE_THREAD_MODE
+
+
       }
  }
   instance->server_running=0;
   instance->stop_server=2;
 
-  warning("Server Stopped..");
+  warning("Main AmmarServer Thread Stopped..");
   //It should already be closed so skipping this : close(serversock);
   //pthread_exit(0);
 
@@ -309,7 +329,8 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
   */
   if ( (instance->stop_server==2)||(instance->stop_server==0)) { fprintf(stderr,"Server has stopped working on its own..\n"); return 1;}
   fprintf(stderr,"Force closing bind socket... ");
-  close(instance->serversock);
+  //close(instance->serversock);
+  shutdown(instance->serversock,SHUT_RDWR);
 
   instance->stop_server=1;
   fprintf(stderr,"Waiting for Server to stop.. ");
@@ -334,3 +355,4 @@ unsigned int GetActiveHTTPServerThreads(struct AmmServer_Instance * instance)
 {
   return getActivePrespawnedThreads(instance) + getActiveFreshThreads(instance);
 }
+

@@ -88,8 +88,12 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 /** @brief Maximum Number of concurrent threads being created at the same time , depending on the size of the listen pool this can be smaller than the MAX_CLIENTS_LISTENING_FOR and connections will
            be queued and served sequentially */
-#define MAX_CLIENT_THREADS 3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
+#define MAX_CLIENT_THREADS 3000 //3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
 
+
+#if MAX_CLIENT_THREADS == 1
+   #define SINGLE_THREAD_MODE 1
+#endif // MAX_CLIENT_THREADS
 
 /** @brief Maximum connections per IP , this is a little dangerous since multiple PC's can have a single gateway , but it is a good heuristic to better share resources
            @bug MAX_CLIENTS_PER_IP is not used if there is no client list declared */
@@ -203,12 +207,16 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 /**  @brief Value that gets set from configuration files , and if it is non-zero it will trigger a priority change ( change nice value ) */
 extern int CHANGE_PRIORITY;
 
+
+/**  @brief Use Timeouts For Sending And Receiving */
+#define USE_TIMEOUTS 1
+
 /**  @brief Default timeout value before which a socket blocking on a read call should be considered dead */
-#define DEFAULT_SOCKET_READ_TIMEOUT_SECS 3
+#define DEFAULT_SOCKET_READ_TIMEOUT_SECS 5
 extern int varSocketTimeoutREAD_seconds;
 
 /**  @brief Default timeout value before which a socket blocking on a write call should be considered dead */
-#define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 3
+#define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 5
 extern int varSocketTimeoutWRITE_seconds;
 
 /**  @brief Max Send requests that return without transmitting anything */

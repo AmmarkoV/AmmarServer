@@ -184,6 +184,7 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
    case VIDEOFILES_MPEG4    :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
    case VIDEOFILES_MPEG     :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
    case VIDEOFILES_MP4      :  strcpy(content_type,"video/mp4");   content_type[9]=0; return 1; break;
+   case VIDEOFILES_OGV      :  strcpy(content_type,"video/ogv");   content_type[9]=0; return 1; break;
    case VIDEOFILES_WEBM     :  strcpy(content_type,"video/webm");  content_type[10]=0; return 1; break;
    case VIDEOFILES_MKV      :  strcpy(content_type,"video/mkv");   content_type[9]=0; return 1; break;
    case VIDEOFILES_3GP      :  strcpy(content_type,"video/3gp");   content_type[9]=0; return 1; break;
@@ -251,13 +252,14 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
 
 int GetExtentionType(const char * theextension)
 { //Crude and fast lookup
+  //fprintf(stderr,"GetExtentionType %s \n",theextension);
   if (theextension==0) { return NO_FILETYPE; }
   switch (theextension[0])
   {
    case 0   : return NO_FILETYPE; break;
-   case 't' : return TEXT;      break;
-   case 'i' : return IMAGE;     break;
-   case 'v' : return VIDEO;     break;
+   case 't' : return TEXT;        break;
+   case 'i' : return IMAGE;       break;
+   case 'v' : return VIDEO;       break;
    case 'a' :
               if (theextension[1]=='u') { return AUDIO; } else
               if (theextension[1]=='p') { return EXECUTABLE; }
@@ -328,8 +330,8 @@ int CheckIfFileIsVideo(const char * filename)
 {
   if (AmmServer_FileExists(filename))
   {
-    char contentType[128];
-    GetContentType(filename,contentType,128);
+    char contentType[512];
+    GetContentType(filename,contentType,512);
     if ( GetExtentionType(contentType)==VIDEO)
     {
       //Todo also check internals of files ( file magic number headers etc )
@@ -903,7 +905,7 @@ int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,cha
 
 
 
-char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsigned int max_content)
+char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,unsigned int port,char * filename,unsigned int max_content)
 {
   int sockfd;
   struct hostent *he=0;
@@ -927,13 +929,16 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
    if(connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1) { error("Could not connect the created socket \n");  return 0; } else
                                                                                          { printf("Starting Request for filename %s \n",filename); }
 
-
+#if USE_TIMEOUTS
     struct timeval timeout;
-    timeout.tv_sec = (unsigned int) 1/1000; timeout.tv_usec = 0;
+    timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
     if (setsockopt (sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Receive timeout \n"); }
 
-    timeout.tv_sec = (unsigned int) 1/1000; timeout.tv_usec = 0;
+    timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
     if (setsockopt (sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
+#else
+    #error "It is a terrible idea not to use socket timeouts , this will make the webserver susceptible to DoS attacks..!"
+#endif // USE_TIMEOUTS
 
 
 
@@ -941,7 +946,7 @@ char * RequestHTTPWebPage(char * hostname,unsigned int port,char * filename,unsi
     if (buffer!=0)
     {
       snprintf(buffer,max_content,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
-      int opres =  send(sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      int opres =  ASRV_Send(instance,sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
 
       if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
       {
@@ -978,12 +983,17 @@ int freeString(char ** str)
 int setSocketTimeouts(int clientSock)
 {
  int errorSettingTimeouts = 1;
+
+#if USE_TIMEOUTS
  struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
  if (setsockopt (clientSock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); errorSettingTimeouts=0; }
 
  timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
  if (setsockopt (clientSock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); errorSettingTimeouts=0; }
+#else
+    #error "It is a terrible idea not to use socket timeouts , this will make the webserver susceptible to DoS attacks..!"
+#endif // USE_TIMEOUTS
 
  return errorSettingTimeouts;
 }

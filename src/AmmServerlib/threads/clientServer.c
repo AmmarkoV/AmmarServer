@@ -185,7 +185,7 @@ inline void decideAboutHowToHandleRequestedResource
 
 inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-     SendAuthorizationHeader(transaction->clientSock,"AmmarServer authorization..!","authorization.html");
+     SendAuthorizationHeader(instance,transaction->clientSock,"AmmarServer authorization..!","authorization.html");
 
      char reply_header[256]={0};
      strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
@@ -273,10 +273,17 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    int httpHeaderReceivedWithNoProblems = receiveAndHandleHTTPHeaderSentByClient(instance,transaction);
 
    if (!httpHeaderReceivedWithNoProblems)
-   {  /*We got a bad http request so we will rig it to make server emmit the 400 message*/
+   {
+     if (transaction->clientDisconnected)
+     {
+      warning("Client connection closed while waiting for keepalive..");
+     } else
+     {
+      /*We got a bad http request so we will rig it to make server emmit the 400 message*/
       error("Failed to receive HTTP header without problems!");
       SendErrorFile(instance,transaction,400);
       logError(instance,transaction,400,"400.html");
+     }
       return 0;
    }
       else
@@ -284,7 +291,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
-     warning("Client Denied access to resource!"); SendErrorCodeHeader(transaction->clientSock,403 ,"403.html",instance->templates_root);
+     warning("Client Denied access to resource!"); SendErrorCodeHeader(instance,transaction->clientSock,403 ,"403.html",instance->templates_root);
      logError(instance,transaction,403,"403.html");
      return 0;
    } else
@@ -425,7 +432,80 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
 
 
-void * ServeClient(void * ptr)
+int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransaction * transaction)
+{
+
+  if (instance==0) { error("Serve Client called without a valid instance , stopping \n"); return 0; } else
+                   { fprintf(stderr,"ServeClient instance pointing @ %p \n",instance); }
+
+  if (!setSocketTimeouts(transaction->clientSock))
+   {
+    warning("Could not set timeouts , this means something weird is going on , skipping everything");
+    return 0;
+   }
+
+  transaction->clientListID = findOutClientIDOfPeer(instance ,transaction->clientSock);
+
+  //----------------------------- ---------------------------- ----------------------------
+  // Check if client is banned
+  //----------------------------- ---------------------------- ----------------------------
+  int clientIsBanned = clientList_isClientBanned(instance->clientList,transaction->clientListID);
+  //----------------------------- ---------------------------- ----------------------------
+  if (!clientIsBanned)
+  {
+     //If client is ok go ahead to serve him..
+     unsigned int keepAliveShots = 1;
+     while ( ( ServeClientKeepAliveLoop(instance,transaction) ) && (instance->server_running) )
+    {
+      fprintf(stderr,"Another KeepAlive Loop Served ( %u ) \n",keepAliveShots);
+      ++keepAliveShots;
+      clientIsBanned = clientList_isClientBanned(instance->clientList,transaction->clientListID);
+      if (clientIsBanned)
+      {
+       warning("Client became banned during keep-alive\n");
+       SendErrorCodeHeader(instance,transaction->clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
+       break;
+      }
+    }
+  }
+  //----------------------------- ---------------------------- ----------------------------
+
+  fprintf(stderr,"Done with client / Closing Socket ( %u )  ..\n",transaction->clientSock);
+  close(transaction->clientSock);
+//  shutdown(transaction->clientSock,SHUT_RDWR);
+
+
+  if (transaction->incomingHeader.headerRAW!=0)
+  {
+   fprintf(stderr,"Done with client / Freeing incoming memory..\n");
+   free(transaction->incomingHeader.headerRAW);
+   transaction->incomingHeader.headerRAW=0;
+  }
+
+  //fprintf(stderr,"closed\n");
+
+  if (!transaction->prespawnedThreadFlag)
+   { //If we are running in a prespawned thread it is wrong to count this thread as a *dynamic* one that just stopped !
+     //Clear thread id handler and we can gracefully exit..! ( LOCKLESS OPERATION)
+     if (instance->threads_pool[transaction->threadID]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",transaction->threadID); }
+     instance->threads_pool[transaction->threadID]=0;
+     ++instance->CLIENT_THREADS_STOPPED;
+
+     //We also only want to stop the thread if itsnot prespawned !
+     //fprintf(stderr,"Exiting Thread\n");
+     //pthread_join(instance->threads_pool[transaction->threadID],0);
+     //pthread_exit(0);
+
+
+     //This should make the thread release all of its resources (?)
+     pthread_detach(pthread_self());
+   }
+
+  return 0;
+}
+
+
+void * ServeClientAfterUnpackingThreadMessage(void * ptr)
 {
   // We first have to store the context variables we got through our struct PassToHTTPThread
   // so we first need to do that
@@ -467,65 +547,23 @@ void * ServeClient(void * ptr)
      }
    }
 
-
-
   fprintf(stderr,"Now signaling we are ready (%u)\n",transaction.threadID);
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
   fprintf(stderr,"Passing message to HTTP thread is done (%u)\n",transaction.threadID);
 
-  if (instance==0) { error("Serve Client called without a valid instance , stopping \n"); return 0; } else
-                   { fprintf(stderr,"ServeClient instance pointing @ %p \n",instance); }
+  int i= ServeClientInternal(instance,&transaction);
 
-  if (!setSocketTimeouts(transaction.clientSock))
-   {
-    warning("Could not set timeouts , this means something weird is going on , skipping everything");
-    return 0;
-   }
-
-  transaction.clientListID = findOutClientIDOfPeer(instance ,transaction.clientSock);
-
-  //----------------------------- ---------------------------- ----------------------------
-  // Check if client is banned
-  //----------------------------- ---------------------------- ----------------------------
-  int clientIsBanned = clientList_isClientBanned(instance->clientList,transaction.clientListID);
-  //----------------------------- ---------------------------- ----------------------------
-  if (!clientIsBanned)
+/*
+  //Removed to reduce spam..!
+  if (i)
   {
-     //If client is ok go ahead to serve him..
-     while ( ( ServeClientKeepAliveLoop(instance,&transaction) ) && (instance->server_running) )
-    {
-      fprintf(stderr,"Another KeepAlive Loop Served\n");
-      clientIsBanned = clientList_isClientBanned(instance->clientList,transaction.clientListID);
-      if (clientIsBanned)
-      {
-       warning("Client became banned during keep-alive\n");
-       SendErrorCodeHeader(transaction.clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
-       break;
-      }
-    }
+    //SUCCESS
+  } else
+  {
+    //FAILURE
+    warning("Could not successfully serve client..");
   }
-  //----------------------------- ---------------------------- ----------------------------
-
-  fprintf(stderr,"Done with client / Closing Socket ( %u )  ..",transaction.clientSock);
-  close(transaction.clientSock);
-  //fprintf(stderr,"closed\n");
-
-  if (!transaction.prespawnedThreadFlag)
-   { //If we are running in a prespawned thread it is wrong to count this thread as a *dynamic* one that just stopped !
-     //Clear thread id handler and we can gracefully exit..! ( LOCKLESS OPERATION)
-     if (instance->threads_pool[transaction.threadID]==0) { fprintf(stderr,"While exiting thread , thread_pool id[%u] is already zero.. This could be a bug ..\n",transaction.threadID); }
-     instance->threads_pool[transaction.threadID]=0;
-     ++instance->CLIENT_THREADS_STOPPED;
-
-     //We also only want to stop the thread if itsnot prespawned !
-     //fprintf(stderr,"Exiting Thread\n");
-     //pthread_join(instance->threads_pool[transaction.threadID],0);
-     //pthread_exit(0);
-
-
-     //This should make the thread release all of its resources (?)
-     pthread_detach(pthread_self());
-   }
+*/
 
   return 0;
 }

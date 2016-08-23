@@ -49,6 +49,19 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
 }
 
 
+int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
+{
+    struct HTTPTransaction transaction={0};
+    transaction.clientSock=clientsock;
+    transaction.prespawnedThreadFlag=1; //Yes this is prespawned we dont want to end it after the client goes away
+
+    return ServeClientInternal(instance , &transaction);
+
+}
+
+
+
+
 int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
 {
   if (instance==0) { error("Cannot SpawnThreadToServeNewClient without a valid instance value"); return 0; }
@@ -100,7 +113,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
   fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);
 
-  int retres = pthread_create(&instance->threads_pool[threadID],0/*&instance->attr*/,ServeClient,(void*) &context);
+  int retres = pthread_create(&instance->threads_pool[threadID],0/*&instance->attr*/,ServeClientAfterUnpackingThreadMessage,(void*) &context);
   //It appears that in certain high loads pthread_create stops creating new threads ..
   //A good question is why..!
   if ( retres==0 )

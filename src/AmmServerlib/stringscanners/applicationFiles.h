@@ -1,4 +1,4 @@
-/** @file applicationFiles.h
+ /** @file applicationFiles.h
 * @brief A tool that scans for a string in a very fast and robust way
 * @author Ammar Qammaz (AmmarkoV)
 */
@@ -10,12 +10,12 @@
 /** @brief Enumerator for the IDs of applicationFiles so we can know what the result was*/
 enum { 
  APPLICATIONFILES_EMPTY=0,
- APPLICATIONFILES_EXE,
- APPLICATIONFILES_DLL,
- APPLICATIONFILES_SCR,
- APPLICATIONFILES_CPL,
- APPLICATIONFILES_SWF,
- APPLICATIONFILES_PDF,
+ APPLICATIONFILES_EXE, // 1 
+ APPLICATIONFILES_DLL, // 2 
+ APPLICATIONFILES_SCR, // 3 
+ APPLICATIONFILES_CPL, // 4 
+ APPLICATIONFILES_SWF, // 5 
+ APPLICATIONFILES_PDF, // 6 
  APPLICATIONFILES_END_OF_ITEMS
 };
 

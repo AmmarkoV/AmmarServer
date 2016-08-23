@@ -1,4 +1,4 @@
-/** @file videoFiles.h
+ /** @file videoFiles.h
 * @brief A tool that scans for a string in a very fast and robust way
 * @author Ammar Qammaz (AmmarkoV)
 */
@@ -10,16 +10,17 @@
 /** @brief Enumerator for the IDs of videoFiles so we can know what the result was*/
 enum { 
  VIDEOFILES_EMPTY=0,
- VIDEOFILES_AVI,
- VIDEOFILES_MPEG4,
- VIDEOFILES_MPEG,
- VIDEOFILES_MP4,
- VIDEOFILES_WEBM,
- VIDEOFILES_MKV,
- VIDEOFILES_3GP,
- VIDEOFILES_H263,
- VIDEOFILES_H264,
- VIDEOFILES_FLV,
+ VIDEOFILES_AVI, // 1 
+ VIDEOFILES_MPEG4, // 2 
+ VIDEOFILES_MPEG, // 3 
+ VIDEOFILES_MP4, // 4 
+ VIDEOFILES_WEBM, // 5 
+ VIDEOFILES_OGV, // 6 
+ VIDEOFILES_MKV, // 7 
+ VIDEOFILES_3GP, // 8 
+ VIDEOFILES_H263, // 9 
+ VIDEOFILES_H264, // 10 
+ VIDEOFILES_FLV, // 11 
  VIDEOFILES_END_OF_ITEMS
 };
 

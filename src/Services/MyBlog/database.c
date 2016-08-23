@@ -1,194 +1,170 @@
 #include "database.h"
 
-#include <sqlite3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "../../AmmServerlib/InputParser/InputParser_C.h"
 
 struct website myblog={0};
-struct SQLiteSession sqlserver={0};
 
-int SQL_error(struct SQLiteSession * sqlserver,int rc,const char * msg , unsigned int line)
+
+int loadPostInfo(struct website * configuration,unsigned int postNum)
 {
-    if (rc != SQLITE_OK )
-    {
-        fprintf(stderr, "Error encountered while running SQL %s : %u\n",msg , line);
-        fprintf(stderr, "SQL error: %s\n", sqlserver->err_msg);
+ char filename[FILENAME_MAX]={0};
+ snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/info%u.html",postNum);
+ fprintf(stderr," Loading post info %u (%s) .. \n",postNum,filename);
 
-        sqlite3_free(sqlserver->err_msg);
-        sqlite3_close(sqlserver->db);
-        return 1;
+ ssize_t read;
+
+
+ FILE * fp = fopen(filename,"r");
+ if (fp!=0)
+  {
+   struct InputParserC * ipc = InputParser_Create(512,4);
+   InputParser_SetDelimeter(ipc,1,'(');
+   InputParser_SetDelimeter(ipc,2,',');
+   InputParser_SetDelimeter(ipc,3,')');
+
+   struct tagItemList tags;
+   char * line = NULL;
+   size_t len = 0;
+
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+       //printf("Retrieved line of length %zu :\n", read);
+       //printf("%s", line);
+       InputParser_SeperateWords(ipc,line,0);
+
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TITLE")  )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum].title  ,MAX_STR);   } else
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"DATE")   )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum].dateStr,MAX_STR);   } else
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"AUTHOR") )   { InputParser_GetWord(ipc,1,configuration->post.item[postNum].author ,MAX_STR);   }
+       //if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TAGS") )     { InputParser_GetWord(ipc,0,configuration->post.item[postNum].tags ,MAX_STR); } else
+       //if ( InputParser_WordCompareNoCaseAuto(ipc,0,"COMMENTS") ) { InputParser_GetWord(ipc,0,line,MAX_STR); }
     }
+
+    fprintf(stderr," Post Info %u --------------\n",postNum);
+    fprintf(stderr,"   Title : %s \n",configuration->post.item[postNum].title);
+    fprintf(stderr,"   Date : %s \n",configuration->post.item[postNum].dateStr);
+    fprintf(stderr,"   Author : %s \n",configuration->post.item[postNum].author);
+
+    fclose(fp);
+    if (line) { free(line); }
+
+    InputParser_Destroy(ipc);
+    return 1;
+  }
+ return 0;
+}
+
+
+int loadPosts(struct website * configuration)
+{
+  fprintf(stderr," Loading posts .. \n");
+
+  configuration->post.currentPosts=0;
+
+  char filename[FILENAME_MAX]={0};
+  snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",configuration->post.currentPosts);
+  while (AmmServer_FileExists(filename))
+  {
+
+   struct AmmServer_MemoryHandler *  tmp = AmmServer_ReadFileToMemoryHandler(filename);
+   if (tmp!=0)
+   {
+    fprintf(stderr," Loading post %u (%s) .. \n",configuration->post.currentPosts,filename);
+    configuration->post.item[configuration->post.currentPosts].content.data = tmp->content;
+    //If we didnt use this we shold -> AmmServer_FreeMemoryHandler(&tmp); tmp->content=0;
+
+    loadPostInfo(configuration,configuration->post.currentPosts);
+    //-------------
+    ++configuration->post.currentPosts;
+    snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",configuration->post.currentPosts);
+   } else
+   {
+     break;
+   }
+
+  }
+  return 1;
+}
+
+
+
+
+
+
+
+
+int loadWidgetInfo(struct website * configuration,unsigned int postNum)
+{
+ char filename[FILENAME_MAX]={0};
+ snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/widgets/info%u.html",postNum);
+ fprintf(stderr," Loading widget info %u (%s) .. \n",postNum,filename);
+
+ ssize_t read;
+ FILE * fp = fopen(filename,"r");
+ if (fp!=0)
+  {
+   struct InputParserC * ipc = InputParser_Create(512,4);
+   InputParser_SetDelimeter(ipc,1,'(');
+   InputParser_SetDelimeter(ipc,2,',');
+   InputParser_SetDelimeter(ipc,3,')');
+
+   struct tagItemList tags;
+   char * line = NULL;
+   size_t len = 0;
+
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+       InputParser_SeperateWords(ipc,line,0);
+
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TITLE")  )   { InputParser_GetWord(ipc,1,configuration->widget.item[postNum].label  ,MAX_STR);   }
+    }
+
+    fprintf(stderr," Widget Title %u --------------\n",postNum);
+    fprintf(stderr,"   Title : %s \n",configuration->widget.item[postNum].label);
+
+    fclose(fp);
+    if (line) { free(line); }
+
+    InputParser_Destroy(ipc);
+    return 1;
+  }
+ return 0;
+}
+
+
+
+int loadWidgets(struct website * configuration)
+{
+  fprintf(stderr," Loading widgets .. \n");
+
+  char tmpPath[512]={0};
+  struct AmmServer_MemoryHandler *  tmp=0;
+  configuration->widget.currentItems=0;
+
+  unsigned int loadedWidgets=0;
+  for (loadedWidgets=0; loadedWidgets<3; loadedWidgets++)
+  {
+   //-------------------------------
+   snprintf(tmpPath,512,"src/Services/MyBlog/res/widgets/widget%u.html",loadedWidgets);
+   tmp = AmmServer_ReadFileToMemoryHandler(tmpPath);
+   if (tmp!=0)
+   {
+    snprintf(configuration->widget.item[configuration->widget.currentItems].link , MAX_STR , "widget%u.html",loadedWidgets );
+    configuration->widget.item[configuration->widget.currentItems].content.data=tmp->content;
+    configuration->widget.item[configuration->widget.currentItems].content.totalDataLength = tmp->contentSize;
+    configuration->widget.item[configuration->widget.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
+
+    loadWidgetInfo(configuration,configuration->widget.currentItems);
+    ++configuration->widget.currentItems;
+   }
+  //-------------------------------
+  }
+
   return 0;
 }
-
-
-int SQL_init(struct SQLiteSession * sqlserver , const char * dbFilename)
-{
-    if (sqlite3_config(SQLITE_CONFIG_SERIALIZED)!=SQLITE_OK)
-    {
-     AmmServer_Error("Cannot set SQLite to serialized mode , cannot continue we are not going to be thread safe..!");
-     return 0;
-    }
-
-    sqlserver->rc = sqlite3_open(dbFilename, &sqlserver->db);
-    if (sqlserver->rc != SQLITE_OK)
-    {
-     fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(sqlserver->db));
-     sqlite3_close(sqlserver->db);
-     return 0;
-    }
-
- return 1;
-}
-
-int SQL_close(struct SQLiteSession * sqlserver)
-{
-    sqlite3_close(sqlserver->db);
-    return 1;
-}
-
-int SQL_getVersion(struct SQLiteSession * sqlserver)
-{
-    sqlserver->rc = sqlite3_prepare_v2(sqlserver->db, "SELECT SQLITE_VERSION()", -1, &sqlserver->res, 0);
-    if (sqlserver->rc != SQLITE_OK)
-    {
-     fprintf(stderr, "Failed to fetch data: %s\n", sqlite3_errmsg(sqlserver->db));
-     sqlite3_close(sqlserver->db);
-     return 0;
-    }
-
-    sqlserver->rc = sqlite3_step(sqlserver->res);
-
-    if (sqlserver->rc == SQLITE_ROW)
-    {
-        printf("%s\n", sqlite3_column_text(sqlserver->res, 0));
-    }
-
-    sqlite3_finalize(sqlserver->res);
-
-  return 1;
-}
-
-
-
-
-
-/*
-       =======================================================================================
-       =======================================================================================
-       =======================================================================================
-       =======================================================================================
-*/
-
-
-int SQL_createInitialTables(struct SQLiteSession * sqlserver )
-{
-    char *sql = "DROP TABLE IF EXISTS website;"
-                "CREATE TABLE website(Id INT,allowComments INT,allowPing INT,blogTitle TEXT,siteName TEXT,siteDescription TEXT,siteURL TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS socialLinks;"
-                "CREATE TABLE socialLinks(Id INT,label TEXT,url TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS linksLeft;"
-                "CREATE TABLE linksLeft(Id INT,label TEXT,url TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS linksRight;"
-                "CREATE TABLE linksRight(Id INT,label TEXT,url TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS tags;"
-                "CREATE TABLE tags(Id INT,label TEXT,int postID);"
-                // - - -
-                "DROP TABLE IF EXISTS menu;"
-                "CREATE TABLE menu(Id INT,label TEXT,url TEXT);"
-                // - - -
-                "DROP TABLE IF EXISTS widgets;"
-                "CREATE TABLE widgets(Id INT,label TEXT,url TEXT,data BLOB);"
-                // - - -
-                "DROP TABLE IF EXISTS posts;"
-                "CREATE TABLE posts(Id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,date TEXT,author TEXT,content BLOB);"
-                // - - -
-                "INSERT INTO linksLeft VALUES(1,'Best Links in the world','bestlinks.html');"
-                "INSERT INTO linksLeft VALUES(2,'ELLAK Planet','http://planet.ellak.gr/');"
-                "INSERT INTO linksLeft VALUES(3,'FOSS AUEB','http://foss.aueb.gr/');"
-                // - - -
-                "INSERT INTO linksRight VALUES(1,'Free Software Foundation','http://www.fsf.org/');"
-                "INSERT INTO linksRight VALUES(2,'Guarddog project blog','+++++++++WEBROOT+++++++++gddg.html');"
-                // - - -
-                "INSERT INTO socialLinks VALUES(1,'Facebook','http://facebook.com/ammarkov');"
-                "INSERT INTO socialLinks VALUES(2,'Twitter','http://twitter.com/ammarkov');"
-                "INSERT INTO socialLinks VALUES(3,'Youtube','http://youtube.com/ammarkov');"
-                // - - -
-                "INSERT INTO menu VALUES(1,'About','menu0.html');"
-                "INSERT INTO menu VALUES(2,'Linux Coding','menu1.html');"
-                "INSERT INTO menu VALUES(3,'Windows Coding','menu2.html');"
-                "INSERT INTO menu VALUES(4,'GuarddoG Robot Project','menu3.html');"
-                "INSERT INTO menu VALUES(5,'DeviantArt Gallery','menu4.html');"
-                // - - -
-                "INSERT INTO website VALUES(1,1,1,'Ammar`s Website','Powered by AmmarServer','Description of Site','http://ammar.gr');" ;
-
-
-    sqlserver->rc = sqlite3_exec(sqlserver->db, sql, 0, 0, &sqlserver->err_msg);
-
-    if ( SQL_error(&sqlserver,sqlserver->rc, __FILE__, __LINE__) )
-    {
-        return 0;
-    }
-
-
- return 1;
-}
-
-
-
-/*
-       =======================================================================================
-       =======================================================================================
-       =======================================================================================
-       =======================================================================================
-*/
-
-
-int appendPosts(void *rqstV, int argc, char **argv, char **azColName)
-{
-    struct website * websiteContext = (struct website *) rqstV;
-
-
-    unsigned int postID = websiteContext->post.currentPosts;
-    unsigned int i=0;
-    for (i = 0; i < argc; i++)
-    {
-        if (strcmp(azColName[i],"author")==0)  { strncpy( websiteContext->post.item[postID].author   , argv[i] ? argv[i] : "NULL" , MAX_STR );   } else
-        if (strcmp(azColName[i],"title")==0)   { strncpy( websiteContext->post.item[postID].title    , argv[i] ? argv[i] : "NULL" , MAX_STR );   } else
-        if (strcmp(azColName[i],"date")==0)    { strncpy( websiteContext->post.item[postID].dateStr  , argv[i] ? argv[i] : "NULL" , MAX_STR );   } else
-        if (strcmp(azColName[i],"content")==0) {
-                                                 websiteContext->post.item[postID].content.totalDataLength = strlen(argv[i]);
-                                                 websiteContext->post.item[postID].content.currentDataLength = websiteContext->post.item[postID].content.totalDataLength;
-                                                 websiteContext->post.item[postID].content.data = (char * ) malloc(sizeof(char) * (1+websiteContext->post.item[postID].content.totalDataLength)  );
-                                                 strncpy( websiteContext->post.item[postID].content.data  , argv[i] , websiteContext->post.item[postID].content.totalDataLength );
-                                               }
-    }
-
-
-    ++websiteContext->post.currentPosts;
-   return 0;
-}
-
-
-int loadPostsFromSQL(struct SQLiteSession * sqlserver , struct website * websiteContext)
-{
-    char *sqlSelect = "SELECT title,date,author,content FROM posts";
-    sqlserver->rc = sqlite3_exec(sqlserver->db, sqlSelect, appendPosts, (void*) websiteContext, &sqlserver->err_msg);
-
-    if ( SQL_error(&sqlserver,sqlserver->rc, __FILE__, __LINE__) )
-    {
-        return 0;
-    }
-  return 1;
-}
-
-
 
 
 

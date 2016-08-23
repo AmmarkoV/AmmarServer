@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <errno.h>
 #include <sys/uio.h>
 
 #include "../AmmServerlib.h"
@@ -46,7 +47,8 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
        )
  {
   ++instance->statistics.recvOperationsStarted;
-   opres=recv(
+   opres=ASRV_Recv(
+              instance ,
               transaction->clientSock,
               &transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize],
               (unsigned int) transaction->incomingHeader.MAXheaderRAWSize - transaction->incomingHeader.headerRAWSize ,
@@ -57,7 +59,21 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   ++instance->statistics.recvOperationsFinished;
 
   //Error Receiving..
-  if (opres<0)  { printRecvError(); result=0; break; }
+  if (opres<0)
+   {
+     if ( (errno==EWOULDBLOCK) && (transaction->incomingHeader.headerRAWSize==0) )
+     {
+       //fprintf(stderr,"KeepAlive Connection Timed Out\n");
+       transaction->clientDisconnected=1;
+     } else
+     {
+      fprintf(stderr,"Error receiving (%u bytes recvd) ..\n",transaction->incomingHeader.headerRAWSize);
+      printRecvError();
+     }
+
+     result=0;
+     break;
+   }
   else
   //Client shutdown connection..
   if (opres==0) { fprintf(stderr,"Client shutdown while receiving HTTP Header..\n"); result=0; break; }
@@ -65,7 +81,8 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   //Received new data
    {
       //Count incoming data
-      instance->statistics.totalDownloadKB+=opres;
+      if (opres>0)
+       { instance->statistics.totalDownloadKB+=(unsigned long) opres/1024; }
       transaction->incomingHeader.headerRAWSize+=opres;
       fprintf(stderr,"Got %d more bytes ( %u total / %u max )\n",opres,transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.MAXheaderRAWSize);
 
@@ -103,11 +120,10 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
                 break;
            }
         }
-
-
   } // END OF RECEIVE LOOP
 
-  fprintf(stderr,"Finished receiving and parsing HTTP header..\n");
+  //Less spam
+  //fprintf(stderr,"Finished receiving and parsing HTTP header..\n");
 
   if (
        (!transaction->incomingHeader.failed) &&
