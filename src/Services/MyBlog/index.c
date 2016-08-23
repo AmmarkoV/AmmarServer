@@ -177,54 +177,6 @@ int strlimcpy(char * output , unsigned int outputLimit , const char * source )
 }
 
 
-int loadPosts(struct website * configuration)
-{
-  fprintf(stderr," Loading posts .. \n");
-  //return 0;
-
-  configuration->post.currentPosts=0;
-
-  char filename[FILENAME_MAX]={0};
-  FILE *fp = 0;
-
-  unsigned int number=1;
-
-  snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",number);
-  while (AmmServer_FileExists(filename))
-  {
-
-   struct AmmServer_MemoryHandler *  tmp = AmmServer_ReadFileToMemoryHandler(filename);
-   if (tmp!=0)
-   {
-    fprintf(stderr," Loading post %u (%s) .. \n",number,filename);
-    char * mouf="admin";
-    snprintf(configuration->post.item[configuration->post.currentPosts].author , MAX_STR , "%s", mouf );
-    snprintf(configuration->post.item[configuration->post.currentPosts].dateStr , MAX_STR , "%s date", mouf );
-    snprintf(configuration->post.item[configuration->post.currentPosts].title , MAX_STR , "post %u title", number);
-
-   struct tagItemList tags;
-   configuration->post.item[configuration->post.currentPosts].content.data = tmp->content;
-
-    //-------------
-    //tmp->content=0;
-    //AmmServer_FreeMemoryHandler(&tmp);
-    ++configuration->post.currentPosts;
-   }
-
-    ++number;
-    snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",number);
-  }
-
-
-
-
-  return 0;
-}
-
-
-
-
-
 
 
 int setupMyBlog(struct website * configuration)
