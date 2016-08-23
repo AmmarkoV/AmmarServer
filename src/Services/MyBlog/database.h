@@ -124,5 +124,6 @@ extern struct website myblog;
 
 
 int loadPosts(struct website * configuration);
+int loadWidgets(struct website * configuration);
 
 #endif // DATABASE_H_INCLUDED
