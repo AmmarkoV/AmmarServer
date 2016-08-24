@@ -1,0 +1,25 @@
+<p>I am pleased to report that using NVidia driver 304.22 along with a 3.2.0-28 kernel and powermizer set to the lowest level ( always ) is stable and I can now once again play starcraft 2 using wine without my pc getting a blank screen every 10 minutes ..! </p>
+<p>My /etc/X11/xorg.conf Screen section follows..!</p>
+<blockquote><p>
+Section “Screen”<br>
+    Identifier     “Screen0″<br>
+    Device         “Device0″<br>
+    Monitor        “Monitor0″<br>
+    DefaultDepth    24<br>
+    Option         “NoLogo” “True”<br>
+    Option         “Coolbits” “1″<br>
+    Option         “RegistryDwords” “PowerMizerEnable=0×1; PerfLevelSrc=0×2222; PowerMizerLevel=0×3; PowerMizerDefault=0×3; PowerMizerDefaultAC=0×3″<br>
+    SubSection     “Display”<br>
+        Depth       24<br>
+    EndSubSection<br>
+EndSection
+</p></blockquote>
+<p><a href="wp-content/uploads/2012/08/2012-08-01-150355_3840x1080_scrot.png"><img src="wp-content/uploads/2012/08/2012-08-01-150355_3840x1080_scrot-1024x288.png" alt="" title="AmmarServer Screenshot..!" class="alignnone size-large wp-image-467" height="208" width="1024"></a></p>
+<p>In other news since it is summer and I dont have many things to do..<br>
+I decided to rewrite from scratch AmmarServer ( http server ) for linux ..<br>
+The <a href="~ammar/atech_old/Myshop/view_item.php@id=4.html">outdated windows version of AmmarServer can be found in my legacy site</a> ..<br>
+In this new one I will be including keep-alive support , a better code layout , the ability to create virtual files via linking an arbitrary executable to the web server , and automatic caching web page queries to the memory.. This should be particularly handy to be used as a server in conjuction with the raspberry pi.. ( when I get my hands on one ) ..</p>
+<p>The thing about virtual files is that I would like to make a virtual file called camera.jpg that when requested by the client would trigger an other frame grabbing application that would make a .jpg conversion of the image on the fly and serve it directly to the client without reading or writing to the flash memory/disk .. That way linking everything together all possible delays will be shoved off..!</p>
+<p><a href="https://github.com/AmmarkoV/AmmarServer"><br>
+AmmarServer github repository can be found here</a></p>
+<p>Thats it for now..</p>
