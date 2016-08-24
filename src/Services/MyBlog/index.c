@@ -123,10 +123,10 @@ unsigned char * getWidgetListHTML(struct website * configuration)
   for (i=0; i<configuration->widget.currentItems; i++)
   {
     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
-                      "<li id=\"text-%u\" class=\"widget widget_text\">\
-                       <h2 class=\"widgettitle\">%s</h2>\
-                       <div class=\"textwidget\">%s</div>\
-		               </li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.data);
+                      "\n<li id=\"text-%u\" class=\"widget widget_text\">\
+                       \n<h2 class=\"widgettitle\">%s</h2>\
+                       \n<div class=\"textwidget\">%s</div>\
+		               \n</li>" , i , configuration->widget.item[i].label , configuration->widget.item[i].content.data);
 
   fprintf(stderr," %u , ",currentSize);
   }
