@@ -153,7 +153,7 @@ unsigned char * getPostListHTML(struct website * configuration,int pageNum)
 
   for (i=startPost; i<endPost; i++)
   {
-     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
+     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"\n<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
 
      //Print Tag CSS Classes
      unsigned int z=0;
@@ -162,7 +162,7 @@ unsigned char * getPostListHTML(struct website * configuration,int pageNum)
        currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"tag-%s ",configuration->post.item[i].tags.item[z].tag );
      }
 
-      currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"\" id=\"post-%u\">\
+      currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"\" id=\"post-%u\">\n\
 	                  <div class=\"posttitle\">\
 		                 <h2 class=\"pagetitle\">\
                           <a href=\"post.html?id=%u\" rel=\"bookmark\" title=\"%s\">%s</a></h2>\
@@ -184,7 +184,7 @@ unsigned char * getPostListHTML(struct website * configuration,int pageNum)
     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"</small></div>\
 	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
                       <div class=\"entry\">%s</div>\
-	                 </div>\n"
+	                 \n</div><!-- end of post -->\n"
             , i , configuration->post.item[i].title  , configuration->post.item[i].content.data );
 
   }
@@ -274,15 +274,8 @@ int setupMyBlog(struct website * configuration)
 
   configuration->postsPerPage=5;
 
-
-
   loadWidgets(configuration);
-
-
-
   loadPosts(configuration);
-
-
 }
 
 
@@ -342,8 +335,8 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ATOMLINK+++++++++","atom.html");
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++PINGBACKLINK+++++++++","pingback.html");
 
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++TAGLIST+++++++++","no tags");
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ARCHIVELIST+++++++++","no archives");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++TAGLIST+++++++++","<li>no tags</li>");
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"+++++++++ARCHIVELIST+++++++++","<li>no archives</li>");
 
 
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++RESOURCES+++","res");

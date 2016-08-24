@@ -11,7 +11,7 @@
 #define MAX_TAGS_PER_POST 10
 #define MAX_POSTS_IN_DB 1600
 
-#define CONTENT_BUFFER 16500// 16Kb
+#define CONTENT_BUFFER 32000// 32Kb
 
 
 
