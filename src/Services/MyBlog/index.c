@@ -21,26 +21,14 @@ unsigned char * getPreviousNextPageHTML(struct website * configuration,unsigned 
 if (currentpage>0)
 {
 currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
-    "</div>\
-		<div id=\"nav-post\">\
-			<div class=\"navigation-bott\">\
-								<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Newer Entries</a></div>\
-							</div>\
-		</div>\
-	</div>"
+    "<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Newer Entries</a></div>"
 	,currentpage-1);
 }
 
 if ((unsigned int) configuration->post.currentPosts / configuration->postsPerPage > 0 )
 {
   currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
-    "</div>\
-		<div id=\"nav-post\">\
-			<div class=\"navigation-bott\">\
-								<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Older Entries</a></div>\
-							</div>\
-		</div>\
-	</div>"
+    "<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Older Entries</a></div>"
 	,currentpage+1);
 }
 
@@ -147,14 +135,23 @@ unsigned char * getWidgetListHTML(struct website * configuration)
  return buffer;
 }
 
-unsigned char * getPostListHTML(struct website * configuration,int startPost)
+unsigned char * getPostListHTML(struct website * configuration,int pageNum)
 {
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
+
+  unsigned int totalPages = (unsigned int ) configuration->post.currentPosts/configuration->postsPerPage;
+  if (pageNum>totalPages) { pageNum=totalPages;}
+
+  unsigned int startPost = pageNum*configuration->postsPerPage;
+  unsigned int endPost =  startPost+configuration->postsPerPage;
   unsigned int i=0;
-  for (i=0; i<configuration->post.currentPosts; i++)
+
+
+
+  for (i=startPost; i<endPost; i++)
   {
      currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
 

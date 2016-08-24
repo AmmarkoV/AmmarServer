@@ -9,6 +9,7 @@
 #define MAX_WIDGET_ITEMS 10
 
 #define MAX_TAGS_PER_POST 10
+#define MAX_POSTS_IN_DB 1600
 
 #define CONTENT_BUFFER 16500// 16Kb
 
@@ -96,7 +97,7 @@ struct postItemList
 {
   unsigned int currentPosts;
   unsigned int maxPosts;
-  struct postItem item[MAX_TAGS_PER_POST];
+  struct postItem item[MAX_POSTS_IN_DB];
 };
 
 
