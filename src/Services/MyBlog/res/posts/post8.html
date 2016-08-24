@@ -1,0 +1,88 @@
+<p>Using irqpoll pcie_aspm=off selinux=0 as boot parameters and setting powermizer to lowest performance setting ( to prevent the gfx card from heating at all ) , disabled openGL flipping ,   the crashing behaviour has changed.. The card no longer drops from the PCIexpress bus but instead it produces some more revealing messages ..</p>
+<p>While playing starcraft 2 with wine..<br>
+Kern.log -&gt;</p>
+<blockquote><p>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691374] INFO: task SC2.exe:2189 blocked for more than 120 seconds.<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691377] “echo 0 &gt; /proc/sys/kernel/hung_task_timeout_secs” disables this message.<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691379] SC2.exe         D ffffffff81806080     0  2189      1 0×00020000<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691382]  ffff88018088bb78 0000000000000086 0000000000000001 ffff88018088bbc8<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691386]  ffff88018088bfd8 ffff88018088bfd8 ffff88018088bfd8 0000000000013780<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691389]  ffff8801b4c416f0 ffff88017ff92de0 0000000000000000 7fffffffffffffff<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691392] Call Trace:<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691398]  [<ffffffff81657abf>] schedule+0x3f/0×60<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691401]  [<ffffffff81658105>] schedule_timeout+0x2a5/0×320<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691405]  [<ffffffff8118ad40>] ? poll_freewait+0xe0/0xe0<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691407]  [<ffffffff8118ae30>] ? __pollwait+0xf0/0xf0<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691410]  [<ffffffff816578ff>] wait_for_common+0xdf/0×180<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691414]  [<ffffffff8105faf0>] ? try_to_wake_up+0×200/0×200<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691416]  [<ffffffff81657a7d>] wait_for_completion+0x1d/0×20<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691494]  [<ffffffffa1119d99>] os_acquire_semaphore+0×69/0×80 [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691550]  [<ffffffffa10ea245>] _nv014565rm+0×9/0xe [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691596]  [<ffffffffa0b5870a>] ? _nv016163rm+0xce/0x1ee [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691638]  [<ffffffffa0b3d031>] ? _nv001029rm+0xbc0/0xca0 [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691680]  [<ffffffffa0b3d1f8>] ? _nv001063rm+0×66/0x2afb [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691722]  [<ffffffffa0b3585b>] ? _nv000937rm+0×26/0×147 [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691780]  [<ffffffffa10e432d>] ? _nv001095rm+0x33d/0xa9f [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691835]  [<ffffffffa10f15d0>] ? rm_ioctl+0×76/0xf3 [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691888]  [<ffffffffa110fdcc>] ? nv_kern_ioctl+0x15c/0×490 [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691892]  [<ffffffff81094cd7>] ? getnstimeofday+0×57/0xe0<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691945]  [<ffffffffa1110121>] ? nv_kern_compat_ioctl+0×21/0×30 [nvidia]<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691949]  [<ffffffff811c864d>] ? compat_sys_ioctl+0xad/0×240<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691953]  [<ffffffff810b6475>] ? compat_sys_time+0×25/0×60<br>
+Jul  7 23:50:32 ammar-desktop kernel: [  960.691956]  [<ffffffff81664470>] ? sysenter_dispatch+0×7/0x2e
+</ffffffff81664470></ffffffff810b6475></ffffffff811c864d></ffffffffa1110121></ffffffff81094cd7></ffffffffa110fdcc></ffffffffa10f15d0></ffffffffa10e432d></ffffffffa0b3585b></ffffffffa0b3d1f8></ffffffffa0b3d031></ffffffffa0b5870a></ffffffffa10ea245></ffffffffa1119d99></ffffffff81657a7d></ffffffff8105faf0></ffffffff816578ff></ffffffff8118ae30></ffffffff8118ad40></ffffffff81658105></ffffffff81657abf></p></blockquote>
+<p>Xorg log -&gt;</p>
+<blockquote><p>
+[   822.042] (WW) NVIDIA(0): WAIT (2, 6, 0×8000, 0x0000a4c8, 0x0000c408)<br>
+[   828.683] [mi] EQ overflowing.  Additional events will be discarded until existing events are processed.<br>
+[   828.683]<br>
+Backtrace:<br>
+[   828.704] 0: /usr/bin/X (xorg_backtrace+0×26) [0x7f73b42b3996]<br>
+[   828.704] 1: /usr/bin/X (mieqEnqueue+0×263) [0x7f73b4294073]<br>
+[   828.704] 2: /usr/bin/X (0x7f73b412b000+0x62ab4) [0x7f73b418dab4]<br>
+[   828.704] 3: /usr/lib/xorg/modules/input/evdev_drv.so (0x7f73ac544000+0x5d88) [0x7f73ac549d88]<br>
+[   828.704] 4: /usr/bin/X (0x7f73b412b000+0x8af87) [0x7f73b41b5f87]<br>
+[   828.704] 5: /usr/bin/X (0x7f73b412b000+0xb0eca) [0x7f73b41dbeca]<br>
+[   828.704] 6: /lib/x86_64-linux-gnu/libpthread.so.0 (0x7f73b3451000+0xfcb0) [0x7f73b3460cb0]<br>
+[   828.704] 7: (vdso) (0x7fff0bbcc000+0×707) [0x7fff0bbcc707]<br>
+[   828.704] 8: (vdso) (0x7fff0bbcc000+0x7e5) [0x7fff0bbcc7e5]<br>
+[   828.704] 9: (vdso) (__vdso_gettimeofday+0x2b) [0x7fff0bbcca1b]<br>
+[   828.704] 10: /usr/lib/xorg/modules/drivers/nvidia_drv.so (0x7f73ad02c000+0x883a5) [0x7f73ad0b43a5]<br>
+[   828.704] 11: /usr/lib/xorg/modules/drivers/nvidia_drv.so (0x7f73ad02c000+0xff713) [0x7f73ad12b713]<br>
+[   828.704] 12: /usr/lib/xorg/modules/drivers/nvidia_drv.so (0x7f73ad02c000+0x4cf326) [0x7f73ad4fb326]<br>
+[   828.704] 13: /usr/bin/X (0x7f73b412b000+0x11988c) [0x7f73b424488c]<br>
+[   828.704] 14: /usr/bin/X (0x7f73b412b000+0x4a953) [0x7f73b4175953]<br>
+[   828.704] 15: /usr/bin/X (0x7f73b412b000+0x4e8b1) [0x7f73b41798b1]<br>
+[   828.705] 16: /usr/bin/X (0x7f73b412b000+0x3d6da) [0x7f73b41686da]<br>
+[   828.705] 17: /lib/x86_64-linux-gnu/libc.so.6 (__libc_start_main+0xed) [0x7f73b22e676d]<br>
+[   828.705] 18: /usr/bin/X (0x7f73b412b000+0x3d9d1) [0x7f73b41689d1]<br>
+[   828.705] [mi] These backtraces from mieqEnqueue may point to a culprit higher up the stack.<br>
+[   828.705] [mi] mieq is *NOT* the cause.  It is a victim.<br>
+[   829.042] (WW) NVIDIA(0): WAIT (1, 6, 0×8000, 0x0000a4c8, 0x0000c408)<br>
+[   829.042] [mi] Increasing EQ size to 512 to prevent dropped events.<br>
+[   829.042] [mi] EQ processing has resumed after 43 dropped events.<br>
+[   829.042] [mi] This may be caused my a misbehaving driver monopolizing the server’s resources.<br>
+[   832.044] (WW) NVIDIA(0): WAIT (2, 6, 0×8000, 0x0000a4c8, 0x0000e348)<br>
+[   839.044] (WW) NVIDIA(0): WAIT (1, 6, 0×8000, 0x0000a4c8, 0x0000e348)<br>
+[   842.047] (WW) NVIDIA(0): WAIT (2, 6, 0×8000, 0x0000a4c8, 0x000002a8)<br>
+[   849.047] (WW) NVIDIA(0): WAIT (1, 6, 0×8000, 0x0000a4c8, 0x000002a8)<br>
+[   852.048] (WW) NVIDIA(0): WAIT (2, 6, 0×8000, 0x0000a4c8, 0x000062d8)<br>
+[   859.048] (WW) NVIDIA(0): WAIT (1, 6, 0×8000, 0x0000a4c8, 0x000062d8)<br>
+[   862.049] (WW) NVIDIA(0): WAIT (2, 6, 0×8000, 0x0000a4c8, 0×00008218)<br>
+[   869.049] (WW) NVIDIA(0): WAIT (1, 6, 0×8000, 0x0000a4c8, 0×00008218)<br>
+[   872.050] (WW) NVIDIA(0): WAIT (2, 6, 0×8000, 0x0000a4c8, 0x0000a158)<br>
+[   879.050] (WW) NVIDIA(0): WAIT (1, 6, 0×8000, 0x0000a4c8, 0x0000a158)
+</p></blockquote>
+<p>I changed my xorg.conf Section “Device” to</p>
+<p>Section “Device”<br>
+    Identifier     “Device0″<br>
+    Option  “Coolbits” “1″<br>
+    Option  “RegistryDwords” “PowerMizerEnable=0×1; PerfLevelSrc=0×2222; PowerMizerLevel=0×3; PowerMizerDefault=0×3; PowerMizerDefaultAC=0×3″<br>
+    Driver         “nvidia”<br>
+    VendorName     “NVIDIA Corporation”<br>
+EndSection</p>
+<p>to set the graphics card powermizer setting to always use the lowest setting as a test but since it heats up a lot less , it is more quiet and the onboard electronics will probably last longer I am thinking of keeping it configured that way..! <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley"> </p>
+<p>NVidia forums remain under “maintenance”<br>
+nvnews.net has disabled new registrations..</p>
+<p>just..<br>
+<a href="http://www.youtube.com/watch?v=MShbP3OpASA#t=49m57s"><img src="wp-content/uploads/2012/07/linus-torvald-fuck-you-nvidia-300x163.jpg" alt="" title="linus-torvald-fuck-you-nvidia" class="alignnone size-medium wp-image-450" height="163" width="300">
