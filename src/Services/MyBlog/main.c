@@ -37,14 +37,13 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
-struct AmmServer_RH_Context random_chars={0};
+struct AmmServer_RH_Context menuPage={0};
+struct AmmServer_RH_Context postPage={0};
 struct AmmServer_RH_Context stats={0};
 
 
 
-
-//This function prepares the content of  random_chars context , ( random_chars.content )
-void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
+void * menu_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
@@ -63,26 +62,33 @@ void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
-
-//This function could alter the content of the URI requested and then return 1
-void request_override_callback(void * request)
+void * post_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  //struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
-  return;
+  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
+
+  char hex[16+1]={0};
+  unsigned int i=0;
+  for (i=0; i<1024; i++)
+    {
+        snprintf(hex,16, "%x ", rand()%256 );
+        strcat(rqst->content,hex);
+    }
+
+  strcat(rqst->content,"</body></html>");
+
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
 }
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
-
   unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog,0);
 
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/index.html",webserver_root,44096,0,&prepare_index,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding index page\n"); }
-
-   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding random testing page\n"); }
+  AmmServer_AddResourceHandler(default_server,&stats   ,"/index.html",webserver_root,CONTENT_BUFFER,0,&prepare_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&menuPage,"/menu.html" ,webserver_root,CONTENT_BUFFER,0,&menu_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 }
 
@@ -90,6 +96,8 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
+    AmmServer_RemoveResourceHandler(default_server,&postPage,1);
+    AmmServer_RemoveResourceHandler(default_server,&menuPage,1);
 
     destroy_index_prototype();
 }
