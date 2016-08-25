@@ -220,7 +220,7 @@ int setupMyBlog(struct website * configuration)
   strlimcpy( configuration->blogTitle , MAX_STR  , "AmmarkoV's Personal Website");
   strlimcpy( configuration->siteName  , MAX_STR  , "AmmarkoV's Website");
   //strlimcpy( configuration->siteDescription  , MAX_STR  , "I would love to change the world , but they won`t give me the source code");
-  strlimcpy( configuration->siteDescription  , MAX_STR  , "AmmarServer&trade;");
+  strlimcpy( configuration->siteDescription  , MAX_STR  , "powered by AmmarServer&trade;");
 
 
   //HARDCODED MENUS
@@ -363,6 +363,24 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
 {
+    unsigned int pageToShow=0;
+    if  ( rqst->GET_request != 0 )
+    {
+      if ( strlen(rqst->GET_request)>0 )
+       {
+         char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
+         if (bufferCommand!=0)
+          {
+            if ( _GET(rqst->instance,rqst,(char*)"page",bufferCommand,256) )
+            {
+             pageToShow=atoi(bufferCommand);
+            }
+           free(bufferCommand);
+          }
+       }
+    }
+
+
   unsigned int howLongToCopy = indexPage->contentCurrentLength;
   if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
   strncpy(rqst->content,indexPage->content,howLongToCopy);
