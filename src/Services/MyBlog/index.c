@@ -5,6 +5,7 @@
 #include "database.h"
 
 
+struct AmmServer_MemoryHandler * indexPageWithoutContent=0;
 struct AmmServer_MemoryHandler * indexPage=0;
 
 #warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
@@ -135,6 +136,57 @@ unsigned char * getWidgetListHTML(struct website * configuration)
  return buffer;
 }
 
+
+
+
+
+int appendPost(struct website * configuration , int postNum , char * buffer , unsigned int * currentSize , unsigned int totalSize)
+{
+ unsigned int i= postNum;
+ *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"\n<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
+
+     //Print Tag CSS Classes
+     unsigned int z=0;
+     for (z=0; z<configuration->post.item[i].tags.currentTags; z++)
+     {
+       *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"tag-%s ",configuration->post.item[i].tags.item[z].tag );
+     }
+
+      *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"\" id=\"post-%u\">\n\
+	                  <div class=\"posttitle\">\
+		                 <h2 class=\"pagetitle\">\
+                          <a href=\"post.html?id=%u\" rel=\"bookmark\" title=\"%s\">%s</a></h2>\
+		                   <small>Posted: %s by <strong>%s</strong> in <a href=\"post.html?id=%u\" title=\"View all posts in Post\" rel=\"category\">Post</a><br>\
+			               " , i , i ,
+	   configuration->post.item[i].title ,
+	   configuration->post.item[i].title ,
+	   configuration->post.item[i].dateStr ,
+	   configuration->post.item[i].author ,
+       i );
+
+
+     *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"Tags: ");
+     for (z=0; z<configuration->post.item[i].tags.currentTags; z++)
+     {
+       *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"<a href=\"tag.html?id=%s\" rel=\"tag\">%s</a> ", configuration->post.item[i].tags.item[z].tag , configuration->post.item[i].tags.item[z].tag);
+     }
+
+    *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"</small></div>\
+	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
+                      <div class=\"entry\">%s</div>\
+	                 \n</div><!-- end of post -->\n"
+            , i , configuration->post.item[i].title  , configuration->post.item[i].content.data );
+
+
+
+}
+
+
+
+
+
+
+
 unsigned char * getPostListHTML(struct website * configuration,int pageNum)
 {
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
@@ -153,40 +205,7 @@ unsigned char * getPostListHTML(struct website * configuration,int pageNum)
 
   for (i=startPost; i<endPost; i++)
   {
-     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"\n<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
-
-     //Print Tag CSS Classes
-     unsigned int z=0;
-     for (z=0; z<configuration->post.item[i].tags.currentTags; z++)
-     {
-       currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"tag-%s ",configuration->post.item[i].tags.item[z].tag );
-     }
-
-      currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"\" id=\"post-%u\">\n\
-	                  <div class=\"posttitle\">\
-		                 <h2 class=\"pagetitle\">\
-                          <a href=\"post.html?id=%u\" rel=\"bookmark\" title=\"%s\">%s</a></h2>\
-		                   <small>Posted: %s by <strong>%s</strong> in <a href=\"post.html?id=%u\" title=\"View all posts in Post\" rel=\"category\">Post</a><br>\
-			               " , i , i ,
-	   configuration->post.item[i].title ,
-	   configuration->post.item[i].title ,
-	   configuration->post.item[i].dateStr ,
-	   configuration->post.item[i].author ,
-       i );
-
-
-     currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"Tags: ");
-     for (z=0; z<configuration->post.item[i].tags.currentTags; z++)
-     {
-       currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<a href=\"tag.html?id=%s\" rel=\"tag\">%s</a> ", configuration->post.item[i].tags.item[z].tag , configuration->post.item[i].tags.item[z].tag);
-     }
-
-    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"</small></div>\
-	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
-                      <div class=\"entry\">%s</div>\
-	                 \n</div><!-- end of post -->\n"
-            , i , configuration->post.item[i].title  , configuration->post.item[i].content.data );
-
+    appendPost(configuration , i , buffer , &currentSize , totalSize);
   }
 
  return buffer;
@@ -282,6 +301,7 @@ int setupMyBlog(struct website * configuration)
 int destroy_index_prototype()
 {
   AmmServer_FreeMemoryHandler(&indexPage);
+  AmmServer_FreeMemoryHandler(&indexPageWithoutContent);
   return 0;
 }
 
@@ -341,6 +361,7 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,4,"+++RESOURCES+++","res");
 
+  indexPageWithoutContent = AmmServer_CopyMemoryHandler(indexPage);
 
   fprintf(stderr,"Injecting Post List ..!\n");
   htmlData = getPostListHTML(configuration,pageNumber);
@@ -360,30 +381,58 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
 
 
+void * menu_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  strncpy(rqst->content,"<html><head><title>Not yet ready</title><meta http-equiv=\"refresh\" content=\"1\"></head><body> </body></html>",rqst->MAXcontentSize);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
 {
-    unsigned int pageToShow=0;
-    if  ( rqst->GET_request != 0 )
-    {
-      if ( strlen(rqst->GET_request)>0 )
-       {
-         char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
-         if (bufferCommand!=0)
-          {
-            if ( _GET(rqst->instance,rqst,(char*)"page",bufferCommand,256) )
-            {
-             pageToShow=atoi(bufferCommand);
-            }
-           free(bufferCommand);
-          }
-       }
-    }
+  unsigned int pageToShow=_GETuint(rqst->instance ,rqst,(char*) "page");
 
 
   unsigned int howLongToCopy = indexPage->contentCurrentLength;
   if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
   strncpy(rqst->content,indexPage->content,howLongToCopy);
   rqst->contentSize=howLongToCopy;
+  return 0;
+}
+
+
+void * post_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  struct AmmServer_MemoryHandler * postPage=0;
+
+  postPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
+
+  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "id");
+
+
+  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer!=0)
+  {
+      appendPost(&myblog , pageToShow , buffer , &currentSize , totalSize);
+      AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",buffer);
+      free(buffer);
+  } else
+  {
+      char failToFindPost[]=" Could not find post ";
+      AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",failToFindPost);
+  }
+
+  char backButton[]=" <div class=\"leftnav\"><a href=\"javascript: history.go(-1)\" >Back to previous page</a></div> ";
+  AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++PREVNEXT+++++++++",backButton);
+
+  unsigned int howLongToCopy = postPage->contentCurrentLength;
+  if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
+  strncpy(rqst->content,postPage->content,howLongToCopy);
+  rqst->contentSize=howLongToCopy;
+
+  AmmServer_FreeMemoryHandler(&postPage);
   return 0;
 }

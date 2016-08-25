@@ -12,5 +12,7 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst);
 
 
+void * menu_callback(struct AmmServer_DynamicRequest  * rqst);
+void * post_callback(struct AmmServer_DynamicRequest  * rqst);
 
 #endif // INDEX_H_INCLUDED
