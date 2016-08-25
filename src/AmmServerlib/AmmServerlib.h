@@ -655,6 +655,12 @@ int _POST (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest 
 * @ingroup shortcut */
 int _GET  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
+
+/**
+* @brief Shorthand/Shortcut for getting an Uint value back()
+* @ingroup shortcut */
+unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN);
+
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()
 * @ingroup shortcut */

@@ -463,6 +463,30 @@ int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * 
     return AmmServer_GETArg(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
+
+unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN)
+{
+    unsigned int uintToReturn=0;
+    if  ( rqst->GET_request != 0 )
+    {
+      if ( strlen(rqst->GET_request)>0 )
+       {
+         char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
+         if (bufferCommand!=0)
+          {
+            if ( _GET(rqst->instance,rqst,var_id_IN,bufferCommand,256) )
+            {
+             uintToReturn=atoi(bufferCommand);
+            }
+           free(bufferCommand);
+          }
+       }
+    }
+
+
+    return uintToReturn;
+}
+
 int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
     return AmmServer_FILES(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);

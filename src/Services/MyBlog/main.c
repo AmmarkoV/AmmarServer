@@ -43,48 +43,11 @@ struct AmmServer_RH_Context stats={0};
 
 
 
-void * menu_callback(struct AmmServer_DynamicRequest  * rqst)
-{
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
-
-  char hex[16+1]={0};
-  unsigned int i=0;
-  for (i=0; i<1024; i++)
-    {
-        snprintf(hex,16, "%x ", rand()%256 );
-        strcat(rqst->content,hex);
-    }
-
-  strcat(rqst->content,"</body></html>");
-
-  rqst->contentSize=strlen(rqst->content);
-  return 0;
-}
-
-void * post_callback(struct AmmServer_DynamicRequest  * rqst)
-{
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
-
-  char hex[16+1]={0};
-  unsigned int i=0;
-  for (i=0; i<1024; i++)
-    {
-        snprintf(hex,16, "%x ", rand()%256 );
-        strcat(rqst->content,hex);
-    }
-
-  strcat(rqst->content,"</body></html>");
-
-  rqst->contentSize=strlen(rqst->content);
-  return 0;
-}
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog,0);
+  prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog,0);
 
   AmmServer_AddResourceHandler(default_server,&stats   ,"/index.html",webserver_root,CONTENT_BUFFER,0,&prepare_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
