@@ -245,23 +245,23 @@ int setupMyBlog(struct website * configuration)
   //HARDCODED MENUS
   configuration->menu.currentItems=0;
 
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
   strncpy( configuration->menu.item[configuration->menu.currentItems].label, "About" , MAX_STR);
   ++configuration->menu.currentItems;
   //-------------------------------
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
   strncpy( configuration->menu.item[configuration->menu.currentItems].label, "Linux Coding" , MAX_STR);
   ++configuration->menu.currentItems;
   //-------------------------------
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
   strncpy( configuration->menu.item[configuration->menu.currentItems].label, "Windows Coding" , MAX_STR);
   ++configuration->menu.currentItems;
   //-------------------------------
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
   strncpy( configuration->menu.item[configuration->menu.currentItems].label, "GuarddoG Robot Project" , MAX_STR);
   ++configuration->menu.currentItems;
   //-------------------------------
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "menu%u.html" , configuration->menu.currentItems );
+  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
   strncpy( configuration->menu.item[configuration->menu.currentItems].label, "DeviantArt Gallery" , MAX_STR);
   ++configuration->menu.currentItems;
   //-------------------------------
@@ -381,24 +381,21 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
 
 
-void * menu_callback(struct AmmServer_DynamicRequest  * rqst)
+void * rss_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+ strncpy(rqst->content," ",rqst->MAXcontentSize);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
+void * page_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   strncpy(rqst->content,"<html><head><title>Not yet ready</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>Not yet ready</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
-
-void * rss_callback(struct AmmServer_DynamicRequest  * rqst)
-{
- strncpy(rqst->content,"\
-
-\
-",rqst->MAXcontentSize);
-  rqst->contentSize=strlen(rqst->content);
-  return 0;
-}
-
-
 
 
 //This function prepares the content of  stats context , ( stats.content )

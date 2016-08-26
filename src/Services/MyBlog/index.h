@@ -13,7 +13,7 @@ void * prepare_index(struct AmmServer_DynamicRequest  * rqst);
 
 
 void * rss_callback(struct AmmServer_DynamicRequest  * rqst);
-void * menu_callback(struct AmmServer_DynamicRequest  * rqst);
+void * page_callback(struct AmmServer_DynamicRequest  * rqst);
 void * post_callback(struct AmmServer_DynamicRequest  * rqst);
 
 #endif // INDEX_H_INCLUDED
