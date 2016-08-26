@@ -22,7 +22,7 @@ unsigned char * getPreviousNextPageHTML(struct website * configuration,unsigned 
 if (currentpage>0)
 {
 currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
-    "<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Newer Entries</a></div>"
+    "<div class=\"rightnav\"><a href=\"index.html?page=%u\" >Newer Entries</a></div>"
 	,currentpage-1);
 }
 
@@ -383,7 +383,7 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
 void * menu_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  strncpy(rqst->content,"<html><head><title>Not yet ready</title><meta http-equiv=\"refresh\" content=\"1\"></head><body> </body></html>",rqst->MAXcontentSize);
+  strncpy(rqst->content,"<html><head><title>Not yet ready</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>Not yet ready</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
@@ -392,13 +392,38 @@ void * menu_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
 {
-  unsigned int pageToShow=_GETuint(rqst->instance ,rqst,(char*) "page");
+  struct AmmServer_MemoryHandler * postListPage=0;
+
+  postListPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
+
+  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "page");
 
 
-  unsigned int howLongToCopy = indexPage->contentCurrentLength;
+  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  unsigned char * buffer = getPostListHTML(&myblog,pageToShow);
+  if (buffer!=0)
+  {
+      AmmServer_ReplaceVariableInMemoryHandler(postListPage,"+++++++++POSTS+++++++++",buffer);
+      free(buffer);
+  } else
+  {
+      char failToFindPost[]=" Could not find posts ";
+      AmmServer_ReplaceVariableInMemoryHandler(postListPage,"+++++++++POSTS+++++++++",failToFindPost);
+  }
+
+  buffer = getPreviousNextPageHTML(&myblog,pageToShow);
+  AmmServer_ReplaceVariableInMemoryHandler(postListPage,"+++++++++PREVNEXT+++++++++",buffer);
+  if (buffer!=0) { free(buffer); buffer=0; }
+
+
+  unsigned int howLongToCopy = postListPage->contentCurrentLength;
   if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
-  strncpy(rqst->content,indexPage->content,howLongToCopy);
+  strncpy(rqst->content,postListPage->content,howLongToCopy);
   rqst->contentSize=howLongToCopy;
+
+  AmmServer_FreeMemoryHandler(&postListPage);
+
+
   return 0;
 }
 
