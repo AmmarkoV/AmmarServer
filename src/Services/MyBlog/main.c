@@ -37,7 +37,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
-struct AmmServer_RH_Context menuPage={0};
+struct AmmServer_RH_Context pagePage={0};
 struct AmmServer_RH_Context postPage={0};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context rssPage={0};
@@ -52,7 +52,7 @@ void init_dynamic_content()
 
   AmmServer_AddResourceHandler(default_server,&stats   ,"/index.html",webserver_root,CONTENT_BUFFER,0,&prepare_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&menuPage,"/menu.html" ,webserver_root,CONTENT_BUFFER,0,&menu_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&pagePage,"/page.html" ,webserver_root,CONTENT_BUFFER,0,&page_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&rssPage,"/rss.xml" ,webserver_root,CONTENT_BUFFER,0,&rss_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 }
 
@@ -61,7 +61,7 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
     AmmServer_RemoveResourceHandler(default_server,&postPage,1);
-    AmmServer_RemoveResourceHandler(default_server,&menuPage,1);
+    AmmServer_RemoveResourceHandler(default_server,&pagePage,1);
     AmmServer_RemoveResourceHandler(default_server,&rssPage,1);
 
     destroy_index_prototype();
