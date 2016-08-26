@@ -388,6 +388,18 @@ void * menu_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
+void * rss_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+ strncpy(rqst->content,"\
+
+\
+",rqst->MAXcontentSize);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
