@@ -40,6 +40,7 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context menuPage={0};
 struct AmmServer_RH_Context postPage={0};
 struct AmmServer_RH_Context stats={0};
+struct AmmServer_RH_Context rssPage={0};
 
 
 
@@ -52,7 +53,7 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&stats   ,"/index.html",webserver_root,CONTENT_BUFFER,0,&prepare_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&menuPage,"/menu.html" ,webserver_root,CONTENT_BUFFER,0,&menu_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-
+  AmmServer_AddResourceHandler(default_server,&rssPage,"/rss.xml" ,webserver_root,CONTENT_BUFFER,0,&rss_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
@@ -61,6 +62,7 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
     AmmServer_RemoveResourceHandler(default_server,&postPage,1);
     AmmServer_RemoveResourceHandler(default_server,&menuPage,1);
+    AmmServer_RemoveResourceHandler(default_server,&rssPage,1);
 
     destroy_index_prototype();
 }
@@ -70,23 +72,7 @@ void close_dynamic_content()
 
 int main(int argc, char *argv[])
 {
-
-#if TEST_INDEX_GENERATION_ONLY
-  fprintf(stderr,"Testing index generation..\n");
-  unsigned char*  buf = prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog);
-  FILE *fp =fopen("test.html","w");
-  if (fp!=0)
-  {
-     fprintf(fp,"%s",buf);
-     fclose(fp);
-  }
-  fprintf(stderr,"Program just generates a test.html file and stops for now , it is not ready yet :) \n");
-  exit (0);
-#endif // TEST_INDEX_GENERATION_ONLY
-
-
-
-    printf("\nAmmar Server %s starting up..\n",AmmServer_Version());
+    printf("\nMyBlog using Ammar Server %s starting up..\n",AmmServer_Version());
     //Check binary and header spec
     AmmServer_CheckIfHeaderBinaryAreTheSame(AMMAR_SERVER_HTTP_HEADER_SPEC);
     //Register termination signal for when we receive SIGKILL etc
