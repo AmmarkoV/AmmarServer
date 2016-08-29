@@ -59,7 +59,7 @@ and fully customizable web service..
    https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyTube/
    You can run it by issuing ./run_mytube from root directory 
 
--  A Blog engine that can use Wordpress skins , currently under construction..
+-  A Blog engine that can use Wordpress skins..
    https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyBlog/
    You can run it by issuing ./run_myblog from root directory 
 
@@ -71,9 +71,9 @@ and fully customizable web service..
 
 
 AmmarServer is also an integral part , providing network connectivity and used in the following projects :
-V4L2ToHTTP : https://github.com/AmmarkoV/V4L2ToHTTP/
-RoboVision    : https://github.com/AmmarkoV/RoboVision/ 
+V4L2ToHTTP       : https://github.com/AmmarkoV/V4L2ToHTTP/
+RoboVision       : https://github.com/AmmarkoV/RoboVision/ 
 FlashySlideshows : https://github.com/AmmarkoV/FlashySlideshows/
-RGBDAcquisition : https://github.com/AmmarkoV/RGBDAcquisition
+RGBDAcquisition  : https://github.com/AmmarkoV/RGBDAcquisition
 
 

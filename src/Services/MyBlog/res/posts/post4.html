@@ -1,24 +1,5 @@
-<p>My friend Philimon lent me his new raspberry pi after experiencing problems using the usb ports on the board.. After a little tinkering I found out that using a usb hub with an external power supply solved the issues and everything worked fine so his problems must have been power related with the pi not supplying enough juice for the power hungry usb peripherals he connected.  </p>
-<p>Having the opportunity to first-hand test the pi  I immediately apt-got git and <a href="https://github.com/AmmarkoV/AmmarServer">cloned my AmmarServer repo</a> to test it with the board <img src="wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley"> </p>
-<p>The results look very promising since the pi with ammarserver beats my current mini-itx intel atom based setup which is running the heavier apache webserver..</p>
-<p>In more detail subsequently querying a static version of the the page you see right now ( as described in a previous post ) gave the following times..</p>
-<p>Raspberry Pi using AmmarServer :<br>
-00:00:02.64 &lt;- first uncached try with actual sd read time ( also worth to note that a Class 10 sd card is used )<br>
-00:00:00.706 &lt;- rasp cached , no file reading involved<br>
-00:00:00.787 &lt;- rasp cached , no file reading involved<br>
-00:00:00.818 &lt;- rasp cached , no file reading involved<br>
-00:00:00.833 &lt;- rasp cached , no file reading involved<br>
-00:00:00.788 &lt;- rasp cached , no file reading involved<br>
-00:00:00.810 &lt;- rasp cached , no file reading involved</p>
-<p>My current webserver using apache ( and dynamic content [ php/mysql/wordpress ] ) :<br>
-00:00:02.802 &lt;- ammar.gr with apache<br>
-00:00:01.561 &lt;- ammar.gr with apache (some images etc. cached probably) </p>
-<p>My current webserver using AmmarServer ( and static saved pages ) :<br>
-00:00:01.72 &lt;- ammar.gr first uncached try with actual hd read time<br>
-00:00:00.678 &lt;- ammar.gr with ammarserver cached , no file reading involved<br>
-00:00:00.652 &lt;- ammar.gr with ammarserver cached , no file reading involved</p>
-<p>As one can see the best times of the pi 00:00:00.706 are pretty damn close to the 00:00:00.652 of my current machine when the content is already cached in memory so I may be changing my web hosting setup soon..!</p>
-<p>I will probably keep my current webserver as a platform to make dynamic webpages using the really nice GUI of wordpress and then pass static versions of them to the pi which will act as the always on webserver..<br>
-An additional thing that I didn't test was performance using more processes like a mumble server, an ftp server or an actual php/apache setup but.. </p>
-<p>When I'll order my own pi I will try all of them and blog back with my results..!</p>
-<p><a href="wp-content/uploads/2012/09/raspberry1.jpg"><img src="wp-content/uploads/2012/09/raspberry1-300x252.jpg" alt="" title="raspberry1" class="alignnone size-medium wp-image-503" height="198"></a> <a href="wp-content/uploads/2012/09/raspberry2.jpg"><img src="wp-content/uploads/2012/09/raspberry2-300x198.jpg" alt="" title="raspberry2" class="alignnone size-medium wp-image-504" height="198"></a></p> 
+<p><a href="http://www.linuxfoundation.org/20th" target="_blank"><img src="http://www.linuxfoundation.org/20th/images/lf_linux20_webbadge.png" alt="I'll be celebrating 20 years of Linux with<br />
+The Linux Foundation!" border="0" height="250" width="300"></a></p>
+<p><a href="http://www.youtube.com/watch?v=5ocq6_3-nEw">The Story of Linux: Commemorating 20 Years of the Linux Operating System </a></p>
+<p><a href="http://www.linuxfoundation.org/20th" target="_blank">http://www.linuxfoundation.org/20th/</a></p>
+<p><a href="http://en.wikipedia.org/wiki/File:Linus-pronounces-linux.ogg">Linus pronounces linux</a></p>

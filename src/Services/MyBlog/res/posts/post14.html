@@ -1,13 +1,25 @@
-<p>Today I purchased a T-Adapter made from bresser along with a Nikon adapter for my telescope ( MEADE DS-2102MAK )</p>
-<p>The T-Adapter was orignaly meant for the ETX-90/125 but fitted just fine and after some focusing it allowed the camera to produce magnificent quality pictures.. Unfortunately I ran the battery dry after an hour or so while trying different combinations of focusing , ISO settings etc. so I didnt take photos of the moon and other planets I wanted tonight.</p>
-<p>The weather also didnt help since there are some scattered clouds that pass and spoil the fun <img src="wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley">  ..</p>
-<p>I managed to capture a good still of Saturn and I am looking forward to Saturday when the so called “super moon” will be visible ( <a href="http://www.youtube.com/watch?v=1MPmdJ6mGQ4">http://www.youtube.com/watch?v=1MPmdJ6mGQ4</a> ) </p>
-<p><a href="wp-content/uploads/2012/05/saturn_d7000.jpg"><img src="wp-content/uploads/2012/05/saturn_d7000-300x202.jpg" alt="" title="saturn_d7000" class="alignnone size-medium wp-image-383" height="202" width="300"></a><br>
-Saturn using a Nikon-D7000 on a MEADE DS-2102MAK telescope mounted with the Bresser T-adapter for ETX-90/125</p>
-<p>The raw picture , 6.6MB ( it will take some time to download )<br>
-Exposure time is 1/500 sec , ISO 12800 ( <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley">  )<br>
-<a href="wp-content/uploads/2012/05/DSC_0659.jpg"><img src="wp-content/uploads/2012/05/DSC_0659-300x198.jpg" alt="" title="DSC_0659" class="alignnone size-medium wp-image-384" height="198" width="300"></a></p>
-<p><iframe class="youtube-player" type="text/html" src="http://www.youtube.com/embed/ChgXp4b4DII" frameborder="0" height="385" width="640"><br />
+<p>In the past weeks I started to take timelapse photographs using my Nikon D-7000 camera and ffmpeg and image magick video and picture converters..!</p>
+<p>My camera has a built in <a href="http://en.wikipedia.org/wiki/Intervalometer">intervalometer</a> that I use to acquire the pictures , but lower-end cameras that do not have this kind of functionality <a href="http://openmoco.org/node/88">can be “hacked” with an Arduino i.e.</a> and be used likewise.  <a href="http://openmoco.org/">This site</a> has a lot of opensource hardware and software , that can be used to this end.</p>
+<p>The results are not so good until now <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley">  , at least when compared to this..<br>
+<iframe class="youtube-player" type="text/html" src="http://www.youtube.com/embed/DSLgAsrcpGQ?rel=0&amp;hd=1" frameborder="0" height="385" width="640"><br />
+</iframe></p>
+<p>Due to environmental pollution and the lights of the city there are only a few stars visible from Athens. For daytime shots on the other hand , I have yet to find a proper position and camera configuration that on a course of 5-10 hours for example will provide a pleasing visual result..! </p>
+<p>These are some of my timelapses so far , the third is the best one..<br>
+<iframe class="youtube-player" type="text/html" src="http://www.youtube.com/embed/u-R4CjE_Aos?rel=0&amp;hd=1" frameborder="0" height="385" width="640"><br />
+</iframe><br>
+<iframe class="youtube-player" type="text/html" src="http://www.youtube.com/embed/iCqh_eoLTWQ?rel=0&amp;hd=1" frameborder="0" height="385" width="640"><br />
+</iframe><br>
+<iframe class="youtube-player" type="text/html" src="http://www.youtube.com/embed/UNpGaEdgrYs?rel=0&amp;hd=1" frameborder="0" height="385" width="640"><br />
 </iframe> </p>
-<p><iframe class="youtube-player" type="text/html" src="http://www.youtube.com/embed/65sP0jsa7PY" frameborder="0" height="385" width="640"><br />
-</iframe>  </p>
+<p><a href="wp-content/uploads/2011/12/TimeLapseTools.tar.gz">These are the scripts I use.. (TimeLapseTools.tar)</a></p>
+<p>And these are the instructions : </p>
+<p>To customize them you should edit the files directly and append your own parameters  </p>
+<p>STEP 0 : You will first need to extract the TimeLapseTools.tar.gz somewhere and empty your photographs , to become timelapsed in the FOLDER folder <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley"><br>
+they will have filenames like DSC_XXXX.jpg</p>
+<p>STEP 1 : Make sure you have ffmpeg and imagemagick installed on your Linux Distro , for Debian/Ubuntu you can do sudo apt-get install ffmpeg imagemagick to download them.<br>
+It goes without saying that if you need an exotic codec for your video file you must also find it and download it too..</p>
+<p>STEP 2 : Open a terminal and cd to the directory which has the scripts</p>
+<p>STEP 3 : Run ./file_rename_script.sh which will change the filenames from DSC_XXXX.jpg to img_XXX.jpg starting from img_001.jpg and empty the FOLDER directory placing all of the files in the current dir.</p>
+<p>STEP 4 : Run ./resize_images.sh which will change the resolution of the images to 1631×1080 for my cameras aspect ration creating _img_XXX.jpg for every img_XXX.jpg ( notice the initial _ )</p>
+<p>STEP 5 : Run ./ffmpegcommand which will create an mp4 file with an image size of 1631×1080 @ 25 fps </p>
+<p>STEP 6 : Upload to Youtube , or profit ;p </p>

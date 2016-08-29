@@ -25,6 +25,27 @@ struct htmlContent
   unsigned char * data;
 };
 
+struct tagItem
+{
+  unsigned char tag[MAX_STR];
+  unsigned int tagHash;
+};
+
+struct tagItemList
+{
+  unsigned int currentTags;
+  unsigned int maxTags;
+  struct tagItem item[MAX_TAGS_PER_POST];
+};
+
+struct postItem
+{
+  unsigned char title[MAX_STR];
+  unsigned char dateStr[MAX_STR];
+  unsigned char author[MAX_STR];
+  struct tagItemList tags;
+  struct htmlContent content;
+};
 
 struct socialLinks
 {
@@ -40,11 +61,11 @@ struct linkLabelItem
   unsigned char link[MAX_STR];
 };
 
-struct menuItemList
+struct pageItemList
 {
   unsigned int currentItems;
   unsigned int maxItems;
-  struct linkLabelItem item[MAX_MENU_ITEMS];
+  struct postItem item[MAX_POSTS_IN_DB];
 };
 
 struct linkItemList
@@ -70,27 +91,6 @@ struct widgetItemList
 };
 
 
-struct tagItem
-{
-  unsigned char tag[MAX_STR];
-  unsigned int tagHash;
-};
-
-struct tagItemList
-{
-  unsigned int currentTags;
-  unsigned int maxTags;
-  struct tagItem item[MAX_TAGS_PER_POST];
-};
-
-struct postItem
-{
-  unsigned char title[MAX_STR];
-  unsigned char dateStr[MAX_STR];
-  unsigned char author[MAX_STR];
-  struct tagItemList tags;
-  struct htmlContent content;
-};
 
 
 struct postItemList
@@ -113,7 +113,7 @@ struct website
    unsigned char siteURL[MAX_STR];
 
    struct socialLinks social;
-   struct menuItemList menu;
+   struct pageItemList pages;
    struct linkItemList linksLeft;
    struct linkItemList linksRight;
    struct postItemList post;
@@ -124,8 +124,10 @@ struct website
 
 extern struct website myblog;
 
+int isThisLastPostPage(struct website * configuration,unsigned int pageNum);
 
 int loadPosts(struct website * configuration);
 int loadWidgets(struct website * configuration);
+int loadPages(struct website * configuration);
 
 #endif // DATABASE_H_INCLUDED

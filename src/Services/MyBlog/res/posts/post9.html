@@ -1,75 +1,12 @@
-<p>﷐After upgrading my main desktop machine ( core i7 with a GTX 295 and an ASUS P6T SE motherboard ) to lubuntu 12.04 ( Linux ammar-desktop 3.2.0-26-generic #41-Ubuntu SMP Thu Jun 14 17:49:24 UTC 2012 x86_64 x86_64 x86_64 GNU/Linux ) I reinstalled wine to continue playing Fallout New Vegas and Starcraft 2 on my linux pc!<br>
-To my dismay under wine 1.5.7 both exhibited regressions that have luckilly been minimized using the following configurations..!</p>
-<p>First of all setting Pulseaudio and OpenAL to a 48000Khz<br>
-using<br>
-sudo nano /etc/pulse/daemon.conf<br>
-and changing<br>
-; default-sample-rate = 44100<br>
-to -&gt; default-sample-rate = 48000 ( removing the semicolon )</p>
-<p>also changing the ;default-fragment-size-msec = 10<br>
-to -&gt; default-fragment-size-msec = 5 ( once again removing the semicolon for all you noobs out there ;p [ just joking.. ] )</p>
-<p>using<br>
-sudo nano /etc/pulse/daemon.conf<br>
-to change #frequency = 44100 to<br>
-frequency = 48000</p>
-<p>issuing wine regedit to create the key<br>
-HKEY_CURRENT_USER/Software/Wine/Direct3D<br>
-and creating string keys with values as follow<br>
-KEY                   –   VALUE<br>
-DirectDrawRenderer    –   opengl<br>
-Multisampling         –   disabled<br>
-OffScreenRenderingMode-   pbuffer<br>
-PixelShaderMode       –   enabled<br>
-RenderTargetLockMode  –   disabled<br>
-StrictDrawOrdering    –   disabled<br>
-UseGLSL               –   disabled<br>
-VertexShaderMode      –   hardware<br>
-VertexShaders         –   hardware<br>
-VideoMemorySize       –   Your_video_memory_size_here_mine_is_895</p>
-<p>the next step is setting cpu frequency scaling to performance mode before playing!<br>
-due to not having the gnome applets in lxde one can have the same functionality by apt-getting zenity and then running this <a href="~ammar/Scripts/cpufreq-govern-select.sh">cpufreq-govern-select.sh script</a> ..</p>
-<p>This with enabled VSYNC OpenGL setting in the NVIDIA driver and an emulated virtual desktop ( from winecfg ) makes Starcraft 2 run with no pulseaudio related sound glitches @ a solid 60fps on my PC , without these steps the game is almost unplayable with an average of 5-15fps..!</p>
-<p>Fallout NewVegas on the other hand has very weird behaviour near areas with water , almost completely hanging ,  possibly due to shaders going haywire under wine/nvidia drivers/mesa/X  ( you get the picture <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley">  )<br>
-Luckily the game is very configurable and turning off all the water options solved the problems ..<br>
-To do so go to your /home/name/My Games/FalloutNV folder , make a backup copy of FALLOUT.ini and FalloutPrefs.ini and then go on and overwrite to make both of there water setting blocks look like this </p>
-<blockquote><p>[Water]<br>
-bUseWaterShader=0<br>
-bUseWaterReflections=0<br>
-bUseWaterRefractions=0<br>
-bUseWaterDepth=0<br>
-bUseWaterHiRes=0<br>
-bUseWaterDisplacements=0<br>
-bUseWaterLOD=0<br>
-bReflectExplosions=0<br>
-bAutoWaterSilhouetteReflections=0<br>
-bForceHighDetailReflections=0<br>
-bForceLowDetailReflections=0<br>
-fTileTextureDivisor=4.7500<br>
-fSurfaceTileSize=2048.0000<br>
-fNearWaterOutdoorTolerance=1024.0000<br>
-fNearWaterIndoorTolerance=512.0000<br>
-fNearWaterUnderwaterVolume=0.9000<br>
-fNearWaterUnderwaterFreq=0.3000<br>
-uNearWaterPoints=8<br>
-uNearWaterRadius=1000<br>
-uSurfaceFPS=12<br>
-iWaterReflectWidth=512<br>
-iWaterReflectHeight=512<br>
-bUseWaterReflectionBlur=0<br>
-iWaterBlurAmount=4</p></blockquote>
-<p>At last I can complete <a href="http://fallout.wikia.com/wiki/Volare!">the underwater Volare mission</a> ;P</p>
-<p><a href="wp-content/uploads/2012/07/volare.png"><img src="wp-content/uploads/2012/07/volare-300x189.png" alt="" title="volare" class="alignnone size-medium wp-image-440" width="150"></a></p>
-<p>Finally one last problem that I have <a href="http://www.nvidia.com/content/forums/index.html#entry1428311">faced using the latest NVIDIA drivers is my card dropping from the PCI bus</a> , It is not only me who has the problem and thats good because it means its not hardware related and I have tried various things , turning powermizer on and of booting with kernel parameters “intel_iommu=off noirqbalance PCI=biosirq” , disabling CPU Virtualization features from BIOS , upgrading my bios to the latest version , enabling NVIDIA persistance mode , working with or without a second monitor physically connected , disabling irqbalance , disabling prelink  , trying all the drivers ( NVIDIA-Linux-x86_64-285.05.09.run was the lowest driver version that seems to run with new kernels )  and many many many other things to find what causes this behaviour but it is probably something inside the NVIDIA binary blob so for now , just have to deal with it using patience..!<br>
-It is also not a heat problem since temperature is around 60degrees Celcious which is normal ..</p>
-<blockquote><p>
-Jul 7 16:42:42 ammar-desktop kernel: [ 3934.728909] show_signal_msg: 24 callbacks suppressed<br>
-Jul 7 16:42:42 ammar-desktop kernel: [ 3934.728913] lxpanel[1822]: segfault at 79 ip 000000000041fc92 sp 00007fffb7f17c30 error 4 in lxpanel[400000+2e000]<br>
-Jul 7 16:46:31 ammar-desktop kernel: [ 4163.707866] NVRM: GPU at 0000:05:00.0 has fallen off the bus.<br>
-Jul 7 16:46:31 ammar-desktop kernel: [ 4163.707873] NVRM: GPU at 0000:05:00.0 has fallen off the bus.<br>
-Jul 7 16:46:31 ammar-desktop kernel: [ 4163.707877] NVRM: GPU at 0000:04:00.0 has fallen off the bus.<br>
-Jul 7 16:46:31 ammar-desktop kernel: [ 4163.707880] NVRM: GPU at 0000:04:00.0 has fallen off the bus.</p></blockquote>
-<p>Some mentions of the bug :<br>
-<a href="https://bugzilla.kernel.org/show_bug.cgi?id=43050">https://bugzilla.kernel.org/show_bug.cgi?id=43050</a><a href="https://bugs.launchpad.net/ubuntu/+source/nvidia-graphics-drivers/+bug/882710?comments=all">https://bugs.launchpad.net/ubuntu/+source/nvidia-graphics-drivers/+bug/882710?comments=all</a><a href="http://www.nvnews.net/vbulletin/showthread.php?t=174759"><br>
-http://www.nvnews.net/vbulletin/showthread.php?t=174759</a><a href="https://wiki.archlinux.org/index.php/NVIDIA#.27.2Fdev.2Fnvidia0.27_Input.2FOutput_error"></a></p><a href="https://wiki.archlinux.org/index.php/NVIDIA#.27.2Fdev.2Fnvidia0.27_Input.2FOutput_error">
-</a><p><a href="https://wiki.archlinux.org/index.php/NVIDIA#.27.2Fdev.2Fnvidia0.27_Input.2FOutput_error">https://wiki.archlinux.org/index.php/NVIDIA#.27.2Fdev.2Fnvidia0.27_Input.2FOutput_error</a></p>
-<p><a href="http://www.nvnews.net/vbulletin/showthread.php?t=167363">http://www.nvnews.net/vbulletin/showthread.php?t=167363</a>﷯</p>
+<p>A laptop ( Fujitsu Siemens Amilo Xi 1554 ) of a friend of mine started to crash and<br>
+display garbage on the screen .. Unfortunately due to Windows 7 not allowing unsigned drivers ( in order to underclock the ATI card onboard to reduce heat ) the only solution was to improve the hardware cooling , since you can add a fan without it beeing signed by Microsoft..</p>
+<p>The system has become stable again , and all seems well..!<br>
+I hope my friend doesn`t mind the new design of his laptop ;P  </p>
+<p><a href="wp-content/uploads/2011/11/DSC_2222.resized.jpg"><img src="wp-content/uploads/2011/11/DSC_2222.resized-300x198.jpg" alt="" title="DSC_2222.resized" class="alignnone size-medium wp-image-186" height="198" width="300"></a><br>
+Garbage on screen even on bios , before booting an OS</p>
+<p><a href="wp-content/uploads/2011/11/SAM_0267.resized.jpg"><img src="wp-content/uploads/2011/11/SAM_0267.resized-300x225.jpg" alt="" title="SAM_0267.resized" class="alignnone size-medium wp-image-192" height="225" width="300"></a><br>
+The kind of dried up , factory thermal paste</p>
+<p><a href="wp-content/uploads/2011/11/SAM_0269.resized.jpg"><img src="wp-content/uploads/2011/11/SAM_0269.resized-300x225.jpg" alt="" title="SAM_0269.resized" class="alignnone size-medium wp-image-192" height="225" width="300"></a><br>
+New thermal paste applied</p>
+<p><a href="wp-content/uploads/2011/11/DSC_2224.resized.jpg"><img src="wp-content/uploads/2011/11/DSC_2224.resized-300x198.jpg" alt="" title="DSC_2224.resized" class="alignnone size-medium wp-image-185" height="198" width="300"></a></p>
+<p><a href="wp-content/uploads/2011/11/DSC_2226.resized.jpg"><img src="wp-content/uploads/2011/11/DSC_2226.resized-300x198.jpg" alt="" title="DSC_2226.resized" class="alignnone size-medium wp-image-184" height="198" width="300"></a></p>

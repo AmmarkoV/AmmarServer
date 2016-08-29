@@ -8,6 +8,7 @@
 struct AmmServer_MemoryHandler * indexPageWithoutContent=0;
 struct AmmServer_MemoryHandler * indexPage=0;
 
+
 #warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
 
 
@@ -21,15 +22,15 @@ unsigned char * getPreviousNextPageHTML(struct website * configuration,unsigned 
 
 if (currentpage>0)
 {
-currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
-    "<div class=\"rightnav\"><a href=\"index.html?page=%u\" >Newer Entries</a></div>"
+  currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
+    "<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Older Entries</a></div>"
 	,currentpage-1);
 }
 
-if ((unsigned int) configuration->post.currentPosts / configuration->postsPerPage > 0 )
+if ( !isThisLastPostPage(configuration,currentpage) )
 {
-  currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
-    "<div class=\"leftnav\"><a href=\"index.html?page=%u\" >Older Entries</a></div>"
+currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
+    "<div class=\"rightnav\"><a href=\"index.html?page=%u\" >Newer Entries</a></div>"
 	,currentpage+1);
 }
 
@@ -79,11 +80,16 @@ unsigned char * getFooterLinksHTML(struct website * configuration )
   currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<a href=\"index.html\">Home</a> &nbsp;&nbsp;|	&nbsp;&nbsp;\n" );
 
   unsigned int i=0;
-  for (i=0; i<configuration->menu.currentItems; i++)
+  for (i=0; i<configuration->pages.currentItems; i++)
   {
     //TODO PROPER MEMORY HANDLING ,, REALLOC ETC ..
-    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
-                          "<a href=\"%s\" title=\"%s\">%s</a>&nbsp; | &nbsp;&nbsp;\n" ,configuration->menu.item[i].link , configuration->menu.item[i].label, configuration->menu.item[i].label);
+    currentSize+=snprintf(
+                          buffer+currentSize,totalSize-currentSize,
+                          "<a href=\"page.html?id=%u\" title=\"%s\">%s</a>&nbsp; | &nbsp;&nbsp;\n" ,
+                          i ,
+                          configuration->pages.item[i].title,
+                          configuration->pages.item[i].title
+                         );
   }
 
  currentSize+=snprintf(buffer+currentSize,totalSize-currentSize," <a href=\"rss.html\" title=\"RSS\">Posts RSS</a> &nbsp;|&nbsp;\n" );
@@ -99,10 +105,14 @@ unsigned char * getMenuListHTML(struct website * configuration)
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   unsigned int i=0;
-  for (i=0; i<configuration->menu.currentItems; i++)
+  for (i=0; i<configuration->pages.currentItems; i++)
   {
     //TODO PROPER MEMORY HANDLING ,, REALLOC ETC ..
-    currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<li class=\"page_item page-item-%u\"><a href=\"%s\">%s</a></li>" ,i, configuration->menu.item[i].link , configuration->menu.item[i].label);
+    currentSize+=snprintf(
+                          buffer+currentSize,totalSize-currentSize,"<li class=\"page_item page-item-%u\"><a href=\"page.html?id=%u\">%s</a></li>" ,i,
+                          i ,
+                          configuration->pages.item[i].title
+                         );
   }
 
  currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<!--getMenuListHTML done-->");
@@ -136,7 +146,46 @@ unsigned char * getWidgetListHTML(struct website * configuration)
  return buffer;
 }
 
+int appendPage(struct website * configuration , int pageNum , char * buffer , unsigned int * currentSize , unsigned int totalSize)
+{
+ unsigned int i= pageNum;
+ *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"\n<div class=\"post-%u post type-post status-publish format-standard hentry category-post ", i);
 
+     //Print Tag CSS Classes
+     unsigned int z=0;
+     for (z=0; z<configuration->pages.item[i].tags.currentTags; z++)
+     {
+       *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"tag-%s ",configuration->pages.item[i].tags.item[z].tag );
+     }
+
+      *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"\" id=\"post-%u\">\n\
+	                  <div class=\"posttitle\">\
+		                 <h2 class=\"pagetitle\">\
+                          <a href=\"post.html?id=%u\" rel=\"bookmark\" title=\"%s\">%s</a></h2>\
+		                   <small>Posted: %s by <strong>%s</strong> in <a href=\"post.html?id=%u\" title=\"View all posts in Post\" rel=\"category\">Post</a><br>\
+			               " , i , i ,
+	   configuration->pages.item[i].title ,
+	   configuration->pages.item[i].title ,
+	   configuration->pages.item[i].dateStr ,
+	   configuration->pages.item[i].author ,
+       i );
+
+
+     *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"Tags: ");
+     for (z=0; z<configuration->pages.item[i].tags.currentTags; z++)
+     {
+       *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"<a href=\"tag.html?id=%s\" rel=\"tag\">%s</a> ", configuration->pages.item[i].tags.item[z].tag , configuration->pages.item[i].tags.item[z].tag);
+     }
+
+    *currentSize+=snprintf(buffer+*currentSize,totalSize-*currentSize,"</small></div>\
+	                  <div class=\"postcomments\"><a href=\"post.html?id=%u#respond\" title=\"Comment on %s..\">0</a></div>\
+                      <div class=\"entry\">%s</div>\
+	                 \n</div><!-- end of post -->\n"
+            , i , configuration->pages.item[i].title  , configuration->pages.item[i].content.data );
+
+
+
+}
 
 
 
@@ -181,31 +230,32 @@ int appendPost(struct website * configuration , int postNum , char * buffer , un
 
 }
 
-
-
-
-
-
-
 unsigned char * getPostListHTML(struct website * configuration,int pageNum)
 {
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
+  if (configuration->post.currentPosts>0)
+  {
 
   unsigned int totalPages = (unsigned int ) configuration->post.currentPosts/configuration->postsPerPage;
   if (pageNum>totalPages) { pageNum=totalPages;}
 
   unsigned int startPost = pageNum*configuration->postsPerPage;
   unsigned int endPost =  startPost+configuration->postsPerPage;
+
+  if (endPost>configuration->post.currentPosts) { endPost=configuration->post.currentPosts-1; }
+
   unsigned int i=0;
 
-
-
-  for (i=startPost; i<endPost; i++)
+//  for (i=startPost; i<endPost; i++)
+  for (i=endPost; i>startPost; i--)
   {
     appendPost(configuration , i , buffer , &currentSize , totalSize);
+  }
+
+
   }
 
  return buffer;
@@ -242,29 +292,6 @@ int setupMyBlog(struct website * configuration)
   strlimcpy( configuration->siteDescription  , MAX_STR  , "powered by AmmarServer&trade;");
 
 
-  //HARDCODED MENUS
-  configuration->menu.currentItems=0;
-
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
-  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "About" , MAX_STR);
-  ++configuration->menu.currentItems;
-  //-------------------------------
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
-  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "Linux Coding" , MAX_STR);
-  ++configuration->menu.currentItems;
-  //-------------------------------
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
-  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "Windows Coding" , MAX_STR);
-  ++configuration->menu.currentItems;
-  //-------------------------------
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
-  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "GuarddoG Robot Project" , MAX_STR);
-  ++configuration->menu.currentItems;
-  //-------------------------------
-  snprintf( configuration->menu.item[configuration->menu.currentItems].link , MAX_STR , "page.html?id=%u" , configuration->menu.currentItems );
-  strncpy( configuration->menu.item[configuration->menu.currentItems].label, "DeviantArt Gallery" , MAX_STR);
-  ++configuration->menu.currentItems;
-  //-------------------------------
 
    const char * const leftBlogRollList[] = { "Best Links in the world", "bestlinks.html"          ,
                                              "ELLAK Planet"           , "http://planet.ellak.gr/" ,
@@ -292,6 +319,9 @@ int setupMyBlog(struct website * configuration)
 
 
   configuration->postsPerPage=5;
+
+  configuration->pages.currentItems=0;
+  loadPages(configuration);
 
   loadWidgets(configuration);
   loadPosts(configuration);
@@ -375,7 +405,6 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
 
 
   fprintf(stderr,"Done with index..\n");
-
   return indexPage->content;
 }
 
@@ -392,8 +421,35 @@ void * rss_callback(struct AmmServer_DynamicRequest  * rqst)
 
 void * page_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  strncpy(rqst->content,"<html><head><title>Not yet ready</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>Not yet ready</body></html>",rqst->MAXcontentSize);
-  rqst->contentSize=strlen(rqst->content);
+  struct AmmServer_MemoryHandler * postPage=0;
+
+  postPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
+
+  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "id");
+
+
+  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  if (buffer!=0)
+  {
+      appendPage(&myblog , pageToShow , buffer , &currentSize , totalSize);
+      AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",buffer);
+      free(buffer);
+  } else
+  {
+      char failToFindPost[]=" Could not find post ";
+      AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",failToFindPost);
+  }
+
+  char backButton[]=" <div class=\"leftnav\"><a href=\"javascript: history.go(-1)\" >Back to previous page</a></div> ";
+  AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++PREVNEXT+++++++++",backButton);
+
+  unsigned int howLongToCopy = postPage->contentCurrentLength;
+  if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
+  strncpy(rqst->content,postPage->content,howLongToCopy);
+  rqst->contentSize=howLongToCopy;
+
+  AmmServer_FreeMemoryHandler(&postPage);
   return 0;
 }
 
@@ -405,7 +461,17 @@ void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
 
   postListPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
 
+
   unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "page");
+  unsigned int lastPage=_GETuint(rqst->instance,rqst,(char*) "lastPage");
+
+  char buf[32];
+  if ( ! _GET(rqst->instance,rqst,(char*) "page",buf,32)) { lastPage=1; }
+  if (lastPage)
+    {
+      fprintf(stderr,"Presenting last page.. \n");
+      pageToShow = myblog.post.currentPosts/myblog.postsPerPage;
+    }
 
 
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
@@ -444,7 +510,6 @@ void * post_callback(struct AmmServer_DynamicRequest  * rqst)
   postPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
 
   unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "id");
-
 
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
   unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
