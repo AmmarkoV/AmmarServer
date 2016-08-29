@@ -1,5 +1,8 @@
 #!/bin/bash
  
+#DISABLED FOR SAFETY
+exit 0
+
 X=0
 TOTAL_FRAMES=$1
 
