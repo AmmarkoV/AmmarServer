@@ -8,6 +8,12 @@
 
 struct website myblog={0};
 
+int isThisLastPostPage(struct website * configuration,unsigned int pageNum)
+{
+  unsigned int totalPages = (unsigned int ) configuration->post.currentPosts/configuration->postsPerPage;
+  if (pageNum>=totalPages) { return 1;}
+  return 0;
+}
 
 int loadPostInfo(struct website * configuration,unsigned int postNum)
 {
@@ -166,6 +172,92 @@ int loadWidgets(struct website * configuration)
   return 0;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int loadPageInfo(struct website * configuration,unsigned int postNum)
+{
+ char filename[FILENAME_MAX]={0};
+ snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/pages/info%u.html",postNum);
+ fprintf(stderr," Loading widget info %u (%s) .. \n",postNum,filename);
+
+ ssize_t read;
+ FILE * fp = fopen(filename,"r");
+ if (fp!=0)
+  {
+   struct InputParserC * ipc = InputParser_Create(512,4);
+   InputParser_SetDelimeter(ipc,1,'(');
+   InputParser_SetDelimeter(ipc,2,',');
+   InputParser_SetDelimeter(ipc,3,')');
+
+   struct tagItemList tags;
+   char * line = NULL;
+   size_t len = 0;
+
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+       InputParser_SeperateWords(ipc,line,0);
+
+       if ( InputParser_WordCompareNoCaseAuto(ipc,0,"TITLE")  )   { InputParser_GetWord(ipc,1,configuration->pages.item[postNum].title  ,MAX_STR);   }
+    }
+
+    fprintf(stderr," Page Title %u --------------\n",postNum);
+    fprintf(stderr,"   Title : %s \n",configuration->pages.item[postNum].title);
+
+    fclose(fp);
+    if (line) { free(line); }
+
+    InputParser_Destroy(ipc);
+    return 1;
+  }
+ return 0;
+}
+
+
+int loadPages(struct website * configuration)
+{
+  fprintf(stderr," Loading pages .. \n");
+
+  char tmpPath[512]={0};
+  struct AmmServer_MemoryHandler *  tmp=0;
+  configuration->pages.currentItems=0;
+
+  unsigned int loadedPages=0;
+  for (loadedPages=0; loadedPages<10; loadedPages++)
+  {
+   //-------------------------------
+   snprintf(tmpPath,512,"src/Services/MyBlog/res/pages/page%u.html",loadedPages);
+   tmp = AmmServer_ReadFileToMemoryHandler(tmpPath);
+   if (tmp!=0)
+   {
+    configuration->pages.item[configuration->pages.currentItems].content.data=tmp->content;
+    configuration->pages.item[configuration->pages.currentItems].content.totalDataLength = tmp->contentSize;
+    configuration->pages.item[configuration->pages.currentItems].content.currentDataLength  = tmp->contentCurrentLength;
+
+    loadPageInfo(configuration,configuration->pages.currentItems);
+    ++configuration->pages.currentItems;
+   } else
+   {
+     return 0;
+   }
+  //-------------------------------
+  }
+
+  return 0;
+}
 
 
 

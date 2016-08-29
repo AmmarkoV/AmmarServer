@@ -253,7 +253,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
 
     if (pFile==0)
     {
-        fprintf(stderr,RED "AmmServer_ReadFileToMemory failed" NORMAL);
+        fprintf(stderr,RED "AmmServer_ReadFileToMemory failed\n" NORMAL);
         fprintf(stderr,RED "Could not read file %s \n" NORMAL,filename);
         return 0;
     }
@@ -267,7 +267,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
     char * buffer = (char*) malloc (sizeof(char)*(lSize+1));
     if (buffer == 0 )
     {
-        fprintf(stderr,RED "Could not allocate enough memory for file %s " NORMAL,filename);
+        fprintf(stderr,RED "Could not allocate enough memory for file %s \n" NORMAL,filename);
         fclose(pFile);
         return 0;
     }
@@ -277,7 +277,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
     if (result != lSize)
     {
         free(buffer);
-        fprintf(stderr,RED "Could not read the whole file onto memory %s " NORMAL,filename);
+        fprintf(stderr,RED "Could not read the whole file onto memory %s \n" NORMAL,filename);
         fclose(pFile);
         return 0;
     }

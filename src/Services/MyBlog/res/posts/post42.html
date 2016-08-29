@@ -1,39 +1,70 @@
-<p><a href="wp-content/uploads/2011/02/android.jpeg"><img src="wp-content/uploads/2011/02/android.jpeg" alt="" title="android" class="alignnone size-full wp-image-81" height="225" width="225"></a></p>
-<p>I bought a mobile phone before entering military service so that I can surf the web while on the move..! The phone I bought is marketed in Greece as “Vodafone joy 845″ and in reality it is made by a Chineese company called <a href="http://www.huawei.com/">HUAWEI</a> .  It was the cheapest smartphone available priced at only 109 euros and it is really worth its money..! <img src="wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley">  I knew that this company made DSLAM modems for the Greek National Phone Company ( <a href="http://www.ote.gr">OTE</a> ) so the quality of the fabrication would be good enough so that it would last at least the 9 months at the military..<br>
-Not only does it work flawlessly for the third month ( at the time of writing ) but in fact I am so pleased by it , that it deserves to be mentioned here in my blog..! <img src="wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley"> </p>
-<p>Among the cool things you can do with it ( using the correct software , of course you can do them with any android enabled phone )  is<br>
-* Use it as a Wifi access point/gateway that enables any wifi enabled pc/device to connect to the internet through GPRS/HDSPA<br>
-* Use it as an IP Camera ( Wifi IP <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley">  )<br>
-* Use it as a GPS Navigator / Compass / GPS Beacon over Internet ( i.e. Google Latitude  )<br>
-* Use it as a Skype phone</p>
-<p>and as a PDF Reader  / Wifi Scanner / Compass / Calender / SSH Client / IRC Client / WebBrowser / Youtube Viewer / Camera / Mp3 Player / Voice Recorder and much more..!</p>
-<p>Google has done an excelent job with the User Interface , the android market and all of the apps are either free and opensource or ad-ware ( mostly games )<br>
-There are some privacy concerns regarding the ads , but what the hell.. ;P</p>
-<p>My list with the most useful android apps : </p>
-<p>appInstaller<br>
-Barnacle Wifi Tether ( requires rooting [ super user ]  )<br>
-Navigon<br>
-Compass<br>
-ConnectBot ( SSH Client <img src="wp-includes/images/smilies/icon_wink.gif" alt=";)" class="wp-smiley">  )<br>
-AndChat ( IRC Client <img src="wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley">  )<br>
-ES File Explorer<br>
-Fake A Call<br>
-Wifi Analyzer<br>
-Barcode Scanner<br>
-ConvertPad<br>
-IP Webcam Compat<br>
-Advanced Task Killer Free<br>
-Skype<br>
-Sound Meter<br>
-Twitter<br>
-SoundHound<br>
-Google Goggles<br>
-Google Sky Map<br>
-Google Translation</p>
-<p>Air Horn <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley"><br>
-Motion Fart <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley"><br>
-Beat Droid<br>
-My Piano<br>
-Solo Lite<br>
-Frozen Bubble<br>
-Jewels</p>
+ <p>As I’ve mentioned before , one of the original goals of 
+AmmarServer was getting rid of my current web server and replacing it 
+with a Raspberry Pi. As one can easily notice this site is based on 
+wordpress ( one thing that is a little harder to notice is that it is 
+hosted in a PC in my kitchen <img src="+++RESOURCES+++/icon_razz.gif" alt=":P" class="wp-smiley">  ) .  WordPress is a heavy burden even on my current Intel Based machine let alone on the slower Raspberry Pi.</p>
+<p>There are tools that cache the wordpress web pages or imporve PHP 
+performance but basically all of them try to work around quering the 
+database and PHP interpreter  and serving static files instead.. </p>
+<p>To add to the CPU limitations of the Pi , using an SD card also means delays when writing/and reading to disk ( <a href="http://en.wikipedia.org/wiki/Flash_memory#Memory_wear">not to mention the finite read/write cycles</a>
+ ) when performing automatic caching operations , so instead of this I 
+decided to add a script ( basically an alias for a wget call with the 
+needed parameters ) that clones the whole site without hassle..   </p>
+<p>If you want to try it and after cloning AmmarServer ( with “git clone
+ git://github.com/AmmarkoV/AmmarServer ” ) you can use the bash script 
+provided in the repository and called “MirrorAmmarServer.sh”<br>
+Lets say that your WordPress blog is hosted on http://ammar.gr .<br>
+STEP 1 ) Being on the parent directory of AmmarServer  issue “./MirrorAmmarServer.sh http://ammar.gr”<br>
+wget will gradually start to mirror the site into static files and 
+create a subdirectory called ammar.gr/ where the files will be stored<br>
+STEP 2 ) Edit the file src/main.c and change  char 
+webserver_root[MAX_FILE_PATH]=”public_html/”; to char 
+webserver_root[MAX_FILE_PATH]=”ammar.gr/”;<br>
+If you want you can change the DEFAULT_BINDING_PORT to another port ( 
+you may want to set it to port 80 because the default is 8080 )<br>
+STEP 3 ) issue “./make &amp;&amp; ./run_ammarserver” and voila your site
+ will be availiable at http://127.0.0.1:8080 ( or any other port you 
+choose )</p>
+<p>Here is a comparison of pinging the Raspberry Pi and pinging my Intel Based Server PC on a LAN<br>
+<a href="+++WEBROOT+++wp-content/uploads/2012/10/raspberry_pi_vs_intel_ping_times.png"><img src="+++RESOURCES+++/raspberry_pi_vs_intel_ping_times-300x98.png" alt="" title="raspberry_pi_vs_intel_ping_times" class="alignnone size-medium wp-image-567" height="98" width="300"></a><br>
+The ping times of the intel system have an average of 0.158 ms while the
+ raspberry pi has an average time of 0.543 ms , almost 3-4 times worse..
+ </p>
+<p>Here are some benchmarks conducted with chromium that give an 
+overview of the performance difference ( all of the tests are done in a 
+LAN so bandwidth is not a limiting factor ) : </p>
+<p><a href="+++WEBROOT+++wp-content/uploads/2012/10/FirstHit_apache_regular_wordpressVSammarserver_cached.png"><img src="+++RESOURCES+++/FirstHit_apache_regular_wordpressVSammarserver_cached-300x84.png" alt="" title="FirstHit_apache_regular_wordpressVSammarserver_cached" class="alignnone size-medium wp-image-540" height="84" width="300"></a><br>
+<em><strong>Left</strong> : First Uncached Hit , Apache Serving regular 
+WordPress on my regular PC ( 1.33MB transferred , DOMContent loaded @ 
+494 ms , onload @ 1.35s )<br>
+    <strong>Right</strong> : First Uncached Hit , AmmarServer serving 
+cached static files on Raspberry Pi ( 1.39MB transferred , DOMContent 
+loaded @ 159 ms , onload @ 968ms )  </em></p>
+<p><a href="+++WEBROOT+++wp-content/uploads/2012/10/HomeClicked2ndHit_apache_regular_wordpressVSammarserver_cached.png"><img src="+++RESOURCES+++/HomeClicked2ndHit_apache_regular_wordpressVSammarserver_cach.png" alt="" title="HomeClicked2ndHit_apache_regular_wordpressVSammarserver_cached" class="alignnone size-medium wp-image-542" height="84" width="300"></a><br>
+<em><strong>Left</strong> : Second Hit after clicking Home , Apache 
+Serving regular WordPress on my regular PC ( 22.67KB transferred , 
+DOMContent loaded @ 566 ms , onload @ 2.04s )<br>
+    <strong>Right</strong> : Second Hit after clicking Home , 
+AmmarServer serving cached static files on Raspberry Pi ( 61.54KB 
+transferred , DOMContent loaded @ 140 ms , onload @ 515ms )  </em></p>
+<p><a href="+++WEBROOT+++wp-content/uploads/2012/10/2012-10-19-164015_3840x1080_scrot.png"><img src="+++RESOURCES+++/2012-10-19-164015_3840x1080_scrot-300x84.png" alt="Apache Serving cached static files on left compared to AmmarServer serving cached static files on right" title="Apache Serving cached static files on left compared to AmmarServer serving cached static files on right" class="alignnone size-medium wp-image-534" height="84" width="300"></a><br>
+<em><strong>Left</strong> : Apache Serving cached static files on my Regular PC<br>
+    <strong>Right</strong> : AmmarServer serving cached static files on Raspberry Pi</em></p>
+<p>Some things to notice is that in the static files version of the site
+ , the image links on the menu bar that come directly from github , and 
+the youtube embeds are the most laggy parts of the page and this 
+distorts loading times. The onload event would drop by almost 400ms if 
+they were part of the site.. </p>
+<p>Performance also gets better by increasing the priority of the webserver  ( IRL decreasing it to -15 <img src="+++RESOURCES+++/icon_razz.gif" alt=":P" class="wp-smiley">
+  ) , removing cross-site content and making some other small tweaks. I 
+have managed to drop times to around 50-60ms and I hope to further 
+improve those numbers..</p>
+<p>Network latency of course is the biggest bottleneck when dropping 
+times so low and in any case even if i managed to serve the whole site 
+from 60ms ( transaction latency ) + 150ms ( network latency )  in say 
+20ms  ( transaction latency )  + 150 ms ( network latency ) the 
+perceived difference from the average client will be very small..</p>
+<p>Thats it for now.. <img src="+++RESOURCES+++/icon_smile.gif" alt=":)" class="wp-smiley">  </p>
+				
+					
+				

@@ -1,10 +1,25 @@
-<p><a href="http://ammarkov1.deviantart.com/gallery/?offset=48#/d2z95xd"><img src="wp-content/uploads/2011/10/2000_years_later___by_ammarkov1-d2z95xd-300x225.jpg" alt="" title="2000 Years later" class="alignnone size-medium wp-image-165" height="225" width="300"></a></p>
-<p>Well , things aren`t going very well in Greece..<br>
-Stocks are falling , strikes and riots everyday and a general anxiety and disappointment about where this country is heading. Although I can`t say I belong to a social class directly pressured (yet) by the economic meltdown happening all around ( and if I did I would probably not blog about it ) it is sad to see the pessimism diffused everywhere and especially in everyone aged 23-28 , a generation that has just now reached the point to enter the working force after finishing with the educational cycle of life.<br>
-Even if there is unemployment and even if we are the 600euro generation ( a term coined up by Greek media , as it is the average post-reductions monthly wage for most junior positions at Greek companies ) I cant stop but think that I am lucky to be part of it.<br>
-People have always had problems and always were tormented , in the past , in the present and will probably continue to do so in the future. But it just isn`t possible for past “primitive” societies to be able to produce men like Plato , Fermat , DaVinci , Kant, Nietzsche and at this day and age with all the wonderful possibilities opened with tools such as the internet to see the public acting so foolishly panicked and such a lack of leadership from the Greek financial and political leaders.<br>
-It is this attitude that produces the biggest part of the crisis as members of the Greek community dont trust each other , and don`t even trust themselves.<br>
-And its a natural consequence that when people fail to stand up to a crisis as units they will also fail as a group.    </p>
-<p>This is my first real post , apart for blogs about technical details of work I’ve done and I don`t want to babble a lot.</p>
-<p>In a few words I wish that people would realize the possibilities laid before them and grab life by the throat instead of passively whine about it and blame everyone else.  </p>
-<p>I guess it is a gift most people lack, to be able to see possibility where most people don`t..</p>
+<p>I am pleased to report that using NVidia driver 304.22 along with a 3.2.0-28 kernel and powermizer set to the lowest level ( always ) is stable and I can now once again play starcraft 2 using wine without my pc getting a blank screen every 10 minutes ..! </p>
+<p>My /etc/X11/xorg.conf Screen section follows..!</p>
+<blockquote><p>
+Section “Screen”<br>
+    Identifier     “Screen0″<br>
+    Device         “Device0″<br>
+    Monitor        “Monitor0″<br>
+    DefaultDepth    24<br>
+    Option         “NoLogo” “True”<br>
+    Option         “Coolbits” “1″<br>
+    Option         “RegistryDwords” “PowerMizerEnable=0×1; PerfLevelSrc=0×2222; PowerMizerLevel=0×3; PowerMizerDefault=0×3; PowerMizerDefaultAC=0×3″<br>
+    SubSection     “Display”<br>
+        Depth       24<br>
+    EndSubSection<br>
+EndSection
+</p></blockquote>
+<p><a href="wp-content/uploads/2012/08/2012-08-01-150355_3840x1080_scrot.png"><img src="wp-content/uploads/2012/08/2012-08-01-150355_3840x1080_scrot-1024x288.png" alt="" title="AmmarServer Screenshot..!" class="alignnone size-large wp-image-467" height="208" width="1024"></a></p>
+<p>In other news since it is summer and I dont have many things to do..<br>
+I decided to rewrite from scratch AmmarServer ( http server ) for linux ..<br>
+The <a href="~ammar/atech_old/Myshop/view_item.php@id=4.html">outdated windows version of AmmarServer can be found in my legacy site</a> ..<br>
+In this new one I will be including keep-alive support , a better code layout , the ability to create virtual files via linking an arbitrary executable to the web server , and automatic caching web page queries to the memory.. This should be particularly handy to be used as a server in conjuction with the raspberry pi.. ( when I get my hands on one ) ..</p>
+<p>The thing about virtual files is that I would like to make a virtual file called camera.jpg that when requested by the client would trigger an other frame grabbing application that would make a .jpg conversion of the image on the fly and serve it directly to the client without reading or writing to the flash memory/disk .. That way linking everything together all possible delays will be shoved off..!</p>
+<p><a href="https://github.com/AmmarkoV/AmmarServer"><br>
+AmmarServer github repository can be found here</a></p>
+<p>Thats it for now..</p>

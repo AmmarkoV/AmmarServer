@@ -1,3 +1,39 @@
-<p> <iframe class="youtube-player" type="text/html" src="http://www.youtube.com/embed/PQhEBCWMe44" frameborder="0" height="385" width="640"><br />
-</iframe></p>
-<p><a href="http://www.youtube.com/watch?v=PQhEBCWMe44">Noam Chomsky – Manufacturing Consent </a></p>
+<p>During the last weeks I finally found time to work on one of my older ideas ( 2 years old <img src="wp-includes/images/smilies/icon_razz.gif" alt=":P" class="wp-smiley">  ) about a networking library that wouldn’t expose any network calls to the programmer..!</p>
+<p>From my experience writing small games and web server services network connectivity using sockets is very nice and efficient indeed , but it has a lot of programming overhead to basically do simple things like passing values or strings from one host to the other..</p>
+<p>With RemoteVariables what I am doing is writing a framework that takes care of all the protocol issues and then assumes the role of synchronizing specific elements of the address space of the first computer to the second one..!   </p>
+<p>So instead of recv/send ing , worrying about half read messages or making a new mini wrapper protocol for every new application the idea goes like this ..</p>
+<p>/* CLIENT CODE */<br>
+struct VariableShare * vsh = ConnectToRemote_VariableSharing(“SHARE2″,”127.0.0.1″,12345,”password”);<br>
+static volatile int SHARED_VAR=0; Add_VariableToSharingList(vsh,”SHARED_VAR”,7,&amp;SHARED_VAR,sizeof(SHARED_VAR));</p>
+<p>/* SERVER CODE*/<br>
+struct VariableShare * vsh = Start_VariableSharing(“SHARE2″,”127.0.0.1″,12345,”password”);<br>
+static volatile int SHARED_VAR=0;<br>
+Add_VariableToSharingList(vsh,”SHARED_VAR”,7,&amp;SHARED_VAR,sizeof(SHARED_VAR));</p>
+<p>from there on variable SHARED_VAR is “shared” meaning that when it changes on one host we know that the second host will get it.<br>
+The change is “sensed” by a second thread monitoring the values of the address space and transmiting them when they change.. It could be the case that the compiler could spit in a Sync(&amp;SHARED_VAR) operation after each change for maximum efficiency .. Some one can also disable automatic “sensing” and perform the Sync call manually to avoid  the overheads of the extra thread on the background..</p>
+<p>Another example is for lets say a Tic Tac Toe game where we will have<br>
+/* CLIENT CODE */<br>
+struct VariableShare * vsh = ConnectToRemote_VariableSharing(“TICSHARE”,”127.0.0.1″,12345,”password”);<br>
+static volatile int OURMOVE=0,OPPONENTMOVE=0;<br>
+Add_VariableToSharingList(vsh,”HOST_MOVE”,7,&amp;OPPONENTMOVE,sizeof(OPPONENTMOVE));<br>
+Add_VariableToSharingList(vsh,”SHARED_VAR”,7,&amp;OURMOVE,sizeof(OURMOVE));</p>
+<p>/* SERVER CODE */<br>
+struct VariableShare * vsh = Start_VariableSharing(“TICSHARE”,”127.0.0.1″,12345,”password”);<br>
+static volatile int OURMOVE=0,OPPONENTMOVE=0;<br>
+Add_VariableToSharingList(vsh,”SHARED_VAR”,7,&amp;OPPONENTMOVE,sizeof(OPPONENTMOVE));<br>
+Add_VariableToSharingList(vsh,”HOST_MOVE”,7,&amp;OURMOVE,sizeof(OURMOVE));</p>
+<p>Notice the twisted assignment of the SHARED_VAR , HOST_MOVE ..<br>
+This way we could litterally write a network tictac toe program by just checking the OURMOVE , OPPONENTMOVE variables just like writing a two player hot seat game , no more extra code , maybe just for checking if the Client has dropped something that doesnt really happen on hot seat games  ..</p>
+<p>Needless to say <a href="myloader/vfile.php@i=5056effeeaff0d339d010bff174c3ccd-not_over_yet.ogg.html">its not over yet</a> but I am making good progress..</p>
+<p>The <a href="https://github.com/AmmarkoV/RemoteVariable">Repository is here ( https://github.com/AmmarkoV/RemoteVariable )</a>..</p>
+<p>To test it issue :<br>
+git clone git://github.com/AmmarkoV/RemoteVariable.git<br>
+./apt-get-dependencies.sh<br>
+./make<br>
+and you can then test a Score4 Game by issuing<br>
+./TestGameMasterAndClone.sh</p>
+<p>or test the standalone library via a unit test by issuing<br>
+./TestMasterAndClone.sh<br>
+of<br>
+./MemTestMasterAndClone.sh<br>
+for valgrind analysis too..</p>

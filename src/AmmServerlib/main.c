@@ -686,6 +686,12 @@ struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char *
    mh->content = AmmServer_ReadFileToMemory(filename,&mh->contentSize);
    mh->contentCurrentLength = mh->contentSize;
 
+   if (mh->content==0)
+   {
+     free(mh);
+     return 0;
+   }
+
    return mh;
 }
 

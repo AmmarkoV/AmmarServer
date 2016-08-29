@@ -1,10 +1,26 @@
-
-					<p><a href="http://www.helexpo.gr/default.aspx?lang=en-US&amp;loc=1&amp;page=2065"><img src="~ammar/guard_dog_project/blogs/media/blogs/a/76thTIF.jpg" alt=""></a><br>
-<strong>The exhibition has been a great success until now , with lots of people visiting the stands and big media coverage ..<br>
-The <a href="gddg.html">link to the guarddog project is http://ammar.gr/gddg</a> for anyone visiting the page after he saw guarddog on the TIF..</strong></p>
-<p><a href="gddg.html" title="GuarddoG Robot Project" target="_blank"><img src="wp-content/uploads/2010/10/guarddog_and_me-300x225.jpg"></a><a href="gddg.html" title="GuarddoG Robot Project" target="_blank"><img src="wp-content/uploads/2010/10/gddg_site-300x254.jpg"></a>  </p>
-<p><a href="wp-content/uploads/2011/09/DSC_9036.resized.jpg"><img src="wp-content/uploads/2011/09/DSC_9036.resized-300x198.jpg" alt="Interviews" title="Interviews" class="alignnone size-medium wp-image-146" height="198" width="300"></a><a href="wp-content/uploads/2011/09/DSC_9307.resized.jpg"><img src="wp-content/uploads/2011/09/DSC_9307.resized-300x198.jpg" alt="" title="Repairing a broken wheel :)" class="alignnone size-medium wp-image-148" height="198" width="300"></a></p>
-<p>Some Greek shows which featured us , live on air..<br>
-<a href="http://www.youtube.com/watch?v=S4b63FDhNYA">GuarddoG @ Robotics Exhibition – 76η ΔΕΘ 13-9-2011 , Ant1 Ellate</a><br>
-<a href="http://www.youtube.com/watch?v=UpHViQt_DMc">GuarddoG @ Robotics Exhibition – 76η ΔΕΘ 13-9-2011 , SKAI τώρα</a><br>
-<a href="http://www.youtube.com/watch?v=hplM_WPd3zg">GuarddoG @ Robotics Exhibition – 76η ΔΕΘ 13-9-2011 , Alpha Ειδήσεις </a></p>
+<a href="https://github.com/AmmarkoV/AmmarServer">AmmarServer</a> is now pretty stable and I am begining to add more interesting functionallity such as request caching etc..</p>
+<p>One of the tests that I’ve made is converting this wordpress site into static files using <a href="https://addons.mozilla.org/en-us/firefox/addon/scrapbook/">a firefox extension called scrapbook that can save entire web sites many pages deep as files</a> and then using the saved files , serving them with ammarserver <img src="wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley">   !</p>
+<p>The result is that AmmarServer serving the cached files ( reading them from the disk every time ) is actually serving them twice as fast as when apache + php + wordpress dynamically create most of the content and serve the images etc in the same manner.. I am wondering how much better will I be able to do by caching and not querying the filesystem / hard disk subsystem at all..!   </p>
+<p>Attached are two screenshots taken using the <a href="http://www.numion.com/stopwatch/">numion stopwatch</a> tool</p>
+<p>AmmarServer running on port 8080 ,serving cached files reading them from disk and scoring 0.838 seconds<br>
+</p><center><br>
+<a href="wp-content/uploads/2012/08/ammserv.jpg"><img src="wp-content/uploads/2012/08/ammserv-1024x557.png" alt="" title="AmmarServer" class="alignnone size-large wp-image-476" width="500"></a></center><p></p>
+<p>Regular apache + php + wordpress running on the site you currently see and scoring 1.888 seconds almost the double time..</p><center><br>
+<a href="wp-content/uploads/2012/08/apache.jpg"><img src="wp-content/uploads/2012/08/apache-1024x557.png" alt="" title="apache" class="alignnone size-large wp-image-477" width="500"></a></center><p></p>
+<p>These tests were executed on the same machine in a LAN network so no serious network unpredictable latencies exist and we are almost purely CPU bound..</p>
+<p>Testing with caching in memory enabled for my site today gives the following times..<br>
+Apache + PHP + MySQL + WordPress : 2.323 secs<br>
+AmmarServer , cache enabled , first hit serving everything as a file : 1.383<br>
+AmmarServer , cache enabled , subsequent hits serving everything from memory : 0.762<br>
+ <img src="wp-includes/images/smilies/icon_smile.gif" alt=":)" class="wp-smiley"> </p>
+<p>using :<br>
+time wget http://ammar.gr/<br>
+and<br>
+time wget http://ammar.gr:8080/<br>
+just for the index.php  file of wordpress shows the difference , 0.2s vs 0.004s </p>
+<p></p><center><br>
+<a href="wp-content/uploads/2012/08/comparison_wget.png"><img src="wp-content/uploads/2012/08/comparison_wget.png" alt="" title="comparison_wget" class="alignnone size-full wp-image-488" width="500"></a><br>
+</center><br>
+Streaming Full-HD content with ammarserver<br>
+<center><br>
+<a href="wp-content/uploads/2012/08/2012-08-10-140534_3840x1080_scrot.jpg"><img src="wp-content/uploads/2012/08/2012-08-10-140534_3840x1080_scrot-300x168.jpg" alt="Streaming fullhd content with AmmarServer" title="Streaming fullhd content with AmmarServer" class="alignnone size-medium wp-image-499" height="168" width="300">
