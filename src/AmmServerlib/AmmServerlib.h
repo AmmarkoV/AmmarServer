@@ -635,6 +635,18 @@ int AmmServer_GETArg  (struct AmmServer_Instance * instance,struct AmmServer_Dyn
 
 
 /**
+* @brief Get a Cookie argument
+* @ingroup core
+* @param Instance of an AmmarServer
+* @param Request that contains the Cookie argument ( see AmmServer_DynamicRequest )
+* @param Input Name of argument we are looking for
+* @param Output Pointer that will be copied with the value we were looking for
+* @param Maximum Size for output Value
+* @retval 1=Success,0=Failure */
+int AmmServer_CookieArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+
+
+/**
 * @brief Access a FILE submitted by a dynamic requested
 * @ingroup core
 * @param Instance of an AmmarServer
@@ -655,6 +667,10 @@ int _POST (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest 
 * @ingroup shortcut */
 int _GET  (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
+/**
+* @brief Shorthand/Shortcut for AmmServer_CookieArg()
+* @ingroup shortcut */
+int _COOKIE(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for getting an Uint value back()
