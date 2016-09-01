@@ -33,6 +33,7 @@
 		</Compiler>
 		<Linker>
 			<Add option="../../AmmServerlib/libAmmarServer.a" />
+			<Add option="../../UserAccounts/libUserAccounts.a" />
 			<Add option="-pthread" />
 			<Add option="-lrt" />
 			<Add option="-lz" />

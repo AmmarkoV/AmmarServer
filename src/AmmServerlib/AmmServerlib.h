@@ -208,6 +208,9 @@ struct AmmServer_DynamicRequest
    char * POST_request;
    unsigned int POST_request_length;
 
+   char * COOKIE_request;
+   unsigned int COOKIE_request_length;
+
    struct AmmServer_Instance * instance;
 
    unsigned int clientID;
