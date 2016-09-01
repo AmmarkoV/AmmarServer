@@ -24,10 +24,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../UserAccounts/userAccounts.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
-char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char webserver_root[MAX_FILE_PATH]="src/Services/UserAccountsTester/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
@@ -53,48 +54,37 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
-struct AmmServer_RH_Context random_chars={0};
-struct AmmServer_RH_Context stats={0};
+struct AmmServer_RH_Context loginProcess={0};
+struct AmmServer_RH_Context loginCheck={0};
 
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
+void * do_login_check_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
 
-  fprintf(stderr,"Trying to write dynamic request to %p , max size %lu \n",rqst->content , rqst->MAXcontentSize);
+  AmmServer_DynamicRequestReturnFile(rqst,"src/Services/UserAccountsTester/res/login.html");
 
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head>\
-            <body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>\
-            The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n\
-            To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L46\">\
-            Dynamic content code label in ammarserver main.c</a><br>\n\
-            If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in \
-            <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>",
-           tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-
-  rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
+void * do_login_process_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
+  char username[256];
+  char password[256];
 
-  char hex[16+1]={0};
-  unsigned int i=0;
-  for (i=0; i<1024; i++)
-    {
-        snprintf(hex,16, "%x ", rand()%256 );
-        strcat(rqst->content,hex);
-    }
+  if ( (_GET(rqst->instance,rqst ,(char*) "pass" , password , 256) ) && ( _GET(rqst->instance,rqst ,(char*) "user" , username , 256) ) )
+   {
+      strncpy(rqst->content,"<html><head><title>Random Number Generator</title></head><body>",rqst->MAXcontentSize);
+      char msg[256];
+      snprintf(msg,256," Username submitted is %s , Password submitted is %s \n",username,password);
+      strcat(rqst->content,msg);
+   } else
+   {
+     strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"0 url=index.html\"></head><body>",rqst->MAXcontentSize);
 
+   }
   strcat(rqst->content,"</body></html>");
 
   rqst->contentSize=strlen(rqst->content);
@@ -114,18 +104,16 @@ void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
-
-   if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding random testing page\n"); }
+  AmmServer_AddResourceHandler(default_server,&loginCheck,"/index.html",webserver_root,4096,0,&do_login_check_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&loginProcess,"/performlogin.html",webserver_root,4096,0,&do_login_process_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    AmmServer_RemoveResourceHandler(default_server,&stats,1);
+    AmmServer_RemoveResourceHandler(default_server,&loginCheck,1);
+    AmmServer_RemoveResourceHandler(default_server,&loginProcess,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 
