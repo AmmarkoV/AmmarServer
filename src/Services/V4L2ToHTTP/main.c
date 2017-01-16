@@ -26,12 +26,21 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <pthread.h>
 #include <signal.h>
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../AmmCaptcha/AmmCaptcha.h"
+
+#include "v4l2_acquisition_shared_library/V4L2Acquisition.h"
 
 #define MAX_BINDING_PORT 65534
 #define DEFAULT_BINDING_PORT 8081
 #define MAX_INPUT_IP 256
 
+#define ENABLE_PASSWORD_PROTECTION 1
+#define SIMPLE_INDEX 1
+#define WEB_PAGE_UPDATE_EVERY_MS 1000
 
+unsigned int VIDEO_WIDTH=640 ,  jpg_width=640;
+unsigned int VIDEO_HEIGHT=480 ,  jpg_height=480;
+unsigned int FRAMERATE=10;
 
 char webcam[MAX_FILE_PATH]="/dev/video0";
 char webserver_root[MAX_FILE_PATH]="public_html/";
@@ -40,11 +49,8 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 pthread_mutex_t refresh_jpeg_lock;
 
 struct AmmServer_Instance * v4l2_server=0;
-
 struct AmmServer_RH_Context index_page= {0};
-
 struct AmmServer_RH_Context jpeg_picture= {0};
-unsigned int jpg_width=VIDEO_WIDTH,jpg_height=VIDEO_HEIGHT;
 
 
 void * prepare_index_page_callback(struct AmmServer_DynamicRequest * rqst)
@@ -112,25 +118,21 @@ void * prepare_index_page_callback(struct AmmServer_DynamicRequest * rqst)
 
 void * prepare_camera_data_callback(struct AmmServer_DynamicRequest * rqst)
 {
-  if (VideoSimulationState()!=LIVE_ON)
-    {
-      fprintf(stderr,"Warning : Camera already snapping\n");
-      rqst->contentSize=0;
-      return 0;
-    }
 
   pthread_mutex_lock (&refresh_jpeg_lock); // LOCK PROTECTED OPERATION -------------------------------------------
 
   fprintf(stderr,"Calling Camera callback \n");
-  rqst->contentSize=jpg_width * jpg_height * 3; //Signal the max allocated buffer , this value will be changed by RecordOneInMem
+  AmmCaptcha_getJPEGFileFromPixels(
+                                    getV4L2ColorPixels(0),
+                                    getV4L2ColorWidth(0),
+                                    getV4L2ColorHeight(0),
+                                    getV4L2ColorChannels(0),
+                                    rqst->content,
+                                    &rqst->contentSize
+                                   );
 
-  unsigned long jpeg_size_refreshed=0;
-  VideoInput_SaveFrameJPEGMemory( 0 , rqst->content , &jpeg_size_refreshed);
 
-
-  rqst->contentSize  =  jpeg_size_refreshed;
   fprintf(stderr,"Calling Camera callback success new picture ( %u bytes long ) ready !\n",(unsigned int) rqst->contentSize);
-
   pthread_mutex_unlock (&refresh_jpeg_lock); // LOCK PROTECTED OPERATION -------------------------------------------
   return 0;
 }
@@ -139,45 +141,12 @@ void * prepare_camera_data_callback(struct AmmServer_DynamicRequest * rqst)
 
 int open_camera(char * webcam_dev,unsigned int width,unsigned int height,unsigned int framerate)
 {
-  if ( !VideoInput_InitializeLibrary(1) )
-    {
-      fprintf(stderr,"Could not open Video Input\n");
-      return 0;
-    }
-
-  char BITRATE=32;
-  struct VideoFeedSettings feedsettings= {0};
-  //videosettings.PixelFormat=V4L2_PIX_FMT_YUYV; BITRATE=16; // <- Common compressed setting for UVC webcams
-  feedsettings.PixelFormat=V4L2_PIX_FMT_RGB24;
-  BITRATE=24;   //   <- Common raw setting for UVC webcams ( Run Compat )
-  jpg_width=width;
-  jpg_height=height;
-
-  if (! VideoInput_OpenFeed(0,webcam_dev,jpg_width,jpg_height,BITRATE,framerate,1,feedsettings) )
-    {
-      fprintf(stderr,"Could not set Video feed settings consider running with v4l2convert.so preloaded\n");
-      return 0;
-    }
-
-  int MAX_waittime=10000;
-  int waittime=0;
-  while ( ( !VideoInput_FeedReceiveLoopAlive(0) )&& (waittime<MAX_waittime) )
-    {
-      ++waittime;
-    }
-
-  return 1;
+  return createV4L2Device(0,webcam_dev,width,height,framerate);
 }
 
 int close_camera()
 {
-  if (jpeg_picture.requestContext.content!=0)
-    {
-      free(jpeg_picture.requestContext.content);
-      jpeg_picture.requestContext.content=0;
-    }
-  VideoInput_DeinitializeLibrary();
-  return 1;
+  return destroyV4L2Device(0);
 }
 
 void init_dynamic_pages()
@@ -238,14 +207,8 @@ int main(int argc, char *argv[])
     }
   else
     {
-      if (strlen(argv[1])>=MAX_INPUT_IP)
-        {
-          fprintf(stderr,"Console argument for binding IP is too long..!\n");
-        }
-      else
-        {
-          strncpy(bindIP,argv[1],MAX_INPUT_IP);
-        }
+      if (strlen(argv[1])>=MAX_INPUT_IP) { fprintf(stderr,"Console argument for binding IP is too long..!\n"); } else
+                                         { strncpy(bindIP,argv[1],MAX_INPUT_IP); }
       port=atoi(argv[2]);
       if (port>=MAX_BINDING_PORT)
         {
@@ -282,9 +245,9 @@ int main(int argc, char *argv[])
         }
 
       close_dynamic_pages(); // Free mappings of AmmServer
-
       close_camera();
 
+      stopV4L2Module();
       AmmServer_Stop(v4l2_server);
     }
 
