@@ -598,7 +598,7 @@ void print_video_formats_ext(int fd,int type)
 		printf("\tIndex       : %d\n", fmt.index);
 		printf("\tType        : %s\n", buftype2s(type));
 		printf("\tPixel Format: '%s'", fcc2s(fmt.pixelformat,ps));
-		if (fmt.flags) { printf(" (%s)", fmtdesc2s(fmt.flags)); }
+		//if (fmt.flags) { printf(" (%s)", fmtdesc2s(fmt.flags)); }
 		printf("\n");
 		printf("\tName        : %s\n", fmt.description);
 		frmsize.pixel_format = fmt.pixelformat;
