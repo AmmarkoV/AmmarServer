@@ -1,0 +1,73 @@
+# depslib dependency file v1.0
+1389865755 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/V4L2_c.c
+	"V4L2_c.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<assert.h>
+	<getopt.h>
+	<fcntl.h>
+	<unistd.h>
+
+1393494251 /home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/V4L2_c.h
+	<linux/types.h>
+	<linux/videodev2.h>
+	<sys/stat.h>
+	<sys/types.h>
+	<sys/time.h>
+	<sys/mman.h>
+	<sys/ioctl.h>
+	<errno.h>
+	<asm/types.h>
+
+1484572208 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/V4L2Acquisition.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"V4L2Acquisition.h"
+	"V4L2Wrapper.h"
+	"V4L2IntrinsicCalibration.h"
+	<linux/videodev2.h>
+
+1484572192 /home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/V4L2Acquisition.h
+	"../tools/Calibration/calibration.h"
+
+1394986363 /home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/V4L2Wrapper.h
+	"V4L2_c.h"
+	<linux/types.h>
+	<linux/videodev2.h>
+	<sys/stat.h>
+	<sys/types.h>
+	<sys/time.h>
+	<sys/mman.h>
+	<sys/ioctl.h>
+	<errno.h>
+	<asm/types.h>
+
+1369909627 /home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/V4L2IntrinsicCalibration.h
+
+1378639517 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/V4L2IntrinsicCalibration.c
+	"V4L2IntrinsicCalibration.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+
+1394986429 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/V4L2Wrapper.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<unistd.h>
+	"PixelFormatConversions.h"
+	"V4L2Wrapper.h"
+
+1369822557 /home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/PixelFormatConversions.h
+
+1369832388 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/V4L2ToHTTP/v4l2_acquisition_shared_library/PixelFormatConversions.c
+	"PixelFormatConversions.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<linux/videodev2.h>
+	"V4L2Wrapper.h"
+
