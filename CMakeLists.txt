@@ -13,8 +13,10 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
     add_subdirectory (src/StringRecognizer)
 
 
-    #Then make all of the executables that use the various libraries  
+    #Make the basic "vanilla" server  
     add_subdirectory (src/Services/AmmarServer) 
+
+    #Then make all of the executables that use the various libraries  
     add_subdirectory (src/Services/ScriptRunner) 
     add_subdirectory (src/Services/MyURL) 
     add_subdirectory (src/Services/MyLoader) 
@@ -29,6 +31,7 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
     add_subdirectory (src/Services/HabChan) 
     add_subdirectory (src/Services/CinemaPilot) 
     add_subdirectory (src/Services/Various)
+    #add_subdirectory (src/Services/V4L2ToHTTP)
     
     #These are unit tests for the core library
     add_subdirectory (src/UnitTests)
