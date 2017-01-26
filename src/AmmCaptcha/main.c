@@ -84,16 +84,33 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
 
 int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsigned int height , unsigned int channels , char *mem,unsigned long * mem_size)
 {
-  struct Image * outputJPEGFile = createImage(width,height,channels);
-  memcpy(outputJPEGFile->pixels,pixels,width*height*channels);
-  //WritePPM(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.pnm");
-  //WriteJPEGFile(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.jpg");
-  WriteJPEGMemory(outputJPEGFile,mem,mem_size);
+  fprintf(stderr,"AmmCaptcha_getJPEGFileFromPixels called\n");
+  if (pixels==0)   { fprintf(stderr,"No input image to convert to JPEG\n");               return 0; }
+  if (width==0)    { fprintf(stderr,"No input image width , can't convert to JPEG\n");    return 0; }
+  if (height==0)   { fprintf(stderr,"No input image height , can't convert to JPEG\n");   return 0; }
+  if (channels==0) { fprintf(stderr,"No input image channels , can't convert to JPEG\n"); return 0; }
 
-  fprintf(stderr,"Survived WriteJPEG");
-  destroyImage(outputJPEGFile);
-  fprintf(stderr,"Survived destroyImage");
+  //struct Image * outputJPEGFile = createImage(width,height,channels);
+  //memcpy(outputJPEGFile->pixels,pixels,width*height*channels);
+  //Zero Copy..!
+  fprintf(stderr,"Zero Copy conversion to JPEG\n");
+  struct Image * outputJPEGFile = createImageUsingExistingBuffer(width,height,channels,8,pixels);
+
+  if (outputJPEGFile!=0)
+  {
+   //WritePPM(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.pnm");
+   //WriteJPEGFile(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.jpg");
+   WriteJPEGMemory(outputJPEGFile,mem,mem_size);
+
+   fprintf(stderr,"Survived WriteJPEG");
+   free(outputJPEGFile);
+
+   fprintf(stderr,"Survived destroyImage");
+
   return 1;
+  }
+ fprintf(stderr,"Failed converting memory block to JPEG \n");
+ return 0;
 }
 
 

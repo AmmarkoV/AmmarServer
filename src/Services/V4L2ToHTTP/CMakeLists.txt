@@ -9,7 +9,7 @@ set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
 add_executable(v4l2tohttp main.c ) 
-target_link_libraries(v4l2tohttp pthread rt jpeg AmmarServer AmmCaptcha)
+target_link_libraries(v4l2tohttp pthread rt jpeg AmmarServer AmmCaptcha V4L2Acquisition )
 set_target_properties(v4l2tohttp PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(v4l2tohttp AmmarServer AmmCaptcha)  
        

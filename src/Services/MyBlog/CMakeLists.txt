@@ -19,7 +19,7 @@ add_dependencies(myblog AmmarServer)
                           RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                          )
 
-add_subdirectory (tools/) 
+# add_subdirectory (tools/) 
 
 
 #    install(TARGETS AmmarServer
