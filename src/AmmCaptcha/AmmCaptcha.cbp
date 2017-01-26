@@ -36,6 +36,9 @@
 				</Linker>
 			</Target>
 		</Build>
+		<Compiler>
+			<Add option="-fPIC" />
+		</Compiler>
 		<Linker>
 			<Add option="-ljpeg" />
 		</Linker>

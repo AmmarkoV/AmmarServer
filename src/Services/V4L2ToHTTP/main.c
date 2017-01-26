@@ -122,6 +122,9 @@ void * prepare_camera_data_callback(struct AmmServer_DynamicRequest * rqst)
   pthread_mutex_lock (&refresh_jpeg_lock); // LOCK PROTECTED OPERATION -------------------------------------------
 
   fprintf(stderr,"Calling Camera callback \n");
+  snapV4L2Frames(0);
+
+  fprintf(stderr,"Converting to JPEG \n");
   AmmCaptcha_getJPEGFileFromPixels(
                                     getV4L2ColorPixels(0),
                                     getV4L2ColorWidth(0),
@@ -141,12 +144,23 @@ void * prepare_camera_data_callback(struct AmmServer_DynamicRequest * rqst)
 
 int open_camera(char * webcam_dev,unsigned int width,unsigned int height,unsigned int framerate)
 {
-  return createV4L2Device(0,webcam_dev,width,height,framerate);
+  if ( startV4L2Module(2,"") )
+   {
+    if ( createV4L2Device(0,webcam_dev,width,height,framerate) )
+    {
+      AmmServer_Success("Successfully initialized device %s , now snapping the first frame..!\n",webcam_dev);
+      snapV4L2Frames(0);
+      return 1;
+    }
+   }
+  return 0;
 }
 
 int close_camera()
 {
-  return destroyV4L2Device(0);
+  destroyV4L2Device(0);
+  return stopV4L2Module();
+
 }
 
 void init_dynamic_pages()

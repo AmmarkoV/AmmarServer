@@ -10,6 +10,7 @@ struct Image
   unsigned int imageSize;
 };
 
+struct Image * createImageUsingExistingBuffer( unsigned int width , unsigned int height , unsigned int channels , unsigned int bitsPerPixel , unsigned char * pixels);
 struct Image * createImage(unsigned int width,unsigned int height,unsigned int depth);
 struct Image * copyImage(struct Image * source);
 int destroyImage(struct Image * source);

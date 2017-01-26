@@ -9,6 +9,24 @@
 
 #define DISPLAY_DEBUG_INFO 0
 
+
+struct Image * createImageUsingExistingBuffer( unsigned int width , unsigned int height , unsigned int channels , unsigned int bitsPerPixel , unsigned char * pixels)
+{
+  struct Image * img = 0;
+  img = (struct Image *) malloc( sizeof(struct Image) );
+  if (img == 0 ) { fprintf(stderr,"Could not allocate a new image %ux%u %u channels %u bitsperpixel\n",width,height,channels,bitsPerPixel); return 0; }
+  memset(img,0,sizeof(struct Image));
+
+  img->width = width;
+  img->height = height;
+  img->depth=channels * (bitsPerPixel/8);
+
+  img->pixels = pixels;
+  return  img;
+}
+
+
+
 struct Image * createImage(unsigned int width,unsigned int height,unsigned int depth)
 {
   struct Image * img = (struct Image *) malloc(sizeof(struct Image));
