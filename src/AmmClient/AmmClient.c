@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
 
 #include <unistd.h>
+
 
 #include "AmmClient.h"
 
@@ -207,7 +209,7 @@ struct AmmClient_Instance * AmmClient_Initialize(
 
   if (instance!=0)
   {
-   snprintf(instance->ip,64,"%s",ip);
+   snprintf(instance->ip,32,"%s",ip);
    instance->port = port;
 
    instance->internals = (void *) malloc(sizeof (struct AmmClient_Internals));
