@@ -1,6 +1,12 @@
 #ifndef AMMCLIENT_H_INCLUDED
 #define AMMCLIENT_H_INCLUDED
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct AmmClient_Instance
 {
   int clientSocket;
@@ -40,5 +46,9 @@ struct AmmClient_Instance * AmmClient_Initialize(
 
 
 int AmmClient_Close(struct AmmClient_Instance * instance);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // AMMCLIENT_H_INCLUDED
