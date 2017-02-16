@@ -4,6 +4,8 @@
 struct AmmClient_Instance
 {
   int clientSocket;
+  int connectionOK;
+  unsigned int failedReconnections;
 
   char ip[32];
   int port;
@@ -14,6 +16,9 @@ struct AmmClient_Instance
 
 unsigned long AmmClient_GetTickCountMicroseconds();
 unsigned long AmmClient_GetTickCountMilliseconds();
+
+
+int AmmClient_CheckConnection(struct AmmClient_Instance * instance);
 
 int AmmClient_Recv(struct AmmClient_Instance * instance,
                    char * buffer ,
