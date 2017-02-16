@@ -1,42 +1,37 @@
 #include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
+#include <unistd.h>
+
+#include "AmmClient.h"
 
 
 
-
-int main()
-
+int main(int argc, char *argv[])
 {
-  int clientSocket;
-  char buffer[1024];
-  struct sockaddr_in serverAddr;
-  socklen_t addr_size;
+ fprintf(stderr,"AmmClient Tester started \n");
+ struct AmmClient_Instance * inst = AmmClient_Initialize("127.0.0.1",8080);
+ fprintf(stderr,"Initialized..\n");
 
-  /*---- Create the socket. The three arguments are: ----*/
-  /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
-  clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+ if (inst)
+ {
+  char buf[1024]={0};
+  unsigned int recvdSize=0;
 
-  /*---- Configure settings of the server address struct ----*/
-  /* Address family = Internet */
-  serverAddr.sin_family = AF_INET;
-  /* Set port number, using htons function to use proper byte order */
-  serverAddr.sin_port = htons(7891);
-  /* Set IP address to localhost */
-  serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-  /* Set all bits of the padding field to 0 */
-  memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
+  unsigned int i=0;
+  for (i=0; i<10; i++)
+  {
+   snprintf(buf,1024,"GET /index.html?test=%u HTTP/1.1\nConnection: keep-alive\n\n",i);
 
-  /*---- Connect the socket to the server using the address struct ----*/
-  addr_size = sizeof serverAddr;
-  connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
+   fprintf(stderr,"Send %u..\n",i);
+   AmmClient_Send(inst,buf,1024,1);
+   usleep(100);
+   fprintf(stderr,"Recv %u..\n",i);
+   recvdSize=1024;
+   AmmClient_Recv(inst,buf,&recvdSize);
+   usleep(1000);
+  }
 
-  /*---- Read the message from the server into the buffer ----*/
-  recv(clientSocket, buffer, 1024, 0);
-
-  /*---- Print the received message ----*/
-  printf("Data received: %s",buffer);
+  AmmClient_Close(inst);
+ }
 
   return 0;
 }

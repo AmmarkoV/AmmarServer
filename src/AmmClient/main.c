@@ -8,7 +8,6 @@
 
 struct AmmClient_Internals
 {
-  char buffer[1024];
   struct sockaddr_in serverAddr;
   socklen_t addr_size;
 };
@@ -18,7 +17,19 @@ int AmmClient_Recv(struct AmmClient_Instance * instance,
                    unsigned int * bufferSize
                   )
 {
+  struct AmmClient_Internals * ctx = (struct AmmClient_Internals *) instance->internals;
 
+  if (ctx!=0)
+  {
+   /*---- Read the message from the server into the buffer ----*/
+   *bufferSize = recv(instance->clientSocket, buffer, bufferSize, 0);
+
+   /*---- Print the received message ----*/
+   printf("Data received: %s\n",buffer);
+   return 1;
+  }
+
+ return 0;
 }
 
 int AmmClient_Send(struct AmmClient_Instance * instance,
@@ -27,7 +38,16 @@ int AmmClient_Send(struct AmmClient_Instance * instance,
                    int keepAlive
                   )
 {
+ struct AmmClient_Internals * ctx = (struct AmmClient_Internals *) instance->internals;
 
+  if (ctx!=0)
+  {
+   send(instance->clientSocket,request,requestSize,0);
+
+   return 1;
+  }
+
+ return 0;
 }
 
 
@@ -70,11 +90,6 @@ struct AmmClient_Instance * AmmClient_Initialize(
    ctx->addr_size = sizeof ctx->serverAddr;
    connect(instance->clientSocket, (struct sockaddr *) &ctx->serverAddr, ctx->addr_size);
 
-   /*---- Read the message from the server into the buffer ----*/
-   recv(instance->clientSocket, ctx->buffer, 1024, 0);
-
-   /*---- Print the received message ----*/
-   printf("Data received: %s",ctx->buffer);
   } else
   {
    fprintf(stderr,"Could not allocate internals.. \n");
