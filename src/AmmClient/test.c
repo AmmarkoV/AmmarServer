@@ -8,7 +8,7 @@
 int main(int argc, char *argv[])
 {
  fprintf(stderr,"AmmClient Tester started \n");
- struct AmmClient_Instance * inst = AmmClient_Initialize("127.0.0.1",8080);
+ struct AmmClient_Instance * inst = AmmClient_Initialize("192.168.1.48",8080);
  fprintf(stderr,"Initialized..\n");
 
  if (inst)
