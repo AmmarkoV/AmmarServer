@@ -19,26 +19,35 @@ int main(int argc, char *argv[])
   unsigned long startTime,endTime;
 
   unsigned int i=0;
-  for (i=0; i<10; i++)
+   while (1)
   {
    startTime = AmmClient_GetTickCountMicroseconds();
 
    snprintf(buf,1024,"GET /index.html?test=%u HTTP/1.1\nConnection: keep-alive\n\n",i);
 
-   fprintf(stderr,"Send %u..\n",i);
-   AmmClient_Send(inst,buf,1024,1);
-   usleep(100);
-   fprintf(stderr,"Recv %u..\n",i);
-   recvdSize=1024;
-   AmmClient_Recv(inst,buf,&recvdSize);
+   fprintf(stderr,"Send #%u..\n",i);
+   if (AmmClient_Send(inst,buf,strlen(buf),1))
+   {
+    usleep(100);
+    fprintf(stderr,"Recv #%u..\n",i);
+    recvdSize=1024;
+
+    if (!AmmClient_Recv(inst,buf,&recvdSize) )
+      {
+       fprintf(stderr,"Failed to recv.. \n");
+      }
 
 
    endTime = AmmClient_GetTickCountMicroseconds();
 
    fprintf(stderr,"Took %lu microseconds \n",endTime-startTime);
+   } else
+   {
+     fprintf(stderr,"Failed to Send.. \n");
+   }
    usleep(1000);
 
-
+   ++i;
 
   }
 
