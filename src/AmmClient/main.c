@@ -1,9 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
 
 #include "AmmClient.h"
+
+#include <sys/time.h>
+#include <time.h>
+
 
 
 struct AmmClient_Internals
@@ -11,6 +16,43 @@ struct AmmClient_Internals
   struct sockaddr_in serverAddr;
   socklen_t addr_size;
 };
+
+
+unsigned long tickBase = 0;
+
+
+unsigned long AmmClient_GetTickCountMicroseconds()
+{
+   struct timespec ts;
+   if ( clock_gettime(CLOCK_MONOTONIC,&ts) != 0) { return 0; }
+
+   if (tickBase==0)
+   {
+     tickBase = ts.tv_sec*1000000 + ts.tv_nsec/1000;
+     return 0;
+   }
+
+   return ( ts.tv_sec*1000000 + ts.tv_nsec/1000 ) - tickBase;
+}
+
+unsigned long AmmClient_GetTickCountMilliseconds()
+{
+   //This returns a monotnic "uptime" value in milliseconds , it behaves like windows GetTickCount() but its not the same..
+   struct timespec ts;
+   if ( clock_gettime(CLOCK_MONOTONIC,&ts) != 0) { return 0; }
+
+   if (tickBase==0)
+   {
+     tickBase = ts.tv_sec*1000 + ts.tv_nsec/1000000;
+     return 0;
+   }
+
+   return ( ts.tv_sec*1000 + ts.tv_nsec/1000000 ) - tickBase;
+}
+
+
+
+
 
 int AmmClient_Recv(struct AmmClient_Instance * instance,
                    char * buffer ,
@@ -26,6 +68,9 @@ int AmmClient_Recv(struct AmmClient_Instance * instance,
 
    /*---- Print the received message ----*/
    printf("Data received: %s\n",buffer);
+
+
+   if (*bufferSize < 0 ) { return 0; }
    return 1;
   }
 
@@ -42,7 +87,9 @@ int AmmClient_Send(struct AmmClient_Instance * instance,
 
   if (ctx!=0)
   {
-   send(instance->clientSocket,request,requestSize,0);
+   int result = send(instance->clientSocket,request,requestSize,0);
+
+   if (result < 0 ) { return 0; }
 
    return 1;
   }
@@ -109,7 +156,10 @@ struct AmmClient_Instance * AmmClient_Initialize(
 int AmmClient_Close(struct AmmClient_Instance * instance)
 {
  if (instance->clientSocket!=0)
-   { free(instance->clientSocket); }
+   {
+     shutdown(instance->clientSocket,SHUT_RDWR);
+     free(instance->internals);
+   }
 
  free(instance);
 

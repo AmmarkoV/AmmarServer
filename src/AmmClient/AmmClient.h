@@ -12,6 +12,9 @@ struct AmmClient_Instance
 };
 
 
+unsigned long AmmClient_GetTickCountMicroseconds();
+unsigned long AmmClient_GetTickCountMilliseconds();
+
 int AmmClient_Recv(struct AmmClient_Instance * instance,
                    char * buffer ,
                    unsigned int * bufferSize
