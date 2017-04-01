@@ -305,6 +305,7 @@ int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index
     }
   }
 
+  #warning "Hash Map performs slow serial searches it needs to be upgraded..!"
  //Stupid and slow serial search
   while ( i < hm->curNumberOfEntries )
   {
