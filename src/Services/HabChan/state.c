@@ -53,7 +53,7 @@ void * debug_get_callback(struct AmmServer_DynamicRequest  * rqst)
 
 int loadSite( char * filename )
 {
-  boardHashMap = hashMap_Create( 100 , 100 , 0 );
+  boardHashMap = hashMap_Create( 100 , 100 , 0 , 1 /*We should have sorting enabled..!*/ );
 
   unsigned int numberOfElements=0;
     char what2GetBack[1024]={0};

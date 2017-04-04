@@ -138,7 +138,7 @@ int AmmCaptcha_copyCaptchaJPEGImageWithCopy(unsigned int captchaID, char *mem,un
 
 int AmmCaptcha_loadDictionary(char * dictFilename)
 {
- captchaStrings = hashMap_Create(32889,1000,0);
+ captchaStrings = hashMap_Create(32889,1000,0,0 /*does not require sorting..!*/);
  if (captchaStrings==0) { fprintf(stderr,"Could not loadDictionary %s \n",dictFilename); return 0; }
  FILE *fd=0;
  fd = fopen(dictFilename,"r");

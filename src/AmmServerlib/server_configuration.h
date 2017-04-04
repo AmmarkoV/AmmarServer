@@ -28,6 +28,10 @@ extern "C" {
 #define DEBUG_MESSAGES 0
 
 
+
+/** @brief Use qsort and bsearch in hashmaps to speed up results in big caches , should be 1 if we trust them to work correctly..!*/
+#define USE_SORTING_IN_HASH_MAPS 0
+
 /** @brief Redeclares a function that causes linking problems..   */
 #define WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR 1
 

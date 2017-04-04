@@ -133,7 +133,7 @@ int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seper
      memset(instance->cache , 0 , cache_memory_size);
    }
 
-    instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0);
+    instance->cacheHashMap = (void*) hashMap_Create(max_seperate_items,1000,0,USE_SORTING_IN_HASH_MAPS);
     instance->cacheVersionETag = 0;
 
     #if RANDOMIZE_ETAG_PER_LAUNCH

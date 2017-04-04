@@ -14,11 +14,11 @@
 #define WHITE   "\033[37m"      /* White */
 
 
-int doHashMapTest()
+int doHashMapTest(int useSorting)
 {
   unsigned int errors=0;
   printf("Starting HashMap unit test \n");
-  struct hashMap * hm = hashMap_Create(1000/*INITIAL*/,1000/*STEP*/,0/*ClearFN*/);
+  struct hashMap * hm = hashMap_Create(1000/*INITIAL*/,1000/*STEP*/,0/*ClearFN*/, useSorting /*Test using sorting..!*/);
   if (hm == 0) { fprintf(stderr,RED "Could not create a new hashMap\n" NORMAL); return 0; }
 
   char keyStr[128]={0};
@@ -26,25 +26,34 @@ int doHashMapTest()
   while (i<10000)
    {
       snprintf(keyStr,128,"%lu",i);
-      if (! hashMap_Add(hm,keyStr,(void*) i,0) ) { ++errors; }
+      if (! hashMap_AddULong(hm,keyStr,i) ) { ++errors; }
       ++i;
    }
 
+  if (useSorting)
+  {
+    hashMap_PrepareForQueries(hm);
+  }
 
-  unsigned long index=0;
   i=0;
   while (i<10000)
    {
       snprintf(keyStr,128,"%lu",i);
-      if (!hashMap_FindIndex(hm,keyStr,&index))
+      unsigned long pl;
+      if (!hashMap_GetULongPayload(hm,keyStr,&pl))
        {
          fprintf(stderr,RED "Could not find %lu\n" NORMAL,i);
          ++errors;
+       } else
+       {
+         if (pl!=i) { ++errors; }
        }
       ++i;
    }
   hashMap_Destroy(hm);
 
+
+ fprintf(stderr,"Got %u errors\n",errors);
  return (errors==0);
 }
 
@@ -84,7 +93,8 @@ int main(int argc, char *argv[])
 {
   if (!doInjectTest())   { fprintf(stderr,GREEN "Injection Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Injection Test .. Failed\n" NORMAL); }
 
-  //if (!doHashMapTest())   { fprintf(stderr,GREEN "Hash Map Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test .. Failed\n" NORMAL); }
+  if (doHashMapTest(0))   { fprintf(stderr,GREEN "Hash Map Without Sorting Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test Without Sorting.. Failed\n" NORMAL); }
+  if (doHashMapTest(1))   { fprintf(stderr,GREEN "Hash Map With Sorting Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test With Sorting.. Failed\n" NORMAL); }
 
 
 
