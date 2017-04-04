@@ -49,7 +49,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
   return 0;
 }
 
-struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAllocationStep,void * clearItemFunction)
+struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAllocationStep,void * clearItemFunction , unsigned int useSorting)
 {
   struct hashMap * hm = (struct hashMap *)  malloc(sizeof(struct hashMap));
   if (hm==0)  { fprintf(stderr,"Could not allocate a new hashmap"); return 0; }
@@ -60,6 +60,7 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
   hm->entryAllocationStep=entryAllocationStep;
   hm->maxNumberOfEntries=0;
   hm->curNumberOfEntries=0;
+  hm->useSorting=useSorting;
 
   if (!hashMap_Grow(hm,initialEntries) )
   {
@@ -120,6 +121,7 @@ void hashMap_Clear(struct hashMap * hm)
   unsigned int i=0;
   unsigned int entryNumber = hm->curNumberOfEntries; //cur
 
+  hm->isSorted=0;
   hm->curNumberOfEntries = 0;
   fprintf(stderr,"hashMap_Clear with %u , %u ( %u max ) entries \n", i , entryNumber ,  hm->maxNumberOfEntries );
 
@@ -179,19 +181,57 @@ void hashMap_Destroy(struct hashMap * hm)
 
 
 /* qsort struct comparision function (price float field) ( See qsort call in main ) */
-int cmpHashTableItems(const void *a, const void *b)
+int cmpHashTableItems (const void * a, const void * b)
 {
-    struct hashMapEntry *ia = (struct hashMapEntry *)a;
-    struct hashMapEntry *ib = (struct hashMapEntry *)b;
-
-    return (ia->keyHash > ib->keyHash);
+  struct hashMapEntry *ia = (struct hashMapEntry *)a;
+  struct hashMapEntry *ib = (struct hashMapEntry *)b;
+  if ( ia->keyHash <  ib->keyHash ) return -1;
+  if ( ia->keyHash == ib->keyHash ) return 0;
+  if ( ia->keyHash >  ib->keyHash ) return 1;
+ return 0;
 }
 
 int hashMap_Sort(struct hashMap * hm)
 {
+  if (!hm->useSorting) { fprintf(stderr,"Sorting is disabled for this hashmap\n"); return 0; }
   if (!hashMap_IsOK(hm)) { return 0; }
-  qsort( hm->entries , hm->curNumberOfEntries , sizeof(struct hashMapEntry), cmpHashTableItems);
+  qsort(
+         hm->entries ,
+         hm->curNumberOfEntries ,
+         sizeof(struct hashMapEntry),
+         cmpHashTableItems
+        );
+  hm->isSorted=1;
   return 1;
+}
+
+int hashMap_BSearch(struct hashMap* hm,const char *  key , unsigned long keyHash,unsigned long * index)
+{
+  if (!hm->useSorting) { fprintf(stderr,"Sorting is disabled for this hashmap\n"); return 0; }
+  struct hashMapEntry needle = {0};
+  needle.keyHash = keyHash;
+  struct hashMapEntry * haystack = hm->entries;
+
+  struct hashMapEntry * pItem = (struct hashMapEntry *) bsearch (
+                                                                  (void*) &needle,
+                                                                  (void*) haystack ,
+                                                                  hm->curNumberOfEntries ,
+                                                                  sizeof(struct hashMapEntry),
+                                                                  cmpHashTableItems
+                                                                );
+  if (pItem!=0) {
+                  *index = pItem->index;
+                  //printf ("%ul is in the array[%u] (%s vs %s) .\n",keyHash,*index , pItem->key , key);
+
+                  if (*index>=hm->curNumberOfEntries)
+                  {
+                    fprintf(stderr,"binary search bug , it lead us outside of bounds.. :( \n");
+                    return 0;
+                  }
+                 return 1;
+                }
+                //else { printf ("%ul is not in the array of %u elements .\n",keyHash , hm->curNumberOfEntries ); }
+  return 0;
 }
 
 
@@ -225,6 +265,8 @@ int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int val
      free(hm->entries[our_index].key);
      hm->entries[our_index].key=0;
     }
+
+    hm->entries[our_index].index=our_index;
 
     if (key!=0)
     {
@@ -273,6 +315,9 @@ int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int val
 
   }
 
+  hm->isSorted=0;
+
+
   #if HASHMAP_BE_THREAD_SAFE
    pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
   #endif // HASHMAP_BE_THREAD_SAFE
@@ -288,10 +333,24 @@ int hashMap_AddULong(struct hashMap * hm,const char * key,unsigned long val)
   return hashMap_Add(hm,key,valPTRForm,0);
 }
 
+int hashMap_PrepareForQueries(struct hashMap *hm)
+{
+  if (!hashMap_IsOK(hm)) { return 0;}
+
+  if (!hm->isSorted)
+  {
+     hashMap_Sort(hm);
+  }
+
+return 1;
+}
+
 
 int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
+  if ( (!hm->isSorted) && (hm->useSorting) ) { hashMap_PrepareForQueries(hm); }
+
   unsigned long i=0;
   unsigned long keyHash = hashFunction(key);
 
@@ -305,8 +364,13 @@ int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index
     }
   }
 
-  #warning "Hash Map performs slow serial searches it needs to be upgraded..!"
- //Stupid and slow serial search
+  //If the hashmap is sorted and "big" we do a fast binary search
+ if ( (hm->isSorted) && (hm->useSorting) && ( hm->curNumberOfEntries>10 ) )
+ {
+   return hashMap_BSearch(hm,key,keyHash,index);
+ } else
+ {
+ //If the hashmap is not sorted then we have to do a stupid and really slow serial search
   while ( i < hm->curNumberOfEntries )
   {
     if ( hm->entries[i].keyHash == keyHash )
@@ -317,6 +381,7 @@ int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index
          }
     ++i;
   }
+ }
   return 0;
 }
 
@@ -357,9 +422,9 @@ int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload)
   unsigned long i=0;
   if (hashMap_FindIndex(hm,key,&i))
     {
-       fprintf(stderr,"Payload was pointing to %p and now it is pointing to ",payload);
+        fprintf(stderr,"Payload was pointing to %p and now it is pointing to ",payload);
         payload = hm->entries[i].payload;
-       fprintf(stderr,"%p \n",payload);
+        fprintf(stderr,"%p \n",payload);
        return 1;
     }
   return 0;
@@ -369,7 +434,11 @@ int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload)
 int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long * payload)
 {
   unsigned long i=*payload;
-  if (hashMap_FindIndex(hm,key,&i)) {  *payload = (unsigned long) hm->entries[i].payload; return 1; }
+  if (hashMap_FindIndex(hm,key,&i))
+     {
+       *payload = (unsigned long) hm->entries[i].payload;
+      return 1;
+     }
   return 0;
 }
 
@@ -377,23 +446,8 @@ int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long *
 
 int hashMap_ContainsKey(struct hashMap * hm,const char * key)
 {
-  if (!hashMap_IsOK(hm)) { return 0;}
-  unsigned int i=0;
-  unsigned long keyHash = hashFunction(key);
-  //fprintf(stderr,"Key we are searching for has value %lu ( %s ) \n",keyHash,key);
-  while ( i < hm->curNumberOfEntries )
-  {
-    //fprintf(stderr,"Element %u has value %lu  ( %s )\n",i,hm->entries[i].keyHash,hm->entries[i].key);
-    if ( hm->entries[i].keyHash == keyHash )
-         {
-          //fprintf(stderr,"Found Match\n");
-          return 1;
-         }
-    ++i;
-  }
-
-  //fprintf(stderr,"Could not Find Match");
-  return 0;
+  unsigned long index=0;
+  return hashMap_FindIndex(hm,key,&index);
 }
 
 
@@ -410,6 +464,18 @@ int hashMap_ContainsValue(struct hashMap * hm,void * val)
 }
 
 
+
+int hashMap_Print(struct hashMap * hm,const char * title)
+{
+  fprintf(stderr,"Hash map %s Printout -----------------------------------\n",title);
+  unsigned int i=0;
+  for (i=0; i<hm->curNumberOfEntries; i++)
+  {
+   fprintf(stderr,"#%u - %s => %lu \n",i,hm->entries[i].key , (unsigned long) hm->entries[i].payload);
+  }
+  fprintf(stderr,"---------------------------------------------------------\n");
+  return 1;
+}
 
 
 int hashMap_SaveToFile(struct hashMap * hm,const char * filename)
@@ -484,5 +550,54 @@ int hashMap_LoadToFile(struct hashMap * hm,const char * filename)
 
 
 
+int hashMap_GetUniqueStringForItem( char * strOut , unsigned int strOutLength , unsigned int itemID, unsigned int totalItems )
+{
+  unsigned int charsToUse='z'-'a';
+  unsigned int charactersThatAreNeeded = strOutLength / charsToUse;
+  unsigned int i=0;
 
+
+  for (i=0; i<charactersThatAreNeeded; i++)
+   {
+      //TODO : 
+   }
+
+
+
+}
+
+int hashMap_Test(int useSorting)
+{
+ struct hashMap * hm = hashMap_Create(5,1,0,useSorting);
+ if (hm==0) { return 0; }
+
+ char testName[4]={0};
+
+ unsigned int i=0;
+ for (i=0; i<20; i++)
+ {
+     testName[0]='a'+i;
+     testName[1]='a'+i;
+     testName[2]='a'+i;
+     testName[3]=0;
+     hashMap_AddULong(hm,testName,20-i);
+ }
+ 
+ hashMap_PrepareForQueries(hm);
+ 
+unsigned long payload;
+ for (i=0; i<20; i++)
+ {
+     testName[0]='a'+i;
+     testName[1]='a'+i;
+     testName[2]='a'+i;
+     testName[3]=0;
+     hashMap_GetULongPayload(hm,testName,&payload); 
+     if (payload!=20-i)
+     { fprintf(stderr,"Error with %s value %lu instead of %u\n",testName,payload,20-i); }
+ }
+
+ hashMap_Destroy(hm);
+ return 1;
+}
 

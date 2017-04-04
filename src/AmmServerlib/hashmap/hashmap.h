@@ -27,6 +27,7 @@ unsigned long hashFunction(const char *str);
 /** @brief An entry on the hash map flattened out for ease of use  */
 struct hashMapEntry
 {
+  unsigned int index;
   unsigned long keyHash;
   unsigned int keyLength;
   char * key;
@@ -45,6 +46,8 @@ struct hashMap
 
   void * clearItemCallbackFunction;
 
+  unsigned int isSorted;
+  unsigned int useSorting;
   #if HASHMAP_BE_THREAD_SAFE
    pthread_mutex_t hm_addLock;
    pthread_mutex_t hm_fileLock;
@@ -58,7 +61,7 @@ struct hashMap
 * @param Allocation step for new allocations
 * @param Pointer to a function that clears an item
 * @retval Hashmap Structure or , 0=Failure */
-struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entryAllocationStep,void * clearItemFunction);
+struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entryAllocationStep,void * clearItemFunction, unsigned int useSorting);
 
 /**
 * @brief Destroy and deallocate a hash map
@@ -73,6 +76,14 @@ void hashMap_Destroy(struct hashMap * hm);
 * @param HashMap
 * @retval 1=Success,0=Failure */
 int hashMap_Sort(struct hashMap * hm);
+
+
+/**
+* @brief Hint that we are done adding things to hash map and we are ready for queries
+* @ingroup hashmap
+* @param HashMap
+* @retval 1=Success,0=Failure */
+int hashMap_PrepareForQueries(struct hashMap *hm);
 
 /**
 * @brief Add a new key to hash map
@@ -182,6 +193,18 @@ int hashMap_GetMaxNumberOfEntries(struct hashMap * hm);
 * @retval Number of entries */
 int hashMap_GetCurrentNumberOfEntries(struct hashMap * hm);
 
+
+
+
+/**
+* @brief Console printout of hashmap contents ( useful when debugging )
+* @ingroup hashmap
+* @param HashMap structure
+* @param Title to add
+* @retval 1=Success,0=Fail*/
+int hashMap_Print(struct hashMap * hm , const char * title);
+
+
 /**
 * @brief Load hash map from a file
 * @ingroup hashmap
@@ -197,5 +220,13 @@ int hashMap_LoadToFile(struct hashMap * hm,const char * filename);
 * @param Filename to save to
 * @retval 1=Success,0=Fail*/
 int hashMap_SaveToFile(struct hashMap * hm,const char * filename);
+
+
+
+/**
+* @brief Perform an internal test to check if library is working ok
+* @ingroup hashmap
+* @retval 1=Success,0=Fail*/
+int hashMap_Test(int useSorting);
 
 #endif // HASHMAP_H_INCLUDED
