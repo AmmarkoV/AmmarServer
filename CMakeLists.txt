@@ -5,6 +5,15 @@ cmake_minimum_required( VERSION 2.8.7 )
 set(CMAKE_CXX_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 
+
+OPTION (USE_OPENSSL OFF)
+
+
+
+IF( USE_OPENSSL )
+ add_definitions(-DUSE_OPENSSL)
+ENDIF( USE_OPENSSL )
+
     #This is the core library 
     add_subdirectory (src/AmmServerlib)
  

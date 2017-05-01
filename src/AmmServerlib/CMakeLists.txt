@@ -87,12 +87,20 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 tools/directory_lists.c
                 tools/directory_lists.h 
               )
+
+
+if (USE_OPENSSL)
+ set( OpenSSLParts  -lssl -lcrypto )
+ MESSAGE("OpenSSL will be used")
+ELSE (USE_OPENSSL)
+ MESSAGE("OpenSSL will not be used") 
+ENDIF(USE_OPENSSL)
   
     add_library(AmmarServerDynamic SHARED ${AMMARSERVER_INGREDIENTS} )
-    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES})
+    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} )
 
     add_library(AmmarServer STATIC ${AMMARSERVER_INGREDIENTS} )
-    target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES})
+    target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} )
 
 
 
