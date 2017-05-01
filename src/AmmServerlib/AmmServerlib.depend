@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1441103746 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/InputParser/InputParser_C.c
+1491308324 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/InputParser/InputParser_C.c
 	"InputParser_C.h"
 	<math.h>
 	<stdio.h>
@@ -154,7 +154,7 @@
 	"../tools/logs.h"
 	"sendHTTPHeader.h"
 
-1491306103 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1493657507 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1467815117 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -505,4 +505,13 @@
 
 1471972845 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/generic_header_tools.h
 	"../AmmServerlib.h"
+
+1493656188 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/openssl_server.c
+	"openssl_server.h"
+	<openssl/applink.c>
+	<openssl/bio.h>
+	<openssl/ssl.h>
+	<openssl/err.h>
+
+1493656199 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/openssl_server.h
 
