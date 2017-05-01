@@ -37,6 +37,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 header_analysis/generic_header_tools.c
                 header_analysis/generic_header_tools.h
                 #Network I/O
+                network/openssl_server.c
+                network/openssl_server.h
                 network/file_server.c
                 network/file_server.h
                 network/sendHTTPHeader.c
