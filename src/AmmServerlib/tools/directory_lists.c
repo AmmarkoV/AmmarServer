@@ -108,6 +108,7 @@ while ((dp=readdir(dir)) != 0)
         closedir(dir);
         strncat(memory,"</table><hr><h2>Error, reached memory limit</h2></body></html>",mem_remaining);
         *memoryUsed=strlen(memory);
+        if (tmp!=0) { free(tmp); }
         return memory;
      }
        else
@@ -121,6 +122,7 @@ while ((dp=readdir(dir)) != 0)
                closedir(dir);
                strncat(memory,"</table><hr><h2>Error,  could not reallocate memory</h2></body></html>",mem_remaining);
                *memoryUsed=strlen(memory);
+               if (tmp!=0) { free(tmp); }
                return memory;
              } else
              {
