@@ -496,8 +496,6 @@ int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,c
 int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,const char * request_type,void * callback);
 
 
-
-
 /**
 * @brief Add a scheduler that fires every X seconds  in order to perform mainenance ( defragment databases , save stuff to disk etc )
 * @ingroup core

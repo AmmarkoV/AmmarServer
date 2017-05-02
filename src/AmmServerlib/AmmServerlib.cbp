@@ -102,6 +102,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="network/file_server.h" />
+		<Unit filename="network/openssl_server.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network/openssl_server.h" />
 		<Unit filename="network/recvHTTPHeader.c">
 			<Option compilerVar="CC" />
 		</Unit>
