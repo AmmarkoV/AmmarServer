@@ -261,6 +261,8 @@ struct AmmServer_Instance_Settings
     //------------------------------------------------
 
     int BINDING_PORT;
+
+    unsigned int MAX_POST_TRANSACTION_SIZE;
     int ENABLE_POST;
 };
 
@@ -385,6 +387,7 @@ enum AmmServSettings
 {
     AMMSET_PASSWORD_PROTECTION=0,
     AMMSET_RANDOMIZE_ETAG_BEGINNING,
+    AMMSET_MAX_POST_TRANSACTION_SIZE,
     AMMSET_TEST
 };
 

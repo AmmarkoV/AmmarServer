@@ -128,7 +128,7 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 #define HTTP_POST_GROWTH_STEP_REQUEST_HEADER 512/*KB*/*1024
 
 /** @brief Maximum size of an incoming POST Header , since it carries files this should be big enough ( say 4 MB )  */
-#define MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
+#define DEFAULT_MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
 
 
 

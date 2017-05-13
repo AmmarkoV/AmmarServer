@@ -147,6 +147,7 @@ void * internalTestCallback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
+  AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,32/*MB*/*1024*1024);
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )

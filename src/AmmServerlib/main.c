@@ -177,6 +177,8 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
                                   }
 
 
+   instance->settings.MAX_POST_TRANSACTION_SIZE = DEFAULT_MAX_HTTP_POST_REQUEST_HEADER;
+
 
   //LoadConfigurationFile happens before dropping root id so we are more sure that we will manage to read the configuration file..
   LoadConfigurationFile(instance,conf_file);
@@ -552,7 +554,8 @@ int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
 {
   switch (set_type)
    {
-     case AMMSET_PASSWORD_PROTECTION :  instance->settings.PASSWORD_PROTECTION=set_value; return 1; break;
+     case AMMSET_PASSWORD_PROTECTION      :  instance->settings.PASSWORD_PROTECTION=set_value; return 1; break;
+     case AMMSET_MAX_POST_TRANSACTION_SIZE     :  instance->settings.MAX_POST_TRANSACTION_SIZE=set_value; return 1; break;
      case AMMSET_RANDOMIZE_ETAG_BEGINNING :  return cache_RandomizeETAG(instance);  break;
    };
   return 0;
@@ -604,8 +607,8 @@ int AmmServer_RegisterTerminationSignal(void * callback)
   TerminationCallback = callback;
 
   unsigned int failures=0;
-  if (signal(SIGINT, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { AmmServer_Warning("AmmarServer cannot handle SIGINT!\n");  ++failures; }
-  if (signal(SIGHUP, AmmServer_GlobalTerminationHandler) == SIG_ERR)  { AmmServer_Warning("AmmarServer cannot handle SIGHUP!\n");  ++failures; }
+  if (signal(SIGINT, AmmServer_GlobalTerminationHandler)  == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGINT!\n");  ++failures; }
+  if (signal(SIGHUP, AmmServer_GlobalTerminationHandler)  == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGHUP!\n");  ++failures; }
   if (signal(SIGTERM, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGTERM!\n"); ++failures; }
   if (signal(SIGKILL, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGKILL!\n"); ++failures; }
   return (failures==0);

@@ -178,21 +178,21 @@ int growHeader(struct HTTPTransaction * transaction)
   unsigned int wannabeHeaderSize = hdr->MAXheaderRAWSize + HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
   if (hdr->headerRAWRequestedSize!=0)
   {
-   if (hdr->headerRAWRequestedSize<=MAX_HTTP_POST_REQUEST_HEADER)
+   if (hdr->headerRAWRequestedSize <= transaction->instance->settings.MAX_POST_TRANSACTION_SIZE)
    {
     wannabeHeaderSize = hdr->headerRAWRequestedSize ; // + transaction->incomingHeader.headerHeadSize;
    } else
    {
-    fprintf(stderr,"Cannot grow header , requested size ( %u is more than our limit %u )\n",hdr->headerRAWRequestedSize,MAX_HTTP_POST_REQUEST_HEADER);
+    fprintf(stderr,"Cannot grow header , requested size ( %u is more than our limit %u )\n",hdr->headerRAWRequestedSize,transaction->instance->settings.MAX_POST_TRANSACTION_SIZE);
     hdr->dumpedToFile=1; fprintf(stderr,"This should be handled by dumping to /tmp/files \n");
     return 0;
    }
   }
 
- if (hdr->MAXheaderRAWSize < MAX_HTTP_POST_REQUEST_HEADER )
+ if (hdr->MAXheaderRAWSize < transaction->instance->settings.MAX_POST_TRANSACTION_SIZE )
    { //There is still room for incrementing the size of the buffer
-     if (wannabeHeaderSize > MAX_HTTP_POST_REQUEST_HEADER )
-            { wannabeHeaderSize = MAX_HTTP_POST_REQUEST_HEADER; }
+     if (wannabeHeaderSize > transaction->instance->settings.MAX_POST_TRANSACTION_SIZE )
+            { wannabeHeaderSize = transaction->instance->settings.MAX_POST_TRANSACTION_SIZE; }
       fprintf(stderr,"Growing ");
      char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+2) );
 
@@ -289,7 +289,7 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
      unsigned int totalHTTPRecvSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
 
      fprintf(stderr,"Our header length is %u , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
-     if (transaction->incomingHeader.ContentLength>MAX_HTTP_POST_REQUEST_HEADER)
+     if (transaction->incomingHeader.ContentLength> instance->settings.MAX_POST_TRANSACTION_SIZE)
      {
        fprintf(stderr,"Requested POST Size is too big calling it a day if we got the initial..!");
        transaction->incomingHeader.failed=1;
@@ -301,7 +301,7 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
 
        if ( (!instance->settings.ENABLE_POST)||(!MASTER_ENABLE_POST) )
           { AmmServer_Warning("POST functionality is not enabled in this build , so allocated space for header ( MAX_HTTP_REQUEST_HEADER )  is small , this explains what happened..!\n"); } else
-          { AmmServer_Warning("You might consider tuning your MAX_HTTP_POST_REQUEST_HEADER parameter to increase it ..!\n"); }
+          { AmmServer_Warning("You might consider tuning your AMMSET_MAX_POST_TRANSACTION_SIZE parameter to increase it ..!\n"); }
 
 
        transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
