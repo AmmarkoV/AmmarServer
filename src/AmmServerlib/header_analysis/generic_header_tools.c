@@ -297,7 +297,11 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
      } else
      if (totalHTTPRecvSize >  transaction->incomingHeader.headerRAWSize )
      {
-       fprintf(stderr,"Header needs more bytes taking into account %u bytes of header..!",transaction->incomingHeader.headerRAWHeadSize);
+       AmmServer_Warning("Header needs more space ( Recvd = %u Bytes / Header size = %u Bytes / MAX allowed size = %u Bytes )..!",totalHTTPRecvSize,transaction->incomingHeader.headerRAWHeadSize , transaction->incomingHeader.MAXheaderRAWSize);
+       if (!ENABLE_POST)
+          { AmmServer_Warning("POST functionality is not enabled in this build , so allocated space for header ( MAX_HTTP_REQUEST_HEADER )  is small , this explains what happened..!\n"); } else
+          { AmmServer_Warning("You might consider tuning your MAX_HTTP_POST_REQUEST_HEADER parameter to increase it ..!\n"); }
+
 
        transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
        return 0;

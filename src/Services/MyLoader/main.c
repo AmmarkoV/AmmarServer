@@ -51,8 +51,6 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 
   unsigned int linkID=1+rand()%6;
 
-
-
   char bannerLink[28];
   snprintf(bannerLink,28,"banner_%u",linkID);
 
