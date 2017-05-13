@@ -122,7 +122,7 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 
 /** @brief Maximum size of an incoming HTTP Header */
-#define MAX_HTTP_REQUEST_HEADER 4096
+#define MAX_HTTP_REQUEST_HEADER 8/*KB*/*1024
 
 /** @brief Maximum size of an incoming HTTP Header allocation step */
 #define HTTP_POST_GROWTH_STEP_REQUEST_HEADER 512/*KB*/*1024
