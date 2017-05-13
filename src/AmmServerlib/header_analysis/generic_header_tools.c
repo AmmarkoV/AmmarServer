@@ -168,31 +168,35 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * trans
 int growHeader(struct HTTPTransaction * transaction)
 {
  if (transaction==0) { return 0; }
-  if (transaction->incomingHeader.failed) { fprintf(stderr,"Will not try to grow a failed Header \n"); return 0; }
-
+  if (transaction->incomingHeader.failed) { AmmServer_Error("Will not try to grow a failed Header \n"); return 0; }
 
   struct HTTPHeader * hdr =  &transaction->incomingHeader;
-  fprintf(stderr,"growHeader called \n");
+  if (hdr == 0 )  { AmmServer_Error("Cannot grow header on transaction with no header.."); return 0; }
+
+  struct AmmServer_Instance * instance = transaction->instance;
+  if (instance == 0 )  { AmmServer_Error("Cannot grow header on transaction with no registered server instance..");  return 0; }
+
+  fprintf(stderr,"growHeader called can grow up to %u \n",instance->settings.MAX_POST_TRANSACTION_SIZE);
 
   //We have a requested header Size
   unsigned int wannabeHeaderSize = hdr->MAXheaderRAWSize + HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
   if (hdr->headerRAWRequestedSize!=0)
   {
-   if (hdr->headerRAWRequestedSize <= transaction->instance->settings.MAX_POST_TRANSACTION_SIZE)
+   if (hdr->headerRAWRequestedSize <= instance->settings.MAX_POST_TRANSACTION_SIZE)
    {
     wannabeHeaderSize = hdr->headerRAWRequestedSize ; // + transaction->incomingHeader.headerHeadSize;
    } else
    {
-    fprintf(stderr,"Cannot grow header , requested size ( %u is more than our limit %u )\n",hdr->headerRAWRequestedSize,transaction->instance->settings.MAX_POST_TRANSACTION_SIZE);
+    fprintf(stderr,"Cannot grow header , requested size ( %u is more than our limit %u )\n",hdr->headerRAWRequestedSize,instance->settings.MAX_POST_TRANSACTION_SIZE);
     hdr->dumpedToFile=1; fprintf(stderr,"This should be handled by dumping to /tmp/files \n");
     return 0;
    }
   }
 
- if (hdr->MAXheaderRAWSize < transaction->instance->settings.MAX_POST_TRANSACTION_SIZE )
+ if (hdr->MAXheaderRAWSize < instance->settings.MAX_POST_TRANSACTION_SIZE )
    { //There is still room for incrementing the size of the buffer
-     if (wannabeHeaderSize > transaction->instance->settings.MAX_POST_TRANSACTION_SIZE )
-            { wannabeHeaderSize = transaction->instance->settings.MAX_POST_TRANSACTION_SIZE; }
+     if (wannabeHeaderSize > instance->settings.MAX_POST_TRANSACTION_SIZE )
+            { wannabeHeaderSize = instance->settings.MAX_POST_TRANSACTION_SIZE; }
       fprintf(stderr,"Growing ");
      char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+2) );
 
