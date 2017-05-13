@@ -156,8 +156,13 @@ struct HTTPHeader
 */
 enum RHScenarios
 {
-   SAME_PAGE_FOR_ALL_CLIENTS = 0 ,
-   DIFFERENT_PAGE_FOR_EACH_CLIENT
+   SAME_PAGE_FOR_ALL_CLIENTS        = 1 ,
+   DIFFERENT_PAGE_FOR_EACH_CLIENT   = 2 ,
+   ENABLE_RECEIVING_FILES           = 4
+                                  //= 8
+                                  //= 16
+                                  //= 32
+                                  //= 64
 };
 
 /**
@@ -216,6 +221,8 @@ struct AmmServer_DynamicRequest
    unsigned int clientID;
 };
 
+
+
 /**
 * @brief We can override resources to respond with our own C function code , to do so a AmmServer_DynamicRequest must be populated using a AmmServer_AddResourceHandler
 */
@@ -223,6 +230,9 @@ struct AmmServer_RH_Context
 {
    unsigned int RH_Scenario;
 
+   unsigned int enablePOST;
+   unsigned int needsDifferentPageForEachClient;
+   unsigned int needsSamePageForAllClients;
    unsigned int executedNow;
    unsigned int last_callback;
    unsigned int callback_every_x_msec;

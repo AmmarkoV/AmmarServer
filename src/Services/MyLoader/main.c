@@ -125,7 +125,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  stats context , ( stats.content )
 void * internalTestCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  char command[512]={"curl \"http://127.0.0.1:8085/upload.html\" -F myfile=@\"public_html/image.png\" "};
+  //char command[512]={"curl \"http://127.0.0.1:8085/upload.html\" -F myfile=@\"public_html/image.png\" "};
 
   AmmServer_WriteFileFromMemory("test.jpg",rqst->POST_request,rqst->POST_request_length);
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
@@ -152,7 +152,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
      { AmmServer_Warning("Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+  if (! AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES) )
      { AmmServer_Warning("Failed adding upload processor page\n"); }
 
   if (! AmmServer_AddResourceHandler(default_server,&testProcessor,"/test.html",webserver_root,4096,0,&internalTestCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
