@@ -56,10 +56,9 @@ char * dynamicRequest_serveContent
 
   char * cacheMemory=0; // <- this will hold the resulting page
 
-
   //Before doing callback we might want to allocate a different response space dedicated to this callback instead to using
   //one common memory buffer for every client...!
-  if ( (shared_context->RH_Scenario == DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+  if ( (shared_context->needsDifferentPageForEachClient) )
     {
      unsigned int size_to_allocate =  sizeof(char) * ( shared_context->requestContext.MAXcontentSize ) ;
      if (size_to_allocate==0)
@@ -72,7 +71,7 @@ char * dynamicRequest_serveContent
                           { error("Could not allocate enough memory for responding to this request"); } //Lets work with our default buffer till the end..!
      }
     } else
-   if ( (shared_context->RH_Scenario == SAME_PAGE_FOR_ALL_CLIENTS ) )
+   if ( (shared_context->needsSamePageForAllClients) )
     {
        cacheMemory =  shared_context->requestContext.content;
     } else
@@ -99,7 +98,7 @@ char * dynamicRequest_serveContent
      //Check if request falls on callback limits!
      if (
           (shared_context-> callback_every_x_msec!=0) &&
-          (shared_context->RH_Scenario == SAME_PAGE_FOR_ALL_CLIENTS)
+          (shared_context->needsSamePageForAllClients)
         )
      { //Only Dynamic pages with time limits have to call the "expensive" GetTickCountAmmServ
        now=GetTickCountAmmServ();

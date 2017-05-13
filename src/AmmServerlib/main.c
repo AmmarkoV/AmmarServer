@@ -332,6 +332,10 @@ int AmmServer_AddResourceHandler
    context->callback_cooldown=0;
    context->RH_Scenario = scenario;
 
+   if((scenario&ENABLE_RECEIVING_FILES)        == ENABLE_RECEIVING_FILES         ) { context->enablePOST=1; } else { context->enablePOST=0; }
+   if((scenario&DIFFERENT_PAGE_FOR_EACH_CLIENT)== DIFFERENT_PAGE_FOR_EACH_CLIENT ) { context->needsDifferentPageForEachClient=1; } else { context->needsDifferentPageForEachClient=0; }
+   if((scenario&SAME_PAGE_FOR_ALL_CLIENTS)     == SAME_PAGE_FOR_ALL_CLIENTS      ) { context->needsSamePageForAllClients=1; }      else { context->needsSamePageForAllClients=0; }
+
    if ( allocate_mem_bytes>0 )
     {
        context->requestContext.content = (char*) malloc( sizeof(char) * allocate_mem_bytes );
