@@ -298,7 +298,8 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
      if (totalHTTPRecvSize >  transaction->incomingHeader.headerRAWSize )
      {
        AmmServer_Warning("Header needs more space ( Recvd = %u Bytes / Header size = %u Bytes / MAX allowed size = %u Bytes )..!",totalHTTPRecvSize,transaction->incomingHeader.headerRAWHeadSize , transaction->incomingHeader.MAXheaderRAWSize);
-       if (!ENABLE_POST)
+
+       if ( (!instance->settings.ENABLE_POST)||(!MASTER_ENABLE_POST) )
           { AmmServer_Warning("POST functionality is not enabled in this build , so allocated space for header ( MAX_HTTP_REQUEST_HEADER )  is small , this explains what happened..!\n"); } else
           { AmmServer_Warning("You might consider tuning your MAX_HTTP_POST_REQUEST_HEADER parameter to increase it ..!\n"); }
 

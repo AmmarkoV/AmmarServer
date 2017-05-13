@@ -107,8 +107,8 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
           (transaction->incomingHeader.headerRAWSize >= transaction->incomingHeader.MAXheaderRAWSize) &&
           //And we are talking about a POST request
           (transaction->incomingHeader.requestType == POST ) &&
-          //And POST is enabled
-          (ENABLE_POST)
+          //And POST is enabled both by configuration and this instance
+          ((instance->settings.ENABLE_POST)&&(MASTER_ENABLE_POST))
          )
         {
            //Try to grow our header , If we can't then stop
@@ -128,7 +128,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   if (
        (!transaction->incomingHeader.failed) &&
        (transaction->incomingHeader.requestType == POST ) &&
-       (ENABLE_POST)
+       ((instance->settings.ENABLE_POST)&&(MASTER_ENABLE_POST))
       )
   {
     transaction->incomingHeader.POSTrequestBody = transaction->incomingHeader.headerRAW+transaction->incomingHeader.headerRAWHeadSize+1;

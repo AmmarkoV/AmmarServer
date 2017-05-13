@@ -237,7 +237,7 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
 
    if (httpHeaderReceivedWithNoProblems)
       {
-        if ( (transaction->incomingHeader.requestType==POST) && (ENABLE_POST) )
+        if ( (transaction->incomingHeader.requestType==POST) && (instance->settings.ENABLE_POST) && (MASTER_ENABLE_POST) )
         {
            //If we have a POST request
            //Expand header to also receive the files uploaded
@@ -303,7 +303,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
      else
    { // Not a Bad request Start
       //This is a hack and should be probably be changed..!
-      if ( ( transaction->incomingHeader.requestType==POST ) && (ENABLE_POST) )
+      if ( ( transaction->incomingHeader.requestType==POST ) && (instance->settings.ENABLE_POST) && (MASTER_ENABLE_POST) )
        {
 
          fprintf(stderr,GREEN "POST HEADER : %u length \n %s \n" NORMAL,transaction->incomingHeader.ContentLength,transaction->incomingHeader.headerRAW);

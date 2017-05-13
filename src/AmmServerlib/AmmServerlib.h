@@ -261,6 +261,7 @@ struct AmmServer_Instance_Settings
     //------------------------------------------------
 
     int BINDING_PORT;
+    int ENABLE_POST;
 };
 
 
