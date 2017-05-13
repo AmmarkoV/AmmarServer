@@ -52,6 +52,7 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
 int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
 {
     struct HTTPTransaction transaction={0};
+    transaction.instance=instance;
     transaction.clientSock=clientsock;
     transaction.prespawnedThreadFlag=1; //Yes this is prespawned we dont want to end it after the client goes away
 

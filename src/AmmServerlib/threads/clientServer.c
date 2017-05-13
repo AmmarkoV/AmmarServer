@@ -522,6 +522,7 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
   struct HTTPTransaction transaction={0}; // This should get free'ed once it isn't needed any more see FreeHTTPHeader call!
   //int close_connection=0; // <- if this is set it means Serve Client must stop
 
+  transaction.instance=instance;
   //memset(&transaction->incomingHeader,0,sizeof(struct HTTPHeader));
   transaction.incomingHeader.headerRAW=0;
   transaction.incomingHeader.headerRAWSize=0;
