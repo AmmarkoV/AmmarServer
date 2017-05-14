@@ -76,6 +76,10 @@ int CheckIfFileIsVideo(const char * filename);
 
 int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,char * directory,char * indexfile,unsigned int indexFileLength);
 
+
+
+char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber,unsigned int  * outputSize);
+
 int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length);
 int StripVariableFromGETorPOSTString(const char * input,const char * var_id, char * var_val , unsigned int var_val_length);
 
