@@ -637,6 +637,18 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 
+
+/**
+* @brief Save a POST argument to a file
+* @ingroup core
+* @param Instance of an AmmarServer
+* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
+* @param Number of argument we are looking for ( first is 0 )
+* @param Filename for where to store output as a file
+* @retval 1=Success,0=Failure */
+int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename);
+
+
 /**
 * @brief Get a GET argument
 * @ingroup core

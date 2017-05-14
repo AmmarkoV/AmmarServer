@@ -106,7 +106,8 @@ void request_override_callback(void * request)
 //This function prepares the content of  stats context , ( stats.content )
 void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  AmmServer_WriteFileFromMemory("test.bin",rqst->POST_request,rqst->POST_request_length);
+  //AmmServer_WriteFileFromMemory("test.bin",rqst->POST_request,rqst->POST_request_length);
+  AmmServer_POSTArgToFile (default_server,rqst,0,"test.bin");
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   snprintf(rqst->content,rqst->MAXcontentSize,"<html>\
                            <head>\

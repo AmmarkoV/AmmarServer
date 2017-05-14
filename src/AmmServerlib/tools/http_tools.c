@@ -731,6 +731,38 @@ int seek_blank_char(char * input,char * input_end)
    return 0;
 }
 
+
+char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber , unsigned int  * outputSize)
+{
+  if (requestLength<4) { return 0; }
+
+  fprintf(stderr,"GetFILEFromPOSTRequest..!\n");
+  char * ptrA=request;
+  char * ptrB=request+1;
+  char * ptrC=request+2;
+  char * ptrD=request+3;
+
+  char * ptrEnd = request + requestLength;
+
+   while (ptrD<ptrEnd)
+    {
+      if ( (*ptrA==13) && (*ptrB==10) && (*ptrC==13) && (*ptrD==10) )
+        {
+          if (fileNumber==0)
+          {
+           fprintf(stderr,"Found Sequence %u bytes inside POST Request..!\n",ptrD-request);
+           *outputSize = requestLength - (ptrD-request);
+           return ptrD+1;
+          }
+          --fileNumber;
+        }
+
+      ++ptrA;   ++ptrB;   ++ptrC;   ++ptrD;
+    }
+ return request;
+}
+
+
 unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
 {
    /*                                                             char * request should initally point here ( at the `:` )

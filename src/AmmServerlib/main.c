@@ -439,6 +439,24 @@ int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_Dyna
 }
 
 
+
+int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename)
+{
+  if ( (instance==0) || (rqst==0) ) { return 0; }
+
+   if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) )
+     {
+       AmmServer_WriteFileFromMemory("post.bin",rqst->POST_request,rqst->POST_request_length);
+       unsigned int filePointerLength=0;
+       char * filePointer = GetFILEFromPOSTRequest(rqst->POST_request,rqst->POST_request_length,1,&filePointerLength);
+
+       return AmmServer_WriteFileFromMemory(filename,filePointer,filePointerLength);
+     }
+  return 0;
+}
+
+
+
 int AmmServer_CookieArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   if ( (instance==0) || (rqst==0) ) { return 0; }
