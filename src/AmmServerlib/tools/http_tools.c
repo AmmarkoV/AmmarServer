@@ -763,6 +763,15 @@ char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsi
 }
 
 
+
+
+int GetNameofFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber,char * filenameOut, unsigned int filenameSize)
+{
+    //TODO:
+    return 0;
+}
+
+
 unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
 {
    /*                                                             char * request should initally point here ( at the `:` )

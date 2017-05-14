@@ -446,7 +446,7 @@ int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServ
 
    if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) )
      {
-       AmmServer_WriteFileFromMemory("post.bin",rqst->POST_request,rqst->POST_request_length);
+       //AmmServer_WriteFileFromMemory("post.bin",rqst->POST_request,rqst->POST_request_length);
        unsigned int filePointerLength=0;
        char * filePointer = GetFILEFromPOSTRequest(rqst->POST_request,rqst->POST_request_length,1,&filePointerLength);
 
@@ -455,6 +455,18 @@ int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServ
   return 0;
 }
 
+
+
+int AmmServer_POSTNameOfFile (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,char * filenameOut, unsigned int filenameSize)
+{
+  if ( (instance==0) || (rqst==0) ) { return 0; }
+
+   if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) )
+     {
+        return GetNameofFILEFromPOSTRequest(rqst->POST_request,rqst->POST_request_length,argumentSelected-1,filenameOut,filenameSize);
+     }
+  return 0;
+}
 
 
 int AmmServer_CookieArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
