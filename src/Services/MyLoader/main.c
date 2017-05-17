@@ -35,7 +35,6 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context uploadProcessor={0};
-struct AmmServer_RH_Context testProcessor={0};
 struct AmmServer_RH_Context indexProcessor={0};
 struct AmmServer_RH_Context vFileProcessor={0};
 
@@ -162,28 +161,6 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-//This function prepares the content of  stats context , ( stats.content )
-void * internalTestCallback(struct AmmServer_DynamicRequest  * rqst)
-{
-  //char command[512]={"curl \"http://127.0.0.1:8085/upload.html\" -F myfile=@\"public_html/image.png\" "};
-
-  AmmServer_WriteFileFromMemory("test.jpg",rqst->POST_request,rqst->POST_request_length);
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  snprintf(rqst->content,rqst->MAXcontentSize,"<html>\
-                           <head>\
-                             <title>Dynamic Content Enabled</title>\
-                           </head>\
-                           <body>Uploaded<br>\
-                           </body></html>");
-
-
-  rqst->contentSize=strlen(rqst->content);
-  return 0;
-}
-
-
-
-
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
@@ -191,9 +168,6 @@ void init_dynamic_content()
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
   if (! AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES) )
-     { AmmServer_Warning("Failed adding upload processor page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&testProcessor,"/test.html",webserver_root,4096,0,&internalTestCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
      { AmmServer_Warning("Failed adding upload processor page\n"); }
 
   if (! AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",webserver_root,4096,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
@@ -217,7 +191,6 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&uploadProcessor,1);
-    AmmServer_RemoveResourceHandler(default_server,&testProcessor,1);
     AmmServer_RemoveResourceHandler(default_server,&indexProcessor,1);
     AmmServer_RemoveResourceHandler(default_server,&vFileProcessor,1);
     AmmServer_FreeMemoryHandler(&indexPage);
