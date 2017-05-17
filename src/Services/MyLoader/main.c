@@ -37,10 +37,21 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context uploadProcessor={0};
 struct AmmServer_RH_Context testProcessor={0};
 struct AmmServer_RH_Context indexProcessor={0};
-
-struct AmmServer_RH_Context stats={0};
+struct AmmServer_RH_Context vFileProcessor={0};
 
 struct AmmServer_MemoryHandler * indexPage=0;
+struct AmmServer_MemoryHandler * vFilePage=0;
+struct AmmServer_MemoryHandler * errorPage=0;
+
+
+//This function prepares the content of  stats context , ( stats.content )
+void * prepare_error_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  snprintf(rqst->content,rqst->MAXcontentSize,"%s",errorPage->content);
+  rqst->contentSize=errorPage->contentCurrentLength;
+  return 0;
+}
+
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -48,12 +59,12 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
-
   unsigned int linkID=1+rand()%6;
 
   char bannerLink[28];
   snprintf(bannerLink,28,"banner_%u",linkID);
 
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$BANNERLINK$",bannerLink);
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_SHARED_DATA$", "0");
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_UPLOAD_SIZE$", "0");
@@ -65,25 +76,54 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
-//This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
-{
-  time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
 
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head>\
-            <body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>\
-            The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n\
-            To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L46\">\
-            Dynamic content code label in ammarserver main.c</a><br>\n\
-            If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in \
-            <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>",
-           tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-  rqst->contentSize=strlen(rqst->content);
+
+
+
+
+
+
+
+
+
+//This function prepares the content of  stats context , ( stats.content )
+void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  int fileIsOk=0;
+  char fileRequested[128]={0};
+  if ( _GET(default_server,rqst,"i",fileRequested,128) )
+              {
+                fprintf(stderr,"Requested file %s \n",fileRequested);
+                fileIsOk=1;
+              }
+
+
+  if (!fileIsOk)
+  {
+    return prepare_error_callback(rqst);
+  }
+
+
+  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
+
+  unsigned int linkID=1+rand()%6;
+
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$","todo:addWWWpath");
+
+
+
+  memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
+  rqst->contentSize=videoMH->contentCurrentLength ;
+
+  AmmServer_FreeMemoryHandler(&videoMH);
   return 0;
 }
+
+
+
+
 
 //This function could alter the content of the URI requested and then return 1
 void request_override_callback(void * request)
@@ -103,7 +143,6 @@ void request_override_callback(void * request)
 
 
 
-//This function prepares the content of  stats context , ( stats.content )
 void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 {
   //AmmServer_WriteFileFromMemory("test.bin",rqst->POST_request,rqst->POST_request_length);
@@ -151,9 +190,6 @@ void init_dynamic_content()
   AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,32/*MB*/*1024*1024);
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
-
   if (! AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES) )
      { AmmServer_Warning("Failed adding upload processor page\n"); }
 
@@ -163,9 +199,16 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",webserver_root,4096,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
      { AmmServer_Warning("Failed adding upload processor page\n"); }
 
+  if (! AmmServer_AddResourceHandler(default_server,&vFileProcessor,"/vfile.html",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     { AmmServer_Warning("Failed adding upload processor page\n"); }
+
+
 
   fprintf(stderr,"Reading master index file..  ");
   indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyLoader/res/index.html");
+  vFilePage=AmmServer_ReadFileToMemoryHandler("src/Services/MyLoader/res/vfile.html");
+  errorPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyLoader/res/error.html");
+
   fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
 
 }
@@ -173,10 +216,13 @@ void init_dynamic_content()
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    AmmServer_RemoveResourceHandler(default_server,&stats,1);
     AmmServer_RemoveResourceHandler(default_server,&uploadProcessor,1);
     AmmServer_RemoveResourceHandler(default_server,&testProcessor,1);
+    AmmServer_RemoveResourceHandler(default_server,&indexProcessor,1);
+    AmmServer_RemoveResourceHandler(default_server,&vFileProcessor,1);
     AmmServer_FreeMemoryHandler(&indexPage);
+    AmmServer_FreeMemoryHandler(&vFilePage);
+    AmmServer_FreeMemoryHandler(&errorPage);
 }
 
 
