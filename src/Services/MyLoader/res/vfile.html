@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+ <html>
+<head>
+<!-- Version $VERSION_NUMBER$ -->
+     <title> $NAME_OF_THIS_MYLOADER_FILE$ @ $NAME_OF_THIS_MYLOADER_SERVER$ </title>
+     <link rel="stylesheet" type="text/css" href="myloader.css" />
+ <script>   
+     function goRandomMyLoader() 
+          {
+           var randomnumber=Math.floor(Math.random()*100000);
+           window.location.href = "random.html?t="+randomnumber; 
+          }
+ 
+     document.onkeypress = function (e) 
+    {
+      e = e || window.event;
+      var keypressed=(e.keyCode || e.which);
+      if (  keypressed == 114  ) //r
+      {
+       goRandomMyLoader();  
+      }
+    };
+ </script> 
+</head>
+ <body>   
+         <table width=192 height=128 style="position: absolute; top: 0px; left: 0px;" >
+          <tr>
+            <td>
+              <h2>MyLoader</h2>
+               <a href="index.php"><img src="images/link.png"></a>
+             </td> 
+          </tr>
+         </table>
+
+         <center>
+             <br>
+             <a href="random.php">See More Random Files!</a> &nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;
+             <a href="index.php">Return to MyLoader!</a>
+             <br><br>
+             <a href="$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$">
+               <img src="$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$" width="70%" alt="Uploaded Image" >
+             </a>
+              <br><br>
+              <a href="$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$">$NAME_OF_THIS_MYLOADER_FILE$</a>
+              <br><br><br><br><br><br>
+              <a href="index.php">Return to MyLoader!</a>   
+          </center>
+</body>
+</html>
