@@ -143,21 +143,37 @@ void request_override_callback(void * request)
 }
 
 
+char * getBackRandomFileDigits(unsigned int numberOfDigits)
+{
+ char * response= (char *) malloc(sizeof(char)* (numberOfDigits+1));
+
+ unsigned int i=0;
+ for (i=0; i<numberOfDigits; i++)
+ {
+   response[i]='a';
+ }
+response[numberOfDigits]=0;
+return response;
+}
+
 
 void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  //AmmServer_WriteFileFromMemory("test.bin",rqst->POST_request,rqst->POST_request_length);
-  AmmServer_POSTArgToFile (default_server,rqst,0,"test.bin");
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  snprintf(rqst->content,rqst->MAXcontentSize,"<html>\
-                           <head>\
-                             <title>Dynamic Content Enabled</title>\
-                           </head>\
-                           <body>Uploaded test.bin<br>\
-                           </body></html>");
+  char * storeID = getBackRandomFileDigits(10);
 
-
-  rqst->contentSize=strlen(rqst->content);
+  if (storeID!=0)
+  {
+   char finalPath[512];
+   snprintf(finalPath,512,"%s/%s/%s",webserver_root,uploads_root,storeID);
+   AmmServer_POSTArgToFile (default_server,rqst,0,finalPath);
+   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+   snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><title>Upload Successful</title></head><body>Uploaded Successfully , please hang on..!<br></body></html>");
+   rqst->contentSize=strlen(rqst->content);
+   free(storeID);
+  } else
+  {
+    return prepare_error_callback(rqst);
+  }
   return 0;
 }
 
