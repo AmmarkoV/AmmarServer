@@ -825,6 +825,15 @@ unsigned int AmmServer_StringIsHTMLSafe( const char * str)
   return 1;
 }
 
+unsigned int AmmServer_StringHasSafePath( const char * directory , const char * filenameUNSANITIZEDString)
+{
+  const char * str = filenameUNSANITIZEDString;
+  fprintf(stderr,"TODO : AmmServer_StringHasSafePath better checking.. https://www.owasp.org/index.php/Path_Traversal\n");
+  unsigned int i=0;
+  while(i<strlen(str)) { if (  ( str[i]<'!' ) || ( str[i]=='\\' ) || ( str[i]=='%' ) || ( str[i]=='/' ) ) { return 0;} ++i; }
+  return 1;
+}
+
 
 
 

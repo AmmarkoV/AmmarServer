@@ -918,6 +918,17 @@ int AmmServer_EraseFile(const char * filename);
 */
 unsigned int AmmServer_StringIsHTMLSafe(const char * str);
 
+/**
+* @brief Check if a string has html elements inside it , so if we append it to a web site we won't have html injected
+* @ingroup tools
+* @param Directory path
+* @param Input String
+* @retval 1=Safe,0=Unsafe
+*/
+unsigned int AmmServer_StringHasSafePath( const char * directory , const char * filenameUNSANITIZEDString);
+
+
+
 #ifdef __cplusplus
 }
 #endif

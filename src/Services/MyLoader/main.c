@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define DEFAULT_BINDING_PORT 8085
 
 char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char uploads_root[MAX_FILE_PATH]="uploads/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
@@ -78,13 +79,6 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-
-
-
-
-
-
-
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -96,20 +90,28 @@ void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
                 fileIsOk=1;
               }
 
+  if (!AmmServer_StringHasSafePath(uploads_root,fileRequested))
+  {
+    AmmServer_Error("AmmServer_StringHasSafePath(\"%s\",\"%s\")=bad request ",uploads_root,fileRequested);
+    fileIsOk=0;
+  }
 
   if (!fileIsOk)
   {
+    AmmServer_Error("File %s deemed as a bad request ",fileRequested);
     return prepare_error_callback(rqst);
   }
 
-
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
 
-  unsigned int linkID=1+rand()%6;
+  char filenameToAccess[1024];
+  snprintf(filenameToAccess,1024,"%s/%s",uploads_root,fileRequested);
 
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$","todo:addWWWpath");
+
+  //todo: have different embed point if it is video etc..
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$",filenameToAccess);
 
 
 
@@ -131,10 +133,10 @@ void request_override_callback(void * request)
   struct HTTPHeader * rqst = rqstContext->request;
   AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
 
-  if (strcmp("/favicon.ico",rqst->resource)==0 ) { return; /*Client requested favicon.ico , no resolving to do */ } else
-  if (strcmp("/error.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
+  if (strcmp("/favicon.ico",rqst->resource)==0 )  { return; /*Client requested favicon.ico , no resolving to do */ } else
+  if (strcmp("/error.html",rqst->resource)==0 )   { return; /*Client requested error.html , no resolving to do */  } else
   if (strcmp("/upload.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
-  if (strcmp("/",rqst->resource)==0 ) {  return; /*Client requested index.html , no resolving to do */  } else
+  if (strcmp("/",rqst->resource)==0 )             {  return; /*Client requested index.html , no resolving to do */  } else
   if (strcmp("/random.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  }
 
   return;
