@@ -116,7 +116,7 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
   {
     snprintf(embed,1024,"<a href=\"%s\">Binary file : %s</a>",filenameToAccess,fileRequested);
   }
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$PLACE_TO_EMBED_CONTENT$",embed);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$PLACE_TO_EMBED_CONTENT$",embed);
 
   memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
   rqst->contentSize=videoMH->contentCurrentLength ;
