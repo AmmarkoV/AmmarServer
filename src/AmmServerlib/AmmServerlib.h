@@ -17,6 +17,7 @@ extern "C" {
 #endif
 
 #include <pthread.h>
+#include <libgen.h>
 
 /**
 * @brief An enumerator that lists the types of requests , per HTTP spec , see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
@@ -650,6 +651,18 @@ int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServ
 
 
 /**
+* @brief Get Name of POST argument
+* @ingroup core
+* @param Instance of an AmmarServer
+* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
+* @param Number of argument we are looking for ( first is 0 )
+* @param Output string with Filename we are looking for
+* @param Size of output string
+* @retval 1=Success,0=Failure */
+int AmmServer_POSTNameOfFile (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,char * filenameOut, unsigned int filenameSize);
+
+
+/**
 * @brief Get a GET argument
 * @ingroup core
 * @param Instance of an AmmarServer
@@ -872,6 +885,9 @@ int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh);
 */
 int AmmServer_RegisterTerminationSignal(void * callback);
 
+
+
+int AmmServer_GetDirectoryFromPath(const char * path);
 
 
 /**

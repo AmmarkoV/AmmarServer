@@ -77,6 +77,35 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRequested)
+{
+  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
+
+  char filenameToAccess[1024];
+  snprintf(filenameToAccess,1024,"%s/%s",uploads_root,fileRequested);
+
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
+
+  //todo: have different embed point if it is video etc..
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$",filenameToAccess);
+
+  if (0) // audio
+  {
+     // <audio autoplay controls><source src="http://ammar.gr/myloader/file.php?i=51a37f93af4a8cd1295a27167c30a077-05-One.ogg" type="audio/ogg" /> <p> Try this page on HTML5 capable brosers</p>
+     //                   </audio>
+     //                   <br><a  href="http://ammar.gr/myloader/file.php?i=51a37f93af4a8cd1295a27167c30a077-05-One.ogg">Download the audio file</a>
+  }
+
+
+
+  memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
+  rqst->contentSize=videoMH->contentCurrentLength ;
+
+  AmmServer_FreeMemoryHandler(&videoMH);
+ return 0;
+}
+
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -102,24 +131,7 @@ void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
     return prepare_error_callback(rqst);
   }
 
-  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
-
-  char filenameToAccess[1024];
-  snprintf(filenameToAccess,1024,"%s/%s",uploads_root,fileRequested);
-
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
-
-  //todo: have different embed point if it is video etc..
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$",filenameToAccess);
-
-
-
-  memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
-  rqst->contentSize=videoMH->contentCurrentLength ;
-
-  AmmServer_FreeMemoryHandler(&videoMH);
-  return 0;
+  return  render_vfile(rqst,fileRequested);
 }
 
 
@@ -147,10 +159,11 @@ char * getBackRandomFileDigits(unsigned int numberOfDigits)
 {
  char * response= (char *) malloc(sizeof(char)* (numberOfDigits+1));
 
- unsigned int i=0;
+ unsigned int i=0,range=0;
  for (i=0; i<numberOfDigits; i++)
  {
-   response[i]='a';
+   range='z'-'a';
+   response[i]='a'+rand()%range;
  }
 response[numberOfDigits]=0;
 return response;
@@ -159,16 +172,28 @@ return response;
 
 void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  char * storeID = getBackRandomFileDigits(10);
+  char * storeID = getBackRandomFileDigits(5);
 
   if (storeID!=0)
   {
-   char finalPath[512];
-   snprintf(finalPath,512,"%s/%s/%s",webserver_root,uploads_root,storeID);
-   AmmServer_POSTArgToFile (default_server,rqst,0,finalPath);
-   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-   snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><title>Upload Successful</title></head><body>Uploaded Successfully , please hang on..!<br></body></html>");
-   rqst->contentSize=strlen(rqst->content);
+   char uploadedFileUNSANITIZEDPath[512];
+   AmmServer_POSTNameOfFile (default_server,rqst,0,uploadedFileUNSANITIZEDPath,512);
+   AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
+
+   if (AmmServer_StringHasSafePath(uploads_root,uploadedFileUNSANITIZEDPath))
+   {
+    char * uploadedFilePath = uploadedFileUNSANITIZEDPath;
+    char finalPath[1024];
+    snprintf(finalPath,1024,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath);
+    AmmServer_POSTArgToFile (default_server,rqst,0,finalPath);
+
+    //snprintf(finalPath,512,"%s/%s/%s.raw",webserver_root,uploads_root,storeID);
+    //AmmServer_WriteFileFromMemory(finalPath,rqst->POST_request,rqst->POST_request_length);
+
+    //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+    snprintf(finalPath,1024,"%s-%s",storeID,uploadedFilePath);
+    return render_vfile(rqst,finalPath);
+   }
    free(storeID);
   } else
   {

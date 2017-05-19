@@ -767,8 +767,23 @@ char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsi
 
 int GetNameofFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber,char * filenameOut, unsigned int filenameSize)
 {
-    //TODO:
-    return 0;
+  //TODO: Make this better
+  static const char searchTag[] = "filename=\"";
+
+  char * location = strstr(request,"filename=\"");
+   if (location !=0 )
+   {
+     location+=sizeof(searchTag)-1;
+     char * locationEnd = strstr(location,"\"");
+     if (locationEnd!=0)
+     {
+      *locationEnd=0;
+      snprintf(filenameOut,filenameSize,"%s",location);
+      *locationEnd='"';
+      return 1;
+     }
+   }
+ return 0;
 }
 
 
