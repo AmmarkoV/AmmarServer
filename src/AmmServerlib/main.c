@@ -793,6 +793,11 @@ int AmmServer_ConvertBufferToMemoryHandler(struct AmmServer_MemoryHandler * mh, 
 }
 
 
+int AmmServer_GetDirectoryFromPath(const char * path)
+{
+ return dirname(path);
+}
+
 
 int AmmServer_DirectoryExists(const char * filename)
 {
