@@ -293,9 +293,9 @@ int GetContentType(const char * filename,char * contentType,unsigned int content
 
    const char * start_of_extension = &filename[i+1]; // do not include . ( dot )
 
-   //fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
+   fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
    int res=GetContentTypeForExtension(start_of_extension,contentType,contentTypeLength);
-   //fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
+   fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
 
   return res;
 }
@@ -323,12 +323,56 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
 
 
 
+int CheckIfFileIsText(const char * filename)
+{
+ // if (AmmServer_FileExists(filename))
+  {
+    char contentType[512];
+    GetContentType(filename,contentType,512);
+    if ( GetExtentionType(contentType)==TEXT)
+    {
+      //Todo also check internals of files ( file magic number headers etc )
+      return 1;
+    }
+  }
+  return 0;
+}
 
+int CheckIfFileIsImage(const char * filename)
+{
+ // if (AmmServer_FileExists(filename))
+  {
+    char contentType[512];
+    GetContentType(filename,contentType,512);
+    if ( GetExtentionType(contentType)==IMAGE)
+    {
+      //Todo also check internals of files ( file magic number headers etc )
+      return 1;
+    }
+  }
+  return 0;
+}
+
+
+int CheckIfFileIsAudio(const char * filename)
+{
+  //if (AmmServer_FileExists(filename))
+  {
+    char contentType[512];
+    GetContentType(filename,contentType,512);
+    if ( GetExtentionType(contentType)==AUDIO)
+    {
+      //Todo also check internals of files ( file magic number headers etc )
+      return 1;
+    }
+  }
+  return 0;
+}
 
 
 int CheckIfFileIsVideo(const char * filename)
 {
-  if (AmmServer_FileExists(filename))
+ // if (AmmServer_FileExists(filename))
   {
     char contentType[512];
     GetContentType(filename,contentType,512);

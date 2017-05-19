@@ -82,22 +82,39 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
 
   char filenameToAccess[1024];
-  snprintf(filenameToAccess,1024,"%s/%s",uploads_root,fileRequested);
+  snprintf(filenameToAccess,1024,"%s%s",uploads_root,fileRequested);
 
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
 
   //todo: have different embed point if it is video etc..
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$WWW_PATH_TO_HTML_LINK_OF_THIS_MYLOADER_FILE$",filenameToAccess);
 
-  if (0) // audio
+  char embed[1024];
+  if (AmmServer_FileIsText(fileRequested)) // audio
   {
-     // <audio autoplay controls><source src="http://ammar.gr/myloader/file.php?i=51a37f93af4a8cd1295a27167c30a077-05-One.ogg" type="audio/ogg" /> <p> Try this page on HTML5 capable brosers</p>
-     //                   </audio>
-     //                   <br><a  href="http://ammar.gr/myloader/file.php?i=51a37f93af4a8cd1295a27167c30a077-05-One.ogg">Download the audio file</a>
+     snprintf(embed,1024,"not implemented yet");
   }
-
-
+   else
+  if (AmmServer_FileIsAudio(fileRequested)) // audio
+  {
+    snprintf(embed,1024,"<audio autoplay controls><source src=\"%s\" type=\"audio/ogg\" />\
+                         <p> Try this page on HTML5 capable browsers</p>);\
+                          </audio><br>\
+                          <a  href=\"%s\">Download the audio file</a>" ,filenameToAccess, filenameToAccess );
+  } else
+  if (AmmServer_FileIsImage(fileRequested)) // image
+  {
+    snprintf(embed,1024," <a href=\"%s\"><img src=\"%s\" width=\"70%\" alt=\"Uploaded Image\" ></a><br><br>\
+                           <a href=\"%s\">%s</a>" ,filenameToAccess, filenameToAccess , filenameToAccess , fileRequested );
+  } else
+  if (AmmServer_FileIsVideo(fileRequested)) // video
+  {
+     snprintf(embed,1024,"not implemented yet");
+  } else
+  {
+    snprintf(embed,1024,"<a href=\"%s\">Binary file : %s</a>",filenameToAccess,fileRequested);
+  }
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$PLACE_TO_EMBED_CONTENT$",embed);
 
   memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
   rqst->contentSize=videoMH->contentCurrentLength ;
