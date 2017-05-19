@@ -109,7 +109,9 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
   } else
   if (AmmServer_FileIsVideo(fileRequested)) // video
   {
-     snprintf(embed,1024,"not implemented yet");
+     snprintf(embed,1024,"<video poster=\"images/video_logo.png\" autoplay controls>\
+                          <source src=\"%s\" type='video/webm; codecs=\"vp8, vorbis\"'  /></video>\
+                           <br><a  href=\"%s\">Download the video file</a>",filenameToAccess, filenameToAccess );
   } else
   {
     snprintf(embed,1024,"<a href=\"%s\">Binary file : %s</a>",filenameToAccess,fileRequested);
