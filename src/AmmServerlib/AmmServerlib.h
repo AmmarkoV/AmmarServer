@@ -887,8 +887,9 @@ int AmmServer_RegisterTerminationSignal(void * callback);
 
 
 
-int AmmServer_GetDirectoryFromPath(const char * path);
+const char * AmmServer_GetDirectoryFromPath(char * path);
 
+const char * AmmServer_GetExtensionFromPath(char * path);
 
 /**
 * @brief Check if directory Exists
@@ -908,6 +909,10 @@ int AmmServer_DirectoryExists(const char * filename);
 int AmmServer_FileExists(const char * filename);
 
 
+
+int AmmServer_FileIsText(const char * filename);
+int AmmServer_FileIsAudio(const char * filename);
+int AmmServer_FileIsImage(const char * filename);
 
 /**
 * @brief Check if file is a video

@@ -793,10 +793,25 @@ int AmmServer_ConvertBufferToMemoryHandler(struct AmmServer_MemoryHandler * mh, 
 }
 
 
-int AmmServer_GetDirectoryFromPath(const char * path)
+const char * AmmServer_GetDirectoryFromPath(char * path)
 {
  return dirname(path);
 }
+
+const char *get_filename_ext(const char *filename)
+{
+    const char *dot = strrchr(filename, '.');
+    if(!dot || dot == filename) return "";
+    return dot + 1;
+}
+
+const char * AmmServer_GetExtensionFromPath(char * path)
+{
+ char * bname = basename(path);
+ return get_filename_ext(bname);
+}
+
+
 
 
 int AmmServer_DirectoryExists(const char * filename)
@@ -809,6 +824,20 @@ int AmmServer_FileExists(const char * filename)
  return FileExistsAmmServ(filename);
 }
 
+int AmmServer_FileIsText(const char * filename)
+{
+  return CheckIfFileIsText(filename);
+}
+
+int AmmServer_FileIsAudio(const char * filename)
+{
+  return CheckIfFileIsAudio(filename);
+}
+
+int AmmServer_FileIsImage(const char * filename)
+{
+  return CheckIfFileIsImage(filename);
+}
 
 int AmmServer_FileIsVideo(const char * filename)
 {

@@ -71,6 +71,10 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
 
 
 
+
+int CheckIfFileIsText(const char * filename);
+int CheckIfFileIsImage(const char * filename);
+int CheckIfFileIsAudio(const char * filename);
 int CheckIfFileIsVideo(const char * filename);
 
 
