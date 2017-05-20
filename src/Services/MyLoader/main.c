@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8085
 
-unsigned int maxUploadFileSizeAllowedMB=32; /*MB*/
+unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
 
 char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char uploads_root[MAX_FILE_PATH]="uploads/";
@@ -298,7 +298,7 @@ void * prepare_random_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,maxUploadFileSizeAllowedMB*1024*1024);
+  AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,(maxUploadFileSizeAllowedMB+1)*1024*1024); //+1MB for headers etc..
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
   AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
