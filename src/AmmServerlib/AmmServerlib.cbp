@@ -178,6 +178,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/directory_lists.h" />
+		<Unit filename="tools/geolocation.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/geolocation.h" />
 		<Unit filename="tools/http_tools.c">
 			<Option compilerVar="CC" />
 		</Unit>
