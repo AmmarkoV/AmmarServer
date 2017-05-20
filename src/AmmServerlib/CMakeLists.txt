@@ -78,6 +78,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 #Various Tools 
                 tools/logs.c
                 tools/logs.h
+                tools/geolocation.c
+                tools/geolocation.h
                 tools/time_provider.c
                 tools/time_provider.h
                 tools/http_tools.c
