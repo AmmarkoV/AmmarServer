@@ -33,7 +33,8 @@ char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change th
 char uploads_root[MAX_FILE_PATH]="uploads/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
-unsigned int uploadsSize=0;
+unsigned int uploadsFilesSize=0;
+unsigned int uploadsDataSize=0;
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
@@ -50,7 +51,7 @@ struct AmmServer_MemoryHandler * errorPage=0;
 
 unsigned int getUploadsSizeLive()
 {
-  if (uploadsSize==0)
+  if (uploadsFilesSize==0)
   {
     char command[2048]={0};
     char sizeOfUploadsString[256]={0};
@@ -58,11 +59,11 @@ unsigned int getUploadsSizeLive()
     snprintf(command,2048,"du -sb %s%s | cut -f1",webserver_root,uploads_root);
     if ( AmmServer_ExecuteCommandLine(command,sizeOfUploadsString,256) )
     {
-      uploadsSize = atoi(sizeOfUploadsString);
-      fprintf(stderr,"getUploadsSizeLive raw result = %s ( %u ) \n",sizeOfUploadsString,uploadsSize);
+      uploadsFilesSize = atoi(sizeOfUploadsString);
+      fprintf(stderr,"getUploadsSizeLive raw result = %s ( %u ) \n",sizeOfUploadsString,uploadsFilesSize);
     }
   }
- return uploadsSize;
+ return uploadsFilesSize;
 }
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -93,7 +94,10 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 
   snprintf(stringBuffer,28,"%0.2f MB",(float) getUploadsSizeLive()/(1024*1024));
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_SHARED_DATA$", stringBuffer);
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_UPLOAD_SIZE$", "0");
+
+
+  snprintf(stringBuffer,28,"%0.2f MB",(float) default_server->statistics.totalUploadBytes/(1024*1024));
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_UPLOAD_SIZE$", stringBuffer);
 
   memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
   rqst->contentSize=videoMH->contentCurrentLength ;
@@ -247,7 +251,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
     AmmServer_POSTArgToFile (default_server,rqst,0,finalPath);
 
     //This is slightly bigger ( plus the header but almost correct )
-    uploadsSize+=rqst->POST_request_length;
+    uploadsFilesSize+=rqst->POST_request_length;
 
     //snprintf(finalPath,512,"%s/%s/%s.raw",webserver_root,uploads_root,storeID);
     //AmmServer_WriteFileFromMemory(finalPath,rqst->POST_request,rqst->POST_request_length);
