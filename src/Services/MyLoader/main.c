@@ -27,11 +27,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8085
 
+unsigned int maxUploadFileSizeAllowedMB=32; /*MB*/
+
 char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char uploads_root[MAX_FILE_PATH]="uploads/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
-
+unsigned int uploadsSize=0;
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
@@ -45,6 +47,23 @@ struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * vFilePage=0;
 struct AmmServer_MemoryHandler * errorPage=0;
 
+
+unsigned int getUploadsSizeLive()
+{
+  if (uploadsSize==0)
+  {
+    char command[2048]={0};
+    char sizeOfUploadsString[256]={0};
+
+    snprintf(command,2048,"du -sb %s%s | cut -f1",webserver_root,uploads_root);
+    if ( AmmServer_ExecuteCommandLine(command,sizeOfUploadsString,256) )
+    {
+      uploadsSize = atoi(sizeOfUploadsString);
+      fprintf(stderr,"getUploadsSizeLive raw result = %s ( %u ) \n",sizeOfUploadsString,uploadsSize);
+    }
+  }
+ return uploadsSize;
+}
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_error_callback(struct AmmServer_DynamicRequest  * rqst)
@@ -62,12 +81,18 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 
   unsigned int linkID=1+rand()%6;
 
-  char bannerLink[28];
-  snprintf(bannerLink,28,"banner_%u",linkID);
+  char stringBuffer[28];
+  snprintf(stringBuffer,28,"banner_%u",linkID);
 
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$BANNERLINK$",bannerLink);
-  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_SHARED_DATA$", "0");
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$BANNERLINK$",stringBuffer);
+
+
+  snprintf(stringBuffer,28,"%u",maxUploadFileSizeAllowedMB);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$MAXIMUM_UPLOAD_SIZE$", stringBuffer);
+
+  snprintf(stringBuffer,28,"%0.2f MB",(float) getUploadsSizeLive()/(1024*1024));
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_SHARED_DATA$", stringBuffer);
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$TOTAL_UPLOAD_SIZE$", "0");
 
   memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
@@ -87,6 +112,12 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
 
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
+
+
+  char randomString[128];
+  snprintf(randomString,128,"%u",rand()%100000);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$RANDOMNUMBERS$",randomString);
+
 
   //todo: have different embed point if it is video etc..
 
@@ -215,6 +246,9 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
     snprintf(finalPath,1024,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath);
     AmmServer_POSTArgToFile (default_server,rqst,0,finalPath);
 
+    //This is slightly bigger ( plus the header but almost correct )
+    uploadsSize+=rqst->POST_request_length;
+
     //snprintf(finalPath,512,"%s/%s/%s.raw",webserver_root,uploads_root,storeID);
     //AmmServer_WriteFileFromMemory(finalPath,rqst->POST_request,rqst->POST_request_length);
 
@@ -260,14 +294,17 @@ void * prepare_random_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,32/*MB*/*1024*1024);
+  AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,maxUploadFileSizeAllowedMB*1024*1024);
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
   AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  AmmServer_DoNOTCacheResourceHandler(default_server,&uploadProcessor);
+
   AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",webserver_root,4096,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&vFileProcessor,"/vfile.html",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&fileProcessor,"/file.html",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&randomProcessor,"/random.html",webserver_root,4096,0,&prepare_random_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_DoNOTCacheResourceHandler(default_server,&randomProcessor);
 
 
 
