@@ -38,6 +38,8 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context uploadProcessor={0};
 struct AmmServer_RH_Context indexProcessor={0};
 struct AmmServer_RH_Context vFileProcessor={0};
+struct AmmServer_RH_Context fileProcessor={0};
+struct AmmServer_RH_Context randomProcessor={0};
 
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * vFilePage=0;
@@ -51,7 +53,6 @@ void * prepare_error_callback(struct AmmServer_DynamicRequest  * rqst)
   rqst->contentSize=errorPage->contentCurrentLength;
   return 0;
 }
-
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -89,32 +90,42 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
 
   //todo: have different embed point if it is video etc..
 
-  char embed[1024];
-  if (AmmServer_FileIsText(fileRequested)) // audio
+  char embed[2048];
+  if (AmmServer_FileIsText(fileRequested))
   {
-     snprintf(embed,1024,"not implemented yet");
+     snprintf(embed,2048," <iframe src=\"%s\" width=\"70%\"></iframe><br><a  href=\"%s\">Download the file</a>",filenameToAccess, filenameToAccess);
   }
    else
   if (AmmServer_FileIsAudio(fileRequested)) // audio
   {
-    snprintf(embed,1024,"<audio autoplay controls><source src=\"%s\" type=\"audio/ogg\" />\
+    snprintf(embed,2048,"<audio autoplay controls><source src=\"%s\" type=\"audio/ogg\" />\
                          <p> Try this page on HTML5 capable browsers</p>);\
                           </audio><br>\
                           <a  href=\"%s\">Download the audio file</a>" ,filenameToAccess, filenameToAccess );
   } else
   if (AmmServer_FileIsImage(fileRequested)) // image
   {
-    snprintf(embed,1024," <a href=\"%s\"><img src=\"%s\" width=\"70%\" alt=\"Uploaded Image\" ></a><br><br>\
+    snprintf(embed,2048," <a href=\"%s\"><img src=\"%s\" width=\"70%\" alt=\"Uploaded Image\" ></a><br><br>\
                            <a href=\"%s\">%s</a>" ,filenameToAccess, filenameToAccess , filenameToAccess , fileRequested );
   } else
   if (AmmServer_FileIsVideo(fileRequested)) // video
   {
-     snprintf(embed,1024,"<video poster=\"images/video_logo.png\" autoplay controls>\
+     snprintf(embed,2048,"<video poster=\"images/video_logo.png\" autoplay controls>\
                           <source src=\"%s\" type='video/webm; codecs=\"vp8, vorbis\"'  /></video>\
                            <br><a  href=\"%s\">Download the video file</a>",filenameToAccess, filenameToAccess );
   } else
+  if (AmmServer_FileIsFlash(fileRequested))
   {
-    snprintf(embed,1024,"<a href=\"%s\">Binary file : %s</a>",filenameToAccess,fileRequested);
+      snprintf(embed,2048,"<object classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\"\
+                           codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,29,0\" width=\"640\" height=\"480\">\
+                           <param name=\"movie\" value=\"%s\">\
+                           <param name=\"quality\" value=\"high\">\
+                           <embed src=\"%s\" quality=\"high\" pluginspage=\"http://www.macromedia.com/go/getflashplayer\" type=\"application/x-shockwave-flash\" width=\"640\" height=\"480\"></embed>\
+                   </object>\
+                     <br><a  href=\"%s\">Download the flash file</a><br><br>",filenameToAccess,filenameToAccess,filenameToAccess);
+  } else
+  {
+    snprintf(embed,2048,"<a href=\"%s\"><img src=\"images/host_logo.png\"><br><br>Binary file : %s</a>",filenameToAccess,fileRequested);
   }
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$PLACE_TO_EMBED_CONTENT$",embed);
 
@@ -124,6 +135,7 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
   AmmServer_FreeMemoryHandler(&videoMH);
  return 0;
 }
+
 
 
 
@@ -152,9 +164,6 @@ void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
 
   return  render_vfile(rqst,fileRequested);
 }
-
-
-
 
 
 //This function could alter the content of the URI requested and then return 1
@@ -222,6 +231,31 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+void * prepare_random_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  char command[2048]={0};
+  char fileToServe[2048]={0};
+
+  snprintf(command,2048,"find %s%s -type f | shuf -n 1",webserver_root,uploads_root);
+  if ( AmmServer_ExecuteCommandLine(command,fileToServe,2048) )
+  {
+     AmmServer_ReplaceCharInString(fileToServe,10,0); //Strip new line
+     AmmServer_ReplaceCharInString(fileToServe,13,0); //Strip new line
+     AmmServer_Warning("Random File Selected is : `%s`\n",fileToServe);
+
+     char * baseName=AmmServer_GetBasenameFromPath(fileToServe);
+     AmmServer_Warning("Random File Basename is : `%s`\n",baseName);
+
+     snprintf(command,2048,"%s%s%s",webserver_root,uploads_root,baseName);
+     if (AmmServer_FileExists(command))
+     {
+       return render_vfile(rqst,baseName);
+     }
+  }
+  return prepare_error_callback(rqst);
+}
+
+
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
@@ -229,14 +263,11 @@ void init_dynamic_content()
   AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,32/*MB*/*1024*1024);
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  if (! AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES) )
-     { AmmServer_Warning("Failed adding upload processor page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",webserver_root,4096,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding upload processor page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&vFileProcessor,"/vfile.html",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding upload processor page\n"); }
+  AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",webserver_root,4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",webserver_root,4096,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&vFileProcessor,"/vfile.html",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&fileProcessor,"/file.html",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&randomProcessor,"/random.html",webserver_root,4096,0,&prepare_random_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 
 

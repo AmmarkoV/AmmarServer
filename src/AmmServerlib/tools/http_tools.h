@@ -21,6 +21,7 @@ enum contentTypeEnumerator
     AUDIO,
     VIDEO,
     EXECUTABLE,
+    FLASH,
     FOLDER
 };
 
@@ -76,6 +77,7 @@ int CheckIfFileIsText(const char * filename);
 int CheckIfFileIsImage(const char * filename);
 int CheckIfFileIsAudio(const char * filename);
 int CheckIfFileIsVideo(const char * filename);
+int CheckIfFileIsFlash(const char * filename);
 
 
 int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,char * directory,char * indexfile,unsigned int indexFileLength);
