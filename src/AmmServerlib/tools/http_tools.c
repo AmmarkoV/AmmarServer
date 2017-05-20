@@ -107,7 +107,7 @@ char FileExistsAmmServ(const char * filename)
 {
  FILE *fp = fopen(filename,"r");
  if( fp ) { /* exists */ fclose(fp); return 1; }
- fprintf(stderr,"FileExists(%s) returns 0\n",filename);
+ fprintf(stderr,"FileExists(%s) returns false\n",filename);
  return 0;
 }
 
@@ -261,6 +261,7 @@ int GetExtentionType(const char * theextension)
    case 'i' : return IMAGE;       break;
    case 'v' : return VIDEO;       break;
    case 'a' :
+              if (strcmp(theextension,"application/x-shockwave-flash")==0) { return FLASH; }
               if (theextension[1]=='u') { return AUDIO; } else
               if (theextension[1]=='p') { return EXECUTABLE; }
               break;
@@ -293,9 +294,9 @@ int GetContentType(const char * filename,char * contentType,unsigned int content
 
    const char * start_of_extension = &filename[i+1]; // do not include . ( dot )
 
-   fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
+   //fprintf(stderr,"START Extension ( %s ) ( last content type %s )\n",start_of_extension,contentType);
    int res=GetContentTypeForExtension(start_of_extension,contentType,contentTypeLength);
-   fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
+   //fprintf(stderr,"END Extension ( %s ) hints content type %s\n",start_of_extension,contentType);
 
   return res;
 }
@@ -310,11 +311,12 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
    //fprintf(stderr,"yields %u\n",res);
    switch (res)
    {
-     case TEXT       :  snprintf(theimagepath,theimagepath_length,"doc.gif");    break;
+     case TEXT       :  snprintf(theimagepath,theimagepath_length,"doc.gif");  break;
      case IMAGE      :  snprintf(theimagepath,theimagepath_length,"img.gif");  break;
      case VIDEO      :  snprintf(theimagepath,theimagepath_length,"vid.gif");  break;
      case AUDIO      :  snprintf(theimagepath,theimagepath_length,"mus.gif");  break;
-     case EXECUTABLE :  snprintf(theimagepath,theimagepath_length,"exe.gif");    break;
+     case EXECUTABLE :  snprintf(theimagepath,theimagepath_length,"exe.gif");  break;
+     case FLASH      :  snprintf(theimagepath,theimagepath_length,"vid.gif");  break;
      default         :  snprintf(theimagepath,theimagepath_length,"dir.gif");  break;
    }
    if ( res == NO_FILETYPE ) { return 0; }
@@ -386,6 +388,20 @@ int CheckIfFileIsVideo(const char * filename)
 }
 
 
+int CheckIfFileIsFlash(const char * filename)
+{
+ // if (AmmServer_FileExists(filename))
+  {
+    char contentType[512];
+    GetContentType(filename,contentType,512);
+    if ( GetExtentionType(contentType)==FLASH)
+    {
+      //Todo also check internals of files ( file magic number headers etc )
+      return 1;
+    }
+  }
+  return 0;
+}
 
 
 

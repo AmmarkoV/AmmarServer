@@ -137,6 +137,9 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
 
+  char cwd[4096];
+  if (getcwd(cwd, sizeof(cwd)) != NULL) { fprintf(stderr,"Current working dir: %s\n", cwd); }
+
 
   fprintf(stderr,"\n\nDISCLAIMER : \n");
   fprintf(stderr,"Please note that this server version is not thoroughly\n");
@@ -805,6 +808,11 @@ const char *get_filename_ext(const char *filename)
     return dot + 1;
 }
 
+const char * AmmServer_GetBasenameFromPath(char * path)
+{
+ return basename(path);
+}
+
 const char * AmmServer_GetExtensionFromPath(char * path)
 {
  char * bname = basename(path);
@@ -842,6 +850,11 @@ int AmmServer_FileIsImage(const char * filename)
 int AmmServer_FileIsVideo(const char * filename)
 {
   return CheckIfFileIsVideo(filename);
+}
+
+int AmmServer_FileIsFlash(const char * filename)
+{
+  return CheckIfFileIsFlash(filename);
 }
 
 int AmmServer_EraseFile(const char * filename)

@@ -888,7 +888,7 @@ int AmmServer_RegisterTerminationSignal(void * callback);
 
 
 const char * AmmServer_GetDirectoryFromPath(char * path);
-
+const char * AmmServer_GetBasenameFromPath(char * path);
 const char * AmmServer_GetExtensionFromPath(char * path);
 
 /**
@@ -921,7 +921,7 @@ int AmmServer_FileIsImage(const char * filename);
 * @retval 1=Exists,0=Does not Exist
 */
 int AmmServer_FileIsVideo(const char * filename);
-
+int AmmServer_FileIsFlash(const char * filename);
 
 /**
 * @brief Erase a File
