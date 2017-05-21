@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1495362633 source:/home/ammar/Documents/Programming/AmmarServer/src/AdServer/adserver.c
+	"adserver.h"
+
+1495362653 /home/ammar/Documents/Programming/AmmarServer/src/AdServer/adserver.h
+
