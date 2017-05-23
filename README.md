@@ -18,8 +18,8 @@ One of the most basic philosophies behind this is to try to add as much function
 The projects build dependencies are the gcc compiler , pthreads , cmake and pretty basic things 
 so if you issue sudo apt-get install cmake build-essential  ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
 
-Newer versions also support compression , so you might want to also apt-get install liblzma-dev if you enable ENABLE_COMPRESSION at server_configuration.h
-MyURL needs libjpeg in order to serve captchas , so to add it sudo apt-get install libjpeg-dev
+Compression is supported , so you might want to also apt-get install liblzma-dev if you enable ENABLE_COMPRESSION at server_configuration.h
+MyURL Service needs libjpeg in order to [serve captchas](https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmCaptcha) , so to add it sudo apt-get install libjpeg-dev
 
 To perform a compilation you just need to issue 
 mkdir build 
@@ -104,13 +104,13 @@ and fully customizable web service..
 
 
 AmmarServer is also an integral part , providing network connectivity and used in the following projects :
-V4L2ToHTTP       : https://github.com/AmmarkoV/V4L2ToHTTP/
-RoboVision       : https://github.com/AmmarkoV/RoboVision/ 
-FlashySlideshows : https://github.com/AmmarkoV/FlashySlideshows/
-RGBDAcquisition  : https://github.com/AmmarkoV/RGBDAcquisition
+-  [V4L2ToHTTP](https://github.com/AmmarkoV/V4L2ToHTTP/)
+-  [RoboVision](https://github.com/AmmarkoV/RoboVision/)
+-  [FlashySlideshows](https://github.com/AmmarkoV/FlashySlideshows/)
+-  [RGBDAcquisition](https://github.com/AmmarkoV/RGBDAcquisition)
 
 This project has also been successfully deployed as a means to control embedded platforms like Robots
-For Hobbit EU Project : https://www.youtube.com/watch?v=41_8ktacxt8 , http://hobbit.acin.tuwien.ac.at/
-For GuarddoG Robot    : https://www.youtube.com/watch?v=61GGKFbzG7I , https://github.com/AmmarkoV/RoboVision/blob/master/Documentation/GuarDDoG_RoboVision.pdf
-For Softbank NAO Robot Realtime Bridge : https://www.youtube.com/watch?v=axfKwyVTRuA
+-  For [Hobbit EU Project](https://www.youtube.com/watch?v=41_8ktacxt8) , http://hobbit.acin.tuwien.ac.at/
+-  For [GuarddoG Robot](https://www.youtube.com/watch?v=61GGKFbzG7I) , https://github.com/AmmarkoV/RoboVision/blob/master/Documentation/GuarDDoG_RoboVision.pdf
+-  For [Softbank NAO Robot Realtime Bridge](https://www.youtube.com/watch?v=axfKwyVTRuA)
 
