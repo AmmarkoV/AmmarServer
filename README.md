@@ -1,4 +1,4 @@
-![AmmarServer](https://raw.githubusercontent.com/AmmarkoV/AmmarServer/master/doc/dependencies.jpg)
+![AmmarServer](https://raw.githubusercontent.com/AmmarkoV/AmmarServer/master/doc/ammarserverbanner.png)
 
 A lightweight extendable barebones HTTP server for linux
 Please see the wiki for more info on whats going on in this repository : )
