@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #SERVER TO SET UP :)
+#See Apache_000-default.conf for what it is going to look like after this script..
 SERVERURL="ammar.gr"  #Server "public url" for reverse proxy
 APCONF="/etc/apache2/sites-availiable/default" #sites-availiable file that will contain the new virtual hosts added
 
@@ -23,10 +24,11 @@ else
 fi
 }  
 
-
 echo "This is an automated script to modify apache2 settings and add ammarserver to my main machine " 
 echo "It will probably wont do what you want in any machine it is best to take a look at the script  " 
 echo "Are you sure you want to run it ?  " 
+
+ 
   echo
   echo -n " (Y/N)?"
   read answer
@@ -55,6 +57,9 @@ else
  exit 0  
 fi
 
+
+echo "The following require a2enmod proxy " 
+echo "and                   a2enmod proxy_http"
 sudo a2enmod proxy
 sudo a2enmod proxy_http
 
@@ -65,8 +70,10 @@ addApacheRule "$APCONF" "$SERVERURL" "myurl" "8082"
 addApacheRule "$APCONF" "$SERVERURL" "chan" "8083"  
 addApacheRule "$APCONF" "$SERVERURL" "search" "8084"  
 addApacheRule "$APCONF" "$SERVERURL" "myloader" "8085"  
+addApacheRule "$APCONF" "$SERVERURL" "blog" "8086"  
    
 
+echo "and of course a       service apache2 restart"
 sudo service apache2 restart
 
 
