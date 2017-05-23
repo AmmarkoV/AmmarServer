@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
-char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char webserver_root[MAX_FILE_PATH]="src/Services/MySearch/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 //The decleration of some dynamic content resources..
@@ -67,7 +67,7 @@ void * search_callback(struct AmmServer_DynamicRequest  * rqst)
   char query[512]={0};
   if ( _GET(default_server,rqst,"q",query,512) )
               {
-               snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\" /></head><body>Search query `%s`</body></html>",query);
+               snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='https://duckduckgo.com/?q=%s'\" /></head><body>Searching for query `%s`</body></html>",query,query);
               } else
               {
                snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\" /></head><body>Search</body></html>");
