@@ -8,8 +8,9 @@ cd "$DIR"
 # Start AmmarServer
 
 until false; do
-    src/Services/MyTube/mytube -port 8080 $@ 
+    src/Services/MyTube/mytube -port 8084 $@ 
     echo "Server 'mytube' stopped with exit code $?.  Respawning.." >&2
+    sleep 1
 done
  
 #src/Services/MyTube/mytube $@
