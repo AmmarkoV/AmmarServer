@@ -18,14 +18,11 @@ One of the most basic philosophies behind this is to try to add as much function
 The projects build dependencies are the gcc compiler , pthreads , cmake and pretty basic things 
 so if you issue sudo apt-get install cmake build-essential  ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
 
-Compression is supported , so you might want to also apt-get install liblzma-dev if you enable ENABLE_COMPRESSION at server_configuration.h
+Compression is supported , so you might want to also apt-get install liblzma-dev if you [ENABLE_COMPRESSION at server_configuration.h](https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/server_configuration.h#L163)
 MyURL Service needs libjpeg in order to [serve captchas](https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmCaptcha) , so to add it sudo apt-get install libjpeg-dev
 
 To perform a compilation you just need to issue 
-mkdir build 
-cd build 
-cmake ..
-make
+"mkdir build && cd build &&  cmake .. && make" from the root directory
 
 This should try to compile all of the project files which you can then run using the scripts listed in the list below 
 
@@ -48,6 +45,8 @@ After building the server you can use one of the provided scripts in the root di
 -  ./run_myremotedesktop will start a remote desktop session viewable by a browser on [localhost:8080](http://localhost:8080) ( see [video](https://www.youtube.com/watch?v=aqH25ocm-Tc) )
 -  ./run_mysearch will start a server that serves a google like front page ( that does no searching though and is only cosmetic ;P ) on [localhost:8084](http://localhost:8084)
 
+-  ./startAmmarServerSuite.sh will start most of these simultaneously ( except remote desktop ) so you can try them out..
+-  ./stopAmmarServerSuite.sh will stop them
 
 
 ## Installing
