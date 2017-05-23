@@ -64,11 +64,11 @@ sudo a2enmod proxy
 sudo a2enmod proxy_http
 
  
-addApacheRule "$APCONF" "$SERVERURL" "mytube" "8080"  
+addApacheRule "$APCONF" "$SERVERURL" "search" "8080"  
 addApacheRule "$APCONF" "$SERVERURL" "gps" "8081"  
 addApacheRule "$APCONF" "$SERVERURL" "myurl" "8082"  
 addApacheRule "$APCONF" "$SERVERURL" "chan" "8083"  
-addApacheRule "$APCONF" "$SERVERURL" "search" "8084"  
+addApacheRule "$APCONF" "$SERVERURL" "mytube" "8084"  
 addApacheRule "$APCONF" "$SERVERURL" "myloader" "8085"  
 addApacheRule "$APCONF" "$SERVERURL" "blog" "8086"  
    
