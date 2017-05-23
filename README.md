@@ -1,15 +1,20 @@
 ![AmmarServer](https://raw.githubusercontent.com/AmmarkoV/AmmarServer/master/doc/ammarserverbanner.png)
 
-A lightweight extendable barebones HTTP server for linux
+#AmmarServer
+##A lightweight extendable barebones HTTP server for linux
+
 Please see the wiki for more info on whats going on in this repository : )
 https://github.com/AmmarkoV/AmmarServer/wiki
+
+This repository is also tracked via OpenHub
+https://www.openhub.net/p/AmmarServer
 
 One of the most basic philosophies behind this is to try to add as much functionality possible in a reusable way *WITHOUT* overly increasing loc and dependencies.. The biggest recent improvements have been actually trying to merge common functionality and reducing loc. 
 
 ------------------------------------------------------------------ 
 
 The projects build dependencies are the gcc compiler , pthreads , cmake and pretty basic things 
-so if you issue sudo apt-get install build-essential  ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
+so if you issue sudo apt-get install cmake build-essential  ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
 
 Newer versions also support compression , so you might want to also apt-get install liblzma-dev if you enable ENABLE_COMPRESSION at server_configuration.h
 MyURL needs libjpeg in order to serve captchas , so to add it sudo apt-get install libjpeg-dev
@@ -45,7 +50,7 @@ and fully customizable web service..
    https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyURL/
    You can run it by issuing ./run_myurl from root directory 
 
--  A File Uploader service based on MyLoader , currently under construction..
+-  A File Uploader service based on MyLoader
    https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyLoader/
    You can run it by issuing ./run_myloader from root directory 
 
