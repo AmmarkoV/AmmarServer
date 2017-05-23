@@ -1,7 +1,7 @@
 ![AmmarServer](https://raw.githubusercontent.com/AmmarkoV/AmmarServer/master/doc/ammarserverbanner.png)
 
-#AmmarServer
-##A lightweight extendable barebones HTTP server for linux
+# AmmarServer
+## A lightweight extendable barebones HTTP server for linux
 
 Please see the wiki for more info on whats going on in this repository : )
 https://github.com/AmmarkoV/AmmarServer/wiki
