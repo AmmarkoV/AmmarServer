@@ -6,6 +6,8 @@
 #include "../tools/Calibration/calibration.h"
 #endif
 
+#define BUILD_V4L2 1
+
 #ifdef __cplusplus
 extern "C"
 {
