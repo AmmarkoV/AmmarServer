@@ -95,7 +95,7 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
     unsigned int injectOffset = 0;
     char * where2startSearchForVar = mh->content + *offset;
 
-    char * varPtr   = (unsigned char* ) strstr ((const char*) where2startSearchForVar  ,(const char*) var);
+    char * varPtr   = ( char* ) strstr ((const char*) where2startSearchForVar  ,(const char*) var);
     if (varPtr==0)
     {
         fprintf(stderr,"Cannot inject Data to Buffer , could not find our entry point (%s) !\n",var);

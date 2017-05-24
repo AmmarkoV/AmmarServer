@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <unistd.h>
 #include "version.h"
 #include "AmmServerlib.h"
 #include "AString/AString.h"
@@ -243,16 +244,17 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
 
 
    //If we have a command line arguments we overwrite our buffers
-  if ( (argc>0) && (argv!=0) )
+  unsigned int argcUI = argc;
+  if ( (argcUI>0) && (argv!=0) )
   {
    unsigned int i=0;
-   for (i=0; i<argc; i++)
+   for (i=0; i<argcUI; i++)
    {
-    if ((strcmp(argv[i],"-bind")==0)&&(argc>i+1)) { strncpy(bindIP,argv[i+1],MAX_IP_STRING_SIZE); fprintf(stderr,"Binding to %s \n",bindIP); } else
-    if ((strcmp(argv[i],"-p")==0)&&(argc>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
-    if ((strcmp(argv[i],"-port")==0)&&(argc>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
-    if ((strcmp(argv[i],"-rootdir")==0)&&(argc>i+1)) { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
-    if ((strcmp(argv[i],"-templatedir")==0)&&(argc>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
+    if ((strcmp(argv[i],"-bind")==0)&&(argcUI>i+1)) { strncpy(bindIP,argv[i+1],MAX_IP_STRING_SIZE); fprintf(stderr,"Binding to %s \n",bindIP); } else
+    if ((strcmp(argv[i],"-p")==0)&&(argcUI>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
+    if ((strcmp(argv[i],"-port")==0)&&(argcUI>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
+    if ((strcmp(argv[i],"-rootdir")==0)&&(argcUI>i+1)) { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
+    if ((strcmp(argv[i],"-templatedir")==0)&&(argcUI>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
     if (strcmp(argv[i],"-conf")==0)  { strncpy(configuration_file,conf_file,MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
    }
   }
@@ -307,6 +309,7 @@ int AmmServer_AddScheduler
     )
 {
   AmmServer_Error("Scheduler Code not implemented\n");
+  return 0;
 }
 
 
@@ -525,6 +528,8 @@ int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * 
 
 unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN)
 {
+  if (instance==0) { return 0; }
+
     unsigned int uintToReturn=0;
     if  ( rqst->GET_request != 0 )
     {

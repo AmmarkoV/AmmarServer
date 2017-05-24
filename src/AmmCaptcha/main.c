@@ -94,7 +94,7 @@ int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsign
   //memcpy(outputJPEGFile->pixels,pixels,width*height*channels);
   //Zero Copy..!
   fprintf(stderr,"Zero Copy conversion to JPEG\n");
-  struct Image * outputJPEGFile = createImageUsingExistingBuffer(width,height,channels,8,pixels);
+  struct Image * outputJPEGFile = createImageUsingExistingBuffer(width,height,channels,8,(unsigned char*) pixels);
 
   if (outputJPEGFile!=0)
   {
