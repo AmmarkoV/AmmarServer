@@ -12,10 +12,10 @@ struct AmmServer_MemoryHandler * indexPage=0;
 #warning "Memory Managment in MyBlog while creating a buffer is a bit shabby :P"
 
 
-unsigned char * getPreviousNextPageHTML(struct website * configuration,unsigned int currentpage)
+char * getPreviousNextPageHTML(struct website * configuration,unsigned int currentpage)
 {
   unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
   buffer[0]=0;
 
@@ -39,10 +39,10 @@ currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,
 }
 
 
-unsigned char * getLeftBlogRollHTML(struct website * configuration)
+char * getLeftBlogRollHTML(struct website * configuration)
 {
   unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   unsigned int i=0;
@@ -55,10 +55,10 @@ unsigned char * getLeftBlogRollHTML(struct website * configuration)
  return buffer;
 }
 
-unsigned char * getRightBlogRollHTML(struct website * configuration )
+char * getRightBlogRollHTML(struct website * configuration )
 {
   unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   unsigned int i=0;
@@ -71,10 +71,10 @@ unsigned char * getRightBlogRollHTML(struct website * configuration )
  return buffer;
 }
 
-unsigned char * getFooterLinksHTML(struct website * configuration )
+char * getFooterLinksHTML(struct website * configuration )
 {
   unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   currentSize+=snprintf(buffer+currentSize,totalSize-currentSize,"<a href=\"index.html\">Home</a> &nbsp;&nbsp;|	&nbsp;&nbsp;\n" );
@@ -98,10 +98,10 @@ unsigned char * getFooterLinksHTML(struct website * configuration )
  return buffer;
 }
 
-unsigned char * getMenuListHTML(struct website * configuration)
+char * getMenuListHTML(struct website * configuration)
 {
   unsigned int totalSize=CONTENT_BUFFER*5,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   unsigned int i=0;
@@ -120,12 +120,12 @@ unsigned char * getMenuListHTML(struct website * configuration)
  return buffer;
 }
 
-unsigned char * getWidgetListHTML(struct website * configuration)
+char * getWidgetListHTML(struct website * configuration)
 {
   fprintf(stderr,"widget list consists of %u items \n",configuration->widget.currentItems);
 
   unsigned int totalSize=(3*CONTENT_BUFFER)*configuration->widget.currentItems,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   fprintf(stderr," allocating %u bytes for widgets \n Populating : ",totalSize);
@@ -141,7 +141,7 @@ unsigned char * getWidgetListHTML(struct website * configuration)
 
   fprintf(stderr," %u , ",currentSize);
   }
-  fprintf(stderr," done\n ",currentSize);
+  fprintf(stderr," done\n ");
 
  return buffer;
 }
@@ -184,7 +184,7 @@ int appendPage(struct website * configuration , int pageNum , char * buffer , un
             , i , configuration->pages.item[i].title  , configuration->pages.item[i].content.data );
 
 
-
+ return 1;
 }
 
 
@@ -227,13 +227,13 @@ int appendPost(struct website * configuration , int postNum , char * buffer , un
             , i , configuration->post.item[i].title  , configuration->post.item[i].content.data );
 
 
-
+ return 1;
 }
 
-unsigned char * getPostListHTML(struct website * configuration,int pageNum)
+char * getPostListHTML(struct website * configuration,int pageNum)
 {
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(char) * totalSize );
   if (buffer==0) { fprintf(stderr,"Cannot allocate a big enough buffer for string"); return 0; }
 
   if (configuration->post.currentPosts>0)
@@ -325,6 +325,7 @@ int setupMyBlog(struct website * configuration)
 
   loadWidgets(configuration);
   loadPosts(configuration);
+  return 1;
 }
 
 
@@ -335,7 +336,7 @@ int destroy_index_prototype()
   return 0;
 }
 
-unsigned char * prepare_index_prototype(char * filename , struct website * configuration ,unsigned int pageNumber)
+char * prepare_index_prototype(char * filename , struct website * configuration ,unsigned int pageNumber)
 {
   fprintf(stderr,"Generating Index File ..!\n");
 
@@ -346,7 +347,7 @@ unsigned char * prepare_index_prototype(char * filename , struct website * confi
   indexPage=AmmServer_ReadFileToMemoryHandler(filename);
 
   fprintf(stderr,"Injecting Menu List..!\n");
-  unsigned char * htmlData = 0;
+  char * htmlData = 0;
   htmlData = getMenuListHTML(configuration);
   AmmServer_ReplaceVariableInMemoryHandler(indexPage,"+++++++++MENULIST+++++++++",htmlData);
   if (htmlData!=0) { free(htmlData); htmlData=0; }
@@ -429,7 +430,7 @@ void * page_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(char) * totalSize );
   if (buffer!=0)
   {
       appendPage(&myblog , pageToShow , buffer , &currentSize , totalSize);
@@ -474,8 +475,8 @@ void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
     }
 
 
-  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
-  unsigned char * buffer = getPostListHTML(&myblog,pageToShow);
+  //unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+  char * buffer = getPostListHTML(&myblog,pageToShow);
   if (buffer!=0)
   {
       AmmServer_ReplaceVariableInMemoryHandler(postListPage,"+++++++++POSTS+++++++++",buffer);
@@ -512,7 +513,7 @@ void * post_callback(struct AmmServer_DynamicRequest  * rqst)
   unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "id");
 
   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
-  unsigned char * buffer = (unsigned char*) malloc (sizeof(unsigned char) * totalSize );
+  char * buffer = (char*) malloc (sizeof(unsigned char) * totalSize );
   if (buffer!=0)
   {
       appendPost(&myblog , pageToShow , buffer , &currentSize , totalSize);
