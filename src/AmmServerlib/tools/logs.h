@@ -32,16 +32,16 @@
 * @brief Log Function to output Errors
 * @ingroup logs
 * @param String with message To log*/
-void error(char * msg);
+void error(const char * msg);
 
 /**
 * @brief Log Function to output warnings
 * @ingroup logs
 * @param String with message To log*/
-void warning(char * msg);
+void warning(const char * msg);
 
 
-int AccessLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent);
-int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent);
+int AccessLogAppend(const char * IP,const  char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent);
+int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent);
 
 #endif // LOGS_H_INCLUDED

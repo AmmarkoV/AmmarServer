@@ -38,6 +38,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../server_configuration.h"
 #include "../cache/file_caching.h"
 
+#include "../network/file_server.h"
+
 #include "../stringscanners/applicationFiles.h"
 #include "../stringscanners/archiveFiles.h"
 #include "../stringscanners/imageFiles.h"
@@ -810,7 +812,7 @@ char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsi
         {
           if (fileNumber==0)
           {
-           fprintf(stderr,"Found Sequence %u bytes inside POST Request..!\n",ptrD-request);
+           fprintf(stderr,"Found Sequence %lu bytes inside POST Request..!\n",ptrD-request);
            *outputSize = requestLength - (ptrD-request);
            return ptrD+1;
           }
@@ -1131,7 +1133,7 @@ int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , c
   len = sizeof addr;
   if ( getpeername(clientSock, (struct sockaddr*)&addr, &len) == 0 )
  {
-  char * resolveResult = 0;
+  const char * resolveResult = 0;
   // deal with both IPv4 and IPv6:
   if (addr.ss_family == AF_INET)
   {

@@ -22,19 +22,19 @@ int warpImage(struct Image * target , unsigned int posX,unsigned int posY , sign
  if (target==0)  { return 0; }
  if (target->pixels==0)  { return 0; }
 
- unsigned int dimX = ABS(warpDeltaX-posX); dimX=dimX*dimX;
- unsigned int dimY = ABS(warpDeltaY-posY); dimY=dimY*dimY;
- unsigned int distance = sqrt( dimX + dimY );
+// unsigned int dimX = ABS(warpDeltaX-posX); dimX=dimX*dimX;
+// unsigned int dimY = ABS(warpDeltaY-posY); dimY=dimY*dimY;
+// unsigned int distance = sqrt( dimX + dimY );
 
- unsigned int width =0  , height =0;
- unsigned int targetWidthStep = target->width * 3;
- char * targetPixelsStart   = (char*) target->pixels + ( (posX*3) + posY * targetWidthStep );
- char * targetPixelsLineEnd = targetPixelsStart + (width*3);
- char * targetPixelsEnd     = targetPixelsLineEnd + ((height-1) * targetWidthStep );
- char * targetPixels = targetPixelsStart;
+// unsigned int width =0  , height =0;
+// unsigned int targetWidthStep = target->width * 3;
+// char * targetPixelsStart   = (char*) target->pixels + ( (posX*3) + posY * targetWidthStep );
+// char * targetPixelsLineEnd = targetPixelsStart + (width*3);
+// char * targetPixelsEnd     = targetPixelsLineEnd + ((height-1) * targetWidthStep );
+// char * targetPixels = targetPixelsStart;
 
- struct Image * copy = copyImage(target);
- destroyImage(copy);
+ //struct Image * copy = copyImage(target);
+ //destroyImage(copy);
  return 1;
 }
 

@@ -22,7 +22,7 @@ extern "C" {
 #define MASTER_ENABLE_POST 1
 #if MASTER_ENABLE_POST
  #warning "POST Support is under construction and unsafe to use ( for now )"
-#endif // ENABLE_POST
+#endif // MASTER_ENABLE_POST
 
 /** @brief Enable a variety of debug messages in parts of the code that are not 100% bulletproof*/
 #define DEBUG_MESSAGES 0
