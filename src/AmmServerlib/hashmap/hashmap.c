@@ -556,14 +556,12 @@ int hashMap_GetUniqueStringForItem( char * strOut , unsigned int strOutLength , 
   unsigned int charactersThatAreNeeded = strOutLength / charsToUse;
   unsigned int i=0;
 
-
+  #warning "hashMap_GetUniqueStringForItem not implemented.."
   for (i=0; i<charactersThatAreNeeded; i++)
    {
-      //TODO : 
+      //TODO :
    }
-
-
-
+  return 0;
 }
 
 int hashMap_Test(int useSorting)
@@ -582,17 +580,18 @@ int hashMap_Test(int useSorting)
      testName[3]=0;
      hashMap_AddULong(hm,testName,20-i);
  }
- 
+
  hashMap_PrepareForQueries(hm);
- 
-unsigned long payload;
+
+ unsigned long payload=0;
  for (i=0; i<20; i++)
  {
+     payload=0;
      testName[0]='a'+i;
      testName[1]='a'+i;
      testName[2]='a'+i;
      testName[3]=0;
-     hashMap_GetULongPayload(hm,testName,&payload); 
+     hashMap_GetULongPayload(hm,testName,&payload);
      if (payload!=20-i)
      { fprintf(stderr,"Error with %s value %lu instead of %u\n",testName,payload,20-i); }
  }

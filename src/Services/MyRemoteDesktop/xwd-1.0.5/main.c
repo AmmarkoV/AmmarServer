@@ -117,12 +117,14 @@ int initXwdLib(int argc, char  **argv)
 {
     //Setup_Display_And_Screen(argc,argv);
     Setup_Null_Display_And_Screen();
+    return 1;
 }
 
 
 int closeXwdLib()
 {
     XCloseDisplay(dpy);
+    return 1;
 }
 
 int getScreen(unsigned char * frame , unsigned int * frameWidth , unsigned int * frameHeight)
@@ -134,7 +136,7 @@ int getScreen(unsigned char * frame , unsigned int * frameWidth , unsigned int *
 
     /* Dump it! */
     Window_Dump(target_win, stdout , frame , frameWidth , frameHeight);
-
+ return 1;
 }
 
 static int
@@ -168,7 +170,7 @@ Window_Dump(Window window, FILE *out , unsigned char * data , unsigned int * dat
 {
     unsigned long swaptest = 1;
     XColor *colors;
-    unsigned buffer_size;
+    unsigned buffer_size=0;
     int win_name_size;
     int header_size;
     int ncolors, i;

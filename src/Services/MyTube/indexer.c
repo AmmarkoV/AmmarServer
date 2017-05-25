@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
 #define DEFAULT_TEST_TRANSMISSION_VIDEO_TITLE "MyTube Test Broadcast"
-extern unsigned int videoDefaultTestTranmission=0;
+unsigned int videoDefaultTestTranmission=0;
 
 char * path_cat2 (const char *str1,const char *str2)
 {
@@ -65,9 +67,9 @@ int loadVideoStats(struct videoCollection* vc ,  const char * databasePath , uns
  FILE *fp = fopen(statsFilePath,"r");
  if( fp )
     {
-      fscanf(fp, "%d\n", &vc->video[videoID].views);
-      fscanf(fp, "%d\n", &vc->video[videoID].likes);
-      fscanf(fp, "%d\n", &vc->video[videoID].dislikes);
+      fscanf(fp, "%lu\n", &vc->video[videoID].views);
+      fscanf(fp, "%lu\n", &vc->video[videoID].likes);
+      fscanf(fp, "%lu\n", &vc->video[videoID].dislikes);
       vc->video[videoID].stateChanges=0;
       fclose(fp);
       return 1;
@@ -85,9 +87,9 @@ int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , uns
  FILE *fp = fopen(statsFilePath,"w");
  if( fp )
     {
-      fprintf(fp, "%d\n",vc->video[videoID].views);
-      fprintf(fp, "%d\n",vc->video[videoID].likes);
-      fprintf(fp, "%d\n",vc->video[videoID].dislikes);
+      fprintf(fp, "%lu\n",vc->video[videoID].views);
+      fprintf(fp, "%lu\n",vc->video[videoID].likes);
+      fprintf(fp, "%lu\n",vc->video[videoID].dislikes);
       vc->video[videoID].stateChanges=0;
       fclose(fp);
       return 1;
@@ -138,7 +140,7 @@ struct videoCollection * loadVideoDatabase(const char * directoryPath,const char
 
         if (dp->d_name==0)
         {
-            fprintf(stderr,"Got garbage out of readdir(%s)\n",dir);
+            fprintf(stderr,"Got garbage out of readdir(%s)\n",directoryPath);
         }
         else if ( (strcmp(dp->d_name,".")!=0) && (strcmp(dp->d_name,"..")!=0) )
         {

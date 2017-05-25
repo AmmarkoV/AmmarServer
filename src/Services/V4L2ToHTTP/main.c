@@ -125,13 +125,14 @@ void * prepare_camera_data_callback(struct AmmServer_DynamicRequest * rqst)
   snapV4L2Frames(0);
 
   fprintf(stderr,"Converting to JPEG \n");
+  // int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsigned int height , unsigned int channels , char *mem,unsigned long * mem_size);
   AmmCaptcha_getJPEGFileFromPixels(
-                                    getV4L2ColorPixels(0),
-                                    getV4L2ColorWidth(0),
-                                    getV4L2ColorHeight(0),
-                                    getV4L2ColorChannels(0),
-                                    rqst->content,
-                                    &rqst->contentSize
+                                    (char *) getV4L2ColorPixels(0),
+                                             getV4L2ColorWidth(0),
+                                             getV4L2ColorHeight(0),
+                                             getV4L2ColorChannels(0),
+                                    (char *) rqst->content,
+                                    (unsigned long *) &rqst->contentSize
                                    );
 
 

@@ -263,13 +263,14 @@ int VideoInput_OpenFeed(int inpt,char * viddev,int width,int height,int bitdepth
 			   printf("%s", cap2s(vcap.device_caps).c_str());
 		      }*/
 
+		      /*
            if ( ! cap.device_caps & V4L2_CAP_TIMEPERFRAME )
               { fprintf(stderr,"This Device has no framerate changing capabilities ?\n"); framespersecond = 0; } else
               {
                 //struct v4l2_frmivalenum argp;
                 //getFramerateIntervals_v4l2intf(&camera_feeds[inpt].v4l2_interface,&argp);
                 //fprintf(stderr,"Todo check if our resolution is supported here\n");
-              }
+              }*/
        }
 
       if ( setfmt_v4l2intf(&camera_feeds[inpt].v4l2_interface,camera_feeds[inpt].fmt) == 0 )

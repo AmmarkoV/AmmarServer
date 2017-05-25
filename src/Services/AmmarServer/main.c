@@ -190,7 +190,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  #warning "There is a range check but it is stupid..!"
+ // #warning "There is a range check but it is stupid..!"
   strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
 
   char hex[16]={0};

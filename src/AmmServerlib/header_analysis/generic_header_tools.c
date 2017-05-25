@@ -1,4 +1,5 @@
 #include "generic_header_tools.h"
+#include "http_header_analysis.h"
 
 #include "../tools/logs.h"
 #include "../tools/http_tools.h"
@@ -292,7 +293,7 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
                                           );
      unsigned int totalHTTPRecvSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
 
-     fprintf(stderr,"Our header length is %u , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
+     fprintf(stderr,"Our header length is %lu , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
      if (transaction->incomingHeader.ContentLength> instance->settings.MAX_POST_TRANSACTION_SIZE)
      {
        fprintf(stderr,"Requested POST Size is too big calling it a day if we got the initial..!");
