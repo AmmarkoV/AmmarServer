@@ -37,32 +37,82 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context chat={0};
 
+struct AmmServer_MemoryHandler * chatPage=0;
+
+
+
+
+int appendMessage(const char * chatroom, const char * from , const char * message )
+{
+  FILE * fp;
+  fp=fopen(chatroom,"a");
+  if (fp!=0)
+  {
+    fprintf(fp,"%s:%s\n",from,message);
+    fclose(fp);
+    return 1;
+  }
+ return 0;
+}
+
+
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * chat_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
+ int haveMessage=0;
+ int haveName=0;
 
-  char hex[16+1]={0};
-  unsigned int i=0;
-  for (i=0; i<1024; i++)
-    {
-        snprintf(hex,16, "%x ", rand()%256 );
-        strcat(rqst->content,hex);
-    }
+ char name[128]={0};
+  if ( _GET(default_server,rqst,"name",name,128) )    { haveName=1; }
 
-  strcat(rqst->content,"</body></html>");
+  char message[512]={0};
+  if ( _GET(default_server,rqst,"text",message,512) ) { haveMessage=1; }
 
-  rqst->contentSize=strlen(rqst->content);
+
+  if ( (haveMessage) && (haveName) )
+  {
+    appendMessage("default.chat",name,message);
+  }
+
+  struct AmmServer_MemoryHandler * chatRoomWithContents = AmmServer_CopyMemoryHandler(chatPage);
+  AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,2,"$CHATROOM_NAME$","AmmarServer");
+
+
+  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("default.chat");
+    if (chatContents!=0)
+      {
+         AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$",chatContents->content);
+         AmmServer_FreeMemoryHandler(&chatContents);
+      } else
+      {
+         AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$","Error Retrieving content..");
+
+      }
+  if (haveName) { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$",name); } else
+                { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$","Unknown"); }
+
+  if ( (haveMessage) && (haveName) )
+  {
+   AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$STATUS$","Message sent");
+  } else
+  {
+   AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$STATUS$","Could not deliver message");
+  }
+
+
+  memcpy (rqst->content , chatRoomWithContents->content , chatRoomWithContents->contentCurrentLength );
+  rqst->contentSize=chatRoomWithContents->contentCurrentLength ;
+  AmmServer_FreeMemoryHandler(&chatRoomWithContents);
   return 0;
 }
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-   if (! AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chat_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding random testing page\n"); }
+  chatPage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/chatroom.html");
+
+  AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chat_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 }
 
@@ -70,6 +120,7 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
+    AmmServer_FreeMemoryHandler(&chatPage);
 }
 /*! Dynamic content code ..! END ------------------------*/
 

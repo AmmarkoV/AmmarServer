@@ -37,6 +37,7 @@ After building the server you can use one of the provided scripts in the root di
 
 -  ./run_ammarserver will start a basic file server ( serving public_html/ files ) on [localhost:8080](http://localhost:8080)
 -  ./run_myblog will start a small Wordpress like blog service on [localhost:8086](http://localhost:8086)
+-  ./run_social will start a small Social chat service on [localhost:8087](http://localhost:8087)
 -  ./run_myloader will start a file upload service on [localhost:8085](http://localhost:8085)
 -  ./run_mytube will start a youtube like service on [localhost:8084](http://localhost:8084) , you will need to change the [VIDEO_FILES_PATHS](https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/MyTube/main.c#L40) paths and recompile 
 -  ./run_myurl will start a url shortner service (like tinyurl/goo.gl etc ) on [localhost:8082](http://localhost:8082)
