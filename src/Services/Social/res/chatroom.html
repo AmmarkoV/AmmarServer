@@ -1,24 +1,31 @@
+<!DOCTYPE html>
 <html>
  <head>
-  <title>Chat Room $CHATROOM_NAME$</title>
-  <link rel='stylesheet type='text/css' href='chat.css'>
+   <meta http-equiv="content-type" content="text/html; charset=UTF-8"/> 
+   <title>Chat Room $CHATROOM_NAME$</title>
+   <link rel='stylesheet' type='text/css' href='chat.css'>
+   <script type="text/javascript" src="chat.js"></script>
  </head>
- <body>
+ <body onload="goToEndOfMessages();" >
 <div class="chatbox">
   <div class="chatname">
     <h3>Welcome to $CHATROOM_NAME$</h3>
   </div>
-  <div class="chatmessages">
+  <div class="chatmessages" id="chatmessages">
    $MESSAGES_GO_HERE$
    <br> <div style=" color: gray;"> $STATUS$ </div>
   </div>
   <div class="chatsend">
-     <form action='#' onSubmit='return false;' id='chat'>
-      <input type='hidden' id='name' value='$USER$'>
+     <form action="chat.html" accept-charset="utf-8"  id='chat'>
+      <input type='hidden' name='name' id='name' value='$USER$'>
       <input type='text'   name='text' id='text' value='' placeholder='Type here'>
-      <input type='submit' id='submit' value='Send'>
+      <input id="FormRandomField" type="hidden" name="t" value="somethingRandomHere"> 
+      <input type='submit' onclick="updateFormRandomNumber()" onsSubmit="return false;" id='submit' value='Send'>
      </form>   
+    <input type='submit' onclick="goToEndOfMessages();" value='Last Messages'> 
   </div>
 </div>
+
  </body>
+
 </html>

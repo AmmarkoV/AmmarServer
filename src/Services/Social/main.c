@@ -25,9 +25,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
-#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
-char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char webserver_root[MAX_FILE_PATH]="src/Services/Social/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
@@ -36,6 +35,7 @@ struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context chat={0};
+struct AmmServer_RH_Context chatMessages={0};
 
 struct AmmServer_MemoryHandler * chatPage=0;
 
@@ -48,7 +48,7 @@ int appendMessage(const char * chatroom, const char * from , const char * messag
   fp=fopen(chatroom,"a");
   if (fp!=0)
   {
-    fprintf(fp,"%s:%s\n",from,message);
+    fprintf(fp,"%s:%s<br>\n",from,message);
     fclose(fp);
     return 1;
   }
@@ -94,9 +94,11 @@ void * chat_callback(struct AmmServer_DynamicRequest  * rqst)
 
   if ( (haveMessage) && (haveName) )
   {
+   AmmServer_Success("Received From : %s => Message: %s",name,message);
    AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$STATUS$","Message sent");
   } else
   {
+   AmmServer_Warning("Received Something From : %s => Message: %s",name,message);
    AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$STATUS$","Could not deliver message");
   }
 
@@ -107,12 +109,38 @@ void * chat_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
+
+
+
+void * chatMessages_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+ AmmServer_Success("Serving back chat contents..");
+
+  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("default.chat");
+    if (chatContents!=0)
+      {
+         memcpy (rqst->content , chatContents->content , chatContents->contentCurrentLength );
+         rqst->contentSize=chatContents->contentCurrentLength;
+         AmmServer_FreeMemoryHandler(&chatContents);
+      } else
+      {
+         snprintf(rqst->content,rqst->MAXcontentSize,"Could not get messages");
+         rqst->contentSize=strlen(rqst->content);
+      }
+ return 0;
+}
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
   chatPage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/chatroom.html");
 
   AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chat_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  chat.allowCrossRequests=1;
+  AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",webserver_root,4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  chatMessages.allowCrossRequests=1;
+
 
 }
 
@@ -120,6 +148,7 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
+    AmmServer_RemoveResourceHandler(default_server,&chatMessages,1);
     AmmServer_FreeMemoryHandler(&chatPage);
 }
 /*! Dynamic content code ..! END ------------------------*/
@@ -138,7 +167,7 @@ int main(int argc, char *argv[])
     char bindIP[MAX_IP_STRING_SIZE];
     strcpy(bindIP,"0.0.0.0");
 
-    unsigned int port=DEFAULT_BINDING_PORT;
+    unsigned int port=8087;
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     default_server = AmmServer_StartWithArgs(
