@@ -32,6 +32,7 @@ ENDIF( USE_OPENSSL )
     add_subdirectory (src/Services/MyBlog) 
     add_subdirectory (src/Services/MyTube)
     add_subdirectory (src/Services/MySearch)
+    add_subdirectory (src/Services/Social)
     #XWD is listed here maybe it should be inside remote desktop
     add_subdirectory (src/Services/MyRemoteDesktop/xwd-1.0.5/) 
     add_subdirectory (src/Services/MyRemoteDesktop)
