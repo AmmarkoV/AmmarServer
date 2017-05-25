@@ -1,0 +1,23 @@
+<html>
+ <head>
+  <title>Chat Room $CHATROOM_NAME$</title>
+  <link rel='stylesheet type='text/css' href='chat.css'>
+ </head>
+ <body>
+<div class="chatbox">
+  <div class="chatname">
+    <h3>Welcome to chatroom $CHATROOM_NAME$</h3>
+  </div>
+  <div class="chatmessages">
+   $MESSAGES_GO_HERE$
+  </div>
+  <div class="chatsend">
+     <form action='#' onSubmit='return false;' id='chat'>
+      <input type='hidden' id='name' value='$USER$'>
+      <input type='text'   name='text' id='text' value='' placeholder='Type here'>
+      <input type='submit' id='submit' value='Send'>
+     </form>   
+  </div>
+</div>
+ </body>
+</html>
