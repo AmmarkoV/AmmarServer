@@ -22,12 +22,12 @@ struct htmlContent
 {
   unsigned int totalDataLength;
   unsigned int currentDataLength;
-  unsigned char * data;
+  char * data;
 };
 
 struct tagItem
 {
-  unsigned char tag[MAX_STR];
+  char tag[MAX_STR];
   unsigned int tagHash;
 };
 
@@ -40,25 +40,25 @@ struct tagItemList
 
 struct postItem
 {
-  unsigned char title[MAX_STR];
-  unsigned char dateStr[MAX_STR];
-  unsigned char author[MAX_STR];
+  char title[MAX_STR];
+  char dateStr[MAX_STR];
+  char author[MAX_STR];
   struct tagItemList tags;
   struct htmlContent content;
 };
 
 struct socialLinks
 {
-   unsigned char facebookURL[MAX_STR];
-   unsigned char twitterURL[MAX_STR];
-   unsigned char youtubeURL[MAX_STR];
+   char facebookURL[MAX_STR];
+   char twitterURL[MAX_STR];
+   char youtubeURL[MAX_STR];
 };
 
 
 struct linkLabelItem
 {
-  unsigned char label[MAX_STR];
-  unsigned char link[MAX_STR];
+  char label[MAX_STR];
+  char link[MAX_STR];
 };
 
 struct pageItemList
@@ -78,8 +78,8 @@ struct linkItemList
 
 struct widgetItem
 {
-  unsigned char label[MAX_STR];
-  unsigned char link[MAX_STR];
+  char label[MAX_STR];
+  char link[MAX_STR];
   struct htmlContent content;
 };
 
@@ -107,10 +107,10 @@ struct website
    int allowPing;
 
 
-   unsigned char blogTitle[MAX_STR];
-   unsigned char siteName[MAX_STR];
-   unsigned char siteDescription[MAX_STR];
-   unsigned char siteURL[MAX_STR];
+   char blogTitle[MAX_STR];
+   char siteName[MAX_STR];
+   char siteDescription[MAX_STR];
+   char siteURL[MAX_STR];
 
    struct socialLinks social;
    struct pageItemList pages;

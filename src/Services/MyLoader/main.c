@@ -128,7 +128,7 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
   char embed[2048];
   if (AmmServer_FileIsText(fileRequested))
   {
-     snprintf(embed,2048," <iframe src=\"%s\" width=\"70%\"></iframe><br><a  href=\"%s\">Download the file</a>",filenameToAccess, filenameToAccess);
+     snprintf(embed,2048," <iframe src=\"%s\" width=\"70%%\"></iframe><br><a  href=\"%s\">Download the file</a>",filenameToAccess, filenameToAccess);
   }
    else
   if (AmmServer_FileIsAudio(fileRequested)) // audio
@@ -140,7 +140,7 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
   } else
   if (AmmServer_FileIsImage(fileRequested)) // image
   {
-    snprintf(embed,2048," <a href=\"%s\"><img src=\"%s\" width=\"70%\" alt=\"Uploaded Image\" ></a><br><br>\
+    snprintf(embed,2048," <a href=\"%s\"><img src=\"%s\" width=\"70%%\" alt=\"Uploaded Image\" ></a><br><br>\
                            <a href=\"%s\">%s</a>" ,filenameToAccess, filenameToAccess , filenameToAccess , fileRequested );
   } else
   if (AmmServer_FileIsVideo(fileRequested)) // video
@@ -281,7 +281,7 @@ void * prepare_random_callback(struct AmmServer_DynamicRequest  * rqst)
      AmmServer_ReplaceCharInString(fileToServe,13,0); //Strip new line
      AmmServer_Warning("Random File Selected is : `%s`\n",fileToServe);
 
-     char * baseName=AmmServer_GetBasenameFromPath(fileToServe);
+     const char * baseName=AmmServer_GetBasenameFromPath(fileToServe);
      AmmServer_Warning("Random File Basename is : `%s`\n",baseName);
 
      snprintf(command,2048,"%s%s%s",webserver_root,uploads_root,baseName);

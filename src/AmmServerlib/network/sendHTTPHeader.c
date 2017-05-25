@@ -11,6 +11,8 @@
 #include <netdb.h>
 #include <sys/uio.h>
 
+#include "file_server.h"
+
 #include "../version.h"
 #include "../server_configuration.h"
 #include "../tools/logs.h"

@@ -25,6 +25,14 @@ extern "C" {
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength);
 
 
+int AnalyzeHTTPLineRequest(
+                            struct AmmServer_Instance * instance,
+                            struct HTTPHeader * output,
+                            char * request,
+                            unsigned int request_length,
+                            unsigned int lines_gathered,
+                            char * webserver_root
+                          );
 
 /**
 * @brief Analyze HTTP header ( after it has been accumulated into memory )

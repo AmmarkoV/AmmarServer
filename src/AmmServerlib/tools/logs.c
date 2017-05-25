@@ -26,21 +26,21 @@ blinkingChars=$(printf "\033[5m")
 
 
 
-void error(char * msg)
+void error(const char * msg)
 {
  fprintf(stderr,RED " ERROR MESSAGE : %s\n" NORMAL,msg);
  return;
 }
 
 
-void warning(char * msg)
+void warning(const char * msg)
 {
  fprintf(stderr,YELLOW " WARNING MESSAGE : %s\n" NORMAL,msg);
  return;
 }
 
 
-int AccessLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
+int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
 {
     if (!AccessLogEnable) { return 0; }
     FILE * pFile = fopen (AccessLog, "a");
@@ -88,7 +88,7 @@ int AccessLogAppend(char * IP,char * DateStr,char * Request,unsigned int Respons
 }
 
 
-int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
+int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
 {
     if (!ErrorLogEnable) { return 0; }
     FILE * pFile = fopen (ErrorLog, "a");
