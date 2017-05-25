@@ -26,7 +26,8 @@ char * dynamicRequest_serveContent
             unsigned long * memSize,
             unsigned char * compressionSupported,
             unsigned char * freeContentAfterUsingIt,
-            unsigned char * contentContainsPathToFileToBeStreamed
+            unsigned char * contentContainsPathToFileToBeStreamed,
+            unsigned char * allowOtherOrigins
           )
 {
  // error("Dynamic requests are disabled until further notice .. \n");
@@ -53,6 +54,9 @@ char * dynamicRequest_serveContent
      warning("Will try to continue with cache pointer.. \n");
     }
   }
+
+  *allowOtherOrigins = shared_context->allowCrossRequests;
+  AmmServer_Warning("allowOtherOrigins = %u",*allowOtherOrigins );
 
   char * cacheMemory=0; // <- this will hold the resulting page
 

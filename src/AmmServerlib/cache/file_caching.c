@@ -532,7 +532,8 @@ char * cache_GetResource(
                           struct stat * last_modification,
                           unsigned char * compressionSupported,
                           unsigned char * freeContentAfterUsingIt,
-                          unsigned char * serveAsRegularFile
+                          unsigned char * serveAsRegularFile,
+                          unsigned char * allowOtherOrigins
                         )
 {
  *freeContentAfterUsingIt=0; //By default we dont want to free the memory allocation after use..
@@ -593,7 +594,8 @@ if (cache_FindResource(instance,verified_filename,index))
                                                        &memSize,
                                                        compressionSupported,
                                                        freeContentAfterUsingIt,
-                                                       &contentContainsPathToFileToBeStreamed
+                                                       &contentContainsPathToFileToBeStreamed,
+                                                       allowOtherOrigins
                                                     );
 
              if ( contentContainsPathToFileToBeStreamed )

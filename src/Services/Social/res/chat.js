@@ -1,3 +1,55 @@
+
+   function httpGet(theUrl)
+    { 
+     var x = new XMLHttpRequest();
+     x.open("GET",theUrl,true); //Second parameter is async
+     x.send();
+     
+     var result="";     
+     x.onreadystatechange = function() 
+     {
+         if (x.readyState == 4 && x.status == 200) 
+         { console.log( "Success Requesting " );  } else
+         { 
+          console.log( "Failure Requesting " + theUrl);    
+          console.log( x  );  
+         }
+        result=x.responseText;
+      }
+
+     return result;
+    }
+  
+   function getMessages()
+   {
+     var randomnumber=Math.floor(Math.random()*100000);
+     
+     var x = new XMLHttpRequest();
+     x.open("GET","chatmessages.html?t="+randomnumber,true); //Second parameter is async
+     x.send();
+     
+     var result;     
+     x.onreadystatechange = function() 
+     {
+         if (x.readyState == 4 && x.status == 200) 
+         {document.getElementById("chatmessages").innerHTML = x.responseText + "<span id='end' />" } else
+         { 
+          console.log( "Failure Requesting Message Update");    
+          //console.log( x  );  
+         } 
+      }
+
+     return result; 
+   }
+
+
+   function goToEndOfMessages()
+   {
+    var objDiv = document.getElementById("chatmessages");
+   objDiv.scrollTop = objDiv.scrollHeight
+   }
+   
+   setInterval(function(){ getMessages(); } , 3500 );
  
    function makeUniqueURLs()
    {  
@@ -29,16 +81,6 @@
     }
  
 
-   function httpGet(theUrl)
-    {
-    var xmlHttp = null;
-
-    xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
-    xmlHttp.send( null );
-    return xmlHttp.responseText;
-    }
- 
      function command(theCommand)
      {
        var randomnumber=Math.floor(Math.random()*100000);

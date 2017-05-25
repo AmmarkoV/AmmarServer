@@ -1,7 +1,7 @@
 * 
 {
   font-family: 'Open Sans';
-  bpx-sizing: border-box;
+  box-sizing: border-box;
 }
 
 
@@ -9,7 +9,8 @@
 {
   width: 400px;
   height: 500px;
-  border: 2px solid #ddd;
+  border: 2px solid #ddd; 
+  bottom: 0;
 }
 
 .chatbox > .chatname
@@ -32,8 +33,9 @@
 .chatbox > .chatmessages 
 {
  height: 420px;
- border-bottom:1px solid #ddd;
+ border-bottom: 1px solid #ddd;
  overflow-y: scroll;
+ bottom: 0;
 }
 
 .chatmessages > .chatsend form input[type='submit']

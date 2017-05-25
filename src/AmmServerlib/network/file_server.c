@@ -377,9 +377,10 @@ unsigned long SendFile
   unsigned int index=0;
   unsigned long cached_lSize=0;
   unsigned char cached_buffer_is_compressed = compression_supported;
+  unsigned char allowOtherOrigins=0;
   unsigned char free_cached_buffer_after_use=0;
   unsigned char serveAsRegularFile=0;
-  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile);
+  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins);
 
   if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
@@ -444,7 +445,12 @@ unsigned long SendFile
 
    if ( WeWantA200OK )
    {
-       if (! SendSuccessCodeHeader(instance,clientsock,200,verified_filename)) { fprintf(stderr,"Failed sending success code \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
+       if (! SendSuccessCodeHeader(instance,clientsock,200,verified_filename))
+         {
+          fprintf(stderr,"Failed sending success code \n");
+          freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+          return 0;
+         }
 
        /* TODO : TEMPORARILY DISABLED LAST-MODIFIED :P
        if (stat(verified_filename, &last_modified))  { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
@@ -452,7 +458,11 @@ unsigned long SendFile
 
        //TODO -> Check with last modified -> char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,gzip_supported);
    }
-
+  if (allowOtherOrigins)
+  {
+    AmmServer_Warning("Allowing other origins ( cross scripting..? )");
+    SendPart(instance,clientsock,"Access-Control-Allow-Origin: *\n",strlen("Access-Control-Allow-Origin: *\n"));
+  }
 
    if (have_last_modified)
      {
@@ -472,6 +482,7 @@ unsigned long SendFile
                     It's safe to remove this header if you wish to save a few bytes in the response.*/
   if (keepalive) { if (!SendPart(instance,clientsock,"Connection: keep-alive\n",strlen("Connection: keep-alive\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
                  { if (!SendPart(instance,clientsock,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
+
 
 
 if (request->requestType!=HEAD)

@@ -232,6 +232,7 @@ struct AmmServer_RH_Context
    unsigned int RH_Scenario;
 
    unsigned int enablePOST;
+   unsigned int allowCrossRequests;
    unsigned int needsDifferentPageForEachClient;
    unsigned int needsSamePageForAllClients;
    unsigned int executedNow;

@@ -226,7 +226,8 @@ char * cache_GetResource(
                           struct stat * last_modification,
                           unsigned char * compressionSupported,
                           unsigned char * freeContentAfterUsingIt,
-                          unsigned char * serveAsRegularFile
+                          unsigned char * serveAsRegularFile,
+                          unsigned char * allowOtherOrigins
                         );
 
 
