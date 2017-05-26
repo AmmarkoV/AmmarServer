@@ -53,7 +53,7 @@ char * default_failed = (char*)"http://myurl.ammar.gr/error.html";
 
 int enableMonitor=0;
 
-char db_file[128]="myurl.db";
+char db_file[128]="db/myurl.db";
 pthread_mutex_t db_fileLock;
 pthread_mutex_t db_addIDLock;
 
