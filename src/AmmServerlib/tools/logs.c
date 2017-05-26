@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include "logs.h"
 #include "../server_configuration.h"
 
@@ -47,15 +48,23 @@ int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,un
     if (pFile==0) { return 0; }
 
 
+
+
+
     char nullIP[10]={"0.0.0.0"};
     char * ipPTR = 0;
     if ( IP !=0 ) { ipPTR  = IP; } else
                   { ipPTR  = nullIP;  }
 
-    char autoDateBuffer[10]={"0/0/0"};
+    char autoDateBuffer[64]={"Unk Unk 0 0:0:0 Unkn"};
     char * datePtr = 0;
     if ( DateStr !=0 ) { datePtr = DateStr; } else
-                       { datePtr = autoDateBuffer;  }
+                       {
+                         time_t t = time(NULL);
+                         struct tm *tm = localtime(&t);
+                         strftime(autoDateBuffer, sizeof(autoDateBuffer), "%c", tm);
+                         datePtr = autoDateBuffer;
+                        }
 
 
     char nullBuffer[10]={" "};
@@ -101,10 +110,15 @@ int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,uns
     if ( IP !=0 ) { ipPTR  = IP; } else
                   { ipPTR  = nullIP;  }
 
-    char autoDateBuffer[10]={"0/0/0"};
+    char autoDateBuffer[64]={"Unk Unk 0 0:0:0 Unkn"};
     char * datePtr = 0;
     if ( DateStr !=0 ) { datePtr = DateStr; } else
-                       { datePtr = autoDateBuffer;  }
+                       {
+                         time_t t = time(NULL);
+                         struct tm *tm = localtime(&t);
+                         strftime(autoDateBuffer, sizeof(autoDateBuffer), "%c", tm);
+                         datePtr = autoDateBuffer;
+                       }
 
 
     char nullBuffer[10]={" "};
