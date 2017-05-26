@@ -7,6 +7,7 @@
 
 .chatbox 
 {
+  background-color: #222222;
   width: 400px;
   height: 500px;
   border: 2px solid #ddd; 
@@ -16,7 +17,8 @@
 .chatbox > .chatname
 {
   width: 100%;
-  background: white;
+  background-color: #222222;
+  color : #DDDDDD;
   padding: 5px;
   border-bottom: 1px solid #ddd;
 }
@@ -27,11 +29,12 @@
   margin: 0;
   padding: 0;
   font-weight: 400;
-  color: #333;
+  color: #DDDDDD;
 }
 
 .chatbox > .chatmessages 
 {
+ background: white;
  height: 420px;
  border-bottom: 1px solid #ddd;
  overflow-y: scroll;
