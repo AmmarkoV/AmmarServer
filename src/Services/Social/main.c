@@ -46,6 +46,8 @@ struct AmmServer_RH_Context chatMessages={0};
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
+  initializeLoginSystem();
+
   chatPage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/chatroom.html");
 
   AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chat_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
@@ -63,6 +65,9 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&chatMessages,1);
     AmmServer_RemoveResourceHandler(default_server,&login,1);
     AmmServer_FreeMemoryHandler(&chatPage);
+
+
+    stopLoginSystem();
 }
 /*! Dynamic content code ..! END ------------------------*/
 
