@@ -25,6 +25,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
+#include "login.h"
+
 
 char webserver_root[MAX_FILE_PATH]="src/Services/Social/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -157,6 +159,7 @@ void * chatMessages_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
@@ -166,7 +169,7 @@ void init_dynamic_content()
   chat.allowCrossRequests=1;
   AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",webserver_root,4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chatMessages.allowCrossRequests=1;
-
+  AmmServer_AddResourceHandler(default_server,&login,"/login.html",webserver_root,4096,0,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 }
 
@@ -175,6 +178,7 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
     AmmServer_RemoveResourceHandler(default_server,&chatMessages,1);
+    AmmServer_RemoveResourceHandler(default_server,&login,1);
     AmmServer_FreeMemoryHandler(&chatPage);
 }
 /*! Dynamic content code ..! END ------------------------*/
