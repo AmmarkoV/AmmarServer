@@ -39,6 +39,11 @@ struct AmmServer_RH_Context chatMessages={0};
 
 struct AmmServer_MemoryHandler * chatPage=0;
 
+int isLinkToImage(char * message)
+{
+
+ return 0;
+}
 
 int stripMessage(char * message)
 {
@@ -85,6 +90,7 @@ void * chat_callback(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(default_server,rqst,"text",message,512) )
     {
      stripMessage(message);
+     //isLinkToImage
      haveMessage=1;
     }
 
