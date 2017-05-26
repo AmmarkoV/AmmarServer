@@ -20,6 +20,7 @@ ENDIF( USE_OPENSSL )
     #After we are done with the basics make all our secondary libraries
     add_subdirectory (src/AmmCaptcha) 
     add_subdirectory (src/StringRecognizer)
+    add_subdirectory (src/UserAccounts)
 
 
     #Make the basic "vanilla" server  
