@@ -15,6 +15,7 @@
 		<Project filename="src/Services/AmmarServer/AmmarServer.cbp" />
 		<Project filename="src/Services/GeoPosShare/GeoPosShare.cbp" />
 		<Project filename="src/Services/HabChan/HabChan.cbp" />
+		<Project filename="src/Services/Social/Social.cbp" />
 		<Project filename="src/Services/SQLiteServer/SQLiteServer.cbp" />
 		<Project filename="src/Services/MyRemoteDesktop/xwd-1.0.5/XwdLib.cbp" />
 		<Project filename="src/Services/MyRemoteDesktop/MyRemoteDesktop.cbp" />

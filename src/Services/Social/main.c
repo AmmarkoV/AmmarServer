@@ -72,14 +72,14 @@ void * chat_callback(struct AmmServer_DynamicRequest  * rqst)
 
   if ( (haveMessage) && (haveName) )
   {
-    appendMessage("default.chat",name,message);
+    appendMessage("db/default.chat",name,message);
   }
 
   struct AmmServer_MemoryHandler * chatRoomWithContents = AmmServer_CopyMemoryHandler(chatPage);
   AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,2,"$CHATROOM_NAME$","AmmarServer");
 
 
-  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("default.chat");
+  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("db/default.chat");
     if (chatContents!=0)
       {
          AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$",chatContents->content);
@@ -116,7 +116,7 @@ void * chatMessages_callback(struct AmmServer_DynamicRequest  * rqst)
 {
  AmmServer_Success("Serving back chat contents..");
 
-  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("default.chat");
+  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("db/default.chat");
     if (chatContents!=0)
       {
          memcpy (rqst->content , chatContents->content , chatContents->contentCurrentLength );

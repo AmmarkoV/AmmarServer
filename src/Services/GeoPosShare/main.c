@@ -129,11 +129,11 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
              {
                fprintf(stderr,"From : %s \n",from);
              }
-         if (!appendGPSMessage("gps.log", (char  *) from , (char *) message , (char *) latitude , (char *) longitude))
+         if (!appendGPSMessage("db/gps.log", (char  *) from , (char *) message , (char *) latitude , (char *) longitude))
          {
             AmmServer_Error("Could not log new GPS message received");
          }
-          if (!appendGPS_OSM_Format("points.txt", (char  *) from , (char *) message , (char *) latitude , (char *) longitude))
+          if (!appendGPS_OSM_Format("db/points.txt", (char  *) from , (char *) message , (char *) latitude , (char *) longitude))
          {
             AmmServer_Error("Could not log to OSM point cloud");
          }
@@ -179,7 +179,7 @@ void * prepare_indexPage(struct AmmServer_DynamicRequest  * rqst)
 void * prepare_interestPoints(struct AmmServer_DynamicRequest  * rqst)
 {
   unsigned int pointsLength;
-  char * points=AmmServer_ReadFileToMemory((char*)"points.txt",&pointsLength);
+  char * points=AmmServer_ReadFileToMemory((char*)"db/points.txt",&pointsLength);
   if (pointsLength>rqst->MAXcontentSize) { pointsLength=rqst->MAXcontentSize; }
   memcpy(rqst->content,points,pointsLength);
   free(points);
