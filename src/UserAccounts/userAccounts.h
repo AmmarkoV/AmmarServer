@@ -24,7 +24,7 @@ struct UserAccountDatabase
 };
 
 
-struct UserAccountDatabase * uadb_initializeUserAccountDatabase(char * filename);
+struct UserAccountDatabase * uadb_initializeUserAccountDatabase(const char * filename);
 
 int uadb_closeUserAccountDatabase(struct UserAccountDatabase **  uadb);
 
@@ -35,13 +35,14 @@ int uadb_authenticateUser(
                            UserAccount_UserID userID
                          );
 
-int uadb_loginUser(struct UserAccountDatabase *  uadb,
-                    struct UserAccountAuthenticationToken * outputToken,
-                    char * username,
-                    char * password,
-                    UserAccount_PasswordEncoding encoding,
-                    char * ip,
-                    char * browserFingerprint
-                    );
+int uadb_loginUser(
+                   struct UserAccountDatabase *  uadb,
+                   struct UserAccountAuthenticationToken * outputToken,
+                   const char * username,
+                   const char * password,
+                   UserAccount_PasswordEncoding encoding,
+                   const char * ip,
+                   const char * browserFingerprint
+                   );
 
 #endif // USERACCOUNTS_H_INCLUDED

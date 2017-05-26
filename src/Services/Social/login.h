@@ -4,6 +4,8 @@
 
 #include "../../AmmServerlib/AmmServerlib.h"
 
+int initializeLoginSystem();
+int stopLoginSystem();
 
 void  * login_callback(struct AmmServer_DynamicRequest  * rqst);
 
