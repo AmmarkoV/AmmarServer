@@ -1,0 +1,24 @@
+div.topbar {
+    height: 60px;
+    width: 100%;
+    background-color: #222222;
+    margin-top: 0px;
+
+}
+.topbarlogo {
+    height: 60px;
+    display: block;
+    position: absolute; 
+    position:absolute; top: 10px;
+}
+
+
+.forgot
+{ 
+  font-size: 10px;
+  margin: 0;
+  padding: 0;
+  font-weight: 400;
+  color: #444444;
+}
+

@@ -34,6 +34,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
+struct AmmServer_RH_Context login={0};
 struct AmmServer_RH_Context chat={0};
 struct AmmServer_RH_Context chatMessages={0};
 
