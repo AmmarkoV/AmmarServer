@@ -40,7 +40,22 @@ struct AmmServer_RH_Context chatMessages={0};
 struct AmmServer_MemoryHandler * chatPage=0;
 
 
+int stripMessage(char * message)
+{
+  unsigned int messageLength = strlen(message);
+  unsigned int i=0;
 
+  for (i=0; i<messageLength; i++)
+  {
+    switch (message[i])
+    {
+      case '+' : message[i]=' '; break;
+      case '<' : message[i]=' '; break;
+      case '>' : message[i]=' '; break;
+    };
+  }
+ return 1;
+}
 
 int appendMessage(const char * chatroom, const char * from , const char * message )
 {
@@ -67,7 +82,11 @@ void * chat_callback(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(default_server,rqst,"name",name,128) )    { haveName=1; }
 
   char message[512]={0};
-  if ( _GET(default_server,rqst,"text",message,512) ) { haveMessage=1; }
+  if ( _GET(default_server,rqst,"text",message,512) )
+    {
+     stripMessage(message);
+     haveMessage=1;
+    }
 
 
   if ( (haveMessage) && (haveName) )
