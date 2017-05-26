@@ -48,16 +48,13 @@ int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,un
     if (pFile==0) { return 0; }
 
 
-
-
-
     char nullIP[10]={"0.0.0.0"};
-    char * ipPTR = 0;
+    const char * ipPTR = 0;
     if ( IP !=0 ) { ipPTR  = IP; } else
                   { ipPTR  = nullIP;  }
 
     char autoDateBuffer[64]={"Unk Unk 0 0:0:0 Unkn"};
-    char * datePtr = 0;
+    const char * datePtr = 0;
     if ( DateStr !=0 ) { datePtr = DateStr; } else
                        {
                          time_t t = time(NULL);
@@ -68,17 +65,17 @@ int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,un
 
 
     char nullBuffer[10]={" "};
-    char * locationPtr = 0;
+    const char * locationPtr = 0;
     if ( Location !=0 ) { locationPtr = Location; } else
                         { locationPtr = nullBuffer;  }
 
 
-    char * UseragentPtr = 0;
+    const char * UseragentPtr = 0;
     if ( Useragent !=0 ) { UseragentPtr = Useragent; } else
                          { UseragentPtr = nullBuffer;  }
 
 
-    char * RequestPtr = 0;
+    const char * RequestPtr = 0;
     if ( Request !=0 ) { RequestPtr = Request; } else
                        { RequestPtr = nullBuffer;  }
 
@@ -106,12 +103,12 @@ int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,uns
 
 
     char nullIP[10]={"0.0.0.0"};
-    char * ipPTR = 0;
+    const char * ipPTR = 0;
     if ( IP !=0 ) { ipPTR  = IP; } else
                   { ipPTR  = nullIP;  }
 
     char autoDateBuffer[64]={"Unk Unk 0 0:0:0 Unkn"};
-    char * datePtr = 0;
+    const char * datePtr = 0;
     if ( DateStr !=0 ) { datePtr = DateStr; } else
                        {
                          time_t t = time(NULL);
@@ -122,17 +119,17 @@ int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,uns
 
 
     char nullBuffer[10]={" "};
-    char * locationPtr = 0;
+    const char * locationPtr = 0;
     if ( Location !=0 ) { locationPtr = Location; } else
                         { locationPtr = nullBuffer;  }
 
 
-    char * UseragentPtr = 0;
+    const char * UseragentPtr = 0;
     if ( Useragent !=0 ) { UseragentPtr = Useragent; } else
                          { UseragentPtr = nullBuffer;  }
 
 
-    char * RequestPtr = 0;
+    const char * RequestPtr = 0;
     if ( Request !=0 ) { RequestPtr = Request; } else
                        { RequestPtr = nullBuffer;  }
 
