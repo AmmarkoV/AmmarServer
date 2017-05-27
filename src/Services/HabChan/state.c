@@ -4,7 +4,7 @@
 #include <string.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 #include "../../Hashmap/hashmap.h"
-#include "../../AmmServerlib/InputParser/InputParser_C.h"
+#include "../../InputParser/InputParser_C.h"
 
 
 #include "state.h"

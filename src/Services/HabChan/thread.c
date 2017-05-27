@@ -10,7 +10,7 @@
 
 
 #include "../../AmmServerlib/AmmServerlib.h"
-#include "../../AmmServerlib/InputParser/InputParser_C.h"
+#include "../../InputParser/InputParser_C.h"
 
 void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
 {

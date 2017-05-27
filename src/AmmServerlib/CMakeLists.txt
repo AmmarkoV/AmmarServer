@@ -13,10 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 server_configuration.c
                 #AString string helper
                 AString/AString.c
-                AString/AString.h
-                #InputParser
-                InputParser/InputParser_C.c 
-                InputParser/InputParser_C.h 
+                AString/AString.h 
                 #Caching mechanisms
                 cache/file_caching.c
                 cache/file_caching.h
@@ -96,10 +93,10 @@ ELSE (USE_OPENSSL)
 ENDIF(USE_OPENSSL)
   
     add_library(AmmarServerDynamic SHARED ${AMMARSERVER_INGREDIENTS} )
-    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} Hashmap)
+    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} Hashmap InputParser_C)
 
     add_library(AmmarServer STATIC ${AMMARSERVER_INGREDIENTS} )
-    target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} Hashmap)
+    target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} Hashmap InputParser_C)
 
 
 

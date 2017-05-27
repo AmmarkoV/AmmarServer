@@ -61,7 +61,7 @@
 	<sys/types.h>
 	<sys/time.h>
 
-1495736828 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.c
+1495882922 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -75,7 +75,7 @@
 	"../tools/logs.h"
 	"../tools/http_tools.h"
 	"../tools/time_provider.h"
-	"../hashmap/hashmap.h"
+	"../../Hashmap/hashmap.h"
 	"dynamic_requests.h"
 
 1410053334 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_compression.c
@@ -155,7 +155,7 @@
 	"../tools/logs.h"
 	"sendHTTPHeader.h"
 
-1495803361 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1495887444 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1467815117 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
