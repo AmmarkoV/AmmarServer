@@ -37,8 +37,9 @@ void  * login_callback(struct AmmServer_DynamicRequest  * rqst)
   if ((haveName)&&(havePass))
   {
   if
-     ( uadb_loginUser(uadb,
-                    &outputToken,
+     (
+      uadb_loginUser(uadb,
+                     &outputToken,
                      name,
                      pass,
                      ENCODING_PLAINTEXT,
