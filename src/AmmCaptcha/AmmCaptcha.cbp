@@ -41,11 +41,8 @@
 		</Compiler>
 		<Linker>
 			<Add option="-ljpeg" />
+			<Add library="../Hashmap/libHashmap.a" />
 		</Linker>
-		<Unit filename="../AmmServerlib/hashmap/hashmap.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../AmmServerlib/hashmap/hashmap.h" />
 		<Unit filename="AmmCaptcha.h" />
 		<Unit filename="imaging.c">
 			<Option compilerVar="CC" />

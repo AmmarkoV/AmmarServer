@@ -36,15 +36,12 @@
 			<Add option="-pthread" />
 			<Add option="-lrt" />
 			<Add option="-lz" />
+			<Add library="../../Hashmap/libHashmap.a" />
 		</Linker>
 		<Unit filename="../../AmmServerlib/InputParser/InputParser_C.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../../AmmServerlib/InputParser/InputParser_C.h" />
-		<Unit filename="../../AmmServerlib/hashmap/hashmap.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../AmmServerlib/hashmap/hashmap.h" />
 		<Unit filename="board.c">
 			<Option compilerVar="CC" />
 		</Unit>

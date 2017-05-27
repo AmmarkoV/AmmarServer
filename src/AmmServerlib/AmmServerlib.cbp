@@ -53,6 +53,7 @@
 		<Linker>
 			<Add option="-lrt" />
 			<Add option="-pthreads" />
+			<Add library="../Hashmap/libHashmap.a" />
 		</Linker>
 		<Unit filename="AString/AString.c">
 			<Option compilerVar="CC" />
@@ -79,10 +80,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="cache/file_compression.h" />
-		<Unit filename="hashmap/hashmap.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="hashmap/hashmap.h" />
 		<Unit filename="header_analysis/generic_header_tools.c">
 			<Option compilerVar="CC" />
 		</Unit>

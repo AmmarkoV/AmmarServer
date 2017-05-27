@@ -21,6 +21,7 @@ ENDIF( USE_OPENSSL )
     add_subdirectory (src/AmmCaptcha) 
     add_subdirectory (src/StringRecognizer)
     add_subdirectory (src/UserAccounts)
+    add_subdirectory (src/Hashmap)
 
 
     #Make the basic "vanilla" server  

@@ -25,10 +25,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 cache/client_list.c
                 cache/client_list.h
                 cache/file_compression.c
-                cache/file_compression.h
-                #Hashing mechanisms
-                hashmap/hashmap.c
-                hashmap/hashmap.h
+                cache/file_compression.h 
                 #Header analysis
                 header_analysis/http_header_analysis.c
                 header_analysis/http_header_analysis.h  
@@ -99,10 +96,10 @@ ELSE (USE_OPENSSL)
 ENDIF(USE_OPENSSL)
   
     add_library(AmmarServerDynamic SHARED ${AMMARSERVER_INGREDIENTS} )
-    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} )
+    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} Hashmap)
 
     add_library(AmmarServer STATIC ${AMMARSERVER_INGREDIENTS} )
-    target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} )
+    target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} Hashmap)
 
 
 

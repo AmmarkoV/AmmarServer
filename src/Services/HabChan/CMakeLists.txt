@@ -14,9 +14,7 @@ set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(habchan 
- ../../AmmServerlib/hashmap/hashmap.c 
- ../../AmmServerlib/hashmap/hashmap.h 
+add_executable(habchan  
  ../../AmmServerlib/InputParser/InputParser_C.c  
  ../../AmmServerlib/InputParser/InputParser_C.h 
  main.c 

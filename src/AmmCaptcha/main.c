@@ -12,7 +12,7 @@
 //changing the actual IDs for  2/32889 every time
 
 
-#include "../AmmServerlib/hashmap/hashmap.h"
+#include "../Hashmap/hashmap.h"
 
 unsigned int fontX = 19 , fontY = 22;
 struct Image fontRAW={0};

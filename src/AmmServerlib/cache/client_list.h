@@ -7,7 +7,7 @@
 #ifndef CLIENT_LIST_H_INCLUDED
 #define CLIENT_LIST_H_INCLUDED
 
-#include "../hashmap/hashmap.h"
+#include "../../Hashmap/hashmap.h"
 
 
 /** @brief Typedef to make clientID stand out */
