@@ -17,13 +17,22 @@ struct UserAccountAuthenticationToken
   char sessionID[64];
 };
 
+struct RegisteredUser
+{
+  char username[32];
+  char password[32];
+  char sessionID[32];
+};
+
 
 struct UserAccountDatabase
 {
-  unsigned int dummy;
+  char filename[512];
   struct UserAccountAuthenticationToken lastAuthenticationToken;
 
-  char filename[512];
+  unsigned int userListSize;
+  unsigned int userListMaxSize;
+  struct RegisteredUser * userList;
 };
 
 
