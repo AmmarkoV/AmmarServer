@@ -8,7 +8,7 @@
 #include "thread.h"
 
 #include "../../AmmServerlib/AmmServerlib.h"
-#include "../../AmmServerlib/InputParser/InputParser_C.h"
+#include "../../InputParser/InputParser_C.h"
 
 
 //This function prepares the content of  stats context , ( stats.content )

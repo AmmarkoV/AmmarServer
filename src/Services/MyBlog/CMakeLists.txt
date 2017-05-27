@@ -7,7 +7,7 @@ set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(myblog main.c database.c database.h index.c index.h ../../AmmServerlib/InputParser/InputParser_C.c ../../AmmServerlib/InputParser/InputParser_C.h) 
+add_executable(myblog main.c database.c database.h index.c index.h) 
 target_link_libraries(myblog  pthread rt AmmarServer ) #sqlite3
 set_target_properties(myblog PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(myblog AmmarServer)  

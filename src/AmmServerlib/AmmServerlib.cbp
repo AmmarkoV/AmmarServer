@@ -54,6 +54,7 @@
 			<Add option="-lrt" />
 			<Add option="-pthreads" />
 			<Add library="../Hashmap/libHashmap.a" />
+			<Add library="../InputParser/libInputParser.a" />
 		</Linker>
 		<Unit filename="AString/AString.c">
 			<Option compilerVar="CC" />

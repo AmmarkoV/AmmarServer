@@ -22,6 +22,7 @@ ENDIF( USE_OPENSSL )
     add_subdirectory (src/StringRecognizer)
     add_subdirectory (src/UserAccounts)
     add_subdirectory (src/Hashmap)
+    add_subdirectory (src/InputParser)
 
 
     #Make the basic "vanilla" server  

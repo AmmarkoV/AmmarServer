@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../AmmServerlib/InputParser/InputParser_C.h"
+#include "../../InputParser/InputParser_C.h"
 
 struct website myblog={0};
 

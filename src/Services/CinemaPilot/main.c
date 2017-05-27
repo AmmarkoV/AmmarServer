@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
-#include "../../AmmServerlib/InputParser/InputParser_C.h"
+#include "../../InputParser/InputParser_C.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
