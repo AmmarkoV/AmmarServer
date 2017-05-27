@@ -20,14 +20,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
         img_warp.c
         img_warp.h
         jpgInput.c
-        jpgInput.h
-        ../AmmServerlib/hashmap/hashmap.c
-        ../AmmServerlib/hashmap/hashmap.h
+        jpgInput.h 
        )
   
     add_library(AmmCaptchaDynamic SHARED ${AMMCAPTCHA_INGREDIENTS} )
     add_library(AmmCaptcha STATIC ${AMMCAPTCHA_INGREDIENTS} )
-    target_link_libraries(AmmCaptcha jpeg m)
+    target_link_libraries(AmmCaptcha jpeg m Hashmap)
     target_link_libraries(AmmCaptchaDynamic jpeg m) 
        
  

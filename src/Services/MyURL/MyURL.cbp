@@ -38,6 +38,7 @@
 			<Add option="-lrt" />
 			<Add option="-lz" />
 			<Add option="-ljpeg" />
+			<Add library="../../Hashmap/libHashmap.a" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />

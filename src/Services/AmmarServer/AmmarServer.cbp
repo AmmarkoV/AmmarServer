@@ -46,6 +46,7 @@
 			<Add option="-pthread" />
 			<Add option="-lrt" />
 			<Add option="-lz" />
+			<Add library="../../Hashmap/libHashmap.a" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />

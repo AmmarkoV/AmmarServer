@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "../AmmServerlib/AmmServerlib.h"
-#include "../AmmServerlib/hashmap/hashmap.h"
+#include "../Hashmap/hashmap.h"
 
 
 #define NORMAL   "\033[0m"

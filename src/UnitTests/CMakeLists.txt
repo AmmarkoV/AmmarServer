@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizat
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
 add_executable(testHashMap testHashMap.c ) 
-target_link_libraries(testHashMap pthread rt AmmarServer )
+target_link_libraries(testHashMap pthread rt AmmarServer  )
 
     set_target_properties(testHashMap PROPERTIES 
                           DEBUG_POSTFIX "D"

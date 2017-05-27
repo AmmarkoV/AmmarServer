@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../AmmServerlib/AmmServerlib.h"
-#include "../../AmmServerlib/hashmap/hashmap.h"
+#include "../../Hashmap/hashmap.h"
 #include "../../AmmServerlib/InputParser/InputParser_C.h"
 
 

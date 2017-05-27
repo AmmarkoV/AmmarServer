@@ -2,25 +2,31 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="GeoPosShare" />
+		<Option title="Hashmap" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="geoposshare" prefix_auto="1" extension_auto="1" />
+				<Option output="./libHashmap" prefix_auto="0" extension_auto="1" />
+				<Option working_dir="" />
 				<Option object_output="obj/Debug/" />
-				<Option type="1" />
+				<Option type="2" />
 				<Option compiler="gcc" />
+				<Option createDefFile="1" />
 				<Compiler>
+					<Add option="-Wall" />
 					<Add option="-g" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="geoposshare" prefix_auto="1" extension_auto="1" />
+				<Option output="./libHashmap" prefix_auto="0" extension_auto="1" />
+				<Option working_dir="" />
 				<Option object_output="obj/Release/" />
-				<Option type="1" />
+				<Option type="2" />
 				<Option compiler="gcc" />
+				<Option createDefFile="1" />
 				<Compiler>
+					<Add option="-Wall" />
 					<Add option="-O2" />
 				</Compiler>
 				<Linker>
@@ -29,23 +35,17 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Wall" />
+			<Add option="-fPIC" />
 		</Compiler>
-		<Linker>
-			<Add option="../../AmmServerlib/libAmmarServer.a" />
-			<Add option="-pthread" />
-			<Add option="-lrt" />
-			<Add option="-lz" />
-			<Add library="../../Hashmap/libHashmap.a" />
-		</Linker>
-		<Unit filename="main.c">
+		<Unit filename="hashmap.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="hashmap.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
-			<lib_finder disable_auto="1" />
 			<debugger />
+			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

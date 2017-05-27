@@ -2,6 +2,7 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="src/StringRecognizer/StringRecognizer.cbp" />
+		<Project filename="src/Hashmap/Hashmap.cbp" />
 		<Project filename="src/UserAccounts/UserAccounts.cbp" />
 		<Project filename="src/AmmCaptcha/AmmCaptcha.cbp" />
 		<Project filename="src/AmmServerlib/AmmServerlib.cbp" />
