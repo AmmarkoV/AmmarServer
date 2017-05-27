@@ -36,6 +36,12 @@ int uadb_authenticateUser(
                            UserAccount_UserID userID
                          );
 
+int uadb_getUserIDForSessionID(
+                               struct UserAccountDatabase *  uadb,
+                               const char * sessionID,
+                               UserAccount_UserID *userID
+                               );
+
 int uadb_loginUser(
                    struct UserAccountDatabase *  uadb,
                    struct UserAccountAuthenticationToken * outputToken,
