@@ -14,6 +14,7 @@ typedef unsigned int UserAccount_UserID;
 struct UserAccountAuthenticationToken
 {
   unsigned int dummy;
+  char sessionID[64];
 };
 
 

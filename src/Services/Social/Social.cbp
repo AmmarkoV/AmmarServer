@@ -36,7 +36,16 @@
 			<Add option="-pthread" />
 			<Add option="-lrt" />
 			<Add option="-lz" />
+			<Add library="../../UserAccounts/libUserAccounts.a" />
 		</Linker>
+		<Unit filename="chat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="chat.h" />
+		<Unit filename="login.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="login.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
