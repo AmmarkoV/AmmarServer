@@ -41,6 +41,7 @@
 			<Add library="xwd-1.0.5/libXwdLib.a" />
 			<Add library="X11" />
 			<Add library="../../Hashmap/libHashmap.a" />
+			<Add library="../../InputParser/libInputParser_C.a" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />

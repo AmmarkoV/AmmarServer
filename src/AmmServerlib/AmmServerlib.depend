@@ -182,14 +182,14 @@
 	"../tools/http_tools.h"
 	"../tools/time_provider.h"
 
-1444248185 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.c
+1495887443 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.c
 	"server_configuration.h"
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	"tools/http_tools.h"
 	"tools/logs.h"
-	"InputParser/InputParser_C.h"
+	"../InputParser/InputParser_C.h"
 
 1494714514 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/freshThreads.c
 	"freshThreads.h"
@@ -534,4 +534,10 @@
 
 1491303702 /home/ammar/Documents/Programming/AmmarServer/src/Hashmap/hashmap.h
 	<pthread.h>
+
+1495553023 /home/ammar/Documents/Programming/AmmarServer/src/InputParser/InputParser_C.h
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<ctype.h>
 

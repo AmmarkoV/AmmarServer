@@ -61,10 +61,6 @@
 		</Unit>
 		<Unit filename="AString/AString.h" />
 		<Unit filename="AmmServerlib.h" />
-		<Unit filename="InputParser/InputParser_C.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="InputParser/InputParser_C.h" />
 		<Unit filename="cache/client_list.c">
 			<Option compilerVar="CC" />
 		</Unit>
