@@ -55,3 +55,50 @@ int uadb_loginUser(
 
  return 0;
 }
+
+
+int uadb_getBackRandomFileDigitsInplace(char * str , unsigned int numberOfDigits)
+{
+ unsigned int i=0,range=0;
+ for (i=0; i<numberOfDigits; i++)
+ {
+   range='z'-'a';
+   str[i]='a'+rand()%range;
+ }
+str[numberOfDigits]=0;
+return 1;
+}
+
+char * uadb_getBackRandomFileDigits(unsigned int numberOfDigits)
+{
+ char * response= (char *) malloc(sizeof(char)* (numberOfDigits+1));
+ uadb_getBackRandomFileDigitsInplace(response,numberOfDigits);
+ return response;
+}
+
+
+
+
+int uadb_addUser(
+                   struct UserAccountDatabase *  uadb,
+                   const char * username,
+                   const char * password,
+                   const char * ip,
+                   const char * browserFingerprint
+                 )
+{
+ FILE *fp=fopen(uadb->filename,"a");
+ if (fp!=0)
+ {
+   fprintf(fp,"%s\n",username);
+   fprintf(fp,"%s\n",password);
+
+
+   struct UserAccountAuthenticationToken token={0};
+   uadb_getBackRandomFileDigitsInplace(token.sessionID,32);
+   fprintf(fp,"%s\n",token.sessionID);
+   fclose(fp);
+ }
+
+ return 0;
+}

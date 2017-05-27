@@ -22,6 +22,8 @@ struct UserAccountDatabase
 {
   unsigned int dummy;
   struct UserAccountAuthenticationToken lastAuthenticationToken;
+
+  char filename[512];
 };
 
 
@@ -51,5 +53,14 @@ int uadb_loginUser(
                    const char * ip,
                    const char * browserFingerprint
                    );
+
+int uadb_addUser(
+                   struct UserAccountDatabase *  uadb,
+                   const char * username,
+                   const char * password,
+                   const char * ip,
+                   const char * browserFingerprint
+                 );
+
 
 #endif // USERACCOUNTS_H_INCLUDED
