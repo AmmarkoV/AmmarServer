@@ -27,6 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "login.h"
 #include "chat.h"
+#include "home.h"
 
 
 char webserver_root[MAX_FILE_PATH]="src/Services/Social/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -38,6 +39,7 @@ struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context login={0};
+struct AmmServer_RH_Context home={0};
 struct AmmServer_RH_Context chat={0};
 struct AmmServer_RH_Context chatMessages={0};
 
@@ -49,12 +51,14 @@ void init_dynamic_content()
   initializeLoginSystem();
 
   chatPage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/chatroom.html");
+  homePage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/home.html");
 
   AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chat_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chat.allowCrossRequests=1;
   AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",webserver_root,4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chatMessages.allowCrossRequests=1;
   AmmServer_AddResourceHandler(default_server,&login,"/login.html",webserver_root,4096,0,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&home,"/home.html",webserver_root,4096,0,&home_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 }
 
@@ -64,12 +68,14 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
     AmmServer_RemoveResourceHandler(default_server,&chatMessages,1);
     AmmServer_RemoveResourceHandler(default_server,&login,1);
+    AmmServer_RemoveResourceHandler(default_server,&home,1);
+
     AmmServer_FreeMemoryHandler(&chatPage);
+    AmmServer_FreeMemoryHandler(&homePage);
 
 
     stopLoginSystem();
 }
-/*! Dynamic content code ..! END ------------------------*/
 
 
 

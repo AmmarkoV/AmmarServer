@@ -3,6 +3,9 @@
 
 
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../UserAccounts/userAccounts.h"
+
+extern struct UserAccountDatabase * uadb;
 
 int initializeLoginSystem();
 int stopLoginSystem();
