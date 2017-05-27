@@ -13,8 +13,10 @@ typedef unsigned int UserAccount_UserID;
 
 struct UserAccountAuthenticationToken
 {
-  unsigned int dummy;
-  char sessionID[64];
+  char * username;
+  char * password;
+  char * sessionID;
+  UserAccount_UserID uid;
 };
 
 struct RegisteredUser
@@ -41,10 +43,12 @@ struct UserAccountDatabase * uadb_initializeUserAccountDatabase(const char * fil
 int uadb_closeUserAccountDatabase(struct UserAccountDatabase **  uadb);
 
 
+
 int uadb_authenticateUser(
                            struct UserAccountDatabase *  uadb,
-                           struct UserAccountAuthenticationToken * outputToken,
-                           UserAccount_UserID userID
+                           const char * username ,
+                           const char * password ,
+                           struct UserAccountAuthenticationToken * outputToken
                          );
 
 int uadb_getUserIDForSessionID(
