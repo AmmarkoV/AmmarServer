@@ -6,17 +6,65 @@
 
 struct UserAccountDatabase * uadb_initializeUserAccountDatabase(const char * filename)
 {
+ FILE * pFile;
+ pFile = fopen (filename,"rb");
+ if (pFile!=0)
+    {
+     struct UserAccountDatabase * uadb = (struct UserAccountDatabase *) malloc(sizeof(struct UserAccountDatabase));
+     if (uadb!=0)
+     {
+       snprintf(uadb->filename,512,"%s",filename);
+       fscanf(pFile,"%d\n",&uadb->userListSize);
+       uadb->userListMaxSize=uadb->userListSize+100;
+       uadb->userList = (struct RegisteredUser *) malloc(sizeof(struct RegisteredUser) * uadb->userListMaxSize);
+
+       unsigned int i=0;
+       for (i=0; i<uadb->userListSize; i++)
+       {
+        fprintf(stderr,"User %u : ",i);
+        fscanf(pFile,"%s\n",uadb->userList[i].username);
+        fscanf(pFile,"%s\n",uadb->userList[i].password);
+        fscanf(pFile,"%s\n",uadb->userList[i].sessionID);
+        fprintf(stderr," %s/******  - session=%s\n",uadb->userList[i].username,uadb->userList[i].sessionID);
+       }
+     }
+     fclose (pFile);
+     return uadb;
+    }
   return 0;
 };
 
 
 int uadb_saveUserAccountDatabase(struct UserAccountDatabase * uadb)
 {
+ FILE * pFile;
+ pFile = fopen (uadb->filename,"wb");
+ if (pFile!=0)
+    {
+     if (uadb!=0)
+     {
+       fprintf(pFile,"%d\n",uadb->userListSize);
+
+       unsigned int i=0;
+       for (i=0; i<uadb->userListSize; i++)
+       {
+        fprintf(pFile,"%s\n",uadb->userList[i].username);
+        fprintf(pFile,"%s\n",uadb->userList[i].password);
+        fprintf(pFile,"%s\n",uadb->userList[i].sessionID);
+       }
+     }
+     fclose (pFile);
+     return 1;
+    }
   return 0;
 }
 
 int uadb_closeUserAccountDatabase(struct UserAccountDatabase **  uadb)
 {
+  uadb_saveUserAccountDatabase(*uadb);
+
+  //TODO:
+
   return 0;
 };
 
