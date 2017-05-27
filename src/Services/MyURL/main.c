@@ -191,7 +191,7 @@ int struct_cmp_urldb_items(const void *a, const void *b)
 
 
 
-inline unsigned int Find_longURLSerial(char * shortURL,int * found)
+ unsigned int Find_longURLSerial(char * shortURL,int * found)
 {
   *found = 0;
   if (loaded_links==0) { return 0; }
@@ -218,7 +218,7 @@ inline unsigned int Find_longURLSerial(char * shortURL,int * found)
 }
 
 //Binary Search
-inline unsigned int Find_longURL(char * shortURL,int * found)
+ unsigned int Find_longURL(char * shortURL,int * found)
 {
   #if USE_BINARY_SEARCH
   *found = 0;

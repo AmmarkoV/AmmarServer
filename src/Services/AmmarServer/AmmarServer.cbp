@@ -47,6 +47,7 @@
 			<Add option="-lrt" />
 			<Add option="-lz" />
 			<Add library="../../Hashmap/libHashmap.a" />
+			<Add library="../../InputParser/libInputParser_C.a" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />

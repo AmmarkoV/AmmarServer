@@ -39,10 +39,6 @@
 			<Add library="../../Hashmap/libHashmap.a" />
 			<Add library="../../InputParser/libInputParser_C.a" />
 		</Linker>
-		<Unit filename="../../AmmServerlib/InputParser/InputParser_C.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../AmmServerlib/InputParser/InputParser_C.h" />
 		<Unit filename="board.c">
 			<Option compilerVar="CC" />
 		</Unit>
