@@ -25,7 +25,7 @@ struct UserAccountDatabase * uadb_initializeUserAccountDatabase(const char * fil
         fscanf(pFile,"%s\n",uadb->userList[i].username);
         fscanf(pFile,"%s\n",uadb->userList[i].password);
         fscanf(pFile,"%s\n",uadb->userList[i].sessionID);
-        fprintf(stderr," %s/******  - session=%s\n",uadb->userList[i].username,uadb->userList[i].sessionID);
+        fprintf(stderr," %s - session=%s\n",uadb->userList[i].username,uadb->userList[i].sessionID);
        }
      }
      fclose (pFile);
@@ -64,17 +64,34 @@ int uadb_closeUserAccountDatabase(struct UserAccountDatabase **  uadb)
   uadb_saveUserAccountDatabase(*uadb);
 
   //TODO:
-
   return 0;
 };
 
 
 int uadb_authenticateUser(
                            struct UserAccountDatabase *  uadb,
-                           struct UserAccountAuthenticationToken * outputToken,
-                           UserAccount_UserID userID
+                           const char * username ,
+                           const char * password ,
+                           struct UserAccountAuthenticationToken * outputToken
                          )
 {
+ unsigned int i=0;
+
+ for (i=0; i<uadb->userListSize; i++)
+ {
+   if (strcmp(uadb->userList[i].username,username)==0)
+   {
+    if (strcmp(uadb->userList[i].password,password)==0)
+    {
+       outputToken->username =uadb->userList[i].username;
+       outputToken->password =uadb->userList[i].password;
+       outputToken->sessionID=uadb->userList[i].sessionID;
+       outputToken->uid      =i;
+       return 1;
+    }
+   }
+ }
+
  return 0;
 }
 
@@ -99,8 +116,20 @@ int uadb_loginUser(
                    const char * browserFingerprint
                    )
 {
+ //Check UserAccount_PasswordEncoding here
 
-
+ if (
+ uadb_authenticateUser(
+                       uadb,
+                       username ,
+                       password ,
+                       outputToken
+                      )
+     )
+     {
+       return 1;
+     }
+  //DO LOG HERE..!
  return 0;
 }
 
