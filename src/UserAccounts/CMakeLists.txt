@@ -5,8 +5,8 @@ cmake_minimum_required( VERSION 2.8.7 )
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
 
-add_library(UserAccountsDynamic SHARED main.c userAccounts.h)
-add_library(UserAccounts STATIC  main.c userAccounts.h)  
+add_library(UserAccountsDynamic SHARED userAccounts.c userAccounts.h)
+add_library(UserAccounts STATIC  userAccounts.c userAccounts.h)  
  
      set_target_properties(UserAccountsDynamic PROPERTIES 
                           DEBUG_POSTFIX "D"

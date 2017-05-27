@@ -42,6 +42,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="chat.h" />
+		<Unit filename="home.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="home.h" />
 		<Unit filename="login.c">
 			<Option compilerVar="CC" />
 		</Unit>
