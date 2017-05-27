@@ -48,14 +48,24 @@ void  * login_callback(struct AmmServer_DynamicRequest  * rqst)
                     )
      )
      {
-         //Success
+      snprintf(rqst->content,rqst->MAXcontentSize,
+               "<html>\
+                 <head>\
+                  <title>Logging in</title>\
+                   <meta http-equiv=\"refresh\" content=\"0; url=home.html?s=%s\">\
+                 </head>\
+                 <body>Success loging in</body>\
+                </html>",
+               outputToken.sessionID); //Success
      } else
      {
-       //Wrong Password / No user
+      snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Wrong Username/Password combination</body></html>");  //Wrong Password / No user
      }
   }  else
   {
-    //Bad request
+    snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Bad Request</body></html>");  //Bad request
   }
+
+ rqst->contentSize=strlen(rqst->content);
  return 0;
 }
