@@ -29,7 +29,7 @@ void * home_callback(struct AmmServer_DynamicRequest  * rqst)
        //Can serve here..
         struct AmmServer_MemoryHandler * homeRoomWithContents = AmmServer_CopyMemoryHandler(homePage);
         AmmServer_ReplaceAllVarsInMemoryHandler(homeRoomWithContents,1,"$SESSIONID$",outputToken.sessionID);
-
+        AmmServer_ReplaceAllVarsInMemoryHandler(homeRoomWithContents,1,"$USER$",outputToken.username);
 
         memcpy (rqst->content , homeRoomWithContents ->content , homeRoomWithContents ->contentCurrentLength );
         rqst->contentSize=homeRoomWithContents ->contentCurrentLength ;
