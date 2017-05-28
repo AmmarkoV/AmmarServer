@@ -57,11 +57,17 @@ int uadb_getUserTokenFromUserID(
                                  UserAccount_UserID userID
                               );
 
-int uadb_getUserIDForSessionID(
-                               struct UserAccountDatabase *  uadb,
-                               const char * sessionID,
-                               UserAccount_UserID *userID
+int uadb_getUserIDFromSessionID(
+                                    struct UserAccountDatabase *  uadb,
+                                    const char * sessionID,
+                                    UserAccount_UserID *userID
                                );
+
+int uadb_getUserTokenFromSessionID(
+                                   struct UserAccountDatabase *  uadb,
+                                   const char * sessionID,
+                                   struct UserAccountAuthenticationToken * outputToken
+                                 );
 
 int uadb_loginUser(
                    struct UserAccountDatabase *  uadb,

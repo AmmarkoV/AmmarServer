@@ -110,11 +110,10 @@ int uadb_getUserTokenFromUserID(
  return 1;
 }
 
-
-int uadb_getUserIDForSessionID(
-                               struct UserAccountDatabase *  uadb,
-                               const char * sessionID,
-                               UserAccount_UserID *userID
+int uadb_getUserIDFromSessionID(
+                                    struct UserAccountDatabase *  uadb,
+                                    const char * sessionID,
+                                    UserAccount_UserID *userID
                                )
 {
  if (uadb==0) { return 0; }
@@ -130,6 +129,40 @@ int uadb_getUserIDForSessionID(
  }
  return 0; //notFound
 }
+
+int uadb_getUserTokenFromSessionID(
+                                   struct UserAccountDatabase *  uadb,
+                                   const char * sessionID,
+                                   struct UserAccountAuthenticationToken * outputToken
+                                 )
+{
+ if (uadb==0) { return 0; }
+ UserAccount_UserID userID=0;
+
+ if (
+     uadb_getUserIDFromSessionID(
+                                 uadb ,
+                                 sessionID,
+                                 &userID
+                                )
+     )
+     {
+       if (
+           uadb_getUserTokenFromUserID(
+                                       uadb,
+                                       outputToken ,
+                                       userID
+                                      )
+           )
+           {
+             return 1;
+           }
+     }
+ return 0; //notFound
+}
+
+
+
 
 int uadb_loginUser(
                    struct UserAccountDatabase *  uadb,

@@ -1,4 +1,5 @@
 #include "chat.h"
+#include "login.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,13 +50,29 @@ int appendMessage(const char * chatroom, const char * from , const char * messag
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * chat_callback(struct AmmServer_DynamicRequest  * rqst)
+void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst)
 {
  int haveMessage=0;
- int haveName=0;
+ int haveSession=0;
+ UserAccount_UserID realUserID;
+ struct UserAccountAuthenticationToken outputToken={0};
 
- char name[128]={0};
-  if ( _GET(rqst->instance,rqst,"name",name,128) )    { haveName=1; }
+
+ char sessionID[64]={0};
+  if ( _GET(rqst->instance,rqst,"s",sessionID,64) )
+    {
+      if (
+           uadb_getUserTokenFromUserID(
+                                       uadb,
+                                       &outputToken,
+                                       &realUserID
+                                      )
+          )
+      {
+          haveSession=1;
+      }
+    }
+
 
   char message[512]={0};
   if ( _GET(rqst->instance,rqst,"text",message,512) )
@@ -65,43 +82,10 @@ void * chat_callback(struct AmmServer_DynamicRequest  * rqst)
      haveMessage=1;
     }
 
-
-  if ( (haveMessage) && (haveName) )
+  if ( (haveMessage) && (haveSession) )
   {
-    appendMessage("db/default.chat",name,message);
+    appendMessage("db/default.chat",outputToken.username,message);
   }
-
-  struct AmmServer_MemoryHandler * chatRoomWithContents = AmmServer_CopyMemoryHandler(chatPage);
-  AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,2,"$CHATROOM_NAME$","AmmarServer");
-
-
-  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("db/default.chat");
-    if (chatContents!=0)
-      {
-         AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$",chatContents->content);
-         AmmServer_FreeMemoryHandler(&chatContents);
-      } else
-      {
-         AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$","Error Retrieving content..");
-
-      }
-  if (haveName) { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$",name); } else
-                { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$","Unknown"); }
-
-  if ( (haveMessage) && (haveName) )
-  {
-   AmmServer_Success("Received From : %s => Message: %s",name,message);
-   AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$STATUS$","Message sent");
-  } else
-  {
-   AmmServer_Warning("Received Something From : %s => Message: %s",name,message);
-   AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$STATUS$","Could not deliver message");
-  }
-
-
-  memcpy (rqst->content , chatRoomWithContents->content , chatRoomWithContents->contentCurrentLength );
-  rqst->contentSize=chatRoomWithContents->contentCurrentLength ;
-  AmmServer_FreeMemoryHandler(&chatRoomWithContents);
   return 0;
 }
 
@@ -125,3 +109,56 @@ void * chatMessages_callback(struct AmmServer_DynamicRequest  * rqst)
       }
  return 0;
 }
+
+
+
+
+void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+
+ int haveSession=0;
+ UserAccount_UserID realUserID;
+ struct UserAccountAuthenticationToken outputToken={0};
+
+
+ char sessionID[64]={0};
+  if ( _GET(rqst->instance,rqst,"s",sessionID,64) )
+    {
+      if (
+           uadb_getUserTokenFromUserID(
+                                       uadb,
+                                       &outputToken,
+                                       &realUserID
+                                      )
+          )
+      {
+          haveSession=1;
+      }
+    }
+
+
+  struct AmmServer_MemoryHandler * chatRoomWithContents = AmmServer_CopyMemoryHandler(chatPage);
+  AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,2,"$CHATROOM_NAME$","AmmarServer");
+
+
+  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("db/default.chat");
+    if (chatContents!=0)
+      {
+         AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$",chatContents->content);
+         AmmServer_FreeMemoryHandler(&chatContents);
+      } else
+      {
+         AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$","Error Retrieving content..");
+
+      }
+  if (haveSession) { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$",outputToken.username); } else
+                   { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$","Unknown"); }
+
+
+  memcpy (rqst->content , chatRoomWithContents->content , chatRoomWithContents->contentCurrentLength );
+  rqst->contentSize=chatRoomWithContents->contentCurrentLength ;
+  AmmServer_FreeMemoryHandler(&chatRoomWithContents);
+  return 0;
+}
+
+
