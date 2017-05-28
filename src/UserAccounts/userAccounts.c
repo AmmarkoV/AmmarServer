@@ -96,6 +96,20 @@ int uadb_authenticateUser(
 }
 
 
+int uadb_getUserTokenFromUserID(
+                                 struct UserAccountDatabase *  uadb,
+                                 struct UserAccountAuthenticationToken * outputToken ,
+                                 UserAccount_UserID userID
+                              )
+{
+ if (uadb==0) { return 0; }
+  outputToken->username =uadb->userList[userID].username;
+  outputToken->password =uadb->userList[userID].password;
+  outputToken->sessionID=uadb->userList[userID].sessionID;
+  outputToken->uid      =userID;
+ return 1;
+}
+
 
 int uadb_getUserIDForSessionID(
                                struct UserAccountDatabase *  uadb,
@@ -114,7 +128,6 @@ int uadb_getUserIDForSessionID(
        return 1;
    }
  }
-
  return 0; //notFound
 }
 
