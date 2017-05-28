@@ -103,6 +103,18 @@ int uadb_getUserIDForSessionID(
                                UserAccount_UserID *userID
                                )
 {
+ if (uadb==0) { return 0; }
+ unsigned int i=0;
+
+ for (i=0; i<uadb->userListSize; i++)
+ {
+   if (strcmp(uadb->userList[i].sessionID,sessionID)==0)
+   {
+       *userID=i;
+       return 1;
+   }
+ }
+
  return 0; //notFound
 }
 
