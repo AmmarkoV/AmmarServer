@@ -55,6 +55,10 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="session.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="session.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

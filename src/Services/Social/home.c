@@ -17,26 +17,23 @@ void * home_callback(struct AmmServer_DynamicRequest  * rqst)
 
   if (haveSessionRequested)
   {
-     UserAccount_UserID realUserID=0;
+     struct UserAccountAuthenticationToken outputToken;
      if (
-          uadb_getUserIDForSessionID(
-                                     uadb,
-                                     sessionID,
-                                     &realUserID
-                                    )
+          uadb_getUserTokenFromSessionID(
+                                         uadb,
+                                         sessionID,
+                                         &outputToken
+                                        )
         )
      {
        //Can serve here..
-        struct UserAccountAuthenticationToken outputToken;
-        uadb_getUserTokenFromUserID(
-                                    uadb,
-                                    &outputToken,
-                                    realUserID
-                                   );
+        struct AmmServer_MemoryHandler * homeRoomWithContents = AmmServer_CopyMemoryHandler(homePage);
+        AmmServer_ReplaceAllVarsInMemoryHandler(homeRoomWithContents,1,"$SESSIONID$",outputToken.sessionID);
 
 
-        snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>User : %s </body></html>",outputToken.username);  //Wrong Session / No user
-        rqst->contentSize=strlen(rqst->content);
+        memcpy (rqst->content , homeRoomWithContents ->content , homeRoomWithContents ->contentCurrentLength );
+        rqst->contentSize=homeRoomWithContents ->contentCurrentLength ;
+        AmmServer_FreeMemoryHandler(&homeRoomWithContents);
        return 0;
      }
   }

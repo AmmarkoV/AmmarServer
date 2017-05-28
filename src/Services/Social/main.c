@@ -53,7 +53,8 @@ void init_dynamic_content()
   chatPage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/chatroom.html");
   homePage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/home.html");
 
-  AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chat_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&chat,"/chatSpeak.html",webserver_root,4096,0,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chat.allowCrossRequests=1;
   AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",webserver_root,4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chatMessages.allowCrossRequests=1;
