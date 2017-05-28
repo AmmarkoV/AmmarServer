@@ -27,11 +27,21 @@ void * home_callback(struct AmmServer_DynamicRequest  * rqst)
         )
      {
        //Can serve here..
+        struct UserAccountAuthenticationToken outputToken;
+        uadb_getUserTokenFromUserID(
+                                    uadb,
+                                    &outputToken,
+                                    realUserID
+                                   );
 
+
+        snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>User : %s </body></html>",outputToken.username);  //Wrong Session / No user
+        rqst->contentSize=strlen(rqst->content);
        return 0;
      }
   }
 
  snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Error with user session</body></html>");  //Wrong Session / No user
+ rqst->contentSize=strlen(rqst->content);
  return 0;
 }
