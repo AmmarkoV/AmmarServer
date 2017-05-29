@@ -41,6 +41,7 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context login={0};
 struct AmmServer_RH_Context home={0};
 struct AmmServer_RH_Context chat={0};
+struct AmmServer_RH_Context chatSpeak={0};
 struct AmmServer_RH_Context chatMessages={0};
 
 
@@ -54,7 +55,7 @@ void init_dynamic_content()
   homePage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/home.html");
 
   AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&chat,"/chatSpeak.html",webserver_root,4096,0,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&chatSpeak,"/chatSpeak.html",webserver_root,4096,0,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chat.allowCrossRequests=1;
   AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",webserver_root,4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chatMessages.allowCrossRequests=1;
@@ -67,7 +68,9 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
+    AmmServer_RemoveResourceHandler(default_server,&chatSpeak,1);
     AmmServer_RemoveResourceHandler(default_server,&chatMessages,1);
+
     AmmServer_RemoveResourceHandler(default_server,&login,1);
     AmmServer_RemoveResourceHandler(default_server,&home,1);
 

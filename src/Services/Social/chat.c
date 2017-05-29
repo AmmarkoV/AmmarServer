@@ -136,11 +136,14 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
       }
     }
 
-
+  AmmServer_Warning("Copying chat page..");
   struct AmmServer_MemoryHandler * chatRoomWithContents = AmmServer_CopyMemoryHandler(chatPage);
+  if (chatRoomWithContents!=0)
+  {
   AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,2,"$CHATROOM_NAME$","AmmarServer");
 
 
+  AmmServer_Warning("Reading chat contents..");
   struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("db/default.chat");
     if (chatContents!=0)
       {
@@ -151,13 +154,19 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
          AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$","Error Retrieving content..");
 
       }
+
+  AmmServer_Warning("User chat contents..");
   if (haveSession) { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$",outputToken.username); } else
                    { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$","Unknown"); }
 
 
+  AmmServer_Warning("memcpy..");
   memcpy (rqst->content , chatRoomWithContents->content , chatRoomWithContents->contentCurrentLength );
   rqst->contentSize=chatRoomWithContents->contentCurrentLength ;
   AmmServer_FreeMemoryHandler(&chatRoomWithContents);
+  }
+
+
   return 0;
 }
 
