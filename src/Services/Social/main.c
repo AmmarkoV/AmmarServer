@@ -49,7 +49,8 @@ struct AmmServer_RH_Context chatMessages={0};
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  initializeLoginSystem();
+  if (!initializeLoginSystem())
+     { AmmServer_Error("Could not initialize user accounts"); }
 
   chatPage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/chatroom.html");
   homePage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/home.html");
