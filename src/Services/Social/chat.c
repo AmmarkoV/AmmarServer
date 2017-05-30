@@ -54,7 +54,6 @@ void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst)
 {
  int haveMessage=0;
  int haveSession=0;
- UserAccount_UserID realUserID;
  struct UserAccountAuthenticationToken outputToken={0};
 
 
@@ -62,12 +61,12 @@ void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(rqst->instance,rqst,"s",sessionID,64) )
     {
       if (
-           uadb_getUserTokenFromUserID(
-                                       uadb,
-                                       &outputToken,
-                                       &realUserID
-                                      )
-          )
+           uadb_getUserTokenFromSessionID(
+                                           uadb,
+                                           sessionID,
+                                           &outputToken
+                                         )
+         )
       {
           haveSession=1;
       }
@@ -121,7 +120,6 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
     return 0;
  }
  int haveSession=0;
- UserAccount_UserID realUserID;
  struct UserAccountAuthenticationToken outputToken={0};
 
 
@@ -129,11 +127,11 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(rqst->instance,rqst,"s",sessionID,64) )
     {
       if (
-           uadb_getUserTokenFromUserID(
-                                       uadb,
-                                       &outputToken,
-                                       &realUserID
-                                      )
+           uadb_getUserTokenFromSessionID(
+                                           uadb,
+                                           sessionID,
+                                           &outputToken
+                                         )
           )
       {
           haveSession=1;
@@ -144,11 +142,12 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
   struct AmmServer_MemoryHandler * chatRoomWithContents = AmmServer_CopyMemoryHandler(chatPage);
   if (chatRoomWithContents!=0)
   {
-  AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,2,"$CHATROOM_NAME$","AmmarServer");
+   AmmServer_Warning("$CHATROOM_NAME$");
+   AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,2,"$CHATROOM_NAME$","AmmarServer");
 
 
-  AmmServer_Warning("Reading chat contents..");
-  struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("db/default.chat");
+   AmmServer_Warning("Reading chat contents..");
+   struct AmmServer_MemoryHandler * chatContents=AmmServer_ReadFileToMemoryHandler("db/default.chat");
     if (chatContents!=0)
       {
          AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$MESSAGES_GO_HERE$",chatContents->content);
@@ -159,9 +158,9 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
 
       }
 
-  AmmServer_Warning("User chat contents..");
-  if (haveSession) { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$",outputToken.username); } else
-                   { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$","Unknown"); }
+  AmmServer_Warning("User chat contents.. ");
+  if ( (haveSession) && (outputToken.username!=0) ) { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$",outputToken.username); } else
+                                                    { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$","Unknown"); }
 
 
   AmmServer_Warning("memcpy..");
