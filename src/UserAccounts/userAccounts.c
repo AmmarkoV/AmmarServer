@@ -29,6 +29,9 @@ struct UserAccountDatabase * uadb_initializeUserAccountDatabase(const char * fil
        }
      }
      fclose (pFile);
+
+     fprintf(stderr,"Sucessfully initialized from user list %s with %u users\n",filename,uadb->userListSize);
+
      return uadb;
     }
   return 0;
@@ -75,6 +78,11 @@ int uadb_authenticateUser(
                            struct UserAccountAuthenticationToken * outputToken
                          )
 {
+ if (uadb==0)
+ {
+   fprintf(stderr,"Cannot authenticate user without an initialized database\n");
+   return 0;
+ }
  unsigned int i=0;
 
  for (i=0; i<uadb->userListSize; i++)

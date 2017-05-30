@@ -115,7 +115,11 @@ void * chatMessages_callback(struct AmmServer_DynamicRequest  * rqst)
 
 void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-
+ if (chatPage==0)
+ {
+    AmmServer_Warning("Chat page is not loaded..");
+    return 0;
+ }
  int haveSession=0;
  UserAccount_UserID realUserID;
  struct UserAccountAuthenticationToken outputToken={0};
