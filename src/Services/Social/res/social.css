@@ -22,3 +22,8 @@ div.topbar {
   color: #444444;
 }
 
+
+chatwindow
+{
+ overflow:hidden;
+}
