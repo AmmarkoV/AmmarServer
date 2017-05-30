@@ -83,6 +83,11 @@ int uadb_authenticateUser(
    fprintf(stderr,"Cannot authenticate user without an initialized database\n");
    return 0;
  }
+ if (outputToken==0)
+ {
+   fprintf(stderr,"Cannot return values without a UserAccountAuthenticationToken\n");
+   return 0;
+ }
  unsigned int i=0;
 
  for (i=0; i<uadb->userListSize; i++)
@@ -91,6 +96,8 @@ int uadb_authenticateUser(
    {
     if (strcmp(uadb->userList[i].password,password)==0)
     {
+
+       fprintf(stderr,"Found Account %s\n",outputToken->username);
        outputToken->username =uadb->userList[i].username;
        outputToken->password =uadb->userList[i].password;
        outputToken->sessionID=uadb->userList[i].sessionID;
@@ -110,7 +117,8 @@ int uadb_getUserTokenFromUserID(
                                  UserAccount_UserID userID
                               )
 {
- if (uadb==0) { return 0; }
+ if (uadb==0)        {  fprintf(stderr,"Cannot authenticate user without an initialized database\n");      return 0; }
+ if (outputToken==0) {  fprintf(stderr,"Cannot return values without a UserAccountAuthenticationToken\n"); return 0; }
   outputToken->username =uadb->userList[userID].username;
   outputToken->password =uadb->userList[userID].password;
   outputToken->sessionID=uadb->userList[userID].sessionID;
