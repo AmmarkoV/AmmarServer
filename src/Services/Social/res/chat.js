@@ -43,6 +43,24 @@
    }
 
 
+   function sendNewMessage()
+    {   
+        var sessionID = document.getElementById('s').value;
+        var messageContent = document.getElementById('text').value;
+        httpGet("chatSpeak.html?s="+sessionID+"&text="+messageContent);
+        document.getElementById('text').value="";  
+    }
+
+
+   function sendNewPicture()
+    {   
+        var sessionID = document.getElementById('s').value;
+        var messageContent = document.getElementById('text').value;
+        httpGet("chatSpeak.html?s="+sessionID+"&text="+messageContent);
+        document.getElementById('text').value="";  
+    }
+
+
    function goToEndOfMessages()
    {
     var objDiv = document.getElementById("chatmessages");
