@@ -5,6 +5,8 @@
 
 extern struct AmmServer_MemoryHandler * chatPage;
 
+
+void * chatPicture_callback(struct AmmServer_DynamicRequest  * rqst);
 void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst);
 void * chatMessages_callback(struct AmmServer_DynamicRequest  * rqst);
 

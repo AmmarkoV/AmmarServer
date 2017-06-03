@@ -84,11 +84,17 @@ void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst)
   if ( (haveMessage) && (haveSession) )
   {
     appendMessage("db/default.chat",outputToken.username,message);
-    AmmServer_Success("Appending message %s",message);
+    AmmServer_Success("Registered message %s",message);
+    snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Ok</body></html>");
   } else
   {
     AmmServer_Warning("Discarding incoming message messageOk=%u sessionOk=%u ",haveMessage,haveSession);
+    snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Failed</body></html>");
   }
+
+
+
+  rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
@@ -114,6 +120,12 @@ void * chatMessages_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+void * chatPicture_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  AmmServer_Success("chatPicture_callback done");
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Ok</body></html>");
+ return 0;
+}
 
 
 void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)

@@ -4,7 +4,7 @@
    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/> 
    <title>Chat Room $CHATROOM_NAME$</title>
    <link rel='stylesheet' type='text/css' href='chat.css'>
-   <script type="text/javascript" src="chat.js"></script>
+   <script type="text/javascript" src="chat.js"></script> 
  </head>
  <body onload="goToEndOfMessages();" >
 <div class="chatbox">
@@ -16,13 +16,26 @@
    <br> <div style=" color: gray;"> $STATUS$ </div>
   </div>
   <div class="chatsend">
-     <form action="chatSpeak.html" accept-charset="utf-8"  id='chat'>
+     <form action="chatSpeak.html" accept-charset="utf-8"  id='chat' onsubmit='updateFormRandomNumber(); sendNewMessage(); goToEndOfMessages(); return false;'>
       <input type='hidden' name='s' id='s' value='$SESSION$'>
-      <input type='text'   name='text' id='text' value='' placeholder='Type here'>
       <input id="FormRandomField" type="hidden" name="t" value="3.14159265"> 
-      <input type='submit' onclick="updateFormRandomNumber()" onsSubmit="return false;" id='submit' value='Send'>
-     </form>   
-    <input type='submit' onclick="goToEndOfMessages();" value='Last Messages'> 
+      <!--input type='submit' onclick="" type="hidden" id='submit' value='Send'-->
+      <table>
+        <tr> 
+         <td> <input type='text'   name='text' id='text' value='' placeholder='Type and push enter!'> </td>
+         <td> <input type='submit' onclick="" id='smiley' value='&#9786;'> </td>
+      </form>   
+         
+      <form action="chatPicture.html" accept-charset="utf-8"  id='chat' onsubmit='updateFormRandomNumber(); sendNewPicture(); goToEndOfMessages(); return false;'>
+         <td> 
+          <input class="pictureUpload" name="pictureUpload" multiple="" accept="image/*" title="Add Photo" id="picture" type="file" >
+           <!--input type='submit' onclick="" id='picture' value='&#9883;&#9835;'--> 
+         </td> 
+      </form>   
+
+         <td> <input type='submit' onclick="goToEndOfMessages();" id='last' value='&darr;'> </td>
+       </tr>
+      </table> 
   </div>
 </div>
 

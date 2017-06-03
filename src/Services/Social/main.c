@@ -42,6 +42,7 @@ struct AmmServer_RH_Context login={0};
 struct AmmServer_RH_Context home={0};
 struct AmmServer_RH_Context chat={0};
 struct AmmServer_RH_Context chatSpeak={0};
+struct AmmServer_RH_Context chatPicture={0};
 struct AmmServer_RH_Context chatMessages={0};
 
 
@@ -58,6 +59,8 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&chatSpeak,"/chatSpeak.html",webserver_root,4096,0,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chat.allowCrossRequests=1;
+
+  AmmServer_AddResourceHandler(default_server,&chatPicture,"/chatPicture.html",webserver_root,4096,0,&chatPicture_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",webserver_root,4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   chatMessages.allowCrossRequests=1;
   AmmServer_AddResourceHandler(default_server,&login,"/login.html",webserver_root,4096,0,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
