@@ -84,6 +84,10 @@ void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst)
   if ( (haveMessage) && (haveSession) )
   {
     appendMessage("db/default.chat",outputToken.username,message);
+    AmmServer_Success("Appending message %s",message);
+  } else
+  {
+    AmmServer_Warning("Discarding incoming message messageOk=%u sessionOk=%u ",haveMessage,haveSession);
   }
   return 0;
 }
@@ -159,8 +163,8 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
       }
 
   AmmServer_Warning("User chat contents.. ");
-  if ( (haveSession) && (outputToken.username!=0) ) { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$",outputToken.username); } else
-                                                    { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$USER$","Unknown"); }
+  if ( (haveSession) && (outputToken.username!=0) ) { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$SESSION$",sessionID); } else
+                                                    { AmmServer_ReplaceAllVarsInMemoryHandler(chatRoomWithContents,1,"$SESSION$","Unknown"); }
 
 
   AmmServer_Warning("memcpy..");
