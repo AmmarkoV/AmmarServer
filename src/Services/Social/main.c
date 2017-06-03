@@ -58,11 +58,8 @@ void init_dynamic_content()
 
   AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&chatSpeak,"/chatSpeak.html",webserver_root,4096,0,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  chat.allowCrossRequests=1;
-
   AmmServer_AddResourceHandler(default_server,&chatPicture,"/chatPicture.html",webserver_root,4096,0,&chatPicture_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",webserver_root,4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  chatMessages.allowCrossRequests=1;
   AmmServer_AddResourceHandler(default_server,&login,"/login.html",webserver_root,4096,0,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&home,"/home.html",webserver_root,4096,0,&home_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
@@ -73,6 +70,7 @@ void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
     AmmServer_RemoveResourceHandler(default_server,&chatSpeak,1);
+    AmmServer_RemoveResourceHandler(default_server,&chatPicture,1);
     AmmServer_RemoveResourceHandler(default_server,&chatMessages,1);
 
     AmmServer_RemoveResourceHandler(default_server,&login,1);
