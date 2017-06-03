@@ -26,10 +26,10 @@
          <td> <input type='submit' onclick="" id='smiley' value='&#9786;'> </td>
       </form>   
          
-      <form action="chatPicture.html" accept-charset="utf-8"  id='chatPicture' onsubmit='updateFormRandomNumber(); sendNewPicture(); goToEndOfMessages(); return false;'>
+      <form action="chatPicture.html" accept-charset="utf-8"  id='chatPicture' onsubmit='sendNewPicture(); goToEndOfMessages(); return false;'>
          <td> 
-          <input class="pictureUpload" name="pictureUpload" multiple="" accept="image/*" title="Add Photo" id="picture" type="file" onSubmit='
-    document.getElementById("chatPicture").submit();' >
+          <input name="pictureUpload" accept="image/*" title="Add Photo" id="picture" type="file" onSubmit='
+    document.getElementById("picture").submit();' >
            <!--input type='submit' onclick="" id='picture' value='&#9883;&#9835;'--> 
          </td> 
       </form>   
