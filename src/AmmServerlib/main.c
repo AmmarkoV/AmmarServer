@@ -381,8 +381,10 @@ int AmmServer_AddEditorResourceHandler(
 )
 {
     #warning "TODO: Also remove editor resource handler"
- return  AmmServer_AddResourceHandler (  instance, context, resource_name , web_root, 16000, 0, callback, DIFFERENT_PAGE_FOR_EACH_CLIENT );
+ int res = AmmServer_AddResourceHandler (  instance, context, resource_name , web_root, 16000, 0, callback, DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES );
 
+  if (res) { AmmServer_DoNOTCacheResourceHandler(instance,context); }
+ return res;
 }
 
 int AmmServer_EnableMonitor( struct AmmServer_Instance * instance)
