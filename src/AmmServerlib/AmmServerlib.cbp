@@ -148,6 +148,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="stringscanners/videoFiles.h" />
+		<Unit filename="templates/editor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="templates/editor.h" />
 		<Unit filename="threads/clientServer.c">
 			<Option compilerVar="CC" />
 		</Unit>

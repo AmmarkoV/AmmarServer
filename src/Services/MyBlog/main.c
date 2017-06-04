@@ -40,6 +40,7 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context pagePage={0};
 struct AmmServer_RH_Context postPage={0};
 struct AmmServer_RH_Context stats={0};
+struct AmmServer_RH_Context editor={0};
 struct AmmServer_RH_Context rssPage={0};
 
 
@@ -54,6 +55,8 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&pagePage,"/page.html" ,webserver_root,CONTENT_BUFFER,0,&page_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&rssPage,"/rss.xml" ,webserver_root,CONTENT_BUFFER,0,&rss_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+
+  AmmServer_AddEditorResourceHandler(default_server,&editor,"/editor.html",webserver_root);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

@@ -557,7 +557,14 @@ int AmmServer_AddResourceHandler
        unsigned int scenario
     );
 
-
+//TODO: Add comment here..
+int AmmServer_AddEditorResourceHandler
+    (
+       struct AmmServer_Instance * instance,
+       struct AmmServer_RH_Context * context,
+       const char * resource_name ,
+       const char * web_root
+    );
 
 /**
 * @brief monitor.html will give information about the server health internals and load , should only be used for debugging
