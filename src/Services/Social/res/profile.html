@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>The Social Gate </title> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">  
+   <link rel='stylesheet' type='text/css' href='social.css'>
+</head>
+
+<body bgcolor="#000000"  background="background.png" text="#FFFFFF" link="#FFFFFF" vlink="#FFFFFF" alink="#FFFFFF"> 
+
+<!-- Top Bar -->
+    <div class='topbar'> 
+      <table>
+        <tr>
+         <td> <img src="favicon.ico" class="topbarlogo"/> </td>
+         <td width=100> </td> 
+         <td>    
+           Logged in as : $USER$
+         </td>
+         <td width=500>
+           <input name="q" autocomplete="off" placeholder="Search" role="combobox" type="text" width=300>
+         </td> 
+
+         <td><a href="profile.html?s=$SESSIONID$">$USER$</a></td>
+         <td><a href="home.html?s=$SESSIONID$">Home</a></td>
+         <td><a href="#">F</a></td>
+         <td><a href="#">M</a></td>
+         <td><a href="#">N</a></td>
+         <td><a href="#">?</a></td>
+    </div>
+
+<!-- Chat box -->
+<div style="position:absolute; top: 80px;">
+ <iframe class="chatwindow" src="chat.html?s=$SESSIONID$" frameborder="0"  seamless="seamless" scrolling="no" width=400 height=500>
+ </iframe>
+</div>
+
+<!-- Chat box -->
+<div style="position:absolute; top: 80px; left: 500px;">
+ <iframe class="chatwindow" src="chat.html?s=$SESSIONID$" frameborder="0"  seamless="seamless" scrolling="no" width=400 height=500>
+ </iframe>
+</div>
+
+
+<table height=95% width=75%>
+ <tr>
+   <td align="center" valign="center">
+    <img src="world.png">
+   </td>
+ </tr>
+ </table> 
+</body>
+</html>
+

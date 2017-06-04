@@ -34,6 +34,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "tools/serverMonitor.h"
 #include "tools/http_tools.h"
 #include "tools/logs.h"
+#include "templates/editor.h"
 
 //This is for calling back a client function after receiving
 //a sigkill or other signal , after using AmmServer_RegisterTerminationSignal
@@ -364,6 +365,18 @@ int AmmServer_AddResourceHandler
   return returnValue;
 }
 
+
+int AmmServer_AddEditorResourceHandler(
+       struct AmmServer_Instance * instance,
+       struct AmmServer_RH_Context * context,
+       const char * resource_name ,
+       const char * web_root
+)
+{
+    #warning "TODO: Also remove editor resource handler"
+ return  AmmServer_AddResourceHandler (  instance, context, resource_name , web_root, 16000, 0, &editor_callback , DIFFERENT_PAGE_FOR_EACH_CLIENT );
+
+}
 
 int AmmServer_EnableMonitor( struct AmmServer_Instance * instance)
 {
