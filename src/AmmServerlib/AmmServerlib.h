@@ -557,13 +557,17 @@ int AmmServer_AddResourceHandler
        unsigned int scenario
     );
 
+
+void * AmmServer_EditorCallback(struct AmmServer_DynamicRequest  * rqst);
+
 //TODO: Add comment here..
 int AmmServer_AddEditorResourceHandler
     (
        struct AmmServer_Instance * instance,
        struct AmmServer_RH_Context * context,
        const char * resource_name ,
-       const char * web_root
+       const char * web_root ,
+       void * callback
     );
 
 /**
@@ -879,6 +883,9 @@ void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWi
 * @retval 1=Ok,0=Failed
 */
 int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh ,unsigned int instances,const char * var,const char * value);
+
+
+int AmmServer_ReplaceAllVarsInDynamicRequest(struct AmmServer_DynamicRequest * dr ,unsigned int instances,const char * var,const char * value);
 
 struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int initialBufferLength, unsigned int growStep);
 int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh);

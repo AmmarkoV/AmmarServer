@@ -46,6 +46,13 @@ struct AmmServer_RH_Context rssPage={0};
 
 
 
+void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+    AmmServer_EditorCallback(rqst);
+    AmmServer_ReplaceAllVarsInDynamicRequest(rqst,1,"$POST_RECIPIENT_LINK$","editor.html");
+}
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
@@ -56,7 +63,7 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&pagePage,"/page.html" ,webserver_root,CONTENT_BUFFER,0,&page_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&rssPage,"/rss.xml" ,webserver_root,CONTENT_BUFFER,0,&rss_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
-  AmmServer_AddEditorResourceHandler(default_server,&editor,"/editor.html",webserver_root);
+  AmmServer_AddEditorResourceHandler(default_server,&editor,"/editor.html",webserver_root,&editorUpload_callback);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

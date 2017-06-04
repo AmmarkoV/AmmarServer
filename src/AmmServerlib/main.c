@@ -366,15 +366,22 @@ int AmmServer_AddResourceHandler
 }
 
 
+void * AmmServer_EditorCallback(struct AmmServer_DynamicRequest  * rqst)
+{
+  return editor_callback(rqst);
+}
+
+
 int AmmServer_AddEditorResourceHandler(
        struct AmmServer_Instance * instance,
        struct AmmServer_RH_Context * context,
        const char * resource_name ,
-       const char * web_root
+       const char * web_root ,
+       void * callback
 )
 {
     #warning "TODO: Also remove editor resource handler"
- return  AmmServer_AddResourceHandler (  instance, context, resource_name , web_root, 16000, 0, &editor_callback , DIFFERENT_PAGE_FOR_EACH_CLIENT );
+ return  AmmServer_AddResourceHandler (  instance, context, resource_name , web_root, 16000, 0, callback, DIFFERENT_PAGE_FOR_EACH_CLIENT );
 
 }
 
@@ -726,6 +733,29 @@ int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh 
 {
   return astringReplaceAllInstancesOfVarInMemoryFile(mh,instances,var,value);
 }
+
+
+
+int AmmServer_ReplaceAllVarsInDynamicRequest(struct AmmServer_DynamicRequest * dr ,unsigned int instances,const char * var,const char * value)
+{
+
+   struct AmmServer_MemoryHandler mh;
+   mh.contentSize          = dr->MAXcontentSize;
+   mh.contentCurrentLength = dr->contentSize;
+   mh.content              = dr->content;
+
+   int status=AmmServer_ReplaceAllVarsInMemoryHandler(&mh,instances,var,value);
+     if (status)
+     {
+      dr->content = mh.content;
+      dr->contentSize = mh.contentCurrentLength;
+      dr->MAXcontentSize = mh.contentSize;
+     }
+
+   return status;
+}
+
+
 
 void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWith)
 {
