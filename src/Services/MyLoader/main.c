@@ -235,7 +235,8 @@ return response;
 
 void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  char * storeID = getBackRandomFileDigits(5);
+  //md5sum file.jpg | cut -d' ' -f1
+  char * storeID = getBackRandomFileDigits(32);
 
   if (storeID!=0)
   {
