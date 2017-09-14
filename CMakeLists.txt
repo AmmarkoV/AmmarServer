@@ -7,6 +7,7 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 
 
 OPTION (USE_OPENSSL OFF)
+OPTION (USE_XSERVER OFF)
 
 
 
@@ -36,9 +37,12 @@ ENDIF( USE_OPENSSL )
     add_subdirectory (src/Services/MyTube)
     add_subdirectory (src/Services/MySearch)
     add_subdirectory (src/Services/Social)
+
+IF( USE_XSERVER ) 
     #XWD is listed here maybe it should be inside remote desktop
     add_subdirectory (src/Services/MyRemoteDesktop/xwd-1.0.5/) 
     add_subdirectory (src/Services/MyRemoteDesktop)
+ENDIF( USE_XSERVER )
     add_subdirectory (src/Services/GeoPosShare) 
     add_subdirectory (src/Services/SimpleTemplate) 
     add_subdirectory (src/Services/HabChan) 
