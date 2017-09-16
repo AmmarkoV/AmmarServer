@@ -6,6 +6,21 @@
 #include "../../AmmServerlib/AmmServerlib.h"
 
 
+
+int createThumbnailDir(const char * outputDir)
+{
+  char savePath[512]={0};
+  snprintf(savePath,512,"mkdir -p %s/db",outputDir);
+
+  int i=system(savePath);
+  if (i==0) { fprintf(stderr,"Successfully created thumbnail dataset \n"); } else
+            { fprintf(stderr,"Failed to create thumbnail dataset \n"); }
+
+  return 1;
+}
+
+
+
 char * generateThumbnailOfVideo(int live,const char * videoDirectory,const char * videofile,const char * thumbDirectory)
 {
    fprintf(stderr,"generateThumbnailOfVideo(%s,%s,%s)\n",videoDirectory,videofile,thumbDirectory);
