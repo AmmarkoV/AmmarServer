@@ -35,11 +35,10 @@ char * path_cat2 (const char *str1,const char *str2)
 unsigned int clearExtensionFAST(char * inputOutputStr)
 {
   unsigned int lengthOfStr=strlen(inputOutputStr);
-  if (lengthOfStr>4)
+  if (lengthOfStr>=4)
   {
     if (inputOutputStr[lengthOfStr-3]=='.') {  inputOutputStr[lengthOfStr-3]=0; return 1; }
     if (inputOutputStr[lengthOfStr-4]=='.') {  inputOutputStr[lengthOfStr-4]=0; return 1; }
-
   }
  return 0;
 }
