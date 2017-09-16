@@ -337,6 +337,9 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
 int thumbnailAllVideoDatabase(struct videoCollection * db)
 {
    unsigned int i=0;
+
+   createThumbnailDir(database_root);
+
    for (i=0; i<db->numberOfLoadedVideos; i++)
    {
      char * thumbnailFile = generateThumbnailOfVideo(0,video_root,myTube->video[i].filename,database_root);
@@ -353,7 +356,7 @@ int thumbnailAllVideoDatabase(struct videoCollection * db)
 //This function prepares the content of  stats context , ( stats.content )
 void * schedulerSaveStatistics()
 {
-
+return 0;
 }
 
 
