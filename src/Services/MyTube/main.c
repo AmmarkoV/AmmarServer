@@ -497,7 +497,7 @@ int main(int argc, char *argv[])
     int i=0;
     for (i=0; i<argc; i++)
     {
-     if (strcmp(argv[i],"-thumbnail")==0) {
+     if (strcmp(argv[i],"--thumbnail")==0) {
                                             fprintf(stderr,"Thumbnailing .. \n");
                                             thumbnailAllVideoDatabase(myTube);
                                             close_dynamic_content();
