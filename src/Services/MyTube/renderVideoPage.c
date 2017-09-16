@@ -8,7 +8,14 @@ int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHa
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++",myTube->video[videoID].title);
 
                 char data[512];
-                snprintf(data,512,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
+
+                if (strstr(myTube->video[videoID].filename,".flv")!=0)
+                {
+                 snprintf(data,512,"<source src=\"video?v=%u\" type=\"video/x-flv\">",videoID);
+                } else
+                {
+                 snprintf(data,512,"<source src=\"video?v=%u\" type=\"video/mp4\">",videoID);
+                }
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++++++++++++++++++++SOURCE+++++++++++++++++++++++++++",data);
 
                 snprintf(data,512,"dthumb.jpg?v=%u",videoID);
