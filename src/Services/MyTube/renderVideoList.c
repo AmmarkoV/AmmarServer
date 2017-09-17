@@ -25,7 +25,14 @@ unsigned int getAVideoForQuery(struct videoCollection * db , const char * query 
   return (*foundVideo);
 }
 
-int renderVideoList(struct videoCollection *  db ,struct AmmServer_MemoryHandler * headerHTML , struct AmmServer_DynamicRequest  *  rqst, const char * query , unsigned int userID , unsigned int * doImmediateVideoID)
+int renderVideoList(struct videoCollection *  db ,
+                    struct AmmServer_MemoryHandler * headerHTML ,
+                    struct AmmServer_DynamicRequest  *  rqst,
+                    const char * query ,
+                    unsigned int userID ,
+                    unsigned int * doImmediateVideoID,
+                    unsigned int doPickFromList,
+                    unsigned int pickNumber)
 {
 
   AmmServer_Warning("renderVideoList(%s)",query);
@@ -82,6 +89,13 @@ int renderVideoList(struct videoCollection *  db ,struct AmmServer_MemoryHandler
 
           ++foundVideos;
           *doImmediateVideoID=i;
+
+          if ( (doPickFromList) && (foundVideos==pickNumber) )
+          {
+             //We were looking to pick a specific video from the list so we are ready now
+             *doImmediateVideoID=i; //In case the code above changes in the future..!
+             break;
+          }
         }
 
     if (foundVideos>limitOfVideosPerPage) {  AmmServer_Warning("Stopping after %u results",limitOfVideosPerPage); break; }
@@ -92,7 +106,12 @@ int renderVideoList(struct videoCollection *  db ,struct AmmServer_MemoryHandler
   snprintf(data,512,"</table></body></html>"); dataSize=strlen(data);
   if (dataSize>remainingSize) { outOfMemory = 1; } else { strncat(rqst->content,data,dataSize);  remainingSize-=dataSize;}
 
-
+  if (doPickFromList)
+    {
+      AmmServer_Success("Immediate response of picked from list %u",*doImmediateVideoID);
+      //We dont handle one videos , only lists here , let the parent know we failed and show doImmediateVideoID
+      return 0;
+    } else
   if (outOfMemory==1)
     {
       AmmServer_Error("Could not fit list to memory buffer `%s`\n\n",query);
