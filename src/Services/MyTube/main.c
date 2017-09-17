@@ -72,6 +72,9 @@ struct AmmServer_MemoryHandler * cssFile=0;
 struct AmmServer_MemoryHandler * jsFile=0;
 
 
+//public_html/robots.txt
+//public_html/sitemap.xml
+
 int enableMonitor=1;
 
 
