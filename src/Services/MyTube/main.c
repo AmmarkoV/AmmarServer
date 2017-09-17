@@ -149,14 +149,25 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
   char sessionRequested[128]={0};
   char sessionToken[128]={0};
   char videoRequested[128]={0};
+
+  char pickRequested[128]={0};
+  unsigned int doPickFromList=0;
+  unsigned int pickNumber=0;
+
   if ( _GET(default_server,rqst,"s",sessionRequested,128) )
               {
                 userID = getAUserIDForSession(myTube,sessionRequested,sessionToken,&sessionFoundVideo );
               }
 
+  if ( _GET(default_server,rqst,"p",pickRequested,128) )
+              {
+                doPickFromList=1;
+                pickNumber=atoi(pickRequested);
+              }
+
   if ( _GET(default_server,rqst,"q",videoRequested,128) )
               {
-                if (renderVideoList(myTube,headerPage,rqst,videoRequested,userID,&videoID))
+                if (renderVideoList(myTube,headerPage,rqst,videoRequested,userID,&videoID,doPickFromList,pickNumber))
                 {
                   //renderVideoList handled the query on its own ( no results or many results )
                   return 0;
