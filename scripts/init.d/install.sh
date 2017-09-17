@@ -10,4 +10,7 @@ sudo touch /var/log/ammarserver.log
 sudo chown ammar /var/log/ammarserver.log
 sudo update-rc.d ammarserver defaults
 
+#systemd?
+sudo systemctl daemon-reload
+
 exit 0
