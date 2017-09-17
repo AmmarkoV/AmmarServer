@@ -31,8 +31,9 @@ stop() {
     return 1
   fi
   echo 'Stopping service…' >&2
-  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
   killall run_myurl myurl run_mytube mytube run_geoposshare geoposshare run_myblog myblog run_mysearch mysearch run_myloader myloader
+  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
+  
   echo 'Service stopped' >&2
 }
 
