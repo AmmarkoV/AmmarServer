@@ -63,7 +63,9 @@ int renderVideoList(struct videoCollection *  db ,struct AmmServer_MemoryHandler
 
   for (i=0; i<db->numberOfLoadedVideos; i++)
   {
-      if (strstr(db->video[i].filename , query)!=0)
+
+      if (strcasestr(db->video[i].filename , query)!=0)
+      // if (strstr(db->video[i].filename , query)!=0) faster case sensitive search but needs all filenames to be lowercase or smth..
         {
          snprintf(data,512,
                   "<tr>\
