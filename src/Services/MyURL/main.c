@@ -650,7 +650,10 @@ int main(int argc, char *argv[])
   #if ENABLE_CAPTCHA_SYSTEM
     AmmServer_Warning("Initializing captcha system\n");
     if (!AmmCaptcha_initialize("src/AmmCaptcha/font.ppm","src/AmmCaptcha/ourDictionaryCaptcha.txt"))
-        { AmmServer_Error("Could not initialize Captcha System"); }
+        {
+          AmmServer_Error("Could not initialize Captcha System");
+          exit(1);
+        }
   #endif
 
 
