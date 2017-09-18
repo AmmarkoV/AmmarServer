@@ -69,6 +69,7 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
 {
   fprintf(stderr,"AmmCaptcha_getCaptchaFrame.. ");
   struct Image * captcha = createImage(300,70,3);
+  fprintf(stderr," RenderString");
   RenderString(captcha,&fontRAW, 0 + rand()%200 ,  rand()%40, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
 
   fprintf(stderr,"Applying Swirl..");
