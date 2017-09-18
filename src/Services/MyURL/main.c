@@ -562,7 +562,7 @@ void resolveRequest(void * request)
   if (strcmp("/index.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  } else
   if (strcmp("/error.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
   if (strcmp("/myurl.png",rqst->resource)==0 )   { return; /*Client requested myurl.png , no resolving to do */  } else
-  if (strcmp("/captcha.jpg",rqst->resource)==0 )   { return; /*Client requested captcha.jpg , no resolving to do */  } else
+  if (strcmp("/captcha.jpg",rqst->resource)==0 ) { return; /*Client requested captcha.jpg , no resolving to do */  } else
   if (strcmp("/",rqst->resource)==0 ) {  return; /*Client requested index.html , no resolving to do */  } else
   if ( (strncmp(service_filename,rqst->resource,3)==0) && (strlen(rqst->resource)==3) ) { return; /*Client requested go , no resolving to do */  } else
          {
