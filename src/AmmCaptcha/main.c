@@ -33,6 +33,7 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
     if ( (str[i]>='a') && (str[i]<='z') )  {  drift=str[i]-'a';  column = 1; } else
     if ( (str[i]>='A') && (str[i]<='Z') )  {  drift=str[i]-'A';  column = 18; } else
     if ( (str[i]>='0') && (str[i]<='9') )  {  drift=str[i]-'0';  column = 35;  }
+    fprintf(stderr,"bitBltImage ");
     bitBltImage(frame,x,y,font, column , drift*fontY , fontX , fontY );
 
     x+=fontX-3;
