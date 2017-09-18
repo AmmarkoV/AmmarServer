@@ -22,6 +22,7 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
 {
   if ( (frame==0)||(font==0) ) { return 0;}
   if ( (frame->pixels==0)||(font->pixels==0) ) { return 0;}
+  if (str==0) { return 0; }
 
   unsigned int i=0;
   unsigned int iLen=strlen(str);
