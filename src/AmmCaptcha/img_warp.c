@@ -62,6 +62,8 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
  unsigned int randThree= 1+ rand()%3;
  unsigned int randTwo= 1+ rand()%2;
  float xp = scale * periodX * randThree;
+ if (xp==0) { xp=0.01; } // Floating point exception (core dumped)
+
  unsigned int k= (unsigned int) rand()%100;
  unsigned int i=0;
 
@@ -76,6 +78,7 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
 
 
  float yp = scale * periodY * randTwo;
+ if (yp==0) { yp=0.01; } // Floating point exception (core dumped)
  k= (unsigned int) rand()%100;
  for (i=0; i<(target->height*scale); i++)
  {
