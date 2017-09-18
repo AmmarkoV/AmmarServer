@@ -68,22 +68,29 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
+  int success=0;
   fprintf(stderr,"AmmCaptcha_getCaptchaFrame.. ");
   struct Image * captcha = createImage(300,70,3);
   fprintf(stderr," RenderString");
-  RenderString(captcha,&fontRAW, 0 + rand()%200 ,  rand()%40, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
+  if ( RenderString(captcha,&fontRAW, 0 + rand()%200 ,  rand()%40, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID))) )
+  {
+   fprintf(stderr,"Applying Swirl..");
+   //Apply Swirling effect!
+   coolPHPWave(captcha, 11,12,5,14);
 
-  fprintf(stderr,"Applying Swirl..");
-  //Apply Swirling effect!
-  coolPHPWave(captcha, 11,12,5,14);
+   fprintf(stderr,"Writing to JPEG");
+   //WriteJPEGFile(captcha,"captcha.jpg");
+   WriteJPEGMemory(captcha,mem,mem_size);
+   fprintf(stderr,"Survived WriteJPEG");
+   success=1;
+  } else
+  {
+   fprintf(stderr,"Could not render string..\n");
+  }
 
-  fprintf(stderr,"Writing to JPEG");
-  //WriteJPEGFile(captcha,"captcha.jpg");
-  WriteJPEGMemory(captcha,mem,mem_size);
-  fprintf(stderr,"Survived WriteJPEG");
-  destroyImage(captcha);
-  fprintf(stderr,"Survived destroyImage");
-  return 1;
+ destroyImage(captcha);
+ fprintf(stderr,"Survived destroyImage");
+ return success;
 }
 
 
