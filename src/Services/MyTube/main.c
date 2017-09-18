@@ -75,7 +75,7 @@ struct AmmServer_MemoryHandler * jsFile=0;
 //public_html/robots.txt
 //public_html/sitemap.xml
 
-int enableMonitor=1;
+int enableMonitor=0;
 
 
 //This function prepares the content of  stats context , ( stats.content )
