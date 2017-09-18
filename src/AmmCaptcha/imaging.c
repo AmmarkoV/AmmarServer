@@ -72,7 +72,7 @@ int destroyImage(struct Image * source)
   return 1;
 }
 
-
+#define DISPLAY_DEBUG_INFO 1
 int bitBltImage(struct Image * target , unsigned int targetX,unsigned int targetY ,
                 struct Image * source , unsigned int sourceX,unsigned int sourceY ,  unsigned int width , unsigned int height )
 {
