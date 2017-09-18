@@ -447,6 +447,9 @@ void * serve_captcha_page(struct AmmServer_DynamicRequest  * rqst)
 
   rqst->contentSize=rqst->MAXcontentSize;
   AmmCaptcha_getCaptchaFrame(captchaID,rqst->content,&rqst->contentSize);
+  #else
+   snprintf(rqst->content,rqst->MAXcontentSize,"ENABLE_CAPTCHA_SYSTEM");
+   rqst->contentSize=strlen(rqst->content);
   #endif
   return 0;
 }
