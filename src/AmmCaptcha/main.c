@@ -67,6 +67,7 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
+  fprintf(stderr,"AmmCaptcha_getCaptchaFrame.. ");
   struct Image * captcha = createImage(300,70,3);
   RenderString(captcha,&fontRAW, 0 + rand()%200 ,  rand()%40, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID)));
 
