@@ -33,7 +33,7 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
     if ( (str[i]>='a') && (str[i]<='z') )  {  drift=str[i]-'a';  column = 1; } else
     if ( (str[i]>='A') && (str[i]<='Z') )  {  drift=str[i]-'A';  column = 18; } else
     if ( (str[i]>='0') && (str[i]<='9') )  {  drift=str[i]-'0';  column = 35;  }
-    fprintf(stderr,"bitBltImage ");
+    //fprintf(stderr,"bitBltImage ");
     bitBltImage(frame,x,y,font, column , drift*fontY , fontX , fontY );
 
     x+=fontX-3;
@@ -70,19 +70,19 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
   int success=0;
-  fprintf(stderr,"AmmCaptcha_getCaptchaFrame.. ");
+  //fprintf(stderr,"AmmCaptcha_getCaptchaFrame.. ");
   struct Image * captcha = createImage(300,70,3);
-  fprintf(stderr," RenderString");
+  //fprintf(stderr," RenderString");
   if ( RenderString(captcha,&fontRAW, 0 + rand()%200 ,  rand()%40, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID))) )
   {
-   fprintf(stderr,"Applying Swirl..");
+   //fprintf(stderr,"Applying Swirl..");
    //Apply Swirling effect!
    coolPHPWave(captcha, 11,12,5,14);
 
    fprintf(stderr,"Writing to JPEG");
    //WriteJPEGFile(captcha,"captcha.jpg");
    WriteJPEGMemory(captcha,mem,mem_size);
-   fprintf(stderr,"Survived WriteJPEG");
+   //fprintf(stderr,"Survived WriteJPEG");
    success=1;
   } else
   {
@@ -90,7 +90,7 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
   }
 
  destroyImage(captcha);
- fprintf(stderr,"Survived destroyImage");
+ //fprintf(stderr,"Survived destroyImage");
  return success;
 }
 
