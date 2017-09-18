@@ -446,6 +446,7 @@ void * serve_captcha_page(struct AmmServer_DynamicRequest  * rqst)
   unsigned int captchaID = atoi(captchaIDStr);
 
   rqst->contentSize=rqst->MAXcontentSize;
+  AmmServer_Warning("doing captcha callback..");
   AmmCaptcha_getCaptchaFrame(captchaID,rqst->content,&rqst->contentSize);
   #else
    snprintf(rqst->content,rqst->MAXcontentSize,"ENABLE_CAPTCHA_SYSTEM");
