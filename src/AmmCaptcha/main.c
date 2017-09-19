@@ -79,7 +79,7 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
    //Apply Swirling effect!
    coolPHPWave(captcha, 11,12,5,14);
 
-   fprintf(stderr,"Writing to JPEG");
+   //fprintf(stderr,"Writing to JPEG");
    //WriteJPEGFile(captcha,"captcha.jpg");
    WriteJPEGMemory(captcha,mem,mem_size);
    //fprintf(stderr,"Survived WriteJPEG");
