@@ -122,7 +122,7 @@ int renderVideoList(struct videoCollection *  db ,
   if (foundVideos==0)
     {
       AmmServer_Error("Could not Find Video Query  `%s`\n\n",query);
-      snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\" /></head><body><h2>We got your query for %s but could not find it</h2></body> </html> ",query);
+      snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\" /></head><body><h2>We got your query but could not find it..</h2></body> </html> ");
       rqst->contentSize=strlen(rqst->content);
       return 1; //We handled it
     } else
