@@ -75,7 +75,7 @@ void * search_callback(struct AmmServer_DynamicRequest  * rqst)
               {
                filterStringForHtmlInjection(query,strlen(query));
                if (immediate)
-                 { snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='https://duckduckgo.com/?q=/%s'\" /></head><body>Searching for your query `%s`</body></html>",query,query); } else
+                 { snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='https://duckduckgo.com/?q=\\%s'\" /></head><body>Searching for your query `%s`</body></html>",query,query); } else
                  { snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='https://duckduckgo.com/?q=%s'\" /></head><body>Searching for immediate query `%s`</body></html>",query,query); }
 
               } else
