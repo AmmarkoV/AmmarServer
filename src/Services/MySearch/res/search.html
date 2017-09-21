@@ -97,7 +97,8 @@
 </div>
 <div class="main">
  
-  <form action="search.html" method="get">
+  <form action="search.html" method="get" id="search">
+  <input type="hidden" name="i" id="i" value="0">
   <center>
   <div>
   <table width=30%>
@@ -124,7 +125,7 @@
         <div width=350 class="buttons" ><br><input type="submit" class="linkButton" value="Search" /><br><br></div> 
      </td>
      <td align="center" valign="middle">
-        <div class="buttons" ><br><a href="#">1st Result</a><br><br></div> 
+        <div class="buttons" ><br><a href="#" onclick="document.getElementById('i').value='1';  document.getElementById('search').submit();  ">1st Result</a><br><br></div> 
      </td>
      <td width=70></td>
    </tr>

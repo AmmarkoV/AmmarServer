@@ -173,7 +173,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   fprintf(stderr,"Initial AmmServer_Start ( name %s ) thread pool pointing @ %p \n",instance->instanceName,instance->threads_pool);//Clear instance..!
 
   instance->prespawned_pool = (void *) malloc( sizeof(struct PreSpawnedThread) * MAX_CLIENT_PRESPAWNED_THREADS);
-  if (!instance->prespawned_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_PRESPAWNED_THREADS);  }else
+  if (!instance->prespawned_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_PRESPAWNED_THREADS);  } else
                                   {
                                     if (MAX_CLIENT_PRESPAWNED_THREADS>0)
                                      {
@@ -821,6 +821,12 @@ struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_Me
 }
 
 
+int filterStringForHtmlInjection(char * buffer , unsigned int bufferSize)
+{
+
+
+  return 0;
+}
 
 
 
