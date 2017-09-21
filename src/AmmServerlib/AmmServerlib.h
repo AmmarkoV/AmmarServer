@@ -852,6 +852,8 @@ struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char *
 struct AmmServer_MemoryHandler *  AmmServer_CopyMemoryHandler(struct AmmServer_MemoryHandler * inpt);
 
 
+int filterStringForHtmlInjection(char * buffer , unsigned int bufferSize);
+
 /**
 * @brief Search for entryPoint pattern in buffer , and inject data there..!
 * @ingroup tools

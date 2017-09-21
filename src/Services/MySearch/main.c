@@ -64,10 +64,20 @@ void * favicon_callback(struct AmmServer_DynamicRequest  * rqst)
 
 void * search_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  char query[512]={0};
-  if ( _GET(default_server,rqst,"q",query,512) )
+  int immediate=0;
+  char query[1024]={0};
+  if ( _GET(default_server,rqst,"i",query,1024) )
+               { //Use \ to go to directly to the first search result. We call this I'm Feeling Ducky. For example, \futurama
+                  if (strcmp(query,"1")==0) { immediate=1; }
+               }
+
+  if ( _GET(default_server,rqst,"q",query,1024) )
               {
-               snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='https://duckduckgo.com/?q=%s'\" /></head><body>Searching for query `%s`</body></html>",query,query);
+               filterStringForHtmlInjection(query,strlen(query));
+               if (immediate)
+                 { snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='https://duckduckgo.com/?q=/%s'\" /></head><body>Searching for your query `%s`</body></html>",query,query); } else
+                 { snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='https://duckduckgo.com/?q=%s'\" /></head><body>Searching for immediate query `%s`</body></html>",query,query); }
+
               } else
               {
                snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\" /></head><body>Search</body></html>");
