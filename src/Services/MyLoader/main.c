@@ -41,7 +41,9 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context uploadProcessor={0};
 struct AmmServer_RH_Context indexProcessor={0};
 struct AmmServer_RH_Context vFileProcessor={0};
+struct AmmServer_RH_Context vFileProcessorCompat={0};
 struct AmmServer_RH_Context fileProcessor={0};
+struct AmmServer_RH_Context fileProcessorCompat={0};
 struct AmmServer_RH_Context randomProcessor={0};
 
 struct AmmServer_MemoryHandler * indexPage=0;
@@ -311,7 +313,10 @@ void init_dynamic_content()
 
   AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",webserver_root,4096,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&vFileProcessor,"/vfile.html",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&vFileProcessorCompat,"/vfile.php",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&fileProcessor,"/file.html",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&fileProcessorCompat,"/file.php",webserver_root,4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+
   AmmServer_AddResourceHandler(default_server,&randomProcessor,"/random.html",webserver_root,4096,0,&prepare_random_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(default_server,&randomProcessor);
 
