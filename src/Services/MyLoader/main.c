@@ -164,6 +164,10 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
   }
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$PLACE_TO_EMBED_CONTENT$",embed);
 
+  snprintf(embed,2048,"vfile.html?i=%s",fileRequested);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$PLACE_TO_EMBED_PERMALINK$",embed);
+
+
   memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
   rqst->contentSize=videoMH->contentCurrentLength ;
 
