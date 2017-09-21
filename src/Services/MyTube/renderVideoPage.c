@@ -54,18 +54,22 @@ int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHa
 
 
                 unsigned int randVideoID=0;
+                unsigned int nextVideoID=rand()%myTube->numberOfLoadedVideos;
                 char tag[512];
                 unsigned int i=0;
-                for (i=1; i<=12; i++)
+                for (i=1; i<=14; i++)
                 {
                  snprintf(tag,512,"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++PLAYLIST%u+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++",i);
                  if (i==1) {
                             randVideoID=videoID;
                            } else
+                 if (i==2) {
+                            randVideoID=nextVideoID;
+                           } else
                            {
                             randVideoID=rand()%myTube->numberOfLoadedVideos;
                            }
-                  snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%lu views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                  snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td class=\"dsc\"><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%lu views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
                   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,tag, data );
                 }
 
