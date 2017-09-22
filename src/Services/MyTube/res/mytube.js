@@ -15,7 +15,8 @@ function httpGet(theUrl)
     {
     var xmlHttp = null;
     xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
+    xmlHttp.open( "GET", theUrl, true ); //Second parameter is asyncfile:///home/ammar/Documents/Programming/AmmarServer/src/Services/MyTube/res/player.html
+
     xmlHttp.send( null );
     return xmlHttp.responseText;
     }
@@ -33,6 +34,11 @@ function httpGet(theUrl)
       window.location.href = "/random?t="+randomnumber; 
     } 
 
+    function goFixedVideo(vid) 
+    {  
+      var randomnumber=Math.floor(Math.random()*100000);
+      window.location.href = "/watch?v="+vid+"&t="+randomnumber; 
+    } 
 
   document.onkeypress = function (e) 
   {
