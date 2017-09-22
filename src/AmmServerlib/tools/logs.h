@@ -28,6 +28,10 @@
 
 #define logEcho() fprintf(stderr," Reached %s , %u \n ", __FILE__, __LINE__);
 
+
+
+int FileAppend(const char * filename,const char * msg);
+
 /**
 * @brief Log Function to output Errors
 * @ingroup logs
