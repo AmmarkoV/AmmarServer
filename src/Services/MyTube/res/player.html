@@ -76,6 +76,7 @@
          <script> 
           var myVideo = document.getElementById("myplayer"); 
           myVideo.addEventListener('ended',videoEndedHandler,false);
+          myVideo.addEventListener('error',videoErrorHandler,false);
 
           function playPause() { if (myVideo.paused) myVideo.play(); else myVideo.pause(); } 
           function makeBig()    { myVideo.width = 1500; myVideo.height=700;  } 
@@ -85,10 +86,16 @@
               { 
                if (document.getElementById('autoplay').checked)
                  { 
-                  //alert('Video ended');
-                  //goRandomVideo(); 
-                  goFixedVideo("$NEXT_VIDEO$"); 
-                  
+                  //alert('Video ended'); 
+                  goFixedVideo("$NEXT_VIDEO$");  
+                 } 
+              }
+          function videoErrorHandler(e) 
+              { 
+               if (document.getElementById('autoplay').checked)
+                 { 
+                  //alert('Video error');  
+                  setTimeout(goFixedVideo("$NEXT_VIDEO$"), 5000); 
                  } 
               }
          </script> 

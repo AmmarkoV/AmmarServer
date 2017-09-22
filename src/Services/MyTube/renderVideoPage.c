@@ -58,7 +58,7 @@ int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHa
                 unsigned int nextVideoID=rand()%myTube->numberOfLoadedVideos;
 
                 snprintf(tag,512,"%u",nextVideoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NEXT_VIDEO$",tag);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NEXT_VIDEO$",tag);
 
                 unsigned int i=0;
                 for (i=1; i<=14; i++)
