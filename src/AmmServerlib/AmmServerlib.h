@@ -412,6 +412,12 @@ char * AmmServer_Version();
 */
 int AmmServer_CheckIfHeaderBinaryAreTheSame(int headerSpec);
 
+
+
+
+int AmmServer_AppendToFile(const char * filename,const char * msg);
+
+
 /**
 * @brief Writes the C string pointed by format to stderr , as a warning ( Yellow ) and logs it to the appropriate log
          If format includes format specifiers (subsequences beginning with %), the additional arguments following format are formatted and inserted in the resulting

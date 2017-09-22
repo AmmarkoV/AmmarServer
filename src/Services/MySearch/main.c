@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     default_server = AmmServer_StartWithArgs(
-                                             "MySearch",
+                                             "mysearch",
                                               argc,argv , //The internal server will use the arguments to change settings
                                               //If you don't want this look at the AmmServer_Start call
                                               bindIP,

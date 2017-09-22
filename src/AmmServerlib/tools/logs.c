@@ -26,6 +26,15 @@ blinkingChars=$(printf "\033[5m")
 */
 
 
+int FileAppend(const char * filename,const char * msg)
+{
+  FILE * pFile = fopen (AccessLog, "a");
+  if (pFile==0) { return 0; }
+
+  fprintf(pFile,"%s\n",msg);
+  fclose(pFile);
+}
+
 
 void error(const char * msg)
 {

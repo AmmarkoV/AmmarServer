@@ -80,6 +80,12 @@ void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_l
    if (freeAtTheEnd) free(coloredFormat);
 }
 
+
+int AmmServer_AppendToFile(const char * filename,const char * msg)
+{
+  return FileAppend(const char * filename,const char * msg);
+}
+
 void AmmServer_Warning( const char *format , ... )
 {
   va_list arglist;

@@ -308,6 +308,24 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+
+//This function prepares the content of  stats context , ( stats.content )
+void * serve_playbackerror(struct AmmServer_DynamicRequest  * rqst)
+{
+  char videoRequested[128]={0};
+  if ( _GET(default_server,rqst,"v",videoRequested,128) )
+              {
+                fprintf(stderr,"Playback Error for Video  : %s \n",videoRequested);
+                unsigned int videoID=atoi(videoRequested);
+                if (videoID < myTube->numberOfLoadedVideos)
+                {
+                  AmmServer_AppendToFile("mytubePlaybackErrors.log",videoRequested);
+                }
+              }
+  return 0;
+}
+
+
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -494,7 +512,7 @@ int main(int argc, char *argv[])
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
     default_server = AmmServer_StartWithArgs(
-                                             "MyTube",
+                                             "mytube",
                                               argc,argv , //The internal server will use the arguments to change settings
                                               //If you don't want this look at the AmmServer_Start call
                                               bindIP,
