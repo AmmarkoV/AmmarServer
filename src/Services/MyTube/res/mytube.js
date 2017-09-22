@@ -27,6 +27,13 @@ function httpGet(theUrl)
        var randomnumber=Math.floor(Math.random()*100000);
        httpGet("/proc?"+theCommand+"&t="+randomnumber); 
     } 
+    
+    
+    function playbackError(theVideo)
+    {
+       var randomnumber=Math.floor(Math.random()*100000);
+       httpGet("/error?v="+theVideo+"&t="+randomnumber); 
+    } 
 
     function goRandomVideo() 
     {

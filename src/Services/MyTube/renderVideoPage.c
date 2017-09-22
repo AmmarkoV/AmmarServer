@@ -24,7 +24,7 @@ int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHa
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++USER+++++++++","MyTube");
 
                 snprintf(data,512,"watch?v=%u",videoID);
-                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"++++++++++++CURRENTVIDEOLINK++++++++++++",data);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"++++++++++++CURRENTVIDEOLINK++++++++++++",data);
 
 
                 ++myTube->video[videoID].views;
