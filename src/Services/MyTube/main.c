@@ -316,11 +316,13 @@ void * serve_playbackerror(struct AmmServer_DynamicRequest  * rqst)
   char videoRequested[128]={0};
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
-                fprintf(stderr,"Playback Error for Video  : %s \n",videoRequested);
+                AmmServer_Error("Playback Client Error for Video  : %s \n",videoRequested);
                 unsigned int videoID=atoi(videoRequested);
                 if (videoID < myTube->numberOfLoadedVideos)
                 {
                   AmmServer_AppendToFile("mytubePlaybackErrors.log",videoRequested);
+                  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Error Report ACK</body></html>");
+                  rqst->contentSize=strlen(rqst->content);
                 }
               }
   return 0;
