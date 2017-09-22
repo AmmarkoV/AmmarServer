@@ -320,7 +320,7 @@ void * serve_playbackerror(struct AmmServer_DynamicRequest  * rqst)
                 unsigned int videoID=atoi(videoRequested);
                 if (videoID < myTube->numberOfLoadedVideos)
                 {
-                  AmmServer_AppendToFile("mytubePlaybackErrors.log",videoRequested);
+                  AmmServer_AppendToFile("log/mytube_playbackerror.log",videoRequested);
                   snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Error Report ACK</body></html>");
                   rqst->contentSize=strlen(rqst->content);
                 }
