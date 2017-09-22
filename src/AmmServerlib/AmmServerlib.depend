@@ -34,7 +34,7 @@
 1495736877 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.h
 	"../AmmServerlib.h"
 
-1506010452 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1506072036 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 	<pthread.h>
 	<libgen.h>
 
@@ -55,7 +55,7 @@
 1495722208 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.h
 	"AmmServerlib.h"
 
-1495722208 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/logs.h
+1506071981 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/logs.h
 
 1406028191 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/time_provider.h
 	<sys/types.h>
@@ -155,7 +155,7 @@
 	"../tools/logs.h"
 	"sendHTTPHeader.h"
 
-1506010565 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1506072463 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1467815117 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
