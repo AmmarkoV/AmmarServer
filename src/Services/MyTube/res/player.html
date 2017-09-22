@@ -71,8 +71,8 @@
          <b> => </b>
          <button onclick="document.getElementById('autoplay').checked=1;goRandomVideo();">Random</button>  
          <b> <= </b>
-         <input type="checkbox" id="autoplay" value="autoplay" checked="checked" >Autoplay
-
+         <input type="checkbox" id="autoplay" value="autoplay" checked="checked">Autoplay 
+         <input type="checkbox" id="autorepeat" value="autorepeat" onclick=" if (document.getElementById('autorepeat').checked) { document.getElementById('myplayer').loop = true; } else  { document.getElementById('myplayer').loop = false; } ">Autorepeat
          <script> 
           var myVideo = document.getElementById("myplayer"); 
           myVideo.addEventListener('ended',videoEndedHandler,false);
