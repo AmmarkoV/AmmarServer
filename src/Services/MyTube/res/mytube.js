@@ -19,7 +19,8 @@ function httpGet(theUrl)
 
     xmlHttp.send( null );
     return xmlHttp.responseText;
-    }
+    }file:///home/ammar/Documents/Programming/AmmarServer/src/Services/MyTube/res/player.html
+
 
 
     function command(theCommand)
