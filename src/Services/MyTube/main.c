@@ -56,6 +56,7 @@ struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context errorPageContext={0};
 struct AmmServer_RH_Context videoPageContext={0};
 struct AmmServer_RH_Context videoFileContext={0};
+struct AmmServer_RH_Context uploadContext={0};
 struct AmmServer_RH_Context randomVideoFileContext={0};
 struct AmmServer_RH_Context thumbnailContext={0};
 struct AmmServer_RH_Context interactContext={0};
@@ -79,6 +80,7 @@ struct AmmServer_MemoryHandler * jsFile=0;
 int enableMonitor=0;
 
 
+
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_index(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -86,6 +88,12 @@ void * serve_index(struct AmmServer_DynamicRequest  * rqst)
   fprintf(stderr,"Giving back index video %u/%u \n",videoDefaultTestTranmission,myTube->numberOfLoadedVideos);
   rqst->contentSize=strlen(rqst->content);
   return 0;
+}
+
+
+void * serve_upload(struct AmmServer_DynamicRequest  * rqst)
+{
+   return serve_index(rqst);
 }
 
 
@@ -455,6 +463,8 @@ void init_dynamic_content()
 
   //---------------
 
+
+  if (! AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",webserver_root,14096,0,&serve_upload,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve error file\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&errorPageContext,"/error",webserver_root,14096,0,&serve_playbackerror,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve error file\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,25000,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
