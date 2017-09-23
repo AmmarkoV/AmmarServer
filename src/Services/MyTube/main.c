@@ -292,10 +292,18 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
               {
                 fprintf(stderr,"Thumbnail Requested for Video  : %s \n",videoRequested);
 
-                unsigned int videoID=atoi(videoRequested);
-
-                if (videoID < myTube->numberOfLoadedVideos)
+                if (strcmp(videoRequested,"linux")==0)
                 {
+                  if (!AmmServer_DynamicRequestReturnFile(rqst,"public_html/thumb.jpg") )
+                      {
+                        AmmServer_Error("Could not return default thumbnail");
+                      }
+                } else
+                {
+                 unsigned int videoID=atoi(videoRequested);
+
+                 if (videoID < myTube->numberOfLoadedVideos)
+                 {
                   char * thumbnailFile = generateThumbnailOfVideo(1,video_root,myTube->video[videoID].filename,database_root);
                   if (thumbnailFile!=0)
                    {
@@ -303,7 +311,7 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
                     free(thumbnailFile);
                     return 0;
                    }
-
+                 }
                 }
               }
    #endif // DO_DYNAMIC_THUMBNAILS
