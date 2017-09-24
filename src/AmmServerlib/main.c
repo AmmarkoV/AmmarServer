@@ -286,6 +286,23 @@ int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,c
 }
 
 
+int AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicRequest  * rqst,struct AmmServer_MemoryHandler * content)
+{
+  if (content==0) { return 0; }
+  if (content->content==0) { return 0; }
+  if (content->contentSize==0) { return 0; }
+
+  if (rqst->MAXcontentSize <= content->contentSize )
+  {
+    AmmServer_Error("Not enough space to serve AmmServer_DynamicRequestReturnMemoryHandler ..");
+    return 1;
+  }
+
+  memcpy(rqst->content,content->content,content->contentSize);
+  rqst->contentSize = content->contentSize;
+
+  return 0;
+}
 
 
 //This call , calls  callback every time a request hits the server..

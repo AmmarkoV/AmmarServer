@@ -504,6 +504,9 @@ int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,c
 
 
 
+int AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicRequest  * rqst,struct AmmServer_MemoryHandler * content);
+
+
 /**
 * @brief Add a request handler to handle requests , before they get processed internally
 *        Calling this will bind a C function that will be called and produce output when someone asks for any resource using the specified method

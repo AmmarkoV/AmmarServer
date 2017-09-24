@@ -251,65 +251,21 @@ void * serve_stop(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
-
-
 void * serve_js(struct AmmServer_DynamicRequest  * rqst)
 {
-  if (jsFile==0) { return 0; }
-  if (jsFile->content==0) { return 0; }
-  if (jsFile->contentSize==0) { return 0; }
-
-  if (rqst->MAXcontentSize <= jsFile->contentSize )
-  {
-    AmmServer_Error("Not enough space to serve jsFile..");
-    return 0;
-  }
-
-
-  memcpy(rqst->content,jsFile->content,jsFile->contentSize);
-  rqst->contentSize = jsFile->contentSize;
-  return 0;
+  return AmmServer_DynamicRequestReturnMemoryHandler(rqst,jsFile);
 }
-
-
 
 void * serve_css(struct AmmServer_DynamicRequest  * rqst)
 {
-  if (cssFile==0) { return 0; }
-  if (cssFile->content==0) { return 0; }
-  if (cssFile->contentSize==0) { return 0; }
-
-  if (rqst->MAXcontentSize <= cssFile->contentSize )
-  {
-    AmmServer_Error("Not enough space to serve cssFile..");
-    return 0;
-  }
-
-  memcpy(rqst->content,cssFile->content,cssFile->contentSize);
-  rqst->contentSize = cssFile->contentSize;
-  return 0;
+  return AmmServer_DynamicRequestReturnMemoryHandler(rqst,cssFile);
 }
-
-
 
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_favicon(struct AmmServer_DynamicRequest  * rqst)
 {
-  if (favicon==0) { return 0; }
-  if (favicon->content==0) { return 0; }
-  if (favicon->contentSize==0) { return 0; }
-
-  if (rqst->MAXcontentSize <= favicon->contentSize )
-  {
-    AmmServer_Error("Not enough space to serve favicon..");
-    return 0;
-  }
-
-  memcpy(rqst->content,favicon->content,favicon->contentSize);
-  rqst->contentSize = favicon->contentSize;
-  return 0;
+  return AmmServer_DynamicRequestReturnMemoryHandler(rqst,favicon);
 }
-
 
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
