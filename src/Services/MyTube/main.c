@@ -70,6 +70,7 @@ struct AmmServer_RH_Context stopContext={0};
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * headerPage=0;
 struct AmmServer_MemoryHandler * favicon=0;
+struct AmmServer_MemoryHandler * uploadIcon=0;
 struct AmmServer_MemoryHandler * cssFile=0;
 struct AmmServer_MemoryHandler * jsFile=0;
 
@@ -291,7 +292,16 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
                 fprintf(stderr,"Thumbnail Requested for Video  : %s \n",videoRequested);
-/*
+
+                if (strcmp(videoRequested,"upload")==0)
+                {
+                  if (uploadIcon==0) { return 0; }
+                  if (uploadIcon->content==0) { return 0; }
+                  if (uploadIcon->contentSize==0) { return 0; }
+
+                   memcpy(rqst->content,uploadIcon->content,uploadIcon->contentSize);
+                  return 0;
+                } else
                 if (strcmp(videoRequested,"linux")==0)
                 {
                   if (!AmmServer_DynamicRequestReturnFile(rqst,"public_html/thumb.jpg") )
@@ -299,7 +309,6 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
                         AmmServer_Error("Could not return default thumbnail");
                       }
                 } else
-                */
                 {
                  unsigned int videoID=atoi(videoRequested);
 
@@ -426,6 +435,7 @@ void init_dynamic_content()
   favicon=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/favicon.ico");
   cssFile=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/mytube.css");
   jsFile=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/mytube.js");
+  uploadIcon=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/upload.png");
 
 
 
