@@ -6,7 +6,7 @@
  <link rel="stylesheet" type="text/css" href="mytube.css">
  <script src="mytube.js" type="text/javascript"></script> 
 </head>
-<body> 
+<body onload='document.getElementById("myplayer").currentTime=+++++++++STARTTIME+++++++++'> 
 <!-- header -->
 <table height=50>
  <tr>
@@ -103,7 +103,7 @@
                if (document.getElementById('autoplay').checked)
                  { 
                   //alert('Video error');  
-                  playbackError("++++++++++++CURRENTVIDEOLINK++++++++++++");
+                  playbackError("++++++++++++CURRENTVIDEOLINK++++++++++++&t="+myVideo.currentTime);
                   //setTimeout(goFixedVideo("$NEXT_VIDEO$"), 5000); 
                  } 
               }

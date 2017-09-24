@@ -164,8 +164,16 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
   char videoRequested[128]={0};
 
   char pickRequested[128]={0};
+  char timeRequested[128]={0};
   unsigned int doPickFromList=0;
   unsigned int pickNumber=0;
+  unsigned int startTime=0;
+
+  if ( _GET(default_server,rqst,"t",timeRequested,128) )
+              {
+                startTime=atoi(timeRequested);
+              }
+
 
   if ( _GET(default_server,rqst,"s",sessionRequested,128) )
               {
@@ -209,7 +217,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 {
                    struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
-                   if (renderVideoPage(myTube , videoMH , videoID , userID ))
+                   if (renderVideoPage(myTube , videoMH , videoID , userID , startTime))
                    {
                     memcpy( rqst->content , videoMH->content , videoMH->contentCurrentLength );
                     rqst->contentSize = videoMH->contentCurrentLength;
