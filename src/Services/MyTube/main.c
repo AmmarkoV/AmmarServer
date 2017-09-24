@@ -291,7 +291,7 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
                 fprintf(stderr,"Thumbnail Requested for Video  : %s \n",videoRequested);
-
+/*
                 if (strcmp(videoRequested,"linux")==0)
                 {
                   if (!AmmServer_DynamicRequestReturnFile(rqst,"public_html/thumb.jpg") )
@@ -299,6 +299,7 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
                         AmmServer_Error("Could not return default thumbnail");
                       }
                 } else
+                */
                 {
                  unsigned int videoID=atoi(videoRequested);
 
