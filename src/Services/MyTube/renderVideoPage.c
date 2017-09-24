@@ -1,5 +1,7 @@
 #include "renderVideoPage.h"
-
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 
 int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHandler * videoMH , unsigned int videoID , unsigned int userID , unsigned int secondsStart)
