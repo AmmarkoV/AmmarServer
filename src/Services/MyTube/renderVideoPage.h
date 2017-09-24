@@ -4,6 +4,6 @@
 #include "indexer.h"
 #include "../../AmmServerlib/AmmServerlib.h"
 
-int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHandler * videoMH , unsigned int videoID , unsigned int userID);
+int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHandler * videoMH , unsigned int videoID , unsigned int userID, unsigned int secondsStart);
 
 #endif // RENDERVIDEOPAGE_H_INCLUDED

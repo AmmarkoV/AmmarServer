@@ -2,12 +2,17 @@
 
 
 
-int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHandler * videoMH , unsigned int videoID , unsigned int userID)
+int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHandler * videoMH , unsigned int videoID , unsigned int userID , unsigned int secondsStart)
 {
                 AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++",myTube->video[videoID].title);
 
                 char data[512];
+
+
+
+                snprintf(data,512,"%u",secondsStart);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++STARTTIME+++++++++",data);
 
                 if (strstr(myTube->video[videoID].filename,".flv")!=0)
                 {
