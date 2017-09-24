@@ -251,6 +251,13 @@ void * serve_js(struct AmmServer_DynamicRequest  * rqst)
   if (jsFile->content==0) { return 0; }
   if (jsFile->contentSize==0) { return 0; }
 
+  if (rqst->MAXcontentSize <= jsFile->contentSize )
+  {
+    AmmServer_Error("Not enough space to serve jsFile..");
+    return 0;
+  }
+
+
   memcpy(rqst->content,jsFile->content,jsFile->contentSize);
   rqst->contentSize = jsFile->contentSize;
   return 0;
@@ -263,6 +270,12 @@ void * serve_css(struct AmmServer_DynamicRequest  * rqst)
   if (cssFile==0) { return 0; }
   if (cssFile->content==0) { return 0; }
   if (cssFile->contentSize==0) { return 0; }
+
+  if (rqst->MAXcontentSize <= cssFile->contentSize )
+  {
+    AmmServer_Error("Not enough space to serve cssFile..");
+    return 0;
+  }
 
   memcpy(rqst->content,cssFile->content,cssFile->contentSize);
   rqst->contentSize = cssFile->contentSize;
@@ -277,6 +290,12 @@ void * serve_favicon(struct AmmServer_DynamicRequest  * rqst)
   if (favicon==0) { return 0; }
   if (favicon->content==0) { return 0; }
   if (favicon->contentSize==0) { return 0; }
+
+  if (rqst->MAXcontentSize <= favicon->contentSize )
+  {
+    AmmServer_Error("Not enough space to serve favicon..");
+    return 0;
+  }
 
   memcpy(rqst->content,favicon->content,favicon->contentSize);
   rqst->contentSize = favicon->contentSize;
@@ -491,7 +510,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) )         { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) )    { AmmServer_Warning("Failed adding serve index page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,4096,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,16400,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&cssContext,"/mytube.css",webserver_root,4096,1000,&serve_css,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&jsContext,"/mytube.js",webserver_root,4096,1000,&serve_js,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
 
