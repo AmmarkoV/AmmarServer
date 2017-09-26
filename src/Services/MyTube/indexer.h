@@ -37,10 +37,9 @@ unsigned int getAUserIDForSession(struct videoCollection * db , const char * ses
 int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , unsigned int videoID);
 
 int unloadVideoDatabase(struct videoCollection* vc);
-struct videoCollection * loadVideoDatabase(const char * directoryPath,const char * databasePath);
-
-
 
 unsigned int getDBIndexFromPermanentLink(const char* id);
+int indexerSaveVideoDatabaseToIndexFile(const char * filename , struct videoCollection* vc);
+struct videoCollection * indexerLoadVideoDatabaseFromIndexFile(const char * filename , const char * directoryPath,const char * databasePath);
 
 #endif // INDEXER_H_INCLUDED

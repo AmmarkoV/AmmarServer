@@ -1,3 +1,7 @@
+
+#define _GNU_SOURCE
+//for strcasestr
+
 #include "renderVideoList.h"
 
 #include <stdio.h>
@@ -64,7 +68,7 @@ int renderVideoList(struct videoCollection *  db ,
 
 
 
-  snprintf(data,512,"<table>",query); dataSize=strlen(data);
+  snprintf(data,512,"<table>"); dataSize=strlen(data);
   if (dataSize>remainingSize) { outOfMemory = 1; } else { strncat(rqst->content,data,dataSize); remainingSize-=dataSize; }
 
 
