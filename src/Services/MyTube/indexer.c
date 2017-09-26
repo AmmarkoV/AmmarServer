@@ -29,9 +29,6 @@ char * path_cat2 (const char *str1,const char *str2)
 }
 
 
-
-
-
 unsigned int clearExtensionFAST(char * inputOutputStr)
 {
   unsigned int lengthOfStr=strlen(inputOutputStr);
@@ -227,3 +224,14 @@ struct videoCollection * loadVideoDatabase(const char * directoryPath,const char
     closedir(dir);
     return newDB;
 }
+
+
+
+
+unsigned int getDBIndexFromPermanentLink(const char* id)
+{
+  return atoi(id);
+}
+
+
+
