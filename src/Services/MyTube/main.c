@@ -129,7 +129,7 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
               {
                 fprintf(stderr,"Video Requested is : %s \n",videoRequested);
 
-                unsigned int videoID=atoi(videoRequested);
+                unsigned int videoID=getDBIndexFromPermanentLink(videoRequested);
                 if (videoID >= myTube->numberOfLoadedVideos)
                 {
                   rqst->headerResponse=404;
@@ -202,7 +202,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
                 fprintf(stderr,"Video Requested is : %s \n",videoRequested);
-                videoID=atoi(videoRequested);
+                videoID=getDBIndexFromPermanentLink(videoRequested);
                 queryFoundVideo=1;
               }
 
@@ -293,7 +293,7 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
                       }
                 } else
                 {
-                 unsigned int videoID=atoi(videoRequested);
+                 unsigned int videoID=getDBIndexFromPermanentLink(videoRequested);
 
                  if (videoID < myTube->numberOfLoadedVideos)
                  {
@@ -326,7 +326,7 @@ void * serve_playbackerror(struct AmmServer_DynamicRequest  * rqst)
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
                 AmmServer_Error("Playback Client Error for Video  : %s \n",videoRequested);
-                unsigned int videoID=atoi(videoRequested);
+                unsigned int videoID=getDBIndexFromPermanentLink(videoRequested);
                 if (videoID < myTube->numberOfLoadedVideos)
                 {
                   AmmServer_AppendToFile("log/mytube_playbackerror.log",videoRequested);
@@ -346,7 +346,7 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
 
   if ( _GET(default_server,rqst,"upvote",videoRequested,128) )
   {
-     videoID=atoi(videoRequested);
+     videoID=getDBIndexFromPermanentLink(videoRequested);
      if (videoID < myTube->numberOfLoadedVideos)
      {
          ++myTube->video[videoID].likes;
@@ -355,7 +355,7 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
   } else
   if ( _GET(default_server,rqst,"downvote",videoRequested,128) )
   {
-     videoID=atoi(videoRequested);
+     videoID=getDBIndexFromPermanentLink(videoRequested);
      if (videoID < myTube->numberOfLoadedVideos)
      {
          ++myTube->video[videoID].dislikes;

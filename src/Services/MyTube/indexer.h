@@ -40,4 +40,7 @@ int unloadVideoDatabase(struct videoCollection* vc);
 struct videoCollection * loadVideoDatabase(const char * directoryPath,const char * databasePath);
 
 
+
+unsigned int getDBIndexFromPermanentLink(const char* id);
+
 #endif // INDEXER_H_INCLUDED
