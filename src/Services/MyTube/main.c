@@ -37,6 +37,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
+#define MASTER_INDEX_FILE "mytube.index"
+
 #define VIDEO_FILES_PATH_1 "/media/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/"
 #define VIDEO_FILES_PATH_2 "/home/ammar/Videos/Internet/"
 #define VIDEO_FILES_PATH_3 "~/Videos/"
@@ -395,6 +397,12 @@ int thumbnailAllVideoDatabase(struct videoCollection * db)
   return 1;
 }
 
+int indexAllVideoDatabase(struct videoCollection * db)
+{
+  return indexerSaveVideoDatabaseToIndexFile(MASTER_INDEX_FILE,db);
+}
+
+
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -437,7 +445,7 @@ void init_dynamic_content()
      {
       fprintf(stderr,"Trying to load from %s \n ",video_root);
       snprintf(database_root,MAX_FILE_PATH,"%s/db/",video_root);
-      myTube = loadVideoDatabase(video_root,database_root);
+      myTube = indexerLoadVideoDatabaseFromIndexFile(MASTER_INDEX_FILE,video_root,database_root); //loadVideoDatabase(video_root,database_root);
       break;
      }
   }
@@ -552,6 +560,13 @@ int main(int argc, char *argv[])
      if (strcmp(argv[i],"--thumbnail")==0) {
                                             fprintf(stderr,"Thumbnailing .. \n");
                                             thumbnailAllVideoDatabase(myTube);
+                                            close_dynamic_content();
+                                            AmmServer_Stop(default_server);
+                                            exit(0);
+                                          } else
+     if (strcmp(argv[i],"--index")==0)    {
+                                            fprintf(stderr,"Recreating Index File .. \n");
+                                            indexAllVideoDatabase(myTube);
                                             close_dynamic_content();
                                             AmmServer_Stop(default_server);
                                             exit(0);

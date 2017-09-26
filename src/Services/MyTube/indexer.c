@@ -107,7 +107,7 @@ void clear_line()
 }
 
 
-struct videoCollection * loadVideoDatabase(const char * directoryPath,const char * databasePath)
+struct videoCollection * updateVideoDatabaseFromFilesystem(const char * directoryPath,const char * databasePath)
 {
     struct videoCollection * newDB=(struct videoCollection * ) malloc(sizeof(struct videoCollection));
     if (newDB==0) { fprintf(stderr,"Could not allocate a video collection \n"); return 0; }
@@ -235,3 +235,30 @@ unsigned int getDBIndexFromPermanentLink(const char* id)
 
 
 
+int indexerSaveVideoDatabaseToIndexFile(const char * filename , struct videoCollection* vc)
+{
+ FILE * fp = fopen(filename,"w");
+ if (fp!=0)
+ {
+   unsigned int i=0;
+   for (i=0; i<vc->numberOfLoadedVideos; i++)
+   {
+     fprintf(fp,"%s\n",vc->video[i].filename);
+   }
+   fclose(fp);
+   return 1;
+ }
+ return 0;
+}
+
+
+
+
+struct videoCollection * indexerLoadVideoDatabaseFromIndexFile(const char * filename , const char * directoryPath,const char * databasePath)
+{
+  //This call should be reading the indexer file instead of doing a read-dir to populate the file database ..
+  //this way the video numbering will be stable ( as long as this file is appended there will be no reordering )
+  // of course memory allocation should be dynamic and there shouldn't be any file polling to keep startup as fast as possible..
+
+  return updateVideoDatabaseFromFilesystem(directoryPath,databasePath);
+}
