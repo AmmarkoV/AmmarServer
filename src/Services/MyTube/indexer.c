@@ -107,6 +107,32 @@ void clear_line()
 }
 
 
+
+
+int growVideoDatabase(struct videoCollection * db,unsigned int entriesToAdd)
+{
+  if (entriesToAdd == 0) { return 0 ; }
+  if (db == 0) { fprintf(stderr,"Given an empty video database to grow \n"); return 0 ; }
+
+  struct videoItem * new_video;
+  new_video = (struct videoItem *) realloc( db->video, sizeof(struct videoItem)*( db->MAX_numberOfVideos+entriesToAdd ));
+
+   if (new_video == 0 )
+    {
+       fprintf(stderr,"Cannot add %u frames to our currently %u sized frame buffer\n",entriesToAdd,db->MAX_numberOfVideos);
+       return 0;
+    } else
+     {
+      //Clean up all new object types allocated
+      void * clear_from_here  =  new_video+db->MAX_numberOfVideos;
+      memset(clear_from_here,0,entriesToAdd * sizeof(struct videoItem));
+    }
+
+   db->MAX_numberOfVideos+=entriesToAdd;
+   db->video = new_video ;
+  return 1;
+}
+
 struct videoCollection * updateVideoDatabaseFromFilesystem(const char * directoryPath,const char * databasePath)
 {
     struct videoCollection * newDB=(struct videoCollection * ) malloc(sizeof(struct videoCollection));
@@ -150,6 +176,13 @@ struct videoCollection * updateVideoDatabaseFromFilesystem(const char * director
             }
             else
             {
+              if (newDB->numberOfLoadedVideos+1>=newDB->MAX_numberOfVideos)
+              {
+                //We just run out of space , allocate another 1k entries..
+                growVideoDatabase(newDB,1000);
+              }
+
+
               if (newDB->numberOfLoadedVideos+1<newDB->MAX_numberOfVideos)
               {
                 //fprintf(stderr,"do 0 %u (%s) ",newDB->numberOfLoadedVideos,dp->d_name);
