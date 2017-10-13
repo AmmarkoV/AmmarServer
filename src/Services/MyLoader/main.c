@@ -180,6 +180,49 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
 
 
 
+
+
+
+
+void * render_upload(struct AmmServer_DynamicRequest  * rqst, const char * fileRequested)
+{
+  struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
+
+  char filenameToAccess[1024];
+  snprintf(filenameToAccess,1024,"%s%s",uploads_root,fileRequested);
+
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
+
+
+  char randomString[128];
+  snprintf(randomString,128,"%u",rand()%100000);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$RANDOMNUMBERS$",randomString);
+
+  char embed[2048]={0};
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$PLACE_TO_EMBED_CONTENT$",embed);
+
+  snprintf(embed,2048,"vfile.html?i=%s",fileRequested);
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$PLACE_TO_EMBED_PERMALINK$",embed);
+
+
+  memcpy (rqst->content , videoMH->content , videoMH->contentCurrentLength );
+  rqst->contentSize=videoMH->contentCurrentLength ;
+
+  AmmServer_FreeMemoryHandler(&videoMH);
+ return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -265,7 +308,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 
     //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
     snprintf(finalPath,1024,"%s-%s",storeID,uploadedFilePath);
-    return render_vfile(rqst,finalPath);
+    return render_upload(rqst,finalPath);
    }
    free(storeID);
   } else
