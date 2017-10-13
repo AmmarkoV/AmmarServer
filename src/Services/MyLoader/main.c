@@ -55,8 +55,8 @@ unsigned int getUploadsSizeLive()
 {
   if (uploadsFilesSize==0)
   {
-    char command[2048]={0};
-    char sizeOfUploadsString[256]={0};
+    char command[2049]={0};
+    char sizeOfUploadsString[257]={0};
 
     snprintf(command,2048,"du -sb %s%s | cut -f1",webserver_root,uploads_root);
     if ( AmmServer_ExecuteCommandLine(command,sizeOfUploadsString,256) )
@@ -84,7 +84,7 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 
   unsigned int linkID=1+rand()%6;
 
-  char stringBuffer[28];
+  char stringBuffer[29]={0};
   snprintf(stringBuffer,28,"banner_%u",linkID);
 
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
@@ -113,21 +113,21 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
 {
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
 
-  char filenameToAccess[1024];
+  char filenameToAccess[1025];
   snprintf(filenameToAccess,1024,"%s%s",uploads_root,fileRequested);
 
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
 
 
-  char randomString[128];
+  char randomString[129];
   snprintf(randomString,128,"%u",rand()%100000);
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$RANDOMNUMBERS$",randomString);
 
 
   //todo: have different embed point if it is video etc..
 
-  char embed[2048];
+  char embed[2049];
   if (AmmServer_FileIsText(fileRequested))
   {
      snprintf(embed,2048," <iframe src=\"%s\" width=\"70%%\"></iframe><br><a  href=\"%s\">Download the file</a>",filenameToAccess, filenameToAccess);
@@ -188,18 +188,18 @@ void * render_upload(struct AmmServer_DynamicRequest  * rqst, const char * fileR
 {
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
 
-  char filenameToAccess[1024];
+  char filenameToAccess[1025]={0};
   snprintf(filenameToAccess,1024,"%s%s",uploads_root,fileRequested);
 
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$NAME_OF_THIS_MYLOADER_FILE$",fileRequested);
 
 
-  char randomString[128];
+  char randomString[129]={0};
   snprintf(randomString,128,"%u",rand()%100000);
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"$RANDOMNUMBERS$",randomString);
 
-  char embed[2048]={0};
+  char embed[2049]={0};
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$PLACE_TO_EMBED_CONTENT$",embed);
 
   snprintf(embed,2048,"vfile.html?i=%s",fileRequested);
@@ -216,18 +216,11 @@ void * render_upload(struct AmmServer_DynamicRequest  * rqst, const char * fileR
 
 
 
-
-
-
-
-
-
-
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   int fileIsOk=0;
-  char fileRequested[128]={0};
+  char fileRequested[129]={0};
   if ( _GET(default_server,rqst,"i",fileRequested,128) )
               {
                 fprintf(stderr,"Requested file %s \n",fileRequested);
@@ -289,15 +282,15 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 
   if (storeID!=0)
   {
-   char uploadedFileUNSANITIZEDPath[512];
+   char uploadedFileUNSANITIZEDPath[513]={0};
    AmmServer_POSTNameOfFile (default_server,rqst,0,uploadedFileUNSANITIZEDPath,512);
    AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
 
    if (AmmServer_StringHasSafePath(uploads_root,uploadedFileUNSANITIZEDPath))
    {
     char * uploadedFilePath = uploadedFileUNSANITIZEDPath;
-    char finalPath[1024];
-    snprintf(finalPath,1024,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath);
+    char finalPath[2049]={0};
+    snprintf(finalPath,2048,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath);
     AmmServer_POSTArgToFile (default_server,rqst,0,finalPath);
 
     //This is slightly bigger ( plus the header but almost correct )
@@ -307,7 +300,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
     //AmmServer_WriteFileFromMemory(finalPath,rqst->POST_request,rqst->POST_request_length);
 
     //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-    snprintf(finalPath,1024,"%s-%s",storeID,uploadedFilePath);
+    snprintf(finalPath,2048,"%s-%s",storeID,uploadedFilePath);
     return render_upload(rqst,finalPath);
    }
    free(storeID);
@@ -321,8 +314,8 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 
 void * prepare_random_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  char command[2048]={0};
-  char fileToServe[2048]={0};
+  char command[2049]={0};
+  char fileToServe[2049]={0};
 
   snprintf(command,2048,"find %s%s -type f | shuf -n 1",webserver_root,uploads_root);
   if ( AmmServer_ExecuteCommandLine(command,fileToServe,2048) )
