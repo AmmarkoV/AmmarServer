@@ -414,6 +414,7 @@ char * prepare_index_prototype(char * filename , struct website * configuration 
 void * rss_callback(struct AmmServer_DynamicRequest  * rqst)
 {
  strncpy(rqst->content," ",rqst->MAXcontentSize);
+
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }

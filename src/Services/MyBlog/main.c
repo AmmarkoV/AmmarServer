@@ -48,7 +48,7 @@ struct AmmServer_RH_Context rssPage={0};
 
 void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-    AmmServer_Success("editorUpload_callback");
+    //AmmServer_Success("editorUpload_callback");
     unsigned int thingsSubmited=0;
     char title[1024]={0};
     char tags[1024]={0};
@@ -70,11 +70,11 @@ void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
     if(thingsSubmited==3)
     {
      AmmServer_WriteFileFromMemory("editor.raw",rqst->POST_request,rqst->POST_request_length);
-      if ( addPost(title,tags,bodyText) )
-      {
-
-      }
+     //-----------------------------
+     if ( addPost(&myblog,title,tags,bodyText) )    { AmmServer_Success("Added a new post"); } else
+                                                    { AmmServer_Error("Could not create a new post"); }
      prepare_index(rqst);
+     //-----------------------------
     } else
     {
      AmmServer_EditorCallback(rqst);

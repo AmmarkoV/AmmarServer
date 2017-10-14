@@ -57,6 +57,14 @@ int AmmServer_CheckIfHeaderBinaryAreTheSame(int headerSpec)
 }
 
 
+int AmmServer_GetDateString(char * output , unsigned int maxOutput)
+{
+  return GetDateString(output,maxOutput,0,1,0,0,0,0,0,0,0);
+}
+
+
+
+
 void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
 {
    unsigned int freeAtTheEnd=1;

@@ -415,6 +415,9 @@ int AmmServer_CheckIfHeaderBinaryAreTheSame(int headerSpec);
 
 
 
+int AmmServer_GetDateString(char * output , unsigned int maxOutput);
+
+
 int AmmServer_AppendToFile(const char * filename,const char * msg);
 
 
