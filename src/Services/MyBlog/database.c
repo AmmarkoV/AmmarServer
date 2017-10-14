@@ -104,6 +104,11 @@ int addPost(struct website * configuration,const char * title , const char * tag
   AmmServer_GetDateString(configuration->post.item[newPostID].dateStr, MAX_STR);
   snprintf(configuration->post.item[newPostID].author  , MAX_STR , "authorhere" );
 
+ fprintf(stderr," Adding post %u/%u ..\n",newPostID,configuration->post.currentPosts);
+ fprintf(stderr," Title : %s \n",title);
+ fprintf(stderr," Date : %s \n",configuration->post.item[newPostID].dateStr);
+ fprintf(stderr," Text : %s \n",text);
+
   unsigned int textLength = strlen(text);
   configuration->post.item[newPostID].content.currentDataLength = textLength;
   configuration->post.item[newPostID].content.totalDataLength   = textLength;;
@@ -120,7 +125,7 @@ int addPost(struct website * configuration,const char * title , const char * tag
            );
     configuration->post.item[newPostID].content.data[textLength]=0;
 
-    free(configuration->post.item[newPostID].content.data);
+    //free(configuration->post.item[newPostID].content.data);
     return 1;
   }
 

@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "index.h"
 
 #define TEST_INDEX_GENERATION_ONLY 0
+#define ENABLE_POSTING_NEW_CONTENT 1
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
 char webserver_root[MAX_FILE_PATH]="src/Services/MyBlog/res/"; // public_html <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -91,20 +92,26 @@ void init_dynamic_content()
   prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog,0);
 
   AmmServer_AddResourceHandler(default_server,&stats   ,"/index.html",webserver_root,CONTENT_BUFFER,0,&prepare_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&pagePage,"/page.html" ,webserver_root,CONTENT_BUFFER,0,&page_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&rssPage,"/rss.xml" ,webserver_root,CONTENT_BUFFER,0,&rss_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
-  AmmServer_AddEditorResourceHandler(default_server,&editor,"/editor.html",webserver_root,&editorUpload_callback);
+  #if ENABLE_POSTING_NEW_CONTENT
+   AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+   AmmServer_AddEditorResourceHandler(default_server,&editor,"/editor.html",webserver_root,&editorUpload_callback);
+  #endif // ENABLE_POSTING_NEW_CONTENT
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
-    AmmServer_RemoveResourceHandler(default_server,&postPage,1);
     AmmServer_RemoveResourceHandler(default_server,&pagePage,1);
     AmmServer_RemoveResourceHandler(default_server,&rssPage,1);
+
+    #if ENABLE_POSTING_NEW_CONTENT
+     AmmServer_RemoveResourceHandler(default_server,&postPage,1);
+     AmmServer_RemoveResourceHandler(default_server,&editor,1);
+    #endif // ENABLE_POSTING_NEW_CONTENT
 
     destroy_index_prototype();
 }
