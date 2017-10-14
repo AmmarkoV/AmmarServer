@@ -97,9 +97,33 @@ int loadPosts(struct website * configuration)
 
 
 
-int addPost(const char * title , const char * tags , const char * text)
+int addPost(struct website * configuration,const char * title , const char * tags , const char * text)
 {
-  //Adding a post not implemented..
+  unsigned int newPostID=configuration->post.currentPosts;
+  snprintf(configuration->post.item[newPostID].title   , MAX_STR , "%s" , title);
+  AmmServer_GetDateString(configuration->post.item[newPostID].dateStr, MAX_STR);
+  snprintf(configuration->post.item[newPostID].author  , MAX_STR , "authorhere" );
+
+  unsigned int textLength = strlen(text);
+  configuration->post.item[newPostID].content.currentDataLength = textLength;
+  configuration->post.item[newPostID].content.totalDataLength   = textLength;;
+
+  configuration->post.item[newPostID].content.data =  (char*) malloc(sizeof(char) * (textLength+1) );
+
+  if (configuration->post.item[newPostID].content.data !=0 )
+  {
+    ++configuration->post.currentPosts;
+    strncpy(
+             configuration->post.item[newPostID].content.data  ,
+             text,
+             textLength
+           );
+    configuration->post.item[newPostID].content.data[textLength]=0;
+
+    free(configuration->post.item[newPostID].content.data);
+    return 1;
+  }
+
   return 0;
 }
 

@@ -32,11 +32,14 @@ int GetDateString(char * output,unsigned int maxOutput,char * label,unsigned int
         time_t clock = time(NULL);
         struct tm * ptm = gmtime ( &clock );
 
-        snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
-
+        if (label==0)
+        { snprintf(output,maxOutput,"%s, %u %s %u %02u:%02u:%02u GMT\n",days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec); } else
+        { snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec); }
       } else
       {
-        snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second);
+        if (label==0)
+        { snprintf(output,maxOutput,"%s, %u %s %u %02u:%02u:%02u GMT\n",days[dayofweek],day,months[month],year,hour,minute,second); } else
+        { snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[dayofweek],day,months[month],year,hour,minute,second); }
       }
     return 1;
 }
