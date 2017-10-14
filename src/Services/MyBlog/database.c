@@ -99,7 +99,8 @@ int loadPosts(struct website * configuration)
 
 int addPost(const char * title , const char * tags , const char * text)
 {
-
+  //Adding a post not implemented..
+  return 0;
 }
 
 

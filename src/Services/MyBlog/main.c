@@ -70,6 +70,10 @@ void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
     if(thingsSubmited==3)
     {
      AmmServer_WriteFileFromMemory("editor.raw",rqst->POST_request,rqst->POST_request_length);
+      if ( addPost(title,tags,bodyText) )
+      {
+
+      }
      prepare_index(rqst);
     } else
     {
