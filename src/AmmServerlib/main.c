@@ -571,9 +571,14 @@ int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * 
 }
 
 
-unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN)
+unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN, unsigned int * foundArgument)
 {
+  if (foundArgument==0) { return 0; }
+  *foundArgument=0;
+
   if (instance==0) { return 0; }
+  if (rqst==0) { return 0; }
+  if (var_id_IN==0) { return 0; }
 
     unsigned int uintToReturn=0;
     if  ( rqst->GET_request != 0 )
@@ -586,12 +591,12 @@ unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_Dyna
             if ( _GET(rqst->instance,rqst,var_id_IN,bufferCommand,256) )
             {
              uintToReturn=atoi(bufferCommand);
+             *foundArgument=1;
             }
            free(bufferCommand);
           }
        }
     }
-
 
     return uintToReturn;
 }

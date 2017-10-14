@@ -75,6 +75,8 @@ img.intLink { border: 0; }\
 </head>\
 <body onload=\"initDoc();\">\
 <form name=\"compForm\" method=\"post\" action=\"$POST_RECIPIENT_LINK$\" onsubmit=\"if(validateMode()){this.myDoc.value=oDoc.innerHTML;return true;}return false;\">\
+Title : <input name=\"title\" id=\"title\"> </input><br><br>\
+Tags : <input name=\"tags\" id=\"tags\"> </input><br><br>\
 <input type=\"hidden\" name=\"myDoc\">\
 <div id=\"toolBar1\">\
 <select onchange=\"formatDoc('formatblock',this[this.selectedIndex].value);this.selectedIndex=0;\">\

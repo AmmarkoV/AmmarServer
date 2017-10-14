@@ -97,6 +97,17 @@ int loadPosts(struct website * configuration)
 
 
 
+int addPost(const char * title , const char * tags , const char * text)
+{
+
+}
+
+
+
+
+
+
+
 
 
 

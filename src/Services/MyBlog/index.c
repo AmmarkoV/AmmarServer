@@ -420,39 +420,6 @@ void * rss_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-void * page_callback(struct AmmServer_DynamicRequest  * rqst)
-{
-  struct AmmServer_MemoryHandler * postPage=0;
-
-  postPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
-
-  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "id");
-
-
-  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
-  char * buffer = (char*) malloc (sizeof(char) * totalSize );
-  if (buffer!=0)
-  {
-      appendPage(&myblog , pageToShow , buffer , &currentSize , totalSize);
-      AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",buffer);
-      free(buffer);
-  } else
-  {
-      char failToFindPost[]=" Could not find post ";
-      AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",failToFindPost);
-  }
-
-  char backButton[]=" <div class=\"leftnav\"><a href=\"javascript: history.go(-1)\" >Back to previous page</a></div> ";
-  AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++PREVNEXT+++++++++",backButton);
-
-  unsigned int howLongToCopy = postPage->contentCurrentLength;
-  if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
-  strncpy(rqst->content,postPage->content,howLongToCopy);
-  rqst->contentSize=howLongToCopy;
-
-  AmmServer_FreeMemoryHandler(&postPage);
-  return 0;
-}
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -462,12 +429,12 @@ void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
 
   postListPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
 
+  unsigned int havePageToShow=0;
+  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "page",&havePageToShow);
+  unsigned int haveLastPage=0;
+  unsigned int lastPage=_GETuint(rqst->instance,rqst,(char*) "lastPage",&haveLastPage);
 
-  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "page");
-  unsigned int lastPage=_GETuint(rqst->instance,rqst,(char*) "lastPage");
-
-  char buf[32];
-  if ( ! _GET(rqst->instance,rqst,(char*) "page",buf,32)) { lastPage=1; }
+  if (!havePageToShow) { lastPage=1; }
   if (lastPage)
     {
       fprintf(stderr,"Presenting last page.. \n");
@@ -508,31 +475,82 @@ void * post_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   struct AmmServer_MemoryHandler * postPage=0;
 
-  postPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
+  unsigned int havePageToShow=0;
+  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "id",&havePageToShow);
 
-  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "id");
-
-  unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
-  char * buffer = (char*) malloc (sizeof(unsigned char) * totalSize );
-  if (buffer!=0)
+  if (havePageToShow)
   {
+   postPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
+   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+   char * buffer = (char*) malloc (sizeof(unsigned char) * totalSize );
+   if (buffer!=0)
+    {
       appendPost(&myblog , pageToShow , buffer , &currentSize , totalSize);
       AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",buffer);
       free(buffer);
-  } else
-  {
+    } else
+    {
       char failToFindPost[]=" Could not find post ";
       AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",failToFindPost);
+    }
+
+    char backButton[]=" <div class=\"leftnav\"><a href=\"javascript: history.go(-1)\" >Back to previous page</a></div> ";
+    AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++PREVNEXT+++++++++",backButton);
+
+    unsigned int howLongToCopy = postPage->contentCurrentLength;
+    if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
+    strncpy(rqst->content,postPage->content,howLongToCopy);
+    rqst->contentSize=howLongToCopy;
+
+    AmmServer_FreeMemoryHandler(&postPage);
+   } else
+   {
+    AmmServer_Warning("Post requested without post-id , serving index page..");
+    return prepare_index(rqst);
+   }
+
+ return 0;
+}
+
+
+void * page_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  struct AmmServer_MemoryHandler * postPage=0;
+
+  unsigned int havePageToShow=0;
+  unsigned int pageToShow=_GETuint(rqst->instance,rqst,(char*) "id" , &havePageToShow);
+
+
+  if (havePageToShow)
+  {
+   postPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
+   unsigned int totalSize=CONTENT_BUFFER,currentSize=0;
+   char * buffer = (char*) malloc (sizeof(char) * totalSize );
+   if (buffer!=0)
+   {
+      appendPage(&myblog , pageToShow , buffer , &currentSize , totalSize);
+      AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",buffer);
+      free(buffer);
+   } else
+   {
+      char failToFindPost[]=" Could not find post ";
+      AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++POSTS+++++++++",failToFindPost);
+   }
+
+   char backButton[]=" <div class=\"leftnav\"><a href=\"javascript: history.go(-1)\" >Back to previous page</a></div> ";
+   AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++PREVNEXT+++++++++",backButton);
+
+   unsigned int howLongToCopy = postPage->contentCurrentLength;
+   if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
+   strncpy(rqst->content,postPage->content,howLongToCopy);
+   rqst->contentSize=howLongToCopy;
+
+   AmmServer_FreeMemoryHandler(&postPage);
+  } else
+  {
+    AmmServer_Warning("Page requested without page-id , serving index page..");
+    return prepare_index(rqst);
   }
 
-  char backButton[]=" <div class=\"leftnav\"><a href=\"javascript: history.go(-1)\" >Back to previous page</a></div> ";
-  AmmServer_ReplaceVariableInMemoryHandler(postPage,"+++++++++PREVNEXT+++++++++",backButton);
-
-  unsigned int howLongToCopy = postPage->contentCurrentLength;
-  if ( howLongToCopy > rqst->MAXcontentSize ) { howLongToCopy=rqst->MAXcontentSize; }
-  strncpy(rqst->content,postPage->content,howLongToCopy);
-  rqst->contentSize=howLongToCopy;
-
-  AmmServer_FreeMemoryHandler(&postPage);
   return 0;
 }

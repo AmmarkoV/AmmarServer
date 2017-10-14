@@ -127,6 +127,8 @@ extern struct website myblog;
 int isThisLastPostPage(struct website * configuration,unsigned int pageNum);
 
 int loadPosts(struct website * configuration);
+int addPost(const char * title , const char * tags , const char * text);
+
 int loadWidgets(struct website * configuration);
 int loadPages(struct website * configuration);
 
