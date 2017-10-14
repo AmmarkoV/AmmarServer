@@ -736,7 +736,7 @@ int _COOKIE(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest
 /**
 * @brief Shorthand/Shortcut for getting an Uint value back()
 * @ingroup shortcut */
-unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN);
+unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN  , unsigned int * foundArgument);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()
