@@ -572,6 +572,8 @@ int AmmServer_AddResourceHandler
 
 void * AmmServer_EditorCallback(struct AmmServer_DynamicRequest  * rqst);
 
+void * AmmServer_LoginCallback(struct AmmServer_DynamicRequest  * rqst);
+
 //TODO: Add comment here..
 int AmmServer_AddEditorResourceHandler
     (

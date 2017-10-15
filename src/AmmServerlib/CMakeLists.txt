@@ -85,6 +85,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 #Templates that are used in clients..
                 templates/editor.c 
                 templates/editor.h 
+                templates/login.c 
+                templates/login.h 
               )
 
 

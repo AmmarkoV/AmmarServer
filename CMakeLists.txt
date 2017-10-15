@@ -21,6 +21,7 @@ ENDIF( USE_OPENSSL )
     #After we are done with the basics make all our secondary libraries
     add_subdirectory (src/AmmCaptcha) 
     add_subdirectory (src/StringRecognizer)
+    add_subdirectory (src/StringEscapeFile)
     add_subdirectory (src/UserAccounts)
     add_subdirectory (src/Hashmap)
     add_subdirectory (src/InputParser)

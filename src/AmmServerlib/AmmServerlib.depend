@@ -34,7 +34,7 @@
 1495736877 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.h
 	"../AmmServerlib.h"
 
-1507984647 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1508065800 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 	<pthread.h>
 	<libgen.h>
 
@@ -155,7 +155,7 @@
 	"../tools/logs.h"
 	"sendHTTPHeader.h"
 
-1508064917 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1508067459 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1467815117 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -164,7 +164,7 @@
 1467816254 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.h
 	"../AmmServerlib.h"
 
-1495722208 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.c
+1508067202 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.c
 	"sendHTTPHeader.h"
 	<stdio.h>
 	<stdlib.h>
@@ -181,6 +181,7 @@
 	"../tools/logs.h"
 	"../tools/http_tools.h"
 	"../tools/time_provider.h"
+	"../templates/errors.h"
 
 1495887443 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.c
 	"server_configuration.h"
@@ -325,7 +326,7 @@
 	"logs.h"
 	"../server_configuration.h"
 
-1406028472 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/time_provider.c
+1507984954 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/time_provider.c
 	<unistd.h>
 	"../server_configuration.h"
 	<ctype.h>
@@ -383,7 +384,7 @@
 	<ctype.h>
 	"videoFiles.h"
 
-1507984612 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+1508065813 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
 	<stdio.h>
 	<stdarg.h>
 	<stdlib.h>
@@ -402,6 +403,7 @@
 	"tools/http_tools.h"
 	"tools/logs.h"
 	"templates/editor.h"
+	"templates/login.h"
 
 1406282477 /home/ammar/Documents/Programming/AmmarServer/src/public_html/templates/directoryListStart.html
 
@@ -542,7 +544,7 @@
 	<string.h>
 	<ctype.h>
 
-1496536429 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/editor.c
+1508065608 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/editor.c
 	"editor.h"
 	"editor.html"
 
@@ -550,4 +552,30 @@
 	"../AmmServerlib.h"
 
 1507977742 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/editor.html
+
+1508064625 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/login.h
+	"../AmmServerlib.h"
+
+1508067415 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/errors.h
+	"../AmmServerlib.h"
+	"400.html"
+	"401.html"
+	"403.html"
+	"404.html"
+	"408.html"
+	"500.html"
+
+1508069033 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/400.html
+
+1508069033 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/401.html
+
+1508069033 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/403.html
+
+1508069033 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/404.html
+
+1508069033 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/408.html
+
+1508069033 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/500.html
+
+1508067458 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/errors.c
 

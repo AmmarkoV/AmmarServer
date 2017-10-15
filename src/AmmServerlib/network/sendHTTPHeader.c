@@ -18,6 +18,7 @@
 #include "../tools/logs.h"
 #include "../tools/http_tools.h"
 #include "../tools/time_provider.h"
+#include "../templates/errors.h"
 
 unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,int clientsock,unsigned int error_code,const char * verified_filename,const char * templates_root)
 {
@@ -28,6 +29,7 @@ unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,int clien
      char response[MAX_HTTP_REQUEST_HEADER_REPLY]={0};
      switch (error_code)
      {
+       //TODO switch this to templated.. :
        case 400 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"400 Bad Request %s400.html",templates_root);            break;
        case 401 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"401 Password Protected %s401.html",templates_root);     break;
        case 404 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"404 Not Found %s404.html",templates_root);              break;

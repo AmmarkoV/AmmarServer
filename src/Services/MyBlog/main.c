@@ -42,6 +42,7 @@ struct AmmServer_RH_Context pagePage={0};
 struct AmmServer_RH_Context postPage={0};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context editor={0};
+struct AmmServer_RH_Context login={0};
 struct AmmServer_RH_Context rssPage={0};
 
 
@@ -86,6 +87,24 @@ void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+
+
+
+
+
+void * loginUpload_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+    AmmServer_Success("loginUpload_callback");
+
+    AmmServer_LoginCallback(rqst);
+
+ return 0;
+}
+
+
+
+
+
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
@@ -94,6 +113,9 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&stats   ,"/index.html",webserver_root,CONTENT_BUFFER,0,&prepare_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&pagePage,"/page.html" ,webserver_root,CONTENT_BUFFER,0,&page_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&rssPage,"/rss.xml" ,webserver_root,CONTENT_BUFFER,0,&rss_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+
+
+  AmmServer_AddEditorResourceHandler(default_server,&login,"/login.html",webserver_root,&loginUpload_callback);
 
   #if ENABLE_POSTING_NEW_CONTENT
    AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
@@ -107,6 +129,8 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&stats,1);
     AmmServer_RemoveResourceHandler(default_server,&pagePage,1);
     AmmServer_RemoveResourceHandler(default_server,&rssPage,1);
+
+    AmmServer_RemoveResourceHandler(default_server,&login,1);
 
     #if ENABLE_POSTING_NEW_CONTENT
      AmmServer_RemoveResourceHandler(default_server,&postPage,1);
