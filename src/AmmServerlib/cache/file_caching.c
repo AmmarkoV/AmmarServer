@@ -90,7 +90,7 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
            return 0;
        }
       fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
-      strncpy(request,tmp_cmp,maxRequest);
+      //We don't change input strncpy(request,tmp_cmp,maxRequest);
       return 1;
    }
   return 0;
