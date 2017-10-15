@@ -465,12 +465,6 @@ unsigned long SendFile
 /*! PRELIMINARY HEADER SENDING START ----------------------------------------------*/
   unsigned int WeWantA200OK=0;
 
-  if (force_error_code!=0)
-  {
-    //We want to force a specific error_code!
-    if (! SendErrorCodeHeader(instance,clientsock,force_error_code,verified_filename,instance->templates_root) )
-        { fprintf(stderr,"Failed sending error code %u\n",force_error_code); return 0; }
-  } else
   if (!FilenameStripperOk(verified_filename))
   {
      //Unsafe filename , bad request :P
@@ -530,7 +524,7 @@ unsigned long SendFile
 
       //The application might want the file to always be served as a fresh one..
       if ( cache[index].doNOTCacheRule ) { ok_to_serve_not_modified = 0; } /*We have written orders that we want this file to NEVER get cached.. EVER :P */
-      if (force_error_code!=0) { ok_to_serve_not_modified = 0; } /*We want 404 etc messages to remain 404 :P , no point in serving 404 and then 304 ( that the 404 didn't change )*/
+      //if (force_error_code!=0) { ok_to_serve_not_modified = 0; } /*We want 404 etc messages to remain 404 :P , no point in serving 404 and then 304 ( that the 404 didn't change )*/
 
       if (ok_to_serve_not_modified)
       {
