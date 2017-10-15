@@ -157,7 +157,7 @@
 	"../templates/icons.h"
 	"sendHTTPHeader.h"
 
-1508081746 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1508083010 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1508080450 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -434,7 +434,7 @@
 1454810977 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.h
 	"../AmmServerlib.h"
 
-1494714493 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/clientServer.c
+1508080532 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/clientServer.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -629,4 +629,15 @@
 1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/back.html
 
 1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/up.html
+
+1508081234 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/icons.c
+	"icons.h"
+	"include/dir.html"
+	"include/doc.html"
+	"include/exe.html"
+	"include/img.html"
+	"include/vid.html"
+	"include/mus.html"
+	"include/back.html"
+	"include/up.html"
 
