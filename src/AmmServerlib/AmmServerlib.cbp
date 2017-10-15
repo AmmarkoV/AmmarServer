@@ -152,6 +152,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="templates/editor.h" />
+		<Unit filename="templates/login.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="templates/login.h" />
 		<Unit filename="threads/clientServer.c">
 			<Option compilerVar="CC" />
 		</Unit>

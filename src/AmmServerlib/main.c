@@ -34,7 +34,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "tools/serverMonitor.h"
 #include "tools/http_tools.h"
 #include "tools/logs.h"
+
+
 #include "templates/editor.h"
+#include "templates/login.h"
 
 //This is for calling back a client function after receiving
 //a sigkill or other signal , after using AmmServer_RegisterTerminationSignal
@@ -400,6 +403,12 @@ int AmmServer_AddResourceHandler
 void * AmmServer_EditorCallback(struct AmmServer_DynamicRequest  * rqst)
 {
   return editor_callback(rqst);
+}
+
+
+void * AmmServer_LoginCallback(struct AmmServer_DynamicRequest  * rqst)
+{
+  return login_callback(rqst);
 }
 
 
