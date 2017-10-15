@@ -2,10 +2,10 @@
 #define VERSION_H
 
 	//Date Version Types
-	static const char DATE[] = "27";
-	static const char MONTH[] = "09";
+	static const char DATE[] = "15";
+	static const char MONTH[] = "10";
 	static const char YEAR[] = "2017";
-	static const char UBUNTU_VERSION_STYLE[] =  "17.09";
+	static const char UBUNTU_VERSION_STYLE[] =  "17.10";
 	
 	//Software Status
 	static const char STATUS[] =  "Alpha";
@@ -14,17 +14,17 @@
 	//Standard Version Type
 	static const long MAJOR  = 0;
 	static const long MINOR  = 32;
-	static const long BUILD  = 589;
-	static const long REVISION  = 2991;
+	static const long BUILD  = 590;
+	static const long REVISION  = 3000;
 	
 	//Miscellaneous Version Types
 	static const long BUILDS_COUNT  = 737;
-	#define RC_FILEVERSION 0,32,589,2991
-	#define RC_FILEVERSION_STRING "0, 32, 589, 2991\0"
-	static const char FULLVERSION_STRING [] = "0.32.589.2991";
+	#define RC_FILEVERSION 0,32,590,3000
+	#define RC_FILEVERSION_STRING "0, 32, 590, 3000\0"
+	static const char FULLVERSION_STRING [] = "0.32.590.3000";
 	
 	//These values are to keep track of your versioning state, don't modify them.
-	static const long BUILD_HISTORY  = 54;
+	static const long BUILD_HISTORY  = 55;
 	
 
 #endif //VERSION_H

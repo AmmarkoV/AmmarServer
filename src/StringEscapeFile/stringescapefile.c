@@ -13,6 +13,7 @@ int escapeFile(const char * inputFile, const char * outputFile)
    char * line = NULL;
    size_t len = 0;
 
+    fprintf(op,"\"");
     while ((read = getline(&line, &len, fp)) != -1)
     {
         if ( ( line[read-1]==10 ) || ( line[read-1]==13 ) ) { line[read-1]=0;  }
@@ -20,6 +21,7 @@ int escapeFile(const char * inputFile, const char * outputFile)
 
         fprintf(op,"%s\\\n",line);
     }
+    fprintf(op,"\"\n");
 
    fclose(fp);
    fclose(op);
