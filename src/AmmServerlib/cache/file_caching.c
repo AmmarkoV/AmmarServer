@@ -112,7 +112,7 @@ int cache_RandomizeETAG(struct AmmServer_Instance * instance)
 
   if (oldRandomValue == instance->cacheVersionETag)
      {
-      warning("Randomizer was crap .. \n");
+        warning("Randomizer was crap .. \n");
         instance->cacheVersionETag = ( instance->cacheVersionETag +1 )% 10000;
      }
   return 1;

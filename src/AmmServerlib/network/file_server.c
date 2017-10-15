@@ -41,6 +41,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../tools/logs.h"
 
 #include "../templates/errors.h"
+#include "../templates/icons.h"
 
 #include "sendHTTPHeader.h"
 
@@ -370,7 +371,62 @@ unsigned long SendErrorFile
    //return SendFile(instance,transaction,0,errorCode);
 }
 
+unsigned long SendEmbeddedFile
+  (
+    struct AmmServer_Instance * instance,
+    struct HTTPTransaction * transaction,
+    char * verified_filename_pending_copy
+  )
+{
+  unsigned long dataTransmitted=0;
+  AmmServer_Warning("Serving back new embedded file ( %s ) ",verified_filename_pending_copy);
 
+  SendSuccessCodeHeader(
+                       instance,
+                       transaction->clientSock,
+                       200,
+                       verified_filename_pending_copy
+                     );
+
+
+
+  char * what2RespondWith=0;
+  unsigned int responseSize=0;
+  if (strcmp(verified_filename_pending_copy,"public_html/templates/dir.gif")==0)  { what2RespondWith=original_dir_gif;  responseSize=sizeof(original_dir_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/templates/doc.gif")==0)  { what2RespondWith=original_doc_gif;  responseSize=sizeof(original_doc_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/templates/exe.gif")==0)  { what2RespondWith=original_exe_gif;  responseSize=sizeof(original_exe_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/templates/img.gif")==0)  { what2RespondWith=original_img_gif;  responseSize=sizeof(original_img_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/templates/vid.gif")==0)  { what2RespondWith=original_vid_gif;  responseSize=sizeof(original_vid_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/templates/mus.gif")==0)  { what2RespondWith=original_mus_gif;  responseSize=sizeof(original_mus_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/templates/back.gif")==0) { what2RespondWith=original_back_gif; responseSize=sizeof(original_back_gif); } else
+  if (strcmp(verified_filename_pending_copy,"public_html/templates/up.gif")==0)   { what2RespondWith=original_up_gif;   responseSize=sizeof(original_up_gif);   }
+
+  if (what2RespondWith!=0)
+  {
+   AmmServer_Warning("The size to transmit is ( %u ) ",responseSize);
+   char contentLength[128];
+   snprintf(contentLength,128,"Content-Length: %u\n\n",responseSize);
+   send(transaction->clientSock,contentLength,strlen(contentLength),MSG_WAITALL|MSG_NOSIGNAL);
+   //send(transaction->clientSock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+
+
+  int opres=ASRV_Send(
+                  instance,
+                  transaction->clientSock,
+                  what2RespondWith,
+                  responseSize,
+                  MSG_WAITALL|MSG_NOSIGNAL
+                  );  //Send E-Tag as soon as we've got it
+   if (opres<=0) { fprintf(stderr,"Error sending Error Response\n"); return 0; } else
+                 { dataTransmitted+=opres; }
+  } else
+  {
+     //TODO : generic error here..
+  }
+
+   return dataTransmitted;
+  return 0;
+}
 
 
 
@@ -421,7 +477,8 @@ unsigned long SendFile
   if (force_error_code!=0)
   {
     //We want to force a specific error_code!
-    if (! SendErrorCodeHeader(instance,clientsock,force_error_code,verified_filename,instance->templates_root) ) { fprintf(stderr,"Failed sending error code %u\n",force_error_code); return 0; }
+    if (! SendErrorCodeHeader(instance,clientsock,force_error_code,verified_filename,instance->templates_root) )
+        { fprintf(stderr,"Failed sending error code %u\n",force_error_code); return 0; }
   } else
   if (!FilenameStripperOk(verified_filename))
   {

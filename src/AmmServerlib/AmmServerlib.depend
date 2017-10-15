@@ -61,7 +61,7 @@
 	<sys/types.h>
 	<sys/time.h>
 
-1495882922 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.c
+1508079551 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -133,7 +133,7 @@
 
 1467817363 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/postHeader.h
 
-1508072385 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
+1508081164 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -154,11 +154,12 @@
 	"../tools/time_provider.h"
 	"../tools/logs.h"
 	"../templates/errors.h"
+	"../templates/icons.h"
 	"sendHTTPHeader.h"
 
-1508073915 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1508081746 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
-1467815117 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
+1508080450 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
 	<unistd.h>
 
@@ -546,9 +547,9 @@
 	<string.h>
 	<ctype.h>
 
-1508065608 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/editor.c
+1508076694 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/editor.c
 	"editor.h"
-	"editor.html"
+	"include/editor.html"
 
 1496536441 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/editor.h
 	"../AmmServerlib.h"
@@ -572,18 +573,60 @@
 
 1508071696 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/500.html
 
-1508072521 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/errors.c
+1508076704 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/errors.c
 	"errors.h"
-	"400.html"
-	"401.html"
-	"403.html"
-	"404.html"
-	"408.html"
-	"500.html"
+	"include/400.html"
+	"include/401.html"
+	"include/403.html"
+	"include/404.html"
+	"include/408.html"
+	"include/500.html"
 
-1508065612 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/login.c
+1508076710 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/login.c
 	"login.h"
-	"login.html"
+	"include/login.html"
 
 1508071696 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/login.html
+
+1507977742 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/editor.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/400.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/401.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/403.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/404.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/408.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/500.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/login.html
+
+1508081233 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/icons.h
+	"include/dir.html"
+	"include/doc.html"
+	"include/exe.html"
+	"include/img.html"
+	"include/vid.html"
+	"include/mus.html"
+	"include/back.html"
+	"include/up.html"
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/dir.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/doc.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/exe.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/img.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/vid.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/mus.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/back.html
+
+1508078904 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/up.html
 

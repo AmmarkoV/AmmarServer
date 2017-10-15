@@ -89,6 +89,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 templates/login.h 
                 templates/errors.c 
                 templates/errors.h 
+                templates/icons.c 
+                templates/icons.h 
               )
 
 

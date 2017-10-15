@@ -109,9 +109,12 @@ inline void decideAboutHowToHandleRequestedResource
               char * servefile,
               int * resource_is_a_directory,
               int * resource_is_a_file ,
+              int * resource_is_a_template ,
               int * generate_directory_list
             )
 {
+      *resource_is_a_template=0;
+
       // STEP 0 : Is the resource an obvious directory , or obvious file ? Check for it..!
       if ( isResourceADirectory(transaction->incomingHeader.resource , strlen(transaction->incomingHeader.resource) ) )
       {
@@ -128,6 +131,7 @@ inline void decideAboutHowToHandleRequestedResource
         //We know that the resource is a file from our cache indexes..!
           *resource_is_a_directory=0;
           *resource_is_a_file=1;
+          *resource_is_a_template=1;
       }
 
 
@@ -326,7 +330,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
      {
       char servefile[(MAX_FILE_PATH*2)+1]={0}; // Since we are strcat-ing the file on top of the webserver_root it is only logical to
       // reserve space for two MAX_FILE_PATHS they are a software security limitation ( system max_path is much larger ) so its not a problem anywhere..!
-      int resource_is_a_directory=0,resource_is_a_file=0,generate_directory_list=0;
+      int resource_is_a_directory=0,resource_is_a_file=0,resource_is_a_template=0,generate_directory_list=0;
 
       /*!
              PART 1 : Sense what we want to serve , and set the flags
@@ -341,6 +345,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
               servefile,
               &resource_is_a_directory,
               &resource_is_a_file ,
+              &resource_is_a_template ,
               &generate_directory_list
             );
 
@@ -349,6 +354,35 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
              resource_is_a_directory , resource_is_a_file , generate_directory_list
              have been set to the correct ( :P ) value so all we have to do now is serve the correct repsonse..!
       */
+     if (resource_is_a_template)
+     {
+         //We have a specific request for a file ( transaction->incomingHeader.resource )
+         fprintf(stderr,"It is a template request for %s ..!\n",servefile);
+             // ------------------------------------------------------
+             // ------------------------------------------------------
+             // ------------------------------------------------------
+             if (
+                  SendEmbeddedFile
+                      (
+                         instance,
+                         transaction,
+                         servefile  // -- Log What was asked to be served
+                      )
+                )
+                {
+                  logSuccess(instance,transaction,200,servefile);
+                }
+                 else
+                {
+                 //We where unable to serve request , closing connections..\n
+                 error("We where unable to serve template request , closing connections..\n");
+                 return 0;
+                }
+             // ------------------------------------------------------
+             // ------------------------------------------------------
+             // ------------------------------------------------------
+     }
+       else
      if (generate_directory_list)
      {
        respondToClientBySendingAGeneratedDirectoryList(instance,transaction,servefile);
@@ -362,7 +396,8 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
              // ------------------------------------------------------
              // ------------------------------------------------------
              // ------------------------------------------------------
-             if ( SendFile
+             if (
+                  SendFile
                       (
                          instance,
                          transaction,
