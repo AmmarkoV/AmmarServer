@@ -156,6 +156,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="templates/errors.h" />
+		<Unit filename="templates/icons.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="templates/icons.h" />
 		<Unit filename="templates/login.c">
 			<Option compilerVar="CC" />
 		</Unit>

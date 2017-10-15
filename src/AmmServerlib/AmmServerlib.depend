@@ -61,7 +61,7 @@
 	<sys/types.h>
 	<sys/time.h>
 
-1508079551 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.c
+1508083721 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -133,7 +133,7 @@
 
 1467817363 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/postHeader.h
 
-1508081164 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
+1508083664 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -157,7 +157,7 @@
 	"../templates/icons.h"
 	"sendHTTPHeader.h"
 
-1508083010 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1508083804 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1508080450 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -272,7 +272,7 @@
 
 1406039416 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/directory_lists.h
 
-1493657903 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/directory_lists.c
+1508083008 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/directory_lists.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -283,8 +283,8 @@
 	"http_tools.h"
 	<sys/stat.h>
 	<errno.h>
-	"../../../public_html/templates/directoryListStart.html"
-	"../../../public_html/templates/directoryListEnd.html"
+	"../templates/include/directoryListStart.html"
+	"../templates/include/directoryListEnd.html"
 
 1495722208 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/http_tools.c
 	<stdio.h>
@@ -640,4 +640,8 @@
 	"include/mus.html"
 	"include/back.html"
 	"include/up.html"
+
+1409657162 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/directoryListStart.html
+
+1406281864 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/directoryListEnd.html
 

@@ -308,13 +308,6 @@ int TransmitFileToSocket(
 
 
 
-
-
-
-
-
-
-
 unsigned long SendErrorFile
   (
     struct AmmServer_Instance * instance,
@@ -388,18 +381,16 @@ unsigned long SendEmbeddedFile
                        verified_filename_pending_copy
                      );
 
-
-
   char * what2RespondWith=0;
   unsigned int responseSize=0;
-  if (strcmp(verified_filename_pending_copy,"public_html/templates/dir.gif")==0)  { what2RespondWith=original_dir_gif;  responseSize=sizeof(original_dir_gif);  } else
-  if (strcmp(verified_filename_pending_copy,"public_html/templates/doc.gif")==0)  { what2RespondWith=original_doc_gif;  responseSize=sizeof(original_doc_gif);  } else
-  if (strcmp(verified_filename_pending_copy,"public_html/templates/exe.gif")==0)  { what2RespondWith=original_exe_gif;  responseSize=sizeof(original_exe_gif);  } else
-  if (strcmp(verified_filename_pending_copy,"public_html/templates/img.gif")==0)  { what2RespondWith=original_img_gif;  responseSize=sizeof(original_img_gif);  } else
-  if (strcmp(verified_filename_pending_copy,"public_html/templates/vid.gif")==0)  { what2RespondWith=original_vid_gif;  responseSize=sizeof(original_vid_gif);  } else
-  if (strcmp(verified_filename_pending_copy,"public_html/templates/mus.gif")==0)  { what2RespondWith=original_mus_gif;  responseSize=sizeof(original_mus_gif);  } else
-  if (strcmp(verified_filename_pending_copy,"public_html/templates/back.gif")==0) { what2RespondWith=original_back_gif; responseSize=sizeof(original_back_gif); } else
-  if (strcmp(verified_filename_pending_copy,"public_html/templates/up.gif")==0)   { what2RespondWith=original_up_gif;   responseSize=sizeof(original_up_gif);   }
+  if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "dir.gif")==0)  { what2RespondWith=original_dir_gif;  responseSize=sizeof(original_dir_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "doc.gif")==0)  { what2RespondWith=original_doc_gif;  responseSize=sizeof(original_doc_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "exe.gif")==0)  { what2RespondWith=original_exe_gif;  responseSize=sizeof(original_exe_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "img.gif")==0)  { what2RespondWith=original_img_gif;  responseSize=sizeof(original_img_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "vid.gif")==0)  { what2RespondWith=original_vid_gif;  responseSize=sizeof(original_vid_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "mus.gif")==0)  { what2RespondWith=original_mus_gif;  responseSize=sizeof(original_mus_gif);  } else
+  if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "back.gif")==0) { what2RespondWith=original_back_gif; responseSize=sizeof(original_back_gif); } else
+  if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "up.gif")==0)   { what2RespondWith=original_up_gif;   responseSize=sizeof(original_up_gif);   }
 
   if (what2RespondWith!=0)
   {
