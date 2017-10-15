@@ -14,6 +14,11 @@ cd "$DIR"
 ../../StringEscapeFile/StringEscapeFile original/408.html include/408.html
 ../../StringEscapeFile/StringEscapeFile original/500.html include/500.html
 
+
+../../FileToString/FileToString original/directoryListStart.html include/directoryListStart.html
+../../StringEscapeFile/StringEscapeFile original/directoryListEnd.html include/directoryListEnd.html
+
+
 ../../FileToString/FileToString original/dir.gif include/dir.html
 ../../FileToString/FileToString original/doc.gif include/doc.html
 ../../FileToString/FileToString original/exe.gif include/exe.html

@@ -17,6 +17,17 @@ ssize_t ASRV_Recv(
                   struct AmmServer_Instance * instance,
                   int sockfd, void *buf, size_t len, int flags);
 
+
+
+unsigned long SendEmbeddedFile
+  (
+    struct AmmServer_Instance * instance,
+    struct HTTPTransaction * transaction,
+    char * verified_filename_pending_copy
+  );
+
+
+
 /**
 * @brief Send a File to a client
 * @ingroup network
