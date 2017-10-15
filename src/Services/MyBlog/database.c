@@ -97,6 +97,39 @@ int loadPosts(struct website * configuration)
 
 
 
+
+int dumpPostToDisk(struct website * configuration,unsigned int postID)
+{
+  int filesWritten=0;
+  char filename[FILENAME_MAX]={0};
+  snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/post%u.html",postID);
+
+  FILE *fp = fopen(filename,"w");
+  if (fp!=0)
+  {
+    fprintf(fp,"%s\n",configuration->post.item[postID].content.data );
+    fclose(fp);
+    ++filesWritten;
+  }
+
+
+  snprintf(filename,FILENAME_MAX,"src/Services/MyBlog/res/posts/info%u.html",postID);
+  fp = fopen(filename,"w");
+  if (fp!=0)
+  {
+    fprintf(fp,"TITLE(%s)\n" ,configuration->post.item[postID].title );
+    fprintf(fp,"DATE(%s)\n"  ,configuration->post.item[postID].dateStr );
+    fprintf(fp,"AUTHOR(%s)\n",configuration->post.item[postID].author );
+    fclose(fp);
+    ++filesWritten;
+  }
+
+
+ return (filesWritten==2);
+}
+
+
+
 int addPost(struct website * configuration,const char * title , const char * tags , const char * text)
 {
   unsigned int newPostID=configuration->post.currentPosts;
@@ -114,7 +147,6 @@ int addPost(struct website * configuration,const char * title , const char * tag
   configuration->post.item[newPostID].content.totalDataLength   = textLength;;
 
   configuration->post.item[newPostID].content.data =  (char*) malloc(sizeof(char) * (textLength+1) );
-
   if (configuration->post.item[newPostID].content.data !=0 )
   {
     ++configuration->post.currentPosts;
@@ -125,6 +157,8 @@ int addPost(struct website * configuration,const char * title , const char * tag
            );
     configuration->post.item[newPostID].content.data[textLength]=0;
 
+
+    dumpPostToDisk(configuration,newPostID);
     //free(configuration->post.item[newPostID].content.data);
     return 1;
   }
