@@ -1,7 +1,7 @@
 #include "login.h"
 
 char loginBody[]= {
-#include "login.html"
+#include "include/login.html"
 };
 
 void * login_callback(struct AmmServer_DynamicRequest  * rqst)

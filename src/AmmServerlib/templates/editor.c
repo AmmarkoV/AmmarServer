@@ -1,7 +1,7 @@
 #include "editor.h"
 
 char editorBody[]= {
-#include "editor.html"
+#include "include/editor.html"
 };
 
 void * editor_callback(struct AmmServer_DynamicRequest  * rqst)
