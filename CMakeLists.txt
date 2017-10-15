@@ -7,10 +7,16 @@ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
  
 OPTION (USE_OPENSSL OFF)
 OPTION (USE_XSERVER OFF)
+OPTION (COMPILE_FOR_ARM OFF)
  
 IF( USE_OPENSSL )
  add_definitions(-DUSE_OPENSSL)
 ENDIF( USE_OPENSSL )
+
+IF( COMPILE_FOR_ARM )
+ set(CMAKE_CXX_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2 -march=armv8-a")
+ set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2 -march=armv8-a")
+ENDIF( COMPILE_FOR_ARM )
 
     #This is the core library
     add_subdirectory (src/AmmServerlib)
