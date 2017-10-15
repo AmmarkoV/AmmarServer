@@ -34,6 +34,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "tools/serverMonitor.h"
 #include "tools/http_tools.h"
 #include "tools/logs.h"
+#include "tools/time_provider.h"
 
 
 #include "templates/editor.h"
@@ -306,7 +307,7 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
   if (rqst->MAXcontentSize <= content->contentSize )
   {
     AmmServer_Error("Not enough space to serve AmmServer_DynamicRequestReturnMemoryHandler ..");
-    return 1;
+    return 0;
   }
 
   memcpy(rqst->content,content->content,content->contentSize);

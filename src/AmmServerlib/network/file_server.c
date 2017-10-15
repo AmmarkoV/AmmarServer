@@ -40,6 +40,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../tools/time_provider.h"
 #include "../tools/logs.h"
 
+#include "../templates/errors.h"
+
 #include "sendHTTPHeader.h"
 
 /*
@@ -305,6 +307,74 @@ int TransmitFileToSocket(
 
 
 
+
+
+
+
+
+
+
+unsigned long SendErrorFile
+  (
+    struct AmmServer_Instance * instance,
+    struct HTTPTransaction * transaction,
+    unsigned int errorCode
+  )
+{
+  unsigned long dataTransmitted=0;
+  char simulatedFilename[32]={0};
+
+  AmmServer_Warning("Serving back new embedded error code ( for error %u ) ",errorCode);
+  snprintf(simulatedFilename,32,"%u.html",errorCode);
+
+  SendErrorCodeHeader(
+                       instance,
+                       transaction->clientSock,
+                       errorCode,
+                       simulatedFilename,
+                       instance->templates_root
+                     );
+
+  send(transaction->clientSock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+
+  char * what2RespondWith=0;
+  switch (errorCode)
+  {
+      case 400 : what2RespondWith=error400; break;
+      case 401 : what2RespondWith=error401; break;
+      case 403 : what2RespondWith=error403; break;
+      case 404 : what2RespondWith=error404; break;
+      case 408 : what2RespondWith=error408; break;
+      case 500 : what2RespondWith=error500; break;
+  };
+
+  if (what2RespondWith!=0)
+  {
+  int opres=ASRV_Send(
+                  instance,
+                  transaction->clientSock,
+                  what2RespondWith,
+                  strlen(what2RespondWith),
+                  MSG_WAITALL|MSG_NOSIGNAL
+                  );  //Send E-Tag as soon as we've got it
+   if (opres<=0) { fprintf(stderr,"Error sending Error Response\n"); return 0; } else
+                 { dataTransmitted+=opres; }
+  } else
+  {
+     //TODO : generic error here..
+  }
+
+   return dataTransmitted;
+
+   //Old code that sent error responses..
+   //return SendFile(instance,transaction,0,errorCode);
+}
+
+
+
+
+
+
 unsigned long SendFile
   (
     struct AmmServer_Instance * instance,
@@ -313,6 +383,14 @@ unsigned long SendFile
     unsigned int force_error_code
   )
 {
+ if (force_error_code!=0)
+ {
+  //No point going any further , we are actually talking about a SendErroFile call..!
+  return SendErrorFile(instance,transaction,force_error_code);
+ }
+
+ //TODO: clean up rest of old force_error_code mechanism..!
+
  int clientsock = transaction->clientSock;
  unsigned int resourceCacheID=transaction->resourceCacheID;
  unsigned long start_at_byte = transaction->incomingHeader.range_start;
@@ -565,18 +643,6 @@ if (request->requestType!=HEAD)
 
 
  return 0;
-}
-
-
-
-unsigned long SendErrorFile
-  (
-    struct AmmServer_Instance * instance,
-    struct HTTPTransaction * transaction,
-    unsigned int errorCode
-  )
-{
-  return SendFile(instance,transaction,0,errorCode);
 }
 
 
