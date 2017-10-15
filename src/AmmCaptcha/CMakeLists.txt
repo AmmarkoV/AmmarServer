@@ -2,7 +2,7 @@ project( AmmCaptcha )
 cmake_minimum_required( VERSION 2.8.7 )
 
 #this is a "heavy task" it needs optimizations 
-set(CMAKE_C_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizations -s") 
+set(CMAKE_C_FLAGS "-fPIC -O3 -fexpensive-optimizations -s") 
 
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})

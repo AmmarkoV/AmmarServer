@@ -32,8 +32,9 @@ int embedFile(char * filename, char * output)
     fprintf(out, "#pragma once\n static unsigned char %s[] = { ",filename);
     while(!feof(file)){
             count = fread(buffer, 1, 32, file);
-
-            for(int n = 0; n < count; ++n){
+            
+            int n; 
+            for(n = 0; n < count; ++n){
                     fprintf(out, "0x%02X, ", buffer[n]);
             };
     };
