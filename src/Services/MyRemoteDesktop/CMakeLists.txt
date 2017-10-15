@@ -9,7 +9,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
    
 
 add_executable(myremotedesktop main.c ) 
-target_link_libraries(myremotedesktop pthread rt AmmarServer AmmCaptcha XwdLib X11 )
+target_link_libraries(myremotedesktop pthread rt AmmarServerDynamic AmmCaptcha XwdLib X11 )
 set_target_properties(myremotedesktop PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(myremotedesktop AmmarServer AmmCaptcha xwd)  
        

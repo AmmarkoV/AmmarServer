@@ -25,7 +25,7 @@ add_executable(habchan
  postReceiver.c
  postReceiver.h
  ) 
-target_link_libraries(habchan pthread rt AmmarServer )
+target_link_libraries(habchan pthread rt AmmarServerDynamic )
 set_target_properties(habchan PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(habchan AmmarServer)  
        

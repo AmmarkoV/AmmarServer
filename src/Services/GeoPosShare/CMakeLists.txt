@@ -9,7 +9,7 @@ set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
 add_executable(geoposshare main.c ) 
-target_link_libraries(geoposshare pthread rt AmmarServer )
+target_link_libraries(geoposshare pthread rt AmmarServerDynamic )
 set_target_properties(geoposshare PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(geoposshare AmmarServer)  
        
