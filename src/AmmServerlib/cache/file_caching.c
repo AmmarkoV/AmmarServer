@@ -76,6 +76,7 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
 
   if ( res!=0 )
    {
+       /*
       char tmp_cmp[MAX_FILE_PATH]={0};
       res_skipped=res+template_size;
       fprintf(stderr,"We've got a result , %s ( skipped %s )\n",res,res_skipped);
@@ -90,7 +91,8 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
            return 0;
        }
       fprintf(stderr,"Internal request to string %s -> %s \n",request,tmp_cmp);
-      //We don't change input strncpy(request,tmp_cmp,maxRequest);
+      strncpy(request,tmp_cmp,maxRequest);
+      */
       return 1;
    }
   return 0;
