@@ -4,24 +4,22 @@ cmake_minimum_required( VERSION 2.8.7 )
 #We are a "serious" server application and need all the stack protection we can get..! 
 set(CMAKE_CXX_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
-
-
+ 
 OPTION (USE_OPENSSL OFF)
 OPTION (USE_XSERVER OFF)
-
-
-
+ 
 IF( USE_OPENSSL )
  add_definitions(-DUSE_OPENSSL)
 ENDIF( USE_OPENSSL )
 
-    #This is the core library 
+    #This is the core library
     add_subdirectory (src/AmmServerlib)
  
     #After we are done with the basics make all our secondary libraries
-    add_subdirectory (src/AmmCaptcha) 
+    add_subdirectory (src/AmmCaptcha)
     add_subdirectory (src/StringRecognizer)
     add_subdirectory (src/StringEscapeFile)
+    add_subdirectory (src/FileToString)
     add_subdirectory (src/UserAccounts)
     add_subdirectory (src/Hashmap)
     add_subdirectory (src/InputParser)
@@ -53,7 +51,7 @@ ENDIF( USE_XSERVER )
     
     #These are unit tests for the core library
     add_subdirectory (src/UnitTests)
-   
+
 # TODO FIX INSTALLATION DIRECTORIES 
 
 #    install(TARGETS AmmarServer
