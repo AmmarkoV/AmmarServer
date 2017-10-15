@@ -7,7 +7,7 @@ set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
 add_executable(myurl main.c ) 
-target_link_libraries(myurl pthread rt m AmmarServer AmmCaptcha )
+target_link_libraries(myurl pthread rt m AmmarServerDynamic AmmCaptcha )
 set_target_properties(myurl PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(myurl AmmarServer AmmCaptcha)  
        
