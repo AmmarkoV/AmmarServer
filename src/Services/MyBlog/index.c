@@ -238,24 +238,25 @@ char * getPostListHTML(struct website * configuration,int pageNum)
 
   if (configuration->post.currentPosts>0)
   {
+   unsigned int totalPages = 1 + (unsigned int ) configuration->post.currentPosts/configuration->postsPerPage;
+   fprintf(stderr,"\n\n\n\n\n\nPage %u/%u will give us pages from ",pageNum,totalPages);
 
-  unsigned int totalPages = (unsigned int ) configuration->post.currentPosts/configuration->postsPerPage;
-  if (pageNum>totalPages) { pageNum=totalPages;}
 
-  unsigned int startPost = pageNum*configuration->postsPerPage;
-  unsigned int endPost =  startPost+configuration->postsPerPage;
+   if (pageNum>totalPages) { pageNum=totalPages;}
 
-  if (endPost>configuration->post.currentPosts) { endPost=configuration->post.currentPosts-1; }
+   unsigned int endPost   = pageNum*configuration->postsPerPage;
+   if (endPost>=configuration->post.currentPosts) { endPost=configuration->post.currentPosts-1; }
+   unsigned int startPost = endPost - configuration->postsPerPage;
+   if (startPost>endPost) { startPost=0; }
 
-  unsigned int i=0;
+   fprintf(stderr," %u to %u ( total %u ) \n\n\n\n\n\n",startPost,endPost,configuration->post.currentPosts);
 
-//  for (i=startPost; i<endPost; i++)
-  for (i=endPost; i>startPost; i--)
-  {
+
+   unsigned int i=0;
+   for (i=endPost; i>startPost; i--)
+   {
     appendPost(configuration , i , buffer , &currentSize , totalSize);
-  }
-
-
+   }
   }
 
  return buffer;

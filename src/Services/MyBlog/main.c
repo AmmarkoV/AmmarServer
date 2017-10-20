@@ -28,7 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "index.h"
 
 #define TEST_INDEX_GENERATION_ONLY 0
-#define ENABLE_POSTING_NEW_CONTENT 0
+#define ENABLE_POSTING_NEW_CONTENT 1
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
 char webserver_root[MAX_FILE_PATH]="src/Services/MyBlog/res/"; // public_html <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -55,8 +55,15 @@ void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
     char title[1024]={0};
     char tags[1024]={0};
     char bodyText[4096]={0};
+    char user[1024]={0};
+    char token[1024]={0};
 
 
+    if ( _POST(rqst->instance,rqst,"user",user,1024)  )      { AmmServer_Success("User=`%s`", user);     ++thingsSubmited; } else
+                                                             { AmmServer_Success("did not find a user"); }
+
+    if ( _POST(rqst->instance,rqst,"token",token,1024)  )    { AmmServer_Success("Token=`********`");     ++thingsSubmited; } else
+                                                             { AmmServer_Success("did not find a token"); }
 
     if ( _POST(rqst->instance,rqst,"title",title,1024)  )    { AmmServer_Success("Title=`%s`", title);     ++thingsSubmited; } else
                                                              { AmmServer_Success("did not find a title"); }
@@ -69,7 +76,7 @@ void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
                                                              { AmmServer_Success("did not find text body"); }
 
 
-    if(thingsSubmited==3)
+    if(thingsSubmited==5)
     {
      AmmServer_WriteFileFromMemory("editor.raw",rqst->POST_request,rqst->POST_request_length);
      //-----------------------------
