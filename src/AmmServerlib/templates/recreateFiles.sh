@@ -7,6 +7,8 @@ cd "$DIR"
 #RUN ME TO REGENERATE TEMPLATE FILES 
 
 ../../StringEscapeFile/StringEscapeFile original/login.html include/login.html 
+../../StringEscapeFile/StringEscapeFile original/editor.html include/editor.html 
+
 ../../StringEscapeFile/StringEscapeFile original/400.html include/400.html
 ../../StringEscapeFile/StringEscapeFile original/401.html include/401.html
 ../../StringEscapeFile/StringEscapeFile original/403.html include/403.html

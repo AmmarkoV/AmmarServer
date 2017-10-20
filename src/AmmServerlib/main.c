@@ -699,7 +699,7 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 
 void AmmServer_GlobalTerminationHandler(int signum)
 {
-        fprintf(stderr,"Terminating AmmarServer with signum %i .. \n",signum);
+        fprintf(stderr,"Terminating AmmarServer Instance after receiving signum %i .. \n",signum);
           GLOBAL_KILL_SERVER_SWITCH=1;
         //&
         if (TerminationCallback!=0) { TerminationCallback(); }
