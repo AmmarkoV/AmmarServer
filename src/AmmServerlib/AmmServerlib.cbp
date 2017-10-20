@@ -96,6 +96,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="network/file_server.h" />
+		<Unit filename="network/networkAbstraction.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network/networkAbstraction.h" />
 		<Unit filename="network/openssl_server.c">
 			<Option compilerVar="CC" />
 		</Unit>

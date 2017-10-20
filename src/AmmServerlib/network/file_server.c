@@ -45,39 +45,15 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "sendHTTPHeader.h"
 
+#include "networkAbstraction.h"
+
+
 /*
    This file contains the main routine called most of the time , i.e. SendFile..!
    the code that follows supposes everything else is ok ( socket / client wise )
    and starts reading and sending the file indicated by the function arguments..!
 */
-//Counters for performance , these should  be put inside the the server instance so this is work to do in the future..
 
-int ASRV_Send(
-              struct AmmServer_Instance * instance,
-              int sockfd, const void *buf, size_t len, int flags)
-{
-  int opres=send(sockfd,buf,len,flags);
-  if (opres>0)
-       {
-        instance->statistics.totalUploadKB+=(unsigned long) opres/1024;
-        instance->statistics.totalUploadBytes+=(unsigned long)opres;
-       }
-  return opres;
-}
-
-
-ssize_t ASRV_Recv(
-                  struct AmmServer_Instance * instance,
-                  int sockfd, void *buf, size_t len, int flags)
-{
-  ssize_t opres=recv(sockfd,buf,len,flags);
-  if (opres>0)
-       {
-         instance->statistics.totalDownloadKB+=(unsigned long) opres/1024;
-         instance->statistics.totalDownloadBytes+=(unsigned long)opres;
-       }
-  return opres;
-}
 
 int SendPart(
               struct AmmServer_Instance * instance,

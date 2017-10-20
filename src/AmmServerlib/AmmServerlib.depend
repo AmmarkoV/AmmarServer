@@ -61,7 +61,7 @@
 	<sys/types.h>
 	<sys/time.h>
 
-1508083721 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.c
+1508084101 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/file_caching.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -133,7 +133,7 @@
 
 1467817363 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/postHeader.h
 
-1508083664 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
+1508515707 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -156,8 +156,9 @@
 	"../templates/errors.h"
 	"../templates/icons.h"
 	"sendHTTPHeader.h"
+	"networkAbstraction.h"
 
-1508083804 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1508516045 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1508080450 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -590,19 +591,19 @@
 
 1507977742 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/editor.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/400.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/400.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/401.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/401.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/403.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/403.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/404.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/404.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/408.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/408.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/500.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/500.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/login.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/login.html
 
 1508081233 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/icons.h
 	"include/dir.html"
@@ -614,21 +615,21 @@
 	"include/back.html"
 	"include/up.html"
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/dir.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/dir.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/doc.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/doc.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/exe.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/exe.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/img.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/img.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/vid.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/vid.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/mus.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/mus.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/back.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/back.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/up.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/up.html
 
 1508081234 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/icons.c
 	"icons.h"
@@ -641,7 +642,23 @@
 	"include/back.html"
 	"include/up.html"
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/directoryListStart.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/directoryListStart.html
 
-1508189705 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/directoryListEnd.html
+1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/directoryListEnd.html
+
+1508516043 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/networkAbstraction.h
+	"../AmmServerlib.h"
+	<stdlib.h>
+
+1508515766 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/networkAbstraction.c
+	"networkAbstraction.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<sys/types.h>
+	<sys/socket.h>
+	<netinet/in.h>
+	<arpa/inet.h>
+	<netdb.h>
+	<sys/uio.h>
 
