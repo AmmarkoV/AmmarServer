@@ -38,6 +38,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "threadedServer.h"
 
 #include "../tools/directory_lists.h"
+#include "../network/networkAbstraction.h"
 #include "../network/file_server.h"
 #include "../network/sendHTTPHeader.h"
 #include "../header_analysis/http_header_analysis.h"
@@ -189,19 +190,13 @@ inline void decideAboutHowToHandleRequestedResource
 
 inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-     SendAuthorizationHeader(instance,transaction->clientSock,"AmmarServer authorization..!","authorization.html");
+     SendAuthorizationHeader(instance,transaction,"AmmarServer authorization..!","authorization.html");
 
      char reply_header[256]={0};
      strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
      strcat(reply_header,"and your host machine will be permenantly banned if you exceed the maximum number of incorrect login attempts..</h2></body></html>\n");
      //int opres=send(transaction->clientSock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-     int opres=ASRV_Send(
-                  instance,
-                  transaction->clientSock,
-                  reply_header,
-                  strlen(reply_header),
-                  MSG_WAITALL|MSG_NOSIGNAL
-                  );
+     int opres=ASRV_Send(instance,transaction, reply_header, strlen(reply_header), MSG_WAITALL|MSG_NOSIGNAL );
      if (opres<=0) { fprintf(stderr,"Error sending authorization needed message\n"); }
      warning("Client Denied access to resource due to being anauthorized!");
 

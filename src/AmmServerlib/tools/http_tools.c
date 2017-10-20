@@ -39,6 +39,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../cache/file_caching.h"
 
 #include "../network/file_server.h"
+#include "../network/networkAbstraction.h"
 
 #include "../stringscanners/applicationFiles.h"
 #include "../stringscanners/archiveFiles.h"
@@ -1064,7 +1065,10 @@ char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,u
     if (buffer!=0)
     {
       snprintf(buffer,max_content,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
-      int opres =  ASRV_Send(instance,sockfd,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+
+      struct HTTPTransaction transaction={0};
+      transaction.clientSock = sockfd;
+      int opres =  ASRV_Send(instance,&transaction,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
 
       if (opres<=0) { fprintf(stderr,"Error Sending Request data\n"); } else
       {

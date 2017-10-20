@@ -9,16 +9,6 @@
 #include "../header_analysis/http_header_analysis.h"
 #include <unistd.h>
 
-
-int ASRV_Send(struct AmmServer_Instance * instance,
-              int sockfd, const void *buf, size_t len, int flags);
-
-ssize_t ASRV_Recv(
-                  struct AmmServer_Instance * instance,
-                  int sockfd, void *buf, size_t len, int flags);
-
-
-
 unsigned long SendEmbeddedFile
   (
     struct AmmServer_Instance * instance,
@@ -71,7 +61,7 @@ unsigned long SendMemoryBlockAsFile
   (
     struct AmmServer_Instance * instance,
     char * filename,
-    int clientsock, // The socket that will be used to send the data
+    struct HTTPTransaction * transaction,
     //char * path, // The filename to be served on the socket above
     char * mem, // The filename to be served on the socket above
     unsigned long mem_block

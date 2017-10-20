@@ -18,7 +18,7 @@
 * @param Filename to directory when error template files are stored
 * @bug   This call seems to fail ?
 * @retval 1=Success,0=Failure*/
-unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,int clientsock,unsigned int error_code,const char * verified_filename,const char * templates_root);
+unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int error_code,const char * verified_filename,const char * templates_root);
 
 /**
 * @brief Send a Success header , meaning that what was asked for will follow
@@ -28,7 +28,7 @@ unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,int clien
 * @param Success code ( typically 200 ok )
 * @param Verified Filename of file to transmit
 * @retval 1=Success,0=Failure*/
-unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,int clientsock,int success_code,const char * verified_filename);
+unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename);
 
 /**
 * @brief Send a 304 Not Modified response
@@ -36,7 +36,7 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,int cli
 * @param An AmmarServer instance
 * @param Socket to send to
 * @retval 1=Success,0=Failure*/
-unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,int clientsock);
+unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
 
 /**
 * @brief Send a 401 Not Authorized response
@@ -46,6 +46,6 @@ unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,int cli
 * @param String with message to be sent
 * @param Verified Filename of file asked to be transmitted
 * @retval 1=Success,0=Failure*/
-unsigned long SendAuthorizationHeader(struct AmmServer_Instance * instance,int clientsock,char * message,const char * verified_filename);
+unsigned long SendAuthorizationHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,char * message,const char * verified_filename);
 
 #endif // SENDHTTPHEADER_H_INCLUDED
