@@ -305,7 +305,15 @@ unsigned long SendErrorFile
                        instance->templates_root
                      );
 
-  send(transaction->clientSock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+  //send(transaction->clientSock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+  ASRV_Send(
+                  instance,
+                  transaction->clientSock,
+                  "\n",
+                  strlen("\n"),
+                  MSG_WAITALL|MSG_NOSIGNAL
+                  );
+
 
   char * what2RespondWith=0;
   switch (errorCode)
@@ -373,8 +381,14 @@ unsigned long SendEmbeddedFile
    AmmServer_Warning("The size to transmit is ( %u ) ",responseSize);
    char contentLength[128];
    snprintf(contentLength,128,"Content-Length: %u\n\n",responseSize);
-   send(transaction->clientSock,contentLength,strlen(contentLength),MSG_WAITALL|MSG_NOSIGNAL);
-   //send(transaction->clientSock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+   //send(transaction->clientSock,contentLength,strlen(contentLength),MSG_WAITALL|MSG_NOSIGNAL);
+     ASRV_Send(
+                  instance,
+                  transaction->clientSock,
+                  contentLength,
+                  strlen(contentLength),
+                  MSG_WAITALL|MSG_NOSIGNAL
+                  );
 
 
   int opres=ASRV_Send(
@@ -566,7 +580,15 @@ unsigned long SendFile
        struct tm * ptm = gmtime ( &last_modified.st_mtime ); //This is not a particularly thread safe call , must add a mutex or something here..!
        //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
        GetDateString(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
-       opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+       //opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+       opres=ASRV_Send(
+                  instance,
+                  clientsock,
+                  reply_header,
+                  strlen(reply_header),
+                  MSG_WAITALL|MSG_NOSIGNAL
+                  );
+
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
 
@@ -655,7 +677,14 @@ if (request->requestType!=HEAD)
  else
 {
   //We only served a header so lets append the last new line char..!
-  send(clientsock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+  //send(clientsock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
+    ASRV_Send(
+                  instance,
+                  transaction->clientSock,
+                  "\n",
+                  strlen("\n"),
+                  MSG_WAITALL|MSG_NOSIGNAL
+                  );
   return 1; //This does not mean we failed..! 2016-04-03
 }
 

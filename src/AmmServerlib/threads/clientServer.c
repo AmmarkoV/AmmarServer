@@ -194,8 +194,14 @@ inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * in
      char reply_header[256]={0};
      strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
      strcat(reply_header,"and your host machine will be permenantly banned if you exceed the maximum number of incorrect login attempts..</h2></body></html>\n");
-     int opres=send(transaction->clientSock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
-
+     //int opres=send(transaction->clientSock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
+     int opres=ASRV_Send(
+                  instance,
+                  transaction->clientSock,
+                  reply_header,
+                  strlen(reply_header),
+                  MSG_WAITALL|MSG_NOSIGNAL
+                  );
      if (opres<=0) { fprintf(stderr,"Error sending authorization needed message\n"); }
      warning("Client Denied access to resource due to being anauthorized!");
 
