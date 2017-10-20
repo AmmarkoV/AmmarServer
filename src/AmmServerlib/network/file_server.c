@@ -57,12 +57,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 int SendPart(
               struct AmmServer_Instance * instance,
-              int clientsock,
+              struct HTTPTransaction * transaction,
               const char * message,
               unsigned int message_size
              )
 {
-  int opres=ASRV_Send(instance,clientsock,message,message_size,MSG_WAITALL|MSG_NOSIGNAL);
+  int opres=ASRV_Send(instance,transaction,message,message_size,MSG_WAITALL|MSG_NOSIGNAL);
   if (opres<=0)
      {
       fprintf(stderr,"Failed to SendPart `%s`..!\n",message);
@@ -84,11 +84,11 @@ int SendPart(
 
 
  int TransmitFileToSocketInternal(
-                                         struct AmmServer_Instance * instance,
-                                         FILE * pFile,
-                                         int clientsock,
-                                         unsigned long bytesToSendStart
-                                       )
+                                   struct AmmServer_Instance * instance,
+                                   FILE * pFile,
+                                   struct HTTPTransaction * transaction,
+                                   unsigned long bytesToSendStart
+                                  )
 {
     //We dont want the server to allocate a big enough space to reduce disk reading overheads
     //but we dont want to allocate huge portions of memory so we set a soft limit here
@@ -136,7 +136,7 @@ int SendPart(
         opres=1; // <- This needs to be 1 so that the initial while statement won't fail
         while ( (chunkToSend>0) && (opres>=0) && (!stopFileTransmission) )
         {
-           opres=ASRV_Send(instance,clientsock,rollingBuffer,chunkToSend,MSG_WAITALL|MSG_NOSIGNAL);  //Send file parts as soon as we've got them
+           opres=ASRV_Send(instance,transaction,rollingBuffer,chunkToSend,MSG_WAITALL|MSG_NOSIGNAL);  //Send file parts as soon as we've got them
            if (opres < 0) {
                             warning("Connection closed , while sending the whole file..!\n");
                             stopFileTransmission=1;
@@ -188,7 +188,7 @@ int SendPart(
 
 inline int TransmitFileHeaderToSocket(
                                       struct AmmServer_Instance * instance,
-                                      int clientsock,
+                                      struct HTTPTransaction * transaction,
                                       unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
                                       unsigned long end_at_byte,     // Optionally end at an offset ( resume download functionality )
                                       unsigned long lSize
@@ -207,7 +207,7 @@ inline int TransmitFileHeaderToSocket(
          //This is the last header part , so we are appending an extra \n to mark the end of the header
          snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) lSize);
        }
-    if (!SendPart(instance,clientsock,reply_header,strlen(reply_header)))
+    if (!SendPart(instance,transaction,reply_header,strlen(reply_header)))
         {
          fprintf(stderr,"Failed sending Content-length @  SendFile ..!\n");
          return 0;
@@ -220,7 +220,7 @@ inline int TransmitFileHeaderToSocket(
 
 int TransmitFileToSocket(
                          struct AmmServer_Instance * instance,
-                         int clientsock,
+                         struct HTTPTransaction * transaction,
                          const char * verified_filename,
                          unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )
                          unsigned long end_at_byte     // Optionally end at an offset ( resume download functionality )
@@ -261,7 +261,7 @@ int TransmitFileToSocket(
      if (
           TransmitFileHeaderToSocket(
                                      instance,
-                                     clientsock,
+                                     transaction,
                                      start_at_byte,     // Optionally start with an offset ( resume download functionality )
                                      end_at_byte,       // Optionally end at an offset ( resume download functionality )
                                      lSize
@@ -272,7 +272,7 @@ int TransmitFileToSocket(
         if (start_at_byte!=0) { fseek (pFile , start_at_byte , SEEK_SET); }
         if (end_at_byte==0)   { end_at_byte=lSize-start_at_byte; }
 
-        res = TransmitFileToSocketInternal(instance,pFile,clientsock,end_at_byte);
+        res = TransmitFileToSocketInternal(instance,pFile,transaction,end_at_byte);
      }
 
 
@@ -299,20 +299,14 @@ unsigned long SendErrorFile
 
   SendErrorCodeHeader(
                        instance,
-                       transaction->clientSock,
+                       transaction,
                        errorCode,
                        simulatedFilename,
                        instance->templates_root
                      );
 
   //send(transaction->clientSock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
-  ASRV_Send(
-                  instance,
-                  transaction->clientSock,
-                  "\n",
-                  strlen("\n"),
-                  MSG_WAITALL|MSG_NOSIGNAL
-                  );
+  ASRV_Send(instance,transaction,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
 
 
   char * what2RespondWith=0;
@@ -328,13 +322,7 @@ unsigned long SendErrorFile
 
   if (what2RespondWith!=0)
   {
-  int opres=ASRV_Send(
-                  instance,
-                  transaction->clientSock,
-                  what2RespondWith,
-                  strlen(what2RespondWith),
-                  MSG_WAITALL|MSG_NOSIGNAL
-                  );  //Send E-Tag as soon as we've got it
+  int opres=ASRV_Send( instance, transaction, what2RespondWith, strlen(what2RespondWith), MSG_WAITALL|MSG_NOSIGNAL );  //Send E-Tag as soon as we've got it
    if (opres<=0) { fprintf(stderr,"Error sending Error Response\n"); return 0; } else
                  { dataTransmitted+=opres; }
   } else
@@ -360,12 +348,12 @@ unsigned long SendEmbeddedFile
 
   SendSuccessCodeHeader(
                        instance,
-                       transaction->clientSock,
+                       transaction,
                        200,
                        verified_filename_pending_copy
                      );
 
-  char * what2RespondWith=0;
+  unsigned char * what2RespondWith=0;
   unsigned int responseSize=0;
   if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "dir.gif")==0)  { what2RespondWith=original_dir_gif;  responseSize=sizeof(original_dir_gif);  } else
   if (strcmp(verified_filename_pending_copy,"public_html/" TEMPLATE_INTERNAL_URI "doc.gif")==0)  { what2RespondWith=original_doc_gif;  responseSize=sizeof(original_doc_gif);  } else
@@ -382,22 +370,11 @@ unsigned long SendEmbeddedFile
    char contentLength[128];
    snprintf(contentLength,128,"Content-Length: %u\n\n",responseSize);
    //send(transaction->clientSock,contentLength,strlen(contentLength),MSG_WAITALL|MSG_NOSIGNAL);
-     ASRV_Send(
-                  instance,
-                  transaction->clientSock,
-                  contentLength,
-                  strlen(contentLength),
-                  MSG_WAITALL|MSG_NOSIGNAL
-                  );
+   ASRV_Send(instance, transaction , contentLength, strlen(contentLength), MSG_WAITALL|MSG_NOSIGNAL );
 
 
-  int opres=ASRV_Send(
-                  instance,
-                  transaction->clientSock,
-                  what2RespondWith,
-                  responseSize,
-                  MSG_WAITALL|MSG_NOSIGNAL
-                  );  //Send E-Tag as soon as we've got it
+   //Send E-Tag as soon as we've got it
+   int opres=ASRV_Send( instance, transaction, what2RespondWith, responseSize, MSG_WAITALL|MSG_NOSIGNAL );
    if (opres<=0) { fprintf(stderr,"Error sending Error Response\n"); return 0; } else
                  { dataTransmitted+=opres; }
   } else
@@ -428,7 +405,6 @@ unsigned long SendFile
 
  //TODO: clean up rest of old force_error_code mechanism..!
 
- int clientsock = transaction->clientSock;
  unsigned int resourceCacheID=transaction->resourceCacheID;
  unsigned long start_at_byte = transaction->incomingHeader.range_start;
  unsigned long end_at_byte = transaction->incomingHeader.range_end;
@@ -458,7 +434,7 @@ unsigned long SendFile
   if (!FilenameStripperOk(verified_filename))
   {
      //Unsafe filename , bad request :P
-     if (! SendErrorCodeHeader(instance,clientsock,400,verified_filename,instance->templates_root) ) { fprintf(stderr,"Failed sending error code 400\n"); return 0; }
+     if (! SendErrorCodeHeader(instance,transaction,400,verified_filename,instance->templates_root) ) { fprintf(stderr,"Failed sending error code 400\n"); return 0; }
      //verified_filename should now point to the template file for 400 messages
   } else
    {
@@ -470,7 +446,7 @@ unsigned long SendFile
          error("We dont know the filesize yet so can't fix it here..");
 
          //Range Accepted 206 OK header
-         if (! SendSuccessCodeHeader(instance,clientsock,206,verified_filename)) { fprintf(stderr,"Failed sending Range Acknowledged success code \n"); return 0; }
+         if (! SendSuccessCodeHeader(instance,transaction,206,verified_filename)) { fprintf(stderr,"Failed sending Range Acknowledged success code \n"); return 0; }
        } else
        {
          //Normal 200 OK header
@@ -529,12 +505,12 @@ unsigned long SendFile
           if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
            {
               fprintf(stderr,"The content matches our ETag , we will reply with 304 NOT MODIFIED! :) \n");
-              SendNotModifiedHeader(instance,clientsock);
+              SendNotModifiedHeader(instance,transaction);
 
               //The Etag is mandatory on 304 messages..!
               char ETagSendChunk[MAX_ETAG_SIZE+64]={0};
               snprintf(ETagSendChunk,MAX_ETAG_SIZE+64,"ETag: \"%s\" \n",LocalETag);
-              if (!SendPart(instance,clientsock,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
+              if (!SendPart(instance,transaction,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
               WeWantA200OK=0;
               request->requestType=HEAD;
@@ -555,7 +531,7 @@ unsigned long SendFile
 
    if ( WeWantA200OK )
    {
-       if (! SendSuccessCodeHeader(instance,clientsock,200,verified_filename))
+       if (! SendSuccessCodeHeader(instance,transaction,200,verified_filename))
          {
           fprintf(stderr,"Failed sending success code \n");
           freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
@@ -571,7 +547,7 @@ unsigned long SendFile
   if (allowOtherOrigins)
   {
     AmmServer_Warning("Allowing other origins ( cross scripting..? )");
-    SendPart(instance,clientsock,"Access-Control-Allow-Origin: *\n",strlen("Access-Control-Allow-Origin: *\n"));
+    SendPart(instance,transaction,"Access-Control-Allow-Origin: *\n",strlen("Access-Control-Allow-Origin: *\n"));
   }
 
    if (have_last_modified)
@@ -581,13 +557,7 @@ unsigned long SendFile
        //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
        GetDateString(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
        //opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-       opres=ASRV_Send(
-                  instance,
-                  clientsock,
-                  reply_header,
-                  strlen(reply_header),
-                  MSG_WAITALL|MSG_NOSIGNAL
-                  );
+       opres=ASRV_Send(instance, transaction, reply_header, strlen(reply_header), MSG_WAITALL|MSG_NOSIGNAL );
 
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
@@ -598,8 +568,8 @@ unsigned long SendFile
                      The Keep-Alive header is completely optional; it is defined primarily because the keep-alive connection token implies that such a header exists, not because anyone actually uses it.
                     Some implementations (e.g., Apache) do generate a Keep-Alive header to convey how many requests they're willing to serve on a single connection, what the connection timeout is and other information. However, this isn't usually used by clients.
                     It's safe to remove this header if you wish to save a few bytes in the response.*/
-  if (keepalive) { if (!SendPart(instance,clientsock,"Connection: keep-alive\n",strlen("Connection: keep-alive\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
-                 { if (!SendPart(instance,clientsock,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
+  if (keepalive) { if (!SendPart(instance,transaction,"Connection: keep-alive\n",strlen("Connection: keep-alive\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
+                 { if (!SendPart(instance,transaction,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
 
 
 
@@ -618,7 +588,7 @@ if (request->requestType!=HEAD)
      if (cache_etag!=0)
      {
         snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%u%u%lu%lu\"\n", instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
-        opres=ASRV_Send(instance,clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
+        opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
      }
@@ -629,7 +599,7 @@ if (request->requestType!=HEAD)
      if ( cached_buffer_is_compressed )
      {
         strncpy(reply_header,"Content-Encoding: deflate\n",MAX_HTTP_REQUEST_HEADER_REPLY);
-        opres=ASRV_Send(instance,clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
+        opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
         if (opres<=0) { fprintf(stderr,"Error sending Compression header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
 
@@ -648,10 +618,10 @@ if (request->requestType!=HEAD)
          //This is the last header part , so we are appending an extra \n to mark the end of the header
          snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) cached_lSize);
        }
-     opres=ASRV_Send(instance,clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+     opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
-     opres=ASRV_Send(instance,clientsock,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
+     opres=ASRV_Send(instance,transaction,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
      freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
 
      if (opres<=0) { fprintf(stderr,"Error sending cached body\n"); return 0; }
@@ -665,7 +635,7 @@ if (request->requestType!=HEAD)
     if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
 
 
-     if ( !TransmitFileToSocket(instance,clientsock,verified_filename,start_at_byte,end_at_byte) )
+     if ( !TransmitFileToSocket(instance,transaction,verified_filename,start_at_byte,end_at_byte) )
       {
          fprintf(stderr,"Could not transmit file %s \n",verified_filename);
          return 0;
@@ -678,13 +648,7 @@ if (request->requestType!=HEAD)
 {
   //We only served a header so lets append the last new line char..!
   //send(clientsock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
-    ASRV_Send(
-                  instance,
-                  transaction->clientSock,
-                  "\n",
-                  strlen("\n"),
-                  MSG_WAITALL|MSG_NOSIGNAL
-                  );
+  ASRV_Send( instance, transaction, "\n", strlen("\n"), MSG_WAITALL|MSG_NOSIGNAL );
   return 1; //This does not mean we failed..! 2016-04-03
 }
 
@@ -699,23 +663,23 @@ unsigned long SendMemoryBlockAsFile
   (
     struct AmmServer_Instance * instance,
     char * filename,
-    int clientsock, // The socket that will be used to send the data
+    struct HTTPTransaction * transaction,
     //char * path, // The filename to be served on the socket above
     char * mem, // The memory block body to be sent
     unsigned long mem_block // The size of the memory block to be sent
   )
 {
-  if (! SendSuccessCodeHeader(instance,clientsock,200,filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+  if (! SendSuccessCodeHeader(instance,transaction,200,filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
 
 
   char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
   snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\nConnection: close\n\n",(unsigned int) mem_block);
   //TODO : Location : path etc
 
-  if (!SendPart(instance,clientsock,reply_header,strlen(reply_header)))
+  if (!SendPart(instance,transaction,reply_header,strlen(reply_header)))
       { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
-  if (!SendPart(instance,clientsock,mem,mem_block))
+  if (!SendPart(instance,transaction,mem,mem_block))
       { fprintf(stderr,"Failed sending content body @  SendMemoryBlockAsFile ..!\n");  }
 
  return 0;

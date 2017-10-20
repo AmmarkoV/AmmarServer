@@ -12,7 +12,7 @@
 
 int ASRV_Send(
               struct AmmServer_Instance * instance,
-              int sockfd,
+              struct HTTPTransaction * transaction,
               const void *buf,
               size_t len,
               int flags
@@ -20,7 +20,7 @@ int ASRV_Send(
 
 ssize_t ASRV_Recv(
                   struct AmmServer_Instance * instance,
-                  int sockfd,
+                  struct HTTPTransaction * transaction,
                   void *buf,
                   size_t len,
                   int flags

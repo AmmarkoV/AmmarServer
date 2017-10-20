@@ -133,7 +133,7 @@
 
 1467817363 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/postHeader.h
 
-1508515707 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
+1508519563 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -158,16 +158,16 @@
 	"sendHTTPHeader.h"
 	"networkAbstraction.h"
 
-1508517285 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1508520519 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
-1508080450 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
+1508519020 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
 	<unistd.h>
 
-1467816254 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.h
+1508519227 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.h
 	"../AmmServerlib.h"
 
-1508067202 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.c
+1508519585 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/sendHTTPHeader.c
 	"sendHTTPHeader.h"
 	<stdio.h>
 	<stdlib.h>
@@ -185,6 +185,7 @@
 	"../tools/http_tools.h"
 	"../tools/time_provider.h"
 	"../templates/errors.h"
+	"networkAbstraction.h"
 
 1495887443 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.c
 	"server_configuration.h"
@@ -435,7 +436,7 @@
 1454810977 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.h
 	"../AmmServerlib.h"
 
-1508080532 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/clientServer.c
+1508520330 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/clientServer.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -451,6 +452,7 @@
 	"clientServer.h"
 	"threadedServer.h"
 	"../tools/directory_lists.h"
+	"../network/networkAbstraction.h"
 	"../network/file_server.h"
 	"../network/sendHTTPHeader.h"
 	"../header_analysis/http_header_analysis.h"
@@ -483,7 +485,7 @@
 	"../network/file_server.h"
 	"../threads/threadedServer.h"
 
-1494714421 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/recvHTTPHeader.c
+1508518782 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/recvHTTPHeader.c
 	"recvHTTPHeader.h"
 	<stdio.h>
 	<stdlib.h>
@@ -646,11 +648,11 @@
 
 1508189840 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/templates/include/directoryListEnd.html
 
-1508516043 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/networkAbstraction.h
+1508518717 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/networkAbstraction.h
 	"../AmmServerlib.h"
 	<stdlib.h>
 
-1508515766 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/networkAbstraction.c
+1508518753 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/networkAbstraction.c
 	"networkAbstraction.h"
 	<stdio.h>
 	<stdlib.h>

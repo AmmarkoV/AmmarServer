@@ -20,7 +20,9 @@
 #include "../tools/time_provider.h"
 #include "../templates/errors.h"
 
-unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,int clientsock,unsigned int error_code,const char * verified_filename,const char * templates_root)
+#include "networkAbstraction.h"
+
+unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int error_code,const char * verified_filename,const char * templates_root)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -45,7 +47,7 @@ unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,int clien
      unsigned int replyHeaderLength = strlen(reply_header);
 
      GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
-     int opres=ASRV_Send(instance,clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+     int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0)
         {
           warning("could not send error code date\n");
@@ -59,7 +61,7 @@ unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,int clien
 
 
 
-unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,int clientsock,int success_code,const char * verified_filename)
+unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -76,14 +78,14 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,int cli
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
-      int opres=ASRV_Send(instance,clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
 
       return 1;
 }
 
 
-unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,int clientsock)
+unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -94,13 +96,13 @@ unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,int cli
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
-      int opres=ASRV_Send(instance,clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
 
       return 1;
 }
 
-unsigned long SendAuthorizationHeader(struct AmmServer_Instance * instance,int clientsock,char * message,const char * verified_filename)
+unsigned long SendAuthorizationHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,char * message,const char * verified_filename)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -118,7 +120,7 @@ unsigned long SendAuthorizationHeader(struct AmmServer_Instance * instance,int c
 
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength ,"Date",1,0,0,0,0,0,0,0);
-      int opres=ASRV_Send(instance,clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
 
       return 1;
