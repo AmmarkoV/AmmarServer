@@ -588,7 +588,11 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
   fprintf(stderr,"Passing message to HTTP thread is done (%u)\n",transaction.threadID);
 
-  int i= ServeClientInternal(instance,&transaction);
+  ASRV_StartSession(instance,&transaction);
+
+    int i= ServeClientInternal(instance,&transaction);
+
+  ASRV_StopSession(instance,&transaction);
 
 /*
   //Removed to reduce spam..!

@@ -10,6 +10,20 @@
 #include <stdlib.h>
 
 
+
+
+int ASRV_StartSession(
+                      struct AmmServer_Instance * instance,
+                      struct HTTPTransaction * transaction
+                     );
+
+int ASRV_StopSession(
+                      struct AmmServer_Instance * instance,
+                      struct HTTPTransaction * transaction
+                     );
+
+
+
 int ASRV_Send(
               struct AmmServer_Instance * instance,
               struct HTTPTransaction * transaction,

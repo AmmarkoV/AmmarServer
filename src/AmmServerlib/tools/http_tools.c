@@ -1066,7 +1066,7 @@ char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,u
     {
       snprintf(buffer,max_content,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
 
-      struct HTTPTransaction transaction={0};
+      struct HTTPTransaction transaction={0}; //This is a dummy call and does not need ASRV_StartSession
       transaction.clientSock = sockfd;
       int opres =  ASRV_Send(instance,&transaction,buffer,strlen(buffer),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
 
