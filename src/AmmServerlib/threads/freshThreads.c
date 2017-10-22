@@ -56,8 +56,13 @@ int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int client
     transaction.clientSock=clientsock;
     transaction.prespawnedThreadFlag=1; //Yes this is prespawned we dont want to end it after the client goes away
 
-    return ServeClientInternal(instance , &transaction);
+    ASRV_StartSession(instance,&transaction);
 
+     int i= ServeClientInternal(instance , &transaction);
+
+    ASRV_StopSession(instance,&transaction);
+
+    return i;
 }
 
 

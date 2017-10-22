@@ -14,6 +14,29 @@
 
 //Counters for performance , these should  be put inside the the server instance so this is work to do in the future..
 
+
+
+int ASRV_StartSession(
+                      struct AmmServer_Instance * instance,
+                      struct HTTPTransaction * transaction
+                     )
+{
+
+  return 0;
+}
+
+int ASRV_StopSession(
+                      struct AmmServer_Instance * instance,
+                      struct HTTPTransaction * transaction
+                     )
+{
+
+  return 0;
+}
+
+
+
+
 int ASRV_Send(
               struct AmmServer_Instance * instance,
               struct HTTPTransaction * transaction,
