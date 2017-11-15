@@ -665,6 +665,9 @@ int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_Dyn
 
 
 
+
+int AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename, unsigned int * filePointerLength);
+
 /**
 * @brief Save a POST argument to a file
 * @ingroup core
