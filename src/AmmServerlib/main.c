@@ -509,7 +509,7 @@ int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_Dyna
 
 
 
-int AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename, unsigned int * filePointerLength)
+int AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength)
 {
   if ( (instance==0) || (rqst==0) ) { return 0; }
 
@@ -524,7 +524,7 @@ int AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmS
 int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename)
 {
   unsigned int filePointerLength=0;
-  char * filePointer = AmmServer_POSTArgGetPointer(instance,rqst,argumentSelected,filename,&filePointerLength);
+  char * filePointer = AmmServer_POSTArgGetPointer(instance,rqst,argumentSelected,&filePointerLength);
 
    if  (filePointer!=0)
      {
