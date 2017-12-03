@@ -64,7 +64,7 @@ int compressLog(const char * filename,unsigned int accessTimes)
  //Ok , lets compress..
   char filenameToTest[2048]={0};
   unsigned int i=1;
-  while (i<10000)
+  while (i<100000)
   {
    snprintf(filenameToTest,2048,"%s.%u.gz",filename,i);
    if (!FileExistsAmmServ(filenameToTest))
