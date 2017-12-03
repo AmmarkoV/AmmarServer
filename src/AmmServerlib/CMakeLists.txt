@@ -84,6 +84,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 tools/serverMonitor.h
                 tools/directory_lists.c
                 tools/directory_lists.h 
+                #Security Functionality 
+                security/banlist.c  
                 #Templates that are used in clients..
                 templates/editor.c 
                 templates/editor.h 
