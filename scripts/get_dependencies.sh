@@ -2,7 +2,8 @@
 
 
 
-sudo apt-get install liblzma-dev libjpeg-turbo8-dev build-essential cmake libsqlite3-dev  libxt-dev
+sudo apt-get install liblzma-dev gzip libjpeg-turbo8-dev libxt-dev build-essential cmake 
+#libsqlite3-dev  
 
 
 exit 0

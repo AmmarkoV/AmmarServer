@@ -31,6 +31,17 @@ enum contentTypeEnumerator
 */
 unsigned int ServerThreads_DropRootUID();
 
+
+
+/**
+* @brief Check file size in bytes
+* @ingroup tools
+* @param Path to file
+* @retval File size or ,0=Zero Bytes or / Does not Exist / Or other error ( check errno )*/
+long long FileSizeAmmServ(const char * filename);
+
+
+
 /**
 * @brief Check if file Exists
 * @ingroup tools
