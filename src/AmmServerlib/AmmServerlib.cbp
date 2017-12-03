@@ -112,6 +112,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="network/sendHTTPHeader.h" />
+		<Unit filename="security/banlist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="security/banlist.h" />
 		<Unit filename="server_configuration.c">
 			<Option compilerVar="CC" />
 		</Unit>
