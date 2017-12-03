@@ -239,6 +239,14 @@ extern int MAX_CACHE_SIZE_IN_MB;
 extern int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
 
 
+
+/**  @brief Max size of a log file before it gets compressed..!*/
+#define COMPRESS_LOG_FILE_AFTER_THIS_SIZE 10 * /*MB*/ 1024 * 1027
+
+/**  @brief Number of accesses between log checks..!*/
+#define POLL_LOG_SIZES_EVERY_X_ACCESSES 200
+
+
 extern int  AccessLogEnable;
 extern char AccessLog[MAX_FILE_PATH];
 

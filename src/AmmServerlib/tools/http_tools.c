@@ -30,6 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/uio.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
 
@@ -105,6 +106,39 @@ unsigned int ServerThreads_DropRootUID()
    fprintf(stderr,"setuid(%d);\n",non_root_uid);
    return setuid(non_root_uid); // Non Root UID :-P
 }
+
+
+
+
+
+
+
+long long FileSizeAmmServ(const char * filename)
+{
+  long long size=0;
+  struct stat *buf = malloc(sizeof(struct stat)); //allocates memory for stat structure.
+  errno = 0; //always set errno to zero first.
+  if (buf!=0)
+  {
+  if(stat(filename, buf) == 0)
+   {
+    size = buf->st_size;
+    free(buf);
+    return size;
+   }
+  }
+  return 0;
+ }
+
+
+
+
+
+
+
+
+
+
 
 char FileExistsAmmServ(const char * filename)
 {
