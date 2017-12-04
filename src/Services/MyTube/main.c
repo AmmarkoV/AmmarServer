@@ -37,7 +37,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
-#define MASTER_INDEX_FILE "mytube.index"
+#define MASTER_INDEX_FILE "db/mytube.index"
 
 #define VIDEO_FILES_PATH_1 "/media/db46941e-4297-41d0-aa7e-659452e16780/home/guarddog/Internet/"
 #define VIDEO_FILES_PATH_2 "/home/ammar/Videos/Internet/"
