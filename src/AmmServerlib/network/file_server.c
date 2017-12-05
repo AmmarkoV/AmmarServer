@@ -198,7 +198,7 @@ inline int TransmitFileHeaderToSocket(
     //THIS ALSO EXISTS IN THE Cached resource response CODE around line 395
     if ( (start_at_byte!=0) || (end_at_byte!=0) )
        {
-         int endAtBytePrinted = end_at_byte;
+         unsigned long endAtBytePrinted = end_at_byte;
          if (endAtBytePrinted == 0 )
             { endAtBytePrinted = lSize; }
           snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);

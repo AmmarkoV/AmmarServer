@@ -72,11 +72,11 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
 
   char * res=strstr(request,TemplatesInternalURI);
   char * res_skipped=res;
-  unsigned int template_size = strlen(TemplatesInternalURI);
 
   if ( res!=0 )
    {
        /*
+      unsigned int template_size = strlen(TemplatesInternalURI);
       char tmp_cmp[MAX_FILE_PATH]={0};
       res_skipped=res+template_size;
       fprintf(stderr,"We've got a result , %s ( skipped %s )\n",res,res_skipped);
@@ -605,7 +605,7 @@ if (cache_FindResource(instance,verified_filename,index))
                   AmmServer_Warning("Returning a file stream from something that started to be a dynamic request , filename is %s , lets hope it works" , verified_filename);
                   *serveAsRegularFile=1;
 
-                  if (freeContentAfterUsingIt)
+                  if (*freeContentAfterUsingIt)
                   {
                       AmmServer_Error("Please free content here..");
                   }

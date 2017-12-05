@@ -147,7 +147,7 @@ void * MainHTTPServerThread (void * ptr)
   {
       usleep(DELAY_TRY_BINDING_TO_PORT);
       ++bindTries;
-      fprintf(stderr,"Try to bind web server (%s:%u) failed , try %u/%u \n",bindingIP,bindingPort,bindTries,MAX_TRIES_TO_BIND_TO_PORT);
+      fprintf(stderr,"Try to bind web server (%s:%u) failed , try %u/%u \n",bindingIP,bindingPort,bindTries,(unsigned int) MAX_TRIES_TO_BIND_TO_PORT);
   }
 
    if (bindTries>=MAX_TRIES_TO_BIND_TO_PORT)

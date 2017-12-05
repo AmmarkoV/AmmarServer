@@ -115,6 +115,7 @@ unsigned int ServerThreads_DropRootUID()
 
 long long FileSizeAmmServ(const char * filename)
 {
+ /*
   long long size=0;
   struct stat *buf = malloc(sizeof(struct stat)); //allocates memory for stat structure.
   errno = 0; //always set errno to zero first.
@@ -127,6 +128,14 @@ long long FileSizeAmmServ(const char * filename)
     return size;
    }
   }
+  return 0;
+  */
+
+ struct stat buf={0};
+  if(stat(filename,&buf) == 0)
+   {
+    return buf.st_size;
+   }
   return 0;
  }
 
@@ -833,6 +842,8 @@ char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsi
 {
   if (requestLength<4) { return 0; }
 
+  unsigned int counter=fileNumber;
+
   fprintf(stderr,"GetFILEFromPOSTRequest..!\n");
   char * ptrA=request;
   char * ptrB=request+1;
@@ -845,13 +856,13 @@ char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsi
     {
       if ( (*ptrA==13) && (*ptrB==10) && (*ptrC==13) && (*ptrD==10) )
         {
-          if (fileNumber==0)
+          if (counter==0)
           {
            fprintf(stderr,"Found Sequence %lu bytes inside POST Request..!\n",ptrD-request);
            *outputSize = requestLength - (ptrD-request);
            return ptrD+1;
           }
-          --fileNumber;
+          --counter;
         }
 
       ++ptrA;   ++ptrB;   ++ptrC;   ++ptrD;
@@ -1195,7 +1206,7 @@ int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , c
     }
   }
 
-  fprintf(stderr,"Peer IP address: %s , port %d \n", ipstr,*port);
+  fprintf(stderr,"%s: Peer IP address: %s , port %d \n", instance->instanceName , ipstr,*port);
  } else
  {
    warning("Could not get peer name..!"); //This could be a reason to drop this connection!

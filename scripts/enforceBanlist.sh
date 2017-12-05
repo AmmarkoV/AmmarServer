@@ -6,7 +6,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 cd ..
 
-input="banlist"
+input="db/banlist"
 
 
 #Get Bad IPs from error logs

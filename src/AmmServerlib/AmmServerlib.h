@@ -667,7 +667,7 @@ int AmmServer_POSTArg (struct AmmServer_Instance * instance,struct AmmServer_Dyn
 
 
 
-int AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength);
+char * AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength);
 
 
 /**
