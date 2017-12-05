@@ -118,7 +118,7 @@ char * dynamicRequest_serveContent
          if (CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC>0)
          {
           maxWaitTime= (unsigned int) CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC / CLIENT_SLEEP_TIME_INTERVAL_NSEC ;
-          fprintf(stderr,"Hit while another thread executing callback , waiting %u intervals of %u nsec..",maxWaitTime,CLIENT_SLEEP_TIME_INTERVAL_NSEC );
+          fprintf(stderr,"Hit while another thread executing callback , waiting %u intervals of %u nsec..",maxWaitTime,(unsigned int) CLIENT_SLEEP_TIME_INTERVAL_NSEC );
           while ( (shared_context->executedNow) && (waitTime < maxWaitTime) )
           {
            usleep(CLIENT_SLEEP_TIME_INTERVAL_NSEC );

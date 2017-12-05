@@ -1,5 +1,5 @@
 /*
-AmmarServer , simple template executable
+AmmarServer , My Loader Service
 
 URLs: http://ammar.gr
 Written by Ammar Qammaz a.k.a. AmmarkoV 2012
@@ -291,7 +291,9 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
     char * uploadedFilePath = uploadedFileUNSANITIZEDPath;
     char finalPath[2049]={0};
     snprintf(finalPath,2048,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath);
-    AmmServer_POSTArgToFile (default_server,rqst,0,finalPath);
+
+
+    AmmServer_POSTArgToFile (default_server,rqst,1,finalPath);
 
     //This is slightly bigger ( plus the header but almost correct )
     uploadsFilesSize+=rqst->POST_request_length;

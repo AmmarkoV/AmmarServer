@@ -74,7 +74,7 @@ int HTTPHeaderScanForHeaderEndFromStart(char * request,unsigned int request_leng
         if (i>=1) {
                     if (( request[i-1]==LF )&&( request[i]==LF ))
                      {
-                      fprintf(stderr,"it is ( ux @%u [ %u %u ] ) \n",i,request[i-1],request[i]);
+                      fprintf(stderr,"it is ( ux @%u [ %d %d ] ) \n",i,request[i-1],request[i]);
                       *thisScanResult=i;
                       return i;
                      }
@@ -83,7 +83,7 @@ int HTTPHeaderScanForHeaderEndFromStart(char * request,unsigned int request_leng
         if (i>=3) {
                     if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF ))
                     {
-                     fprintf(stderr,"it is ( win @%u [ %u %u %u %u ] )\n",i,request[i-3],request[i-2],request[i-1],request[i]);
+                     fprintf(stderr,"it is ( win @%u [ %d %d %d %d ] )\n",i,request[i-3],request[i-2],request[i-1],request[i]);
                      *thisScanResult=i;
                      return i;
                     }

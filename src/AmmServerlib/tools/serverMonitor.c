@@ -20,7 +20,7 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
   "<html><head><meta http-equiv=\"refresh\" content=\"1;URL='monitor.html'\" /></head><body>\
    <h1>AMMARSERVER <a target=\"_new\" href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/tools/serverMonitor.c\">MONITOR PAGE</a></h1><hr> \
    active threads : %u <br>\
-   active clients : %u <br>\
+   active clients : %lu <br>\
    started recv calls : %u <br>\
    finished recv calls : %u <br>\
    actively served requests: %u <br>\

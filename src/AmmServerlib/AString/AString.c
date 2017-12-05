@@ -300,6 +300,13 @@ int astringWriteFileFromMemory(const char * filename,char * memory , unsigned in
         fprintf(stderr,"Could not write null memory buffer\n");
         return 0 ;
     }
+    if (memoryLength==0)
+    {
+        fprintf(stderr,"Could not write empty memory buffer\n");
+        return 0 ;
+    }
+
+
     FILE * pFile=0;
     size_t result;
 

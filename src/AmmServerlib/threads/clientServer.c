@@ -590,7 +590,8 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
 
   ASRV_StartSession(instance,&transaction);
 
-    int i= ServeClientInternal(instance,&transaction);
+    //int i=
+    ServeClientInternal(instance,&transaction);
 
   ASRV_StopSession(instance,&transaction);
 

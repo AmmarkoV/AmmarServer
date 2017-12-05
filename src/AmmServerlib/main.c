@@ -336,13 +336,13 @@ int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmS
 
 
 
-int AmmServer_AddScheduler
-     ( struct AmmServer_Instance * instance,
-       const char * resource_name ,
-       void * callback,
-       unsigned int delayMilliseconds,
-       unsigned int repetitions
-    )
+int AmmServer_AddScheduler (
+                            struct AmmServer_Instance * instance,
+                            const char * resource_name ,
+                            void * callback,
+                            unsigned int delayMilliseconds,
+                            unsigned int repetitions
+                           )
 {
   AmmServer_Error("Scheduler Code not implemented\n");
   return 0;
@@ -414,14 +414,14 @@ void * AmmServer_LoginCallback(struct AmmServer_DynamicRequest  * rqst)
 
 
 int AmmServer_AddEditorResourceHandler(
-       struct AmmServer_Instance * instance,
-       struct AmmServer_RH_Context * context,
-       const char * resource_name ,
-       const char * web_root ,
-       void * callback
-)
+                                       struct AmmServer_Instance * instance,
+                                       struct AmmServer_RH_Context * context,
+                                       const char * resource_name ,
+                                       const char * web_root ,
+                                       void * callback
+                                      )
 {
-    #warning "TODO: Also remove editor resource handler"
+ #warning "TODO: Also remove editor resource handler"
  int res = AmmServer_AddResourceHandler (  instance, context, resource_name , web_root, 16000, 0, callback, DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES );
 
   if (res) { AmmServer_DoNOTCacheResourceHandler(instance,context); }
@@ -509,14 +509,14 @@ int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_Dyna
 
 
 
-int AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength)
+char * AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength)
 {
   if ( (instance==0) || (rqst==0) ) { return 0; }
 
    if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) )
      {
-       filePointerLength=0;
-       return GetFILEFromPOSTRequest(rqst->POST_request,rqst->POST_request_length,1,filePointerLength);
+       *filePointerLength=0;
+       return GetFILEFromPOSTRequest(rqst->POST_request,rqst->POST_request_length,argumentSelected,filePointerLength);
      }
   return 0;
 }
@@ -526,7 +526,7 @@ int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServ
   unsigned int filePointerLength=0;
   char * filePointer = AmmServer_POSTArgGetPointer(instance,rqst,argumentSelected,&filePointerLength);
 
-   if  (filePointer!=0)
+   if  ( (filePointer!=0)  && (filePointerLength>0) )
      {
        //AmmServer_WriteFileFromMemory("post.bin",rqst->POST_request,rqst->POST_request_length);
        return AmmServer_WriteFileFromMemory(filename,filePointer,filePointerLength);
@@ -880,8 +880,7 @@ struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_Me
 
 int filterStringForHtmlInjection(char * buffer , unsigned int bufferSize)
 {
-
-
+  AmmServer_Warning("filterStringForHtmlInjection not implemented ( %s , %u ) ",buffer,bufferSize);
   return 0;
 }
 
