@@ -54,6 +54,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../cache/client_list.h"
 #include "../cache/dynamic_requests.h"
 
+#include "../header_analysis/post_header_analysis.h"
+
+#include "../network/recvHTTPHeader.h"
+
 #include "../server_configuration.h"
 
 
@@ -219,7 +223,7 @@ inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Inst
   if (replyBody !=0)
         {
           //If Directory_listing enabled and directory is ok , send the generated site
-          SendMemoryBlockAsFile(instance,"dir.html",transaction->clientSock,replyBody ,sendSize);
+          SendMemoryBlockAsFile(instance,"dir.html",transaction,replyBody ,sendSize);
           if (replyBody !=0) { free(replyBody ); }
           logSuccess(instance,transaction,200,servefile);
         } else
@@ -253,7 +257,7 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
            transaction->incomingHeader.POSTrequestSize=transaction->incomingHeader.headerRAWSize;
            fprintf(stderr,CYAN " POST Request %s \n" NORMAL , transaction->incomingHeader.headerRAW);
 
-           if (!TokenizePOSTFiles(instance,transaction->incomingHeader,transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize))
+           if (!TokenizePOSTFiles(instance,&transaction->incomingHeader,transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize))
            {
                error("Could not tokenize POST request to files..\n");
            }
@@ -296,7 +300,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
-     warning("Client Denied access to resource!"); SendErrorCodeHeader(instance,transaction->clientSock,403 ,"403.html",instance->templates_root);
+     warning("Client Denied access to resource!"); SendErrorCodeHeader(instance,transaction,403 ,"403.html",instance->templates_root);
      logError(instance,transaction,403,"403.html");
      return 0;
    } else
@@ -311,7 +315,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
       if ( ( transaction->incomingHeader.requestType==POST ) && (instance->settings.ENABLE_POST) && (MASTER_ENABLE_POST) )
        {
 
-         fprintf(stderr,GREEN "POST HEADER : %u length \n %s \n" NORMAL,transaction->incomingHeader.ContentLength,transaction->incomingHeader.headerRAW);
+         fprintf(stderr,GREEN "POST HEADER : %lu length \n %s \n" NORMAL,transaction->incomingHeader.ContentLength,transaction->incomingHeader.headerRAW);
          //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
          //TODO TODO TODO
 
@@ -499,7 +503,7 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
       if (clientIsBanned)
       {
        warning("Client became banned during keep-alive\n");
-       SendErrorCodeHeader(instance,transaction->clientSock,403 /*Forbidden*/,"403.html",instance->templates_root);
+       SendErrorCodeHeader(instance,transaction,403 /*Forbidden*/,"403.html",instance->templates_root);
        break;
       }
     }
