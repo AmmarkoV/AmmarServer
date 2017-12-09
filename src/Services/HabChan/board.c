@@ -4,6 +4,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <sys/types.h>
+#include <dirent.h>
+
 #include "state.h"
 #include "thread.h"
 
@@ -147,6 +150,7 @@ int addBoardToSite( struct site * targetSite , char * boardName )
    AmmServer_ExecuteCommandLine(command, what2GetBack , 1024 );
    numberOfThreads = atoi(what2GetBack);
 
+   /*
    snprintf(command,MAX_STRING_SIZE,"ls data/board/%s/ -al | cut -d ' ' -f10",boardName);
    unsigned int i=0;
     for (i=4; i<=numberOfThreads; i++)
@@ -159,6 +163,30 @@ int addBoardToSite( struct site * targetSite , char * boardName )
           {
             addThreadToBoard( boardName , what2GetBack );
           }
+    }
+    */
+
+   snprintf(command,MAX_STRING_SIZE,"data/board/%s/",boardName);
+
+   DIR *dp;
+   struct dirent *ep;
+   dp = opendir (command);
+   if (dp != NULL)
+    {
+      while (ep = readdir (dp))
+       {
+         if (strcmp(ep->d_name,"boardStatus.ini")==0)  { } else
+         if (strcmp(ep->d_name,".")==0)                { } else
+         if (strcmp(ep->d_name,"..")==0)               { } else
+            {
+              fprintf(stderr,"Adding thread %s \n",ep->d_name);
+              addThreadToBoard( boardName , ep->d_name );
+            }
+       }
+      closedir (dp);
+    } else
+    {
+     fprintf(stderr,"Cannot open directory to list channels \n");
     }
 
 

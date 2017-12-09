@@ -22,6 +22,8 @@ add_executable(habchan
  board.h 
  state.c 
  state.h 
+ directoryListing.c
+ directoryListing.h
  postReceiver.c
  postReceiver.h
  ) 
