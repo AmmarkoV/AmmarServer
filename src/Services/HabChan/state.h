@@ -14,15 +14,7 @@ extern struct AmmServer_RequestOverride_Context GET_override;
 
 extern struct site ourSite;
 
-
-extern unsigned int threadIndexPageLength;
-extern char * threadIndexPage;
-
-extern unsigned int threadIndexStartPageLength;
-extern char * threadIndexStartPage;
-
-extern unsigned int threadIndexEndPageLength;
-extern char * threadIndexEndPage;
+extern struct AmmServer_MemoryHandler * threadIndexPage;
 
 #define MAX_BOARDS 1000
 #define MAX_THREADS_PER_BOARD 1000

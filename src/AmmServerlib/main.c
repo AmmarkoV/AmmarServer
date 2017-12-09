@@ -848,7 +848,7 @@ struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int in
 struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char * filename)
 {
   struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
-  if (mh==0) { return 0; }
+  if (mh==0) {  AmmServer_Error("AmmServer_ReadFileToMemoryHandler could not allocate memory to hold copy..");  return 0; }
 
    mh->content = AmmServer_ReadFileToMemory(filename,&mh->contentSize);
    mh->contentCurrentLength = mh->contentSize;
@@ -866,13 +866,24 @@ struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char *
 
 struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_MemoryHandler * inpt)
 {
-  struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
-  if (mh==0) { return 0; }
+  if (inpt==0)          { AmmServer_Warning("AmmServer_CopyMemoryHandler can't copy a null memory handler..");      return 0; }
 
-   mh->contentCurrentLength = inpt->contentCurrentLength;
-   mh->contentSize = inpt->contentSize ;
-   mh->content = (char *) malloc(sizeof(char) * inpt->contentSize );
-   memcpy(mh->content,inpt->content,inpt->contentSize);
+  struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
+
+  if (mh==0)            { AmmServer_Error("AmmServer_CopyMemoryHandler could not allocate memory to hold copy..");  return 0; }
+
+  mh->contentCurrentLength = inpt->contentCurrentLength;
+  mh->contentSize = inpt->contentSize ;
+
+   if (inpt->content==0)
+      {
+        mh->content=0;
+      }
+       else
+      {
+        mh->content = (char *) malloc(sizeof(char) * inpt->contentSize );
+        memcpy(mh->content,inpt->content,inpt->contentSize);
+      }
 
    return mh;
 }
