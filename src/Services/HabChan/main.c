@@ -75,6 +75,7 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&threadIndexView,1);
     AmmServer_RemoveResourceHandler(default_server,&threadView,1);
     AmmServer_RemoveResourceHandler(default_server,&postReceiver,1);
+
 }
 
 

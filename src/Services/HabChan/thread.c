@@ -69,44 +69,44 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
 
 void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
 {
-  strcpy(rqst->content,threadIndexStartPage);
-
+ fprintf(stderr,"prepareThreadIndexView  \n");
   if  ( rqst->GET_request != 0 )
     {
       if ( strlen(rqst->GET_request)>0 )
        {
-         char * boardID = (char *) malloc ( 256 * sizeof(char) );
-         if (boardID!=0)
-          {
-            if ( _GET(default_server,rqst,"board",boardID,256) )
+         char boardID[257]={0};
+         if ( _GET(default_server,rqst,"board",boardID,256) )
              {
+                fprintf(stderr,"board: %s \n",boardID);
                 if ( hashMap_ContainsKey(boardHashMap,boardID) )
                 {
-                  strcat(rqst->content,"GOT A BOARD !!!  : ");
-                  strcat(rqst->content,boardID); strcat(rqst->content," ! ! <br>");
+                  struct AmmServer_MemoryHandler * threadIndexPageWithContents = AmmServer_CopyMemoryHandler(threadIndexPage);
 
                   unsigned int threadsHTMLLength=0;
                   char * threadsHTML = mallocHTMLListOfThreadsOfBoard(boardID,&threadsHTMLLength);
                   if (threadsHTML!=0)
                    {
-                    strcat(rqst->content,threadsHTML);
+                    AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"<!--THREAD_CONTENT-->",threadsHTML);
+                    fprintf(stderr,"content: %s \n",threadsHTML);
                     free(threadsHTML);
                    }
 
+
+
+                   memcpy (rqst->content , threadIndexPageWithContents ->content , threadIndexPageWithContents ->contentCurrentLength );
+                   rqst->contentSize=threadIndexPageWithContents ->contentCurrentLength ;
+                   AmmServer_FreeMemoryHandler(&threadIndexPageWithContents);
+                   return 0;
                 } else
                 {
                   strcat(rqst->content,"No BOARD  , denied!!!  <BR> ");
                 }
              }
-            free(boardID);
-          }
        }
     }
-   strcat(rqst->content,threadIndexEndPage);
-   rqst->contentSize=strlen(rqst->content);
 
-  // rqst->contentSize = threadIndexPageLength;
-  // strncpy(rqst->content,threadIndexPage,rqst->contentSize);
+   strcpy(rqst->content,"<html>ERROR</html>");
+   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
