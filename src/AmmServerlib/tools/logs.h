@@ -5,8 +5,6 @@
 #ifndef LOGS_H_INCLUDED
 #define LOGS_H_INCLUDED
 
-
-
 #define NORMAL   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
@@ -26,7 +24,7 @@
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
 
-#define logEcho() fprintf(stderr," Reached %s , %u \n ", __FILE__, __LINE__);
+#define logEcho() fprintf(stderr," Reached %s , %lu \n ", __FILE__, __LINE__);
 
 
 
