@@ -6,7 +6,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
  
 until false; do
-    src/Services/HabChan/habchan -p 8083 $@ 
+    cd src/Services/HabChan 
+    ./habchan -p 8083 $@ 
     echo "Server 'habchan' stopped with exit code $?.  Respawning.." >&2
 done
 

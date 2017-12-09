@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <sys/types.h>
+#include <dirent.h>
+
 #include "../../AmmServerlib/AmmServerlib.h"
 #include "../../Hashmap/hashmap.h"
 #include "../../InputParser/InputParser_C.h"
@@ -112,18 +116,25 @@ int loadSite( char * filename )
 
 
 
-
-    unsigned int i=0;
-    for (i=4; i<=numberOfElements; i++)
+   DIR *dp;
+   struct dirent *ep;
+   dp = opendir ("data/board");
+   if (dp != NULL)
     {
-     AmmServer_ExecuteCommandLineNum("ls data/board -al | cut -d ' ' -f10", what2GetBack , 1024 , i);
-     if (strlen(what2GetBack)>1)
-         { what2GetBack[strlen(what2GetBack)-1]=0; }
-
-     addBoardToSite( &ourSite , what2GetBack );
+      while (ep = readdir (dp))
+       {
+         if (strcmp(ep->d_name,".")==0)  { } else
+         if (strcmp(ep->d_name,"..")==0) { } else
+            {
+              fprintf(stderr,"Adding board %s \n",ep->d_name);
+              addBoardToSite( &ourSite , ep->d_name );
+            }
+       }
+      closedir (dp);
+    } else
+    {
+     fprintf(stderr,"Cannot open directory to list channels \n");
     }
-
-
 
 
 
