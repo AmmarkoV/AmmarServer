@@ -92,7 +92,7 @@ int loadBoardSettings(char * boardName , struct board * ourBoard)
                 } else
                 if (InputParser_WordCompareNoCase(ipc,0,(char*)"THREADQUEUE",11)==1)
                 {
-                    fprintf(stderr,"TODO : fix thread queue");
+                    fprintf(stderr,"TODO : fix thread queue\n");
                 }
               }
           }
@@ -143,28 +143,6 @@ int addBoardToSite( struct site * targetSite , char * boardName )
 
    unsigned int numberOfThreads=0;
    char command[MAX_STRING_SIZE]={0};
-   char what2GetBack[1024]={0};
-
-   //ls data/board/b -a | sed 's/ /\n/g' | egrep '^[0-9].*'
-   snprintf(command,MAX_STRING_SIZE,"ls data/board/%s/ -al | cut -d ' ' -f10 | wc -l",boardName);
-   AmmServer_ExecuteCommandLine(command, what2GetBack , 1024 );
-   numberOfThreads = atoi(what2GetBack);
-
-   /*
-   snprintf(command,MAX_STRING_SIZE,"ls data/board/%s/ -al | cut -d ' ' -f10",boardName);
-   unsigned int i=0;
-    for (i=4; i<=numberOfThreads; i++)
-    {
-     AmmServer_ExecuteCommandLineNum(command, what2GetBack , 1024 , i);
-     if (strlen(what2GetBack)>1)
-         { what2GetBack[strlen(what2GetBack)-1]=0; }
-
-         if (strcmp(what2GetBack,"boardStatus.ini")!=0 )
-          {
-            addThreadToBoard( boardName , what2GetBack );
-          }
-    }
-    */
 
    snprintf(command,MAX_STRING_SIZE,"data/board/%s/",boardName);
 
@@ -179,8 +157,9 @@ int addBoardToSite( struct site * targetSite , char * boardName )
          if (strcmp(ep->d_name,".")==0)                { } else
          if (strcmp(ep->d_name,"..")==0)               { } else
             {
-              fprintf(stderr,"Adding thread %s \n",ep->d_name);
+              //fprintf(stderr,"Adding thread %s \n",ep->d_name);
               addThreadToBoard( boardName , ep->d_name );
+              ++numberOfThreads;
             }
        }
       closedir (dp);

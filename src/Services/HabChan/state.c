@@ -126,7 +126,7 @@ int loadSite( char * filename )
          if (strcmp(ep->d_name,".")==0)  { } else
          if (strcmp(ep->d_name,"..")==0) { } else
             {
-              fprintf(stderr,"Adding board %s \n",ep->d_name);
+              //fprintf(stderr,"Adding board %s \n",ep->d_name);
               addBoardToSite( &ourSite , ep->d_name );
             }
        }
