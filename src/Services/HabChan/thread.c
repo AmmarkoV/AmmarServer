@@ -114,7 +114,7 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
 
 int loadThread(const char * threadName , struct board * ourBoard , struct thread * ourThread)
 {
-   if (ourBoard==0) { fprintf(stderr,"Cannot load thread without an allocated board\n"); return 0; }
+   if (ourBoard==0)  { fprintf(stderr,"Cannot load thread without an allocated board\n");  return 0; }
    if (ourThread==0) { fprintf(stderr,"Cannot load thread without an allocated thread\n"); return 0; }
    fprintf(stderr,"Loading Thread `%s` to board `%s` \n",threadName,ourBoard->name);
 
