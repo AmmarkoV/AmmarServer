@@ -184,7 +184,12 @@ int loadThread(const char * threadName , struct board * ourBoard , struct thread
 
     InputParser_Destroy(ipc);
     fclose(fp);
-    return 1;
+
+
+
+
+
+    return loadPosts(threadName,ourBoard,ourThread,ourThread->replies);
 }
 
 
