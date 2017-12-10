@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>HabChan Dynamic Title here</title>
+    <title>!HabChan Dynamic Title here!</title>
     
     <script type="text/javascript">
      
@@ -17,15 +17,15 @@
   <body id="mainBody" style="background-color:#ffffee;">
      
       <center> 
-       list channels here <br>     
+       !list channels here!  <br>     
        <img src="banner.jpg"> <br> 
-       <h2>Say Which Board we are in here</h2>
+       <h2>!Say Which Board we are in here!</h2>
        <hr> 
        
 	
 	<form name="postform" id="postform" action="postReceiver.html" method="get" >
-	<input type="hidden" name="board" value="b" />
-	<input type="hidden" name="replythread" value="0" />
+	<input type="hidden" name="board" value="!BOARDNAME!" />
+	<input type="hidden" name="replythread" value="!THREADID!" />
 	<input type="hidden" name="MAX_FILE_SIZE" value="3072000" />
 	<input type="text" name="email" size="28" maxlength="75" value="" style="display: none;" />
 	  <table class="postform">
@@ -97,9 +97,8 @@
              <td> <img src="board/b/1/image_1.jpg" height="100"> </td> <td> payload here </td> 
            </tr>
           </table>   
-         </div> <br> <hr> <br>
-  
-  
+         </div> <br>   <br>  
+
           <!-- FOR LOOP gia ta X prwta posts tou thread -->
          <div style="background-color:#f0e0d6;">
           <table>
@@ -110,23 +109,18 @@
           </table>   
          </div> 
   
-  
-          <!--THREAD_CONTENT--> 
- 
      <br>
-     </div>    
-     <!-- FOR LOOP gia osa threads -->
-
-
-
-
-
+     </div>     
     
-    
+         <!--Before content-->
+          <!--THREAD_CONTENT--> 
+         <!--After content-->
+ 
        <hr> 
   
       <center> 
-       list channels here 
+       !list channels here! 
+      <br>
                           <select id="LuiBackgroundSelector" name="LuiBackgroundSelector"  onchange="javascript:changeUIColor(this.value);" >
                         <option value="#FFE4E1">Misty Rose</option> 
                         <option value="#FFEFD5">Papaya Whip</option>

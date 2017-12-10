@@ -21,6 +21,9 @@
 #endif // HASHMAP_BE_THREAD_SAFE
 
 
+/** @brief If we have a hashmap with just a couple of entries it is probably faster to not sort it ..!  */
+#define NUMBER_OF_ENTRIES_BELOW_IT_IS_NOT_WORTH_SORTING 30
+
 /** @brief The function that converts a string to a number so that it will be easier to be searched  */
 unsigned long hashFunction(const char *str);
 
@@ -103,6 +106,17 @@ int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int val
 * @param Number value of this record
 * @retval 1=Success,0=Failure */
 int hashMap_AddULong(struct hashMap * hm,const char * key,unsigned long val);
+
+
+
+/**
+* @brief Find index of a key doing a serial search ( ignoring sorting .. )
+* @ingroup hashmap
+* @param HashMap
+* @param Input String with the key index to find
+* @param Output index of the record that holds the data we were searching for
+* @retval 1=Success,0=Failure */
+int hashMap_FindIndexSerial(struct hashMap * hm,const char * key,unsigned long * index);
 
 /**
 * @brief Find index of a key
