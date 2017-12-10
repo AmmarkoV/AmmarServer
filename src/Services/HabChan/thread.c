@@ -24,9 +24,11 @@ void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
 
 char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * htmlLength)
 {
-    char * buffer=(char*) malloc(sizeof(char) * 100000);
+    char * buffer=(char*) malloc(sizeof(char) * 140000);
     if (buffer==0) { return 0; }
     buffer[0]=0;
+
+    char chunk[1024];
 
     unsigned long boardIndex = 0;
     if ( hashMap_FindIndex(boardHashMap,boardName,&boardIndex) )
@@ -35,35 +37,58 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
         for (threadID=0; threadID<ourSite.boards[boardIndex].currentThreads; threadID++)
            {
 
-               strcat(buffer,"\
+               snprintf(chunk,1024,
+                        "\
                <div style=\"background-color:#ffffee;\">\
                 <br>\
                   <div>\
                     <table width=\"400\" style=\"background-color:#f0e0d6;\">\
                        <tr>\
-                        <td colspan=2> Header Here </td>\
+                        <td colspan=2>%s</td>\
                        </tr>\
                        <tr>\
-                        <td> <img src=\"board/b/1/image_1.jpg\" height=\"100\"> </td> <td> payload here </td>\
+                        <td> <img src=\"board/b/1/image_1.jpg\" height=\"100\"> </td> <td> %s </td>\
                        </tr>\
                     </table>\
-                 </div><br><hr><br>");
+                 </div><br><hr><br>" ,
+                          ourSite.boards[boardIndex].threads[threadID].name ,
+
+                          ourSite.boards[boardIndex].threads[threadID].replies[0].message
+                        );
+
+               strcat(buffer,chunk);
+               AmmServer_Success("Chunk %s \n",chunk);
 
               unsigned int postID=0;
               for (postID=0; postID<4; postID++)
               {
-               strcat(buffer,"\
-                 <div style=\"background-color:#f0e0d6;\">\
+               if (postID<ourSite.boards[boardIndex].threads[threadID].numberOfReplies)
+                {
+                 snprintf(chunk,1024,
+                 "\
+                  <div style=\"background-color:#f0e0d6;\">\
                     <table>\
                        <tr>\
-                         <td colspan=2> Header Here </td>\
-                         <td> image here </td> <td> payload here </td>\
+                         <td colspan=2> %s </td>\
+                         <td> %s </td> <td> %s </td>\
                        </tr>\
                     </table>\
-                 </div><br>");
+                 </div><br>",
+
+                 ourSite.boards[boardIndex].threads[threadID].replies[postID].fileOriginalName,
+                 ourSite.boards[boardIndex].threads[threadID].replies[postID].fileCachedName,
+                 ourSite.boards[boardIndex].threads[threadID].replies[postID].message
+                 );
+
+                 AmmServer_Success("Chunk %s \n",chunk);
+                 strcat(buffer,chunk);
+                }
               }
              strcat(buffer,"</div>");
            }
+    } else
+    {
+     AmmServer_Error("Could not find board %s \n",boardName);
     }
   return buffer;
 }
@@ -97,7 +122,7 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
                   if (threadsHTML!=0)
                    {
                     AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"<!--THREAD_CONTENT-->",threadsHTML);
-                    fprintf(stderr,"content: %s \n",threadsHTML);
+                    fprintf(stderr,"CONTENT: %s \n",threadsHTML);
                     free(threadsHTML);
                    }
 
@@ -127,6 +152,9 @@ int loadThread(const char * threadName , struct board * ourBoard , struct thread
    if (ourBoard==0)  { fprintf(stderr,"Cannot load thread without an allocated board\n");  return 0; }
    if (ourThread==0) { fprintf(stderr,"Cannot load thread without an allocated thread\n"); return 0; }
    fprintf(stderr,"Loading Thread `%s` to board `%s` \n",threadName,ourBoard->name);
+
+
+   snprintf(ourThread->name,MAX_STRING_SIZE,"%s",threadName);
 
    char filename[LINE_MAX_LENGTH]={0};
    snprintf(filename,LINE_MAX_LENGTH,"data/board/%s/%s/status.ini",ourBoard->name,threadName);
@@ -190,7 +218,7 @@ int loadThread(const char * threadName , struct board * ourBoard , struct thread
 
 
 
-    return loadPosts(threadName,ourBoard,ourThread,ourThread->replies);
+    return loadPosts(ourBoard,ourThread);
 }
 
 

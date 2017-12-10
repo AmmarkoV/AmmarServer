@@ -3,6 +3,7 @@
 
 #include "state.h"
 
-int loadPosts(const char * threadName , struct board * ourBoard , struct thread * ourThread , struct post * ourPosts);
+
+int loadPosts(struct board * ourBoard , struct thread * ourThread);
 
 #endif
