@@ -29,6 +29,8 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
     buffer[0]=0;
 
     char chunk[1024];
+    char imageURI[2048];
+
 
     unsigned long boardIndex = 0;
     if ( hashMap_FindIndex(boardHashMap,boardName,&boardIndex) )
@@ -37,22 +39,25 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
         for (threadID=0; threadID<ourSite.boards[boardIndex].currentThreads; threadID++)
            {
 
+               snprintf(imageURI,1024,"board/%s/%s/image_0.jpg",boardName,ourSite.boards[boardIndex].threads[threadID].name);
+
                snprintf(chunk,1024,
                         "\
                <div style=\"background-color:#ffffee;\">\
-                <br>\
+                <hr><br>\
                   <div>\
                     <table width=\"400\" style=\"background-color:#f0e0d6;\">\
                        <tr>\
-                        <td colspan=2>%s</td>\
+                        <td colspan=2> %s (ID: IDHERE) 12/10/17(Sun)15:31:15 No.152763313   <a href=\"\">[Reply]</a> ▶</td>\
                        </tr>\
                        <tr>\
-                        <td> <img src=\"board/b/1/image_1.jpg\" height=\"100\"> </td> <td> %s </td>\
+                        <td><a href=\"%s\" target=\"_new\"><img src=\"%s\" height=\"200\"></a></td> <td> %s </td>\
                        </tr>\
                     </table>\
-                 </div><br><hr><br>" ,
+                 </div><br><br>" ,
                           ourSite.boards[boardIndex].threads[threadID].name ,
-
+                          imageURI,
+                          imageURI,
                           ourSite.boards[boardIndex].threads[threadID].replies[0].message
                         );
 
@@ -60,23 +65,36 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
                AmmServer_Success("Chunk %s \n",chunk);
 
               unsigned int postID=0;
-              for (postID=0; postID<4; postID++)
+              for (postID=1; postID<4; postID++)
               {
+
                if (postID<ourSite.boards[boardIndex].threads[threadID].numberOfReplies)
                 {
+               if ( ourSite.boards[boardIndex].threads[threadID].replies[postID].hasFile )
+               {
+                 snprintf(imageURI,1024,"<a href=\"board/%s/%s/image_%u.jpg\" target=\"_new\"><img src=\"board/%s/%s/image_%u.jpg\" height=\"200\"></a>",
+                          boardName,ourSite.boards[boardIndex].threads[threadID].name , postID,
+                          boardName,ourSite.boards[boardIndex].threads[threadID].name , postID  );
+               } else
+               {
+                 snprintf(imageURI,1024,"<img src=\"empty.png\" width=\"10\">");
+               }
+
                  snprintf(chunk,1024,
                  "\
                   <div style=\"background-color:#f0e0d6;\">\
                     <table>\
                        <tr>\
-                         <td colspan=2> %s </td>\
-                         <td> %s </td> <td> %s </td>\
+                         <td colspan=2 height=30>%s (ID: IDHERE) 12/10/17(Sun)16:22:50 No.152768721 ▶ </td>\
+                       </tr>\
+                       <tr>\
+                         <td>%s</td> <td> %s </td>\
                        </tr>\
                     </table>\
                  </div><br>",
 
-                 ourSite.boards[boardIndex].threads[threadID].replies[postID].fileOriginalName,
-                 ourSite.boards[boardIndex].threads[threadID].replies[postID].fileCachedName,
+                 ourSite.boards[boardIndex].threads[threadID].replies[postID].op,
+                 imageURI,
                  ourSite.boards[boardIndex].threads[threadID].replies[postID].message
                  );
 
@@ -240,8 +258,11 @@ int addThreadToBoard( const char * boardName , const char * threadName )
    {
     if ( hashMap_FindIndex(threadHashMap,threadName,&threadID) )
     {
-     loadThread(threadName , &ourSite.boards[boardID] , &ourSite.boards[boardID].threads[threadID]);
-     return 1;
+     if ( loadThread(threadName , &ourSite.boards[boardID] , &ourSite.boards[boardID].threads[threadID]) )
+     {
+         ++ourSite.boards[boardID].currentThreads;
+         return 1;
+     }
     }else
     { fprintf(stderr,"hashMap_FindIndex(thread) failure\n"); }
    } else

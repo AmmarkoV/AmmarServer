@@ -37,6 +37,7 @@ int loadPostHeader(char * postHeaderFilename , struct post * ourPost)
                 } else
                 if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IMAGENAME")==1)
                 {
+                   ourPost->hasFile=1;
                    InputParser_GetWord(ipc,1,ourPost->fileOriginalName,MAX_STRING_SIZE);
                 } else
                 if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"TIMESTAMP")==1)
