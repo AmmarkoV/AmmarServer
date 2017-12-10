@@ -7,6 +7,7 @@
 
 #include "state.h"
 #include "thread.h"
+#include "post.h"
 
 
 #include "../../AmmServerlib/AmmServerlib.h"
