@@ -53,10 +53,10 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&boardIndexView,"/index.html",webserver_root,4096,0,&prepareBoardIndexView,SAME_PAGE_FOR_ALL_CLIENTS) )
         { AmmServer_Warning("Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&threadIndexView,"/threadIndexView.html",webserver_root,4096,0,&prepareThreadIndexView,SAME_PAGE_FOR_ALL_CLIENTS) )
+  if (! AmmServer_AddResourceHandler(default_server,&threadIndexView,"/threadIndexView.html",webserver_root,46096,0,&prepareThreadIndexView,SAME_PAGE_FOR_ALL_CLIENTS) )
         { AmmServer_Warning("Failed adding stats page\n"); }
 
-  if (! AmmServer_AddResourceHandler(default_server,&threadView,"/threadView.html",webserver_root,4096,0,&prepareThreadView,SAME_PAGE_FOR_ALL_CLIENTS) )
+  if (! AmmServer_AddResourceHandler(default_server,&threadView,"/threadView.html",webserver_root,46096,0,&prepareThreadView,SAME_PAGE_FOR_ALL_CLIENTS) )
         { AmmServer_Warning("Failed adding stats page\n"); }
 
   if (! AmmServer_AddResourceHandler(default_server,&postReceiver,"/postReceiver.html",webserver_root,4096,0,&processPostReceiver,SAME_PAGE_FOR_ALL_CLIENTS) )

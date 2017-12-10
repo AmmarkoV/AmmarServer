@@ -18,6 +18,7 @@ extern struct AmmServer_MemoryHandler * threadIndexPage;
 
 #define MAX_BOARDS 1000
 #define MAX_THREADS_PER_BOARD 1000
+#define MAX_POSTS_PER_THREAD 256
 #define LINE_MAX_LENGTH 1024
 #define MAX_STRING_SIZE 512
 
@@ -64,6 +65,8 @@ struct post
 
 struct thread
 {
+  char name[MAX_STRING_SIZE];
+
   unsigned char sticky;
   unsigned char repliable;
 
