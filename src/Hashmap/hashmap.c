@@ -11,6 +11,20 @@
 
 #include "hashmap.h"
 
+
+#define NORMAL   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+
+
+
+
 /*! djb2
 This algorithm (k=33) was first reported by dan bernstein many years ago in comp.lang.c. another version of this algorithm (now favored by bernstein) uses xor: hash(i) = hash(i - 1) * 33 ^ str[i]; the magic of number 33 (why it works better than many other constants, prime or not) has never been adequately explained.
 Needless to say , this is our hash function..!
@@ -44,7 +58,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
        return 1;
      } else
      {
-       fprintf(stderr,"Could not grow hashMap (running out of memory?)");
+       fprintf(stderr,RED"HashMap: Could not grow hashMap (running out of memory?)" NORMAL);
      }
   return 0;
 }
@@ -52,7 +66,7 @@ int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
 struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAllocationStep,void * clearItemFunction , unsigned int useSorting)
 {
   struct hashMap * hm = (struct hashMap *)  malloc(sizeof(struct hashMap));
-  if (hm==0)  { fprintf(stderr,"Could not allocate a new hashmap"); return 0; }
+  if (hm==0)  { fprintf(stderr,RED "HashMap: Could not allocate a new hashmap" NORMAL); return 0; }
 
   memset(hm,0,sizeof(struct hashMap));
 
@@ -64,7 +78,7 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
 
   if (!hashMap_Grow(hm,initialEntries) )
   {
-    fprintf(stderr,"Could not grow new hashmap for the first time");
+    fprintf(stderr,YELLOW "HashMap: Could not grow new hashmap for the first time" NORMAL);
     free(hm);
     return 0;
   }
@@ -123,7 +137,7 @@ void hashMap_Clear(struct hashMap * hm)
 
   hm->isSorted=0;
   hm->curNumberOfEntries = 0;
-  fprintf(stderr,"hashMap_Clear with %u , %u ( %u max ) entries \n", i , entryNumber ,  hm->maxNumberOfEntries );
+  fprintf(stderr,YELLOW "hashMap_Clear with %u , %u ( %u max ) entries \n" NORMAL, i , entryNumber ,  hm->maxNumberOfEntries );
 
   while (i < entryNumber)
   {
@@ -193,7 +207,7 @@ int cmpHashTableItems (const void * a, const void * b)
 
 int hashMap_Sort(struct hashMap * hm)
 {
-  if (!hm->useSorting) { fprintf(stderr,"Sorting is disabled for this hashmap\n"); return 0; }
+  if (!hm->useSorting) { fprintf(stderr,YELLOW "HashMap: Sorting is disabled for this hashmap\n" NORMAL); return 0; }
   if (!hashMap_IsOK(hm)) { return 0; }
   qsort(
          hm->entries ,
@@ -205,9 +219,39 @@ int hashMap_Sort(struct hashMap * hm)
   return 1;
 }
 
+
+int hashMap_FindIndexSerialWithPrecomputedHash(struct hashMap * hm,const char * key , unsigned long keyHash,unsigned long * index)
+{
+  unsigned long i=0;
+   //If the hashmap is not sorted then we have to do a stupid and really slow serial search
+  while ( i < hm->curNumberOfEntries )
+  {
+    //fprintf(stderr,"Comparing %s to %s .. ",key,hm->entries[i].key);
+    if ( hm->entries[i].keyHash == keyHash )
+         {
+          if (strcmp(key,hm->entries[i].key)==0)
+          {
+           ++hm->entries[i].hits;
+           *index = i;
+           //fprintf(stderr,"hit\n");
+           return 1;
+          }
+         }
+   //fprintf(stderr,"nope\n");
+   ++i;
+  }
+ return 0;
+}
+
+int hashMap_FindIndexSerial(struct hashMap * hm,const char * key,unsigned long * index)
+{
+  unsigned long keyHash = hashFunction(key);
+  return hashMap_FindIndexSerialWithPrecomputedHash(hm,key,keyHash,index);
+}
+
 int hashMap_BSearch(struct hashMap* hm,const char *  key , unsigned long keyHash,unsigned long * index)
 {
-  if (!hm->useSorting) { fprintf(stderr,"Sorting is disabled for this hashmap\n"); return 0; }
+  if (!hm->useSorting) { fprintf(stderr,YELLOW "HashMap: Sorting is disabled for this hashmap\n" NORMAL); return 0; }
   struct hashMapEntry needle = {0};
   needle.keyHash = keyHash;
   struct hashMapEntry * haystack = hm->entries;
@@ -225,9 +269,16 @@ int hashMap_BSearch(struct hashMap* hm,const char *  key , unsigned long keyHash
 
                   if (*index>=hm->curNumberOfEntries)
                   {
-                    fprintf(stderr,"binary search bug , it lead us outside of bounds.. :( \n");
+                    fprintf(stderr,RED "HashMap: Binary search bug , it lead us outside of bounds.. :( \n" NORMAL);
                     return 0;
                   }
+
+                  if (strcmp(key, hm->entries[*index].key)!=0)
+                  {
+                    fprintf(stderr,YELLOW "HashMap: Hash collision on binary search.. reverting to slow serial search..\n" NORMAL);
+                    return hashMap_FindIndexSerialWithPrecomputedHash(hm,key,keyHash,index);
+                  }
+
                  return 1;
                 }
                 //else { printf ("%ul is not in the array of %u elements .\n",keyHash , hm->curNumberOfEntries ); }
@@ -249,19 +300,19 @@ int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int val
   {
     if  (!hashMap_Grow(hm,hm->entryAllocationStep))
     {
-      fprintf(stderr,"Could not grow new hashmap for adding new values");
+      fprintf(stderr,YELLOW "HashMap: Could not grow new hashmap for adding new values" NORMAL);
       clearToAdd = 0;
     }
   }
 
   if (clearToAdd)
   {
-    if (hm->entries==0) { fprintf(stderr,"While Adding a new key to hashmap , entries not allocated"); return 0; }
+    if (hm->entries==0) { fprintf(stderr,"HashMap: While Adding a new key to hashmap , entries not allocated"); return 0; }
 
     unsigned int our_index=hm->curNumberOfEntries++;
     if (hm->entries[our_index].key!=0)
     {
-     fprintf(stderr,"While Adding a new key to hashmap , entry was not clean");
+     fprintf(stderr,"HashMap: While Adding a new key to hashmap , entry was not clean");
      free(hm->entries[our_index].key);
      hm->entries[our_index].key=0;
     }
@@ -279,7 +330,7 @@ int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int val
               pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
              #endif // HASHMAP_BE_THREAD_SAFE
 
-             fprintf(stderr,"While Adding a new key to hashmap , could not allocate key");
+             fprintf(stderr,"HashMap: While Adding a new key to hashmap , could not allocate key");
            return 0;
          }
      hm->entries[our_index].keyLength = strlen(key);
@@ -301,7 +352,7 @@ int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int val
         if (hm->entries[our_index].key!=0 ) { free(hm->entries[our_index].key); }
         hm->entries[our_index].key=0;
         --hm->curNumberOfEntries;
-        fprintf(stderr,"While Adding a new key to hashmap , couldn't allocate payload");
+        fprintf(stderr,"HashMap: While Adding a new key to hashmap , couldn't allocate payload");
 
           #if HASHMAP_BE_THREAD_SAFE
            pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
@@ -346,12 +397,13 @@ return 1;
 }
 
 
+
+
 int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
   if ( (!hm->isSorted) && (hm->useSorting) ) { hashMap_PrepareForQueries(hm); }
 
-  unsigned long i=0;
   unsigned long keyHash = hashFunction(key);
 
   //Maybe the index was the answer all along
@@ -365,25 +417,20 @@ int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index
   }
 
   //If the hashmap is sorted and "big" we do a fast binary search
- if ( (hm->isSorted) && (hm->useSorting) && ( hm->curNumberOfEntries>10 ) )
+ if ( (hm->isSorted) && (hm->useSorting) && ( hm->curNumberOfEntries>NUMBER_OF_ENTRIES_BELOW_IT_IS_NOT_WORTH_SORTING ) )
  {
    return hashMap_BSearch(hm,key,keyHash,index);
  } else
  {
- //If the hashmap is not sorted then we have to do a stupid and really slow serial search
-  while ( i < hm->curNumberOfEntries )
-  {
-    if ( hm->entries[i].keyHash == keyHash )
-         {
-          ++hm->entries[i].hits;
-          *index = i;
-          return 1;
-         }
-    ++i;
-  }
+  //If the hashmap is not sorted then we have to do a stupid and really slow serial search
+  return hashMap_FindIndexSerialWithPrecomputedHash(hm,key,keyHash,index);
  }
   return 0;
 }
+
+
+
+
 
 
 int hashmap_SwapRecords(struct hashMap * hm , unsigned int index1,unsigned int index2)
@@ -422,7 +469,7 @@ int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload)
   unsigned long i=0;
   if (hashMap_FindIndex(hm,key,&i))
     {
-        fprintf(stderr,"Payload was pointing to %p and now it is pointing to ",payload);
+        fprintf(stderr,"HashMap: Payload was pointing to %p and now it is pointing to ",payload);
         payload = hm->entries[i].payload;
         fprintf(stderr,"%p \n",payload);
        return 1;
@@ -531,8 +578,8 @@ int hashMap_SaveToFile(struct hashMap * hm,const char * filename)
 
 int hashMap_LoadToFile(struct hashMap * hm,const char * filename)
 {
-    if (hm==0) { fprintf(stderr,"hashMap_LoadToFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
-    fprintf(stderr,"hashMap_LoadToFile not implemented ( max entries when called %u ) \n",hm->maxNumberOfEntries);
+    if (hm==0) { fprintf(stderr,"HashMap: hashMap_LoadToFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
+    fprintf(stderr,RED "hashMap_LoadToFile not implemented ( max entries when called %u ) \n" NORMAL,hm->maxNumberOfEntries);
     return 0;
     /*
     FILE * pFile;
@@ -552,11 +599,11 @@ int hashMap_LoadToFile(struct hashMap * hm,const char * filename)
 
 int hashMap_GetUniqueStringForItem( char * strOut , unsigned int strOutLength , unsigned int itemID, unsigned int totalItems )
 {
+  fprintf(stderr,RED "hashMap_GetUniqueStringForItem not implemented \n" NORMAL);
   unsigned int charsToUse='z'-'a';
   unsigned int charactersThatAreNeeded = strOutLength / charsToUse;
   unsigned int i=0;
 
-  #warning "hashMap_GetUniqueStringForItem not implemented.."
   for (i=0; i<charactersThatAreNeeded; i++)
    {
       //TODO :

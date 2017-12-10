@@ -82,6 +82,15 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
                 {
                   struct AmmServer_MemoryHandler * threadIndexPageWithContents = AmmServer_CopyMemoryHandler(threadIndexPage);
 
+                  AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"!BOARDNAME!",boardID);
+                  AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"!THREADID!","new");
+
+                  AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,2,"!list channels here!","todo: add channel list..");
+                  AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"!Say Which Board we are in here!",boardID);
+                  AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"!HabChan Dynamic Title here!","HabChan @ AmmarServer");
+
+
+
                   unsigned int threadsHTMLLength=0;
                   char * threadsHTML = mallocHTMLListOfThreadsOfBoard(boardID,&threadsHTMLLength);
                   if (threadsHTML!=0)
@@ -191,8 +200,13 @@ int addThreadToBoard( const char * boardName , const char * threadName )
 
   unsigned long threadID=0;
   unsigned long boardID=0;
-  if ( hashMap_FindIndex(boardHashMap,boardName,&boardID) )
+  if ( hashMap_FindIndexSerial(boardHashMap,boardName,&boardID) )
   {
+   if (strcmp(boardName,ourSite.boards[boardID].name)!=0)
+   {
+    AmmServer_Warning("HashMap is acting up , we got mismatched boards.. :S %s!=%s \n",boardName,ourSite.boards[boardID].name);
+   }
+
    loadThread(threadName , &ourSite.boards[boardID] , &ourSite.boards[boardID].threads[threadID]);
    hashMap_Add(threadHashMap,threadName,0,0);
    return 1;
