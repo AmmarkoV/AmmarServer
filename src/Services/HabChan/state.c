@@ -50,8 +50,9 @@ void * debug_get_callback(struct AmmServer_DynamicRequest  * rqst)
 int loadSite( char * filename )
 {
   boardHashMap = hashMap_Create( 100 , 100 , 0 , 1 /*We should have sorting enabled..!*/ );
+  threadHashMap = hashMap_Create( 10000 , 1000 , 0 , 1 /*We should have sorting enabled..!*/ );
 
-  unsigned int numberOfElements=0;
+    unsigned int numberOfElements=0;
     char what2GetBack[1024]={0};
     AmmServer_ExecuteCommandLine("ls data/board -al | cut -d ' ' -f10 | wc -l ", what2GetBack , 1024 );
     numberOfElements = atoi(what2GetBack);
@@ -135,6 +136,7 @@ int unloadSite()
 {
 
   hashMap_Destroy( boardHashMap );
+  hashMap_Destroy( threadHashMap );
 
   free(threadIndexPage);
   return 1;

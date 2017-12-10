@@ -16,14 +16,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
    
 add_executable(habchan   
  main.c 
+ state.c 
+ state.h 
  thread.c 
  thread.h 
  board.c 
  board.h 
- state.c 
- state.h 
- directoryListing.c
- directoryListing.h
+ post.c
+ post.h
  postReceiver.c
  postReceiver.h
  ) 

@@ -120,18 +120,17 @@ int addBoardToSite( struct site * targetSite , char * boardName )
    return 0;
   }
 
-  unsigned int thisBoardID = targetSite->numberOfBoards++;
-
-  strncpy( targetSite->boards[thisBoardID].name  , boardName , MAX_STRING_SIZE );
-
-  loadBoardSettings(boardName , &targetSite->boards[thisBoardID] );
-
   //Update hashmap used to check for sites
   hashMap_Add(boardHashMap,boardName,0,0);
 
   unsigned long boardID=0;
   if ( hashMap_FindIndex(boardHashMap,boardName,&boardID) )
   {
+    targetSite->numberOfBoards++;
+    strncpy( targetSite->boards[boardID].name  , boardName , MAX_STRING_SIZE );
+
+    loadBoardSettings(boardName , &targetSite->boards[boardID] );
+
     if (ourSite.boards[boardID].threads == 0 )
     {
         ourSite.boards[boardID].threads = (struct thread * ) malloc(sizeof(struct thread) * MAX_THREADS_PER_BOARD );
