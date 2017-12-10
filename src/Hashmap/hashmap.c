@@ -288,7 +288,7 @@ int hashMap_BSearch(struct hashMap* hm,const char *  key , unsigned long keyHash
 
 int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int valLength)
 {
-  if (!hashMap_IsOK(hm)) { return 0; }
+  if (!hashMap_IsOK(hm)) { fprintf(stderr,YELLOW "HashMap: Cannot add something to an uninitialized hashmap..\n" NORMAL);  return 0; }
   int clearToAdd=1;
 
     #if HASHMAP_BE_THREAD_SAFE
@@ -477,7 +477,6 @@ int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload)
   return 0;
 }
 
-
 int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long * payload)
 {
   unsigned long i=*payload;
@@ -489,14 +488,11 @@ int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long *
   return 0;
 }
 
-
-
 int hashMap_ContainsKey(struct hashMap * hm,const char * key)
 {
   unsigned long index=0;
   return hashMap_FindIndex(hm,key,&index);
 }
-
 
 int hashMap_ContainsValue(struct hashMap * hm,void * val)
 {
@@ -510,8 +506,6 @@ int hashMap_ContainsValue(struct hashMap * hm,void * val)
   return 0;
 }
 
-
-
 int hashMap_Print(struct hashMap * hm,const char * title)
 {
   fprintf(stderr,"Hash map %s Printout -----------------------------------\n",title);
@@ -523,7 +517,6 @@ int hashMap_Print(struct hashMap * hm,const char * title)
   fprintf(stderr,"---------------------------------------------------------\n");
   return 1;
 }
-
 
 int hashMap_SaveToFile(struct hashMap * hm,const char * filename)
 {
@@ -575,7 +568,6 @@ int hashMap_SaveToFile(struct hashMap * hm,const char * filename)
   return result;
 }
 
-
 int hashMap_LoadToFile(struct hashMap * hm,const char * filename)
 {
     if (hm==0) { fprintf(stderr,"HashMap: hashMap_LoadToFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
@@ -593,9 +585,6 @@ int hashMap_LoadToFile(struct hashMap * hm,const char * filename)
     */
     return 0;
 }
-
-
-
 
 int hashMap_GetUniqueStringForItem( char * strOut , unsigned int strOutLength , unsigned int itemID, unsigned int totalItems )
 {

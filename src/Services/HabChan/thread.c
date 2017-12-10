@@ -200,18 +200,22 @@ int addThreadToBoard( const char * boardName , const char * threadName )
 
   unsigned long threadID=0;
   unsigned long boardID=0;
-  if ( hashMap_FindIndexSerial(boardHashMap,boardName,&boardID) )
+  if ( hashMap_FindIndex(boardHashMap,boardName,&boardID) )
   {
-   if (strcmp(boardName,ourSite.boards[boardID].name)!=0)
+   if (hashMap_Add(threadHashMap,threadName,0,0))
    {
-    AmmServer_Warning("HashMap is acting up , we got mismatched boards.. :S %s!=%s \n",boardName,ourSite.boards[boardID].name);
-   }
+    if ( hashMap_FindIndex(threadHashMap,threadName,&threadID) )
+    {
+     loadThread(threadName , &ourSite.boards[boardID] , &ourSite.boards[boardID].threads[threadID]);
+     return 1;
+    }else
+    { fprintf(stderr,"hashMap_FindIndex(thread) failure\n"); }
+   } else
+   { fprintf(stderr,"hashMap_Add failure\n"); }
+  }else
+  { fprintf(stderr,"hashMap_FindIndex(board) failure\n"); }
 
-   loadThread(threadName , &ourSite.boards[boardID] , &ourSite.boards[boardID].threads[threadID]);
-   hashMap_Add(threadHashMap,threadName,0,0);
-   return 1;
-  }
-
+ fprintf(stderr,"Failed to add thread %s to board %s\n", threadName,boardName);
  return 0;
 }
 
