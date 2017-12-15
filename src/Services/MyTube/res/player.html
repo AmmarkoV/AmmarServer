@@ -109,9 +109,7 @@
                    //if (videoStarted)
                    {   
                     videoStarted=0;    
-                    pageReady=0;
-                    //myVideo.pause(); 
-                    //myVideo.currentTime=0;
+                    pageReady=0; 
                     goFixedVideo("$NEXT_VIDEO$");
                    }  
                  } 
@@ -119,7 +117,7 @@
  
           function videoErrorHandler(e) 
               {  
-                fireEvent=0;
+                fireEvent=1;
                 console.log('Video Error '); 
                 //1 = MEDIA_ERR_ABORTED - fetching process aborted by user
                 //2 = MEDIA_ERR_NETWORK - error occurred when downloading
@@ -136,8 +134,7 @@
                    console.log('Proceeding to next video after failed video '); 
                    playbackError("++++++++++++CURRENTVIDEOLINK++++++++++++&t="+myVideo.currentTime); 
                    videoStarted=0;    
-                   pageReady=0;
-                   document.getElementById("myplayer").currentTime=0;
+                   pageReady=0; 
                    goFixedVideo("$NEXT_VIDEO$");
                  } 
               }
