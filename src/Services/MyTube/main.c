@@ -107,6 +107,7 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
   snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n\
      <html>\n\
        <head>\n\
+        <meta charset=\"UTF-8\">\n\
         <script type=\"text/javascript\">\n\
          <!--\n\
             function Redirect() {\n\
