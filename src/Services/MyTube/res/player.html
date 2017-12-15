@@ -148,7 +148,13 @@
              console.log('Checking if video loaded ok..'); 
              var myError = myVideo.error;  
              //console.log('myError.code = s' + myError.code); 
-           
+           console.log('Page Ready: '+pageReady);                   
+                   console.log('Video Started : '+videoStarted);                   
+                   console.log('Video Current Time : '+myVideo.currentTime); 
+                   console.log('Video Paused : '+myVideo.paused);  
+                   console.log('Video Ended : '+myVideo.ended);   
+                   console.log('Video readyState : '+myVideo.readyState);   
+
              if (myError === null)  
              {
                console.log('No error detected.'); 
@@ -158,6 +164,12 @@
                console.log('Browser does not support any media..'); 
                videoErrorHandler(0);  
              } 
+
+             if (myVideo.readyState==0)
+             {
+               console.log('Browser could not start media , although did not receive any error event..'); 
+               videoErrorHandler(0);  
+             }    
  
           }           
  
