@@ -7,7 +7,7 @@
  <script src="mytube.js" type="text/javascript"> </script> 
       
 </head>
-<body onload='registerVideoEvents("myplayer"); document.getElementById("myplayer").currentTime=+++++++++STARTTIME+++++++++'> 
+<body onload='document.getElementById("myplayer").currentTime=+++++++++STARTTIME+++++++++'> 
 <!-- header -->
 <table height=50>
  <tr>
@@ -89,8 +89,7 @@
  <script>
          function videoEndedHandler(e) 
               { 
-                  console.log('Video Ended ');  
-                   //if (myVideo.error!=0 ) { console.log('Video Error Code '+myVideo.error.code);  }
+                  console.log('Video Ended ');   
                    
                    console.log('Page Ready: '+pageReady);                   
                    console.log('Video Started : '+videoStarted);                   
@@ -116,18 +115,23 @@
               }
  
           function videoErrorHandler(e) 
-              {  
+              {               
+                var myError = myVideo.error; 
+
                 fireEvent=1;
                 console.log('Video Error '); 
                 //1 = MEDIA_ERR_ABORTED - fetching process aborted by user
                 //2 = MEDIA_ERR_NETWORK - error occurred when downloading
                 //3 = MEDIA_ERR_DECODE - error occurred when decoding
                 //4 = MEDIA_ERR_SRC_NOT_SUPPORTED - audio/video not supported 
-               if (typeof myVideo.error !== 'undefined') 
-                      {  
-                       console.log('Video Error Code '+myVideo.error.code); 
-                       if (myVideo.error.code==4) { fireEvent=1; }    
-                     } 
+                if (myError === null)  
+               {
+                 console.log('No error detected.'); 
+               } else
+               {  
+                       console.log('Video Error Code '+myError); 
+                       if (myError.code==4) { fireEvent=1; }    
+               } 
 
                if ( (fireEvent) && (document.getElementById('autoplay').checked))
                  { 
@@ -142,15 +146,19 @@
           function checkIfEverythingOkWithVideoType()
           {
              console.log('Checking if video loaded ok..'); 
-             if (myVideo.error === null)  
+             var myError = myVideo.error;  
+             //console.log('myError.code = s' + myError.code); 
+           
+             if (myError === null)  
              {
                console.log('No error detected.'); 
-             } else
-             if (myVideo.error.code==4 ) 
+             } else 
+             if (myError.code==4 ) 
              { 
                console.log('Browser does not support any media..'); 
                videoErrorHandler(0);  
              } 
+ 
           }           
  
           function playPause()  { if (myVideo.paused) myVideo.play(); else myVideo.pause(); } 
@@ -158,15 +166,20 @@
           function makeSmall()  { myVideo.width = 320; } 
           function makeNormal() { myVideo.width = 875; myVideo.height=500;  } 
 
+          function videoCanPlayHandler(e) 
+              {
+                   console.log('Video Can be played ');
+              } 
+
           function videoAbortHandler(e) 
               {
-                   alert('Aborted ');  
+                   console.log('Video Aborted');
               } 
 
           function videoPlayHandler(e) 
               {
                    console.log('Video Started ');  
-               videoStarted = 1; 
+                   videoStarted = 1; 
               } 
 
           function videoPauseHandler(e) 
@@ -186,16 +199,19 @@ function registerVideoEvents(videoControlID)
    console.log('Registering HTML5 Video Controls');     
 
    myVideo = document.getElementById(videoControlID); 
+   myVideo.addEventListener('error',videoErrorHandler,false);
    myVideo.addEventListener('ended',videoEndedHandler,false);
    myVideo.addEventListener('waiting',videoWaitingHandler,false);
    myVideo.addEventListener('abort',videoAbortHandler,false); 
-   myVideo.addEventListener('error',videoErrorHandler,false);
    myVideo.addEventListener('play',videoPlayHandler,false);
+   myVideo.addEventListener('canplay',videoCanPlayHandler,false); 
    myVideo.addEventListener('pause',videoPauseHandler,false);
 
    setTimeout(checkIfEverythingOkWithVideoType,2500);
    pageReady=1;
 } 
+
+registerVideoEvents("myplayer"); 
 </script>  
 
 
