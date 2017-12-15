@@ -34,7 +34,7 @@ function httpGet(theUrl)
     function playbackError(theVideo)
     {
        var randomnumber=Math.floor(Math.random()*100000);
-       httpGet("/error?v="+theVideo+"&t="+randomnumber); 
+       httpGet("/error?v="+theVideo+"&rnd="+randomnumber); 
     } 
 
     function goRandomVideo() 

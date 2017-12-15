@@ -123,12 +123,13 @@
                 //2 = MEDIA_ERR_NETWORK - error occurred when downloading
                 //3 = MEDIA_ERR_DECODE - error occurred when decoding
                 //4 = MEDIA_ERR_SRC_NOT_SUPPORTED - audio/video not supported 
-/*
-                if (myVideo.error!=NULL ) 
+               /*
+                if (myVideo.error!=0 ) 
                      { 
                        console.log('Video Error Code '+myVideo.error.code); 
                        if (myVideo.error.code==4) { fireEvent=1; }    
-                     }*/
+                     }
+               */
 
                if ( (fireEvent) && (document.getElementById('autoplay').checked))
                  { 
