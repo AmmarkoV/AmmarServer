@@ -82,20 +82,52 @@
          <input type="checkbox" id="autoplay" value="autoplay" checked="checked">Autoplay 
          <input type="checkbox" id="autorepeat" value="autorepeat" onclick=" if (document.getElementById('autorepeat').checked) { document.getElementById('myplayer').loop = true; } else  { document.getElementById('myplayer').loop = false; } ">Autorepeat
          <script> 
+          var videoStarted = 0;
           var myVideo = document.getElementById("myplayer"); 
           myVideo.addEventListener('ended',videoEndedHandler,false);
           myVideo.addEventListener('error',videoErrorHandler,false);
+          myVideo.addEventListener('play',videoPlayHandler,false);
+          myVideo.addEventListener('pause',videoPauseHandler,false);
 
-          function playPause() { if (myVideo.paused) myVideo.play(); else myVideo.pause(); } 
+          function playPause()  { if (myVideo.paused) myVideo.play(); else myVideo.pause(); } 
           function makeBig()    { myVideo.width = 1500; myVideo.height=700;  } 
           function makeSmall()  { myVideo.width = 320; } 
           function makeNormal() { myVideo.width = 875; myVideo.height=500;  } 
+
+          function videoPlayHandler(e) 
+              {
+               videoStarted = 1; 
+              } 
+
+          function videoPauseHandler(e) 
+              {
+              } 
+
           function videoEndedHandler(e) 
               { 
                if (document.getElementById('autoplay').checked)
                  { 
                   //alert('Video ended'); 
-                  goFixedVideo("$NEXT_VIDEO$");  
+                  if ( ( myVideo.currentTime >0 ) && ( myVideo.paused==0 ) && (  myVideo.ended==0 ) ) 
+                  {
+                   //Just Playing 
+                   alert('Video still playing..');
+                  } else
+                  if (myVideo.networkState === video.NETWORK_LOADING) 
+                  {
+                      // The user agent is actively trying to download data.
+                      alert('Network Lag A ..');
+                  }
+                   else 
+                  if (video.readyState < video.HAVE_FUTURE_DATA) 
+                  {
+                   // There is not enough data to keep playing from this point
+                       alert('Network Lag B..');
+                  } 
+                    else
+                  {  
+                   goFixedVideo("$NEXT_VIDEO$");
+                  }  
                  } 
               }
           function videoErrorHandler(e) 
