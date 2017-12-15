@@ -113,13 +113,13 @@
                    //Just Playing 
                    alert('Video still playing..');
                   } else
-                  if (myVideo.networkState === video.NETWORK_LOADING) 
+                  if (myVideo.networkState === myVideo.NETWORK_LOADING) 
                   {
                       // The user agent is actively trying to download data.
                       alert('Network Lag A ..');
                   }
                    else 
-                  if (myVideo.readyState < video.HAVE_FUTURE_DATA) 
+                  if (myVideo.readyState < myVideo.HAVE_FUTURE_DATA) 
                   {
                    // There is not enough data to keep playing from this point
                        alert('Network Lag B..');
