@@ -4,9 +4,10 @@
  <meta charset="UTF-8">
  <title>MyTube - ++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++ </title> 
  <link rel="stylesheet" type="text/css" href="mytube.css">
- <script src="mytube.js" type="text/javascript"></script> 
+ <script src="mytube.js" type="text/javascript"> </script> 
+      
 </head>
-<body onload='document.getElementById("myplayer").currentTime=+++++++++STARTTIME+++++++++'> 
+<body onload='registerVideoEvents("myplayer"); document.getElementById("myplayer").currentTime=+++++++++STARTTIME+++++++++'> 
 <!-- header -->
 <table height=50>
  <tr>
@@ -80,71 +81,112 @@
          <button onclick="document.getElementById('autoplay').checked=1;goRandomVideo();">Random</button>  
          <b> <= </b>
          <input type="checkbox" id="autoplay" value="autoplay" checked="checked">Autoplay 
-         <input type="checkbox" id="autorepeat" value="autorepeat" onclick=" if (document.getElementById('autorepeat').checked) { document.getElementById('myplayer').loop = true; } else  { document.getElementById('myplayer').loop = false; } ">Autorepeat
-         <script> 
-          var videoStarted = 0;
-          var myVideo = document.getElementById("myplayer"); 
-          myVideo.addEventListener('ended',videoEndedHandler,false);
-          myVideo.addEventListener('error',videoErrorHandler,false);
-          myVideo.addEventListener('play',videoPlayHandler,false);
-          myVideo.addEventListener('pause',videoPauseHandler,false);
+         <input type="checkbox" id="autorepeat" value="autorepeat" onclick=" if (document.getElementById('autorepeat').checked) { document.getElementById('myplayer').loop = true; } else  { document.getElementById('myplayer').loop = false; } ">Autorepeat 
+       </td>
+      </tr>
 
+  
+ <script>
+         function videoEndedHandler(e) 
+              { 
+                  console.log('Video Ended ');  
+                   //if (myVideo.error!=0 ) { console.log('Video Error Code '+myVideo.error.code);  }
+                   
+                   console.log('Page Ready: '+pageReady);                   
+                   console.log('Video Started : '+videoStarted);                   
+                   console.log('Video Current Time : '+myVideo.currentTime); 
+                   console.log('Video Paused : '+myVideo.paused);  
+                   console.log('Video Ended : '+myVideo.ended);   
+                   console.log('Video readyState : '+myVideo.readyState);   
+                   //0 = HAVE_NOTHING - no information whether or not the audio/video is ready
+                   //1 = HAVE_METADATA - metadata for the audio/video is ready
+                   //2 = HAVE_CURRENT_DATA - data for the current playback position is available, but not enough data to play next frame/millisecond
+                   //3 = HAVE_FUTURE_DATA - data for the current and at least the next frame is available
+                   //4 = HAVE_ENOUGH_DATA - enough data available to start playing
+ 
+               if (document.getElementById('autoplay').checked)
+                 {   
+                   if (videoStarted)
+                   {   
+                    videoStarted=0;    
+                    pageReady=0;
+                    myVideo.pause(); 
+                    myVideo.currentTime=0;
+                    goFixedVideo("$NEXT_VIDEO$");
+                   }  
+                 } 
+              }
+ 
+          function videoErrorHandler(e) 
+              {  
+                fireEvent=0;
+                console.log('Video Error '); 
+                //1 = MEDIA_ERR_ABORTED - fetching process aborted by user
+                //2 = MEDIA_ERR_NETWORK - error occurred when downloading
+                //3 = MEDIA_ERR_DECODE - error occurred when decoding
+                //4 = MEDIA_ERR_SRC_NOT_SUPPORTED - audio/video not supported 
+                if (myVideo.error!=NULL ) 
+                     { 
+                       console.log('Video Error Code '+myVideo.error.code); 
+                       if (myVideo.error.code==4) { fireEvent=1; }    
+                     }
+
+               if ( (fireEvent) && (document.getElementById('autoplay').checked))
+                 { 
+                   console.log('Proceeding to next video after failed video '); 
+                   playbackError("++++++++++++CURRENTVIDEOLINK++++++++++++&t="+myVideo.currentTime); 
+                   videoStarted=0;    
+                   pageReady=0;
+                   document.getElementById("myplayer").currentTime=0;
+                   goFixedVideo("$NEXT_VIDEO$");
+                 } 
+              }
+
+ 
           function playPause()  { if (myVideo.paused) myVideo.play(); else myVideo.pause(); } 
           function makeBig()    { myVideo.width = 1500; myVideo.height=700;  } 
           function makeSmall()  { myVideo.width = 320; } 
           function makeNormal() { myVideo.width = 875; myVideo.height=500;  } 
 
+          function videoAbortHandler(e) 
+              {
+                   alert('Aborted ');  
+              } 
+
           function videoPlayHandler(e) 
               {
+                   console.log('Video Started ');  
                videoStarted = 1; 
               } 
 
           function videoPauseHandler(e) 
               {
+                   console.log('Video Paused ');  
               } 
 
-          function videoEndedHandler(e) 
-              { 
-               if (document.getElementById('autoplay').checked)
-                 { 
-                  //alert('Video ended'); 
-                  if ( ( myVideo.currentTime >0 ) && ( myVideo.paused==0 ) && (  myVideo.ended==0 ) ) 
-                  {
-                   //Just Playing 
-                   alert('Video still playing..');
-                  } else
-                  if (myVideo.networkState === myVideo.NETWORK_LOADING) 
-                  {
-                      // The user agent is actively trying to download data.
-                      alert('Network Lag A ..');
-                  }
-                  /* else 
-                  if (myVideo.readyState < myVideo.HAVE_FUTURE_DATA) 
-                  {
-                   // There is not enough data to keep playing from this point
-                       alert('Network Lag B This triggers on real endings....');
-                  }  
-                   else */ 
+          function videoWaitingHandler(e) 
+              {
+                   console.log('Video Buffering');  
+                 //  alert('Buffering ');  
+              } 
+ 
 
-                  {  
-                   goFixedVideo("$NEXT_VIDEO$");
-                  }  
-                 } 
-              }
-          function videoErrorHandler(e) 
-              { 
-               if (document.getElementById('autoplay').checked)
-                 { 
-                  //alert('Video error');  
-                  //playbackError("++++++++++++CURRENTVIDEOLINK++++++++++++&t="+myVideo.currentTime); 
-                 } 
-              }
-         </script> 
-       </td>
-      </tr>
+function registerVideoEvents(videoControlID)
+{ 
+   console.log('Registering HTML5 Video Controls');     
 
-  
-      
+   myVideo = document.getElementById(videoControlID); 
+   myVideo.addEventListener('ended',videoEndedHandler,false);
+   myVideo.addEventListener('waiting',videoWaitingHandler,false);
+   myVideo.addEventListener('abort',videoAbortHandler,false); 
+   myVideo.addEventListener('error',videoErrorHandler,false);
+   myVideo.addEventListener('play',videoPlayHandler,false);
+   myVideo.addEventListener('pause',videoPauseHandler,false);
+   pageReady=1;
+} 
+</script>  
+
+
       <tr>
        <td>
         <!-- info -->

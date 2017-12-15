@@ -484,7 +484,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) )    { AmmServer_Warning("Failed adding serve index page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,16400,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&cssContext,"/mytube.css",webserver_root,4096,1000,&serve_css,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&jsContext,"/mytube.js",webserver_root,4096,1000,&serve_js,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&jsContext,"/mytube.js",webserver_root,14096,1000,&serve_js,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
 
 
   //---------------
