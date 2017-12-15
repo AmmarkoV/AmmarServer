@@ -1,5 +1,7 @@
-
+var myVideo = document.getElementById("myvideo"); 
 var keyboardShortcutsEnabled = 1;
+var pageReady = 0;
+var videoStarted = 0;
 
 function enableKeyboardShortcuts()
 {
@@ -9,8 +11,7 @@ function disableKeyboardShortcuts()
 {
   keyboardShortcutsEnabled = 0;
 }
-
-
+ 
 function httpGet(theUrl)
     {
     var xmlHttp = null;
@@ -45,7 +46,7 @@ function httpGet(theUrl)
     function goFixedVideo(vid) 
     {  
       var randomnumber=Math.floor(Math.random()*100000);
-      window.location.href = "/watch?v="+vid+"&t="+randomnumber; 
+      window.location.href = "/watch?v="+vid+"&rnd="+randomnumber; 
     } 
 
   document.onkeypress = function (e) 
@@ -60,3 +61,5 @@ function httpGet(theUrl)
       goRandomVideo();  
      }
   };
+
+ 
