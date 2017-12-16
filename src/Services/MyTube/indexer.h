@@ -40,6 +40,10 @@ int unloadVideoDatabase(struct videoCollection* vc);
 
 unsigned int getDBIndexFromPermanentLink(const char* id);
 int indexerSaveVideoDatabaseToIndexFile(const char * filename , struct videoCollection* vc);
+
+
+int addSingleVideoFile(struct videoCollection * db,const char * title,const char * filename, char * fullFilename);
+
 struct videoCollection * indexerLoadVideoDatabaseFromIndexFile(const char * filename , const char * directoryPath,const char * databasePath);
 
 #endif // INDEXER_H_INCLUDED
