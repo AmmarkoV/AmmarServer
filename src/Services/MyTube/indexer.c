@@ -200,7 +200,7 @@ struct videoCollection * updateVideoDatabaseFromFilesystem(const char * director
                 //fprintf(stderr,"do 0 %u (%s) ",newDB->numberOfLoadedVideos,dp->d_name);
                 ++newDB->numberOfLoadedVideos;
                 snprintf(newDB->video[newDB->numberOfLoadedVideos].filename,MAX_STR,"%s",dp->d_name);
-                snprintf(newDB->video[newDB->numberOfLoadedVideos].title,MAX_STR,"%s",dp->d_name);
+                snprintf(newDB->video[newDB->numberOfLoadedVideos].title   ,MAX_STR,"%s",dp->d_name);
 
                 //fprintf(stderr,"do 1 %u ",newDB->numberOfLoadedVideos);
                 loadVideoStats(newDB , databasePath , newDB->numberOfLoadedVideos);

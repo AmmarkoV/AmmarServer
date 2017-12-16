@@ -87,6 +87,8 @@
 
   
  <script>
+   var stillDownloading=+++++++++STILLDOWNLOADING+++++++++;
+
          function videoEndedHandler(e) 
               { 
                   console.log('Video Ended ');   
@@ -118,7 +120,7 @@
               {               
                 var myError = myVideo.error; 
 
-                fireEvent=1;
+                fireEvent=stillDownloading;
                 console.log('Video Error '); 
                 //1 = MEDIA_ERR_ABORTED - fetching process aborted by user
                 //2 = MEDIA_ERR_NETWORK - error occurred when downloading
