@@ -4,14 +4,16 @@
 #include <stdlib.h>
 
 
-int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHandler * videoMH , unsigned int videoID , unsigned int userID , unsigned int secondsStart)
+int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHandler * videoMH , unsigned int videoID , unsigned int userID , unsigned int secondsStart , unsigned int stillDownloading)
 {
                 AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++",myTube->video[videoID].title);
 
-                char data[512];
+                char data[513];
 
 
+                snprintf(data,512,"%u",stillDownloading);
+                AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++STILLDOWNLOADING+++++++++",data);
 
                 snprintf(data,512,"%u",secondsStart);
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"+++++++++STARTTIME+++++++++",data);

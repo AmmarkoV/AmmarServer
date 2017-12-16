@@ -123,8 +123,19 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 int checkIfItIsAValidYTID(const char * videoID)
 {
   unsigned int idLength = strlen(videoID);
-  if ( (idLength>10) && (idLength<13) )
+  if ( (idLength>10) && (idLength<14) )
   {
+    unsigned int i=0;
+    for (i=0; i<idLength; i++)
+    {
+        if ( ('a'<=videoID[i] ) && ('z'>=videoID[i]) ) { } else
+        if ( ('A'<=videoID[i] ) && ('Z'>=videoID[i]) ) { } else
+        if ( ('0'<=videoID[i] ) && ('9'>=videoID[i]) ) { } else
+        if ('-'==videoID[i] ) { } else
+            {
+              return 0;
+            }
+    }
     return 1;
   }
   return 0;
@@ -160,7 +171,6 @@ int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
 
       int newVideoID= addSingleVideoFile(myTube,videoTitle,videoFilename,videoFilenameFull);
 
-      int i=system(addVideoToOurList);
 
        snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n\
      <html>\n\
@@ -175,12 +185,9 @@ int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
       </script><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u&downloading=1'\"/></head><body onload=\"Redirect();\"> </body></html> ",newVideoID,newVideoID);
        rqst->contentSize=strlen(rqst->content);
 
+      int i=system(addVideoToOurList);
 
-
-
-
-
-      return (i==0);
+      return i;
   }
  return 0;
 }
@@ -209,10 +216,15 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
                  }
 
                  free(fullpath);
+                 return 0;
                 }
 
                 }
               }
+
+  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\" /></head><body><h2>Failed to serve Redirecting..</h2></body> </html> ");
+  rqst->contentSize=strlen(rqst->content);
+
   return 0;
 }
 
@@ -228,11 +240,20 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
   char sessionToken[128]={0};
   char videoRequested[128]={0};
 
+  char downloadingRequested[128]={0};
   char pickRequested[128]={0};
   char timeRequested[128]={0};
   unsigned int doPickFromList=0;
   unsigned int pickNumber=0;
   unsigned int startTime=0;
+  unsigned int stillDownloading=0;
+
+
+
+  if ( _GET(default_server,rqst,"downloading",downloadingRequested,128) )
+              {
+                stillDownloading=atoi(downloadingRequested);
+              }
 
   if ( _GET(default_server,rqst,"t",timeRequested,128) )
               {
@@ -268,7 +289,6 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
               {
                 fprintf(stderr,"Video Page Requested is : %s \n",videoRequested);
 
-                fprintf(stderr,"Video File Requested is : %s \n",videoRequested);
                  if ( isVideoYTB(rqst,videoRequested) )
                  {
                   //If it is youtube it is already handled
@@ -290,7 +310,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 {
                    struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
-                   if (renderVideoPage(myTube , videoMH , videoID , userID , startTime))
+                   if (renderVideoPage(myTube , videoMH , videoID , userID , startTime , stillDownloading))
                    {
                     memcpy( rqst->content , videoMH->content , videoMH->contentCurrentLength );
                     rqst->contentSize = videoMH->contentCurrentLength;
@@ -548,7 +568,7 @@ void init_dynamic_content()
   if (! AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",webserver_root,14096,0,&serve_upload,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve error file\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&errorPageContext,"/error",webserver_root,14096,0,&serve_playbackerror,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve error file\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,25000,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
+  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,45960,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
   if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) )         { AmmServer_Warning("Failed adding serve random video page\n"); }
