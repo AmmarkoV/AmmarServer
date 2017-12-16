@@ -133,6 +133,18 @@ int growVideoDatabase(struct videoCollection * db,unsigned int entriesToAdd)
   return 1;
 }
 
+
+int addSingleVideoFile(struct videoCollection * db,const char * title,const char * filename, char * fullFilename)
+{
+  ++db->numberOfLoadedVideos;
+  snprintf(db->video[db->numberOfLoadedVideos].filename,MAX_STR,"%s",filename);
+  snprintf(db->video[db->numberOfLoadedVideos].title,MAX_STR,"%s",title);
+
+ return 0;
+}
+
+
+
 struct videoCollection * updateVideoDatabaseFromFilesystem(const char * directoryPath,const char * databasePath)
 {
     struct videoCollection * newDB=(struct videoCollection * ) malloc(sizeof(struct videoCollection));

@@ -123,6 +123,62 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 
 
 
+int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
+{
+  //YOutube code currently disabled..
+  return 0;
+  //sudo pip install -U youtube-dl
+  unsigned int idLength = strlen(videoID);
+  if ( (idLength>10) && (idLength<13) )
+  {
+      fprintf(stderr,"Video %s actually looks like a youtube video\n",videoID);
+      char addVideoToOurList[1024];
+      char videoTitle[1024];
+      char videoFilename[1024];
+      char videoFilenameFull[1024];
+
+
+      snprintf(addVideoToOurList,1024,"youtube-dl -e -w -o \"%s/%%(title)s.%%(ext)s\" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \"https://www.youtube.com/watch?v=%s\" ",video_root,videoID);
+
+      AmmServer_ExecuteCommandLine(addVideoToOurList,videoTitle ,1024);
+      fprintf(stderr,"Video title is ( %s ) .. \n",videoTitle);
+      snprintf(videoFilename,1024,"%s.mp4",videoTitle);
+      fprintf(stderr,"Video filename is ( %s ) .. \n",videoFilename);
+      snprintf(videoFilenameFull,1024,"%s/%s",video_root,videoFilename);
+      fprintf(stderr,"Video filename full is ( %s ) .. \n",videoFilenameFull);
+
+
+      snprintf(addVideoToOurList,1024,"youtube-dl -w -o \"%s/%%(title)s.%%(ext)s\" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \"https://www.youtube.com/watch?v=%s\" &",video_root,videoID);
+      fprintf(stderr,"Including it to our videos ( %s ) .. \n",addVideoToOurList);
+
+      addSingleVideoFile(myTube,videoTitle,videoFilename,videoFilenameFull);
+
+       snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n\
+     <html>\n\
+       <head>\n\
+        <meta charset=\"UTF-8\">\n\
+        <script type=\"text/javascript\">\n\
+         <!--\n\
+            function Redirect() {\n\
+                                  window.location=\"watch?q=%s\";\n\
+                                }\n\
+         //-->\n\
+      </script><meta http-equiv=\"refresh\" content=\"0;URL='watch?q=%s'\"/></head><body onload=\"Redirect();\"> </body></html> ",videoTitle,videoTitle);
+       rqst->contentSize=strlen(rqst->content);
+
+
+      int i=system(addVideoToOurList);
+
+
+
+
+
+      return (i==0);
+  }
+ return 0;
+}
+
+
 
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
@@ -130,8 +186,6 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
   char videoRequested[128]={0};
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
-                fprintf(stderr,"Video Requested is : %s \n",videoRequested);
-
                 unsigned int videoID=getDBIndexFromPermanentLink(videoRequested);
                 if (videoID >= myTube->numberOfLoadedVideos)
                 {
@@ -154,6 +208,7 @@ void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
               }
   return 0;
 }
+
 
 //This function prepares the content of  stats context , ( stats.content )
 void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
@@ -204,9 +259,17 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
          else
   if ( _GET(default_server,rqst,"v",videoRequested,128) )
               {
-                fprintf(stderr,"Video Requested is : %s \n",videoRequested);
-                videoID=getDBIndexFromPermanentLink(videoRequested);
-                queryFoundVideo=1;
+                fprintf(stderr,"Video Page Requested is : %s \n",videoRequested);
+
+                fprintf(stderr,"Video File Requested is : %s \n",videoRequested);
+                 if ( isVideoYTB(rqst,videoRequested) )
+                 {
+                  //If it is youtube it is already handled
+                  return 0;
+                 }
+
+                 videoID=getDBIndexFromPermanentLink(videoRequested);
+                 queryFoundVideo=1;
               }
 
 
