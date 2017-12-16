@@ -120,7 +120,15 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
-
+int checkIfItIsAValidYTID(const char * videoID)
+{
+  unsigned int idLength = strlen(videoID);
+  if ( (idLength>10) && (idLength<13) )
+  {
+    return 1;
+  }
+  return 0;
+}
 
 
 int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
@@ -128,8 +136,7 @@ int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
   //YOutube code currently disabled..
   return 0;
   //sudo pip install -U youtube-dl
-  unsigned int idLength = strlen(videoID);
-  if ( (idLength>10) && (idLength<13) )
+  if ( checkIfItIsAValidYTID(videoID) )
   {
       fprintf(stderr,"Video %s actually looks like a youtube video\n",videoID);
       char addVideoToOurList[1024];
@@ -151,7 +158,9 @@ int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
       snprintf(addVideoToOurList,1024,"youtube-dl -w -o \"%s/%%(title)s.%%(ext)s\" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \"https://www.youtube.com/watch?v=%s\" &",video_root,videoID);
       fprintf(stderr,"Including it to our videos ( %s ) .. \n",addVideoToOurList);
 
-      addSingleVideoFile(myTube,videoTitle,videoFilename,videoFilenameFull);
+      int newVideoID= addSingleVideoFile(myTube,videoTitle,videoFilename,videoFilenameFull);
+
+      int i=system(addVideoToOurList);
 
        snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n\
      <html>\n\
@@ -160,14 +169,12 @@ int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
         <script type=\"text/javascript\">\n\
          <!--\n\
             function Redirect() {\n\
-                                  window.location=\"watch?q=%s\";\n\
+                                  window.location=\"watch?v=%u&downloading=1\";\n\
                                 }\n\
          //-->\n\
-      </script><meta http-equiv=\"refresh\" content=\"0;URL='watch?q=%s'\"/></head><body onload=\"Redirect();\"> </body></html> ",videoTitle,videoTitle);
+      </script><meta http-equiv=\"refresh\" content=\"0;URL='watch?v=%u&downloading=1'\"/></head><body onload=\"Redirect();\"> </body></html> ",newVideoID,newVideoID);
        rqst->contentSize=strlen(rqst->content);
 
-
-      int i=system(addVideoToOurList);
 
 
 

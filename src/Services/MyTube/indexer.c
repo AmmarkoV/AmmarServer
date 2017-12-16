@@ -140,7 +140,7 @@ int addSingleVideoFile(struct videoCollection * db,const char * title,const char
   snprintf(db->video[db->numberOfLoadedVideos].filename,MAX_STR,"%s",filename);
   snprintf(db->video[db->numberOfLoadedVideos].title,MAX_STR,"%s",title);
 
- return 0;
+ return db->numberOfLoadedVideos;
 }
 
 
