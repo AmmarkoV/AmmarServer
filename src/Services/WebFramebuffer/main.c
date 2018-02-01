@@ -38,7 +38,8 @@ struct AmmServer_RH_Context frameContext={0};
 
 void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html>\
+  snprintf(
+    rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html>\
     <head>\
     <!--meta http-equiv=\"refresh\" content=\"0;URL='index.html?t=%u'\" /-->\
     <script>\
@@ -52,7 +53,10 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
     setTimeout('refreshFeed(\"vfi\")', 10000);\
     </script>\
     </head>\
-    <body><img  id=\"vfi\" src=\"framebuffer.jpg?t=%u\"></body></html>",rand()%1000000,rand()%1000000);
+    <body><img  id=\"vfi\" src=\"framebuffer.jpg?t=%u\"></body></html>",
+    rand()%1000000,
+    rand()%1000000
+    );
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
