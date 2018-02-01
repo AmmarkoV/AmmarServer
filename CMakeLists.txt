@@ -20,6 +20,7 @@ ENDIF( COMPILE_FOR_ARM )
 
     #This is the core library
     add_subdirectory (src/AmmServerlib)
+    add_subdirectory (src/AmmClient)
  
     #After we are done with the basics make all our secondary libraries
     add_subdirectory (src/AmmCaptcha)
