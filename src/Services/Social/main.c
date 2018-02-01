@@ -56,12 +56,12 @@ void init_dynamic_content()
   chatPage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/chatroom.html");
   homePage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/home.html");
 
-  AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",webserver_root,4096,0,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&chatSpeak,"/chatSpeak.html",webserver_root,4096,0,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&chatPicture,"/chatPicture.html",webserver_root,4096,0,&chatPicture_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",webserver_root,4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&login,"/login.html",webserver_root,4096,0,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&home,"/home.html",webserver_root,4096,0,&home_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",4096,0,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&chatSpeak,"/chatSpeak.html",4096,0,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&chatPicture,"/chatPicture.html",4096,0,&chatPicture_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&login,"/login.html",4096,0,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&home,"/home.html",4096,0,&home_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 }
 

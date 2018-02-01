@@ -604,17 +604,16 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); }
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",webserver_root,indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding create page\n"); }
+  AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&create_url);
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form testing page\n"); }
+  AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&goto_url);
 
-  if (! AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",webserver_root,DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
-  AmmServer_DoNOTCacheResourceHandler(myurl_server,&error_url);
+  AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
   #if ENABLE_CAPTCHA_SYSTEM
-  if (! AmmServer_AddResourceHandler(myurl_server,&captcha_url,"/captcha.jpg",webserver_root,MAX_CAPTCHA_JPG_SIZE,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding form error page\n"); }
+  AmmServer_AddResourceHandler(myurl_server,&captcha_url,"/captcha.jpg",MAX_CAPTCHA_JPG_SIZE,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&captcha_url);
   #endif
 

@@ -167,11 +167,11 @@ int close_camera()
 void init_dynamic_pages()
 {
   //int AmmServer_AddResourceHandler(struct AmmServer_RH_Context * context, char * resource_name , char * web_root, unsigned int allocate_mem_bytes,unsigned int callback_every_x_msec,void * callback);
-  AmmServer_AddResourceHandler(v4l2_server,&index_page,(char *) "/index.html",webserver_root,4096,0,(void *) &prepare_index_page_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(v4l2_server,&index_page,(char *) "/index.html",4096,0,(void *) &prepare_index_page_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
   //Do not empty jpeg_picture struct since mallocs have already happened.. memset(&jpeg_picture,0,sizeof(struct AmmServer_RH_Context));
 
-  AmmServer_AddResourceHandler(v4l2_server,&jpeg_picture,(char *) "/cam.jpg",webserver_root,jpg_width * jpg_height * 3, 250 /*Poll camera no sooner than once every x ms*/,(void *) &prepare_camera_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(v4l2_server,&jpeg_picture,(char *) "/cam.jpg",jpg_width * jpg_height * 3, 250 /*Poll camera no sooner than once every x ms*/,(void *) &prepare_camera_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   jpeg_picture.requestContext.contentSize=jpg_width * jpg_height * 3;
   jpeg_picture.requestContext.MAXcontentSize=jpg_width * jpg_height * 3;
 
@@ -186,7 +186,7 @@ void close_dynamic_pages()
 }
 
 
-void termination_handler (int signum)
+void termination_handler()
      {
         fprintf(stderr,"Terminating V4L2ToHTTP.. ");
         close_dynamic_pages();
@@ -201,10 +201,8 @@ void termination_handler (int signum)
 int main(int argc, char *argv[])
 {
   printf("V4L2ToHTTP starting up linked to Ammar Server v%s\n",AmmServer_Version());
-  if (signal(SIGINT, termination_handler) == SIG_ERR)   printf("Cannot handle SIGINT!\n");
-  if (signal(SIGHUP, termination_handler) == SIG_ERR)   printf("Cannot handle SIGHUP!\n");
-  if (signal(SIGTERM, termination_handler) == SIG_ERR)  printf("Cannot handle SIGTERM!\n");
-  if (signal(SIGKILL, termination_handler) == SIG_ERR)  printf("Cannot handle SIGKILL!\n");
+
+  AmmServer_RegisterTerminationSignal(&termination_handler); 
 
   char bindIP[MAX_INPUT_IP];
   strcpy(bindIP,"0.0.0.0");

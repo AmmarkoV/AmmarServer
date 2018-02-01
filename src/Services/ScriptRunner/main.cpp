@@ -566,16 +566,14 @@ int  init_dynamic_content()
   page=AmmServer_ReadFileToMemory((char*)"controlpanel.html",&pageLength);
   if ( (page==0) || (pageLength==0) ) { fprintf(stderr,"Cannot initialize dynamic content\n"); return 0; }
 
-  if (! AmmServer_AddResourceHandler(default_server,&form,(char*)"/controlpanel.html",webserver_root,pageLength+1,0,(void* ) &prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding form testing page\n"); }
+  AmmServer_AddResourceHandler(default_server,&form,(char*)"/controlpanel.html",pageLength+1,0,(void* ) &prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_DoNOTCacheResourceHandler(default_server,&form);
 
-  if (! AmmServer_AddResourceHandler(default_server,&indexPage,(char*)"/index.html",webserver_root,4096,0,(void*) &prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding stats page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&stats,(char*) "/stats.html",webserver_root,4096,0,(void*) &prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding stats page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&settings,(char*)"/settings.html",webserver_root,4096,0,(void* ) &store_new_configuration_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding settings page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&base_image,(char*)"/base_image.jpg",webserver_root,640*480*3,0,(void* ) &prepare_base_image,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding prepare base_image page\n"); }
-  //if (! AmmServer_AddResourceHandler(default_server,&top_image,(char*)"/top_image.jpg",webserver_root,640*480*3,0,(void* ) &prepare_top_image,SAME_PAGE_FOR_ALL_CLIENTS) ) { fprintf(stderr,"Failed adding prepare top_image page\n"); }
+  AmmServer_AddResourceHandler(default_server,&indexPage,(char*)"/index.html",4096,0,(void*) &prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&stats,(char*) "/stats.html",4096,0,(void*) &prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&settings,(char*)"/settings.html",4096,0,(void* ) &store_new_configuration_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&base_image,(char*)"/base_image.jpg",640*480*3,0,(void* ) &prepare_base_image,SAME_PAGE_FOR_ALL_CLIENTS);
+  //AmmServer_AddResourceHandler(default_server,&top_image,(char*)"/top_image.jpg",640*480*3,0,(void* ) &prepare_top_image,SAME_PAGE_FOR_ALL_CLIENTS);
   return 1;
  }
 

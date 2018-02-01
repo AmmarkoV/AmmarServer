@@ -28,12 +28,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
 char webserver_root[MAX_FILE_PATH]="src/Services/WebFramebuffer/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+
+char uploads_root[MAX_FILE_PATH]="uploads/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
 
 struct AmmServer_RH_Context indexContext={0};
+struct AmmServer_RH_Context updateContext={0};
+struct AmmServer_RH_Context uploadContext={0};
 struct AmmServer_RH_Context frameContext={0};
 
 void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
@@ -62,6 +66,51 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+
+void * prepare_update_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  snprintf(
+    rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html>\
+    <body>\
+     <form enctype=\"multipart/form-data\" action=\"upload.html\" method=\"POST\">\
+       <input type=\"hidden\" name=\"rawresponse\" value=\"NO\" />\
+       File to upload: <input name=\"uploadedfile\" type=\"file\" /> \
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+       <input type=\"submit\" value=\"Upload File\" name=\"submit\" />&nbsp;&nbsp;\
+   </form>\
+   </body></html>"
+    );
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+void * prepare_upload_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+   char uploadedFileUNSANITIZEDPath[513]={0};
+   AmmServer_POSTNameOfFile (default_server,rqst,0,uploadedFileUNSANITIZEDPath,512);
+   AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
+
+   if (AmmServer_StringHasSafePath(uploads_root,uploadedFileUNSANITIZEDPath))
+   {
+    char * uploadedFilePath = uploadedFileUNSANITIZEDPath;
+    char finalPath[2049]={0};
+    snprintf(finalPath,2048,"%s/%s/%s",webserver_root,uploads_root,uploadedFilePath);
+
+
+    AmmServer_POSTArgToFile (default_server,rqst,1,finalPath);
+
+  } else
+  {
+  }
+
+
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
 void * prepare_frame_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   if (!AmmServer_DynamicRequestReturnFile(rqst,"src/Services/WebFramebuffer/framebuffer.jpg") ) { AmmServer_Error("Could not return default thumbnail"); }
@@ -72,12 +121,10 @@ void * prepare_frame_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
-
-   if (! AmmServer_AddResourceHandler(default_server,&frameContext,"/framebuffer.jpg",webserver_root,4096,0,&prepare_frame_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding random testing page\n"); }
-
+  AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&updateContext,"/update.html",4096,0,&prepare_update_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",4096,0,&prepare_upload_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&frameContext,"/framebuffer.jpg",4096,0,&prepare_frame_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

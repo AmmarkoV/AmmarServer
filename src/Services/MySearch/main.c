@@ -90,20 +90,10 @@ void * search_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-
-  if (! AmmServer_AddResourceHandler(default_server,&searchContext,"/search.html",webserver_root,4096,0,&search_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
-
-   if (! AmmServer_AddResourceHandler(default_server,&logoContext,"/search.png",webserver_root,4096,0,&prepare_logo_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding random testing page\n"); }
-
-   if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,4096,0,&favicon_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
-     { AmmServer_Warning("Failed adding random testing page\n"); }
-
-
+ AmmServer_AddResourceHandler(default_server,&searchContext,"/search.html",4096,0,&search_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+ AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+ AmmServer_AddResourceHandler(default_server,&logoContext,"/search.png",4096,0,&prepare_logo_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+ AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",4096,0,&favicon_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!

@@ -381,14 +381,10 @@ void * request_override_callback(char * content)
 void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
-
-  if (! AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",webserver_root,4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )  { AmmServer_Warning("Failed adding stats page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",webserver_root,4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding form testing page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",webserver_root,4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding random testing page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding gps testing page\n"); }
+  AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
   #if ENABLE_STOP_PAGE
     AmmServer_Error("Enabling stop page , you don't want this in a production usage\n");
@@ -403,7 +399,7 @@ void init_dynamic_content()
    #endif // ENABLE_MONITOR
 
 #if ENABLE_GET_DEBUGGING
-  if (! AmmServer_AddResourceHandler(default_server,&getdbg,"/debugGET.html",webserver_root,4096,0,&debug_get_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding debug GET\n"); }
+  AmmServer_AddResourceHandler(default_server,&getdbg,"/debugGET.html",4096,0,&debug_get_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 #endif // ENABLE_GET_DEBUGGING
 
   //fresh.txt will always be served fresh
@@ -411,7 +407,7 @@ void init_dynamic_content()
 
   if (executeScript!=0)
   {
-     if (! AmmServer_AddResourceHandler(default_server,&gps,"/execute.html",webserver_root,16000,0,&executeScriptFunction,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
+     if (! AmmServer_AddResourceHandler(default_server,&gps,"/execute.html",16000,0,&executeScriptFunction,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
          { AmmServer_Warning("Failed adding execute page\n"); } else
          {
            fprintf(stderr,"Call http://YOURIP:%u/execute.html to execute %s \n",default_server->settings.BINDING_PORT,executeScript);
@@ -422,8 +418,7 @@ void init_dynamic_content()
 
   if (ENABLE_CHAT_BOX)
   {
-   if (!AmmServer_AddResourceHandler(default_server,&chatbox,"/chatbox.html",webserver_root,4096,0,&prepare_chatbox_content_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-      { AmmServer_Warning("Failed adding chatbox page\n"); }
+   AmmServer_AddResourceHandler(default_server,&chatbox,"/chatbox.html",4096,0,&prepare_chatbox_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
      char chatlog_path[MAX_FILE_PATH]={0};
      snprintf(chatlog_path,MAX_FILE_PATH,"%schat.html",webserver_root);

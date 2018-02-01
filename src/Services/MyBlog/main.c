@@ -117,16 +117,16 @@ void init_dynamic_content()
 {
   prepare_index_prototype("src/Services/MyBlog/res/index.html",&myblog,0);
 
-  AmmServer_AddResourceHandler(default_server,&stats   ,"/index.html",webserver_root,CONTENT_BUFFER,0,&prepare_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&pagePage,"/page.html" ,webserver_root,CONTENT_BUFFER,0,&page_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&rssPage,"/rss.xml" ,webserver_root,CONTENT_BUFFER,0,&rss_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&stats   ,"/index.html",CONTENT_BUFFER,0,&prepare_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&pagePage,"/page.html" ,CONTENT_BUFFER,0,&page_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&rssPage,"/rss.xml" ,CONTENT_BUFFER,0,&rss_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
 
-  AmmServer_AddEditorResourceHandler(default_server,&login,"/login.html",webserver_root,&loginUpload_callback);
+  AmmServer_AddEditorResourceHandler(default_server,&login,"/login.html",&loginUpload_callback);
 
   #if ENABLE_POSTING_NEW_CONTENT
-   AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,webserver_root,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-   AmmServer_AddEditorResourceHandler(default_server,&editor,"/editor.html",webserver_root,&editorUpload_callback);
+   AmmServer_AddResourceHandler(default_server,&postPage,"/post.html" ,CONTENT_BUFFER,0,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+   AmmServer_AddEditorResourceHandler(default_server,&editor,"/editor.html",&editorUpload_callback);
   #endif // ENABLE_POSTING_NEW_CONTENT
 }
 

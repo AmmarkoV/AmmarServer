@@ -194,12 +194,12 @@ void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  AmmServer_AddResourceHandler(default_server,&interestPoints,"/points.txt",webserver_root,4096,0,&prepare_interestPoints,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&interestPoints,"/points.txt",4096,0,&prepare_interestPoints,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   //-------------
-  AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",webserver_root,4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&android,"/android.html",webserver_root,4096,0,&prepare_apk_link,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&apk,"/apk.html",webserver_root,4096,0,&prepare_apk_link,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",webserver_root,4096,0,&prepare_indexPage,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&android,"/android.html",4096,0,&prepare_apk_link,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&apk,"/apk.html",4096,0,&prepare_apk_link,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",4096,0,&prepare_indexPage,SAME_PAGE_FOR_ALL_CLIENTS);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
