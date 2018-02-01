@@ -354,7 +354,7 @@ int AmmServer_AddResourceHandler
      ( struct AmmServer_Instance * instance,
        struct AmmServer_RH_Context * context,
        const char * resource_name ,
-       const char * web_root,
+       //const char * web_root,
        unsigned int allocate_mem_bytes,
        unsigned int callback_every_x_msec,
        void * callback,
@@ -367,8 +367,11 @@ int AmmServer_AddResourceHandler
       AmmServer_Warning("Make sure that you are using a seperate context for each AmmServer_AddResourceHandler call you make..\n");
     }
    memset(context,0,sizeof(struct AmmServer_RH_Context));
-   strncpy(context->web_root_path,web_root,MAX_FILE_PATH);
    strncpy(context->resource_name,resource_name,MAX_RESOURCE);
+
+   //Each New Resource Handler inherits the central webserver root, if we really know what we are doing  we can set up a different root dir per context
+   //But this is almost never needed..
+   strncpy(context->web_root_path,instance->webserver_root,MAX_FILE_PATH);
    context->requestContext.instance=instance; // Remember the instance that created this..
    context->requestContext.MAXcontentSize=allocate_mem_bytes;
    context->callback_every_x_msec=callback_every_x_msec;
@@ -417,12 +420,12 @@ int AmmServer_AddEditorResourceHandler(
                                        struct AmmServer_Instance * instance,
                                        struct AmmServer_RH_Context * context,
                                        const char * resource_name ,
-                                       const char * web_root ,
+                                       //const char * web_root ,
                                        void * callback
                                       )
 {
  #warning "TODO: Also remove editor resource handler"
- int res = AmmServer_AddResourceHandler (  instance, context, resource_name , web_root, 16000, 0, callback, DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES );
+ int res = AmmServer_AddResourceHandler (  instance, context, resource_name , 16000, 0, callback, DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES );
 
   if (res) { AmmServer_DoNOTCacheResourceHandler(instance,context); }
  return res;
@@ -436,7 +439,6 @@ int AmmServer_EnableMonitor( struct AmmServer_Instance * instance)
      ( instance,
        &instance->webserverMonitorPage,
        "/monitor.html",
-       instance->webserver_root ,
        16000,
        10,
        &serveMonitorPage,

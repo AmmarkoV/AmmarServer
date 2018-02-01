@@ -557,25 +557,24 @@ void init_dynamic_content()
   {
     AmmServer_Warning("Enabling monitor\n");
     AmmServer_EnableMonitor(default_server);
-    if (! AmmServer_AddResourceHandler(default_server,&stopContext,"/stop.html",webserver_root,4096,1000,&serve_stop,SAME_PAGE_FOR_ALL_CLIENTS) )
-         { AmmServer_Warning("Failed adding serve stop page\n"); }
+    AmmServer_AddResourceHandler(default_server,&stopContext,"/stop.html",4096,1000,&serve_stop,SAME_PAGE_FOR_ALL_CLIENTS);
   }
 
 
   //---------------
 
 
-  if (! AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",webserver_root,14096,0,&serve_upload,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve error file\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&errorPageContext,"/error",webserver_root,14096,0,&serve_playbackerror,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve error file\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",webserver_root,14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video file\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",webserver_root,45960,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",webserver_root,4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",webserver_root,4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT) ) { AmmServer_Warning("Failed adding serve random video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",webserver_root,4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT) )         { AmmServer_Warning("Failed adding serve random video page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",webserver_root,4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT) )    { AmmServer_Warning("Failed adding serve index page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",webserver_root,16400,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&cssContext,"/mytube.css",webserver_root,4096,1000,&serve_css,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
-  if (! AmmServer_AddResourceHandler(default_server,&jsContext,"/mytube.js",webserver_root,14096,1000,&serve_js,SAME_PAGE_FOR_ALL_CLIENTS) ) { AmmServer_Warning("Failed adding serve favicon page\n"); }
+  AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",14096,0,&serve_upload,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&errorPageContext,"/error",14096,0,&serve_playbackerror,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&videoPageContext,"/watch",45960,0,&serve_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&randomVideoFileContext,"/random",4096,0,&serve_random_videopage,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&thumbnailContext,"/dthumb.jpg",4096,0,&serve_thumbnail,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&interactContext,"/proc",4096,0,&serve_interact,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",4096,0,&serve_index,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",16400,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&cssContext,"/mytube.css",4096,1000,&serve_css,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&jsContext,"/mytube.js",14096,1000,&serve_js,SAME_PAGE_FOR_ALL_CLIENTS);
 
 
   //---------------

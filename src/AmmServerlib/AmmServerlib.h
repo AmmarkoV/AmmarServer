@@ -551,7 +551,6 @@ int AmmServer_AddScheduler
 * @param An AmmarServer Instance
 * @param An AmmServer_RH_Context to be populated
 * @param Name of resource that should get dynamic responses ( i.e. "index.html" )
-* @param Root Path for the specific resource
 * @param Memory chunk to allocate for responses , ( this is the max response size )
 * @param Minimum time between two calls of the function ( 0 = no minimum time)
 * @param Function to be called and provides output when someone asks for resource
@@ -562,7 +561,7 @@ int AmmServer_AddResourceHandler
      ( struct AmmServer_Instance * instance,
        struct AmmServer_RH_Context * context,
        const char * resource_name ,
-       const char * web_root,
+       //const char * web_root,
        unsigned int allocate_mem_bytes,
        unsigned int callback_every_x_msec,
        void * callback,
@@ -580,7 +579,7 @@ int AmmServer_AddEditorResourceHandler
        struct AmmServer_Instance * instance,
        struct AmmServer_RH_Context * context,
        const char * resource_name ,
-       const char * web_root ,
+       //const char * web_root ,
        void * callback
     );
 

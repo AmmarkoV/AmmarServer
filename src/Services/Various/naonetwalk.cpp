@@ -77,11 +77,8 @@ void * control_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  if (! AmmServer_AddResourceHandler(default_server,&control,"/control.html",webserver_root,4096,0,(void*) &control_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
-
-  if (! AmmServer_AddResourceHandler(default_server,&termination,"/terminate.html",webserver_root,4096,0,(void*) &control_callback,SAME_PAGE_FOR_ALL_CLIENTS) )
-     { AmmServer_Warning("Failed adding stats page\n"); }
+  AmmServer_AddResourceHandler(default_server,&control,"/control.html",4096,0,(void*) &control_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&termination,"/terminate.html",4096,0,(void*) &control_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
 
 }
