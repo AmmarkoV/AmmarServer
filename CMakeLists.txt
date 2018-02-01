@@ -55,6 +55,7 @@ ENDIF( USE_XSERVER )
     add_subdirectory (src/Services/CinemaPilot) 
     add_subdirectory (src/Services/Various)
     add_subdirectory (src/Services/V4L2ToHTTP)
+    add_subdirectory (src/Services/WebFramebuffer)
     
     #These are unit tests for the core library
     add_subdirectory (src/UnitTests)
