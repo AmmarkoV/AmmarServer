@@ -134,6 +134,10 @@ void * prepare_upload_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
     unsigned int filePointerLength=0;
     char * data = AmmServer_POSTArgGetPointer(default_server,rqst,0,&filePointerLength);
+
+
+//void storeImage(struct imageStorage * is , int id , char * data,unsigned int dataSize)
+
     //AmmServer_POSTArgToFile (default_server,rqst,1,finalPath);
     snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Success : %u size</body></html>",filePointerLength);
 
