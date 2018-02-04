@@ -39,6 +39,10 @@
 			<Add library="../../Hashmap/libHashmap.a" />
 			<Add library="../../InputParser/libInputParser_C.a" />
 		</Linker>
+		<Unit filename="framebuffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="framebuffer.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
