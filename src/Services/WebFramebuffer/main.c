@@ -135,6 +135,7 @@ void * prepare_upload_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
    if ( storeImage(storage,0,data,filePointerLength) )
    {
+    AmmServer_Success("Pushed new frame..");
     snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Success : %u size</body></html>",filePointerLength);
    } else
    {
@@ -152,16 +153,27 @@ void * prepare_frame_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   ++hits;
 
-  if (storage[0].data!=0)
+  if ( (storage[0].data==0) || (storage[0].dataSize==0) )
   {
     //No data to serve..
+    AmmServer_Warning("Returning default..");
     AmmServer_DynamicRequestReturnFile(rqst,"src/Services/WebFramebuffer/framebuffer.jpg");
     return 0;
+  } else
+  {
+   if (rqst->MAXcontentSize<storage[0].dataSize)
+   {
+    AmmServer_Warning("Cannot fit..!");
+    AmmServer_DynamicRequestReturnFile(rqst,"src/Services/WebFramebuffer/framebuffer.jpg");
+   } else
+   {
+    AmmServer_Success("Returning new frame..");
+    memcpy(rqst->content,storage[0].data,storage[0].dataSize);
+    rqst->contentSize=storage[0].dataSize;
+   }
   }
 
 
-   memcpy(rqst->content,storage[0].data,storage[0].dataSize);
-   rqst->contentSize=storage[0].dataSize;
   return 0;
 }
 
@@ -173,7 +185,7 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",4096,0,&prepare_upload_content_callback,SAME_PAGE_FOR_ALL_CLIENTS|ENABLE_RECEIVING_FILES);
   AmmServer_DoNOTCacheResourceHandler(default_server,&uploadContext);
 
-  AmmServer_AddResourceHandler(default_server,&frameContext ,"/framebuffer.jpg",128000,0,&prepare_frame_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&frameContext ,"/framebuffer.jpg",1128000,0,&prepare_frame_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
