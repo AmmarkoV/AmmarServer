@@ -15,6 +15,6 @@ struct imageStorage
 
 };
 
-void storeImage(struct imageStorage * is , int id , char * data,unsigned int dataSize);
+int storeImage(struct imageStorage * is , int id , char * data,unsigned int dataSize);
 
 #endif // FRAMEBUFFER_H_INCLUDED

@@ -27,6 +27,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "framebuffer.h"
 
+struct imageStorage storage[12]={0};
+
+
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
@@ -126,25 +129,17 @@ void * prepare_upload_content_callback(struct AmmServer_DynamicRequest  * rqst)
    AmmServer_POSTNameOfFile (default_server,rqst,0,uploadedFileUNSANITIZEDPath,512);
    AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
 
-   if (AmmServer_StringHasSafePath(uploads_root,uploadedFileUNSANITIZEDPath))
+   unsigned int filePointerLength=0;
+   char * data = AmmServer_POSTArgGetPointer(default_server,rqst,0,&filePointerLength);
+
+
+   if ( storeImage(storage,0,data,filePointerLength) )
    {
-    char * uploadedFilePath = uploadedFileUNSANITIZEDPath;
-    char finalPath[2049]={0};
-    snprintf(finalPath,2048,"%s/%s/%s",webserver_root,uploads_root,uploadedFilePath);
-
-    unsigned int filePointerLength=0;
-    char * data = AmmServer_POSTArgGetPointer(default_server,rqst,0,&filePointerLength);
-
-
-//void storeImage(struct imageStorage * is , int id , char * data,unsigned int dataSize)
-
-    //AmmServer_POSTArgToFile (default_server,rqst,1,finalPath);
     snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Success : %u size</body></html>",filePointerLength);
-
-  } else
-  {
+   } else
+   {
     snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Failed</body></html>");
-  }
+   }
 
 
   rqst->contentSize=strlen(rqst->content);
@@ -157,18 +152,16 @@ void * prepare_frame_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   ++hits;
 
-  if (hits%2==0)
+  if (storage[0].data!=0)
   {
-  if (!AmmServer_DynamicRequestReturnFile(rqst,"src/Services/WebFramebuffer/framebuffer.jpg") ) { AmmServer_Error("Could not return default thumbnail"); }
-  } else
-  {
-  if (!AmmServer_DynamicRequestReturnFile(rqst,"src/Services/WebFramebuffer/framebuffer1.jpg") ) { AmmServer_Error("Could not return default thumbnail"); }
+    //No data to serve..
+    AmmServer_DynamicRequestReturnFile(rqst,"src/Services/WebFramebuffer/framebuffer.jpg");
+    return 0;
   }
 
 
-  //storeImage(char * data,unsigned int dataSize);
-
-  //rqst->contentSize=strlen(rqst->content);
+   memcpy(rqst->content,storage[0].data,storage[0].dataSize);
+   rqst->contentSize=storage[0].dataSize;
   return 0;
 }
 

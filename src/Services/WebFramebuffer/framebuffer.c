@@ -4,15 +4,24 @@
 
 
 
-struct imageStorage storage[12]={0};
-
-void storeImage(struct imageStorage * is , int id , char * data,unsigned int dataSize)
+int storeImage(struct imageStorage * is , int id , char * data,unsigned int dataSize)
 {
+ //pthread_mutex_init(&prespawned_data->operation_mutex,0);
+ //pthread_cond_init(&prespawned_data->condition_var,0);
+ //pthread_mutex_lock(&prespawned_data->operation_mutex);
 
+ if (is[id].data!=0)
+  {
+    free(is[id].data);
+    is[id].data=0;
+  }
 
-      //pthread_mutex_init(&prespawned_data->operation_mutex,0);
-      //pthread_cond_init(&prespawned_data->condition_var,0);
+  is[id].data = (char*) malloc(sizeof(char) * dataSize);
+  if (is[id].data!=0)
+  {
+    memcpy(is[id].data,data,dataSize);
+    is[id].dataSize=dataSize;
+  }
 
-      //pthread_mutex_lock(&prespawned_data->operation_mutex);
-
+  return  ( (is[id].data!=0) && (is[id].dataSize!=0) );
 }
