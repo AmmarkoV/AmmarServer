@@ -25,12 +25,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
+#include "framebuffer.h"
+
+
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
 char webserver_root[MAX_FILE_PATH]="src/Services/WebFramebuffer/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 
 char uploads_root[MAX_FILE_PATH]="uploads/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
+
+unsigned int hits=0;
 
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
@@ -45,16 +50,14 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
   snprintf(
     rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html>\
     <head>\
-    <!--meta http-equiv=\"refresh\" content=\"0;URL='index.html?t=%u'\" /-->\
     <script>\
-    function refreshFeed(name)\
+    function refreshFeed()\
     {\
-      command('camera=refresh');\
-      document.getElementById(name).style.visibility='visible';\
       var randomnumber=Math.floor(Math.random()*100000);\
-      document.getElementById(name).src=\"framebuffer?t=\"+randomnumber;\
+      document.getElementById(\"vfi\").style.visibility='visible';\
+      document.getElementById(\"vfi\").src=\"framebuffer.jpg?t=\"+randomnumber;\
     }\
-    setTimeout('refreshFeed(\"vfi\")', 10000);\
+     setInterval(refreshFeed,100);\
     </script>\
     </head>\
     <body><img  id=\"vfi\" src=\"framebuffer.jpg?t=%u\"></body></html>",
@@ -70,15 +73,47 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void * prepare_update_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   snprintf(
-    rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html>\
-    <body>\
-     <form enctype=\"multipart/form-data\" action=\"upload.html\" method=\"POST\">\
-       <input type=\"hidden\" name=\"rawresponse\" value=\"NO\" />\
-       File to upload: <input name=\"uploadedfile\" type=\"file\" /> \
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
-       <input type=\"submit\" value=\"Upload File\" name=\"submit\" />&nbsp;&nbsp;\
-   </form>\
-   </body></html>"
+    rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\
+<html>\
+ <head>\
+  <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">\
+ </head>\
+ <body>\
+ <form enctype=\"multipart/form-data\" action=\"upload.html\" method=\"POST\">\
+  <input name=\"rawresponse\" value=\"NO\" type=\"hidden\">\
+  <table>\
+   <tr>\
+    <td> Name: </td>\
+    <td> <input type=\"text\" name=\"name\"> </td>\
+   </tr>\
+   <tr>\
+    <td> Width: </td>\
+    <td> <input type=\"text\" name=\"width\"> </td>\
+   </tr>\
+   <tr>\
+    <td> Height: </td>\
+    <td> <input type=\"text\" name=\"height\"> </td>\
+   </tr>\
+   <tr>\
+    <td> Depth: </td>\
+    <td> <input type=\"text\" name=\"depth\"> </td>\
+   </tr>\
+   <tr>\
+    <td> Frame Number: </td>\
+    <td> <input type=\"text\" name=\"framenumber\"> </td>\
+   </tr>\
+  \
+   <tr>\
+    <td colspan=2>\
+     File to upload:\
+     <input name=\"uploadedfile\" type=\"file\">\
+     <input value=\"Upload File\" name=\"submit\" type=\"submit\">\
+    </td>\
+   </tr>\
+ </table>\
+ </form>\
+ </body>\
+</html>"
     );
   rqst->contentSize=strlen(rqst->content);
   return 0;
@@ -97,11 +132,14 @@ void * prepare_upload_content_callback(struct AmmServer_DynamicRequest  * rqst)
     char finalPath[2049]={0};
     snprintf(finalPath,2048,"%s/%s/%s",webserver_root,uploads_root,uploadedFilePath);
 
-
-    AmmServer_POSTArgToFile (default_server,rqst,1,finalPath);
+    unsigned int filePointerLength=0;
+    char * data = AmmServer_POSTArgGetPointer(default_server,rqst,0,&filePointerLength);
+    //AmmServer_POSTArgToFile (default_server,rqst,1,finalPath);
+    snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Success : %u size</body></html>",filePointerLength);
 
   } else
   {
+    snprintf(rqst->content,rqst->MAXcontentSize,"<!DOCTYPE html>\n<html><body>Failed</body></html>");
   }
 
 
@@ -113,18 +151,32 @@ void * prepare_upload_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 void * prepare_frame_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+  ++hits;
+
+  if (hits%2==0)
+  {
   if (!AmmServer_DynamicRequestReturnFile(rqst,"src/Services/WebFramebuffer/framebuffer.jpg") ) { AmmServer_Error("Could not return default thumbnail"); }
-  rqst->contentSize=strlen(rqst->content);
+  } else
+  {
+  if (!AmmServer_DynamicRequestReturnFile(rqst,"src/Services/WebFramebuffer/framebuffer1.jpg") ) { AmmServer_Error("Could not return default thumbnail"); }
+  }
+
+
+  //storeImage(char * data,unsigned int dataSize);
+
+  //rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddResourceHandler(default_server,&indexContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&indexContext ,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&updateContext,"/update.html",4096,0,&prepare_update_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",4096,0,&prepare_upload_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&frameContext,"/framebuffer.jpg",4096,0,&prepare_frame_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",4096,0,&prepare_upload_content_callback,SAME_PAGE_FOR_ALL_CLIENTS|ENABLE_RECEIVING_FILES);
+  AmmServer_DoNOTCacheResourceHandler(default_server,&uploadContext);
+
+  AmmServer_AddResourceHandler(default_server,&frameContext ,"/framebuffer.jpg",128000,0,&prepare_frame_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
