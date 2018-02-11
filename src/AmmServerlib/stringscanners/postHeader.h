@@ -1,4 +1,5 @@
- /** @file postHeader.h
+
+/** @file postHeader.h
 * @brief A tool that scans for a string in a very fast and robust way
 * @author Ammar Qammaz (AmmarkoV)
 */
@@ -13,6 +14,8 @@ enum {
  POSTHEADER_CONTENT_TYPE, // 1 
  POSTHEADER_CONTENT_DISPOSITION, // 2 
  POSTHEADER_CONTENT_LENGTH, // 3 
+ POSTHEADER_UPGRADE_INSECURE_REQUESTS, // 4 
+ POSTHEADER_CONNECTION, // 5 
  POSTHEADER_END_OF_ITEMS
 };
 

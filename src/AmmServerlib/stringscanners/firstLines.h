@@ -1,4 +1,5 @@
- /** @file firstLines.h
+
+/** @file firstLines.h
 * @brief A tool that scans for a string in a very fast and robust way
 * @author Ammar Qammaz (AmmarkoV)
 */

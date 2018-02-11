@@ -1,4 +1,5 @@
- /** @file videoFiles.h
+
+/** @file videoFiles.h
 * @brief A tool that scans for a string in a very fast and robust way
 * @author Ammar Qammaz (AmmarkoV)
 */

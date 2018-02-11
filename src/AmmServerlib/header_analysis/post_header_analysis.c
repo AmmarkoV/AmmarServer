@@ -62,6 +62,17 @@ Content-Type: text/html
 
 */
 
+
+
+int createPostItems(struct HTTPHeader * output)
+{
+    output->POSTItemNumber=0;
+    //TODO :
+}
+
+
+
+
 int AnalyzePOSTLineRequest(
                             struct AmmServer_Instance * instance,
                             struct HTTPHeader * output,
@@ -98,6 +109,8 @@ int AnalyzePOSTLineRequest(
           //fprintf(stderr,"Thinking about string (%s) starts with %c and %c  got back %u \n",request,request[0],request[1] , requestType);
           switch (requestType)
           {
+            //In order to add more POST header items, go to
+            //AmmarServer/src/StringRecognizer/postHeader put them there and then run the generateAmmServerScanners.sh which is in the same directory..
             case POSTHEADER_CONTENT_TYPE :
                  payload_start+=strlen("CONTENT-TYPE:");
                  //if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
@@ -105,14 +118,31 @@ int AnalyzePOSTLineRequest(
                  output->contentType=request+payload_start;
                  output->contentTypeLength=request_length-payload_start;
                  char * boundary = strstr(request+payload_start,"boundary=");
-                 if (boundary==0) { fprintf(stderr,"Could not found boundary in string %s \n",output->contentType); return 0; }
-                 boundary+=9;
-                 fprintf(stderr,"Boundary = %s \n",boundary);
+                 if (boundary==0)
+                      {
+                         fprintf(stderr,"Could not found boundary in string %s \n",output->contentType);
+                         return 0;
+                      } else
+                      {
+                         boundary+=9;
+                         fprintf(stderr,"Detected Boundary is = %s \n",boundary);
 
-                 freeString(&output->boundary);
-                 output->boundary = GetNewStringFromHTTPHeaderFieldPayload(boundary,strlen(boundary));
-                 if (output->boundary==0) { fprintf(stderr,"Could not get boundary\n"); return 0; }
-                return 1;
+                         freeString(&output->boundary);
+                         output->boundary = GetNewStringFromHTTPHeaderFieldPayload(boundary,strlen(boundary));
+                         if (output->boundary==0)
+                            {
+                              fprintf(stderr,"Could not get boundary\n");
+                              return 0;
+                            } else
+                            {
+                             if (createPostItems(output) )
+                             {
+
+                             }
+                             return 1;
+                            }
+                      }
+                 return 0;
               break;
 
             case POSTHEADER_CONTENT_DISPOSITION :
@@ -130,6 +160,28 @@ int AnalyzePOSTLineRequest(
             break;
 
           };
+
+          //Scan for boundary if we have a boundary
+          if (output->boundary!=0)
+          {
+            char * foundBoundary = strstr(request,output->boundary);
+            if ( foundBoundary !=0 )
+            {
+/*
+   unsigned int POSTItemNumber;
+   unsigned int MAX_POSTItemNumber;
+   struct POSTRequestBoundaryContent * POSTItem; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+
+struct POSTRequestBoundaryContent
+{
+   char * pointerStart;
+   char * pointerEnd;
+   unsigned int contentSize;
+   unsigned int contentType;
+   */
+               ++output->POSTItemNumber;
+            }
+          }
 
 
    return 0;
