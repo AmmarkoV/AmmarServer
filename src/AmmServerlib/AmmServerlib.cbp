@@ -85,6 +85,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="header_analysis/http_header_analysis.h" />
+		<Unit filename="header_analysis/post_data.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="header_analysis/post_data.h" />
 		<Unit filename="header_analysis/post_header_analysis.c">
 			<Option compilerVar="CC" />
 		</Unit>

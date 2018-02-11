@@ -67,6 +67,8 @@ enum TypesOfRequests
 
 #define MAX_INSTANCE_NAME_STRING 128
 
+/** @brief Maximum number of boundaries to be searched for in a POST request */
+#define MAX_HTTP_POST_BOUNDARY_COUNT 32
 
 /**
 * @brief Each POST Request has a payload that consists of a series of boundaries that contain data. This structure holds this data as a series of pointers in the initial header buffer
@@ -77,7 +79,21 @@ struct POSTRequestBoundaryContent
    char * pointerStart;
    char * pointerEnd;
    unsigned int contentSize;
-   unsigned int contentType;
+
+   //All the following are 0 if not used or point to a place inside an HTTP Header
+   char *       name;
+   unsigned int nameSize;
+
+   char *       filename;
+   unsigned int filenameSize;
+
+   char *       contentDisposition;
+   unsigned int contentDispositionSize;
+
+   char *       contentType;
+   unsigned int contentTypeSize;
+
+   int populated;
 };
 
 
@@ -161,8 +177,7 @@ struct HTTPHeader
    unsigned int boundaryLength;
 
    unsigned int POSTItemNumber;
-   unsigned int MAX_POSTItemNumber;
-   struct POSTRequestBoundaryContent * POSTItem; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   struct POSTRequestBoundaryContent POSTItem[MAX_HTTP_POST_BOUNDARY_COUNT]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 };
 
 

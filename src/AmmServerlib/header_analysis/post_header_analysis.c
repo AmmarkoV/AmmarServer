@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+ #include "post_data.h"
+
 /*
 Quick Reference -> A TYPICAL POST MESSAGE WITH A BINARY FILE CONTENT!
 ---------------------------------------------------------------------------
@@ -61,14 +63,6 @@ Content-Type: text/html
 
 
 */
-
-
-
-int createPostItems(struct HTTPHeader * output)
-{
-    output->POSTItemNumber=0;
-    //TODO :
-}
 
 
 
@@ -135,13 +129,13 @@ int AnalyzePOSTLineRequest(
                               return 0;
                             } else
                             {
-                             if (createPostItems(output) )
+                             if (createPOSTData(output) )
                              {
-
+                              return 1;
                              }
-                             return 1;
                             }
                       }
+                 //This may be reached..
                  return 0;
               break;
 
@@ -167,19 +161,7 @@ int AnalyzePOSTLineRequest(
             char * foundBoundary = strstr(request,output->boundary);
             if ( foundBoundary !=0 )
             {
-/*
-   unsigned int POSTItemNumber;
-   unsigned int MAX_POSTItemNumber;
-   struct POSTRequestBoundaryContent * POSTItem; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
-
-struct POSTRequestBoundaryContent
-{
-   char * pointerStart;
-   char * pointerEnd;
-   unsigned int contentSize;
-   unsigned int contentType;
-   */
-               ++output->POSTItemNumber;
+              return addPOSTDataBoundary(output,foundBoundary);
             }
           }
 
