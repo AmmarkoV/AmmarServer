@@ -18,6 +18,7 @@
 #include "../header_analysis/generic_header_tools.h"
 #include "../header_analysis/http_header_analysis.h"
 #include "../header_analysis/post_header_analysis.h"
+#include "../header_analysis/post_data.h"
 
 
 int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
@@ -26,7 +27,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  memset ( &transaction->incomingHeader ,0 , sizeof(struct HTTPHeader) );
   //transaction->clientSock;
 
- unsigned int result=1 , doneReceiving=0;
+ unsigned int successulHTTPTransaction=1 , doneReceiving=0;
  int opres=0;
 
  transaction->incomingHeader.headerRAWSize = 0 ;
@@ -71,12 +72,12 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
       printRecvError();
      }
 
-     result=0;
+     successulHTTPTransaction=0;
      break;
    }
   else
   //Client shutdown connection..
-  if (opres==0) { fprintf(stderr,"Client shutdown while receiving HTTP Header..\n"); result=0; break; }
+  if (opres==0) { fprintf(stderr,"Client shutdown while receiving HTTP Header..\n"); successulHTTPTransaction=0; break; }
   else
   //Received new data
    {
@@ -89,7 +90,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
       if (!keepAnalyzingHTTPHeader(instance,transaction))
       {
         fprintf(stderr,"We are done receiving and analyzing this HTTPHeader\n");
-        result=1;
+        successulHTTPTransaction=1;
         doneReceiving=1;
         break;
       }
@@ -98,7 +99,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
     //Check if what we have received is all that there is
     if ( HTTPRequestIsComplete(instance,transaction) )
     {
-       result=1;
+       successulHTTPTransaction=1;
        doneReceiving=1;
        break;
     } else
@@ -115,34 +116,53 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
            if (!growHeader(transaction))
            {
                 fprintf(stderr,"Failed to grow the header :( \n");
-                result=0;
+                successulHTTPTransaction=0;
                 doneReceiving=1;
                 break;
            }
         }
   } // END OF RECEIVE LOOP
 
-  //Less spam
-  //fprintf(stderr,"Finished receiving and parsing HTTP header..\n");
 
+  ///-----------------------------------------------------------------------------------------------------
+  ///-----------------------------------------------------------------------------------------------------
+  ///-----------------------------------------------------------------------------------------------------
+  ///JUST ENDED WITH THE SOCKET STUFF RECEIVING THE HEADER, WE NOW HAVE EVERYTHING PARSED MORE OR LESS
+  ///-----------------------------------------------------------------------------------------------------
+  ///-----------------------------------------------------------------------------------------------------
+  //fprintf(stderr,"Finished receiving and parsing HTTP header..\n");  //Less spam
+  ///-----------------------------------------------------------------------------------------------------
+
+
+
+  ///IN CASE WE ARE USING POST REQUESTS WE WILL JUST NEED TO FINALIZE THE DATA PARSED THROUGH THE FILE TO SETUP BOUNDARIES ETC..
   if (
        (!transaction->incomingHeader.failed) &&
        (transaction->incomingHeader.requestType == POST ) &&
        ((instance->settings.ENABLE_POST)&&(MASTER_ENABLE_POST))
       )
   {
+    //We need to count our POST header request sizes
     transaction->incomingHeader.POSTrequestBody = transaction->incomingHeader.headerRAW+transaction->incomingHeader.headerRAWHeadSize+1;
     transaction->incomingHeader.POSTrequestBodySize = transaction->incomingHeader.headerRAWSize-transaction->incomingHeader.headerRAWHeadSize;
+
+    //We need to finalize the POST data processing
+    struct HTTPHeader * output  = &transaction->incomingHeader;
+    finalizePOSTData(output);
   }
 
-
+  //--------------------- --------------------- ---------------------
   if (transaction->incomingHeader.failed)
    {
      fprintf(stderr,"Failed receiving header , marking it ..\n");
-     result = 0;
+     successulHTTPTransaction = 0;
    }
+  //--------------------- --------------------- ---------------------
 
-  if (!result)
+  ///--------------------- --------------------- ---------------------
+  /// IN CASE WE FAIL WE NEED TO CLEAN UP EVERYTHING FOR OUR CLIENT
+  ///--------------------- --------------------- ---------------------
+  if (!successulHTTPTransaction)
   {
     //Remove incoming request here
     if (transaction->incomingHeader.headerRAW!=0)
@@ -155,8 +175,14 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
     transaction->incomingHeader.POSTrequestBodySize = 0;
     transaction->incomingHeader.POSTrequest = 0;
     transaction->incomingHeader.POSTrequestSize = 0;
-  }
 
- return result;
+
+    struct HTTPHeader * output  = &transaction->incomingHeader;
+    wipePOSTData(output);
+    transaction->incomingHeader.POSTItemNumber = 0;
+  }
+  ///--------------------- --------------------- ---------------------
+
+ return successulHTTPTransaction;
 }
 

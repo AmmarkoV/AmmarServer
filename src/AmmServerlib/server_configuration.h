@@ -131,7 +131,6 @@ extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 #define DEFAULT_MAX_HTTP_POST_REQUEST_HEADER 4/*MB*/*1024*1024
 
 
-
 /** @brief This enables e-tag randomization on each creation of a cache , this makes clients automatically refresh when server is restarted */
 #define RANDOMIZE_ETAG_PER_LAUNCH 1
 
