@@ -177,7 +177,7 @@ struct HTTPHeader
    unsigned int boundaryLength;
 
    unsigned int POSTItemNumber;
-   struct POSTRequestBoundaryContent POSTItem[MAX_HTTP_POST_BOUNDARY_COUNT]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   struct POSTRequestBoundaryContent POSTItem[MAX_HTTP_POST_BOUNDARY_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 };
 
 

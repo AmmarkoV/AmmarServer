@@ -184,10 +184,13 @@ char * dynamicRequest_serveContent
                      fprintf(stderr,"GET : %p , %u bytes\n",rqst->GET_request , rqst->GET_request_length );
                      fprintf(stderr,"COOKIE : %p , %u bytes\n",rqst->COOKIE_request , rqst->COOKIE_request_length );
 
-                     fprintf(stderr,"Doing monkey business with POST boundaries\n");
                      rqst->POSTItemNumber = request->POSTItemNumber;
                      rqst->POSTItem       = request->POSTItem;  //<- NEVER free this here since it is stack allocated..
-                     fprintf(stderr,"Done.. may our client have mercy on our POST request..\n");
+                     if ( (rqst->POSTItem!=0) || (rqst->POSTItemNumber!=0) )
+                     {
+                     fprintf(stderr,CYAN "Using the new POST system.. may our client have mercy on our POST request..\n" NORMAL);
+
+                     }
 
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
