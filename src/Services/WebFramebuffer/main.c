@@ -155,25 +155,25 @@ Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534
    fprintf(stderr,"We received %u POST items\n",numberOfPOSTItems);
 
    //We are looking for the POST form elements with name="Something"
-   unsigned int * nameSize=0;
-   char *  name = _POST(rqst,"name",nameSize);
+   unsigned int nameSize=0;
+   char *  name = _POST(rqst,"name",&nameSize);
 
-   unsigned int * widthSize=0;
-   char *  width = _POST(rqst,"width",nameSize);
+   unsigned int widthSize=0;
+   char *  width = _POST(rqst,"width",&widthSize);
 
-   unsigned int * heightSize=0;
-   char *  height = _POST(rqst,"height",nameSize);
+   unsigned int heightSize=0;
+   char *  height = _POST(rqst,"height",&heightSize);
 
-   unsigned int * depthSize=0;
-   char *  depth = _POST(rqst,"depth",nameSize);
+   unsigned int depthSize=0;
+   char *  depth = _POST(rqst,"depth",&depthSize);
 
-   unsigned int * framenumberSize=0;
-   char *  framenumber = _POST(rqst,"framenumber",nameSize);
+   unsigned int framenumberSize=0;
+   char *  framenumber = _POST(rqst,"framenumber",&framenumberSize);
 
-   unsigned int * uploadedfileSize=0;
-   char *  uploadedfile = _POST(rqst,"uploadedfile",nameSize);
+   unsigned int uploadedfileSize=0;
+   char *  uploadedfile = _POST(rqst,"uploadedfile",&uploadedfileSize);
 
-
+   fprintf(stderr,"We received all pointers\n");
 
 
    char uploadedFileUNSANITIZEDPath[513]={0};
@@ -231,7 +231,7 @@ void * prepare_frame_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddResourceHandler(default_server,&indexContext ,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&indexContext ,"/index.html" ,4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&updateContext,"/update.html",4096,0,&prepare_update_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",4096,0,&prepare_upload_content_callback,SAME_PAGE_FOR_ALL_CLIENTS|ENABLE_RECEIVING_FILES);
   AmmServer_DoNOTCacheResourceHandler(default_server,&uploadContext);

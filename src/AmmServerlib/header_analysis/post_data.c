@@ -1,5 +1,7 @@
 #include "post_data.h"
 
+#include <stdio.h>
+#include <string.h>
 
 int wipePOSTData(struct HTTPHeader * output)
 {
@@ -51,12 +53,25 @@ int addPOSTDataBoundary(struct HTTPHeader * output,char * ptr)
 }
 
 
-
-
-int finalizePOSTData(struct HTTPHeader * output)
+char * reachNextLine(char * request,unsigned int requestLength)
 {
-  //TODO : Parse all boundaries here...
+  char * ptrA=request;
+  char * ptrB=request+1;
+  char * ptrC=request+2;
+  char * ptrD=request+3;
 
+  char * ptrEnd = request + requestLength;
+
+   while (ptrD<ptrEnd)
+    {
+      if ( (*ptrA==13) && (*ptrB==10) && (*ptrC==13) && (*ptrD==10) )
+        {
+          ++ptrD;
+         return ptrD;
+        }
+
+      ++ptrA;   ++ptrB;   ++ptrC;   ++ptrD;
+    }
 
 
 }
@@ -64,6 +79,28 @@ int finalizePOSTData(struct HTTPHeader * output)
 
 
 
+
+int finalizePOSTData(struct HTTPHeader * output)
+{
+ return 1;
+
+ unsigned int success=0;
+ unsigned int i=0;
+ unsigned int PNum=output->POSTItemNumber;
+ if (PNum>MAX_HTTP_POST_BOUNDARY_COUNT) { PNum=MAX_HTTP_POST_BOUNDARY_COUNT; }
+
+ for (i=0; i<PNum; i++)
+ {
+  AmmServer_Success("finalizePOSTData(%u)=%s\n",i,output->POSTItem[i].pointerStart);
+  char * configuration = reachNextLine(output->POSTItem[i].pointerStart ,  output->POSTrequestSize);
+
+  AmmServer_Warning("configuration(%u)=%s\n",i,configuration);
+
+
+ }
+
+ return (success!=PNum);
+}
 
 
 
@@ -73,9 +110,33 @@ int finalizePOSTData(struct HTTPHeader * output)
               ACESS POST DATA
 ----------------------------------------------
 */
-
 char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,char * nameToLookFor,unsigned int * pointerLength)
 {
+ unsigned int sizeOfNameToLookFor = strlen(nameToLookFor);
+
+ unsigned int i=0;
+ unsigned int PNum=rqst->POSTItemNumber;
+ if (PNum>MAX_HTTP_POST_BOUNDARY_COUNT) { PNum=MAX_HTTP_POST_BOUNDARY_COUNT; }
+
+ AmmServer_Success("getPointerToPOSTItem(%u)\n",PNum);
+ for (i=0; i<PNum; i++)
+ {
+    struct POSTRequestBoundaryContent * p = &rqst->POSTItem[i];
+    if (p->name!=0)
+    {
+     if (strncmp (p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
+     {
+      if (p->pointerEnd > p->pointerStart)
+       {
+        AmmServer_Success("getPointerToPOSTItem success \n");
+        *pointerLength = p->pointerEnd - p->pointerStart;
+        return p->pointerStart;
+       }
+     }
+    }
+ }
+
+ AmmServer_Warning("getPointerToPOSTItem called but could not find name=`%s` \n",nameToLookFor);
  *pointerLength=0;
  return 0;
 }
