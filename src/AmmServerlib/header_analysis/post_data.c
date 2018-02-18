@@ -82,8 +82,5 @@ char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,char * nameTo
 
 int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst)
 {
-//struct HTTPHeader * output = rqst->
-
-
- return 0;
+ return rqst->POSTItemNumber;
 }

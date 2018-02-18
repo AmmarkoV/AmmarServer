@@ -59,20 +59,20 @@ void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
     char token[1024]={0};
 
 
-    if ( _POST(rqst->instance,rqst,"user",user,1024)  )      { AmmServer_Success("User=`%s`", user);     ++thingsSubmited; } else
+    if ( _POST_OLD(rqst->instance,rqst,"user",user,1024)  )      { AmmServer_Success("User=`%s`", user);     ++thingsSubmited; } else
                                                              { AmmServer_Success("did not find a user"); }
 
-    if ( _POST(rqst->instance,rqst,"token",token,1024)  )    { AmmServer_Success("Token=`********`");     ++thingsSubmited; } else
+    if ( _POST_OLD(rqst->instance,rqst,"token",token,1024)  )    { AmmServer_Success("Token=`********`");     ++thingsSubmited; } else
                                                              { AmmServer_Success("did not find a token"); }
 
-    if ( _POST(rqst->instance,rqst,"title",title,1024)  )    { AmmServer_Success("Title=`%s`", title);     ++thingsSubmited; } else
+    if ( _POST_OLD(rqst->instance,rqst,"title",title,1024)  )    { AmmServer_Success("Title=`%s`", title);     ++thingsSubmited; } else
                                                              { AmmServer_Success("did not find a title"); }
 
-    if ( _POST(rqst->instance,rqst,"tags",tags,1024)  )      { AmmServer_Success("Tags=`%s`", tags);       ++thingsSubmited; } else
+    if ( _POST_OLD(rqst->instance,rqst,"tags",tags,1024)  )      { AmmServer_Success("Tags=`%s`", tags);       ++thingsSubmited; } else
                                                              { AmmServer_Success("did not find tags"); }
 
 
-    if ( _POST(rqst->instance,rqst,"myDoc",bodyText,4096)  ) { AmmServer_Success("Text=`%s`", bodyText);   ++thingsSubmited; } else
+    if ( _POST_OLD(rqst->instance,rqst,"myDoc",bodyText,4096)  ) { AmmServer_Success("Text=`%s`", bodyText);   ++thingsSubmited; } else
                                                              { AmmServer_Success("did not find text body"); }
 
 
