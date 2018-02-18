@@ -589,11 +589,25 @@ int _COOKIE(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest
     return AmmServer_CookieArg(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
-
-
-int _POST(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _POST_OLD(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
     return AmmServer_POSTArg(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
+}
+
+
+
+int _POSTNum(struct AmmServer_DynamicRequest * rqst)
+{
+ return getNumberOfPOSTItems(rqst);
+}
+
+
+
+char * _POST(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT)
+{
+ return getPointerToPOSTItem(rqst,var_id_IN,max_var_value_OUT);
+
+
 }
 
 int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)

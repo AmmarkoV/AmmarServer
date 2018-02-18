@@ -228,6 +228,9 @@ struct AmmServer_MemoryHandler
 */
 struct AmmServer_DynamicRequest
 {
+   struct AmmServer_Instance * instance;
+   unsigned int clientID;
+
    unsigned int headerResponse;
 
    char * content;
@@ -245,12 +248,11 @@ struct AmmServer_DynamicRequest
    char * POST_request;
    unsigned int POST_request_length;
 
+   unsigned int POSTItemNumber;
+   struct POSTRequestBoundaryContent * POSTItem; //<-    *THIS POINTS SOMEWHERE INSIDE THE STACK SO NEVER FREE IT ..!
+
    char * COOKIE_request;
    unsigned int COOKIE_request_length;
-
-   struct AmmServer_Instance * instance;
-
-   unsigned int clientID;
 };
 
 
@@ -758,10 +760,24 @@ int AmmServer_CookieArg(struct AmmServer_Instance * instance,struct AmmServer_Dy
 * @retval 1=Success,0=Failure */
 int AmmServer_FILES   (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
+
+/**
+* @brief Shorthand/Shortcut OLD implementation..
+* @ingroup shortcut */
+int _POST_OLD (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+
+
+
+
+/**
+* @brief Shorthand/Shortcut for AmmServer_POSTArgNumber()
+* @ingroup shortcut */
+int _POSTNum(struct AmmServer_DynamicRequest * rqst);
+
 /**
 * @brief Shorthand/Shortcut for AmmServer_POSTArg()
 * @ingroup shortcut */
-int _POST (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+char * _POST (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_GETArg()

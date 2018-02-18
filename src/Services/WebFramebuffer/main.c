@@ -125,6 +125,57 @@ void * prepare_update_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 void * prepare_upload_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+
+ /*
+-----------------------------83668502413335709751714991384
+Content-Disposition: form-data; name="name"
+
+ammar
+-----------------------------83668502413335709751714991384
+Content-Disposition: form-data; name="width"
+
+640
+-----------------------------83668502413335709751714991384
+Content-Disposition: form-data; name="height"
+
+480
+-----------------------------83668502413335709751714991384
+Content-Disposition: form-data; name="depth"
+
+24
+-----------------------------83668502413335709751714991384
+Content-Disposition: form-data; name="framenumber"
+
+1
+-----------------------------83668502413335709751714991384
+Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534c4d52a59b046105.jpg"
+*/
+
+   unsigned int numberOfPOSTItems =  _POSTNum(rqst);
+   fprintf(stderr,"We received %u POST items\n");
+
+   //We are looking for the POST form elements with name="Something"
+   unsigned int * nameSize=0;
+   char *  name = _POST(rqst,"name",nameSize);
+
+   unsigned int * widthSize=0;
+   char *  width = _POST(rqst,"width",nameSize);
+
+   unsigned int * heightSize=0;
+   char *  height = _POST(rqst,"height",nameSize);
+
+   unsigned int * depthSize=0;
+   char *  depth = _POST(rqst,"depth",nameSize);
+
+   unsigned int * framenumberSize=0;
+   char *  framenumber = _POST(rqst,"framenumber",nameSize);
+
+   unsigned int * uploadedfileSize=0;
+   char *  uploadedfile = _POST(rqst,"uploadedfile",nameSize);
+
+
+
+
    char uploadedFileUNSANITIZEDPath[513]={0};
    AmmServer_POSTNameOfFile (default_server,rqst,0,uploadedFileUNSANITIZEDPath,512);
    AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
