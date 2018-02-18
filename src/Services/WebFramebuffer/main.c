@@ -152,7 +152,7 @@ Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534
 */
 
    unsigned int numberOfPOSTItems =  _POSTNum(rqst);
-   fprintf(stderr,"We received %u POST items\n");
+   fprintf(stderr,"We received %u POST items\n",numberOfPOSTItems);
 
    //We are looking for the POST form elements with name="Something"
    unsigned int * nameSize=0;
