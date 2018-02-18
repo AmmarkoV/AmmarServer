@@ -23,6 +23,11 @@ int addPOSTDataBoundary(struct HTTPHeader * output,char * ptr);
 
 int finalizePOSTData(struct HTTPHeader * output);
 
+
+// ----------------------------------
+char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,char * nameToLookFor,unsigned int * pointerLength);
+int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst);
+
 #ifdef __cplusplus
 }
 #endif

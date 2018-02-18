@@ -62,3 +62,28 @@ int finalizePOSTData(struct HTTPHeader * output)
 }
 
 
+
+
+
+
+
+
+/*
+----------------------------------------------
+              ACESS POST DATA
+----------------------------------------------
+*/
+
+char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,char * nameToLookFor,unsigned int * pointerLength)
+{
+ *pointerLength=0;
+ return 0;
+}
+
+int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst)
+{
+//struct HTTPHeader * output = rqst->
+
+
+ return 0;
+}
