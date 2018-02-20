@@ -123,6 +123,17 @@ void AmmServer_Success( const char *format , ... )
 }
 
 
+void AmmServer_Info( const char *format , ... )
+{
+  va_list arglist;
+  va_start( arglist, format );
+  AmmServer_GeneralPrint(WHITE,"Info",format, &arglist );
+  va_end( arglist );
+}
+
+
+
+
 int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
   warning("AmmServer_Stop started ..\n");

@@ -28,6 +28,12 @@ int addPOSTDataBoundary(struct HTTPHeader * output,char * ptr)
     ++output->POSTItemNumber;
   }
 
+   //Get rid of New line..
+   if (*ptr==13) { ++ptr; }
+   if (*ptr==10) { ++ptr; }
+   if (*ptr==13) { ++ptr; }
+   if (*ptr==10) { ++ptr; }
+
    output->POSTItem[n].pointerStart=ptr;
    output->POSTItem[n].pointerEnd=ptr;
    output->POSTItem[n].contentSize=0;
@@ -52,8 +58,7 @@ int addPOSTDataBoundary(struct HTTPHeader * output,char * ptr)
   return 1;
 }
 
-
-char * reachNextLine(char * request,unsigned int requestLength)
+char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine)
 {
   char * ptrA=request;
   char * ptrB=request+1;
@@ -62,18 +67,56 @@ char * reachNextLine(char * request,unsigned int requestLength)
 
   char * ptrEnd = request + requestLength;
 
+  fprintf(stderr,"\nreachNextBlock for 13 10 13 10 on a buffer with %u bytes of data : ",requestLength);
    while (ptrD<ptrEnd)
     {
-      if ( (*ptrA==13) && (*ptrB==10) && (*ptrC==13) && (*ptrD==10) )
+      if ( ( (*ptrA==13) && (*ptrB==10) && (*ptrC==13) && (*ptrD==10) ) || (*ptrA==0) )
         {
-          ++ptrD;
+         ++ptrD;
+
+         *ptrA=0; //Also make null terminated string..
+         *endOfLine = ptrA-request;
+
+         fprintf(stderr,"done\n");
          return ptrD;
         }
-
+      fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
       ++ptrA;   ++ptrB;   ++ptrC;   ++ptrD;
     }
 
+ fprintf(stderr,"not found\n");
+ return request;
+}
 
+char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine)
+{
+  char * ptrA=request;
+
+  char * ptrEnd = request + requestLength;
+
+  fprintf(stderr,"\nreachNextLine for 13 10 13 10 on a buffer with %u bytes of data : ",requestLength);
+   while (ptrA<ptrEnd)
+    {
+      if ( (*ptrA==13) || (*ptrA==10) || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/ )
+        {
+         *ptrA=0; //Also make null terminated string..
+         *endOfLine = ptrA-request;
+
+         ++ptrA;
+         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
+         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
+         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
+
+         fprintf(stderr,"done\n");
+         return ptrA;
+        }
+       fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
+      ++ptrA;
+    }
+
+ fprintf(stderr,"not found\n");
+ * endOfLine = requestLength;
+ return request;
 }
 
 
@@ -82,8 +125,6 @@ char * reachNextLine(char * request,unsigned int requestLength)
 
 int finalizePOSTData(struct HTTPHeader * output)
 {
- return 1;
-
  unsigned int success=0;
  unsigned int i=0;
  unsigned int PNum=output->POSTItemNumber;
@@ -91,11 +132,17 @@ int finalizePOSTData(struct HTTPHeader * output)
 
  for (i=0; i<PNum; i++)
  {
-  AmmServer_Success("finalizePOSTData(%u)=%s\n",i,output->POSTItem[i].pointerStart);
-  char * configuration = reachNextLine(output->POSTItem[i].pointerStart ,  output->POSTrequestSize);
+  //fprintf(stderr,"output->POSTrequestSize=%u\n",output->POSTrequestSize);
+  //fprintf(stderr,"output->POSTrequestBodySize=%u\n",output->POSTrequestBodySize);
+  //AmmServer_Success("finalizePOSTData(%u)=`%s`\n",i,output->POSTItem[i].pointerStart);
+  unsigned int length=0;
+  char * configuration = output->POSTItem[i].pointerStart;
+  char * payload = reachNextBlock(output->POSTItem[i].pointerStart,  output->POSTrequestBodySize,&length);
+  reachNextLine(payload +1,  output->POSTrequestBodySize,&length);
 
-  AmmServer_Warning("configuration(%u)=%s\n",i,configuration);
 
+  AmmServer_Warning("configuration(%u)=`%s`\n",i,configuration);
+  AmmServer_Success("payload(%u)=`%s`\n",i,payload);
 
  }
 
