@@ -157,18 +157,23 @@ Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534
    //We are looking for the POST form elements with name="Something"
    unsigned int nameSize=0;
    char *  name = _POST(rqst,"name",&nameSize);
+   if (name!=0) { fprintf(stderr,"name=%s\n",name);}
 
    unsigned int widthSize=0;
    char *  width = _POST(rqst,"width",&widthSize);
+   if (width!=0) { fprintf(stderr,"width=%s\n",width);}
 
    unsigned int heightSize=0;
    char *  height = _POST(rqst,"height",&heightSize);
+   if (height!=0) { fprintf(stderr,"height=%s\n",height);}
 
    unsigned int depthSize=0;
    char *  depth = _POST(rqst,"depth",&depthSize);
+   if (depth!=0) { fprintf(stderr,"depth=%s\n",depth);}
 
    unsigned int framenumberSize=0;
    char *  framenumber = _POST(rqst,"framenumber",&framenumberSize);
+   if (framenumber!=0) { fprintf(stderr,"framenumber=%s\n",framenumber);}
 
    unsigned int uploadedfileSize=0;
    char *  uploadedfile = _POST(rqst,"uploadedfile",&uploadedfileSize);

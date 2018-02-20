@@ -11,6 +11,7 @@
 
  #include "post_data.h"
 
+
 /*
 Quick Reference -> A TYPICAL POST MESSAGE WITH A BINARY FILE CONTENT!
 ---------------------------------------------------------------------------
@@ -67,8 +68,8 @@ Content-Type: text/html
 
 unsigned int printLine(const char * request,unsigned int requestLength)
 {
-  char * ptrA=request;
-  char * ptrEnd = request+requestLength;
+  const char * ptrA=request;
+  const char * ptrEnd = request+requestLength;
 
   while (ptrA<ptrEnd)
     {
@@ -88,8 +89,8 @@ unsigned int printLine(const char * request,unsigned int requestLength)
 
 unsigned int foundNewLineBeforePosition(const char * request, const char * position)
 {
-  char * ptrA=request;
-  char * ptrEnd = position;
+  const char * ptrA=request;
+  const char * ptrEnd = position;
 
   while (ptrA<ptrEnd)
     {
@@ -111,7 +112,7 @@ unsigned int countStringUntilNewLine(char * request,unsigned int requestLength)
 
   char * ptrEnd = request + requestLength;
 
-  fprintf(stderr,"\ncountStringUntilNewLine for 13 or 10 at %u bytes of data : ",requestLength);
+  //fprintf(stderr,"\ncountStringUntilNewLine for 13 or 10 at %u bytes of data : ",requestLength);
    while (ptrA<ptrEnd)
     {
       if ( (*ptrA==13) || (*ptrA==10) || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/  )
@@ -119,17 +120,17 @@ unsigned int countStringUntilNewLine(char * request,unsigned int requestLength)
          *ptrA=0; //Also make null terminated string..
          endOfLine = (unsigned int) (ptrA-request);
 
-         fprintf(stderr,"done\n");
+         //fprintf(stderr,"done\n");
          return endOfLine;
         }
 
-
-       fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
+       //fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
 
       ++ptrA;
     }
 
- fprintf(stderr,"not found\n");
+ //fprintf(stderr,"not found\n");
+
  return endOfLine;
 }
 
@@ -150,8 +151,8 @@ int AnalyzePOSTLineRequest(
              return 0;
             }
 
-         fprintf(stderr,"AnalyzePOSTLineRequest ");
-         printLine(request,request_length);
+         //fprintf(stderr,"AnalyzePOSTLineRequest ");
+         //printLine(request,request_length);
 
          //If we just had a POST request , it  may have a file associated with it , so we will check for content tags..
          //Scanning for the case that the line is -> Content-Type: (i.e.) application/x-www-form-urlencoded
@@ -251,7 +252,7 @@ int AnalyzePOSTLineRequest(
              {
                if (!foundNewLineBeforePosition(request,foundBoundary))
                {
-                AmmServer_Success("CHECKED BOUNDARY AND FOUND IT");
+                //AmmServer_Success("CHECKED BOUNDARY AND FOUND IT");
                 return addPOSTDataBoundary(output,foundBoundary+output->boundaryLength);
                }
              }

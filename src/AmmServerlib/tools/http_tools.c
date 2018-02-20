@@ -858,7 +858,7 @@ char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsi
         {
           if (counter==0)
           {
-           fprintf(stderr,"Found Sequence %lu bytes inside POST Request..!\n",ptrD-request);
+           fprintf(stderr,"Found Sequence %u bytes inside POST Request..!\n",ptrD-request);
            *outputSize = requestLength - (ptrD-request);
            return ptrD+1;
           }
