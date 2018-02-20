@@ -240,8 +240,9 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 
   unsigned int i=0;
   while  (
-            (i<request_length) &&
-            (i<MAX_HTTP_REQUEST_HEADER_LINES)
+            (i<request_length)
+             // This is an extra safety but makes long POST request not work ..
+             //&& (i<MAX_HTTP_REQUEST_HEADER_LINES)
          )
    {
      switch (request[i])

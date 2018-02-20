@@ -328,7 +328,7 @@ int AnalyzeHTTPLineRequest(
      };
 
      //If we are a POST request also consider POST possibilities , implemented in post_header_analysis.c
-     if (output->requestType==POST)
+     if ( (MASTER_ENABLE_POST) && (output->requestType==POST) )
      {
         return AnalyzePOSTLineRequest(instance,output,request,request_length,lines_gathered );
      }

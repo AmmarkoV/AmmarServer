@@ -87,23 +87,23 @@ void * prepare_update_content_callback(struct AmmServer_DynamicRequest  * rqst)
   <table>\
    <tr>\
     <td> Name: </td>\
-    <td> <input type=\"text\" name=\"name\"> </td>\
+    <td> <input type=\"text\" name=\"name\" value=\"frame\"> </td>\
    </tr>\
    <tr>\
     <td> Width: </td>\
-    <td> <input type=\"text\" name=\"width\"> </td>\
+    <td> <input type=\"text\" name=\"width\" value=\"640\"> </td>\
    </tr>\
    <tr>\
     <td> Height: </td>\
-    <td> <input type=\"text\" name=\"height\"> </td>\
+    <td> <input type=\"text\" name=\"height\" value=\"480\"> </td>\
    </tr>\
    <tr>\
     <td> Depth: </td>\
-    <td> <input type=\"text\" name=\"depth\"> </td>\
+    <td> <input type=\"text\" name=\"depth\" value=\"24\"> </td>\
    </tr>\
    <tr>\
     <td> Frame Number: </td>\
-    <td> <input type=\"text\" name=\"framenumber\"> </td>\
+    <td> <input type=\"text\" name=\"framenumber\" value=\"0\"> </td>\
    </tr>\
   \
    <tr>\
