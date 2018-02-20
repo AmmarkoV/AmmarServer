@@ -9,10 +9,6 @@
 
 #include "../AmmServerlib.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 
 int wipePOSTData(struct HTTPHeader * output);
 
@@ -25,11 +21,8 @@ int finalizePOSTData(struct HTTPHeader * output);
 
 
 // ----------------------------------
-char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,char * nameToLookFor,unsigned int * pointerLength);
+char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength);
 int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif // POSTHEADERS_H_INCLUDED

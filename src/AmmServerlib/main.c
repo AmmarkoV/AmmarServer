@@ -36,6 +36,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "tools/logs.h"
 #include "tools/time_provider.h"
 
+#include "header_analysis/post_data.h"
+
 
 #include "templates/editor.h"
 #include "templates/login.h"
@@ -612,13 +614,13 @@ int _POSTNum(struct AmmServer_DynamicRequest * rqst)
  return getNumberOfPOSTItems(rqst);
 }
 
-
-
 char * _POST(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT)
 {
- return getPointerToPOSTItem(rqst,var_id_IN,max_var_value_OUT);
+  char * ptr = getPointerToPOSTItem(rqst,var_id_IN,max_var_value_OUT);
 
+  //AmmServer_Success("_POST(%s) success => %p \n",var_id_IN,ptr);
 
+  return ptr;
 }
 
 int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)

@@ -84,6 +84,9 @@ struct POSTRequestBoundaryContent
    char *       name;
    unsigned int nameSize;
 
+   char *       value;
+   unsigned int valueSize;
+
    char *       filename;
    unsigned int filenameSize;
 

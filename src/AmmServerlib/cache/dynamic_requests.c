@@ -179,17 +179,18 @@ char * dynamicRequest_serveContent
                     {
                      memcpy(rqst , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
 
+                     rqst->POSTItemNumber = request->POSTItemNumber;
+                     rqst->POSTItem       = request->POSTItem;  //<- NEVER free this here since it is stack allocated..
+
                      fprintf(stderr,"Request for a maximum of %lu characters ( %lu ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
                      fprintf(stderr,"POST : %p , %u bytes\n",rqst->POST_request , rqst->POST_request_length );
+                     fprintf(stderr,"POSTItems : %p , %u items\n",rqst->POSTItem , rqst->POSTItemNumber );
                      fprintf(stderr,"GET : %p , %u bytes\n",rqst->GET_request , rqst->GET_request_length );
                      fprintf(stderr,"COOKIE : %p , %u bytes\n",rqst->COOKIE_request , rqst->COOKIE_request_length );
 
-                     rqst->POSTItemNumber = request->POSTItemNumber;
-                     rqst->POSTItem       = request->POSTItem;  //<- NEVER free this here since it is stack allocated..
-                     if ( (rqst->POSTItem!=0) || (rqst->POSTItemNumber!=0) )
+                     if ( (rqst->POSTItemNumber!=0) )
                      {
-                     fprintf(stderr,CYAN "Using the new POST system.. may our client have mercy on our POST request..\n" NORMAL);
-
+                      fprintf(stderr,CYAN "Using the new POST system.. may our client have mercy on our POST request..\n" NORMAL);
                      }
 
                      rqst->content=cacheMemory;
