@@ -511,9 +511,20 @@ int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_typ
 }
 
 
-int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+
+
+
+/*
+  ---------------------------------------------------
+
+             POST / GET / FILE Access..
+
+  ---------------------------------------------------
+*/
+
+int AmmServer_POSTArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-  if ( (instance==0) || (rqst==0) ) { return 0; }
+  if (rqst==0)  { return 0; }
   if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
    {
      return StripVariableFromGETorPOSTString(rqst->POST_request,var_id_IN,var_value_OUT,max_var_value_OUT);
@@ -522,11 +533,9 @@ int AmmServer_POSTArg(struct AmmServer_Instance * instance,struct AmmServer_Dyna
   return 0;
 }
 
-
-
-char * AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength)
+char * AmmServer_POSTArgGetPointer(struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength)
 {
-  if ( (instance==0) || (rqst==0) ) { return 0; }
+  if ( (rqst==0) ) { return 0; }
 
    if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) )
      {
@@ -536,10 +545,10 @@ char * AmmServer_POSTArgGetPointer(struct AmmServer_Instance * instance,struct A
   return 0;
 }
 
-int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename)
+int AmmServer_POSTArgToFile (struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename)
 {
   unsigned int filePointerLength=0;
-  char * filePointer = AmmServer_POSTArgGetPointer(instance,rqst,argumentSelected,&filePointerLength);
+  char * filePointer = AmmServer_POSTArgGetPointer(rqst,argumentSelected,&filePointerLength);
 
    if  ( (filePointer!=0)  && (filePointerLength>0) )
      {
@@ -552,9 +561,9 @@ int AmmServer_POSTArgToFile (struct AmmServer_Instance * instance,struct AmmServ
 
 
 
-int AmmServer_POSTNameOfFile (struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,char * filenameOut, unsigned int filenameSize)
+int AmmServer_POSTNameOfFile (struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,char * filenameOut, unsigned int filenameSize)
 {
-  if ( (instance==0) || (rqst==0) ) { return 0; }
+  if (  (rqst==0) ) { return 0; }
 
    if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) )
      {
@@ -564,9 +573,9 @@ int AmmServer_POSTNameOfFile (struct AmmServer_Instance * instance,struct AmmSer
 }
 
 
-int AmmServer_CookieArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_CookieArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-  if ( (instance==0) || (rqst==0) ) { return 0; }
+  if ( (rqst==0) ) { return 0; }
   if  (  ( rqst->GET_request !=0 ) && ( rqst->GET_request_length !=0 ) && ( strlen(rqst->GET_request)>0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
    {
      return StripVariableFromGETorPOSTString(rqst->GET_request,var_id_IN,var_value_OUT,max_var_value_OUT);
@@ -576,9 +585,9 @@ int AmmServer_CookieArg(struct AmmServer_Instance * instance,struct AmmServer_Dy
 }
 
 
-int AmmServer_GETArg(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_GETArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-  if ( (instance==0) || (rqst==0) ) { return 0; }
+  if ( (rqst==0) ) { return 0; }
   if  (  ( rqst->GET_request !=0 ) && ( rqst->GET_request_length !=0 ) && ( strlen(rqst->GET_request)>0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
    {
      return StripVariableFromGETorPOSTString(rqst->GET_request,var_id_IN,var_value_OUT,max_var_value_OUT);
@@ -587,9 +596,9 @@ int AmmServer_GETArg(struct AmmServer_Instance * instance,struct AmmServer_Dynam
   return 0;
 }
 
-int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int AmmServer_FILES(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-  if ( (instance==0) || (rqst==0) ) { return 0; }
+  if ( (rqst==0) ) { return 0; }
   if ( (rqst==0) || (var_id_IN==0) || (var_value_OUT==0) || (max_var_value_OUT==0) )  { return 0; }
   fprintf(stderr,"AmmServer_FILES failed , called with incorrect parameters..\n");
   return 0;
@@ -597,14 +606,14 @@ int AmmServer_FILES(struct AmmServer_Instance * instance,struct AmmServer_Dynami
 
 /*User friendly aliases of the above calls.. :P */
 
-int _COOKIE(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_CookieArg(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_CookieArg(rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
-int _POST_OLD(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _POST_OLD(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_POSTArg(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_POSTArg(rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
 
@@ -616,26 +625,22 @@ int _POSTNum(struct AmmServer_DynamicRequest * rqst)
 
 char * _POST(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT)
 {
-  char * ptr = getPointerToPOSTItem(rqst,var_id_IN,max_var_value_OUT);
-
-  //AmmServer_Success("_POST(%s) success => %p \n",var_id_IN,ptr);
-
-  return ptr;
+ return  getPointerToPOSTItem(rqst,var_id_IN,max_var_value_OUT);
 }
 
-int _GET(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _GET(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_GETArg(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
+    return AmmServer_GETArg(rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
 
-unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN, unsigned int * foundArgument)
+unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN, unsigned int * foundArgument)
 {
   if (foundArgument==0) { return 0; }
   *foundArgument=0;
 
-  if (instance==0) { return 0; }
   if (rqst==0) { return 0; }
+  if (rqst->instance==0) { return 0; }
   if (var_id_IN==0) { return 0; }
 
     unsigned int uintToReturn=0;
@@ -646,7 +651,7 @@ unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_Dyna
          char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
          if (bufferCommand!=0)
           {
-            if ( _GET(rqst->instance,rqst,var_id_IN,bufferCommand,256) )
+            if ( _GET(rqst,var_id_IN,bufferCommand,256) )
             {
              uintToReturn=atoi(bufferCommand);
              *foundArgument=1;
@@ -659,22 +664,30 @@ unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_Dyna
     return uintToReturn;
 }
 
-int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName,enum TypesOfRequestFields POSTType,unsigned int * outputSize)
 {
-    return AmmServer_FILES(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
+  switch (POSTType)
+  {
+    case NAME :     break;
+    case FILENAME : break;
+    case TEMPNAME : break;
+    case TYPE :     break;
+    case SIZE :     break;
+  };
+ return 0;
 }
 
 
-int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst)
+int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_DynamicRequest * rqst)
 {
-   if ( (instance==0) || (rqst==0) ) { return 0; }
+   if ( (rqst==0) || (rqst->instance==0) ) { return 0; }
    fprintf(stderr,"AmmServer_SignalCountAsBadClientBehaviour is a stub ..\n");
    return 0;
 }
 
-int AmmServer_SaveDynamicRequest(const char* filename , struct AmmServer_Instance * instance  , struct AmmServer_DynamicRequest * rqst)
+int AmmServer_SaveDynamicRequest(const char* filename , struct AmmServer_DynamicRequest * rqst)
 {
-    return saveDynamicRequest(filename,instance,rqst);
+    return saveDynamicRequest(filename,rqst->instance,rqst);
 }
 
 

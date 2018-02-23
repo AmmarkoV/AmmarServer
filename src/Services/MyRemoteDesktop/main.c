@@ -103,12 +103,12 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
  char xCoord[128]={0};
  char yCoord[128]={0};
  char commandStr[128]={0};
-  if ( _GET(default_server,rqst,"x",xCoord,128) )  { x=atoi(xCoord); }
-  if ( _GET(default_server,rqst,"y",yCoord,128) )  { y=atoi(yCoord); }
-  if ( _GET(default_server,rqst,"k",commandStr,128) )  { fprintf(stderr,"Keystroke %s",commandStr);
+  if ( _GET(rqst,"x",xCoord,128) )  { x=atoi(xCoord); }
+  if ( _GET(rqst,"y",yCoord,128) )  { y=atoi(yCoord); }
+  if ( _GET(rqst,"k",commandStr,128) )  { fprintf(stderr,"Keystroke %s",commandStr);
                                                          dokey=atoi(commandStr); }
-  if ( _GET(default_server,rqst,"click",commandStr,128) )  { doclick=1;  }
-  if ( _GET(default_server,rqst,"dblclick",commandStr,128) )  { do2xclick=1;  }
+  if ( _GET(rqst,"click",commandStr,128) )  { doclick=1;  }
+  if ( _GET(rqst,"dblclick",commandStr,128) )  { do2xclick=1;  }
 
 
  if ( (x>5) || (y>5) )
