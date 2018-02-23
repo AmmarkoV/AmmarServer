@@ -25,4 +25,6 @@ char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,const char * 
 int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst);
 
 
+char * getPointerToPOSTFile(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * fileLength);
+
 #endif // POSTHEADERS_H_INCLUDED

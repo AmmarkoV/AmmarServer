@@ -182,11 +182,11 @@ Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534
 
 
    char uploadedFileUNSANITIZEDPath[513]={0};
-   AmmServer_POSTNameOfFile (default_server,rqst,0,uploadedFileUNSANITIZEDPath,512);
+   AmmServer_POSTNameOfFile (rqst,0,uploadedFileUNSANITIZEDPath,512);
    AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
 
    unsigned int filePointerLength=0;
-   char * data = AmmServer_POSTArgGetPointer(default_server,rqst,0,&filePointerLength);
+   char * data = AmmServer_POSTArgGetPointer(rqst,0,&filePointerLength);
 
 
    if ( storeImage(storage,0,data,filePointerLength) )

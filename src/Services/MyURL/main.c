@@ -442,7 +442,7 @@ void * serve_captcha_page(struct AmmServer_DynamicRequest  * rqst)
 {
   #if ENABLE_CAPTCHA_SYSTEM
   char captchaIDStr[MAX_LONG_URL_SIZE]={0};
-  if ( _GET(myurl_server,rqst,"id",captchaIDStr,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaIDStr); }
+  if ( _GET(rqst,"id",captchaIDStr,MAX_LONG_URL_SIZE) ) { fprintf(stderr,"Captcha ID for image requested %s \n",captchaIDStr); }
   unsigned int captchaID = atoi(captchaIDStr);
 
   rqst->contentSize=rqst->MAXcontentSize;
@@ -495,23 +495,23 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
         char captchaReply[MAX_LONG_URL_SIZE]={0};
         char captchaIDStr[MAX_LONG_URL_SIZE]={0};
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
-        if ( _GET(myurl_server,rqst,"url",url,MAX_LONG_URL_SIZE) )
+        if ( _GET(rqst,"url",url,MAX_LONG_URL_SIZE) )
              {
                #if ENABLE_CAPTCHA_SYSTEM
-               if ( _GET(myurl_server,rqst,"captchaID",captchaIDStr,MAX_LONG_URL_SIZE) )
+               if ( _GET(rqst,"captchaID",captchaIDStr,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha ID submited %s \n",captchaIDStr); }
-               if ( _GET(myurl_server,rqst,"captcha",captchaReply,MAX_LONG_URL_SIZE) )
+               if ( _GET(rqst,"captcha",captchaReply,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha submited %s \n",captchaReply); }
 
                unsigned int captchaID = atoi(captchaIDStr);
                if ( ! AmmCaptcha_isReplyCorrect(captchaID , captchaReply) )
                 {
                  strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>",rqst->MAXcontentSize);
-                 AmmServer_SignalCountAsBadClientBehaviour(myurl_server,rqst);
+                 AmmServer_SignalCountAsBadClientBehaviour(rqst);
                 } else
                #endif
 
-               if ( _GET(myurl_server,rqst,"to",to,MAX_TO_SIZE) )
+               if ( _GET(rqst,"to",to,MAX_TO_SIZE) )
                 {
                   //Assigning a (short)to to a (long)url
                   if ( (is_an_unsafe_str(to,strlen(to))) || (is_an_unsafe_str(url,strlen(url)) ) ) //There should be an internal length of the get argument instead of strlen!
@@ -531,7 +531,7 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
                 }
              } else
          //If only to is set it means we have ourselves somewhere to go to!
-         if ( _GET(myurl_server,rqst,"to",to,MAX_TO_SIZE) )
+         if ( _GET(rqst,"to",to,MAX_TO_SIZE) )
              {
                 snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='%s'\"></head><body></body></html>",Get_longURL(to));
              }

@@ -231,6 +231,9 @@ int finalizePOSTData(struct HTTPHeader * output)
               ACCESS POST DATA
 ----------------------------------------------
 */
+
+
+
 char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength)
 {
  unsigned int sizeOfNameToLookFor = strlen(nameToLookFor);
@@ -266,3 +269,18 @@ int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst)
 {
  return rqst->POSTItemNumber;
 }
+
+
+
+char * getPointerToPOSTFile(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * fileLength)
+{
+}
+
+
+
+
+
+
+
+
+

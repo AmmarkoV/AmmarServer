@@ -13,7 +13,7 @@ void * home_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   int haveSessionRequested=0;
   char sessionID[128]={0};
-  if ( _GET(rqst->instance,rqst,"s",sessionID,128) )     { haveSessionRequested=1; }
+  if ( _GET(rqst,"s",sessionID,128) )     { haveSessionRequested=1; }
 
   if (haveSessionRequested)
   {
