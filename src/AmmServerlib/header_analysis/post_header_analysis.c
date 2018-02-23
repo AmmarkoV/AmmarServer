@@ -181,7 +181,7 @@ int AnalyzePOSTLineRequest(
             case POSTHEADER_CONTENT_TYPE :
                  payload_start+=strlen("CONTENT-TYPE:");
                  //if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
-                 output->contentTypeIndex=payload_start;
+                 //output->contentTypeIndex=payload_start;
                  output->contentType=request+payload_start;
                  output->contentTypeLength=request_length-payload_start;
                  char * boundary = strstr(request+payload_start,"boundary=");
@@ -194,7 +194,6 @@ int AnalyzePOSTLineRequest(
                          fprintf(stderr,"Detected a Boundary\n");
                          boundary+=9; //Skip the characters `boundary=`
                          output->boundary =  boundary;//GetNewStringFromHTTPHeaderFieldPayload(boundary,output->boundaryLength);
-
 
                          output->boundaryLength = countStringUntilNewLine(boundary,request_length); //TODO: request_length is not be correct..
                          fprintf(stderr,"Detected Boundary Length is = %u \n",output->boundaryLength);
@@ -234,7 +233,7 @@ int AnalyzePOSTLineRequest(
 
             case POSTHEADER_CONTENT_DISPOSITION :
                 payload_start+=strlen("CONTENT-DISPOSITION:");
-                output->contentDispositionIndex=payload_start;
+                //output->contentDispositionIndex=payload_start;
                 output->contentDisposition=request+payload_start;
                 output->contentDispositionLength=request_length-payload_start;
                 return 1;

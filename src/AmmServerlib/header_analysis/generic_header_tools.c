@@ -146,21 +146,45 @@ int clearHeader(struct HTTPHeader * hdr)
 }
 
 
-int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * transaction)
+inline char * _recalculatePosition(const char * oldPosition,const char * oldBaseAddress,const char *newAddress)
+{
+ if (oldPosition==0) { return 0; }
+ return newAddress + (unsigned int) (oldPosition - oldBaseAddress);
+}
+
+
+int recalculateHeaderFieldsBasedOnANewBaseAddress(
+                                                  char * oldBaseAddress,
+                                                  struct HTTPTransaction * transaction
+                                                  )
 {
   if ( (transaction==0) || (transaction->incomingHeader.headerRAW==0) )
   {
    return 0;
   }
-   char * newbase=transaction->incomingHeader.headerRAW ;
-   transaction->incomingHeader.cookie             = newbase+ transaction->incomingHeader.cookieIndex;
-   transaction->incomingHeader.host               = newbase + transaction->incomingHeader.hostIndex;
-   transaction->incomingHeader.referer            = newbase + transaction->incomingHeader.refererIndex;
-   transaction->incomingHeader.eTag               = newbase + transaction->incomingHeader.eTagIndex;
-   transaction->incomingHeader.userAgent          = newbase + transaction->incomingHeader.userAgentIndex;
-   transaction->incomingHeader.contentType        = newbase + transaction->incomingHeader.contentTypeIndex;
-   transaction->incomingHeader.contentDisposition = newbase + transaction->incomingHeader.contentDispositionIndex;
-   transaction->incomingHeader.boundary           = newbase + transaction->incomingHeader.boundaryIndex;
+   char * newBaseAddress=transaction->incomingHeader.headerRAW ;
+   transaction->incomingHeader.cookie             =  _recalculatePosition(transaction->incomingHeader.cookie            ,oldBaseAddress ,newBaseAddress);
+   transaction->incomingHeader.host               =  _recalculatePosition(transaction->incomingHeader.host              ,oldBaseAddress ,newBaseAddress);
+   transaction->incomingHeader.referer            =  _recalculatePosition(transaction->incomingHeader.referer           ,oldBaseAddress ,newBaseAddress);
+   transaction->incomingHeader.eTag               =  _recalculatePosition(transaction->incomingHeader.eTag              ,oldBaseAddress ,newBaseAddress);
+   transaction->incomingHeader.userAgent          =  _recalculatePosition(transaction->incomingHeader.userAgent         ,oldBaseAddress ,newBaseAddress);
+   transaction->incomingHeader.contentType        =  _recalculatePosition(transaction->incomingHeader.contentType       ,oldBaseAddress ,newBaseAddress);
+   transaction->incomingHeader.contentDisposition =  _recalculatePosition(transaction->incomingHeader.contentDisposition,oldBaseAddress ,newBaseAddress);
+   transaction->incomingHeader.boundary           =  _recalculatePosition(transaction->incomingHeader.boundary          ,oldBaseAddress ,newBaseAddress);
+
+
+   unsigned int i=0;
+   for (i=0; i<transaction->incomingHeader.POSTItemNumber; i++)
+   {
+    transaction->incomingHeader.POSTItem[i].pointerStart       =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].pointerStart       ,oldBaseAddress ,newBaseAddress);
+    transaction->incomingHeader.POSTItem[i].pointerEnd         =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].pointerEnd         ,oldBaseAddress ,newBaseAddress);
+    transaction->incomingHeader.POSTItem[i].name               =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].name               ,oldBaseAddress ,newBaseAddress);
+    transaction->incomingHeader.POSTItem[i].value              =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].value              ,oldBaseAddress ,newBaseAddress);
+    transaction->incomingHeader.POSTItem[i].filename           =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].filename           ,oldBaseAddress ,newBaseAddress);
+    transaction->incomingHeader.POSTItem[i].contentDisposition =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].contentDisposition ,oldBaseAddress ,newBaseAddress);
+    transaction->incomingHeader.POSTItem[i].contentType        =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].contentType        ,oldBaseAddress ,newBaseAddress);
+   }
+
    return 1;
 }
 
@@ -168,56 +192,93 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * trans
 
 int growHeader(struct HTTPTransaction * transaction)
 {
- if (transaction==0) { return 0; }
-  if (transaction->incomingHeader.failed) { AmmServer_Error("Will not try to grow a failed Header \n"); return 0; }
+ if (transaction==0)  { return 0; }
+ if (transaction->incomingHeader.failed)
+     {
+      AmmServer_Error("Will not try to grow a failed Header \n");
+      return 0;
+     }
 
   struct HTTPHeader * hdr =  &transaction->incomingHeader;
-  if (hdr == 0 )  { AmmServer_Error("Cannot grow header on transaction with no header.."); return 0; }
+  if (hdr == 0 )
+     {
+      AmmServer_Error("Cannot grow header on transaction with no header..");
+      return 0;
+     }
 
   struct AmmServer_Instance * instance = transaction->instance;
-  if (instance == 0 )  { AmmServer_Error("Cannot grow header on transaction with no registered server instance..");  return 0; }
+  if (instance == 0 )
+    {
+      AmmServer_Error("Cannot grow header on transaction with no registered server instance..");
+      return 0;
+    }
 
-  fprintf(stderr,"growHeader called can grow up to %u \n",instance->settings.MAX_POST_TRANSACTION_SIZE);
 
-  //We have a requested header Size
+  //We need to remember our old address!
+  //In case realloc changes our base address we will need to recalculate all of our pointers..
+  char * oldHeaderAddress    = hdr->headerRAW;
+  unsigned int oldHeaderSize = hdr->MAXheaderRAWSize;
+
+  //The new wannabe header size is defined by our previous plus the growth step from our configurations
   unsigned int wannabeHeaderSize = hdr->MAXheaderRAWSize + HTTP_POST_GROWTH_STEP_REQUEST_HEADER;
+
+  //If we know where we are headerd..
   if (hdr->headerRAWRequestedSize!=0)
   {
+   //And if we are still under the maximum POST transaction header size
    if (hdr->headerRAWRequestedSize <= instance->settings.MAX_POST_TRANSACTION_SIZE)
    {
     wannabeHeaderSize = hdr->headerRAWRequestedSize ; // + transaction->incomingHeader.headerHeadSize;
    } else
    {
-    fprintf(stderr,"Cannot grow header , requested size ( %u is more than our limit %u )\n",hdr->headerRAWRequestedSize,instance->settings.MAX_POST_TRANSACTION_SIZE);
-    hdr->dumpedToFile=1; fprintf(stderr,"This should be handled by dumping to /tmp/files \n");
+    AmmServer_Error("Configuration does not allow growing the incoming header accomodation memory any more ( now %u / limit %u )",hdr->headerRAWRequestedSize,instance->settings.MAX_POST_TRANSACTION_SIZE);
+    AmmServer_Error("This header should be probably handled by dumping to /tmp/files");
+    hdr->dumpedToFile=1;
     return 0;
    }
   }
 
- if (hdr->MAXheaderRAWSize < instance->settings.MAX_POST_TRANSACTION_SIZE )
-   { //There is still room for incrementing the size of the buffer
-     if (wannabeHeaderSize > instance->settings.MAX_POST_TRANSACTION_SIZE )
-            { wannabeHeaderSize = instance->settings.MAX_POST_TRANSACTION_SIZE; }
-      fprintf(stderr,"Growing ");
-     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+2) );
 
+ //There is still room for incrementing the size of the buffer
+  if (hdr->MAXheaderRAWSize < instance->settings.MAX_POST_TRANSACTION_SIZE )
+   {
+     //We will not allow the header to be any more than our settings allow..!
+     if (wannabeHeaderSize > instance->settings.MAX_POST_TRANSACTION_SIZE )
+                { wannabeHeaderSize = instance->settings.MAX_POST_TRANSACTION_SIZE; }
+
+
+
+     //We will not allow the header to be any more than our settings allow..!
+     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+2) );
      if (newBuffer!=0 )
      {
+
+       newBuffer[wannabeHeaderSize]=0; //First of all null terminate the new header space..
        hdr->headerRAW=newBuffer;
        hdr->MAXheaderRAWSize = wannabeHeaderSize;
-       recalculateHeaderFieldsBasedOnANewBaseAddress(transaction);
+
+       //Clean up new part of extra memory
+       memset(newBuffer+oldHeaderSize,0,wannabeHeaderSize-oldHeaderSize);
+
+       //In case realloc moved us to a new memory location we need to recalculate the header fields..
+       if (oldHeaderAddress!=newBuffer)
+       {
+         recalculateHeaderFieldsBasedOnANewBaseAddress(oldHeaderAddress,transaction);
+       }
+
        return 1;
      } else
      {
-       fprintf(stderr,"Failed to grow header , out of memory ? \n");
-       hdr->dumpedToFile=1; fprintf(stderr,"This should be handled by dumping to /tmp/files \n");
+       AmmServer_Error("Failed to grow header , did we just run out of memory ?\n");
+       AmmServer_Error("This header should be probably handled by dumping to /tmp/files");
+       hdr->dumpedToFile=1;
      }
     } else
     {
-      fprintf(stderr,"Failed to grow header , reached max header limit \n");
-      hdr->dumpedToFile=1; fprintf(stderr,"This should be handled by dumping to /tmp/files \n");
+      AmmServer_Error("Failed to grow header , we reached max header limit\n");
+      AmmServer_Error("This header should be probably handled by dumping to /tmp/files");
+      hdr->dumpedToFile=1;
     }
-
 
   return 0;
 }
@@ -231,7 +292,7 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
   char * webserver_root = instance->webserver_root;
   struct HTTPHeader * output  = &transaction->incomingHeader;
 
-
+  //TODO : improve this ?
   char * request = output->headerRAW + output->parsingStartOffset;
   unsigned int request_length = transaction->incomingHeader.headerRAWSize;
   char * startOfNewLine=request;

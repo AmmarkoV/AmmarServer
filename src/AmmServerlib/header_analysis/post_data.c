@@ -154,8 +154,14 @@ unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int request
 }
 
 //From : https://stackoverflow.com/questions/23999797/implementing-strnstr#25705264
-char *strnstr(const char *haystack,const char *needle, size_t len)
+char * strnstr(const char *haystack,const char *needle, size_t len)
 {
+  return strstr(haystack,needle);
+  //This causes :
+  //==10123== Invalid read of size 1
+  //==10123==    at 0x4C317F9: __strncmp_sse42 (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+  //==10123==    by 0x40E81B: getPOSTItemFromName (post_data.c:279)
+
         int i;
         size_t needle_len;
 
@@ -276,7 +282,7 @@ const struct POSTRequestBoundaryContent * getPOSTItemFromName(struct AmmServer_D
     //AmmServer_Info("POSTItem[%u].name = %s and we have %s \n",i,p->name,nameToLookFor);
     if (p->name!=0)
     {
-     if (strncmp (p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
+     if (strncmp(p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
      {
        return p;
      }
