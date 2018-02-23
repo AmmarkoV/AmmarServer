@@ -661,7 +661,7 @@ unsigned int _GETuint(struct AmmServer_Instance * instance,struct AmmServer_Dyna
 
 int _FILES(struct AmmServer_Instance * instance,struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_FILES(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
+   // return AmmServer_FILES(instance,rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
 
 

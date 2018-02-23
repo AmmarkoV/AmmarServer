@@ -177,6 +177,7 @@ Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534
 
    unsigned int uploadedfileSize=0;
    char *  uploadedfile = _POST(rqst,"uploadedfile",&uploadedfileSize);
+   if (uploadedfile!=0) { fprintf(stderr,"uploadedfile size=%u , content=%s\n",uploadedfileSize,uploadedfile);}
 
    fprintf(stderr,"We received all pointers\n");
 
