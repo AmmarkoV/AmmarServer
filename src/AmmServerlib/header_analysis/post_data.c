@@ -216,6 +216,7 @@ int finalizePOSTData(struct HTTPHeader * output)
        output->POSTItem[i].value = payload;
        //TODO : output->boundary value is wrong..
         AmmServer_Success("Searching for boundary (%s) in file payload..!",output->boundary);
+        fprintf(stderr,"Searching for boundary that points to %p \n",output->boundary); //Do not print all the file here..
        char * payloadEnd =  strnstr(payload,output->boundary,length);
 
        if (payloadEnd!=0)

@@ -150,8 +150,6 @@ struct HTTPHeader
    unsigned long POSTrequestBodySize;
 
 
-
-
    unsigned char authorized;
    unsigned char keepalive;
    unsigned char supports_compression;
@@ -168,36 +166,36 @@ struct HTTPHeader
    //and performance on the maximum , they have to be refreshed if memory gets reallocated:P
 
    unsigned int cookieIndex;
-   char * cookie; //<-   *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int cookieLength;
+   char * cookie; //<-   *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int hostIndex;
-   char * host; //<-     *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int hostLength;
+   char * host; //<-     *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int refererIndex;
-   char * referer; //<-  *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int refererLength;
+   char * referer; //<-  *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int eTagIndex;
-   char * eTag; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int eTagLength;
+   char * eTag; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int userAgentIndex;
-   char * userAgent; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int userAgentLength;
+   char * userAgent; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int contentTypeIndex;
-   char * contentType; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int contentTypeLength;
+   char * contentType; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int contentDispositionIndex;
-   char * contentDisposition;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int contentDispositionLength;
+   char * contentDisposition;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int boundaryIndex;
-   char * boundary;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
    unsigned int boundaryLength;
+   char * boundary;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int POSTItemNumber;
    struct POSTRequestBoundaryContent POSTItem[MAX_HTTP_POST_BOUNDARY_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *

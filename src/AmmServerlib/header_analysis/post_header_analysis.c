@@ -191,25 +191,28 @@ int AnalyzePOSTLineRequest(
                          return 0;
                       } else
                       {
+                         fprintf(stderr,"Detected a Boundary\n");
                          boundary+=9; //Skip the characters `boundary=`
+                         output->boundary =  boundary;//GetNewStringFromHTTPHeaderFieldPayload(boundary,output->boundaryLength);
 
-                         fprintf(stderr,"Detected a Boundary\n"); //Do not print all the file here..
-                         //fprintf(stderr,"Detected Boundary is = %s \n",boundary); //Do not print all the file here..
 
-                         freeString(&output->boundary);
-
-                         //fprintf(stderr,"request_length = %u \n",request_length);
                          output->boundaryLength = countStringUntilNewLine(boundary,request_length); //TODO: request_length is not be correct..
                          fprintf(stderr,"Detected Boundary Length is = %u \n",output->boundaryLength);
+
 
                          if (output->boundaryLength>64)
                          {
                            AmmServer_Error("Huge POST boundary requested, we reject it (%u)..",output->boundaryLength);
                            output->boundaryLength = 0;
+                           output->boundary =0;
                            return 0;
+                         } else
+                         {
+                          //Null terminate boundary
+                          output->boundary[output->boundaryLength]=0;
                          }
 
-                         output->boundary = GetNewStringFromHTTPHeaderFieldPayload(boundary,output->boundaryLength);
+
                          if (output->boundary==0)
                             {
                               fprintf(stderr,"Could not get boundary\n");
@@ -217,7 +220,8 @@ int AnalyzePOSTLineRequest(
                               return 0;
                             } else
                             {
-                             fprintf(stderr,"Detected Boundary is = %s \n",output->boundary); //Do not print all the file here..
+                             fprintf(stderr,"Detected Boundary is = `%s` \n",output->boundary); //Do not print all the file here..
+                             fprintf(stderr,"Detected Boundary points to %p \n",output->boundary); //Do not print all the file here..
                              if (createPOSTData(output) )
                              {
                               return 1;
