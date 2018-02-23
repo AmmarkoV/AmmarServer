@@ -178,6 +178,9 @@ Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534
    unsigned int uploadedfileSize=0;
    char *  uploadedfile = _POST(rqst,"uploadedfile",&uploadedfileSize);
 
+   unsigned int fSize=0;
+   const char * f = _FILES(rqst,"uploadedfile",VALUE,&fSize);
+   AmmServer_WriteFileFromMemory("test.jpg",f,fSize);
    fprintf(stderr,"We received all pointers\n");
 
 
