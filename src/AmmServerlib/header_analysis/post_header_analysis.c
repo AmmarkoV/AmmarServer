@@ -275,8 +275,7 @@ int TokenizePOSTFiles(
                      )
 {
   //! TODO strstr ( output->boundary )
-
-  AmmServer_Error("Reached TokenizePOSTFiles call but it is a stub with no implementation..\n");
+  AmmServer_Stub("Reached TokenizePOSTFiles call but it is a stub with no implementation..\n");
   return 0;
 }
 

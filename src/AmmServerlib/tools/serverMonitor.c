@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
+
+#include "../cache/file_caching.h"
+
 #include "../network/file_server.h"
 #include "../threads/threadedServer.h"
 
@@ -59,7 +62,7 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
 
 
    char command[1024]={0};
-  if ( _GET(instance,rqst,(char*) "stop",command,1024) )
+  if ( _GET(rqst,(char*) "stop",command,1024) )
       {
          fprintf(stderr,"stop %u requested\n",atoi(command));
       }

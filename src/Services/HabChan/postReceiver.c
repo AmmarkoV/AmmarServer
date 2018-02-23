@@ -26,13 +26,13 @@ void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
     {
       if ( strlen(rqst->GET_request)>0 )
        {
-         if ( _GET(default_server,rqst,"board",boardName,MAX_STRING_SIZE) ) { }
-         if ( _GET(default_server,rqst,"name",newThread.op,MAX_STRING_SIZE) ) { }
-         if ( _GET(default_server,rqst,"s",newThread.title,MAX_STRING_SIZE) ) { }
-         if ( _GET(default_server,rqst,"postpassword",newThread.password,MAX_STRING_SIZE) ) { }
-         //TODO Process options if ( _GET(default_server,rqst,"em",newThread->op,MAX_STRING_SIZE) ) { }
-         if ( _GET(default_server,rqst,"message",newPost.message ,MAX_STRING_SIZE) ) { }
-         //if ( _GET(default_server,rqst,"name",newThread.op,MAX_STRING_SIZE) ) { }
+         if ( _GET(rqst,"board",boardName,MAX_STRING_SIZE) ) { }
+         if ( _GET(rqst,"name",newThread.op,MAX_STRING_SIZE) ) { }
+         if ( _GET(rqst,"s",newThread.title,MAX_STRING_SIZE) ) { }
+         if ( _GET(rqst,"postpassword",newThread.password,MAX_STRING_SIZE) ) { }
+         //TODO Process options if ( _GET(rqst,"em",newThread->op,MAX_STRING_SIZE) ) { }
+         if ( _GET(rqst,"message",newPost.message ,MAX_STRING_SIZE) ) { }
+         //if ( _GET(rqst,"name",newThread.op,MAX_STRING_SIZE) ) { }
        }
     }
 

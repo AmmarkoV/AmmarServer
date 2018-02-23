@@ -13,6 +13,10 @@
 extern "C" {
 #endif
 
+
+void printRecvError();
+
+
 /**
 * @brief Receive an HTTP Header from a socket and prepare it for further processing
 * @ingroup HTTPanalysis

@@ -15,10 +15,14 @@
 #include "../AmmServerlib.h"
 #include "../server_configuration.h"
 
+#include "../network/networkAbstraction.h"
+
 #include "../header_analysis/generic_header_tools.h"
 #include "../header_analysis/http_header_analysis.h"
 #include "../header_analysis/post_header_analysis.h"
 #include "../header_analysis/post_data.h"
+
+#include "../tools/logs.h"
 
 
 int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)

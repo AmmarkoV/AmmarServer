@@ -1,13 +1,13 @@
 # depslib dependency file v1.0
-1255729231 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/clientwin.c
+1439810220 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/clientwin.c
 	<X11/Xatom.h>
 	<X11/Xlib.h>
 	"clientwin.h"
 
-1255729231 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/clientwin.h
+1439810220 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/clientwin.h
 	<X11/Xlib.h>
 
-1384025894 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/dsimple.c
+1439810220 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/dsimple.c
 	<X11/Xos.h>
 	<X11/Xlib.h>
 	<X11/Xutil.h>
@@ -18,17 +18,17 @@
 	"clientwin.h"
 	"dsimple.h"
 
-1384016268 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/dsimple.h
+1439810220 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/dsimple.h
 
-1286422726 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/list.c
+1439810220 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/list.c
 	<stdio.h>
 	<stdlib.h>
 	"list.h"
 
-1286422726 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/list.h
+1439810220 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/list.h
 	<X11/Xfuncproto.h>
 
-1495722208 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/main.c
+1495639493 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/main.c
 	<stdio.h>
 	<errno.h>
 	<X11/Xos.h>
@@ -42,11 +42,11 @@
 	"multiVis.h"
 	<X11/extensions/XKBbells.h>
 
-1317877044 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/wsutils.h
+1439810220 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/wsutils.h
 
-1286422726 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/multiVis.h
+1439810220 /home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/multiVis.h
 
-1323831785 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/multiVis.c
+1439810220 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/xwd-1.0.5/multiVis.c
 	<stdlib.h>
 	<X11/Xlib.h>
 	<X11/Xutil.h>

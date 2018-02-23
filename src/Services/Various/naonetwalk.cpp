@@ -48,17 +48,17 @@ void * terminate_callback(struct AmmServer_DynamicRequest  * rqst)
 void * control_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   char movementRequested[128]={0};
-  if ( _GET(default_server,rqst,"walk",movementRequested,128) )
+  if ( _GET(rqst,"walk",movementRequested,128) )
   {
      fprintf(stderr,"Start Called\n");
      externalCommand=1;
   } else
-  if ( _GET(default_server,rqst,"stop",movementRequested,128) )
+  if ( _GET(rqst,"stop",movementRequested,128) )
   {
      fprintf(stderr,"Stop Called\n");
      externalCommand=2;
   } else
-  if ( _GET(default_server,rqst,"jump",movementRequested,128) )
+  if ( _GET(rqst,"jump",movementRequested,128) )
   {
     externalCommand=3;
  } else
