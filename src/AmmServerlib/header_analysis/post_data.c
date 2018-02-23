@@ -153,33 +153,24 @@ unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int request
  return endOfLine;
 }
 
-
-char * strnstr(char * haystack,unsigned int haystackLength, char * needle)
+//From : https://stackoverflow.com/questions/23999797/implementing-strnstr#25705264
+char *strnstr(const char *haystack,const char *needle, size_t len)
 {
- return strstr(haystack,needle);
+        int i;
+        size_t needle_len;
 
- char * result=0;
- char * ptr=haystack;
- char * ptrEnd = haystack+haystackLength;
+        if (0 == (needle_len = strnlen(needle, len)))
+                return (char *)haystack;
 
- char * needlePTR = needle;
- unsigned int needleLen = strlen(needle);
+        for (i=0; i<=(int)(len-needle_len); i++)
+        {
+                if ((haystack[0] == needle[0]) &&
+                        (0 == strncmp(haystack, needle, needle_len)))
+                        return (char *)haystack;
 
-
- while (ptr<ptrEnd)
- {
-  if (*ptr==*needlePTR)
-  {
-    ++needlePTR;
-  } else
-  {
-    needlePTR = needle;
-  }
-
-
-  ++ptr;
- }
- return result;
+                haystack++;
+        }
+        return NULL;
 }
 
 
@@ -222,9 +213,10 @@ int finalizePOSTData(struct HTTPHeader * output)
        output->POSTItem[i].nameSize = countStringUntilQuotesOrNewLine(output->POSTItem[i].name,configurationLength);
      }
 
-
        output->POSTItem[i].value = payload;
-       char * payloadEnd =  strnstr(payload,length,output->boundary);
+       //TODO : output->boundary value is wrong..
+        AmmServer_Success("Searching for boundary (%s) in file payload..!",output->boundary);
+       char * payloadEnd =  strnstr(payload,output->boundary,length);
 
        if (payloadEnd!=0)
        {
