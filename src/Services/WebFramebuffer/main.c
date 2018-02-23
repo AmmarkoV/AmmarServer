@@ -179,15 +179,18 @@ Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534
    char *  uploadedfile = _POST(rqst,"uploadedfile",&uploadedfileSize);
    if (uploadedfile!=0) { fprintf(stderr,"uploadedfile size=%u , content=%s\n",uploadedfileSize,uploadedfile);}
 
+   unsigned int fSize=0;
+   const char * f = _FILES(rqst,"uploadedfile",VALUE,&fSize);
+   AmmServer_WriteFileFromMemory("test.jpg",f,fSize);
    fprintf(stderr,"We received all pointers\n");
 
 
    char uploadedFileUNSANITIZEDPath[513]={0};
-   AmmServer_POSTNameOfFile (default_server,rqst,0,uploadedFileUNSANITIZEDPath,512);
+   AmmServer_POSTNameOfFile (rqst,0,uploadedFileUNSANITIZEDPath,512);
    AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
 
    unsigned int filePointerLength=0;
-   char * data = AmmServer_POSTArgGetPointer(default_server,rqst,0,&filePointerLength);
+   char * data = AmmServer_POSTArgGetPointer(rqst,0,&filePointerLength);
 
 
    if ( storeImage(storage,0,data,filePointerLength) )

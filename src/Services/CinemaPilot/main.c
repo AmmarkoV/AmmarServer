@@ -382,25 +382,25 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
  {
    if ( strlen(rqst->GET_request)>0 )
     {
-      if ( _GET(default_server,rqst,"play",data,128) )
+      if ( _GET(rqst,"play",data,128) )
        {
          AmmServer_Success("Play pressed \n");
          //issueCommandToMplayer(mplayerControllerPath,"play");
 
          executePlaylist(movieList);
        }
-      if ( _GET(default_server,rqst,"pause",data,128) )
+      if ( _GET(rqst,"pause",data,128) )
        {
          AmmServer_Success("Pause pressed\n");
          //issueCommandToMplayer("/tmp/mplayer","pause");
          pauseMplayer(mplayerControllerPath);
        }
-      if ( _GET(default_server,rqst,"previous",data,128) )
+      if ( _GET(rqst,"previous",data,128) )
        {
          AmmServer_Success("Previous\n");
          issueCommandToMplayer(mplayerControllerPath,"previous");
        }
-      if ( _GET(default_server,rqst,"next",data,128) )
+      if ( _GET(rqst,"next",data,128) )
        {
          AmmServer_Success("Next\n");
          issueCommandToMplayer(mplayerControllerPath,"next");

@@ -35,7 +35,7 @@ On success, compress2() shall return Z_OK. Otherwise, compress2() shall return a
    This function should populate cache[*index].compressed_mem_filesize and cache[*index].compressed_mem with a compressed version
    of the file in  cache[*index].mem
 */
-inline int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * instance,unsigned int index,unsigned int compression_level)
+int CreateCompressedVersionofCachedResource(struct AmmServer_Instance * instance,unsigned int index,unsigned int compression_level)
 {
   if (!ENABLE_COMPRESSION) { return 0; }
 
