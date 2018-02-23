@@ -157,6 +157,29 @@ unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int request
 char * strnstr(char * haystack,unsigned int haystackLength, char * needle)
 {
  return strstr(haystack,needle);
+
+ char * result=0;
+ char * ptr=haystack;
+ char * ptrEnd = haystack+haystackLength;
+
+ char * needlePTR = needle;
+ unsigned int needleLen = strlen(needle);
+
+
+ while (ptr<ptrEnd)
+ {
+  if (*ptr==*needlePTR)
+  {
+    ++needlePTR;
+  } else
+  {
+    needlePTR = needle;
+  }
+
+
+  ++ptr;
+ }
+ return result;
 }
 
 
