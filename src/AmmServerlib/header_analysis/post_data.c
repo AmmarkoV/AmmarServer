@@ -154,6 +154,11 @@ unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int request
 }
 
 
+char * strnstr(char * haystack,unsigned int haystackLength, char * needle)
+{
+ return strstr(haystack,needle);
+}
+
 
 
 int finalizePOSTData(struct HTTPHeader * output)
@@ -196,7 +201,17 @@ int finalizePOSTData(struct HTTPHeader * output)
 
 
        output->POSTItem[i].value = payload;
-       output->POSTItem[i].valueSize=length;
+       char * payloadEnd =  strnstr(payload,length,output->boundary);
+
+       if (payloadEnd!=0)
+       {
+        output->POSTItem[i].valueSize=payloadEnd-payload;
+        AmmServer_Success("Found boundary in file payload, size of payload is %u ..!",output->POSTItem[i].valueSize);
+       } else
+       {
+        AmmServer_Warning("Could not detect boundary in file payload, using unsafe length value..!");
+        output->POSTItem[i].valueSize=length;
+       }
   } else
   {
     char * name = strstr(configuration,"name=\"");

@@ -687,11 +687,12 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
   //const struct POSTRequestBoundaryContent * p=getPOSTItemFromName(rqst,POSTName);
   switch (POSTType)
   {
-    case NAME :       return getPointerToPOSTItemValue(rqst,POSTName,outputSize);    break;
-    case FILENAME :   return getPointerToPOSTItemFilename(rqst,POSTName,outputSize); break;
-    case TEMPNAME : break;
-    case TYPE :       return getPointerToPOSTItemType(rqst,POSTName,outputSize);     break;
-    case SIZE :     break;
+    case NAME :       return POSTName; /*This makes no sense*/                        break;
+    case VALUE :      return getPointerToPOSTItemValue(rqst,POSTName,outputSize);     break;
+    case FILENAME :   return getPointerToPOSTItemFilename(rqst,POSTName,outputSize);  break;
+    case TEMPNAME :                                                                   break;
+    case TYPE :       return getPointerToPOSTItemType(rqst,POSTName,outputSize);      break;
+    case SIZE :                                                                       break;
   };
  return 0;
 }

@@ -65,6 +65,7 @@ enum TypesOfRequests
 enum TypesOfRequestFields
 {
    NAME        = 1 ,
+   VALUE           ,
    FILENAME        ,
    TEMPNAME        ,
    TYPE            ,
