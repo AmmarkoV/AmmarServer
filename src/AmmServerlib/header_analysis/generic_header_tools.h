@@ -40,7 +40,7 @@ int HTTPHeaderIsPOST(char * request , unsigned int requestLength);
 * @retval 1=GET,0=Not GET request*/
 int HTTPHeaderIsGET(char * request , unsigned int requestLength);
 
-int recalculateHeaderFieldsBasedOnANewBaseAddress(struct HTTPTransaction * transaction);
+int recalculateHeaderFieldsBasedOnANewBaseAddress(char * oldbaseaddress,struct HTTPTransaction * transaction);
 int growHeader(struct HTTPTransaction * transaction);
 
 

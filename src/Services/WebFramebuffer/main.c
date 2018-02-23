@@ -64,7 +64,6 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
     </script>\
     </head>\
     <body><img  id=\"vfi\" src=\"framebuffer.jpg?t=%u\"></body></html>",
-    rand()%1000000,
     rand()%1000000
     );
   rqst->contentSize=strlen(rqst->content);
@@ -193,6 +192,7 @@ Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534
    char * data = AmmServer_POSTArgGetPointer(rqst,0,&filePointerLength);
 
 
+   AmmServer_Warning("Trying to push file size %u \n",filePointerLength);
    if ( storeImage(storage,0,data,filePointerLength) )
    {
     AmmServer_Success("Pushed new frame..");

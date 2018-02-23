@@ -94,6 +94,7 @@ enum TypesOfRequestFields
 */
 struct POSTRequestBoundaryContent
 {
+   ///very important to add any fields here to the recalculateHeaderFieldsBasedOnANewBaseAddress  code..
    char * pointerStart;
    char * pointerEnd;
    unsigned int contentSize;
@@ -133,7 +134,8 @@ struct HTTPHeader
    unsigned int parsingStartOffset;
    unsigned int parsingCurrentLine;
 
-   char * headerRAW;
+
+   char * headerRAW; //This is the place where everything rests at..!
    unsigned int headerRAWHeadSize;
    unsigned int headerRAWSize;
    unsigned int headerRAWRequestedSize; // The size that the client requests ( we have our own limits and agenda though )
@@ -165,35 +167,28 @@ struct HTTPHeader
    //The next strings point directly on the header to keep memory usage on a minimum
    //and performance on the maximum , they have to be refreshed if memory gets reallocated:P
 
-   unsigned int cookieIndex;
+   ///very important to add any fields here to the recalculateHeaderFieldsBasedOnANewBaseAddress  code..
    unsigned int cookieLength;
    char * cookie; //<-   *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-   unsigned int hostIndex;
    unsigned int hostLength;
    char * host; //<-     *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-   unsigned int refererIndex;
    unsigned int refererLength;
    char * referer; //<-  *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-   unsigned int eTagIndex;
    unsigned int eTagLength;
    char * eTag; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-   unsigned int userAgentIndex;
    unsigned int userAgentLength;
    char * userAgent; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-   unsigned int contentTypeIndex;
    unsigned int contentTypeLength;
    char * contentType; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-   unsigned int contentDispositionIndex;
    unsigned int contentDispositionLength;
    char * contentDisposition;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-   unsigned int boundaryIndex;
    unsigned int boundaryLength;
    char * boundary;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
@@ -934,7 +929,7 @@ char * AmmServer_ReadFileToMemory(const char * filename,unsigned int *length );
 * @param Size of memory block
 * @retval 1=Ok,0=Failed
 */
-int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength);
+int AmmServer_WriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength);
 
 
 /**

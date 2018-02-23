@@ -838,7 +838,7 @@ char * AmmServer_ReadFileToMemory(const char * filename,unsigned int *length )
 
 
 
-int AmmServer_WriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength)
+int AmmServer_WriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength)
 {
   return astringWriteFileFromMemory(filename,memory,memoryLength);
 }

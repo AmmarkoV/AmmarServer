@@ -116,6 +116,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="network/sendHTTPHeader.h" />
+		<Unit filename="scheduler/scheduler.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="scheduler/scheduler.h" />
 		<Unit filename="security/banlist.c">
 			<Option compilerVar="CC" />
 		</Unit>
