@@ -26,11 +26,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "AmmServerlib.h"
 #include "AString/AString.h"
+
+#include "version.h"
+
 #include "threads/threadedServer.h"
 #include "threads/prespawnedThreads.h"
+
 #include "cache/file_caching.h"
 #include "cache/dynamic_requests.h"
-#include "version.h"
+
+#include "scheduler/scheduler.h"
+
 #include "tools/serverMonitor.h"
 #include "tools/http_tools.h"
 #include "tools/logs.h"
@@ -133,6 +139,14 @@ void AmmServer_Info( const char *format , ... )
   va_end( arglist );
 }
 
+
+void AmmServer_Stub( const char *format , ... )
+{
+  va_list arglist;
+  va_start( arglist, format );
+  AmmServer_GeneralPrint(RED,"Not Implemented",format, &arglist );
+  va_end( arglist );
+}
 
 
 
@@ -357,8 +371,12 @@ int AmmServer_AddScheduler (
                             unsigned int repetitions
                            )
 {
-  AmmServer_Error("Scheduler Code not implemented\n");
-  return 0;
+  return schedulerAdd(
+                      resource_name ,
+                      callback,
+                      delayMilliseconds,
+                      repetitions
+                     );
 }
 
 
@@ -625,7 +643,7 @@ int _POSTNum(struct AmmServer_DynamicRequest * rqst)
 
 char * _POST(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT)
 {
- return  getPointerToPOSTItem(rqst,var_id_IN,max_var_value_OUT);
+ return  getPointerToPOSTItemValue(rqst,var_id_IN,max_var_value_OUT);
 }
 
 int _GET(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
@@ -666,12 +684,13 @@ unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id
 
 const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName,enum TypesOfRequestFields POSTType,unsigned int * outputSize)
 {
+  //const struct POSTRequestBoundaryContent * p=getPOSTItemFromName(rqst,POSTName);
   switch (POSTType)
   {
-    case NAME :     break;
-    case FILENAME : break;
+    case NAME :       return getPointerToPOSTItemValue(rqst,POSTName,outputSize);    break;
+    case FILENAME :   return getPointerToPOSTItemFilename(rqst,POSTName,outputSize); break;
     case TEMPNAME : break;
-    case TYPE :     break;
+    case TYPE :       return getPointerToPOSTItemType(rqst,POSTName,outputSize);     break;
     case SIZE :     break;
   };
  return 0;
@@ -680,8 +699,7 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
 
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_DynamicRequest * rqst)
 {
-   if ( (rqst==0) || (rqst->instance==0) ) { return 0; }
-   fprintf(stderr,"AmmServer_SignalCountAsBadClientBehaviour is a stub ..\n");
+   AmmServer_Stub("AmmServer_SignalCountAsBadClientBehaviour is a stub ..\n");
    return 0;
 }
 
@@ -881,6 +899,7 @@ struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int in
  if (mh->content==0) { fprintf(stderr,"Could not allocate the buffer of the allocated memory handler\n"); free(mh); return 0; }
 
  mh->contentSize = initialBufferLength;
+ mh->contentGrowthStep = growStep;
  mh->contentCurrentLength = initialBufferLength;
 
  return mh;
@@ -1040,7 +1059,7 @@ unsigned int AmmServer_StringIsHTMLSafe( const char * str)
 unsigned int AmmServer_StringHasSafePath( const char * directory , const char * filenameUNSANITIZEDString)
 {
   const char * str = filenameUNSANITIZEDString;
-  fprintf(stderr,"TODO : AmmServer_StringHasSafePath better checking.. https://www.owasp.org/index.php/Path_Traversal\n");
+  AmmServer_Stub("TODO : AmmServer_StringHasSafePath better checking.. https://www.owasp.org/index.php/Path_Traversal\n");
   unsigned int i=0;
   while(i<strlen(str)) { if (  ( str[i]<'!' ) || ( str[i]=='\\' ) || ( str[i]=='%' ) || ( str[i]=='/' ) ) { return 0;} ++i; }
   return 1;

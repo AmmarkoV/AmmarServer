@@ -71,11 +71,11 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
    }
 
   char * res=strstr(request,TemplatesInternalURI);
-  char * res_skipped=res;
 
   if ( res!=0 )
    {
-       /*
+     /*
+      char * res_skipped=res;
       unsigned int template_size = strlen(TemplatesInternalURI);
       char tmp_cmp[MAX_FILE_PATH]={0};
       res_skipped=res+template_size;
@@ -516,7 +516,7 @@ int cache_RefreshResource(
                          )
 {
    if ( (instance==0) || (request==0) || (verified_filename==0) ||(index==0) || (filesize==0) || (last_modification==0)  ) { return 0; }
-   fprintf(stderr,"cache_RefreshResource is a stub.. \n");
+   AmmServer_Stub("cache_RefreshResource is a stub.. \n");
    #warning "TODO : we should check here for a potentially newer version of the file..";
  return 0;
 }

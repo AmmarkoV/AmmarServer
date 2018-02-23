@@ -231,10 +231,7 @@ int finalizePOSTData(struct HTTPHeader * output)
               ACCESS POST DATA
 ----------------------------------------------
 */
-
-
-
-char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength)
+const struct POSTRequestBoundaryContent * getPOSTItemFromName(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor)
 {
  unsigned int sizeOfNameToLookFor = strlen(nameToLookFor);
 
@@ -242,42 +239,74 @@ char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,const char * 
  unsigned int PNum=rqst->POSTItemNumber;
  if (PNum>MAX_HTTP_POST_BOUNDARY_COUNT) { PNum=MAX_HTTP_POST_BOUNDARY_COUNT; }
 
- //AmmServer_Success("getPointerToPOSTItem(%u)\n",PNum);
  for (i=0; i<PNum; i++)
  {
     struct POSTRequestBoundaryContent * p = &rqst->POSTItem[i];
-
     //AmmServer_Info("POSTItem[%u].name = %s and we have %s \n",i,p->name,nameToLookFor);
     if (p->name!=0)
     {
      if (strncmp (p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
      {
-       AmmServer_Success("getPointerToPOSTItem(%s) success => %p \n",nameToLookFor,p->value);
-       *pointerLength = p->valueSize;
-
-       return p->value;
+       return p;
      }
     }
  }
+ return 0;
+}
 
- AmmServer_Warning("getPointerToPOSTItem called but could not find name=`%s` \n",nameToLookFor);
+
+char * getPointerToPOSTItemValue(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength)
+{
+ const struct POSTRequestBoundaryContent * p = getPOSTItemFromName(rqst,nameToLookFor);
+
+ if (p!=0)
+ {
+       AmmServer_Success("getPointerToPOSTItemValue(%s) success => %p \n",nameToLookFor,p->value);
+       *pointerLength = p->valueSize;
+       return p->value;
+ }
+
+ AmmServer_Warning("getPointerToPOSTItemValue called but could not find name=`%s` \n",nameToLookFor);
  *pointerLength=0;
  return 0;
 }
+
+
+char * getPointerToPOSTItemFilename(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength)
+{
+ const struct POSTRequestBoundaryContent * p = getPOSTItemFromName(rqst,nameToLookFor);
+
+ if (p!=0)
+ {
+       *pointerLength = p->filenameSize;
+       return p->filename;
+ }
+
+ *pointerLength=0;
+ return 0;
+}
+
+
+
+char * getPointerToPOSTItemType(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength)
+{
+ const struct POSTRequestBoundaryContent * p = getPOSTItemFromName(rqst,nameToLookFor);
+
+ if (p!=0)
+ {
+       *pointerLength = p->contentTypeSize;
+       return p->contentType;
+ }
+
+ *pointerLength=0;
+ return 0;
+}
+
 
 int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst)
 {
  return rqst->POSTItemNumber;
 }
-
-
-
-char * getPointerToPOSTFile(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * fileLength)
-{
-}
-
-
-
 
 
 

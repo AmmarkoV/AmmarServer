@@ -21,10 +21,14 @@ int finalizePOSTData(struct HTTPHeader * output);
 
 
 // ----------------------------------
-char * getPointerToPOSTItem(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength);
+
+const struct POSTRequestBoundaryContent * getPOSTItemFromName(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor);
+
+char * getPointerToPOSTItemValue(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength);
+char * getPointerToPOSTItemFilename(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength);
+char * getPointerToPOSTItemType(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength);
+
 int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst);
 
-
-char * getPointerToPOSTFile(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * fileLength);
 
 #endif // POSTHEADERS_H_INCLUDED

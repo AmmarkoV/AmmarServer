@@ -240,6 +240,7 @@ struct AmmServer_MemoryHandler
 {
   unsigned int contentSize;
   unsigned int contentCurrentLength;
+  unsigned int contentGrowthStep;
   char * content;
 };
 
@@ -519,6 +520,17 @@ void AmmServer_Success( const char *format , ... );
 */
 void AmmServer_Info( const char *format , ... );
 
+
+
+/**
+* @brief Writes the C string pointed by format to stderr , as an info ( White ) and does not log it
+         If format includes format specifiers (subsequences beginning with %), the additional arguments following format are formatted and inserted in the resulting
+         string replacing their respective specifiers.
+* @ingroup tools
+* @param format , see printf ( http://www.cplusplus.com/reference/cstdio/printf/ )
+* @param Arbitrary number of other parameters that where defined in format
+*/
+void AmmServer_Stub( const char *format , ... );
 
 
 
