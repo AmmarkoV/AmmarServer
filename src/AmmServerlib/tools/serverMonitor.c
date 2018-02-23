@@ -7,6 +7,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
+
+#include "../cache/file_caching.h"
+
 #include "../network/file_server.h"
 #include "../threads/threadedServer.h"
 

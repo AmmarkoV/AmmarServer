@@ -23,6 +23,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 cache/client_list.h
                 cache/file_compression.c
                 cache/file_compression.h 
+                #Scheduler Functionality 
+                scheduler/scheduler.c  
                 #Header analysis
                 header_analysis/http_header_analysis.c
                 header_analysis/http_header_analysis.h  
