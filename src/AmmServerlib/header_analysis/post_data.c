@@ -1,4 +1,7 @@
 #include "post_data.h"
+#include "generic_header_tools.h"
+
+#include "../tools/http_tools.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -62,128 +65,10 @@ int addPOSTDataBoundary(struct HTTPHeader * output,char * ptr)
   return 1;
 }
 
-char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine)
-{
-  char * ptrA=request;
-  char * ptrB=request+1;
-  char * ptrC=request+2;
-  char * ptrD=request+3;
-
-  char * ptrEnd = request + requestLength;
-
-  //fprintf(stderr,"\nreachNextBlock for 13 10 13 10 on a buffer with %u bytes of data : ",requestLength);
-   while (ptrD<ptrEnd)
-    {
-      if ( ( (*ptrA==13) && (*ptrB==10) && (*ptrC==13) && (*ptrD==10) ) || (*ptrA==0) )
-        {
-         ++ptrD;
-
-         *ptrA=0; //Also make null terminated string..
-         *endOfLine = ptrA-request;
-
-         //fprintf(stderr,"done\n");
-         return ptrD;
-        }
-      //fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
-      ++ptrA;   ++ptrB;   ++ptrC;   ++ptrD;
-    }
-
- //fprintf(stderr,"not found\n");
- return request;
-}
-
-char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine)
-{
-  char * ptrA=request;
-
-  char * ptrEnd = request + requestLength;
-
-  //fprintf(stderr,"\nreachNextLine for 13 10 13 10 on a buffer with %u bytes of data : ",requestLength);
-   while (ptrA<ptrEnd)
-    {
-      if ( (*ptrA==13) || (*ptrA==10) || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/ )
-        {
-         *ptrA=0; //Also make null terminated string..
-         *endOfLine = ptrA-request;
-
-         ++ptrA;
-         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
-         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
-         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
-
-         //fprintf(stderr,"done\n");
-         return ptrA;
-        }
-       //fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
-      ++ptrA;
-    }
-
- //fprintf(stderr,"not found\n");
- * endOfLine = requestLength;
- return request;
-}
-
-
-unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength)
-{
-  unsigned int endOfLine=0;
-  char * ptrA=request;
-
-  char * ptrEnd = request + requestLength;
-
-  //fprintf(stderr,"\countStringUntilQuotesOrNewLine for 13 or 10 at %u bytes of data : ",requestLength);
-   while (ptrA<ptrEnd)
-    {
-      if ( (*ptrA==13) || (*ptrA==10) || (*ptrA=='"') || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/  )
-        {
-         *ptrA=0; //Also make null terminated string..
-         endOfLine = (unsigned int) (ptrA-request);
-
-         //fprintf(stderr,"done\n");
-         return endOfLine;
-        }
-
-       //fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
-
-      ++ptrA;
-    }
-
- //fprintf(stderr,"not found\n");
-
- return endOfLine;
-}
-
-//From : https://stackoverflow.com/questions/23999797/implementing-strnstr#25705264
-char * strnstr(const char *haystack,const char *needle, size_t len)
-{
-  return strstr(haystack,needle);
-  //This causes :
-  //==10123== Invalid read of size 1
-  //==10123==    at 0x4C317F9: __strncmp_sse42 (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-  //==10123==    by 0x40E81B: getPOSTItemFromName (post_data.c:279)
-
-        int i;
-        size_t needle_len;
-
-        if (0 == (needle_len = strnlen(needle, len)))
-                return (char *)haystack;
-
-        for (i=0; i<=(int)(len-needle_len); i++)
-        {
-                if ((haystack[0] == needle[0]) &&
-                        (0 == strncmp(haystack, needle, needle_len)))
-                        return (char *)haystack;
-
-                haystack++;
-        }
-        return NULL;
-}
-
-
 
 int finalizePOSTData(struct HTTPHeader * output)
 {
- fprintf(stderr,"finalizePOSTData POSTItems : %p , %u items\n",output->POSTItem , output->POSTItemNumber);
+ //fprintf(stderr,"finalizePOSTData POSTItems : %p , %u items\n",output->POSTItem , output->POSTItemNumber);
 
  unsigned int success=0;
  unsigned int i=0;
@@ -197,22 +82,37 @@ int finalizePOSTData(struct HTTPHeader * output)
   //AmmServer_Success("finalizePOSTData(%u)=`%s`\n",i,output->POSTItem[i].pointerStart);
   unsigned int length=0;
   char * configuration = output->POSTItem[i].pointerStart;
-  char * payload = reachNextBlock(output->POSTItem[i].pointerStart,  output->POSTrequestBodySize,&length);
-  reachNextLine(payload +1,  output->POSTrequestBodySize,&length);
+  char * payload = reachNextBlock(
+                                   output->POSTItem[i].pointerStart,
+                                   _calculateRemainingDataLength(
+                                                                  output->headerRAW ,
+                                                                  output->headerRAWSize ,
+                                                                  output->POSTItem[i].pointerStart
+                                                                )  ,
+                                   &length
+                                  );
+  reachNextLine( payload+1,
+                 _calculateRemainingDataLength(
+                                               output->headerRAW ,
+                                               output->headerRAWSize ,
+                                               payload+1
+                                              ),
+                &length
+               );
 
   unsigned int configurationLength = payload-configuration;
 
-  AmmServer_Warning("configuration(%u)=`%s`\n",i,configuration);
-  AmmServer_Success("payload(%u)=`%s`\n",i,payload);
+  //AmmServer_Warning("configuration(%u)=`%s`\n",i,configuration);
+  //AmmServer_Success("payload(%u)=`%s`\n",i,payload);
 
-  char * filename = strstr(configuration,"filename=\"");
+  char * filename = strstr(configuration,"filename=\""); //TODO : use strnstr
   if (filename!=0)
   {
     output->POSTItem[i].filename = filename+10; //skip filename="
     output->POSTItem[i].filenameSize = countStringUntilQuotesOrNewLine(output->POSTItem[i].filename,configurationLength);
 
 
-    char * name = strstr(configuration,"name=\"");
+    char * name = strstr(configuration,"name=\""); //TODO : use strnstr
     if (name!=0)
      {
        output->POSTItem[i].name = name+6; //skip name="
@@ -223,20 +123,34 @@ int finalizePOSTData(struct HTTPHeader * output)
        //TODO : output->boundary value is wrong..
         AmmServer_Success("Searching for boundary (%s) in file payload..!",output->boundary);
         fprintf(stderr,"Searching for boundary that points to %p \n",output->boundary); //Do not print all the file here..
-       char * payloadEnd =  strnstr(payload,output->boundary,length);
+       char * payloadEnd  = strnstr(
+                                     payload,
+                                     output->boundary,
+                                     _calculateRemainingDataLength
+                                              (
+                                               output->headerRAW ,
+                                               output->headerRAWSize ,
+                                               output->boundary
+                                              )
+                                    );
 
        if (payloadEnd!=0)
        {
         output->POSTItem[i].valueSize=payloadEnd-payload;
-        AmmServer_Success("Found boundary in file payload, size of payload is %u ..!",output->POSTItem[i].valueSize);
+        //AmmServer_Success("Found boundary in file payload, size of payload is %u ..!",output->POSTItem[i].valueSize);
        } else
        {
         AmmServer_Warning("Could not detect boundary in file payload, using unsafe length value..!");
-        output->POSTItem[i].valueSize=length;
+        output->POSTItem[i].valueSize= _calculateRemainingDataLength
+                                              (
+                                               output->headerRAW ,
+                                               output->headerRAWSize ,
+                                               output->boundary
+                                              );
        }
   } else
   {
-    char * name = strstr(configuration,"name=\"");
+    char * name = strstr(configuration,"name=\""); //TODO : use strnstr
     if (name!=0)
      {
        output->POSTItem[i].name = name+6; //skip name="
@@ -249,12 +163,15 @@ int finalizePOSTData(struct HTTPHeader * output)
        output->POSTItem[i].valueSize=length;
      }
 
-
-     fprintf(stderr,"%s=%p\n",output->POSTItem[i].name,output->POSTItem[i].value);
-
+    if (name!=0)
+     {
+      //fprintf(stderr,"%s=%p\n",output->POSTItem[i].name,output->POSTItem[i].value);
+     } else
+     {
+       AmmServer_Warning("Incorrect name for boundary part %u/%u marking it as empty..\n",i,PNum);
+       output->POSTItem[i].populated=0;
+     }
   }
-
-
  }
 
  return (success!=PNum);
@@ -298,7 +215,7 @@ char * getPointerToPOSTItemValue(struct AmmServer_DynamicRequest * rqst,const ch
 
  if (p!=0)
  {
-       AmmServer_Success("getPointerToPOSTItemValue(%s) success => %p \n",nameToLookFor,p->value);
+       //AmmServer_Success("getPointerToPOSTItemValue(%s) success => %p \n",nameToLookFor,p->value);
        *pointerLength = p->valueSize;
        return p->value;
  }
@@ -344,9 +261,4 @@ int getNumberOfPOSTItems(struct AmmServer_DynamicRequest * rqst)
 {
  return rqst->POSTItemNumber;
 }
-
-
-
-
-
 

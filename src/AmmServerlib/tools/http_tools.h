@@ -104,6 +104,12 @@ int StripVariableFromGETorPOSTString(const char * input,const char * var_id, cha
 
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength);
 
+
+char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine);
+char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine);
+unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength);
+char * strnstr(const char *haystack,const char *needle, size_t len);
+
 int CheckHTTPHeaderCategoryAllCaps(char * lineCAPS,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start);
 int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start);
 int trim_last_empty_chars(char * input,unsigned int input_length);
