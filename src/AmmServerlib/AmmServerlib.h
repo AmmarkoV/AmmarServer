@@ -85,6 +85,10 @@ enum TypesOfRequestFields
 
 #define MAX_INSTANCE_NAME_STRING 128
 
+
+/** @brief Maximum number of boundaries to be searched for in a GET request */
+#define MAX_HTTP_GET_VARIABLE_COUNT 128
+
 /** @brief Maximum number of boundaries to be searched for in a POST request */
 #define MAX_HTTP_POST_BOUNDARY_COUNT 32
 
@@ -119,7 +123,22 @@ struct POSTRequestBoundaryContent
 };
 
 
+/**
+* @brief Each GET Request has a payload that consists of a series of boundaries that contain data. This structure holds this data as a series of pointers in the initial header buffer
+         in order to facilitate easy and fast parsing of the data
+*/
+struct GETRequestContent
+{
+   ///very important to add any fields here to the recalculateHeaderFieldsBasedOnANewBaseAddress  code..
+   //All the following are 0 if not used or point to a place inside an HTTP Header
+   char *       name;
+   unsigned int nameSize;
 
+   char *       value;
+   unsigned int valueSize;
+
+   int populated;
+};
 
 
 /**
@@ -191,6 +210,10 @@ struct HTTPHeader
 
    unsigned int boundaryLength;
    char * boundary;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+
+   unsigned int GETItemNumber;
+   struct GETRequestContent GETItem[MAX_HTTP_GET_VARIABLE_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+
 
    unsigned int POSTItemNumber;
    struct POSTRequestBoundaryContent POSTItem[MAX_HTTP_POST_BOUNDARY_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
@@ -739,28 +762,32 @@ int _POSTnum(struct AmmServer_DynamicRequest * rqst);
 unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN);
 int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo);
 
-int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,const char * var_id_OUT,unsigned int max_var_value_OUT);
+int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * name,const char * destination,unsigned int destinationSize);
 
+int _POSTexists(struct AmmServer_DynamicRequest * rqst,const char * name);
 /**
 * @brief Shorthand/Shortcut for AmmServer_POSTArg()
 * @ingroup shortcut */
-char * _POST (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT);
+char * _POST (struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength);
 
 
 ///-------------------------------------------------------------------------------
+int _GETnum(struct AmmServer_DynamicRequest * rqst);
 /**
 * @brief Shorthand/Shortcut for AmmServer_GETArg()
 * @ingroup shortcut */
-int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * destination,unsigned int destinationSize);
 /**
 * @brief Shorthand/Shortcut for getting an Uint value back()
 * @ingroup shortcut */
 unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN  , unsigned int * foundArgument);
+
+int _GETexists(struct AmmServer_DynamicRequest * rqst,const char * name);
 ///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_CookieArg()
 * @ingroup shortcut */
-int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * destination,unsigned int destinationSize);
 ///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()

@@ -219,6 +219,43 @@ inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsign
 }
 
 
+int wipeGETData(struct HTTPHeader * output)
+{
+  output->GETItemNumber=0;
+  memset(output->GETItem,0,MAX_HTTP_GET_VARIABLE_COUNT*sizeof(struct GETRequestContent));
+  return 1;
+}
+
+
+int createGETData(struct HTTPHeader * output)
+{
+  return (wipeGETData(output));
+}
+
+
+int finalizeGETData(struct HTTPHeader * output)
+{
+  createGETData(output);
+
+
+
+  char * GETPtr = output->GETquery;
+  unsigned int GETPtrLength = strlen(GETPtr);
+
+  AmmServer_Warning("GET Request %s has %u bytes of stuff..\n",GETPtr,GETPtrLength);
+/*
+
+
+  unsigned int GETItemNumber;
+  struct GETRequestContent GETItem[MAX_HTTP_GET_VARIABLE_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+*/
+ return 1;
+}
+
+
+
+
+
 int AnalyzeHTTPLineRequest(
                             struct AmmServer_Instance * instance,
                             struct HTTPHeader * output,
