@@ -124,9 +124,9 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
          char * comment = (char *) malloc ( 1024 * sizeof(char) );
          if ((username!=0)&&(comment!=0))
           {
-            if ( _POST_OLD(rqst,"user",username,256) )
+            if ( _POSTcpy(rqst,"user",username,256) )
              {
-                if (! _POST_OLD(rqst,"comment",comment,1024) ) { fprintf(stderr,"Didn't find a comment \n"); }
+                if (! _POSTcpy(rqst,"comment",comment,1024) ) { fprintf(stderr,"Didn't find a comment \n"); }
 
                 if ((AmmServer_StringIsHTMLSafe(username))&&(AmmServer_StringIsHTMLSafe(comment)))
                 {
@@ -232,7 +232,7 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
-            if ( _POST_OLD(rqst,"user",username,256) )
+            if ( _POSTcpy(rqst,"user",username,256) )
              {
                strcat(rqst->content,"GOT A POST USERNAME !!!  : "); strcat(rqst->content,username); strcat(rqst->content," ! ! <br>");
              }

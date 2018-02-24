@@ -282,8 +282,10 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 
   if (storeID!=0)
   {
+   unsigned int fSize=0;
    char uploadedFileUNSANITIZEDPath[513]={0};
-   AmmServer_POSTNameOfFile (rqst,0,uploadedFileUNSANITIZEDPath,512);
+   snprintf(uploadedFileUNSANITIZEDPath,512,"%s",_FILES(rqst,"uploadedfile",FILENAME,&fSize));
+
    AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
 
    if (AmmServer_StringHasSafePath(uploads_root,uploadedFileUNSANITIZEDPath))
@@ -292,8 +294,9 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
     char finalPath[2049]={0};
     snprintf(finalPath,2048,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath);
 
+   const char * f = _FILES(rqst,"uploadedfile",VALUE,&fSize);
+   AmmServer_WriteFileFromMemory(finalPath,f,fSize);
 
-    AmmServer_POSTArgToFile (rqst,1,finalPath);
 
     //This is slightly bigger ( plus the header but almost correct )
     uploadsFilesSize+=rqst->POST_request_length;

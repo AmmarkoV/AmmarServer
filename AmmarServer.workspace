@@ -21,5 +21,6 @@
 		<Project filename="src/Services/SQLiteServer/SQLiteServer.cbp" />
 		<Project filename="src/Services/MyRemoteDesktop/xwd-1.0.5/XwdLib.cbp" />
 		<Project filename="src/Services/MyRemoteDesktop/MyRemoteDesktop.cbp" />
+		<Project filename="src/Services/WebFramebuffer/WebFramebuffer.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
