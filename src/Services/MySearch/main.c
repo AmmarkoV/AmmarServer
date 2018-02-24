@@ -66,12 +66,12 @@ void * search_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   int immediate=0;
   char query[1024]={0};
-  if ( _GET(rqst,"i",query,1024) )
+  if ( _GETcpy(rqst,"i",query,1024) )
                { //Use \ to go to directly to the first search result. We call this I'm Feeling Ducky. For example, \futurama
                   if (strcmp(query,"1")==0) { immediate=1; }
                }
 
-  if ( _GET(rqst,"q",query,1024) )
+  if ( _GETcpy(rqst,"q",query,1024) )
               {
                filterStringForHtmlInjection(query,strlen(query));
                if (immediate)

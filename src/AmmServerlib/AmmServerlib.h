@@ -735,9 +735,9 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 /**
 * @brief Shorthand/Shortcut for AmmServer_POSTArgNumber()
 * @ingroup shortcut */
-int _POSTNum(struct AmmServer_DynamicRequest * rqst);
-
-
+int _POSTnum(struct AmmServer_DynamicRequest * rqst);
+unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN);
+int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo);
 int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,const char * var_id_OUT,unsigned int max_var_value_OUT);
 
 /**
@@ -748,7 +748,7 @@ char * _POST (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsi
 /**
 * @brief Shorthand/Shortcut for AmmServer_GETArg()
 * @ingroup shortcut */
-int _GET  (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_CookieArg()

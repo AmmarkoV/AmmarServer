@@ -105,6 +105,8 @@ int StripVariableFromGETorPOSTString(const char * input,const char * var_id, cha
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength);
 
 
+int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,const char * where2copy,unsigned int maxSizeWhere2Copy);
+
 char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine);
 char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine);
 unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength);

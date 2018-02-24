@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1519417792 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/main.c
+1519483296 source:/home/ammar/Documents/Programming/AmmarServer/src/Services/MyRemoteDesktop/main.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -9,7 +9,7 @@
 	"xwd-1.0.5/XwdLib.h"
 	"../../AmmCaptcha/AmmCaptcha.h"
 
-1519433586 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1519483085 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 	<pthread.h>
 	<libgen.h>
 

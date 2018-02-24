@@ -58,7 +58,7 @@ void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
  char sessionID[64]={0};
-  if ( _GET(rqst,"s",sessionID,64) )
+  if ( _GETcpy(rqst,"s",sessionID,64) )
     {
       if (
            uadb_getUserTokenFromSessionID(
@@ -74,7 +74,7 @@ void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
   char message[512]={0};
-  if ( _GET(rqst,"text",message,512) )
+  if ( _GETcpy(rqst,"text",message,512) )
     {
      stripMessage(message);
      //isLinkToImage
@@ -140,7 +140,7 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
  char sessionID[64]={0};
-  if ( _GET(rqst,"s",sessionID,64) )
+  if ( _GETcpy(rqst,"s",sessionID,64) )
     {
       if (
            uadb_getUserTokenFromSessionID(

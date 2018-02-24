@@ -119,7 +119,7 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
       if ( strlen(rqst->GET_request)>0 )
        {
          char boardID[257]={0};
-         if ( _GET(rqst,"board",boardID,256) )
+         if ( _GETcpy(rqst,"board",boardID,256) )
              {
                 fprintf(stderr,"board: %s \n",boardID);
                 if ( hashMap_ContainsKey(boardHashMap,boardID) )

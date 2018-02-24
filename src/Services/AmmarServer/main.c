@@ -251,7 +251,7 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
          char * username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
-            if ( _GET(rqst,"user",username,256) )
+            if ( _GETcpy(rqst,"user",username,256) )
              {
                strcat(rqst->content,"GOT A GET USERNAME !!!  : "); strcat(rqst->content,username); strcat(rqst->content," ! ! <br>");
              }
@@ -313,15 +313,15 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
     {
       if ( strlen(rqst->GET_request)>0 )
        {
-         if ( _GET(rqst,"lat",latitude,128) )
+         if ( _GETcpy(rqst,"lat",latitude,128) )
              {
                fprintf(stderr,"Latitude : %s \n",latitude);
              }
-         if ( _GET(rqst,"lon",longitude,128) )
+         if ( _GETcpy(rqst,"lon",longitude,128) )
              {
                fprintf(stderr,"Longitude : %s \n",longitude);
              }
-         if ( _GET(rqst,"msg",message,256) )
+         if ( _GETcpy(rqst,"msg",message,256) )
              {
                fprintf(stderr,"Message : %s \n",message);
              }

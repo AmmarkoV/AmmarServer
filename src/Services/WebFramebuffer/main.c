@@ -150,7 +150,7 @@ Content-Disposition: form-data; name="framenumber"
 Content-Disposition: form-data; name="uploadedfile"; filename="67cdbd08fe5021534c4d52a59b046105.jpg"
 */
 
-   unsigned int numberOfPOSTItems =  _POSTNum(rqst);
+   unsigned int numberOfPOSTItems =  _POSTnum(rqst);
    fprintf(stderr,"We received %u POST items\n",numberOfPOSTItems);
 
    //We are looking for the POST form elements with name="Something"

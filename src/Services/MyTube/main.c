@@ -198,7 +198,7 @@ int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
 void * serve_videofile(struct AmmServer_DynamicRequest  * rqst)
 {
   char videoRequested[128]={0};
-  if ( _GET(rqst,"v",videoRequested,128) )
+  if ( _GETcpy(rqst,"v",videoRequested,128) )
               {
                 unsigned int videoID=getDBIndexFromPermanentLink(videoRequested);
                 if (videoID >= myTube->numberOfLoadedVideos)
@@ -250,29 +250,29 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-  if ( _GET(rqst,"downloading",downloadingRequested,128) )
+  if ( _GETcpy(rqst,"downloading",downloadingRequested,128) )
               {
                 stillDownloading=atoi(downloadingRequested);
               }
 
-  if ( _GET(rqst,"t",timeRequested,128) )
+  if ( _GETcpy(rqst,"t",timeRequested,128) )
               {
                 startTime=atoi(timeRequested);
               }
 
 
-  if ( _GET(rqst,"s",sessionRequested,128) )
+  if ( _GETcpy(rqst,"s",sessionRequested,128) )
               {
                 userID = getAUserIDForSession(myTube,sessionRequested,sessionToken,&sessionFoundVideo );
               }
 
-  if ( _GET(rqst,"p",pickRequested,128) )
+  if ( _GETcpy(rqst,"p",pickRequested,128) )
               {
                 doPickFromList=1;
                 pickNumber=atoi(pickRequested);
               }
 
-  if ( _GET(rqst,"q",videoRequested,128) )
+  if ( _GETcpy(rqst,"q",videoRequested,128) )
               {
                 if (renderVideoList(myTube,headerPage,rqst,videoRequested,userID,&videoID,doPickFromList,pickNumber))
                 {
@@ -285,7 +285,7 @@ void * serve_videopage(struct AmmServer_DynamicRequest  * rqst)
                 }
               }
          else
-  if ( _GET(rqst,"v",videoRequested,128) )
+  if ( _GETcpy(rqst,"v",videoRequested,128) )
               {
                 fprintf(stderr,"Video Page Requested is : %s \n",videoRequested);
 
@@ -365,7 +365,7 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
 {
  #if DO_DYNAMIC_THUMBNAILS
   char videoRequested[128]={0};
-  if ( _GET(rqst,"v",videoRequested,128) )
+  if ( _GETcpy(rqst,"v",videoRequested,128) )
               {
                 fprintf(stderr,"Thumbnail Requested for Video  : %s \n",videoRequested);
 
@@ -416,7 +416,7 @@ void * serve_thumbnail(struct AmmServer_DynamicRequest  * rqst)
 void * serve_playbackerror(struct AmmServer_DynamicRequest  * rqst)
 {
   char videoRequested[128]={0};
-  if ( _GET(rqst,"v",videoRequested,128) )
+  if ( _GETcpy(rqst,"v",videoRequested,128) )
               {
                 AmmServer_Error("Playback Client Error for Video  : %s \n",videoRequested);
                 unsigned int videoID=getDBIndexFromPermanentLink(videoRequested);
@@ -437,7 +437,7 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
   char videoRequested[128]={0};
   unsigned int videoID=0;
 
-  if ( _GET(rqst,"upvote",videoRequested,128) )
+  if ( _GETcpy(rqst,"upvote",videoRequested,128) )
   {
      videoID=getDBIndexFromPermanentLink(videoRequested);
      if (videoID < myTube->numberOfLoadedVideos)
@@ -446,7 +446,7 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
          ++myTube->video[videoID].stateChanges;
      }
   } else
-  if ( _GET(rqst,"downvote",videoRequested,128) )
+  if ( _GETcpy(rqst,"downvote",videoRequested,128) )
   {
      videoID=getDBIndexFromPermanentLink(videoRequested);
      if (videoID < myTube->numberOfLoadedVideos)
@@ -455,7 +455,7 @@ void * serve_interact(struct AmmServer_DynamicRequest  * rqst)
          ++myTube->video[videoID].stateChanges;
      }
   } else
-  if ( _GET(rqst,"comment",videoRequested,128) )
+  if ( _GETcpy(rqst,"comment",videoRequested,128) )
   {
   } else
   {

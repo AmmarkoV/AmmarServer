@@ -113,19 +113,19 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
     {
       if ( strlen(rqst->GET_request)>0 )
        {
-         if ( _GET(rqst,"lat",latitude,128) )
+         if ( _GETcpy(rqst,"lat",latitude,128) )
              {
                fprintf(stderr,"Latitude : %s \n",latitude);
              }
-         if ( _GET(rqst,"lon",longitude,128) )
+         if ( _GETcpy(rqst,"lon",longitude,128) )
              {
                fprintf(stderr,"Longitude : %s \n",longitude);
              }
-         if ( _GET(rqst,"msg",message,256) )
+         if ( _GETcpy(rqst,"msg",message,256) )
              {
                fprintf(stderr,"Message : %s \n",message);
              }
-         if ( _GET(rqst,"from",from,256) )
+         if ( _GETcpy(rqst,"from",from,256) )
              {
                fprintf(stderr,"From : %s \n",from);
              }

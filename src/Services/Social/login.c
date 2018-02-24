@@ -27,10 +27,10 @@ void  * login_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   unsigned int haveName=0,havePass=0;
   char name[128]={0};
-  if ( _GET(rqst,"name",name,128) )     { haveName=1; }
+  if ( _GETcpy(rqst,"name",name,128) )     { haveName=1; }
 
   char pass[128]={0};
-  if ( _GET(rqst,"password",pass,512) ) { havePass=1; }
+  if ( _GETcpy(rqst,"password",pass,512) ) { havePass=1; }
 
   struct UserAccountAuthenticationToken outputToken={0};
 
