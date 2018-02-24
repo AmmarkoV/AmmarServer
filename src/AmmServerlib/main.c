@@ -576,21 +576,16 @@ int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,const
 /// -----------------------------------------------------------------------------------------------------------------------
 
 /// --------------------------------------------------------- GET ---------------------------------------------------------
-int AmmServer_GETArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _GETcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
+  //return AmmServer_GETArg(rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
   if ( (rqst==0) ) { return 0; }
   if  (  ( rqst->GET_request !=0 ) && ( rqst->GET_request_length !=0 ) && ( strlen(rqst->GET_request)>0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
    {
      return StripVariableFromGETorPOSTString(rqst->GET_request,var_id_IN,var_value_OUT,max_var_value_OUT);
    } else
    { fprintf(stderr,"AmmServer_GETArg failed , called with incorrect parameters..\n"); }
-  return 0;
-}
-
-int _GETcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
-{
-    return AmmServer_GETArg(rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
-}
+  return 0;}
 
 unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN, unsigned int * foundArgument)
 {
