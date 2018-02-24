@@ -145,10 +145,24 @@ int clearHeader(struct HTTPHeader * hdr)
  return 1;
 }
 
+unsigned int _calculateRemainingDataLength(char * baseAddress,unsigned int baseAddressMemoryLength , char * whereWeAre)
+{
+  char * endAddress = baseAddress + baseAddressMemoryLength;
+  if (whereWeAre >= endAddress)
+  {
+    AmmServer_Error("Something is wrong with addresses handed to _calculateRemainingDataLength, we are pointing %u bytes outside allocated memory..",(unsigned int ) (whereWeAre-endAddress));
+    return 0;
+  }
 
-inline char * _recalculatePosition(const char * oldPosition,const char * oldBaseAddress,const char *newAddress)
+  return (unsigned int ) (endAddress-whereWeAre);
+}
+
+
+
+inline char * _recalculatePosition(const char * oldPosition,const char * oldBaseAddress,char *newAddress)
 {
  if (oldPosition==0) { return 0; }
+
  return newAddress + (unsigned int) (oldPosition - oldBaseAddress);
 }
 
@@ -162,6 +176,7 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(
   {
    return 0;
   }
+
    char * newBaseAddress=transaction->incomingHeader.headerRAW ;
    transaction->incomingHeader.cookie             =  _recalculatePosition(transaction->incomingHeader.cookie            ,oldBaseAddress ,newBaseAddress);
    transaction->incomingHeader.host               =  _recalculatePosition(transaction->incomingHeader.host              ,oldBaseAddress ,newBaseAddress);
@@ -249,10 +264,9 @@ int growHeader(struct HTTPTransaction * transaction)
 
 
      //We will not allow the header to be any more than our settings allow..!
-     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+2) );
+     char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+1) );
      if (newBuffer!=0 )
      {
-
        newBuffer[wannabeHeaderSize]=0; //First of all null terminate the new header space..
        hdr->headerRAW=newBuffer;
        hdr->MAXheaderRAWSize = wannabeHeaderSize;
@@ -289,22 +303,31 @@ int growHeader(struct HTTPTransaction * transaction)
 
 int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
+  if (instance==0)    { return 0; }
+  if (transaction==0) { return 0; }
+
   char * webserver_root = instance->webserver_root;
   struct HTTPHeader * output  = &transaction->incomingHeader;
 
-  //TODO : improve this ?
+  //We will not waste our time with failed requests..
+  if (output->headerRAW==0) { return 0; }
+
   char * request = output->headerRAW + output->parsingStartOffset;
-  unsigned int request_length = transaction->incomingHeader.headerRAWSize;
+  unsigned int requestLength = transaction->incomingHeader.headerRAWSize;
+
+  //We will not waste our time with failed requests..
+  if (requestLength==0) { return 0;}
+
+  //In case our headerRAWSize is bigger than our allocation this is wrong and we should correct it here..
+  if (requestLength>transaction->incomingHeader.MAXheaderRAWSize)
+     { requestLength=transaction->incomingHeader.MAXheaderRAWSize; }
+
   char * startOfNewLine=request;
 
   unsigned int newLineLength=0;
 
   unsigned int i=0;
-  while  (
-            (i<request_length)
-             // This is an extra safety but makes long POST request not work ..
-             //&& (i<MAX_HTTP_REQUEST_HEADER_LINES)
-         )
+  while  (i<requestLength )
    {
      switch (request[i])
      {
@@ -355,7 +378,7 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
                                           );
      unsigned int totalHTTPRecvSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
 
-     fprintf(stderr,"Our header length is %lu , we got %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize );
+     fprintf(stderr,"Our header content length is %lu , we got %u bytes at a buffer of %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize , transaction->incomingHeader.MAXheaderRAWSize );
      if (transaction->incomingHeader.ContentLength> instance->settings.MAX_POST_TRANSACTION_SIZE)
      {
        fprintf(stderr,"Requested POST Size is too big calling it a day if we got the initial..!");

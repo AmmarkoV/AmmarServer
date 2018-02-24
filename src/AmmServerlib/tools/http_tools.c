@@ -771,6 +771,119 @@ int strToUpcase(char * strTarget , char * strSource , unsigned int strLength)
  return 1;
 }
 
+char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine)
+{
+  char * ptrA=request;
+  char * ptrB=request+1;
+  char * ptrC=request+2;
+  char * ptrD=request+3;
+
+  char * ptrEnd = request + requestLength;
+
+  //fprintf(stderr,"\nreachNextBlock for 13 10 13 10 on a buffer with %u bytes of data : ",requestLength);
+   while (ptrD<ptrEnd)
+    {
+      if ( ( (*ptrA==13) && (*ptrB==10) && (*ptrC==13) && (*ptrD==10) ) || (*ptrA==0) )
+        {
+         ++ptrD;
+
+         *ptrA=0; //Also make null terminated string..
+         *endOfLine = ptrA-request;
+
+         //fprintf(stderr,"done\n");
+         return ptrD;
+        }
+      //fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
+      ++ptrA;   ++ptrB;   ++ptrC;   ++ptrD;
+    }
+
+ //fprintf(stderr,"not found\n");
+ return request;
+}
+
+char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine)
+{
+  char * ptrA=request;
+
+  char * ptrEnd = request + requestLength;
+
+  //fprintf(stderr,"\nreachNextLine for 13 10 13 10 on a buffer with %u bytes of data : ",requestLength);
+   while (ptrA<ptrEnd)
+    {
+      if ( (*ptrA==13) || (*ptrA==10) || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/ )
+        {
+         *ptrA=0; //Also make null terminated string..
+         *endOfLine = ptrA-request;
+
+         ++ptrA;
+         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
+         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
+         if ( (*ptrA==13) || (*ptrA==10) ) { ++ptrA; }
+
+         //fprintf(stderr,"done\n");
+         return ptrA;
+        }
+       //fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
+      ++ptrA;
+    }
+
+ //fprintf(stderr,"not found\n");
+ * endOfLine = requestLength;
+ return request;
+}
+
+
+unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength)
+{
+  unsigned int endOfLine=0;
+  char * ptrA=request;
+
+  char * ptrEnd = request + requestLength;
+
+  //fprintf(stderr,"\countStringUntilQuotesOrNewLine for 13 or 10 at %u bytes of data : ",requestLength);
+   while (ptrA<ptrEnd)
+    {
+      if ( (*ptrA==13) || (*ptrA==10) || (*ptrA=='"') || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/  )
+        {
+         *ptrA=0; //Also make null terminated string..
+         endOfLine = (unsigned int) (ptrA-request);
+
+         //fprintf(stderr,"done\n");
+         return endOfLine;
+        }
+
+       //fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
+
+      ++ptrA;
+    }
+
+ //fprintf(stderr,"not found\n");
+
+ return endOfLine;
+}
+
+//From : https://stackoverflow.com/questions/23999797/implementing-strnstr#25705264
+char * strnstr(const char *haystack,const char *needle, size_t len)
+{
+  //return strstr(haystack,needle);
+ int i;
+size_t needle_len;
+
+        if (0 == (needle_len = strnlen(needle, len)))
+                return (char *)haystack;
+
+        for (i=0; i<=(int)(len-needle_len); i++)
+        {
+                if ((haystack[0] == needle[0]) &&
+                        (0 == strncmp(haystack, needle, needle_len)))
+                        return (char *)haystack;
+
+                haystack++;
+        }
+        return NULL;
+}
+
+
 
 inline int stristr(char * str1CAPS,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
 {

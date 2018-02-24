@@ -90,7 +90,6 @@ int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
   @bug  Add apache like logging capabilities
   */
 
-  fprintf(stderr,"TODO: TOP PRIORITY -> Implement POST !FILE! requests , and couple them to dynamic content ..\n");
   fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
   fprintf(stderr,"TODO: require the Host: header from HTTP 1.1 clients\n");
   fprintf(stderr,"TODO: accept absolute URL's in a request\n");
@@ -98,11 +97,6 @@ int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
   fprintf(stderr,"TODO: use the \"100 Continue\" response appropriately\n");
   fprintf(stderr,"TODO: handle requests with If-Modified-Since: or If-Unmodified-Since: headers\n");
   fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
-  fprintf(stderr,"TODO: Add detailed input header parsing\n");
-  fprintf(stderr,"TODO: Improve directory listings ( add filesizes , dates etc ) \n");
-  fprintf(stderr,"TODO: Improve implemented file caching mechanism ( add string comparison to make code hash collision free ) \n");
-  fprintf(stderr,"TODO: Add apache like logging capabilities\n");
-
 
   if (instance->settings.BINDING_PORT<=1000 )
    {
