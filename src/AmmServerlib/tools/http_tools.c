@@ -1012,7 +1012,6 @@ unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int reques
 {
    /*                                                             char * request should initally point here ( at the `:` )
                                                                               ||
-                                                                              \/
            The line we are trying to analyze looks like this -> Content-Length: NUMBERHERE   <cr><lf> <-*/
 
         //STEP 1 : We are going to make a null teriminated string called "payload" inside the request string by getting the first blank or <cr> or <lf> character after the NUMBERHERE and making it null
@@ -1054,7 +1053,6 @@ char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int reques
 
    /*                                                             char * request should initally point here ( at the `:` )
                                                                               ||
-                                                                              \/
            The line we are trying to analyze looks like this -> Content-Length: STRINGMPLAMLPAMLPAHERE   <cr><lf> <-*/
 
         //STEP 1 : We are going to make a null teriminated string called "payload" inside the request string by getting the first blank or <cr> or <lf> character after the STRINGMPLAMLPAMLPAHERE and making it null

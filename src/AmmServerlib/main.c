@@ -719,10 +719,6 @@ int AmmServer_SaveDynamicRequest(const char* filename , struct AmmServer_Dynamic
 
 /*
 The following calls are not implemented yet
-
-   ||
-  \||/
-   \/
 */
 
 int AmmServer_GetIntSettingValue(struct AmmServer_Instance * instance,unsigned int set_type)
