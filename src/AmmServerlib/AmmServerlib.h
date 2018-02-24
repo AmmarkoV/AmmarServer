@@ -731,13 +731,14 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 
 
 
-
+///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_POSTArgNumber()
 * @ingroup shortcut */
 int _POSTnum(struct AmmServer_DynamicRequest * rqst);
 unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN);
 int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo);
+
 int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,const char * var_id_OUT,unsigned int max_var_value_OUT);
 
 /**
@@ -745,25 +746,27 @@ int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,const
 * @ingroup shortcut */
 char * _POST (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT);
 
+
+///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_GETArg()
 * @ingroup shortcut */
 int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
-
-/**
-* @brief Shorthand/Shortcut for AmmServer_CookieArg()
-* @ingroup shortcut */
-int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
-
 /**
 * @brief Shorthand/Shortcut for getting an Uint value back()
 * @ingroup shortcut */
 unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN  , unsigned int * foundArgument);
-
+///-------------------------------------------------------------------------------
+/**
+* @brief Shorthand/Shortcut for AmmServer_CookieArg()
+* @ingroup shortcut */
+int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
+///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()
 * @ingroup shortcut */
 const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName,enum TypesOfRequestFields POSTType,unsigned int * outputSize);
+///-------------------------------------------------------------------------------
 
 /**
 * @brief Staged way to easily handle bad clients etc from the clients , currently a stub..!
