@@ -541,6 +541,41 @@ int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_typ
     -----------------------------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------------------------
 **/
+
+/// --------------------------------------------------------- POST ---------------------------------------------------------
+int _POSTnum(struct AmmServer_DynamicRequest * rqst)
+{
+ return getNumberOfPOSTItems(rqst);
+}
+
+char * _POST(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT)
+{
+ return  getPointerToPOSTItemValue(rqst,var_id_IN,max_var_value_OUT);
+}
+
+unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN)
+{
+  unsigned int tmpLength=0;
+  const char * tmp = _POST(rqst,var_id_IN,&tmpLength);
+  return  atoi(tmp);
+}
+
+int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo)
+{
+  unsigned int tmpLength=0;
+  const char * tmp = _POST(rqst,name,&tmpLength);
+  return strcmp(tmp,what2CompareTo);
+}
+
+int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,const char * var_id_OUT,unsigned int max_var_value_OUT)
+{
+  unsigned int tmpLength=0;
+  const char * tmp = _POST(rqst,var_id_IN,&tmpLength);
+  return _GENERIC_cpy(tmp,tmpLength,var_id_OUT,max_var_value_OUT);
+}
+/// -----------------------------------------------------------------------------------------------------------------------
+
+/// --------------------------------------------------------- GET ---------------------------------------------------------
 int AmmServer_GETArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   if ( (rqst==0) ) { return 0; }
@@ -552,40 +587,10 @@ int AmmServer_GETArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_
   return 0;
 }
 
-int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
-{
-    AmmServer_Stub("Cookie access not coded in yet..!");
-    return 0;
-}
-
-int _POSTNum(struct AmmServer_DynamicRequest * rqst)
-{
- return getNumberOfPOSTItems(rqst);
-}
-
-
-
-int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,const char * var_id_OUT,unsigned int max_var_value_OUT)
-{
-  unsigned int tmpLength=0;
-  const char * tmp = getPointerToPOSTItemValue(rqst,var_id_IN,&tmpLength);
-  if (tmp==0) { return 0; }
-  if (tmpLength==0) { return 0; }
-  //todo: compare tmpLength etc..
-  snprintf(var_id_OUT,max_var_value_OUT,"%s",tmp);
-  return 1;
-}
-
-char * _POST(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,unsigned int * max_var_value_OUT)
-{
- return  getPointerToPOSTItemValue(rqst,var_id_IN,max_var_value_OUT);
-}
-
-int _GET(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+int _GETcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
     return AmmServer_GETArg(rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
 }
-
 
 unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN, unsigned int * foundArgument)
 {
@@ -604,7 +609,7 @@ unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id
          char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
          if (bufferCommand!=0)
           {
-            if ( _GET(rqst,var_id_IN,bufferCommand,256) )
+            if ( _GETcpy(rqst,var_id_IN,bufferCommand,256) )
             {
              uintToReturn=atoi(bufferCommand);
              *foundArgument=1;
@@ -616,20 +621,10 @@ unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id
 
     return uintToReturn;
 }
-/**
-    -----------------------------------------------------------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------------------------------
-    -----------------------------------------------------------------------------------------------------------------------------
-**/
+/// -----------------------------------------------------------------------------------------------------------------------
 
 
-
-
-
-
+/// --------------------------------------------------------- FILES ---------------------------------------------------------
 const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName,enum TypesOfRequestFields POSTType,unsigned int * outputSize)
 {
   //const struct POSTRequestBoundaryContent * p=getPOSTItemFromName(rqst,POSTName);
@@ -644,6 +639,27 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
   };
  return 0;
 }
+/// -----------------------------------------------------------------------------------------------------------------------
+
+
+/// --------------------------------------------------------- COOKIE ---------------------------------------------------------
+
+int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
+{
+    AmmServer_Stub("Cookie access not coded in yet..!");
+    return 0;
+}
+/// -----------------------------------------------------------------------------------------------------------------------
+
+
+/**
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+**/
 
 
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_DynamicRequest * rqst)

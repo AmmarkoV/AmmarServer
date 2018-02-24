@@ -928,6 +928,20 @@ int trim_last_empty_chars(char * input,unsigned int input_length)
 }
 
 
+
+
+int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,const char * where2copy,unsigned int maxSizeWhere2Copy)
+{
+  if (what2copy==0) { return 0; }
+  if (where2copy==0) { return 0; }
+  if (what2copySize+1>maxSizeWhere2Copy) { return 0; }
+  error("Not enough spac to perform copy..");
+
+  snprintf(where2copy,maxSizeWhere2Copy,"%s",what2copy);
+  return 1;
+}
+
+
 int seek_non_blank_char(char * input,char * input_end)
 {
    char * ptr=input;

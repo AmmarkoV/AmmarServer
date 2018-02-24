@@ -221,7 +221,7 @@ void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   int fileIsOk=0;
   char fileRequested[129]={0};
-  if ( _GET(rqst,"i",fileRequested,128) )
+  if ( _GETcpy(rqst,"i",fileRequested,128) )
               {
                 fprintf(stderr,"Requested file %s \n",fileRequested);
                 fileIsOk=1;
