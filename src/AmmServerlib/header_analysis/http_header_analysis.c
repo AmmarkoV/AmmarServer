@@ -117,11 +117,18 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
               The results are then copied to output->resource and output->verified_local_resource which contain
               the resource requested as the client stated it and as we verified for local filesystem..!
               */
+             //In case we don't have any attributes ..
+             output->GETRequest = 0;
+
              if ( StripGETRequestQueryAndFragment(stripped,output->GETquery,MAX_QUERY) )
                {
                  StripHTMLCharacters_Inplace(output->GETquery,0 /* 0 = Disregard dangerous bytes , Safety OFF*/); // <- This call converts char sequences like %20 to " " and %00 to \0 disregarding any form of safety , ( since it is a raw var )
                  fprintf(stderr,"Found a query , %s , resource is now %s \n",output->GETquery,stripped);
+
+                 //Now we should be pointing to the correct place of headerRAW
+                 output->GETRequest = stripped + strlen(stripped) +1 ;
                }
+
 
              StripHTMLCharacters_Inplace(stripped,1 /* 1 = filter dangerous bytes , File Safety ON*/); // <- This call converts char sequences like %20 to " " but %00 becomes _00 ( instead of \0 ) , it HAS to be done before filename stripper to ensure string safety
 
@@ -239,13 +246,17 @@ int finalizeGETData(struct HTTPHeader * output)
 
 
 
-  char * GETPtr = output->GETquery;
+  char * GETPtr = output->GETRequest;
   unsigned int GETPtrLength = strlen(GETPtr);
 
-  AmmServer_Warning("GET Request %s has %u bytes of stuff..\n",GETPtr,GETPtrLength);
+  AmmServer_Warning("GET Request %s , %s has %u bytes of stuff..\n",GETPtr ,GETPtrLength);
+
+
+  //TODO here tokenize using = and &
+
+
+
 /*
-
-
   unsigned int GETItemNumber;
   struct GETRequestContent GETItem[MAX_HTTP_GET_VARIABLE_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 */

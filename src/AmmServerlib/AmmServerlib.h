@@ -165,6 +165,10 @@ struct HTTPHeader
    char verified_local_resource[MAX_FILE_PATH+1];
    char GETquery[MAX_QUERY+1];
 
+   char * GETRequest;
+   unsigned long GETsrequestSize;
+
+
    char * POSTrequest;
    unsigned long POSTrequestSize;
    char * POSTrequestBody;
