@@ -728,77 +728,6 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
 * @retval 1=Success,0=Failure */
 int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,const char * set_value);
 
-/**
-* @brief Get a POST argument
-* @ingroup core
-* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
-* @param Input Name of argument we are looking for
-* @param Output Pointer that will be copied with the value we were looking for
-* @param Maximum Size for output Value
-* @retval 1=Success,0=Failure */
-int AmmServer_POSTArg (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
-
-char * AmmServer_POSTArgGetPointer(struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength);
-
-
-/**
-* @brief Save a POST argument to a file
-* @ingroup core
-* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
-* @param Number of argument we are looking for ( first is 0 )
-* @param Filename for where to store output as a file
-* @retval 1=Success,0=Failure */
-int AmmServer_POSTArgToFile (struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename);
-
-
-/**
-* @brief Get Name of POST argument
-* @ingroup core
-* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
-* @param Number of argument we are looking for ( first is 0 )
-* @param Output string with Filename we are looking for
-* @param Size of output string
-* @retval 1=Success,0=Failure */
-int AmmServer_POSTNameOfFile (struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,char * filenameOut, unsigned int filenameSize);
-
-
-/**
-* @brief Get a GET argument
-* @ingroup core
-* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
-* @param Input Name of argument we are looking for
-* @param Output Pointer that will be copied with the value we were looking for
-* @param Maximum Size for output Value
-* @retval 1=Success,0=Failure */
-int AmmServer_GETArg  (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
-
-
-/**
-* @brief Get a Cookie argument
-* @ingroup core
-* @param Request that contains the Cookie argument ( see AmmServer_DynamicRequest )
-* @param Input Name of argument we are looking for
-* @param Output Pointer that will be copied with the value we were looking for
-* @param Maximum Size for output Value
-* @retval 1=Success,0=Failure */
-int AmmServer_CookieArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
-
-
-/**
-* @brief Access a FILE submitted by a dynamic requested
-* @ingroup core
-* @param Request that contains the POST argument ( see AmmServer_DynamicRequest )
-* @param Input Name of argument we are looking for
-* @param Output Pointer that will be copied with the value we were looking for
-* @param Maximum Size for output Value
-* @retval 1=Success,0=Failure */
-int AmmServer_FILES   (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
-
-
-/**
-* @brief Shorthand/Shortcut OLD implementation..
-* @ingroup shortcut */
-int _POST_OLD (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT);
 
 
 
@@ -807,6 +736,9 @@ int _POST_OLD (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,cha
 * @brief Shorthand/Shortcut for AmmServer_POSTArgNumber()
 * @ingroup shortcut */
 int _POSTNum(struct AmmServer_DynamicRequest * rqst);
+
+
+int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,const char * var_id_OUT,unsigned int max_var_value_OUT);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_POSTArg()
