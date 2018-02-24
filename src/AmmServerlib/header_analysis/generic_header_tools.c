@@ -14,8 +14,6 @@
 #define CR 13
 #define LF 10
 
-
-
 int HTTPHeaderIsHEAD(char * request , unsigned int requestLength)
 {
   if (requestLength<4) { return 0; }
@@ -198,6 +196,12 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(
     transaction->incomingHeader.POSTItem[i].filename           =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].filename           ,oldBaseAddress ,newBaseAddress);
     transaction->incomingHeader.POSTItem[i].contentDisposition =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].contentDisposition ,oldBaseAddress ,newBaseAddress);
     transaction->incomingHeader.POSTItem[i].contentType        =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].contentType        ,oldBaseAddress ,newBaseAddress);
+   }
+
+   for (i=0; i<transaction->incomingHeader.GETItemNumber; i++)
+   {
+    transaction->incomingHeader.GETItem[i].name       =  _recalculatePosition(transaction->incomingHeader.GETItem[i].name       ,oldBaseAddress ,newBaseAddress);
+    transaction->incomingHeader.GETItem[i].value      =  _recalculatePosition(transaction->incomingHeader.GETItem[i].value      ,oldBaseAddress ,newBaseAddress);
    }
 
    return 1;

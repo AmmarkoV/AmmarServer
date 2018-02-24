@@ -506,7 +506,6 @@ return 0;
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-
   fprintf(stderr,"Reading master index file..  ");
   indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyTube/res/player.html");
   fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
@@ -562,8 +561,6 @@ void init_dynamic_content()
 
 
   //---------------
-
-
   AmmServer_AddResourceHandler(default_server,&uploadContext,"/upload.html",14096,0,&serve_upload,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&errorPageContext,"/error",14096,0,&serve_playbackerror,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&videoFileContext,"/video",14096,0,&serve_videofile,DIFFERENT_PAGE_FOR_EACH_CLIENT);
@@ -575,8 +572,6 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&faviconContext,"/favicon.ico",16400,1000,&serve_favicon,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&cssContext,"/mytube.css",4096,1000,&serve_css,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&jsContext,"/mytube.js",14096,1000,&serve_js,SAME_PAGE_FOR_ALL_CLIENTS);
-
-
   //---------------
 
 
@@ -586,6 +581,7 @@ void init_dynamic_content()
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
+  //---------------
     AmmServer_RemoveResourceHandler(default_server,&videoFileContext,1);
     AmmServer_RemoveResourceHandler(default_server,&videoPageContext,1);
     AmmServer_RemoveResourceHandler(default_server,&randomVideoFileContext,1);
@@ -593,6 +589,7 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&interactContext,1);
     AmmServer_RemoveResourceHandler(default_server,&indexContext,1);
     AmmServer_RemoveResourceHandler(default_server,&faviconContext,1);
+   //---------------
 
     AmmServer_FreeMemoryHandler(&indexPage);
     AmmServer_FreeMemoryHandler(&favicon);

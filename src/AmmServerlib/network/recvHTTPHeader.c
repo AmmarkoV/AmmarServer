@@ -137,7 +137,12 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   //fprintf(stderr,"Finished receiving and parsing HTTP header..\n");  //Less spam
   ///-----------------------------------------------------------------------------------------------------
 
+  struct HTTPHeader * output  = &transaction->incomingHeader;
 
+  if (!finalizeGETData(output))
+  {
+    AmmServer_Error("Server failed to parse GET data");
+  }
 
   ///IN CASE WE ARE USING POST REQUESTS WE WILL JUST NEED TO FINALIZE THE DATA PARSED THROUGH THE FILE TO SETUP BOUNDARIES ETC..
   if (
@@ -151,8 +156,10 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
     transaction->incomingHeader.POSTrequestBodySize = transaction->incomingHeader.headerRAWSize-transaction->incomingHeader.headerRAWHeadSize;
 
     //We need to finalize the POST data processing
-    struct HTTPHeader * output  = &transaction->incomingHeader;
-    finalizePOSTData(output);
+    if (!finalizePOSTData(output))
+    {
+      AmmServer_Error("Server failed to parse POST data");
+    }
   }
 
   //--------------------- --------------------- ---------------------
@@ -182,6 +189,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
 
 
     struct HTTPHeader * output  = &transaction->incomingHeader;
+    wipeGETData(output);
     wipePOSTData(output);
     transaction->incomingHeader.POSTItemNumber = 0;
   }
