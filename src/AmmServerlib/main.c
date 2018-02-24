@@ -532,84 +532,15 @@ int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_typ
 
 
 
-/*
-  ---------------------------------------------------
-
-             POST / GET / FILE Access..
-
-  ---------------------------------------------------
-*/
-
-/*
-int AmmServer_POSTArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
-{
-  if (rqst==0)  { return 0; }
-  if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
-   {
-     return StripVariableFromGETorPOSTString(rqst->POST_request,var_id_IN,var_value_OUT,max_var_value_OUT);
-   } else
-   { fprintf(stderr,"AmmServer_POSTArg failed , called with incorrect parameters..\n"); }
-  return 0;
-}
-
-char * AmmServer_POSTArgGetPointer(struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected, unsigned int * filePointerLength)
-{
-  if ( (rqst==0) ) { return 0; }
-
-   if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) )
-     {
-       *filePointerLength=0;
-       return GetFILEFromPOSTRequest(rqst->POST_request,rqst->POST_request_length,argumentSelected,filePointerLength);
-     }
-  return 0;
-}
-
-int AmmServer_POSTArgToFile (struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,const char * filename)
-{
-  unsigned int filePointerLength=0;
-  char * filePointer = AmmServer_POSTArgGetPointer(rqst,argumentSelected,&filePointerLength);
-
-   if  ( (filePointer!=0)  && (filePointerLength>0) )
-     {
-       //AmmServer_WriteFileFromMemory("post.bin",rqst->POST_request,rqst->POST_request_length);
-       return AmmServer_WriteFileFromMemory(filename,filePointer,filePointerLength);
-     }
-  return 0;
-}
-
-int AmmServer_POSTNameOfFile (struct AmmServer_DynamicRequest * rqst,unsigned int argumentSelected,char * filenameOut, unsigned int filenameSize)
-{
-  if (  (rqst==0) ) { return 0; }
-
-   if  (  ( rqst->POST_request !=0 ) && ( rqst->POST_request_length !=0 ) )
-     {
-        return GetNameofFILEFromPOSTRequest(rqst->POST_request,rqst->POST_request_length,argumentSelected-1,filenameOut,filenameSize);
-     }
-  return 0;
-}
-
-
-int AmmServer_FILES(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
-{
-  if ( (rqst==0) ) { return 0; }
-  if ( (rqst==0) || (var_id_IN==0) || (var_value_OUT==0) || (max_var_value_OUT==0) )  { return 0; }
-  fprintf(stderr,"AmmServer_FILES failed , called with incorrect parameters..\n");
-  return 0;
-}
-*/
-
-int AmmServer_CookieArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
-{
-  if ( (rqst==0) ) { return 0; }
-  if  (  ( rqst->GET_request !=0 ) && ( rqst->GET_request_length !=0 ) && ( strlen(rqst->GET_request)>0 ) &&  ( var_id_IN !=0 ) &&  ( var_value_OUT !=0 ) && ( max_var_value_OUT !=0 )  )
-   {
-     return StripVariableFromGETorPOSTString(rqst->GET_request,var_id_IN,var_value_OUT,max_var_value_OUT);
-   } else
-   { fprintf(stderr,"AmmServer_GETArg failed , called with incorrect parameters..\n"); }
-  return 0;
-}
-
-
+/**
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+               POST / GET / FILE Accessors , this is one of the most basic and crucial functionality of AmmarServer..
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+**/
 int AmmServer_GETArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
   if ( (rqst==0) ) { return 0; }
@@ -621,12 +552,10 @@ int AmmServer_GETArg(struct AmmServer_DynamicRequest * rqst,const char * var_id_
   return 0;
 }
 
-
-/*User friendly aliases of the above calls.. :P */
-
 int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * var_value_OUT,unsigned int max_var_value_OUT)
 {
-    return AmmServer_CookieArg(rqst,var_id_IN,var_value_OUT,max_var_value_OUT);
+    AmmServer_Stub("Cookie access not coded in yet..!");
+    return 0;
 }
 
 int _POSTNum(struct AmmServer_DynamicRequest * rqst)
@@ -687,6 +616,19 @@ unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id
 
     return uintToReturn;
 }
+/**
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+**/
+
+
+
+
+
 
 const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName,enum TypesOfRequestFields POSTType,unsigned int * outputSize)
 {
