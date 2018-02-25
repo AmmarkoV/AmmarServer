@@ -431,10 +431,10 @@ void * prepare_index(struct AmmServer_DynamicRequest  * rqst)
 
   postListPage = AmmServer_CopyMemoryHandler(indexPageWithoutContent);
 
-  unsigned int havePageToShow=0;
-  unsigned int pageToShow=_GETuint(rqst,(char*) "page",&havePageToShow);
-  unsigned int haveLastPage=0;
-  unsigned int lastPage=_GETuint(rqst,(char*) "lastPage",&haveLastPage);
+  unsigned int havePageToShow=_GETexists(rqst,(char*) "page");
+  unsigned int pageToShow=_GETuint(rqst,(char*) "page");
+  unsigned int haveLastPage=_GETexists(rqst,(char*) "lastPage");
+  unsigned int lastPage=_GETuint(rqst,(char*) "lastPage");
 
   if (!havePageToShow) { lastPage=1; }
   if (lastPage)
@@ -477,8 +477,8 @@ void * post_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   struct AmmServer_MemoryHandler * postPage=0;
 
-  unsigned int havePageToShow=0;
-  unsigned int pageToShow=_GETuint(rqst,(char*) "id",&havePageToShow);
+  unsigned int havePageToShow=_GETexists(rqst,(char*) "id");
+  unsigned int pageToShow=_GETuint(rqst,(char*) "id");
 
   if (havePageToShow)
   {
@@ -519,8 +519,8 @@ void * page_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   struct AmmServer_MemoryHandler * postPage=0;
 
-  unsigned int havePageToShow=0;
-  unsigned int pageToShow=_GETuint(rqst,(char*) "id" , &havePageToShow);
+  unsigned int havePageToShow=_GETexists(rqst,(char*) "id" );
+  unsigned int pageToShow=_GETuint(rqst,(char*) "id");
 
 
   if (havePageToShow)

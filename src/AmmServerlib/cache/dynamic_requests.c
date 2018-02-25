@@ -182,6 +182,9 @@ char * dynamicRequest_serveContent
                      rqst->POSTItemNumber = request->POSTItemNumber;
                      rqst->POSTItem       = request->POSTItem;  //<- NEVER free this here since it is stack allocated..
 
+                     rqst->GETItemNumber  = request->GETItemNumber;
+                     rqst->GETItem        = request->GETItem;   //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+
                      fprintf(stderr,"Request for a maximum of %lu characters ( %lu ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
                      fprintf(stderr,"POST : %p , %u bytes\n",rqst->POST_request , rqst->POST_request_length );
                      fprintf(stderr,"POSTItems : %p , %u items\n",rqst->POSTItem , rqst->POSTItemNumber );

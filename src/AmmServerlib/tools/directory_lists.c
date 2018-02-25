@@ -147,27 +147,27 @@ while ((dp=readdir(dir)) != 0)
      strncat(memory,image_file,mem_remaining);
      mem_remaining-=strlen(image_file);
 
-     //\">
+     // \ ">
      strncat(memory,tag_after_image,mem_remaining);
      mem_remaining-=tag_after_image_size;
 
-     //<a href=\"
+     // <a href=\"
      strncat(memory,tag_pre_link,mem_remaining);
      mem_remaining-=tag_pre_link_size;
 
-     //Filename
+     // Filename
      strncat(memory,tmp,mem_remaining);
      mem_remaining-=strlen(tmp);
 
-     //\"></a>
+     // \ "></a>
      strncat(memory,tag_after_link,mem_remaining);
      mem_remaining-=tag_after_link_size;
 
-     //User Filename
+     // User Filename
      strncat(memory,dp->d_name,mem_remaining);
      mem_remaining-=strlen(dp->d_name);
 
-     //Now lets try to get filesize and modification date using stat.h
+     // Now lets try to get filesize and modification date using stat.h
      char * fullpath = path_cat(system_path,dp->d_name);
      if (fullpath!=0 )
      {

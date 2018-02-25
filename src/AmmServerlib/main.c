@@ -553,10 +553,10 @@ char * _POST(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned i
  return  getPointerToPOSTItemValue(rqst,name,valueLength);
 }
 
-unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN)
+unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * name)
 {
   unsigned int valueLength=0;
-  const char * value = _POST(rqst,var_id_IN,&valueLength);
+  const char * value = _POST(rqst,name,&valueLength);
   return  atoi(value);
 }
 
@@ -574,7 +574,7 @@ int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char
   return strcmp(value,what2CompareTo);
 }
 
-int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * name,const char * destination,unsigned int destinationSize)
+int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
 {
   unsigned int valueLength=0;
   const char * value = _POST(rqst,name,&valueLength);
@@ -585,56 +585,41 @@ int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * name,const char
 /// --------------------------------------------------------- GET ---------------------------------------------------------
 int _GETnum(struct AmmServer_DynamicRequest * rqst)
 {
-   AmmServer_Stub("_GETnum not implemented..");
-   return 0;
+ return getNumberOfPOSTItems(rqst);
 }
 
-int _GETcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
+char * _GET(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength)
 {
-  if ( (rqst==0) ) { return 0; }
-  if  (  ( rqst->GET_request !=0 ) && ( rqst->GET_request_length !=0 ) && ( strlen(rqst->GET_request)>0 ) &&  ( name !=0 ) &&  ( destination !=0 ) && ( destinationSize !=0 )  )
-   {
-     return StripVariableFromGETorPOSTString(rqst->GET_request,name,destination,destinationSize);
-   } else
-   { fprintf(stderr,"AmmServer_GETArg failed , called with incorrect parameters..\n"); }
-  return 0;}
+ return  getPointerToGETItemValue(rqst,name,valueLength);
+}
 
-unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * name, unsigned int * foundArgument)
+unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * name)
 {
-  if (foundArgument==0)  { return 0; }
-  if (rqst==0)           { return 0; }
-  if (rqst->instance==0) { return 0; }
-  if (name==0)           { return 0; }
-
-
-  *foundArgument=0;
-
-  unsigned int uintToReturn=0;
-    if  ( rqst->GET_request != 0 )
-    {
-      if ( strlen(rqst->GET_request)>0 )
-       {
-         char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
-         if (bufferCommand!=0)
-          {
-            if ( _GETcpy(rqst,name,bufferCommand,256) )
-            {
-             uintToReturn=atoi(bufferCommand);
-             *foundArgument=1;
-            }
-           free(bufferCommand);
-          }
-       }
-    }
-
-    return uintToReturn;
+  unsigned int valueLength=0;
+  const char * value = _GET(rqst,name,&valueLength);
+  return  atoi(value);
 }
 
 int _GETexists(struct AmmServer_DynamicRequest * rqst,const char * name)
 {
-  unsigned int foundArgument=0;
-  unsigned int valueLength=_GETuint(rqst,name,&foundArgument);
-  return (foundArgument != 0 );
+  unsigned int valueLength=0;
+  return (_GET(rqst,name,&valueLength) != 0 );
+}
+
+
+int _GETcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo)
+{
+  unsigned int valueLength=0;
+  const char * value = _GET(rqst,name,&valueLength);
+  return strcmp(value,what2CompareTo);
+}
+
+
+int _GETcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
+{
+  unsigned int valueLength=0;
+  const char * value = _GET(rqst,name,&valueLength);
+  return _GENERIC_cpy(value,valueLength,destination,destinationSize);
 }
 /// -----------------------------------------------------------------------------------------------------------------------
 
@@ -658,7 +643,7 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
 
 /// --------------------------------------------------------- COOKIE ---------------------------------------------------------
 
-int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * destination,unsigned int destinationSize)
+int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
 {
     AmmServer_Stub("Cookie access not coded in yet..!");
     return 0;

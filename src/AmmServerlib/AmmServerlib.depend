@@ -20,7 +20,7 @@
 1491303702 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/hashmap/hashmap.h
 	<pthread.h>
 
-1519161094 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.c
+1519593329 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -34,7 +34,7 @@
 1495736877 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.h
 	"../AmmServerlib.h"
 
-1519501816 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1519599510 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 	<pthread.h>
 	<libgen.h>
 
@@ -45,7 +45,7 @@
 	<sys/stat.h>
 	<time.h>
 
-1519490204 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.h
+1519598288 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.h
 	"../AmmServerlib.h"
 
 1519481929 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/http_tools.h
@@ -97,7 +97,7 @@
 	<string.h>
 	"hashmap.h"
 
-1519426388 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.c
+1519598188 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.c
 	"generic_header_tools.h"
 	"http_header_analysis.h"
 	"post_header_analysis.h"
@@ -159,7 +159,7 @@
 	"sendHTTPHeader.h"
 	"networkAbstraction.h"
 
-1519502316 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1519599548 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1508519020 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -275,7 +275,7 @@
 
 1406039416 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/directory_lists.h
 
-1512828551 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/directory_lists.c
+1519599546 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/directory_lists.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -393,7 +393,7 @@
 	<ctype.h>
 	"videoFiles.h"
 
-1519489293 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
+1519599245 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/main.c
 	<stdio.h>
 	<stdarg.h>
 	<stdlib.h>
@@ -495,7 +495,7 @@
 	"../network/file_server.h"
 	"../threads/threadedServer.h"
 
-1519490157 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/recvHTTPHeader.c
+1519598301 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/recvHTTPHeader.c
 	"recvHTTPHeader.h"
 	<stdio.h>
 	<stdlib.h>
@@ -513,6 +513,7 @@
 	"../header_analysis/generic_header_tools.h"
 	"../header_analysis/http_header_analysis.h"
 	"../header_analysis/post_header_analysis.h"
+	"../header_analysis/get_data.h"
 	"../header_analysis/post_data.h"
 	"../tools/logs.h"
 
@@ -705,5 +706,15 @@
 	"scheduler.h"
 
 1519417792 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/scheduler/scheduler.h
+	"../AmmServerlib.h"
+
+1519599611 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/get_data.c
+	"get_data.h"
+	"generic_header_tools.h"
+	"../tools/http_tools.h"
+	<stdio.h>
+	<string.h>
+
+1519598418 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/get_data.h
 	"../AmmServerlib.h"
 
