@@ -34,6 +34,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 header_analysis/generic_header_tools.h
                 header_analysis/post_data.c
                 header_analysis/post_data.h
+                header_analysis/get_data.c
+                header_analysis/get_data.h
                 #Network I/O
                 network/networkAbstraction.c
                 network/networkAbstraction.h

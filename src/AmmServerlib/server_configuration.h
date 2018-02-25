@@ -21,7 +21,7 @@ extern "C" {
 /** @brief Enable POST request handling , switching this to 0 will completely deny them reducing attack surface */
 #define MASTER_ENABLE_POST 1
 #if MASTER_ENABLE_POST
- #warning "POST Support is under construction and unsafe to use ( for now )"
+ // #warning "POST Support is under construction and unsafe to use ( for now )"
 #endif // MASTER_ENABLE_POST
 
 /** @brief Enable a variety of debug messages in parts of the code that are not 100% bulletproof*/

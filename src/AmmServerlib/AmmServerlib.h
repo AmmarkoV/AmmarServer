@@ -218,7 +218,6 @@ struct HTTPHeader
    unsigned int GETItemNumber;
    struct GETRequestContent GETItem[MAX_HTTP_GET_VARIABLE_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-
    unsigned int POSTItemNumber;
    struct POSTRequestBoundaryContent POSTItem[MAX_HTTP_POST_BOUNDARY_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 };
@@ -295,6 +294,9 @@ struct AmmServer_DynamicRequest
 
    unsigned int POSTItemNumber;
    struct POSTRequestBoundaryContent * POSTItem; //<-    *THIS POINTS SOMEWHERE INSIDE THE STACK SO NEVER FREE IT ..!
+
+   unsigned int GETItemNumber;
+   struct GETRequestContent * GETItem; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    char * COOKIE_request;
    unsigned int COOKIE_request_length;
@@ -735,8 +737,6 @@ int AmmServer_GetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
 */
 int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned int set_type,int set_value);
 
-
-
 /**
 * @brief Get a String out of the state of an instance , of course one can dive into the instance structure but this is a much more clean way to do this
 * @ingroup core
@@ -760,38 +760,120 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
 
 ///-------------------------------------------------------------------------------
 /**
-* @brief Shorthand/Shortcut for AmmServer_POSTArgNumber()
-* @ingroup shortcut */
+* @brief The client can use this call to see how many POST items have been submitted in an HTTP Request
+* @ingroup POST
+* @param The Dynamic Request we want to examine
+* @retval Number of POST items,0=Failure/No Items */
 int _POSTnum(struct AmmServer_DynamicRequest * rqst);
-unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN);
-int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo);
 
-int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * name,const char * destination,unsigned int destinationSize);
-
-int _POSTexists(struct AmmServer_DynamicRequest * rqst,const char * name);
 /**
-* @brief Shorthand/Shortcut for AmmServer_POSTArg()
-* @ingroup shortcut */
+* @brief The client can use this call to retrieve a string value of a specific POST item by submitting its name
+  The pointer returned is guaranteed to be null terminated although in the case of a large file that can contain additional null characters
+  you should use the last variable to know where it properly ends.
+* @ingroup POST
+* @param The Dynamic Request we want to examine
+* @param The name of the POST field we want to receive a string for
+* @param Output size of the POST field we selected using our name
+* @retval Pointer to our requested value, 0=Failure*/
 char * _POST (struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength);
 
+/**
+* @brief The client can use this call to retrieve the numeric value ( internally delivered using atoi ) of a specific POST items by submitting its name
+* @ingroup POST
+* @param The Dynamic Request we want to examine
+* @param The name of the POST field we want to receive a number for
+* @retval Integer value of the POST item with a given name , 0=Failure*/
+unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * name);
 
+/**
+* @brief Quickly check if a POST field has been submitted or not in a request
+* @ingroup POST
+* @param The Dynamic Request we want to examine
+* @param The Name of the POST item we are checking
+* @retval 1=Exists , 0=Does not exist*/
+int _POSTexists(struct AmmServer_DynamicRequest * rqst,const char * name);
+
+/**
+* @brief Shortcut to compare a POST field to a value ( internally using strcmp(POSTValue,ourValue) )
+* @ingroup POST
+* @param The Dynamic Request we want to examine
+* @param The Name of the POST item we are checking
+* @param The Value that we want to strncmp with our value
+* @retval See strncmp*/
+int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo);
+
+/**
+* @brief Copy a POST field value to a given buffer
+* @ingroup POST
+* @param The Dynamic Request we want to examine
+* @param The Name of the POST item we want to copy checking
+* @param The Destination pointer of where we want to copy to
+* @param The Destination pointer maximum accommodation size
+* @retval 1=Success , 0=Failure*/
+int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize);
 ///-------------------------------------------------------------------------------
-int _GETnum(struct AmmServer_DynamicRequest * rqst);
-/**
-* @brief Shorthand/Shortcut for AmmServer_GETArg()
-* @ingroup shortcut */
-int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * destination,unsigned int destinationSize);
-/**
-* @brief Shorthand/Shortcut for getting an Uint value back()
-* @ingroup shortcut */
-unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN  , unsigned int * foundArgument);
 
+
+
+/**
+* @brief The client can use this call to see how many GET items have been submitted in an HTTP Request
+* @ingroup GET
+* @param The Dynamic Request we want to examine
+* @retval Number of GET items,0=Failure/No Items */
+int _GETnum(struct AmmServer_DynamicRequest * rqst);
+
+/**
+* @brief The client can use this call to retrieve a string value of a specific GET item by submitting its name
+  The pointer returned is guaranteed to be null terminated although in the case of a large string that can contain additional null characters
+  you should use the last variable to know where it properly ends.
+* @ingroup GET
+* @param The Dynamic Request we want to examine
+* @param The name of the GET field we want to receive a string for
+* @param Output size of the GET field we selected using our name
+* @retval Pointer to our requested value, 0=Failure*/
+char * _GET(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength);
+
+/**
+* @brief The client can use this call to retrieve the numeric value ( internally delivered using atoi ) of a specific POST items by submitting its name
+* @ingroup GET
+* @param The Dynamic Request we want to examine
+* @param The name of the POST field we want to receive a number for
+* @retval Integer value of the POST item with a given name , 0=Failure*/
+unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * name);
+
+
+/**
+* @brief Quickly check if a GET field has been submitted or not in a request
+* @ingroup GET
+* @param The Dynamic Request we want to examine
+* @param The Name of the GET item we are checking
+* @retval 1=Exists , 0=Does not exist*/
 int _GETexists(struct AmmServer_DynamicRequest * rqst,const char * name);
+
+
+/**
+* @brief Shortcut to compare a GET field to a value ( internally using strcmp(POSTValue,ourValue) )
+* @ingroup GET
+* @param The Dynamic Request we want to examine
+* @param The Name of the GET item we are checking
+* @param The Value that we want to strncmp with our value
+* @retval See strncmp*/
+int _GETcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo);
+
+/**
+* @brief Copy a GET field value to a given buffer
+* @ingroup GET
+* @param The Dynamic Request we want to examine
+* @param The Name of the GET item we want to copy checking
+* @param The Destination pointer of where we want to copy to
+* @param The Destination pointer maximum accommodation size
+* @retval 1=Success , 0=Failure*/
+int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize);
 ///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_CookieArg()
 * @ingroup shortcut */
-int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * var_id_IN,char * destination,unsigned int destinationSize);
+int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize);
 ///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()

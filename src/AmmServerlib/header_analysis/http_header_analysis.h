@@ -28,12 +28,6 @@ void printRecvError();
 */
 char * ReceiveHTTPHeader(struct AmmServer_Instance * instance,int clientSock , unsigned long * headerLength);
 
-
-
-int wipeGETData(struct HTTPHeader * output);
-int finalizeGETData(struct HTTPHeader * output);
-int createGETData(struct HTTPHeader * output);
-
 int AnalyzeHTTPLineRequest(
                             struct AmmServer_Instance * instance,
                             struct HTTPHeader * output,

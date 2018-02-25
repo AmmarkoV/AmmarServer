@@ -81,6 +81,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="header_analysis/generic_header_tools.h" />
+		<Unit filename="header_analysis/get_data.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="header_analysis/get_data.h" />
 		<Unit filename="header_analysis/http_header_analysis.c">
 			<Option compilerVar="CC" />
 		</Unit>
