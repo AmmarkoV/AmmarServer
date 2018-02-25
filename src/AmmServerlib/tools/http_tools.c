@@ -529,94 +529,6 @@ int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned in
   return 1;
 }
 
-int StripVariableFromGETorPOSTString(const char * input,const char * var_id, char * var_val , unsigned int var_val_length)
-{
-  if (var_val==0) { fprintf(stderr,"StripVariableFromGETorPOSTString called with a null output buf\n"); return 0; }
-  if (var_val_length==0) { fprintf(stderr,"StripVariableFromGETorPOSTString called with a null output buf size\n");  return 0; }
-  var_val[0]=0;
-
-  unsigned int var_id_length = strlen(var_id);
-
-  //fprintf(stderr,"StripVariableFromGETorPOSTString is slopilly implemented \n");
-  #warning "StripVariableFromGETorPOSTString is slopilly implemented"
-  /**
-   @bug StripVariableFromGETorPOSTString does not have a high quality implementation
-  */
-
-  /*! TODO : A decent implementation here..! , input is like "idname=idvalue&idname2=idvalue2&idname3=idvalue3" , var_id is the value we are looking for
-             var_val is the payload which has space allocated as declared in var_val_length  */
-
-  unsigned int input_length = strlen(input);
-
-  //This part of the code adds a ? or a & prefix to var_id and checks for any instances of this substring
-  char * FullVarID = (char*) malloc( ( var_id_length+2 ) * sizeof(char) );
-  if (FullVarID==0) { error("Could not allocate FullVarID"); return 0; }
-  FullVarID[0]='&';   FullVarID[1]=0; //Initialize first character
-  strcat(FullVarID,var_id);
-  FullVarID[var_id_length+1]=0;
-  //fprintf(stderr,"input=`%s` , VarID=`%s` , FullVarID=`%s`\n",input,var_id,FullVarID);
-  char * id_instance = strstr (input,FullVarID);
-  free(FullVarID);
-  FullVarID=0;
-  //---------------------
-
-  if (id_instance==0)
-   {
-     if (strncmp(input,var_id,var_id_length) ==0 )
-     {
-       //It is the first variable!
-       if (input[var_id_length]=='=')
-       {
-        fprintf(stderr,"It is the first variable\n"); //,input,var_id,FullVarID
-        id_instance=(char*) input;
-       }
-     }
-   }
-
-
-  if (id_instance!=0)
-   {
-     fprintf(stderr,"Found var_id %s in GET/POST String \n",var_id);
-     unsigned int start_of_var_val=id_instance-input;
-     unsigned int total_chars_to_copy=0;
-     start_of_var_val+=strlen(var_id); // We go right at the = char!
-     while ( (start_of_var_val<input_length) && (input[start_of_var_val]!='=') ) {  ++start_of_var_val; } //We seek the = sign
-
-     if ( input[start_of_var_val]=='=') { ++start_of_var_val; } else
-     if ( input[start_of_var_val]!='=') { fprintf(stderr,"Error Parsing GET/POST var string\n"); }
-     unsigned int i=start_of_var_val;
-     while ( i < input_length )
-       {
-          if (input[i]==0)    {  total_chars_to_copy = i-start_of_var_val; break; } else
-          if (input[i]=='&')  {  total_chars_to_copy = i-start_of_var_val; break; }
-          ++i;
-       }
-     if (i>=input_length) { fprintf(stderr,"This is the last arg ? , we finished the string! \n");
-                             total_chars_to_copy = input_length-start_of_var_val; }
-
-
-     if (total_chars_to_copy==0) { fprintf(stderr,"VAR `%s` was empty\n",var_id); return 0; } else
-     if (total_chars_to_copy < var_val_length-1) //We want to include a null terminator
-                                 {
-                                  const char * val_start_on_input = input + start_of_var_val;
-                                  strncpy(var_val,val_start_on_input,total_chars_to_copy);
-                                  var_val[total_chars_to_copy]=0;
-
-                                  fprintf(stderr,"Found VAR `%s` value `%s` \n",var_id,var_val);
-                                  return 1;
-                                 } else
-                                 {
-                                  fprintf(stderr,"There was not sufficient space to copy back the value of VAR `%s` \n",var_id);
-                                  fprintf(stderr,"The VAR `%s` had a size of %u bytes , we had %u bytes to accomodate it \n",var_id,total_chars_to_copy,var_val_length);
-                                  return 0;
-                                 }
-
-   }
-  //If we are here this means we couldnt find an instance of our var in the input string..!
-  //This spams output a lot , so it is disabled -> fprintf(stderr,"Could not find VAR %s \n",var_id);
-  return 0;
-}
-
 
 int StripHTMLCharacters_Inplace(char * filename,int enable_security)
 {
@@ -930,7 +842,7 @@ int trim_last_empty_chars(char * input,unsigned int input_length)
 
 
 
-int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,const char * where2copy,unsigned int maxSizeWhere2Copy)
+int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,char * where2copy,unsigned int maxSizeWhere2Copy)
 {
   if (what2copy==0) { return 0; }
   if (where2copy==0) { return 0; }
@@ -964,7 +876,7 @@ int seek_blank_char(char * input,char * input_end)
    return 0;
 }
 
-
+/*
 char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber , unsigned int  * outputSize)
 {
   if (requestLength<4) { return 0; }
@@ -1020,7 +932,7 @@ int GetNameofFILEFromPOSTRequest(char * request , unsigned int requestLength , u
    }
  return 0;
 }
-
+*/
 
 unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
 {
@@ -1059,56 +971,6 @@ unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int reques
     return 0;
 }
 
-char * GetNewStringFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
-{
-    int PRINT_HELP_HERE=0;
-    if (PRINT_HELP_HERE) fprintf(stderr,"Testing Version of GetNewStringFromHTTPHeaderFieldPayload(%s,%u) called\n",request,request_length);
-    /*THIS IS NOT CORRECT , IT NEEDS TO BE FIXED..!*/
-
-   /*                                                             char * request should initally point here ( at the `:` )
-                                                                              ||
-           The line we are trying to analyze looks like this -> Content-Length: STRINGMPLAMLPAMLPAHERE   <cr><lf> <-*/
-
-        //STEP 1 : We are going to make a null teriminated string called "payload" inside the request string by getting the first blank or <cr> or <lf> character after the STRINGMPLAMLPAMLPAHERE and making it null
-        //STEP 2 : We will use payload like a regular nullterminated string , malloc a new string , strncpy payload in it
-        //STEP 3 : After processing we will turn it back to its former value in order to preserve the header line intact..
-        //It is kind of confusing but definately the fastest way to do without meaningless string copying around..
-
-        char * payload = request;
-        char * payload_end = request+request_length;
-
-        unsigned int blank_offset = seek_non_blank_char(payload,payload_end);
-        if (blank_offset>0)
-         {
-           if (PRINT_HELP_HERE) fprintf(stderr,"Got an offset of %u chars while seeking non_blank characters\n",blank_offset);
-           payload+=blank_offset;
-           blank_offset = seek_blank_char(payload,payload_end);
-             if (blank_offset>0)
-              {
-                if (PRINT_HELP_HERE) fprintf(stderr,"Got an offset of %u chars while seeking for a blank character\n",blank_offset);
-                char * formerly_blank_char = payload+blank_offset;
-                char   formerly_blank_char_val = *formerly_blank_char;
-
-                *formerly_blank_char = 0 ; //It became a null terminated string now , efficiency ftw :P
-                if (PRINT_HELP_HERE) fprintf(stderr,"Payload is %s (string)\n",payload);
-
-                                                          //also add some space for the null termination..!
-                unsigned int payload_length = strlen(payload);
-                char * new_allocation = (char *) malloc ((payload_length+1 /*Null Termination*/)*sizeof(char));
-                if (new_allocation!=0)
-                  {
-                    strncpy(new_allocation,payload,payload_length);
-                    new_allocation[payload_length]=0; //<- Null termination should automatically (via strncpy ) be there BUT I am trying to debug some weird behaviour..!
-                  }
-
-
-                *formerly_blank_char = formerly_blank_char_val; //It came back to normal..
-
-                return new_allocation;
-              }
-         }
-    return 0;
-}
 
 
 /*

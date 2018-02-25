@@ -200,12 +200,26 @@ inline int TransmitFileHeaderToSocket(
        {
          unsigned long endAtBytePrinted = end_at_byte;
          if (endAtBytePrinted == 0 )
-            { endAtBytePrinted = lSize; }
-          snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,lSize,lSize-start_at_byte);
+              { endAtBytePrinted = lSize; }
+
+          snprintf(
+                    reply_header,
+                    MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,
+                    "Content-Range: bytes %lu-%lu/%lu\nContent-length: %lu\n\n",
+                    start_at_byte,
+                    endAtBytePrinted,
+                    lSize,
+                    lSize-start_at_byte
+                   );
        } else
        {
          //This is the last header part , so we are appending an extra \n to mark the end of the header
-         snprintf(reply_header,MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) lSize);
+         snprintf(
+                   reply_header,
+                   MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,
+                   "Content-length: %lu\n\n",
+                   lSize
+                 );
        }
     if (!SendPart(instance,transaction,reply_header,strlen(reply_header)))
         {

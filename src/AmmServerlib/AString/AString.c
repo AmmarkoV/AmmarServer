@@ -293,7 +293,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
 }
 
 
-int astringWriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength)
+int astringWriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength)
 {
     if (memory==0)
     {

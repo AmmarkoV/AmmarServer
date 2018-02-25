@@ -65,7 +65,7 @@ Content-Type: text/html
 
 */
 
-
+/*
 unsigned int printLine(const char * request,unsigned int requestLength)
 {
   const char * ptrA=request;
@@ -75,7 +75,8 @@ unsigned int printLine(const char * request,unsigned int requestLength)
     {
       fprintf(stderr,"%c",*ptrA);
 
-      if ( (*ptrA==13) || (*ptrA==10) || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/  )
+      if ( (*ptrA==13) || (*ptrA==10) || (*ptrA==0)//If we encounter a null terminator this is a violent end
+            )
         {
          fprintf(stderr,"\n");
          return 1;
@@ -85,7 +86,7 @@ unsigned int printLine(const char * request,unsigned int requestLength)
   fprintf(stderr,"\n");
   return 0;
 }
-
+*/
 
 unsigned int foundNewLineBeforePosition(const char * request, const char * position)
 {
