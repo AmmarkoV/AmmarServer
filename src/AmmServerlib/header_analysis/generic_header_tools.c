@@ -44,6 +44,7 @@ int HTTPHeaderIsGET(char * request , unsigned int requestLength)
   return 0;
 }
 
+/*
 void printNBytes(char * buf,unsigned int n)
 {
   unsigned int i=0;
@@ -51,7 +52,7 @@ void printNBytes(char * buf,unsigned int n)
   {
       fprintf(stderr,"%c",buf[i]);
   }
-}
+}*/
 
 
 

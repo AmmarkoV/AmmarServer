@@ -99,13 +99,12 @@ char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsi
 int GetNameofFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber,char * filenameOut, unsigned int filenameSize);
 
 int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length);
-int StripVariableFromGETorPOSTString(const char * input,const char * var_id, char * var_val , unsigned int var_val_length);
 
 
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength);
 
 
-int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,const char * where2copy,unsigned int maxSizeWhere2Copy);
+int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,char * where2copy,unsigned int maxSizeWhere2Copy);
 
 char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine);
 char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine);

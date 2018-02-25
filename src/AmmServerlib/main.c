@@ -42,6 +42,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "tools/logs.h"
 #include "tools/time_provider.h"
 
+#include "header_analysis/get_data.h"
 #include "header_analysis/post_data.h"
 
 
@@ -371,6 +372,7 @@ int AmmServer_AddScheduler (
                             unsigned int repetitions
                            )
 {
+  AmmServer_Stub("TODO add scheduler code ( %s ) .. \n",instance->instanceName);
   return schedulerAdd(
                       resource_name ,
                       callback,

@@ -54,7 +54,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length );
 * @param Size of memory buffer
 * @retval 1=Success,0=Fail
 */
-int astringWriteFileFromMemory(const char * filename,char * memory , unsigned int memoryLength);
+int astringWriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength);
 
 
 #endif // ASTRING_H_INCLUDED
