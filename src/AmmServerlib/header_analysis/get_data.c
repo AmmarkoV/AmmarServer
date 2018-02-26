@@ -123,8 +123,7 @@ int finalizeGETData(struct HTTPHeader * output)
     ++GETPtr;
   }
 
-
-
+  //Final ( or only value )
   if (state==SEEKING_VALUE)
         {
           //We reached the end having found a name(which is already set) and a value..!
@@ -135,10 +134,18 @@ int finalizeGETData(struct HTTPHeader * output)
           ++output->GETItemNumber;
         }
 
+  //Mark that all of the get items here point on RAW and need update on realloc
+  unsigned int i=0;
+  for (i=0; i<output->GETItemNumber; i++)
+  {
+     output->GETItem[i].reallocateOnHeaderRAWResize=1;
+     //TODO strip HTML characters here..
+     //StripHTMLCharacters_Inplace(output->GETquery,0 /* 0 = Disregard dangerous bytes , Safety OFF*/); // <- This call converts char sequences like %20 to " " and %00 to \0 disregarding any form of safety , ( since it is a raw var )
+  }
+
 
 /*
   AmmServer_Success("A total of %u GET Items \n",output->GETItemNumber);
-  unsigned int i=0;
   for (i=0; i<output->GETItemNumber; i++)
   {
      fprintf(stderr,"GET Item %u ------------------ \n",i);

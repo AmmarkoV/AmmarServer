@@ -98,7 +98,7 @@ int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,cha
 char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber,unsigned int  * outputSize);
 int GetNameofFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber,char * filenameOut, unsigned int filenameSize);
 
-int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length);
+int StripGETRequestQueryAndFragment(char * filename  , unsigned int max_query_length);
 
 
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength);

@@ -78,7 +78,7 @@ void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
 
     if(thingsSubmited==5)
     {
-     AmmServer_WriteFileFromMemory("editor.raw",rqst->POST_request,rqst->POST_request_length);
+//     AmmServer_WriteFileFromMemory("editor.raw",rqst->POST_request,rqst->POST_request_length);
      //-----------------------------
      if ( addPost(&myblog,title,tags,bodyText) )    { AmmServer_Success("Added a new post"); } else
                                                     { AmmServer_Error("Could not create a new post"); }

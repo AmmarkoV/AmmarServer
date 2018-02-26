@@ -120,13 +120,11 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
              //In case we don't have any attributes ..
              output->GETRequest = 0;
 
-             if ( StripGETRequestQueryAndFragment(stripped,output->GETquery,MAX_QUERY) )
+             if ( StripGETRequestQueryAndFragment(stripped/*,output->GETquery*/,MAX_QUERY) )
                {
-                 StripHTMLCharacters_Inplace(output->GETquery,0 /* 0 = Disregard dangerous bytes , Safety OFF*/); // <- This call converts char sequences like %20 to " " and %00 to \0 disregarding any form of safety , ( since it is a raw var )
-                 fprintf(stderr,"Found a query , %s , resource is now %s \n",output->GETquery,stripped);
-
                  //Now we should be pointing to the correct place of headerRAW
                  output->GETRequest = stripped + strlen(stripped) +1 ;
+                 //fprintf(stderr,"Found a query , %s , resource is now %s \n",output->GETRequest,stripped);
                }
 
 

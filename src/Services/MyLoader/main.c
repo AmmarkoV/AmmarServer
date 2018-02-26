@@ -242,23 +242,32 @@ void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
   return  render_vfile(rqst,fileRequested);
 }
 
-
+/*
 //This function could alter the content of the URI requested and then return 1
 void request_override_callback(void * request)
 {
   struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
   struct HTTPHeader * rqst = rqstContext->request;
-  AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
+  AmmServer_Warning("With URI : %s \n Filtered URI : %s \n",rqst->resource,rqst->verified_local_resource);
 
-  if (strcmp("/favicon.ico",rqst->resource)==0 )  { return; /*Client requested favicon.ico , no resolving to do */ } else
-  if (strcmp("/error.html",rqst->resource)==0 )   { return; /*Client requested error.html , no resolving to do */  } else
-  if (strcmp("/upload.html",rqst->resource)==0 )  { return; /*Client requested error.html , no resolving to do */  } else
-  if (strcmp("/",rqst->resource)==0 )             {  return; /*Client requested index.html , no resolving to do */  } else
-  if (strcmp("/random.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  }
-
+  if (strcmp("/favicon.ico",rqst->resource)==0 )  {
+                                                        return; //Client requested favicon.ico , no resolving to do
+                                                  } else
+  if (strcmp("/error.html",rqst->resource)==0 )   {
+                                                        return; //Client requested error.html , no resolving to do
+                                                  } else
+  if (strcmp("/upload.html",rqst->resource)==0 )  {
+                                                        return; //Client requested error.html , no resolving to do
+                                                  } else
+  if (strcmp("/",rqst->resource)==0 )             {
+                                                        return; //Client requested index.html , no resolving to do
+                                                  } else
+  if (strcmp("/random.html",rqst->resource)==0 )  {
+                                                        return; //Client requested index.html , no resolving to do
+                                                  }
   return;
 }
-
+*/
 
 char * getBackRandomFileDigits(unsigned int numberOfDigits)
 {
@@ -299,7 +308,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 
 
     //This is slightly bigger ( plus the header but almost correct )
-    uploadsFilesSize+=rqst->POST_request_length;
+    uploadsFilesSize+=fSize;
 
     //snprintf(finalPath,512,"%s/%s/%s.raw",webserver_root,uploads_root,storeID);
     //AmmServer_WriteFileFromMemory(finalPath,rqst->POST_request,rqst->POST_request_length);
@@ -347,7 +356,7 @@ void * prepare_random_callback(struct AmmServer_DynamicRequest  * rqst)
 void init_dynamic_content()
 {
   AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,(maxUploadFileSizeAllowedMB+1)*1024*1024); //+1MB for headers etc..
-  AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
+  //AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
   AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   AmmServer_DoNOTCacheResourceHandler(default_server,&uploadProcessor);
