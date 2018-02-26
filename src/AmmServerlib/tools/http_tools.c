@@ -847,8 +847,11 @@ int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,char * where2
 {
   if (what2copy==0) { return 0; }
   if (where2copy==0) { return 0; }
-  if (what2copySize+1>maxSizeWhere2Copy) { return 0; }
-  error("Not enough spac to perform copy..");
+  if (what2copySize+1>maxSizeWhere2Copy)
+     {
+       error("Not enough space to perform copy..");
+       return 0;
+     }
 
   snprintf(where2copy,maxSizeWhere2Copy,"%s",what2copy);
   return 1;

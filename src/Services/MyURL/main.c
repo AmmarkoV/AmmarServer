@@ -386,6 +386,10 @@ unsigned long Add_MyURL(char * longURL,char * shortURL,int saveit)
 
 int LoadMyURLDBFile(char * filename)
 {
+    fprintf(stderr,"Trying to load DB from file %s \n",filename);
+    char curdir[1024]={0};
+    getcwd(curdir,1024);
+    fprintf(stderr,"Current Directory is %s \n",curdir);
     FILE * pFile;
     pFile = fopen (filename,"r");
     if (pFile!=0)
