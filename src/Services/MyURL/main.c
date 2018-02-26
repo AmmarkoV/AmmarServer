@@ -488,7 +488,10 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
   //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
   memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
 
-  if  ( rqst->GET_request != 0 )
+  if  (
+        ( _GETexists(rqst,"url") ) ||
+        ( _GETexists(rqst,"to") )
+      )
     {
         char url[MAX_LONG_URL_SIZE]={0};
         char to[MAX_TO_SIZE]={0};
@@ -560,7 +563,7 @@ void resolveRequest(void * request)
 {
   struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
   struct HTTPHeader * rqst = rqstContext->request;
-  AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
+  //AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
 
   if (strcmp("/favicon.ico",rqst->resource)==0 ) { return; /*Client requested favicon.ico , no resolving to do */ } else
   if (strcmp("/index.html",rqst->resource)==0 )  { return; /*Client requested index.html , no resolving to do */  } else
@@ -578,14 +581,26 @@ void resolveRequest(void * request)
 
              AmmServer_Warning("Detected new kind of page , should make it /go?to=%s",rqst->resource+1);
              //For now they are static if (rqst->GETquery!=0) { free(rqst->GETquery); rqst->GETquery=0; }
-             //rqst->GETquery = ( char * ) malloc (sizeof(char) * newlength);
-             snprintf(rqst->GETquery,MAX_QUERY,"to=%s",rqst->resource+1 /* +1 To avoid the slash / */);
+             //rqst->GETquery = ( char * ) malloc ( sizeof(char) * newlength);
 
-             //if (rqst->resource!=0) { free(rqst->resource); rqst->resource=0; }
-             //rqst->resource = ( char * ) malloc (sizeof(char) * 4); //+3 chars + nulltermination
-             snprintf(rqst->resource,MAX_RESOURCE,"%s",service_filename);
-             snprintf(rqst->verified_local_resource,MAX_FILE_PATH,"%s%s",webserver_root,service_filename_noslash);
-             AmmServer_Warning("With URI : %s \n Filtered URI : %s \n GET Request : %s \n",rqst->resource,rqst->verified_local_resource, rqst->GETquery);
+             rqst->sizeOfExtraDataThatWillNeedToBeDeallocated = strlen(rqst->resource)+32;
+             rqst->extraDataThatWillNeedToBeDeallocated       = (char * ) malloc (sizeof(char) * rqst->sizeOfExtraDataThatWillNeedToBeDeallocated);
+             if (rqst->extraDataThatWillNeedToBeDeallocated!=0)
+             {
+              snprintf(rqst->extraDataThatWillNeedToBeDeallocated,rqst->sizeOfExtraDataThatWillNeedToBeDeallocated-1,"to=%s",rqst->resource+1 /* +1 To avoid the slash / */);
+              rqst->extraDataThatWillNeedToBeDeallocated[2]=0;
+
+              rqst->GETItemNumber=1;
+              rqst->GETItem[0].name=rqst->extraDataThatWillNeedToBeDeallocated;     //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+              rqst->GETItem[0].value=rqst->extraDataThatWillNeedToBeDeallocated+3;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+              AmmServer_Warning("Redirecting %s %s\n",rqst->GETItem[0].name,rqst->GETItem[0].value);
+
+              //if (rqst->resource!=0) { free(rqst->resource); rqst->resource=0; }
+              //rqst->resource = ( char * ) malloc (sizeof(char) * 4); //+3 chars + nulltermination
+              snprintf(rqst->resource,MAX_RESOURCE,"%s",service_filename);
+              snprintf(rqst->verified_local_resource,MAX_FILE_PATH,"%s%s",webserver_root,service_filename_noslash);
+              AmmServer_Warning("With URI : %s \n Filtered URI : %s  \n",rqst->resource,rqst->verified_local_resource);
+             }
           }
 }
 

@@ -157,10 +157,11 @@ char * dynamicRequest_serveContent
        fprintf(stderr,"Trying to adjust GET_request length \n");
 
        //If we have GET or POST request variables , lets pass them through to our shared context..
+       /*
        shared_context->requestContext.GET_request = request->GETquery;
-       if (shared_context->requestContext.GET_request!=0) { shared_context->requestContext.GET_request_length = strlen(shared_context->requestContext.GET_request); } else
-                                                          { shared_context->requestContext.GET_request_length = 0; }
-
+       if (shared_context->requestContext.GET_request!=0)
+           { shared_context->requestContext.GET_request_length = strlen(shared_context->requestContext.GET_request); } else
+           { shared_context->requestContext.GET_request_length = 0; }
 
        if (request->POSTrequestBody!=0)
        {
@@ -173,6 +174,8 @@ char * dynamicRequest_serveContent
         shared_context->requestContext.POST_request_length = request->POSTrequestSize;
        }
        fprintf(stderr,"Survived adjusting GET_request length \n");
+*/
+
 
         struct AmmServer_DynamicRequest * rqst = (struct AmmServer_DynamicRequest * ) malloc(sizeof(struct AmmServer_DynamicRequest));
         if (rqst!=0)
@@ -185,11 +188,16 @@ char * dynamicRequest_serveContent
                      rqst->GETItemNumber  = request->GETItemNumber;
                      rqst->GETItem        = request->GETItem;   //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
+                     rqst->sizeOfExtraDataThatWillNeedToBeDeallocated = request->sizeOfExtraDataThatWillNeedToBeDeallocated;
+                     rqst->extraDataThatWillNeedToBeDeallocated       = request->extraDataThatWillNeedToBeDeallocated;
+
                      fprintf(stderr,"Request for a maximum of %lu characters ( %lu ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
-                     fprintf(stderr,"POST : %p , %u bytes\n",rqst->POST_request , rqst->POST_request_length );
+                     fprintf(stderr,"GETItems : %p , %u items\n",rqst->GETItem , rqst->GETItemNumber );
                      fprintf(stderr,"POSTItems : %p , %u items\n",rqst->POSTItem , rqst->POSTItemNumber );
+                     /*
+                     fprintf(stderr,"POST : %p , %u bytes\n",rqst->POST_request , rqst->POST_request_length );
                      fprintf(stderr,"GET : %p , %u bytes\n",rqst->GET_request , rqst->GET_request_length );
-                     fprintf(stderr,"COOKIE : %p , %u bytes\n",rqst->COOKIE_request , rqst->COOKIE_request_length );
+                     fprintf(stderr,"COOKIE : %p , %u bytes\n",rqst->COOKIE_request , rqst->COOKIE_request_length );*/
 
                      if ( (rqst->POSTItemNumber!=0) )
                      {
@@ -207,6 +215,13 @@ char * dynamicRequest_serveContent
                      unsigned long elapsedCallbackTimeMS=end_timer (&callbackTimer);
                      fprintf(stderr,"Callback done in %lu microseconds \n",elapsedCallbackTimeMS);
                      shared_context->executedNow=0;
+
+                     if (rqst->extraDataThatWillNeedToBeDeallocated!=0)
+                     {
+                       free(rqst->extraDataThatWillNeedToBeDeallocated);
+                       rqst->sizeOfExtraDataThatWillNeedToBeDeallocated=0;
+                       rqst->extraDataThatWillNeedToBeDeallocated=0;
+                     }
 
                      if (rqst->contentContainsPathToFileToBeStreamed)
                      {
@@ -267,12 +282,13 @@ int saveDynamicRequest(const char * filename , struct AmmServer_Instance * insta
 {
   if (instance==0) { return 0; }
 
+  AmmServer_Stub("saveDynamicRequest is a stub..");
   FILE *fp=0;
 
   fp = fopen(filename,"w");
   if (fp!=0)
   {
-    fprintf(fp,"%s",rqst->GET_request);
+    //fprintf(fp,"%s",rqst->GET_request);
     fclose(fp);
     return 1;
   }

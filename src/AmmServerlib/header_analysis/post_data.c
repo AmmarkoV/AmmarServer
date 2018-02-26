@@ -59,9 +59,7 @@ int addPOSTDataBoundary(struct HTTPHeader * output,char * ptr)
    output->POSTItem[n].contentType=0;
    output->POSTItem[n].contentTypeSize=0;
 
-
-   output->POSTItem[n].populated=1;
-
+   output->POSTItem[n].reallocateOnHeaderRAWResize=1;
   return 1;
 }
 
@@ -169,7 +167,8 @@ int finalizePOSTData(struct HTTPHeader * output)
      } else
      {
        AmmServer_Warning("Incorrect name for boundary part %u/%u marking it as empty..\n",i,PNum);
-       output->POSTItem[i].populated=0;
+       output->POSTItem[i].value = 0;
+       output->POSTItem[i].valueSize=0;
      }
   }
  }

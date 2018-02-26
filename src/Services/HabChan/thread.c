@@ -114,10 +114,7 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
 void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
 {
  fprintf(stderr,"prepareThreadIndexView  \n");
-  if  ( rqst->GET_request != 0 )
-    {
-      if ( strlen(rqst->GET_request)>0 )
-       {
+
          char boardID[257]={0};
          if ( _GETcpy(rqst,"board",boardID,256) )
              {
@@ -155,8 +152,7 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
                   strcat(rqst->content,"No BOARD  , denied!!!  <BR> ");
                 }
              }
-       }
-    }
+
 
    strcpy(rqst->content,"<html>ERROR</html>");
    rqst->contentSize=strlen(rqst->content);

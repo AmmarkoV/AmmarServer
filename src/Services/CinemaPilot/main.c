@@ -378,10 +378,7 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
 {
  char data[256]={0};
  AmmServer_Success("New Control Request");
- if ( rqst->GET_request != 0 )
- {
-   if ( strlen(rqst->GET_request)>0 )
-    {
+
       if ( _GETcpy(rqst,"play",data,128) )
        {
          AmmServer_Success("Play pressed \n");
@@ -405,8 +402,7 @@ void * prepare_remoteControl_callback(struct AmmServer_DynamicRequest * rqst)
          AmmServer_Success("Next\n");
          issueCommandToMplayer(mplayerControllerPath,"next");
        }
-    }
- }
+
   strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0; url=control.html\" ></head><body>Ack</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
 return 0;

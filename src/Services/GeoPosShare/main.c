@@ -109,10 +109,6 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
   char from[256]={0};
 
  AmmServer_Warning("New GPS message");
- if ( rqst->GET_request != 0 )
-    {
-      if ( strlen(rqst->GET_request)>0 )
-       {
          if ( _GETcpy(rqst,"lat",latitude,128) )
              {
                fprintf(stderr,"Latitude : %s \n",latitude);
@@ -137,8 +133,7 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
          {
             AmmServer_Error("Could not log to OSM point cloud");
          }
-       }
-    }
+
 
   strncpy(rqst->content,"<html><body>Ack</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);

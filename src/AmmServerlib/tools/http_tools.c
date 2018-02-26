@@ -501,7 +501,7 @@ int ReducePathSlashes_Inplace(char * filename)
  return 0;
 }
 
-int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned int max_query_length)
+int StripGETRequestQueryAndFragment(char * filename  , unsigned int max_query_length)
 {
    //fprintf(stderr,"StripGETRequestQueryAndFragment is not thoroughly tested yet\n");
    unsigned int length=strlen(filename);
@@ -522,8 +522,9 @@ int StripGETRequestQueryAndFragment(char * filename , char * query , unsigned in
    char * start_of_query = &filename[i+1]; // do not include ? ( question mark )
    filename[i]=0;
 
+   /*
    if (strlen(start_of_query)>=max_query_length) { fprintf(stderr,"Not enough space for GET Request query\n");  return 0; }
-   snprintf(query,max_query_length,"%s",start_of_query);
+   snprintf(query,max_query_length,"%s",start_of_query);*/
 
    //fprintf(stderr,"GET Request ( %s ) has a query inlined ( %s ) \n",filename,query);
   return 1;

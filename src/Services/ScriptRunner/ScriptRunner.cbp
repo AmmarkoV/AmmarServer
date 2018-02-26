@@ -33,13 +33,13 @@
 		</Compiler>
 		<Linker>
 			<Add option="../../AmmServerlib/libAmmarServer.a" />
+			<Add option="../../InputParser/libInputParser_C.a" />
+			<Add option="../../Hashmap/libHashmap.a" />
 			<Add option="-pthread" />
 			<Add option="-lrt" />
 			<Add option="-lz" />
 		</Linker>
-		<Unit filename="main.c">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Unit filename="main.cpp" />
 		<Extensions>
 			<envvars />
 			<code_completion />

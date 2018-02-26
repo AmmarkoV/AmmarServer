@@ -26,13 +26,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../AmmServerlib/AmmServerlib.h"
 
 
-
-#define ENABLE_GET_DEBUGGING 1
-#if ENABLE_GET_DEBUGGING
- #warning "if you open http://127.0.0.1/debugGET.html?varhere=valhere this will echo back the get tokens received for debugging , of course you don't want this in production so disable this"
-#endif // ENABLE_STOP_PAGE
-
-
 #define ENABLE_STOP_PAGE 0
 #if ENABLE_STOP_PAGE
  #warning "if you open http://127.0.0.1/stop.html this will stop the web server of course you don't want this in production so disable this"
@@ -90,7 +83,6 @@ struct AmmServer_Instance  * admin_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context stop={0};
-struct AmmServer_RH_Context getdbg={0};
 struct AmmServer_RH_Context stats={0};
 struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
@@ -116,10 +108,6 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
    unsigned int default_post_form = 1;
 
-   if ( rqst->POST_request != 0 )
-    {
-      if ( strlen(rqst->POST_request)>0 )
-       {
          char * username = (char *) malloc ( 256 * sizeof(char) );
          char * comment = (char *) malloc ( 1024 * sizeof(char) );
          if ((username!=0)&&(comment!=0))
@@ -148,8 +136,7 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
           }
          if (username!=0) { free(username); }
          if (comment!=0) { free(comment);  }
-       }
-    }
+
 
 
   if (default_post_form)
@@ -221,12 +208,8 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-   if ( rqst->POST_request != 0 )
-    {
-      if ( strlen(rqst->POST_request)>0 )
-       {
          strcat(rqst->content,"<hr>POST REQUEST dynamically added here : <br><i>");
-         strcat(rqst->content, rqst->POST_request);
+         //strcat(rqst->content, rqst->POST);
          strcat(rqst->content,"</i><hr>");
 
          char * username = (char *) malloc ( 256 * sizeof(char) );
@@ -238,17 +221,13 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
              }
             free(username);
           }
-       }
-    }
 
 
-  if  ( rqst->GET_request != 0 )
-    {
-      if ( strlen(rqst->GET_request)>0 )
-       {
-         strcat(rqst->content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(rqst->content, rqst->GET_request ); strcat(rqst->content,"</i><hr>");
+         strcat(rqst->content,"<hr>GET REQUEST dynamically added here : <br><i>");
+         //strcat(rqst->content, rqst->GET_request );
+         strcat(rqst->content,"</i><hr>");
 
-         char * username = (char *) malloc ( 256 * sizeof(char) );
+         username = (char *) malloc ( 256 * sizeof(char) );
          if (username!=0)
           {
             if ( _GETcpy(rqst,"user",username,256) )
@@ -257,8 +236,6 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
              }
             free(username);
           }
-       }
-    }
 
 
   strcat(rqst->content,"</body></html>");
@@ -270,22 +247,6 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-//This function prepares the content of  form context , ( content )
-void * debug_get_callback(struct AmmServer_DynamicRequest  * rqst)
-{
-  strncpy(rqst->content,"<html><body><br><br>",rqst->MAXcontentSize);
-  if  ( rqst->GET_request != 0 )
-    {
-      if ( strlen(rqst->GET_request)>0 )
-       {
-         strcat(rqst->content,"<hr>GET REQUEST dynamically added here : <br><i>"); strcat(rqst->content, rqst->GET_request ); strcat(rqst->content,"</i><hr>");
-       }
-    }
-  strcat(rqst->content,"</body></html>");
-
-  rqst->contentSize=strlen(rqst->content);
-  return 0;
-}
 
 
 //This function prepares the content of  form context , ( content )
@@ -309,10 +270,6 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
   char message[256]={0};
 
  AmmServer_Warning("New GPS message");
- if ( rqst->GET_request != 0 )
-    {
-      if ( strlen(rqst->GET_request)>0 )
-       {
          if ( _GETcpy(rqst,"lat",latitude,128) )
              {
                fprintf(stderr,"Latitude : %s \n",latitude);
@@ -325,8 +282,7 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
              {
                fprintf(stderr,"Message : %s \n",message);
              }
-       }
-    }
+
 
   strncpy(rqst->content,"<html><body>Ack</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
@@ -398,9 +354,6 @@ void init_dynamic_content()
      AmmServer_EnableMonitor(default_server);
    #endif // ENABLE_MONITOR
 
-#if ENABLE_GET_DEBUGGING
-  AmmServer_AddResourceHandler(default_server,&getdbg,"/debugGET.html",4096,0,&debug_get_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-#endif // ENABLE_GET_DEBUGGING
 
   //fresh.txt will always be served fresh
   AmmServer_DoNOTCacheResource(default_server,WEBSERVERROOT "fresh.txt");

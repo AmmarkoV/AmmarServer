@@ -675,7 +675,6 @@ unsigned int InputParser_GetWordLength(struct InputParserC * ipc,unsigned int nu
 */
 int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcopy)
 {
-
    if (keepcopy==0)
     {
       #if WARN_ABOUT_INCORRECTLY_ALLOCATED_STACK_STRINGS
@@ -685,6 +684,8 @@ int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcop
          fprintf(stderr,"For example passing here a string allocated as  char* hello = \"hello!\"; might lead to a segFault ( i.e. when calling InputParser_GetWordFloat ) \n");
          fprintf(stderr,"The correct way for allocating a string with in place processing is char hello[] = \"hello!\"; \n");
          fprintf(stderr,"Valgrind classifies these errors as \"Bad permissions for mapped region at address\" \n");
+         fprintf(stderr,"\n\nThis warning will only appear once \n\n");
+
          ++warningsAboutIncorrectlyAllocatedStackIssued ;
         }
        #endif

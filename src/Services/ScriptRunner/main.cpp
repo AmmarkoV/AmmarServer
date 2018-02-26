@@ -473,17 +473,18 @@ void * store_new_configuration_callback(struct AmmServer_DynamicRequest  * rqst)
   unsigned int successfullStore = 0;
   rqst->content[pageLength]=0; //Clear content
 
+  /*
   if  ( rqst->GET_request != 0 )
     {
       if ( strlen(rqst->GET_request)>0 )
-       {
+       {*/
          if ( AmmServer_SaveDynamicRequest("hobbit_raw.ini",rqst) )
            {
              int i=system("tr \"\\&\" \"\\n\" < hobbit_raw.ini > hobbit.ini");
              if (i==0) {  successfullStore = 1; }
            }
-       }
-    }
+      /* }
+    }*/
 
 if (successfullStore)
      {
@@ -503,10 +504,10 @@ if (successfullStore)
 //This function prepares the content of  form context , ( content )
 void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  if  ( rqst->GET_request != 0 )
+/*  if  ( rqst->GET_request != 0 )
     {
       if ( strlen(rqst->GET_request)>0 )
-       {
+       {*/
          char * bufferCommand = (char *) malloc ( 256 * sizeof(char) );
          if (bufferCommand!=0)
           {
@@ -543,9 +544,9 @@ void * prepare_form_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
             free(bufferCommand);
           }
-
+/*
        }
-    }
+    }*/
 
   if ( (page==0) || (pageLength==0) )
   {

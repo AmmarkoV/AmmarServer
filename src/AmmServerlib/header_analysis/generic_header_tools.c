@@ -190,6 +190,8 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(
    unsigned int i=0;
    for (i=0; i<transaction->incomingHeader.POSTItemNumber; i++)
    {
+    if (transaction->incomingHeader.POSTItem[i].reallocateOnHeaderRAWResize)
+    {
     transaction->incomingHeader.POSTItem[i].pointerStart       =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].pointerStart       ,oldBaseAddress ,newBaseAddress);
     transaction->incomingHeader.POSTItem[i].pointerEnd         =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].pointerEnd         ,oldBaseAddress ,newBaseAddress);
     transaction->incomingHeader.POSTItem[i].name               =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].name               ,oldBaseAddress ,newBaseAddress);
@@ -197,12 +199,16 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(
     transaction->incomingHeader.POSTItem[i].filename           =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].filename           ,oldBaseAddress ,newBaseAddress);
     transaction->incomingHeader.POSTItem[i].contentDisposition =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].contentDisposition ,oldBaseAddress ,newBaseAddress);
     transaction->incomingHeader.POSTItem[i].contentType        =  _recalculatePosition(transaction->incomingHeader.POSTItem[i].contentType        ,oldBaseAddress ,newBaseAddress);
+    }
    }
 
    for (i=0; i<transaction->incomingHeader.GETItemNumber; i++)
    {
+    if (transaction->incomingHeader.GETItem[i].reallocateOnHeaderRAWResize)
+    {
     transaction->incomingHeader.GETItem[i].name       =  _recalculatePosition(transaction->incomingHeader.GETItem[i].name       ,oldBaseAddress ,newBaseAddress);
     transaction->incomingHeader.GETItem[i].value      =  _recalculatePosition(transaction->incomingHeader.GETItem[i].value      ,oldBaseAddress ,newBaseAddress);
+    }
    }
 
    return 1;

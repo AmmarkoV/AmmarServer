@@ -482,6 +482,15 @@ unsigned long SendFile
   unsigned char serveAsRegularFile=0;
   char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins);
 
+
+  //We are done with our resource so we no longer need the extra data that needs to be deallocated..
+  if (request->extraDataThatWillNeedToBeDeallocated!=0)
+                     {
+                       free(request->extraDataThatWillNeedToBeDeallocated);
+                       request->sizeOfExtraDataThatWillNeedToBeDeallocated=0;
+                       request->extraDataThatWillNeedToBeDeallocated=0;
+                     }
+
   if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
       unsigned char ok_to_serve_not_modified = 1;

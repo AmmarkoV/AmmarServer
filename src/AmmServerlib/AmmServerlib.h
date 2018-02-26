@@ -119,7 +119,7 @@ struct POSTRequestBoundaryContent
    char *       contentType;
    unsigned int contentTypeSize;
 
-   int populated;
+   int reallocateOnHeaderRAWResize;
 };
 
 
@@ -137,7 +137,7 @@ struct GETRequestContent
    char *       value;
    unsigned int valueSize;
 
-   int populated;
+   int reallocateOnHeaderRAWResize;
 };
 
 
@@ -163,11 +163,13 @@ struct HTTPHeader
    int  requestType; //See enum TypesOfRequests
    char resource[MAX_RESOURCE+1];
    char verified_local_resource[MAX_FILE_PATH+1];
-   char GETquery[MAX_QUERY+1];
+
+   //char GETquery[MAX_QUERY+1];
+   unsigned int sizeOfExtraDataThatWillNeedToBeDeallocated;
+   char * extraDataThatWillNeedToBeDeallocated;
 
    char * GETRequest;
    unsigned long GETsrequestSize;
-
 
    char * POSTrequest;
    unsigned long POSTrequestSize;
@@ -286,11 +288,8 @@ struct AmmServer_DynamicRequest
    unsigned long compressedContentSize;
    unsigned long MAXcompressedContentSize;
 
-   char * GET_request;
-   unsigned int GET_request_length;
-
-   char * POST_request;
-   unsigned int POST_request_length;
+   unsigned int sizeOfExtraDataThatWillNeedToBeDeallocated;
+   char * extraDataThatWillNeedToBeDeallocated;
 
    unsigned int POSTItemNumber;
    struct POSTRequestBoundaryContent * POSTItem; //<-    *THIS POINTS SOMEWHERE INSIDE THE STACK SO NEVER FREE IT ..!
