@@ -599,7 +599,10 @@ void resolveRequest(void * request)
 
               rqst->GETItemNumber=1;
               rqst->GETItem[0].name=rqst->extraDataThatWillNeedToBeDeallocated;     //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+              rqst->GETItem[0].nameSize=2;
               rqst->GETItem[0].value=rqst->extraDataThatWillNeedToBeDeallocated+3;  //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+              rqst->GETItem[0].valueSize=strlen(rqst->resource+1);
+              rqst->GETItem[0].reallocateOnHeaderRAWResize=0; //We have allocated this on our own so we don't need to realloc it
               AmmServer_Warning("Redirecting %s %s\n",rqst->GETItem[0].name,rqst->GETItem[0].value);
 
               //if (rqst->resource!=0) { free(rqst->resource); rqst->resource=0; }
