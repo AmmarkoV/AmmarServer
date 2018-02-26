@@ -27,7 +27,13 @@ int finalizeGETData(struct HTTPHeader * output)
 
   output->GETItemNumber=0;
   char * GETPtr = output->GETRequest;
-  unsigned int GETPtrLength = strlen(GETPtr);
+
+  if (GETPtr==0)
+  {
+   return 0;
+  }
+
+  unsigned int GETPtrLength = strnlen(GETPtr,output->headerRAWSize);
   char * GETPtrEnd = GETPtr + GETPtrLength;
 
   //AmmServer_Warning("GET Request %s has %u bytes of stuff..\n",GETPtr ,GETPtrLength);
