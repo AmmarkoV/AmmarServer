@@ -484,12 +484,13 @@ unsigned long SendFile
 
 
   //We are done with our resource so we no longer need the extra data that needs to be deallocated..
+  /* We empty this in a deeper level , not here..
   if (request->extraDataThatWillNeedToBeDeallocated!=0)
                      {
                        free(request->extraDataThatWillNeedToBeDeallocated);
                        request->sizeOfExtraDataThatWillNeedToBeDeallocated=0;
                        request->extraDataThatWillNeedToBeDeallocated=0;
-                     }
+                     }*/
 
   if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
    {
