@@ -559,7 +559,9 @@ unsigned int _POSTuint(struct AmmServer_DynamicRequest * rqst,const char * name)
 {
   unsigned int valueLength=0;
   const char * value = _POST(rqst,name,&valueLength);
-  return  atoi(value);
+  if (value!=0)
+   { return  atoi(value); }
+  return 0;
 }
 
 int _POSTexists(struct AmmServer_DynamicRequest * rqst,const char * name)
@@ -599,7 +601,9 @@ unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * name)
 {
   unsigned int valueLength=0;
   const char * value = _GET(rqst,name,&valueLength);
-  return  atoi(value);
+  if (value!=0)
+   { return  atoi(value); }
+  return 0;
 }
 
 int _GETexists(struct AmmServer_DynamicRequest * rqst,const char * name)

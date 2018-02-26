@@ -175,8 +175,10 @@ const struct GETRequestContent * getGETItemFromName(struct AmmServer_DynamicRequ
  unsigned int PNum=rqst->GETItemNumber;
  if (PNum>MAX_HTTP_GET_VARIABLE_COUNT) { PNum=MAX_HTTP_GET_VARIABLE_COUNT; }
 
- for (i=0; i<PNum; i++)
+ if (rqst->GETItem!=0)
  {
+  for (i=0; i<PNum; i++)
+  {
     struct GETRequestContent * p = &rqst->GETItem[i];
     //AmmServer_Info("POSTItem[%u].name = %s and we have %s \n",i,p->name,nameToLookFor);
     if (p->name!=0)
@@ -186,6 +188,7 @@ const struct GETRequestContent * getGETItemFromName(struct AmmServer_DynamicRequ
        return p;
      }
     }
+  }
  }
  return 0;
 }
