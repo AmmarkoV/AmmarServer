@@ -52,11 +52,11 @@ void * editorUpload_callback(struct AmmServer_DynamicRequest  * rqst)
 {
     //AmmServer_Success("editorUpload_callback");
     unsigned int thingsSubmited=0;
-    char title[1024]={0};
-    char tags[1024]={0};
-    char bodyText[4096]={0};
-    char user[1024]={0};
-    char token[1024]={0};
+    char title[1025]={0};
+    char tags[1025]={0};
+    char bodyText[4097]={0};
+    char user[1025]={0};
+    char token[1025]={0};
 
 
     if ( _POSTcpy(rqst,"user",user,1024)  )      { AmmServer_Success("User=`%s`", user);     ++thingsSubmited; } else

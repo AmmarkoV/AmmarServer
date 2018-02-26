@@ -264,7 +264,8 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
    if (stat(filename,&statBuf)==0)
    {
       //Successfully stated file
-      printf("File size:                %lld bytes\n", (long long) statBuf.st_size);
+      fprintf(stderr,"File size:                %lld bytes\n", (long long) statBuf.st_size);
+
       lSize = (unsigned long) statBuf.st_size;
       fprintf(stderr,"Last status change:       %s", ctime(&statBuf.st_ctime));
       fprintf(stderr,"Last file access:         %s", ctime(&statBuf.st_atime));

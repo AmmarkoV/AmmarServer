@@ -192,8 +192,10 @@ const struct POSTRequestBoundaryContent * getPOSTItemFromName(struct AmmServer_D
  unsigned int PNum=rqst->POSTItemNumber;
  if (PNum>MAX_HTTP_POST_BOUNDARY_COUNT) { PNum=MAX_HTTP_POST_BOUNDARY_COUNT; }
 
- for (i=0; i<PNum; i++)
+ if (rqst->POSTItem!=0)
  {
+  for (i=0; i<PNum; i++)
+  {
     struct POSTRequestBoundaryContent * p = &rqst->POSTItem[i];
     //AmmServer_Info("POSTItem[%u].name = %s and we have %s \n",i,p->name,nameToLookFor);
     if (p->name!=0)
@@ -203,6 +205,7 @@ const struct POSTRequestBoundaryContent * getPOSTItemFromName(struct AmmServer_D
        return p;
      }
     }
+  }
  }
  return 0;
 }
