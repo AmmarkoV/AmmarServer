@@ -69,7 +69,21 @@ int instance_CountFreeOP(struct AmmServer_Instance * instance,unsigned long addi
 }
 
 
+int printDisclaimer()
+{
+  char cwd[4096];
+  if (getcwd(cwd, sizeof(cwd)) != NULL) { fprintf(stderr,"Current working dir: %s\n", cwd); }
 
+
+  fprintf(stderr,"\n\nDISCLAIMER : \n");
+  fprintf(stderr,"Please note that this server version is not thoroughly\n");
+  fprintf(stderr," pen-tested so it is not meant for production deployment..\n");
+
+  fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
+  fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
+
+  return 1;
+}
 
 
 
