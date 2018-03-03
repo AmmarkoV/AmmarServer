@@ -279,6 +279,10 @@ int instance_CountNewMallocOP(struct AmmServer_Instance * instance,unsigned long
 int instance_CountFreeOP(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes);
 
 
+/** @brief Printout disclaimer
+  * @retval 1=Success,0=Failure*/
+int printDisclaimer();
+
 /** @brief Internal check of server configuration and possible error messages in impossible situations
   * @retval 1=Success,0=Failure*/
 int EmmitPossibleConfigurationWarnings();

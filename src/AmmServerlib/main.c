@@ -26,33 +26,32 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 #include "AmmServerlib.h"
 #include "AString/AString.h"
-
+// --------------------------------------------
 #include "version.h"
-
+// --------------------------------------------
 #include "threads/threadedServer.h"
 #include "threads/prespawnedThreads.h"
-
+// --------------------------------------------
 #include "cache/file_caching.h"
 #include "cache/dynamic_requests.h"
-
+// --------------------------------------------
 #include "scheduler/scheduler.h"
-
+// --------------------------------------------
 #include "tools/serverMonitor.h"
 #include "tools/http_tools.h"
 #include "tools/logs.h"
 #include "tools/time_provider.h"
-
+// --------------------------------------------
 #include "header_analysis/get_data.h"
 #include "header_analysis/post_data.h"
-
-
+// --------------------------------------------
 #include "templates/editor.h"
 #include "templates/login.h"
+// --------------------------------------------
 
 //This is for calling back a client function after receiving
 //a sigkill or other signal , after using AmmServer_RegisterTerminationSignal
 void ( *TerminationCallback) (  )=0 ;
-
 
 char * AmmServer_Version()
 {
@@ -69,94 +68,51 @@ int AmmServer_CheckIfHeaderBinaryAreTheSame(int headerSpec)
   return 1;
 }
 
-
 int AmmServer_GetDateString(char * output , unsigned int maxOutput)
 {
   return GetDateString(output,maxOutput,0,1,0,0,0,0,0,0,0);
 }
-
-
-
-
-void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
-{
-   unsigned int freeAtTheEnd=1;
-   unsigned int formatLength = 30+strlen(format);
-   char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
-   if (coloredFormat==0) { coloredFormat=(char*) format; freeAtTheEnd=0; }
-   coloredFormat[0]=0;
-   strcpy(coloredFormat,color);
-   strcat(coloredFormat,label);
-   strcat(coloredFormat,": ");
-   strcat(coloredFormat,format);
-   strcat(coloredFormat," \n ");
-   strcat(coloredFormat,NORMAL );
-
-   vfprintf(stderr,coloredFormat, *arglist );
-
-   fflush(stderr);
-
-   //Maybe log this somewhere ? , just saying
-
-   if (freeAtTheEnd) free(coloredFormat);
-}
-
 
 int AmmServer_AppendToFile(const char * filename,const char * msg)
 {
   return FileAppend(filename,msg);
 }
 
-void AmmServer_Warning( const char *format , ... )
+void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
 {
-  va_list arglist;
-  va_start( arglist, format );
-  AmmServer_GeneralPrint(YELLOW,"Warning",format, &arglist );
-  va_end( arglist );
+   unsigned int formatLength = 32+strlen(label)+strlen(format);
+   char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
+
+   if (coloredFormat!=0)
+   {
+     coloredFormat[0]=0;
+     strcpy(coloredFormat,color);
+     strcat(coloredFormat,label);
+     strcat(coloredFormat,": ");
+     strcat(coloredFormat,format);
+     strcat(coloredFormat," \n ");
+     strcat(coloredFormat,NORMAL );
+
+     vfprintf(stderr,coloredFormat, *arglist );
+     fflush(stderr);
+     free(coloredFormat);
+   } else
+   {
+      fprintf(stderr,RED "AmmServer_GeneralPrint failed to output %s, not enough memory..\n",format);
+   }
+ return;
 }
 
-void AmmServer_Error( const char *format , ... )
-{
-  va_list arglist;
-  va_start( arglist, format );
-  AmmServer_GeneralPrint(RED,"Error",format, &arglist );
-  va_end( arglist );
-}
-
-void AmmServer_Success( const char *format , ... )
-{
-  va_list arglist;
-  va_start( arglist, format );
-  AmmServer_GeneralPrint(GREEN,"Success",format, &arglist );
-  va_end( arglist );
-}
-
-
-void AmmServer_Info( const char *format , ... )
-{
-  va_list arglist;
-  va_start( arglist, format );
-  AmmServer_GeneralPrint(WHITE,"Info",format, &arglist );
-  va_end( arglist );
-}
-
-
-void AmmServer_Stub( const char *format , ... )
-{
-  va_list arglist;
-  va_start( arglist, format );
-  AmmServer_GeneralPrint(RED,"Not Implemented",format, &arglist );
-  va_end( arglist );
-}
-
-
+void AmmServer_Warning( const char *format , ... )  { va_list arglist; va_start( arglist, format ); AmmServer_GeneralPrint(YELLOW,"Warning",format, &arglist );      va_end( arglist ); }
+void AmmServer_Error( const char *format , ... )    { va_list arglist; va_start( arglist, format ); AmmServer_GeneralPrint(RED,"Error",format, &arglist );           va_end( arglist ); }
+void AmmServer_Success( const char *format , ... )  { va_list arglist; va_start( arglist, format ); AmmServer_GeneralPrint(GREEN,"Success",format, &arglist );       va_end( arglist ); }
+void AmmServer_Info( const char *format , ... )     { va_list arglist; va_start( arglist, format ); AmmServer_GeneralPrint(WHITE,"Info",format, &arglist );          va_end( arglist ); }
+void AmmServer_Stub( const char *format , ... )     { va_list arglist; va_start( arglist, format ); AmmServer_GeneralPrint(RED,"Not Implemented",format, &arglist ); va_end( arglist ); }
 
 int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
   warning("AmmServer_Stop started ..\n");
   if (!instance) { return 0; }
-
-
 
   if ( instance->webserverMonitorEnabled )
   {
@@ -169,7 +125,6 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   if (instance->threads_pool!=0) { free(instance->threads_pool); instance->threads_pool=0; }
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
   if (instance!=0) { free(instance); }
-
 
   warning("AmmServer_Stop completed ..\n");
   return 1;
@@ -185,16 +140,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
 
-  char cwd[4096];
-  if (getcwd(cwd, sizeof(cwd)) != NULL) { fprintf(stderr,"Current working dir: %s\n", cwd); }
-
-
-  fprintf(stderr,"\n\nDISCLAIMER : \n");
-  fprintf(stderr,"Please note that this server version is not thoroughly\n");
-  fprintf(stderr," pen-tested so it is not meant for production deployment..\n");
-
-  fprintf(stderr,"Bug reports and feedback are very welcome.. \n");
-  fprintf(stderr,"via https://github.com/AmmarkoV/AmmarServer/issues\n\n");
+  printDisclaimer();
 
   //log/ could be a global directory
   snprintf(AccessLog,MAX_FILE_PATH,"log/%s_access.log",name);
@@ -263,7 +209,6 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   return 0;
 }
 
-
 struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
                                                     int argc,
                                                     char ** argv ,
@@ -289,7 +234,6 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
    if (ip!=0)             {  strncpy(bindIP,ip,MAX_IP_STRING_SIZE); }
    if (port!=0)           {  bindPort=port; }
 
-
    //If we have a command line arguments we overwrite our buffers
   unsigned int argcUI = argc;
   if ( (argcUI>0) && (argv!=0) )
@@ -297,25 +241,22 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
    unsigned int i=0;
    for (i=0; i<argcUI; i++)
    {
-    if ((strcmp(argv[i],"-bind")==0)&&(argcUI>i+1)) { strncpy(bindIP,argv[i+1],MAX_IP_STRING_SIZE); fprintf(stderr,"Binding to %s \n",bindIP); } else
-    if ((strcmp(argv[i],"-p")==0)&&(argcUI>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
-    if ((strcmp(argv[i],"-port")==0)&&(argcUI>i+1)) { bindPort = atoi(argv[i+1]); fprintf(stderr,"Binding to Port %u \n",bindPort); } else
-    if ((strcmp(argv[i],"-rootdir")==0)&&(argcUI>i+1)) { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
-    if ((strcmp(argv[i],"-templatedir")==0)&&(argcUI>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
-    if (strcmp(argv[i],"-conf")==0)  { strncpy(configuration_file,conf_file,MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
+    if ((strcmp(argv[i],"-bind")==0)&&(argcUI>i+1))        { strncpy(bindIP,argv[i+1],MAX_IP_STRING_SIZE);        fprintf(stderr,"Binding to %s \n",bindIP); } else
+    if ((strcmp(argv[i],"-p")==0)&&(argcUI>i+1))           { bindPort = atoi(argv[i+1]);                          fprintf(stderr,"Binding to Port %u \n",bindPort); } else
+    if ((strcmp(argv[i],"-port")==0)&&(argcUI>i+1))        { bindPort = atoi(argv[i+1]);                          fprintf(stderr,"Binding to Port %u \n",bindPort); } else
+    if ((strcmp(argv[i],"-rootdir")==0)&&(argcUI>i+1))     { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH);     fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
+    if ((strcmp(argv[i],"-templatedir")==0)&&(argcUI>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH);     fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
+    if (strcmp(argv[i],"-conf")==0)                        { strncpy(configuration_file,conf_file,MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
    }
   }
 
   return AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
 }
 
-
 int AmmServer_Running(struct AmmServer_Instance * instance)
 {
   return HTTPServerIsRunning(instance);
 }
-
-
 
 int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,const char * filename)
 {
@@ -324,7 +265,6 @@ int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,c
   snprintf(rqst->content,rqst->MAXcontentSize,"%s",filename);
   return 1;
 }
-
 
 void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicRequest  * rqst,struct AmmServer_MemoryHandler * content)
 {
@@ -344,7 +284,6 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
   return 0;
 }
 
-
 //This call , calls  callback every time a request hits the server..
 //The outer layer of the server can do interesting things with it :P
 //request_type is supposed to be GET , HEAD , POST , CONNECT , etc..
@@ -362,8 +301,6 @@ int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmS
   return 1;
 }
 
-
-
 int AmmServer_AddScheduler (
                             struct AmmServer_Instance * instance,
                             const char * resource_name ,
@@ -380,8 +317,6 @@ int AmmServer_AddScheduler (
                       repetitions
                      );
 }
-
-
 
 int AmmServer_AddResourceHandler
      ( struct AmmServer_Instance * instance,
@@ -436,18 +371,25 @@ int AmmServer_AddResourceHandler
   return returnValue;
 }
 
+/**
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+                                  Built-in and ready to use Dynamic Request Functionality calls..
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+**/
 
 void * AmmServer_EditorCallback(struct AmmServer_DynamicRequest  * rqst)
 {
   return editor_callback(rqst);
 }
 
-
 void * AmmServer_LoginCallback(struct AmmServer_DynamicRequest  * rqst)
 {
   return login_callback(rqst);
 }
-
 
 int AmmServer_AddEditorResourceHandler(
                                        struct AmmServer_Instance * instance,
@@ -480,12 +422,19 @@ int AmmServer_EnableMonitor( struct AmmServer_Instance * instance)
 
 }
 
+/**
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+**/
 int AmmServer_PreCacheFile(struct AmmServer_Instance * instance,const char * filename)
 {
   unsigned int index=0;
   return cache_AddFile(instance,filename,&index,0);
 }
-
 
 int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
 {
@@ -501,8 +450,6 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
     return 1;
 }
 
-
-
 int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,const char * resource_name)
 {
     if (! cache_AddDoNOTCacheRuleForResource(instance,resource_name) )
@@ -513,13 +460,10 @@ int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,const char
     return 1;
 }
 
-
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
   return cache_RemoveContextAndResource(instance,context,free_mem);
 }
-
-
 
 int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_type)
 {
@@ -529,11 +473,6 @@ int AmmServer_GetInfo(struct AmmServer_Instance * instance,unsigned int info_typ
    };
   return 0;
 }
-
-
-
-
-
 /**
     -----------------------------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------------------------
@@ -569,7 +508,6 @@ int _POSTexists(struct AmmServer_DynamicRequest * rqst,const char * name)
   unsigned int valueLength=0;
   return (_POST(rqst,name,&valueLength) != 0 );
 }
-
 
 int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo)
 {
@@ -612,14 +550,12 @@ int _GETexists(struct AmmServer_DynamicRequest * rqst,const char * name)
   return (_GET(rqst,name,&valueLength) != 0 );
 }
 
-
 int _GETcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo)
 {
   unsigned int valueLength=0;
   const char * value = _GET(rqst,name,&valueLength);
   return strcmp(value,what2CompareTo);
 }
-
 
 int _GETcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
 {
@@ -628,7 +564,6 @@ int _GETcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * dest
   return _GENERIC_cpy(value,valueLength,destination,destinationSize);
 }
 /// -----------------------------------------------------------------------------------------------------------------------
-
 
 /// --------------------------------------------------------- FILES ---------------------------------------------------------
 const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName,enum TypesOfRequestFields POSTType,unsigned int * outputSize)
@@ -646,7 +581,6 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
 }
 /// -----------------------------------------------------------------------------------------------------------------------
 
-
 /// --------------------------------------------------------- COOKIE ---------------------------------------------------------
 
 int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
@@ -655,8 +589,6 @@ int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,char * dest
     return 0;
 }
 /// -----------------------------------------------------------------------------------------------------------------------
-
-
 /**
     -----------------------------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------------------------
@@ -665,7 +597,6 @@ int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,char * dest
     -----------------------------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------------------------
 **/
-
 
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_DynamicRequest * rqst)
 {
@@ -678,12 +609,9 @@ int AmmServer_SaveDynamicRequest(const char* filename , struct AmmServer_Dynamic
     return saveDynamicRequest(filename,rqst->instance,rqst);
 }
 
-
-
 /*
 The following calls are not implemented yet
 */
-
 int AmmServer_GetIntSettingValue(struct AmmServer_Instance * instance,unsigned int set_type)
 {
   switch (set_type)
@@ -703,7 +631,6 @@ int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
    };
   return 0;
 }
-
 
 char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigned int set_type)
 {
@@ -725,14 +652,11 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
   return 0;
 }
 
-
 int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 {
   fprintf(stderr,"No Checks Implemented in this version , instance pointer is %p ..\n",instance);
   return 0;
 }
-
-
 
 void AmmServer_GlobalTerminationHandler(int signum)
 {
@@ -743,7 +667,6 @@ void AmmServer_GlobalTerminationHandler(int signum)
         fprintf(stderr,"done\n");
         exit(0);
 }
-
 
 int AmmServer_RegisterTerminationSignal(void * callback)
 {
@@ -758,15 +681,15 @@ int AmmServer_RegisterTerminationSignal(void * callback)
 }
 
 
-/*
-  ---------------------------------------------------
-
-  LAST , SOME GENERIC TOOLS THAT ARE HANDY AND COMMON
-
-  ---------------------------------------------------
-*/
-
-
+/**
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+                                   LAST , SOME GENERIC TOOLS THAT ARE HANDY AND COMMON
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+    -----------------------------------------------------------------------------------------------------------------------------
+**/
 
 int AmmServer_ExecuteCommandLineNum(const char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize,unsigned int lineNumber)
 {
@@ -790,7 +713,6 @@ int AmmServer_ExecuteCommandLineNum(const char *  command , char * what2GetBack 
   return 1;
 }
 
-
 int AmmServer_ExecuteCommandLine(const char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize)
 {
   return AmmServer_ExecuteCommandLineNum(command,what2GetBack,what2GetBackMaxSize,1);
@@ -801,13 +723,10 @@ char * AmmServer_ReadFileToMemory(const char * filename,unsigned int *length )
   return astringReadFileToMemory(filename,length);
 }
 
-
-
 int AmmServer_WriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength)
 {
   return astringWriteFileFromMemory(filename,memory,memoryLength);
 }
-
 
 int AmmServer_ReplaceVariableInMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
 {
@@ -818,8 +737,6 @@ int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh 
 {
   return astringReplaceAllInstancesOfVarInMemoryFile(mh,instances,var,value);
 }
-
-
 
 int AmmServer_ReplaceAllVarsInDynamicRequest(struct AmmServer_DynamicRequest * dr ,unsigned int instances,const char * var,const char * value)
 {
@@ -840,8 +757,6 @@ int AmmServer_ReplaceAllVarsInDynamicRequest(struct AmmServer_DynamicRequest * d
    return status;
 }
 
-
-
 void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWith)
 {
   char * cur = input;
@@ -854,42 +769,52 @@ void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWi
   return ;
 }
 
-
 struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int initialBufferLength, unsigned int growStep)
 {
  struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
- if (mh==0) { fprintf(stderr,"Could not allocate a memory handler of %u bytes length\n",initialBufferLength); return 0; }
 
+ if (mh!=0)
+ {
+  mh->content = (char*) malloc( initialBufferLength * sizeof(char));
+  if (mh->content!=0)
+    {
+     mh->contentSize = initialBufferLength;
+     mh->contentGrowthStep = growStep;
+     mh->contentCurrentLength = initialBufferLength;
+     return mh;
+    } else
+    {
+     AmmServer_Error("Could not allocate the buffer of the allocated memory handler\n");
+     free(mh);
+    }
+ } else
+ { AmmServer_Error("Could not allocate a memory handler of %u bytes length\n",initialBufferLength); }
 
- mh->content = (char*) malloc( initialBufferLength * sizeof(char));
- if (mh->content==0) { fprintf(stderr,"Could not allocate the buffer of the allocated memory handler\n"); free(mh); return 0; }
-
- mh->contentSize = initialBufferLength;
- mh->contentGrowthStep = growStep;
- mh->contentCurrentLength = initialBufferLength;
-
- return mh;
+ return 0;
 }
-
 
 struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char * filename)
 {
   struct AmmServer_MemoryHandler * mh = ( struct AmmServer_MemoryHandler * ) malloc(sizeof(struct AmmServer_MemoryHandler));
-  if (mh==0) {  AmmServer_Error("AmmServer_ReadFileToMemoryHandler could not allocate memory to hold copy..");  return 0; }
 
+  if (mh!=0)
+  {
    mh->content = AmmServer_ReadFileToMemory(filename,&mh->contentSize);
    mh->contentCurrentLength = mh->contentSize;
 
-   if (mh->content==0)
+   if (mh->content!=0)
    {
+     return mh;
+   } else
+   {
+     AmmServer_Error("AmmServer_ReadFileToMemory could not allocate memory\n");
      free(mh);
-     return 0;
    }
+  } else
+  {  AmmServer_Error("AmmServer_ReadFileToMemoryHandler could not allocate memory to hold copy..");  }
 
-   return mh;
+  return 0;
 }
-
-
 
 struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_MemoryHandler * inpt)
 {
@@ -915,14 +840,11 @@ struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_Me
    return mh;
 }
 
-
 int filterStringForHtmlInjection(char * buffer , unsigned int bufferSize)
 {
   AmmServer_Warning("filterStringForHtmlInjection not implemented ( %s , %u ) ",buffer,bufferSize);
   return 0;
 }
-
-
 
 int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh)
 {
@@ -934,8 +856,6 @@ int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh)
   return 0;
 }
 
-
-
 int AmmServer_ConvertBufferToMemoryHandler(struct AmmServer_MemoryHandler * mh, unsigned char * buffer,unsigned int bufferLength)
 {
   if (mh==0) { return 0; }
@@ -945,17 +865,9 @@ int AmmServer_ConvertBufferToMemoryHandler(struct AmmServer_MemoryHandler * mh, 
   return 1;
 }
 
-
 const char * AmmServer_GetDirectoryFromPath(char * path)
 {
  return dirname(path);
-}
-
-const char *get_filename_ext(const char *filename)
-{
-    const char *dot = strrchr(filename, '.');
-    if(!dot || dot == filename) return "";
-    return dot + 1;
 }
 
 const char * AmmServer_GetBasenameFromPath(char * path)
@@ -966,46 +878,18 @@ const char * AmmServer_GetBasenameFromPath(char * path)
 const char * AmmServer_GetExtensionFromPath(char * path)
 {
  char * bname = basename(path);
- return get_filename_ext(bname);
+ const char *dot = strrchr(bname, '.');
+ if(!dot || dot == bname) return "";
+ return dot + 1;
 }
 
-
-
-
-int AmmServer_DirectoryExists(const char * filename)
-{
- return DirectoryExistsAmmServ(filename);
-}
-
-int AmmServer_FileExists(const char * filename)
-{
- return FileExistsAmmServ(filename);
-}
-
-int AmmServer_FileIsText(const char * filename)
-{
-  return CheckIfFileIsText(filename);
-}
-
-int AmmServer_FileIsAudio(const char * filename)
-{
-  return CheckIfFileIsAudio(filename);
-}
-
-int AmmServer_FileIsImage(const char * filename)
-{
-  return CheckIfFileIsImage(filename);
-}
-
-int AmmServer_FileIsVideo(const char * filename)
-{
-  return CheckIfFileIsVideo(filename);
-}
-
-int AmmServer_FileIsFlash(const char * filename)
-{
-  return CheckIfFileIsFlash(filename);
-}
+int AmmServer_DirectoryExists(const char * filename) { return DirectoryExistsAmmServ(filename); }
+int AmmServer_FileExists(const char * filename)      { return FileExistsAmmServ(filename);      }
+int AmmServer_FileIsText(const char * filename)      { return CheckIfFileIsText(filename);      }
+int AmmServer_FileIsAudio(const char * filename)     { return CheckIfFileIsAudio(filename);     }
+int AmmServer_FileIsImage(const char * filename)     { return CheckIfFileIsImage(filename);     }
+int AmmServer_FileIsVideo(const char * filename)     { return CheckIfFileIsVideo(filename);     }
+int AmmServer_FileIsFlash(const char * filename)     { return CheckIfFileIsFlash(filename);     }
 
 int AmmServer_EraseFile(const char * filename)
 {
@@ -1013,7 +897,6 @@ int AmmServer_EraseFile(const char * filename)
  if( fp ) { /* exists */ fclose(fp); return 1; }
  return 0;
 }
-
 
 unsigned int AmmServer_StringIsHTMLSafe( const char * str)
 {
@@ -1030,7 +913,3 @@ unsigned int AmmServer_StringHasSafePath( const char * directory , const char * 
   while(i<strlen(str)) { if (  ( str[i]<'!' ) || ( str[i]=='\\' ) || ( str[i]=='%' ) || ( str[i]=='/' ) ) { return 0;} ++i; }
   return 1;
 }
-
-
-
-
