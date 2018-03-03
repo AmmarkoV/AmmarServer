@@ -1,12 +1,13 @@
 #include "freshThreads.h"
-
+// --------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+// --------------------------------------------
 #include <pthread.h>
 #include <errno.h>
-
+// --------------------------------------------
 #include "../server_configuration.h"
 #include "../network/networkAbstraction.h"
 #include "../threads/clientServer.h"
@@ -49,7 +50,6 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
     return starting_from;
 }
 
-
 int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
 {
     struct HTTPTransaction transaction={0};
@@ -65,9 +65,6 @@ int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int client
 
     return i;
 }
-
-
-
 
 int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
 {
@@ -164,8 +161,6 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
   return retres;
 }
-
-
 
 unsigned int getActiveFreshThreads(struct AmmServer_Instance * instance)
 {
