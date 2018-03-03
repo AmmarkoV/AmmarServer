@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+// --------------------------------------------
 #include "AString.h"
 #include "../server_configuration.h"
+// --------------------------------------------
 
 #define NORMAL   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
 #define GREEN   "\033[32m"      /* Green */
 #define YELLOW  "\033[33m"      /* Yellow */
-
 
 int reverseSyncMemcpy(char * target , char * source , unsigned int sourceLength)
 {
@@ -33,7 +34,6 @@ int reverseSyncMemcpy(char * target , char * source , unsigned int sourceLength)
     return 1;
 }
 
-
 int straightSyncMemcpy(char * target , char * source , unsigned int sourceLength)
 {
     while (sourceLength>0)
@@ -45,7 +45,6 @@ int straightSyncMemcpy(char * target , char * source , unsigned int sourceLength
     }
     return 1;
 }
-
 
 int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,unsigned int *offset,const char * var,const char * value)
 {
@@ -64,8 +63,6 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
         fprintf(stderr,"injectDataToBuffer / No Buffer To inject to..\n");
         return 0;
     }
-
-
     /*
      We Have :
                      StartLength                      VarLength                         EndLength
@@ -90,7 +87,6 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
      if the Value is bigger than the variable things get trickier..!
      We need to reallocate a bigger buffer , store the things that do not fit and then proceed with copying
     */
-
 //Take advantage of offset when searching :) , this makes search faster
     unsigned int injectOffset = 0;
     char * where2startSearchForVar = mh->content + *offset;
@@ -198,15 +194,11 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
     return 1;
 }
 
-
-
 int astringInjectDataToMemoryHandler(struct AmmServer_MemoryHandler * mh,const char * var,const char * value)
 {
     unsigned int offset = 0;
     return astringInjectDataToMemoryHandlerOffset(mh,&offset,var,value);
 }
-
-
 
 int astringReplaceAllInstancesOfVarInMemoryFile(struct AmmServer_MemoryHandler * mh,unsigned int instances,const char * var,const char * value)
 {
@@ -232,11 +224,6 @@ int astringReplaceAllInstancesOfVarInMemoryFile(struct AmmServer_MemoryHandler *
 
     return (remainingInstances==0);
 }
-
-
-
-
-
 /*
     -------------- -------------- -------------- -------------- -------------- --------------
     -------------- -------------- -------------- -------------- -------------- --------------
@@ -245,7 +232,6 @@ int astringReplaceAllInstancesOfVarInMemoryFile(struct AmmServer_MemoryHandler *
     -------------- -------------- -------------- -------------- -------------- --------------
 
 */
-
 char * astringReadFileToMemory(const char * filename,unsigned int *length )
 {
     *length = 0;
@@ -292,7 +278,6 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
     return buffer;
 }
 
-
 int astringWriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength)
 {
     if (memory==0)
@@ -305,7 +290,6 @@ int astringWriteFileFromMemory(const char * filename,const char * memory , unsig
         fprintf(stderr,"Could not write empty memory buffer\n");
         return 0 ;
     }
-
 
     FILE * pFile=0;
     size_t result;

@@ -3,21 +3,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+// --------------------------------------------
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/uio.h>
-
-#include "file_server.h"
-
+// --------------------------------------------
 #include "../version.h"
 #include "../server_configuration.h"
+// --------------------------------------------
+#include "file_server.h"
+// --------------------------------------------
 #include "../tools/logs.h"
 #include "../tools/http_tools.h"
 #include "../tools/time_provider.h"
+// --------------------------------------------
 #include "../templates/errors.h"
 
 #include "networkAbstraction.h"
@@ -59,8 +61,6 @@ unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HT
      return 1;
 }
 
-
-
 unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename)
 {
 /*
@@ -83,7 +83,6 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
 
       return 1;
 }
-
 
 unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {

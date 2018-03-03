@@ -18,7 +18,6 @@ char * ending =
  #include "../templates/include/directoryListEnd.html"
 ;
 
-
 char * path_cat (const char *str1, char *str2)
 {
 size_t str1_len = strlen(str1);
@@ -34,8 +33,6 @@ result[str1_len+str2_len]='\0';
 return result;
 }
 
-
-
 char * GenerateDirectoryPage(char * system_path,char * client_path,unsigned long * memoryUsed)
 {
 if (!ENABLE_DIRECTORY_LISTING) { return 0; }
@@ -47,11 +44,8 @@ if (memory==0) { error("Could not allocate a memory chunk to serve directory pag
 
 unsigned int mem_remaining=*memoryUsed;
 
-
-
 strncpy(memory,starting,mem_remaining);
 mem_remaining-=strlen(starting);
-
 
 #define tag_pre_image "<tr><td><img src=\"/"
 unsigned int tag_pre_image_size=strlen(tag_pre_image);
@@ -223,5 +217,3 @@ while ((dp=readdir(dir)) != 0)
  closedir(dir);
  return memory;
 }
-
-

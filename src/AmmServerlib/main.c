@@ -23,11 +23,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
-#include "version.h"
-#include "AmmServerlib.h"
-#include "AString/AString.h"
 // --------------------------------------------
 #include "version.h"
+// --------------------------------------------
+#include "AmmServerlib.h"
+#include "AString/AString.h"
 // --------------------------------------------
 #include "threads/threadedServer.h"
 #include "threads/prespawnedThreads.h"
@@ -908,8 +908,10 @@ unsigned int AmmServer_StringIsHTMLSafe( const char * str)
 unsigned int AmmServer_StringHasSafePath( const char * directory , const char * filenameUNSANITIZEDString)
 {
   const char * str = filenameUNSANITIZEDString;
-  AmmServer_Stub("TODO : AmmServer_StringHasSafePath better checking.. https://www.owasp.org/index.php/Path_Traversal\n");
+  AmmServer_Stub("TODO : AmmServer_StringHasSafePath better checking ( also use directory ).. https://www.owasp.org/index.php/Path_Traversal\n");
+
   unsigned int i=0;
   while(i<strlen(str)) { if (  ( str[i]<'!' ) || ( str[i]=='\\' ) || ( str[i]=='%' ) || ( str[i]=='/' ) ) { return 0;} ++i; }
+
   return 1;
 }

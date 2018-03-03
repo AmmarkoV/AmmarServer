@@ -59,7 +59,7 @@ int GetDateString(
 * @ingroup timers
 * @param   time_snap structure that holds the timer data
 * @retval 1=Success,0=Failure*/
-int start_timer (  struct time_snap * val );
+int startTimer (  struct time_snap * val );
 
 
 /**
@@ -67,6 +67,6 @@ int start_timer (  struct time_snap * val );
 * @ingroup timers
 * @param   time_snap structure that holds the timer data
 * @retval Elapsed time since start_timer , needs to be divided by 1000 to get msecs , and by 1000000 to get seconds..*/
-unsigned long end_timer (  struct time_snap * val );
+unsigned long endTimer (  struct time_snap * val );
 
 #endif // TIME_H_INCLUDED

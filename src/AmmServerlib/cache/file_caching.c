@@ -45,8 +45,6 @@ unsigned long cache_GetCacheSizeKB(struct AmmServer_Instance * instance)
   return instance->loaded_cache_items_Kbytes;
 }
 
-
-
 /*
      INDEXING for the cache
      The following calls manage Indexing for the cache..
@@ -98,7 +96,6 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
   return 0;
 }
 
-
 int freeMallocIfNeeded(char * mem,unsigned char free_is_needed)
 {
     if ( (free_is_needed)&&(mem!=0) ) { free(mem); return 1; }
@@ -119,7 +116,6 @@ int cache_RandomizeETAG(struct AmmServer_Instance * instance)
      }
   return 1;
 }
-
 
 int cache_Initialize(struct AmmServer_Instance * instance,unsigned int max_seperate_items , unsigned int max_total_allocation_MB , unsigned int max_allocation_per_entry_MB)
 {
@@ -178,8 +174,6 @@ int cache_Destroy(struct AmmServer_Instance * instance)
    return 1;
 }
 
-
-
 /*
  --------------------------------------------------------------------------------------
  --------------------------------------------------------------------------------------
@@ -217,7 +211,6 @@ int cache_CreateResource(struct AmmServer_Instance * instance,const char * resou
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { error("Cache hasn't been allocated yet\n"); return 0; }
 
-
   if ((unsigned int) MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
   *index=instance->loaded_cache_items++;
 
@@ -225,8 +218,6 @@ int cache_CreateResource(struct AmmServer_Instance * instance,const char * resou
    {
       AmmServer_Success("Added resource %s , loaded items are now %u \n",resource,instance->loaded_cache_items);
    }
-
-
 
   return 1;
 }
@@ -238,13 +229,11 @@ int cache_DestroyResource(unsigned int * index)
   return 0;
 }
 
-
 /*
    ------------------------------------------------------------------
    ------------------------------------------------------------------
    ------------------------------------------------------------------
 */
-
 
 int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *filename,unsigned int * index)
 {
@@ -327,7 +316,6 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
   return 1;
 }
 
-
 int cache_AddFile(struct AmmServer_Instance * instance,const char * filename,unsigned int * index,struct stat * last_modification)
 {
   if (!cache_CreateResource(instance,filename,index)) { /*We couldn't allocate a new index for this file */ return 0; }
@@ -365,8 +353,6 @@ int cache_AddFile(struct AmmServer_Instance * instance,const char * filename,uns
   return 1;
 }
 
-
-
 int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
 {
 
@@ -395,7 +381,6 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
   return 1;
 }
 
-
 int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,const char * filename)
 {
    struct cache_item * cache = (struct cache_item *) instance->cache;
@@ -420,9 +405,6 @@ int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,cons
      }
    return 0;
 }
-
-
-
 
 int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index)
 {
@@ -466,7 +448,6 @@ int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index
    return 0;
 }
 
-
 int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
        context->requestContext.MAXcontentSize=0;
@@ -485,8 +466,6 @@ unsigned long cache_GetHashOfResource(struct AmmServer_Instance * instance,unsig
 {
     return  hashMap_GetHashAtIndex(instance->cacheHashMap,index);
 }
-
-
 
 /*
   ----------------------------------------------------------------------------------------------------------------------
@@ -521,8 +500,6 @@ int cache_RefreshResource(
    #warning "TODO : we should check here for a potentially newer version of the file..";
  return 0;
 }
-
-
 
 char * cache_GetResource(
                           struct AmmServer_Instance * instance,
@@ -676,4 +653,3 @@ if (cache_FindResource(instance,verified_filename,index))
 
        return 0;
 }
-

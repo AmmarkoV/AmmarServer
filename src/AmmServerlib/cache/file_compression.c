@@ -12,7 +12,6 @@
 #include <zlib.h>
 #endif
 
-
 /*
 int compress2(Bytef * dest, uLongf * destLen, const Bytef * source, uLong sourceLen, int level);
 
@@ -28,7 +27,6 @@ The compress() function is equivalent to compress2() with a level of Z_DEFAULT_L
 Return Value
 
 On success, compress2() shall return Z_OK. Otherwise, compress2() shall return a value to indicate the error.
-
 */
 
 /*

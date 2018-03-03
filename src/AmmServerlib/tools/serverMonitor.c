@@ -1,16 +1,16 @@
 #include "serverMonitor.h"
-
+// --------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
-
-
+// --------------------------------------------
 #include "../cache/file_caching.h"
-
+// --------------------------------------------
 #include "../network/file_server.h"
+// --------------------------------------------
 #include "../threads/threadedServer.h"
 
 
