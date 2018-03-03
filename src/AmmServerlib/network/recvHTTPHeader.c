@@ -1,9 +1,9 @@
 #include "recvHTTPHeader.h"
-
+// --------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+// --------------------------------------------
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -11,18 +11,18 @@
 #include <netdb.h>
 #include <errno.h>
 #include <sys/uio.h>
-
+// --------------------------------------------
 #include "../AmmServerlib.h"
 #include "../server_configuration.h"
-
+// --------------------------------------------
 #include "../network/networkAbstraction.h"
-
+// --------------------------------------------
 #include "../header_analysis/generic_header_tools.h"
 #include "../header_analysis/http_header_analysis.h"
 #include "../header_analysis/post_header_analysis.h"
 #include "../header_analysis/get_data.h"
 #include "../header_analysis/post_data.h"
-
+// --------------------------------------------
 #include "../tools/logs.h"
 
 

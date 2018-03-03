@@ -1,16 +1,16 @@
 #include "networkAbstraction.h"
-
-
+// --------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+// --------------------------------------------
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/uio.h>
+// --------------------------------------------
 
 //Counters for performance , these should  be put inside the the server instance so this is work to do in the future..
 
