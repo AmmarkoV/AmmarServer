@@ -17,11 +17,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+// --------------------------------------------
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -29,14 +28,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/uio.h>
-
+// --------------------------------------------
 #include <unistd.h>
 #include <pthread.h>
-
-
+// --------------------------------------------
 #include "clientServer.h"
 #include "threadedServer.h"
-
+// --------------------------------------------
 #include "../tools/directory_lists.h"
 #include "../network/networkAbstraction.h"
 #include "../network/file_server.h"
@@ -45,19 +43,18 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../tools/http_tools.h"
 #include "../tools/logs.h"
 #include "../cache/file_caching.h"
-#include "../server_configuration.h"
-
+// --------------------------------------------
 #include "../threads/freshThreads.h"
 #include "../threads/prespawnedThreads.h"
 #include "../threads/threadInitHelper.h"
-
+// --------------------------------------------
 #include "../cache/client_list.h"
 #include "../cache/dynamic_requests.h"
-
+// --------------------------------------------
 #include "../header_analysis/post_header_analysis.h"
-
+// --------------------------------------------
 #include "../network/recvHTTPHeader.h"
-
+// --------------------------------------------
 #include "../server_configuration.h"
 
 
@@ -74,7 +71,6 @@ inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransactio
                          );
 }
 
-
 inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
 {
   return ErrorLogAppend(  transaction->ipStr ,
@@ -87,8 +83,6 @@ inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction 
                           ,transaction->incomingHeader.userAgent
                          );
 }
-
-
 
 inline int isResourceADirectory(const char * resource,unsigned int resourceLength)
 {
@@ -470,8 +464,6 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
   return 1;
 }
 
-
-
 int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransaction * transaction)
 {
 
@@ -543,7 +535,6 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
 
   return 0;
 }
-
 
 void * ServeClientAfterUnpackingThreadMessage(void * ptr)
 {

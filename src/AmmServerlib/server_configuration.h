@@ -72,7 +72,6 @@ extern "C" {
 /** @brief Precompiler switch that controls baking in ( or not ) the client list capabilities , currently disabled since client lists are not yet implemented */
 #define COMPILE_WITH_CLIENT_LIST 0
 
-
 /** @brief Sleep time after unsuccessfully trying to bind to port ( usleep(DELAY... ) */
 #define DELAY_TRY_BINDING_TO_PORT 5000 *1000
 
@@ -81,7 +80,6 @@ extern "C" {
 
 /** @brief Setting this to 1 will signal that all instances of AmmarServer need to die at once */
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
-
 
 /** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
 #define MAX_CLIENT_PRESPAWNED_THREADS 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
@@ -196,7 +194,6 @@ extern int CHANGE_TO_UID; //This is the default UID to use when USERNAME_UID_FOR
 /** @brief Resolve internal resources to redirect them to point templates ( this should always be 1 , although its implementation is a little dodgy right now )  */
 #define ENABLE_INTERNAL_RESOURCES_RESOLVE 1
 
-
 /** @brief Enable directory listing , if this is disabled attack surface gets significantly reduced
     @ingroup security */
 #define ENABLE_DIRECTORY_LISTING 1
@@ -278,7 +275,6 @@ int instance_CountNewMallocOP(struct AmmServer_Instance * instance,unsigned long
 * @retval 1=Success,0=Failure*/
 int instance_CountFreeOP(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes);
 
-
 /** @brief Printout disclaimer
   * @retval 1=Success,0=Failure*/
 int printDisclaimer();
@@ -287,14 +283,11 @@ int printDisclaimer();
   * @retval 1=Success,0=Failure*/
 int EmmitPossibleConfigurationWarnings();
 
-
 /** @param Load a configuration file
     @bug   LoadConfigurationFiles etc is not ready yet , although it relies on InputParser and should be easy to implement , there are just things missing still and that's why I postpone implementing it*/
 int LoadConfigurationFile(struct AmmServer_Instance * instance,const char * conf_file);
 
 int AssignStr(char ** dest ,const char * source);
-
-
 
 /** @brief Set a username and password for clients to access specific webserver instance
     @param An AmmarServer instance
@@ -302,7 +295,6 @@ int AssignStr(char ** dest ,const char * source);
     @param String with new password
   * @retval 1=Success,0=Failure*/
 int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,char * password);
-
 
 #ifdef __cplusplus
 }
