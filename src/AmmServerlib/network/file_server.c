@@ -20,40 +20,39 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+// --------------------------------------------
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/uio.h>
-
+// --------------------------------------------
 #include <sys/stat.h>
 #include <time.h>
-
+// --------------------------------------------
 #include "../version.h"
 #include "file_server.h"
+// --------------------------------------------
 #include "../cache/file_caching.h"
 #include "../header_analysis/http_header_analysis.h"
 #include "../server_configuration.h"
 #include "../tools/http_tools.h"
 #include "../tools/time_provider.h"
 #include "../tools/logs.h"
-
+// --------------------------------------------
 #include "../templates/errors.h"
 #include "../templates/icons.h"
-
+// --------------------------------------------
 #include "sendHTTPHeader.h"
-
+// --------------------------------------------
 #include "networkAbstraction.h"
-
 
 /*
    This file contains the main routine called most of the time , i.e. SendFile..!
    the code that follows supposes everything else is ok ( socket / client wise )
    and starts reading and sending the file indicated by the function arguments..!
 */
-
 
 int SendPart(
               struct AmmServer_Instance * instance,
@@ -81,7 +80,6 @@ int SendPart(
     // }
   return 1;
 }
-
 
  int TransmitFileToSocketInternal(
                                    struct AmmServer_Instance * instance,
@@ -181,11 +179,6 @@ int SendPart(
       return 1;
 }
 
-
-
-
-
-
 inline int TransmitFileHeaderToSocket(
                                       struct AmmServer_Instance * instance,
                                       struct HTTPTransaction * transaction,
@@ -228,9 +221,6 @@ inline int TransmitFileHeaderToSocket(
         }
   return 1;
 }
-
-
-
 
 int TransmitFileToSocket(
                          struct AmmServer_Instance * instance,
@@ -295,8 +285,6 @@ int TransmitFileToSocket(
   }
   return res;
 }
-
-
 
 unsigned long SendErrorFile
   (
@@ -399,9 +387,6 @@ unsigned long SendEmbeddedFile
    return dataTransmitted;
   return 0;
 }
-
-
-
 
 unsigned long SendFile
   (
@@ -679,9 +664,6 @@ if (request->requestType!=HEAD)
 
  return 0;
 }
-
-
-
 
 unsigned long SendMemoryBlockAsFile
   (
