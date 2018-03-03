@@ -18,6 +18,23 @@
 int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsigned int index);
 
 /**
+* @brief Save Dynamic request to a file ( for debugging it )
+* @ingroup dynamicRequests
+* @param ClientList
+* @param ClientID we are talking about
+* @param String of the resource
+* @retval 1=Ok,0=Failed*/
+int saveDynamicRequest(const char* filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst);
+
+/**
+* @brief Execute callback function associated with dynamic content , providing it with the http header it needs to output data to
+* @ingroup dynamicRequests
+* @param An AmmarServer Instance
+* @param HTTPHeader containing the output of the request
+* @retval 1=Ok,0=Failed*/
+int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output);
+
+/**
 * @brief Handles and serves a dynamic request
 * @ingroup dynamicRequests
 * @param An AmmarServer Instance
@@ -45,22 +62,5 @@ char * dynamicRequest_serveContent
             unsigned char * contentContainsPathToFileToBeStreamed,
             unsigned char * allowOtherOrigins
           );
-
-/**
-* @brief Execute callback function associated with dynamic content , providing it with the http header it needs to output data to
-* @ingroup dynamicRequests
-* @param An AmmarServer Instance
-* @param HTTPHeader containing the output of the request
-* @retval 1=Ok,0=Failed*/
-int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output);
-
-/**
-* @brief Save Dynamic request to a file ( for debugging it )
-* @ingroup dynamicRequests
-* @param ClientList
-* @param ClientID we are talking about
-* @param String of the resource
-* @retval 1=Ok,0=Failed*/
-int saveDynamicRequest(const char* filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst);
 
 #endif // DYNAMIC_REQUESTS_H_INCLUDED

@@ -22,8 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
-
-
+// --------------------------------------------
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -33,24 +32,23 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
-
+// --------------------------------------------
 #include "http_tools.h"
 #include "logs.h"
 #include "../server_configuration.h"
 #include "../cache/file_caching.h"
 
+// --------------------------------------------
 #include "../network/file_server.h"
 #include "../network/networkAbstraction.h"
 
+// --------------------------------------------
 #include "../stringscanners/applicationFiles.h"
 #include "../stringscanners/archiveFiles.h"
 #include "../stringscanners/imageFiles.h"
 #include "../stringscanners/textFiles.h"
 #include "../stringscanners/videoFiles.h"
 #include "../stringscanners/audioFiles.h"
-
-
-
 
 static char base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 "abcdefghijklmnopqrstuvwxyz"
@@ -107,30 +105,8 @@ unsigned int ServerThreads_DropRootUID()
    return setuid(non_root_uid); // Non Root UID :-P
 }
 
-
-
-
-
-
-
 long long FileSizeAmmServ(const char * filename)
 {
- /*
-  long long size=0;
-  struct stat *buf = malloc(sizeof(struct stat)); //allocates memory for stat structure.
-  errno = 0; //always set errno to zero first.
-  if (buf!=0)
-  {
-  if(stat(filename, buf) == 0)
-   {
-    size = buf->st_size;
-    free(buf);
-    return size;
-   }
-  }
-  return 0;
-  */
-
  struct stat buf={0};
   if(stat(filename,&buf) == 0)
    {
@@ -138,16 +114,6 @@ long long FileSizeAmmServ(const char * filename)
    }
   return 0;
  }
-
-
-
-
-
-
-
-
-
-
 
 char FileExistsAmmServ(const char * filename)
 {
@@ -171,8 +137,6 @@ char DirectoryExistsAmmServ(const char* dirpath )
 
    return bExists;
 }
-
-
 
 int GetContentTypeForExtension(const char * theextension,char * content_type,unsigned int contentTypeLength)
 {
@@ -294,8 +258,6 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
  return 0;
 }
 
-
-
 int GetExtentionType(const char * theextension)
 { //Crude and fast lookup
   //fprintf(stderr,"GetExtentionType %s \n",theextension);
@@ -316,7 +278,6 @@ int GetExtentionType(const char * theextension)
  //this is made to be used when generating a dynamic directory list to show the appropriate icons..!
  return NO_FILETYPE;
 }
-
 
 void convertToUpperCase(char *sPtr)
 {
@@ -347,7 +308,6 @@ int GetContentType(const char * filename,char * contentType,unsigned int content
   return res;
 }
 
-
 int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimagepath_length)
 {
    //fprintf(stderr,"GetExtensionImage for %s \n",filename);
@@ -368,8 +328,6 @@ int GetExtensionImage(char * filename, char * theimagepath,unsigned int theimage
    if ( res == NO_FILETYPE ) { return 0; }
    return 1;
 }
-
-
 
 int CheckIfFileIsText(const char * filename)
 {
@@ -401,7 +359,6 @@ int CheckIfFileIsImage(const char * filename)
   return 0;
 }
 
-
 int CheckIfFileIsAudio(const char * filename)
 {
   //if (AmmServer_FileExists(filename))
@@ -416,7 +373,6 @@ int CheckIfFileIsAudio(const char * filename)
   }
   return 0;
 }
-
 
 int CheckIfFileIsVideo(const char * filename)
 {
@@ -433,7 +389,6 @@ int CheckIfFileIsVideo(const char * filename)
   return 0;
 }
 
-
 int CheckIfFileIsFlash(const char * filename)
 {
  // if (AmmServer_FileExists(filename))
@@ -448,8 +403,6 @@ int CheckIfFileIsFlash(const char * filename)
   }
   return 0;
 }
-
-
 
 int ReducePathSlashes_Inplace(char * filename)
 {
@@ -529,7 +482,6 @@ int StripGETRequestQueryAndFragment(char * filename  , unsigned int max_query_le
    //fprintf(stderr,"GET Request ( %s ) has a query inlined ( %s ) \n",filename,query);
   return 1;
 }
-
 
 int StripHTMLCharacters_Inplace(char * filename,int enable_security)
 {
@@ -635,7 +587,6 @@ RS 	record separator 	%1E
 US 	unit separator 	%1F
 */
 
-
 int FilenameStripperOk(char * filename)
 {
    if (filename==0) { return 0; }
@@ -671,7 +622,6 @@ int FilenameStripperOk(char * filename)
 
    return 1;
 }
-
 
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength)
 {
@@ -745,7 +695,6 @@ char * reachNextLine(char * request,unsigned int requestLength,unsigned int * en
  return request;
 }
 
-
 unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength)
 {
   unsigned int endOfLine=0;
@@ -796,8 +745,6 @@ size_t needle_len;
         return NULL;
 }
 
-
-
 inline int stristr(char * str1CAPS,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
 {
   if (str1_length<str2_length) { return 0; }
@@ -812,7 +759,6 @@ inline int stristr(char * str1CAPS,unsigned int str1_length,char * str2CAPS,unsi
   }
   return 0;
 }
-
 
 inline int stristr2Caps(char * str1,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
 {
@@ -840,9 +786,6 @@ int trim_last_empty_chars(char * input,unsigned int input_length)
    return 1;
 }
 
-
-
-
 int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,char * where2copy,unsigned int maxSizeWhere2Copy)
 {
   if (what2copy==0) { return 0; }
@@ -856,7 +799,6 @@ int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,char * where2
   snprintf(where2copy,maxSizeWhere2Copy,"%s",what2copy);
   return 1;
 }
-
 
 int seek_non_blank_char(char * input,char * input_end)
 {
@@ -879,64 +821,6 @@ int seek_blank_char(char * input,char * input_end)
     }
    return 0;
 }
-
-/*
-char * GetFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber , unsigned int  * outputSize)
-{
-  if (requestLength<4) { return 0; }
-
-  unsigned int counter=fileNumber;
-
-  fprintf(stderr,"GetFILEFromPOSTRequest..!\n");
-  char * ptrA=request;
-  char * ptrB=request+1;
-  char * ptrC=request+2;
-  char * ptrD=request+3;
-
-  char * ptrEnd = request + requestLength;
-
-   while (ptrD<ptrEnd)
-    {
-      if ( (*ptrA==13) && (*ptrB==10) && (*ptrC==13) && (*ptrD==10) )
-        {
-          if (counter==0)
-          {
-           fprintf(stderr,"Found Sequence %u bytes inside POST Request..!\n",ptrD-request);
-           *outputSize = requestLength - (ptrD-request);
-           return ptrD+1;
-          }
-          --counter;
-        }
-
-      ++ptrA;   ++ptrB;   ++ptrC;   ++ptrD;
-    }
- return request;
-}
-
-
-
-
-int GetNameofFILEFromPOSTRequest(char * request , unsigned int requestLength , unsigned int fileNumber,char * filenameOut, unsigned int filenameSize)
-{
-  //TODO: Make this better
-  static const char searchTag[] = "filename=\"";
-
-  char * location = strstr(request,"filename=\"");
-   if (location !=0 )
-   {
-     location+=sizeof(searchTag)-1;
-     char * locationEnd = strstr(location,"\"");
-     if (locationEnd!=0)
-     {
-      *locationEnd=0;
-      snprintf(filenameOut,filenameSize,"%s",location);
-      *locationEnd='"';
-      return 1;
-     }
-   }
- return 0;
-}
-*/
 
 unsigned int GetIntFromHTTPHeaderFieldPayload(char * request,unsigned int request_length)
 {
@@ -1058,8 +942,6 @@ int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,cha
   return 0;
 }
 
-
-
 char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,unsigned int port,char * filename,unsigned int max_content)
 {
   int sockfd;
@@ -1122,8 +1004,6 @@ char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,u
   return 0;
 }
 
-
-
 int freeString(char ** str)
 {
    if (*str!=0)
@@ -1135,8 +1015,6 @@ int freeString(char ** str)
 
    return 0;
 }
-
-
 
 int setSocketTimeouts(int clientSock)
 {
@@ -1155,10 +1033,6 @@ int setSocketTimeouts(int clientSock)
 
  return errorSettingTimeouts;
 }
-
-
-
-
 
 int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , char * ipstr , unsigned int ipstrLength, int * port)
 {
@@ -1215,8 +1089,6 @@ int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , c
 
  return  1; // <- TODO add IPv4 , IPv6 IP here
 }
-
-
 
 clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int clientSock)
 {

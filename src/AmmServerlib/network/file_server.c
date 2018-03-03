@@ -108,7 +108,7 @@ int SendPart(
       #if CALCULATE_TIME_FOR_UPLOADS
       //A timer added partly as vanity code , partly to get transmission speeds for qos ( later on )
       struct time_snap time_to_serve_file_s;
-      start_timer (&time_to_serve_file_s);
+      startTimer (&time_to_serve_file_s);
       #endif
 
       int stopFileTransmission=0;
@@ -163,7 +163,7 @@ int SendPart(
       } // End of having a remaining file to send
 
       #if CALCULATE_TIME_FOR_UPLOADS
-      double time_to_serve_file_in_seconds = (double ) end_timer(&time_to_serve_file_s) / 1000000; // go to seconds
+      double time_to_serve_file_in_seconds = (double ) endTimer(&time_to_serve_file_s) / 1000000; // go to seconds
       double speed_in_Mbps= 0;
       if (time_to_serve_file_in_seconds>0)
        {

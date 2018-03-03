@@ -8,11 +8,48 @@
 #include "../tools/logs.h"
 #include "../tools/time_provider.h"
 
-
 int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsigned int index)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
   return (cache[index].dynamicRequestCallbackFunction!=0);
+}
+
+int saveDynamicRequest(const char * filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst)
+{
+  if (instance==0) { return 0; }
+
+  AmmServer_Stub("saveDynamicRequest is a stub..");
+  FILE *fp=0;
+
+  fp = fopen(filename,"w");
+  if (fp!=0)
+  {
+    //fprintf(fp,"%s",rqst->GET_request);
+    fclose(fp);
+    return 1;
+  }
+  return 0;
+}
+
+int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output)
+{
+  if ( instance->clientRequestHandlerOverrideContext == 0 )  { return 0; }
+  struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
+  if ( clientOverride->request_override_callback == 0 ) { return 0; }
+
+  clientOverride->request = output;
+
+  fprintf(stderr,"doing callClientRequestHandler \n");
+  void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
+  DoCallback = clientOverride->request_override_callback;
+
+  DoCallback(clientOverride);
+
+  //After getting back the override and whatnot , keep the client from using a potentially bad
+  //memory chunk
+  clientOverride->request = 0;
+
+  return 1;
 }
 
 char * dynamicRequest_serveContent
@@ -97,8 +134,6 @@ char * dynamicRequest_serveContent
      unsigned long now=0; //If there is no callback limits the time of the call will always be 0
      //That doesnt bother anything or anyone..
 
-
-
      //Check if request falls on callback limits!
      if (
           (shared_context-> callback_every_x_msec!=0) &&
@@ -156,27 +191,6 @@ char * dynamicRequest_serveContent
 
        fprintf(stderr,"Trying to adjust GET_request length \n");
 
-       //If we have GET or POST request variables , lets pass them through to our shared context..
-       /*
-       shared_context->requestContext.GET_request = request->GETquery;
-       if (shared_context->requestContext.GET_request!=0)
-           { shared_context->requestContext.GET_request_length = strlen(shared_context->requestContext.GET_request); } else
-           { shared_context->requestContext.GET_request_length = 0; }
-
-       if (request->POSTrequestBody!=0)
-       {
-        shared_context->requestContext.POST_request = request->POSTrequestBody;
-        shared_context->requestContext.POST_request_length = request->POSTrequestBodySize;
-       } else
-         if (request->POSTrequest!=0)
-       {
-        shared_context->requestContext.POST_request = request->POSTrequest;
-        shared_context->requestContext.POST_request_length = request->POSTrequestSize;
-       }
-       fprintf(stderr,"Survived adjusting GET_request length \n");
-*/
-
-
         struct AmmServer_DynamicRequest * rqst = (struct AmmServer_DynamicRequest * ) malloc(sizeof(struct AmmServer_DynamicRequest));
         if (rqst!=0)
                     {
@@ -210,9 +224,9 @@ char * dynamicRequest_serveContent
 
                      shared_context->executedNow=1;
                      struct time_snap callbackTimer;
-                     start_timer (&callbackTimer);
+                     startTimer (&callbackTimer);
                      DoCallback(rqst);
-                     unsigned long elapsedCallbackTimeMS=end_timer (&callbackTimer);
+                     unsigned long elapsedCallbackTimeMS=endTimer (&callbackTimer);
                      fprintf(stderr,"Callback done in %lu microseconds \n",elapsedCallbackTimeMS);
                      shared_context->executedNow=0;
 
@@ -248,51 +262,3 @@ char * dynamicRequest_serveContent
  return cacheMemory;
 
 }
-
-
-
-
-
-
-
-int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output)
-{
-  if ( instance->clientRequestHandlerOverrideContext == 0 )  { return 0; }
-  struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
-  if ( clientOverride->request_override_callback == 0 ) { return 0; }
-
-  clientOverride->request = output;
-
-  fprintf(stderr,"doing callClientRequestHandler \n");
-  void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
-  DoCallback = clientOverride->request_override_callback;
-
-  DoCallback(clientOverride);
-
-  //After getting back the override and whatnot , keep the client from using a potentially bad
-  //memory chunk
-  clientOverride->request = 0;
-
-  return 1;
-}
-
-
-
-int saveDynamicRequest(const char * filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst)
-{
-  if (instance==0) { return 0; }
-
-  AmmServer_Stub("saveDynamicRequest is a stub..");
-  FILE *fp=0;
-
-  fp = fopen(filename,"w");
-  if (fp!=0)
-  {
-    //fprintf(fp,"%s",rqst->GET_request);
-    fclose(fp);
-    return 1;
-  }
-  return 0;
-}
-
-

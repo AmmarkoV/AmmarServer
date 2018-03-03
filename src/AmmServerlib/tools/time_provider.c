@@ -1,17 +1,16 @@
-
-#include <unistd.h>
-#include "../server_configuration.h"
-#include <ctype.h>
-#include <time.h>
-#include "time_provider.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <time.h>
+// --------------------------------------------
+#include "../server_configuration.h"
+#include "time_provider.h"
+// --------------------------------------------
 
 const char *days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 const char *months[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-
 
 unsigned long GetTickCountAmmServ()
 {
@@ -20,8 +19,6 @@ unsigned long GetTickCountAmmServ()
    if ( clock_gettime(CLOCK_MONOTONIC,&ts) != 0) { fprintf(stderr,"Error Getting Tick Count\n"); return 0; }
    return ts.tv_sec*1000 + ts.tv_nsec/1000000;
 }
-
-
 
 int GetDateString(char * output,unsigned int maxOutput,char * label,unsigned int now,unsigned int dayofweek,unsigned int day,unsigned int month,unsigned int year,unsigned int hour,unsigned int minute,unsigned int second)
 {
@@ -44,15 +41,12 @@ int GetDateString(char * output,unsigned int maxOutput,char * label,unsigned int
     return 1;
 }
 
-
-
-int start_timer (  struct time_snap * val )
+int startTimer (  struct time_snap * val )
 {
    return gettimeofday(&val->starttime,0x0);
-
 }
 
-unsigned long end_timer (  struct time_snap * val )
+unsigned long endTimer (  struct time_snap * val )
 {
    struct timeval *difference=&val->difference;
    struct timeval *end_time=&val->endtime;
@@ -75,5 +69,4 @@ unsigned long end_timer (  struct time_snap * val )
   }
 
   return 1000000LL*difference->tv_sec+ difference->tv_usec;
-
 }
