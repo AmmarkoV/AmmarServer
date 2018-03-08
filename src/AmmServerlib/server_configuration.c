@@ -297,3 +297,17 @@ int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,
 
  return result;
 }
+
+
+
+void safeFree (void* ptr,size_t size)
+{
+  #if CLEAN_MEMORY_BEFORE_DEALLOCATION
+    memset(ptr,0,size);
+    free(ptr);
+  #else
+    free(ptr);
+  #endif // CLEAN_MEMORY_BEFORE_DEALLOCATION
+}
+
+

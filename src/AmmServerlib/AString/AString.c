@@ -250,7 +250,8 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
     rewind (pFile);
 
     // allocate memory to contain the whole file:
-    char * buffer = (char*) malloc (sizeof(char)*(lSize+2));
+    unsigned long bufferSize = sizeof(char)*(lSize+2);
+    char * buffer = (char*) malloc (bufferSize);
     if (buffer == 0 )
     {
         fprintf(stderr,RED "Could not allocate enough memory for file %s \n" NORMAL,filename);
@@ -262,7 +263,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
     size_t result = fread (buffer,1,lSize,pFile);
     if (result != lSize)
     {
-        free(buffer);
+        safeFree(buffer,bufferSize);
         fprintf(stderr,RED "Could not read the whole file onto memory %s \n" NORMAL,filename);
         fclose(pFile);
         return 0;
