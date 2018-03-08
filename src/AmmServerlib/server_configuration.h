@@ -27,6 +27,9 @@ extern "C" {
 /** @brief Enable a variety of debug messages in parts of the code that are not 100% bulletproof*/
 #define DEBUG_MESSAGES 0
 
+#define CLEAN_MEMORY_BEFORE_DEALLOCATION 0
+
+
 
 
 /** @brief Use qsort and bsearch in hashmaps to speed up results in big caches , should be 1 if we trust them to work correctly..!*/
@@ -295,6 +298,14 @@ int AssignStr(char ** dest ,const char * source);
     @param String with new password
   * @retval 1=Success,0=Failure*/
 int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,char * password);
+
+
+/** @brief Frees a pointer, or cleans it ( sets it to zero ) and then  frees it depending on the configuration of CLEAN_MEMORY_BEFORE_DEALLOCATION
+    @param Pointer to free
+    @param Size of allocated memory of the pointer
+*/
+void safeFree (void* ptr,size_t size);
+
 
 #ifdef __cplusplus
 }
