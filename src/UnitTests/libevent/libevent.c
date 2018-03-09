@@ -1,10 +1,12 @@
 /*
   A trivial static http webserver using Libevent's evhttp.
 
+  this is taken from : https://github.com/libevent/libevent/blob/master/sample/http-server.c
+
   This is not the best code in the world, and it does some fairly stupid stuff
   that you would never want to do in a production webserver. Caveat hackor!
 
- gcc -Wall -Wswitch -fno-strict-aliasing -O3 -DNDEBUG libevent.c -o libevent -rdynamic -lssl -lcrypto -lpthread -lz -levent -lpthread -Wl,-rpath,/home/ammar/Documents/3dParty/libevent/build/lib 
+ gcc -Wall -Wswitch -fno-strict-aliasing -O3 -DNDEBUG libevent.c -o libevent -rdynamic -lssl -lcrypto -lpthread -lz -levent -lpthread -Wl,-rpath,/home/ammar/Documents/3dParty/libevent/build/lib
  */
 
 /* Compatibility for possible missing IPv6 declarations */
