@@ -232,7 +232,7 @@ char * dynamicRequest_serveContent
 
                      if (rqst->extraDataThatWillNeedToBeDeallocated!=0)
                      {
-                       free(rqst->extraDataThatWillNeedToBeDeallocated);
+                       safeFree(rqst->extraDataThatWillNeedToBeDeallocated,rqst->sizeOfExtraDataThatWillNeedToBeDeallocated);
                        rqst->sizeOfExtraDataThatWillNeedToBeDeallocated=0;
                        rqst->extraDataThatWillNeedToBeDeallocated=0;
                      }
@@ -247,7 +247,7 @@ char * dynamicRequest_serveContent
                      shared_context->requestContext.contentSize = rqst->contentSize;
                      *memSize = rqst->contentSize;
                      fprintf(stderr,"After callback we got back %lu bytes @ pointer %p \n",rqst->contentSize,rqst->content);
-                     free(rqst);
+                     safeFree(rqst,sizeof(struct AmmServer_DynamicRequest));
 
                      //This means we can call the callback to prepare the memory content..! END
                      //CreateCompressedVersionofDynamicContent(instance,index);

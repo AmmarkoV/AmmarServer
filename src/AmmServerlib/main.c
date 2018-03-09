@@ -122,9 +122,9 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   StopHTTPServer(instance);
   cache_Destroy(instance);
 
-  if (instance->threads_pool!=0) { free(instance->threads_pool); instance->threads_pool=0; }
+  if (instance->threads_pool!=0)    { free(instance->threads_pool); instance->threads_pool=0; }
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
-  if (instance!=0) { free(instance); }
+  if (instance!=0)                  { free(instance); }
 
   warning("AmmServer_Stop completed ..\n");
   return 1;
@@ -775,7 +775,8 @@ struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int in
 
  if (mh!=0)
  {
-  mh->content = (char*) malloc( initialBufferLength * sizeof(char));
+  unsigned long allocationSize = initialBufferLength * sizeof(char);
+  mh->content = (char*) malloc(allocationSize);
   if (mh->content!=0)
     {
      mh->contentSize = initialBufferLength;
@@ -785,7 +786,7 @@ struct AmmServer_MemoryHandler * AmmServer_AllocateMemoryHandler(unsigned int in
     } else
     {
      AmmServer_Error("Could not allocate the buffer of the allocated memory handler\n");
-     free(mh);
+     safeFree(mh,allocationSize);
     }
  } else
  { AmmServer_Error("Could not allocate a memory handler of %u bytes length\n",initialBufferLength); }

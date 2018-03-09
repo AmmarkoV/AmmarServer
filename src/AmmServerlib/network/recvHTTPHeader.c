@@ -178,7 +178,12 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   {
     //Remove incoming request here
     if (transaction->incomingHeader.headerRAW!=0)
-         { free(transaction->incomingHeader.headerRAW); }
+         {
+          safeFree(
+                    transaction->incomingHeader.headerRAW ,
+                    transaction->incomingHeader.headerRAWSize
+                  );
+         }
 
     transaction->incomingHeader.headerRAW = 0;
     transaction->incomingHeader.headerRAWSize = 0;

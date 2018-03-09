@@ -257,6 +257,18 @@ int AssignStr(char ** dest , const char * source)
 }
 
 
+
+void safeFree (void* ptr,size_t size)
+{
+  #if CLEAN_MEMORY_BEFORE_DEALLOCATION
+    memset(ptr,0,size);
+    free(ptr);
+  #else
+    free(ptr);
+  #endif // CLEAN_MEMORY_BEFORE_DEALLOCATION
+}
+
+
 int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,char * password)
 {
   unsigned int pass_size = 2; // : and \0
@@ -265,7 +277,9 @@ int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,
 
   if ( pass_size>MAX_QUERY ) { fprintf(stderr,"Error : SetUsernameAndPassword was given a huge string to convert..!"); return 0; }
 
-  char * mixed_string = malloc(sizeof (char) * pass_size );
+
+  unsigned long mixedStringSize = sizeof (char) * pass_size;
+  char * mixed_string = malloc(mixedStringSize);
   if (mixed_string==0) { fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n"); return 0; }
 
   mixed_string[0]=0;
@@ -274,12 +288,12 @@ int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,
   if (password!=0) { strcat(mixed_string,password); }
 
 
-
-  char * base64pass = malloc(sizeof (char) *  ((pass_size*2)+1 ));
+  unsigned long base64passSize = sizeof (char) *  ((pass_size*2)+1 );
+  char * base64pass = malloc(base64passSize);
   if (base64pass==0)
      {
       fprintf(stderr,"Error : Could not allocate memory in SetUsernameAndPassword\n");
-      if (mixed_string!=0) {free(mixed_string); }
+      if (mixed_string!=0) { safeFree(mixed_string,mixedStringSize); }
       return 0;
      }
   base64pass[0]=0;
@@ -292,22 +306,11 @@ int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,
    } else
    { fprintf(stderr,"\nCould not encode Username and Password %s \n",mixed_string); }
 
-   free(mixed_string);
-   free(base64pass);
+   safeFree(mixed_string,mixedStringSize);
+   safeFree(base64pass  ,base64passSize);
 
  return result;
 }
 
-
-
-void safeFree (void* ptr,size_t size)
-{
-  #if CLEAN_MEMORY_BEFORE_DEALLOCATION
-    memset(ptr,0,size);
-    free(ptr);
-  #else
-    free(ptr);
-  #endif // CLEAN_MEMORY_BEFORE_DEALLOCATION
-}
 
 
