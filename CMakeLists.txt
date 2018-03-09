@@ -71,13 +71,20 @@ ENDIF( USE_XSERVER )
     add_subdirectory (src/Services/GeoPosShare) 
     add_subdirectory (src/Services/SimpleTemplate) 
     add_subdirectory (src/Services/HabChan) 
-    add_subdirectory (src/Services/CinemaPilot) 
-    add_subdirectory (src/Services/Various)
     add_subdirectory (src/Services/V4L2ToHTTP)
     add_subdirectory (src/Services/WebFramebuffer)
+
+    add_subdirectory (src/Services/Various/NaoNetWalk)
+
+    add_subdirectory (src/Services/Deprecated/CinemaPilot) 
     
-    #These are unit tests for the core library
-    add_subdirectory (src/UnitTests)
+ 
+#These are unit tests for the core library
+IF( DO_TEST_COVERAGE )   
+ add_subdirectory (src/UnitTests/UserAccountsTester)
+ add_subdirectory (src/UnitTests/HashMapTester)
+ENDIF( DO_TEST_COVERAGE )
+
 
 # TODO FIX INSTALLATION DIRECTORIES 
 

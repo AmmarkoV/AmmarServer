@@ -56,7 +56,7 @@ void * do_login_process_callback(struct AmmServer_DynamicRequest  * rqst)
   char username[256];
   char password[256];
 
-  if ( (_GET(rqst->instance,rqst ,(char*) "pass" , password , 256) ) && ( _GET(rqst->instance,rqst ,(char*) "user" , username , 256) ) )
+  if ( (_GETcpy(rqst ,(char*) "pass" , password , 256) ) && ( _GETcpy(rqst ,(char*) "user" , username , 256) ) )
    {
       strncpy(rqst->content,"<html><head><title>Random Number Generator</title></head><body>",rqst->MAXcontentSize);
       char msg[256];
@@ -86,8 +86,8 @@ void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  AmmServer_AddResourceHandler(default_server,&loginCheck,"/index.html",webserver_root,4096,0,&do_login_check_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&loginProcess,"/performlogin.html",webserver_root,4096,0,&do_login_process_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&loginCheck,"/index.html",4096,0,&do_login_check_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&loginProcess,"/performlogin.html",4096,0,&do_login_process_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 }
 
