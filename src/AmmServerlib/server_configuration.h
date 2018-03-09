@@ -69,7 +69,10 @@ extern "C" {
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 /** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
-#define MAX_CLIENT_PRESPAWNED_THREADS 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
+extern unsigned int MAX_CLIENT_PRESPAWNED_THREADS;
+
+/** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
+#define MAX_CLIENT_PRESPAWNED_THREADS_DEFAULT 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
 
 /** @brief Maximum Target of concurrent clients being listened at the same time C10K tests require this to be 10000 ( http://en.wikipedia.org/wiki/C10k_problem ) */
 #define MAX_CLIENTS_LISTENING_FOR 10000 //C10K :P

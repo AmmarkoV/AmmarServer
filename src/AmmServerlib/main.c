@@ -235,6 +235,7 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
    unsigned int i=0;
    for (i=0; i<argcUI; i++)
    {
+    if ((strcmp(argv[i],"-prefork")==0)&&(argcUI>i+1))     { MAX_CLIENT_PRESPAWNED_THREADS = atoi(argv[i+1]);     fprintf(stderr,"Prespawned threads set to %u \n",MAX_CLIENT_PRESPAWNED_THREADS); } else
     if ((strcmp(argv[i],"-bind")==0)&&(argcUI>i+1))        { strncpy(bindIP,argv[i+1],MAX_IP_STRING_SIZE);        fprintf(stderr,"Binding to %s \n",bindIP); } else
     if ((strcmp(argv[i],"-p")==0)&&(argcUI>i+1))           { bindPort = atoi(argv[i+1]);                          fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-port")==0)&&(argcUI>i+1))        { bindPort = atoi(argv[i+1]);                          fprintf(stderr,"Binding to Port %u \n",bindPort); } else
