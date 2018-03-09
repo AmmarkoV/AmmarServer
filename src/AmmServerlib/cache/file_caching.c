@@ -20,8 +20,6 @@
 
 //The cache consists of cache items.. Each cache item Gets Added and Removed with calls defined beneath..
 //The cache must be Created and then Destroyed because on program execution its pointer has no memory allocated for the content..!
-
-
 int cache_CountMemoryUsageFreeOperation(struct AmmServer_Instance * instance , unsigned long freedSize)
 {
   if (instance==0) { return 0; }

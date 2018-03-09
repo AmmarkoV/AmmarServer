@@ -51,6 +51,7 @@
 			<Add option="-O3" />
 		</Compiler>
 		<Linker>
+			<Add option="-rdynamic" />
 			<Add option="-lrt" />
 			<Add option="-pthreads" />
 			<Add option="-levent" />

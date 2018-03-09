@@ -31,8 +31,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "AString/AString.h"
 // --------------------------------------------
 #include "threads/serverAbstraction.h"
-//#include "threads/threadedServer.h"
-//#include "threads/prespawnedThreads.h"
 // --------------------------------------------
 #include "cache/file_caching.h"
 #include "cache/dynamic_requests.h"
@@ -241,7 +239,7 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
     if ((strcmp(argv[i],"-port")==0)&&(argcUI>i+1))        { bindPort = atoi(argv[i+1]);                          fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-rootdir")==0)&&(argcUI>i+1))     { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH);     fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
     if ((strcmp(argv[i],"-templatedir")==0)&&(argcUI>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH);     fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
-    if (strcmp(argv[i],"-conf")==0)                        { strncpy(configuration_file,conf_file,MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
+    if  (strcmp(argv[i],"-conf")==0)                       { strncpy(configuration_file,conf_file,MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
    }
   }
 
