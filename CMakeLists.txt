@@ -54,36 +54,39 @@ ENDIF( COMPILE_FOR_ARM )
     #Make the basic "vanilla" server  
     add_subdirectory (src/Services/AmmarServer) 
 
-    #Then make all of the executables that use the various libraries  
-    add_subdirectory (src/Services/ScriptRunner) 
+    #Then make all the showcase applications that are not very bad.. :P  
     add_subdirectory (src/Services/MyURL) 
     add_subdirectory (src/Services/MyLoader) 
     add_subdirectory (src/Services/MyBlog) 
     add_subdirectory (src/Services/MyTube)
     add_subdirectory (src/Services/MySearch)
-    add_subdirectory (src/Services/Social)
-
-IF( USE_XSERVER ) 
-    #XWD is listed here maybe it should be inside remote desktop
-    add_subdirectory (src/Services/MyRemoteDesktop/xwd-1.0.5/) 
-    add_subdirectory (src/Services/MyRemoteDesktop)
-ENDIF( USE_XSERVER )
+    
+    #Then make some little less well developed and more cringe-worthy applications 
     add_subdirectory (src/Services/GeoPosShare) 
-    add_subdirectory (src/Services/SimpleTemplate) 
+    add_subdirectory (src/Services/Social)
     add_subdirectory (src/Services/HabChan) 
-    add_subdirectory (src/Services/V4L2ToHTTP)
     add_subdirectory (src/Services/WebFramebuffer)
-
+    add_subdirectory (src/Services/SimpleTemplate) 
+    add_subdirectory (src/Services/V4L2ToHTTP)
+    
+    IF( USE_XSERVER ) 
+      #XWD is listed here maybe it should be inside remote desktop
+      add_subdirectory (src/Services/MyRemoteDesktop/xwd-1.0.5/) 
+      add_subdirectory (src/Services/MyRemoteDesktop)
+    ENDIF( USE_XSERVER )
+    
+    #Various utilities for specific use-cases
     add_subdirectory (src/Services/Various/NaoNetWalk)
+    add_subdirectory (src/Services/Various/ScriptRunner) 
 
+    #Deprecated utilities that will be removed in the future..
     add_subdirectory (src/Services/Deprecated/CinemaPilot) 
     
- 
-#These are unit tests for the core library
-IF( DO_TEST_COVERAGE )   
- add_subdirectory (src/UnitTests/UserAccountsTester)
- add_subdirectory (src/UnitTests/HashMapTester)
-ENDIF( DO_TEST_COVERAGE )
+    #These are unit tests for the core library
+    IF( DO_TEST_COVERAGE )   
+     add_subdirectory (src/UnitTests/UserAccountsTester)
+     add_subdirectory (src/UnitTests/HashMapTester)
+    ENDIF( DO_TEST_COVERAGE )
 
 
 # TODO FIX INSTALLATION DIRECTORIES 
@@ -92,5 +95,4 @@ ENDIF( DO_TEST_COVERAGE )
 #                    LIBRARY DESTINATION lib
 #                    ARCHIVE DESTINATION lib
 #                    RUNTIME DESTINATION bin)
- 
 

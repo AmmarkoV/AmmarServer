@@ -24,7 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
-#include "../../AmmServerlib/AmmServerlib.h"
+#include "../../../AmmServerlib/AmmServerlib.h"
 
 #define MAX_BINDING_PORT 65534
 
@@ -135,7 +135,7 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-int getBackCommandLine(char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize)
+int getBackCommandLine(const char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize)
 {
  FILE *fp;
  /* Open the command for reading. */
