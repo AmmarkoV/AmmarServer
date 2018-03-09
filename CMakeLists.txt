@@ -5,10 +5,19 @@ cmake_minimum_required( VERSION 2.8.7 )
 set(CMAKE_CXX_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 set(CMAKE_C_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
  
+#Use OpenSSL ( currently under construction )
 OPTION (USE_OPENSSL OFF)
+#Use LibEvent as a threading mechanism
+OPTION (USE_LIBEVENT OFF)
+#Use X-Server for applications that may need it ( MyRemoteDesktop )
 OPTION (USE_XSERVER OFF)
+#Flag to compile for RASPBERRYPI
 OPTION (COMPILE_FOR_ARM OFF)
  
+IF( USE_LIBEVENT )
+ add_definitions(-DUSE_LIBEVENT)
+ENDIF( USE_LIBEVENT )
+
 IF( USE_OPENSSL )
  add_definitions(-DUSE_OPENSSL)
 ENDIF( USE_OPENSSL )
