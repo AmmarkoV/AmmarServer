@@ -4,7 +4,8 @@ STARTDIR=`pwd`
 #Switch to this directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
- 
+cd ..
+
 until false; do
     src/Services/MyURL/myurl -p 8082 $@ 
     echo "Server 'myurl' stopped with exit code $?.  Respawning.." >&2

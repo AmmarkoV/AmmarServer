@@ -4,7 +4,8 @@ STARTDIR=`pwd`
 #Switch to this directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
- 
+cd ..
+
 until false; do
     src/Services/V4L2ToHTTP/v4l2tohttp 0.0.0.0 8082 /dev/video0 $@ 
     echo "Server 'v4l2tohttp' stopped with exit code $?.  Respawning.." >&2
