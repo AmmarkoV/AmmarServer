@@ -6,8 +6,7 @@ set(CMAKE_C_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
  
-   
-    set(AMMARSERVER_INGREDIENTS
+set(AMMARSERVER_INGREDIENTS
                 main.c 
                 AmmServerlib.h
                 server_configuration.c
@@ -41,6 +40,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                 network/networkAbstraction.h
                 network/openssl_server.c
                 network/openssl_server.h
+                network/libevent_server.c
+                network/libevent_server.h
                 network/file_server.c
                 network/file_server.h
                 network/sendHTTPHeader.c
@@ -104,6 +105,15 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
               )
 
 
+
+if (USE_LIBEVENT)
+ set( LibEventParts  -levent )
+ MESSAGE("LibEvent will be used")
+ELSE (USE_LIBEVENT)
+ MESSAGE("LibEvent will not be used") 
+ENDIF(USE_LIBEVENT)
+
+
 if (USE_OPENSSL)
  set( OpenSSLParts  -lssl -lcrypto )
  MESSAGE("OpenSSL will be used")
@@ -112,12 +122,10 @@ ELSE (USE_OPENSSL)
 ENDIF(USE_OPENSSL)
   
     add_library(AmmarServerDynamic SHARED ${AMMARSERVER_INGREDIENTS} )
-    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} Hashmap InputParser_C)
+    target_link_libraries(AmmarServerDynamic pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} ${LibEventParts} Hashmap InputParser_C)
 
     add_library(AmmarServer STATIC ${AMMARSERVER_INGREDIENTS} )
-    target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} Hashmap InputParser_C)
-
-
+    target_link_libraries(AmmarServer pthread rt ${AmmarServer_LIBRARIES} ${OpenSSLParts} ${LibEventParts} Hashmap InputParser_C)
 
     set_target_properties(AmmarServer PROPERTIES 
                           DEBUG_POSTFIX "D"
@@ -134,8 +142,6 @@ ENDIF(USE_OPENSSL)
                           OUTPUT_NAME AmmarServer 
                         )
 
-
- 
 #    install(TARGETS AmmarServer
 #                    LIBRARY DESTINATION lib
 #                    ARCHIVE DESTINATION lib

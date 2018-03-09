@@ -27,9 +27,9 @@ extern "C" {
 /** @brief Enable a variety of debug messages in parts of the code that are not 100% bulletproof*/
 #define DEBUG_MESSAGES 0
 
+/** @brief memset to 0 chunks of memory that might contain sensitive client data before freeing them and releasing them
+           this adds a little overhead for each free operation but improves security */
 #define CLEAN_MEMORY_BEFORE_DEALLOCATION 0
-
-
 
 
 /** @brief Use qsort and bsearch in hashmaps to speed up results in big caches , should be 1 if we trust them to work correctly..!*/
