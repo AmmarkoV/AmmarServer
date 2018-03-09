@@ -1,19 +1,7 @@
 #include "libeventServer.h"
-// --------------------------------------------
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/uio.h>
-// --------------------------------------------
-
-
 
 #if USE_LIBEVENT
 #warning "Please note that LibEvent support is under construction"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,21 +10,21 @@
 #include <sys/stat.h>
 
 #ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-#include <io.h>
-#include <fcntl.h>
-#ifndef S_ISDIR
-#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
+ #include <winsock2.h>
+ #include <ws2tcpip.h>
+ #include <windows.h>
+ #include <io.h>
+ #include <fcntl.h>
+ #ifndef S_ISDIR
+ #define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
 #endif
 #else
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <signal.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <dirent.h>
+ #include <sys/stat.h>
+ #include <sys/socket.h>
+ #include <signal.h>
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <dirent.h>
 #endif
 
 #include <event2/event.h>
@@ -53,19 +41,24 @@
 #endif
 
 
-
-
-
-
-
-
-#endif
-
-
-int startLibEventServer()
+int StartLibEventHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path)
 {
-#if USE_LIBEVENT
+  return 0;
+}
+
+int StopLibEventHTTPServer(struct AmmServer_Instance * instance)
+{
+  return 0;
+}
+
+int LibEventHTTPServerIsRunning(struct AmmServer_Instance * instance)
+{
+  return 0;
+}
+
+unsigned int GetActiveLibEventHTTPServerThreads(struct AmmServer_Instance * instance)
+{
+  return 0;
+}
 
 #endif
-return 1;
-}

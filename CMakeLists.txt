@@ -12,8 +12,18 @@ OPTION (USE_LIBEVENT OFF)
 #Use X-Server for applications that may need it ( MyRemoteDesktop )
 OPTION (USE_XSERVER OFF)
 #Flag to compile for RASPBERRYPI
-OPTION (COMPILE_FOR_ARM OFF)
- 
+OPTION (COMPILE_FOR_ARM OFF) 
+
+#Compile Everything with Coverage test 
+#https://en.wikipedia.org/wiki/Gcov
+OPTION (DO_TEST_COVERAGE OFF)
+
+
+IF( DO_TEST_COVERAGE )
+ MESSAGE("GCC will generate coverage information.. This will take a little longer") 
+ MESSAGE("Compilation flags will be modified , please deactivate DO_TEST_COVERAGE if you want this to be your final build") 
+ENDIF( DO_TEST_COVERAGE )
+
 IF( USE_LIBEVENT )
  add_definitions(-DUSE_LIBEVENT)
 ENDIF( USE_LIBEVENT )

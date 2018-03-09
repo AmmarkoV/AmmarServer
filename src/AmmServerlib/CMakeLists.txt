@@ -3,6 +3,12 @@ cmake_minimum_required( VERSION 2.8.7 )
  
 set(CMAKE_CXX_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
 set(CMAKE_C_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
+
+IF(DO_TEST_COVERAGE)
+set(CMAKE_CXX_FLAGS " -fPIC -Wall -fprofile-arcs -ftest-coverage ")
+set(CMAKE_C_FLAGS "-fPIC -Wall -fprofile-arcs -ftest-coverage")
+ENDIF(DO_TEST_COVERAGE)
+ 
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
  
@@ -108,16 +114,16 @@ set(AMMARSERVER_INGREDIENTS
  
 if (USE_LIBEVENT)
  set( LibEventParts  -levent )
- MESSAGE("LibEvent will be used")
+ MESSAGE("LibEvent will be linked against AmmarServerLib")
 ELSE (USE_LIBEVENT)
- MESSAGE("LibEvent will not be used") 
+ MESSAGE("LibEvent will not be used against AmmarServerLib") 
 ENDIF(USE_LIBEVENT)
  
 if (USE_OPENSSL)
  set( OpenSSLParts  -lssl -lcrypto )
- MESSAGE("OpenSSL will be used")
+ MESSAGE("OpenSSL will be used against AmmarServerLib")
 ELSE (USE_OPENSSL)
- MESSAGE("OpenSSL will not be used") 
+ MESSAGE("OpenSSL will not be used against AmmarServerLib") 
 ENDIF(USE_OPENSSL)
   
     add_library(AmmarServerDynamic SHARED ${AMMARSERVER_INGREDIENTS} )
