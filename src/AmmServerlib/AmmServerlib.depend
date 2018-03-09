@@ -749,11 +749,8 @@
 1520603858 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/libeventServer.h
 	"../AmmServerlib.h"
 
-1520596498 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/serverAbstraction.c
+1520603956 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/serverAbstraction.c
 	"serverAbstraction.h"
-	<stdio.h>
-	<stdlib.h>
-	<string.h>
 	"threadedServer.h"
 	"libeventServer.h"
 
