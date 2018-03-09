@@ -1,13 +1,18 @@
 #!/bin/bash
 
+STARTDIR=`pwd`
+#Switch to this directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+
 echo "Starting up everything AmmarServer related.."
 
-./run_myurl&
-./run_myloader&
-./run_mytube&
-./run_myblog&
-./run_geoposshare&
-./run_mysearch&
+scripts/run_myurl&
+scripts/run_myloader&
+scripts/run_mytube&
+scripts/run_myblog&
+scripts/run_geoposshare&
+scripts/run_mysearch&
  
 exit 0
 
