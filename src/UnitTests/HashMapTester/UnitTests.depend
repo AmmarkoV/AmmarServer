@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1496045839 source:/home/ammar/Documents/Programming/AmmarServer/src/UnitTests/testHashMap.c
+	<stdio.h>
+	"../AmmServerlib/AmmServerlib.h"
+	"../Hashmap/hashmap.h"
+
+1519398053 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+	<pthread.h>
+	<libgen.h>
+
+1513354364 /home/ammar/Documents/Programming/AmmarServer/src/Hashmap/hashmap.h
+	<pthread.h>
+
