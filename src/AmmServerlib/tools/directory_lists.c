@@ -39,7 +39,8 @@ if (!ENABLE_DIRECTORY_LISTING) { return 0; }
 fprintf(stderr,GREEN "Generating directory list page for directory %s \n" NORMAL,system_path);
 
 *memoryUsed=INITIAL_DIRECTORY_LIST_RESPONSE_BODY+1;
-char * memory=(char*) malloc( sizeof(char) * ( *memoryUsed ) );
+unsigned long memoryAllocationSize = sizeof(char) * ( *memoryUsed );
+char * memory=(char*) malloc( memoryAllocationSize+1 );
 if (memory==0) { error("Could not allocate a memory chunk to serve directory page"); }
 
 unsigned int mem_remaining=*memoryUsed;
@@ -79,7 +80,7 @@ struct stat st;
 struct dirent *dp={0};
 // enter existing path to directory below
 DIR *dir = opendir(system_path);
-if (dir==0) { free(memory); return 0; }
+if (dir==0) { safeFree(memory,memoryAllocationSize); return 0; }
 while ((dp=readdir(dir)) != 0)
   {
     //TODO: remove // from requests.. of dp->d_name is like /filename.ext

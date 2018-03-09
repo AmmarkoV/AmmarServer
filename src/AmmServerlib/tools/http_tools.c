@@ -978,8 +978,8 @@ char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,u
 #endif // USE_TIMEOUTS
 
 
-
-    char * buffer = (char*) malloc( (max_content+1) * sizeof(char) );
+    unsigned long bufferSize = (max_content+1) * sizeof(char);
+    char * buffer = (char*) malloc(bufferSize);
     if (buffer!=0)
     {
       snprintf(buffer,max_content,"GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",filename,hostname);
@@ -995,7 +995,7 @@ char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,u
         if (opres<=0) { fprintf(stderr,"Error Receiving Request data\n"); }
       }
 
-      free(buffer);
+      safeFree(buffer,bufferSize);
     }
 
     close(sockfd);

@@ -218,7 +218,7 @@ inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Inst
         {
           //If Directory_listing enabled and directory is ok , send the generated site
           SendMemoryBlockAsFile(instance,"dir.html",transaction,replyBody ,sendSize);
-          if (replyBody !=0) { free(replyBody ); }
+          if (replyBody !=0) { safeFree(replyBody,sendSize /*It just cleans the populated part of the buffer*/); }
           logSuccess(instance,transaction,200,servefile);
         } else
         {
@@ -453,7 +453,7 @@ inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct 
 
   if ( transaction->incomingHeader.headerRAW!=0 )
         {
-          free(transaction->incomingHeader.headerRAW);
+          safeFree(transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize);
           transaction->incomingHeader.headerRAW=0;
         }
   //We are done with request!
@@ -510,7 +510,7 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
   if (transaction->incomingHeader.headerRAW!=0)
   {
    fprintf(stderr,"Done with client / Freeing incoming memory..\n");
-   free(transaction->incomingHeader.headerRAW);
+   safeFree(transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize);
    transaction->incomingHeader.headerRAW=0;
   }
 
