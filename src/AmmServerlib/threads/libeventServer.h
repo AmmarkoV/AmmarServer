@@ -5,7 +5,8 @@
 #ifndef LIBEVENT_SERVER_H_INCLUDED
 #define LIBEVENT_SERVER_H_INCLUDED
 
-//#define USE_LIBEVENT 0 1
+//Uncommenting that will force libevent..
+//#define USE_LIBEVENT 1
 
 #if USE_LIBEVENT
 
@@ -13,9 +14,7 @@
 extern "C" {
 #endif
 
-
 #include "../AmmServerlib.h"
-
 /**
 * @brief Start HTTP server
 * @ingroup threads
