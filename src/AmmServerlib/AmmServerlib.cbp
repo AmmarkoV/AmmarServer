@@ -53,6 +53,7 @@
 		<Linker>
 			<Add option="-lrt" />
 			<Add option="-pthreads" />
+			<Add option="-levent" />
 			<Add library="../Hashmap/libHashmap.a" />
 			<Add library="../InputParser/libInputParser.a" />
 		</Linker>

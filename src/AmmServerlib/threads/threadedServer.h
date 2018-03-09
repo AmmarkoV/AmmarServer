@@ -8,6 +8,10 @@
 #include "../header_analysis/http_header_analysis.h"
 #include "../server_configuration.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
 * @brief Start HTTP server
 * @ingroup threads
@@ -41,4 +45,9 @@ int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance);
 * @param An AmmarServer Instance
 * @retval Total number of running threads  */
 unsigned int GetActiveThreadedHTTPServerThreads(struct AmmServer_Instance * instance);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // SERVER_THREADS_H_INCLUDED
