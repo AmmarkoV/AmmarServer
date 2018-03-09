@@ -65,7 +65,18 @@ extern "C" {
 #define THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS 20
 
 
+/** @brief Setting this to 1 will signal that all instances of AmmarServer need to die at once */
+extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
+/** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
+#define MAX_CLIENT_PRESPAWNED_THREADS 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
+
+/** @brief Maximum Target of concurrent clients being listened at the same time C10K tests require this to be 10000 ( http://en.wikipedia.org/wiki/C10k_problem ) */
+#define MAX_CLIENTS_LISTENING_FOR 10000 //C10K :P
+
+/** @brief Maximum Number of concurrent threads being created at the same time , depending on the size of the listen pool this can be smaller than the MAX_CLIENTS_LISTENING_FOR and connections will
+           be queued and served sequentially */
+#define MAX_CLIENT_THREADS 3000 //3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
 
 
 /** @brief Calculate (And output) transmission speed for files broadcast by AmmarServer  */
@@ -79,20 +90,6 @@ extern "C" {
 
 /** @brief Maximum times to try to bind to port on initial server start up */
 #define MAX_TRIES_TO_BIND_TO_PORT 5
-
-/** @brief Setting this to 1 will signal that all instances of AmmarServer need to die at once */
-extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
-
-/** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
-#define MAX_CLIENT_PRESPAWNED_THREADS 4 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
-
-
-/** @brief Maximum Target of concurrent clients being listened at the same time C10K tests require this to be 10000 ( http://en.wikipedia.org/wiki/C10k_problem ) */
-#define MAX_CLIENTS_LISTENING_FOR 5000 //C10K :P
-
-/** @brief Maximum Number of concurrent threads being created at the same time , depending on the size of the listen pool this can be smaller than the MAX_CLIENTS_LISTENING_FOR and connections will
-           be queued and served sequentially */
-#define MAX_CLIENT_THREADS 3000 //3000 //This is the maximum number of simultaneous regular threads that serve incoming requests..!
 
 
 #if MAX_CLIENT_THREADS == 1
