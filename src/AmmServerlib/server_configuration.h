@@ -17,7 +17,6 @@
 extern "C" {
 #endif
 
-
 /** @brief Enable POST request handling , switching this to 0 will completely deny them reducing attack surface */
 #define MASTER_ENABLE_POST 1
 #if MASTER_ENABLE_POST
@@ -53,6 +52,10 @@ extern "C" {
 /** @brief Next prespawned thread , should be vigilant and ready to serve so it has a shorter delay than the other prespawned threads ( 0.7ms max delay seems like a good value ) */
 #define THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT 700
 
+/** @brief Sleep time for threads that are prespawned until they check for potential new work , the lowest the value here ,
+           the shortest the wait time for clients , but this causes higher CPU usage ( for idle tasks ) and ultimately more power consumption
+           A good default time is 25000 , ( 25ms ) */
+#define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 25000
 
 
 /** @brief Max sleep time while waiting for new thread to kick in and read parameters to unblock main thread.. */
@@ -64,10 +67,6 @@ extern "C" {
 
 
 
-/** @brief Sleep time for threads that are prespawned until they check for potential new work , the lowest the value here ,
-           the shortest the wait time for clients , but this causes higher CPU usage ( for idle tasks ) and ultimately more power consumption
-           A good default time is 25000 , ( 25ms ) */
-#define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 25000
 
 /** @brief Calculate (And output) transmission speed for files broadcast by AmmarServer  */
 #define CALCULATE_TIME_FOR_UPLOADS 1
@@ -85,7 +84,7 @@ extern "C" {
 extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
 
 /** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
-#define MAX_CLIENT_PRESPAWNED_THREADS 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
+#define MAX_CLIENT_PRESPAWNED_THREADS 4 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
 
 
 /** @brief Maximum Target of concurrent clients being listened at the same time C10K tests require this to be 10000 ( http://en.wikipedia.org/wiki/C10k_problem ) */
@@ -302,8 +301,7 @@ int SetUsernameAndPassword(struct AmmServer_Instance * instance,char * username,
 
 /** @brief Frees a pointer, or cleans it ( sets it to zero ) and then  frees it depending on the configuration of CLEAN_MEMORY_BEFORE_DEALLOCATION
     @param Pointer to free
-    @param Size of allocated memory of the pointer
-*/
+    @param Size of allocated memory of the pointer*/
 void safeFree (void* ptr,size_t size);
 
 

@@ -4,6 +4,7 @@ STARTDIR=`pwd`
 #Switch to this directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
+cd ..
  
 until false; do
     src/Services/MySearch/mysearch -p 8080 $@ 
