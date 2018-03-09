@@ -41,22 +41,30 @@
 #endif
 
 
-int StartLibEventHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path)
+int
+StartLibEventHTTPServer
+(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path)
 {
   return 0;
 }
 
-int StopLibEventHTTPServer(struct AmmServer_Instance * instance)
+int
+StopLibEventHTTPServer
+(struct AmmServer_Instance * instance)
 {
   return 0;
 }
 
-int LibEventHTTPServerIsRunning(struct AmmServer_Instance * instance)
+int
+LibEventHTTPServerIsRunning
+(struct AmmServer_Instance * instance)
 {
   return 0;
 }
 
-unsigned int GetActiveLibEventHTTPServerThreads(struct AmmServer_Instance * instance)
+unsigned int
+GetActiveLibEventHTTPServerThreads
+(struct AmmServer_Instance * instance)
 {
   return 0;
 }
