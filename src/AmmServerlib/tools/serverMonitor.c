@@ -11,7 +11,7 @@
 // --------------------------------------------
 #include "../network/file_server.h"
 // --------------------------------------------
-#include "../threads/threadedServer.h"
+#include "../threads/serverAbstraction.h"
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -30,7 +30,7 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
    current memory consumption ( cache ) : %u KB<br>\
    data sent/recvd : %lu KB/%lu KB<br>\
    <hr>",
-   GetActiveHTTPServerThreads(instance),
+   ASRV_GetActiveHTTPServerThreads(instance),
    instance->statistics.filesCurrentlyOpen ,
    (unsigned int) instance->statistics.recvOperationsStarted,
    (unsigned int) instance->statistics.recvOperationsFinished ,
@@ -44,7 +44,7 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
 
   unsigned int i=0;
 
-  for (i=0; i<GetActiveHTTPServerThreads(instance); i++)
+  for (i=0; i<ASRV_GetActiveHTTPServerThreads(instance); i++)
   {
    snprintf(buffer,4096," %u - <a href=\"monitor.html?stop=%u\">STOP</a> \n",i,i);
    strcat(rqst->content,buffer);
