@@ -27,10 +27,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "version.h"
 // --------------------------------------------
 #include "AmmServerlib.h"
+#include "server_configuration.h"
 #include "AString/AString.h"
 // --------------------------------------------
-#include "threads/threadedServer.h"
-#include "threads/prespawnedThreads.h"
+#include "threads/serverAbstraction.h"
+//#include "threads/threadedServer.h"
+//#include "threads/prespawnedThreads.h"
 // --------------------------------------------
 #include "cache/file_caching.h"
 #include "cache/dynamic_requests.h"
@@ -119,7 +121,7 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
     AmmServer_RemoveResourceHandler(instance,&instance->webserverMonitorPage,1);
   }
 
-  StopHTTPServer(instance);
+  ASRV_StopHTTPServer(instance);
   cache_Destroy(instance);
 
   if (instance->threads_pool!=0)    { free(instance->threads_pool); instance->threads_pool=0; }
@@ -164,14 +166,6 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
 
   fprintf(stderr,"Initial AmmServer_Start ( name %s ) thread pool pointing @ %p \n",instance->instanceName,instance->threads_pool);//Clear instance..!
 
-  instance->prespawned_pool = (void *) malloc( sizeof(struct PreSpawnedThread) * MAX_CLIENT_PRESPAWNED_THREADS);
-  if (!instance->prespawned_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_PRESPAWNED_THREADS);  } else
-                                  {
-                                    if (MAX_CLIENT_PRESPAWNED_THREADS>0)
-                                     {
-                                      memset(instance->prespawned_pool,0,sizeof(pthread_t)*MAX_CLIENT_PRESPAWNED_THREADS);
-                                     }
-                                  }
 
 
    instance->settings.MAX_POST_TRANSACTION_SIZE = DEFAULT_MAX_HTTP_POST_REQUEST_HEADER;
@@ -195,7 +189,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
                    MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB    /*MB Max Size of Individual File*/
                   );
 
-   if (StartHTTPServer(instance,ip,instance->settings.BINDING_PORT,web_root_path,templates_root_path))
+   if (ASRV_StartHTTPServer(instance,ip,instance->settings.BINDING_PORT,web_root_path,templates_root_path))
       {
           //All is well , we return a valid instance
             AccessLogAppend("127.0.0.1",0,"startup",1,0,"startup","ammarserver");
@@ -255,7 +249,7 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
 
 int AmmServer_Running(struct AmmServer_Instance * instance)
 {
-  return HTTPServerIsRunning(instance);
+  return ASRV_HTTPServerIsRunning(instance);
 }
 
 int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,const char * filename)

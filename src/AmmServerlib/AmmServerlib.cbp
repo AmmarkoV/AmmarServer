@@ -104,10 +104,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="network/file_server.h" />
-		<Unit filename="network/libevent_server.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="network/libevent_server.h" />
 		<Unit filename="network/networkAbstraction.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -196,10 +192,18 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="threads/freshThreads.h" />
+		<Unit filename="threads/libeventServer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/libeventServer.h" />
 		<Unit filename="threads/prespawnedThreads.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="threads/prespawnedThreads.h" />
+		<Unit filename="threads/serverAbstraction.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/serverAbstraction.h" />
 		<Unit filename="threads/threadInitHelper.c">
 			<Option compilerVar="CC" />
 		</Unit>

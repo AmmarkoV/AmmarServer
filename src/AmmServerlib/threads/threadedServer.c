@@ -51,7 +51,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../cache/client_list.h"
 #include "../cache/dynamic_requests.h"
 
-int HTTPServerIsRunning(struct AmmServer_Instance * instance)
+int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
   if (instance==0) { return 0; } //We can't be running not even the instance is allocated..
   return instance->server_running;
@@ -79,7 +79,7 @@ static int signalChildFinishedWithParentMessageLocal(volatile int * childSwitch)
 #endif // WORKAROUND_REALLOCATION_GCC_ERROR
 
 
-void * MainHTTPServerThread (void * ptr)
+void * MainThreadedHTTPServerThread (void * ptr)
 {
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
   if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); /*We dont have a context , so we cant signal anything :P */ return 0; }
@@ -92,6 +92,9 @@ void * MainHTTPServerThread (void * ptr)
   struct AmmServer_Instance * instance = context->instance;
   if (instance==0) { error("HTTPServerThread called with an invalid instance\n"); context->keep_var_on_stack=2;  return 0; }
   fprintf(stderr,"HTTPServerThread instance pointing @ %p \n",instance);
+
+
+
 
   int serversock = socket(AF_INET, SOCK_STREAM, 0);
     if ( serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; context->keep_var_on_stack=2;  return 0; }
@@ -249,9 +252,19 @@ void * MainHTTPServerThread (void * ptr)
 
 
 
-int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path)
+int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path)
 {
   if (instance==0) { fprintf(stderr,"StartHTTPServer called with an unallocated instance \n"); return 0; }
+
+
+  instance->prespawned_pool = (void *) malloc( sizeof(struct PreSpawnedThread) * MAX_CLIENT_PRESPAWNED_THREADS);
+  if (!instance->prespawned_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a prespawned thread pool\n",MAX_CLIENT_PRESPAWNED_THREADS);  } else
+                                  {
+                                    if (MAX_CLIENT_PRESPAWNED_THREADS>0)
+                                     {
+                                      memset(instance->prespawned_pool,0,sizeof(pthread_t)*MAX_CLIENT_PRESPAWNED_THREADS);
+                                     }
+                                  }
 
   //Since this webserver is "serious-stuff" we may want to increase its priority..
    if ( CHANGE_PRIORITY != 0 )
@@ -296,7 +309,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigne
 
   //Creating the main WebServer thread..
   //It will bind the ports and start receiving requests and pass them over to new and prespawned threads
-   retres = pthread_create( &instance->server_thread_id , 0 /*&instance->attr*/ ,MainHTTPServerThread,(void*) &context);
+   retres = pthread_create( &instance->server_thread_id , 0 /*&instance->attr*/ ,MainThreadedHTTPServerThread,(void*) &context);
 
    //If pthread_creation was a success, we wait for the new thread to get its configuration parameters..
 
@@ -320,7 +333,7 @@ int StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigne
   return retres;
 }
 
-int StopHTTPServer(struct AmmServer_Instance * instance)
+int StopThreadedHTTPServer(struct AmmServer_Instance * instance)
 {
   /*
      We want to stop the server that accepts new connections ( and we do that by signaling instance->stop_server=1; )
@@ -351,7 +364,7 @@ int StopHTTPServer(struct AmmServer_Instance * instance)
 }
 
 
-unsigned int GetActiveHTTPServerThreads(struct AmmServer_Instance * instance)
+unsigned int GetActiveThreadedHTTPServerThreads(struct AmmServer_Instance * instance)
 {
   return getActivePrespawnedThreads(instance) + getActiveFreshThreads(instance);
 }

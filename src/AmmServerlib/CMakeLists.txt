@@ -40,8 +40,6 @@ set(AMMARSERVER_INGREDIENTS
                 network/networkAbstraction.h
                 network/openssl_server.c
                 network/openssl_server.h
-                network/libevent_server.c
-                network/libevent_server.h
                 network/file_server.c
                 network/file_server.h
                 network/sendHTTPHeader.c
@@ -59,6 +57,10 @@ set(AMMARSERVER_INGREDIENTS
                 threads/clientServer.h
                 threads/threadedServer.c
                 threads/threadedServer.h
+                threads/libeventServer.c
+                threads/libeventServer.h
+                threads/serverAbstraction.c
+                threads/serverAbstraction.h
                 #String Scanners , these get  automatically generated
                 stringscanners/applicationFiles.c
                 stringscanners/applicationFiles.h
@@ -103,17 +105,14 @@ set(AMMARSERVER_INGREDIENTS
                 templates/icons.c 
                 templates/icons.h 
               )
-
-
-
+ 
 if (USE_LIBEVENT)
  set( LibEventParts  -levent )
  MESSAGE("LibEvent will be used")
 ELSE (USE_LIBEVENT)
  MESSAGE("LibEvent will not be used") 
 ENDIF(USE_LIBEVENT)
-
-
+ 
 if (USE_OPENSSL)
  set( OpenSSLParts  -lssl -lcrypto )
  MESSAGE("OpenSSL will be used")

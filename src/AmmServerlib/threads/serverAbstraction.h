@@ -1,12 +1,14 @@
-/** @file threadedServer.h
-* @brief Creating new threads to serve clients , we only have one call that generates a thread that serves a client connection
+/** @file serverAbstraction.h
+* @brief The way to switch from Pthread to libEvent threading
 * @author Ammar Qammaz (AmmarkoV)
 */
-#ifndef THREADED_SERVER_H_INCLUDED
-#define THREADED_SERVER_H_INCLUDED
 
-#include "../header_analysis/http_header_analysis.h"
-#include "../server_configuration.h"
+#ifndef SERVERABSTRACTION_H_INCLUDED
+#define SERVERABSTRACTION_H_INCLUDED
+
+#include "../AmmServerlib.h"
+#include <stdlib.h>
+
 
 /**
 * @brief Start HTTP server
@@ -17,7 +19,7 @@
 * @param Filename to root path for this webserver ( public_html )
 * @param Filename to root path for templates ( 404.html etc )
 * @retval 1=Success,0=Failure  */
-int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path);
+int ASRV_StartHTTPServer(struct AmmServer_Instance * instance,const char * ip,unsigned int port,const char * root_path,const char * templates_path);
 
 /**
 * @brief Stop a running HTTP server , unbind ports , deallocate structures etc
@@ -25,14 +27,14 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
 * @param An AmmarServer Instance
 * @bug Stop web server should be improved , to make sure it unbinds the closing socket
 * @retval 1=Success,0=Failure  */
-int StopThreadedHTTPServer(struct AmmServer_Instance * instance);
+int ASRV_StopHTTPServer(struct AmmServer_Instance * instance);
 
 /**
 * @brief Ask if the HTTP server is running
 * @ingroup threads
 * @param An AmmarServer Instance
 * @retval 1=Success,0=Failure  */
-int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance);
+int ASRV_HTTPServerIsRunning(struct AmmServer_Instance * instance);
 
 
 /**
@@ -40,5 +42,6 @@ int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance);
 * @ingroup threads
 * @param An AmmarServer Instance
 * @retval Total number of running threads  */
-unsigned int GetActiveThreadedHTTPServerThreads(struct AmmServer_Instance * instance);
-#endif // SERVER_THREADS_H_INCLUDED
+unsigned int ASRV_GetActiveHTTPServerThreads(struct AmmServer_Instance * instance);
+
+#endif
