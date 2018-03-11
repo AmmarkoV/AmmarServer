@@ -627,6 +627,8 @@ if (request->requestType!=HEAD)
          //This is the last header part , so we are appending an extra \n to mark the end of the header
          snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) cached_lSize);
        }
+     //TODO : Append Cookie here..
+
      opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
