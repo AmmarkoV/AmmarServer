@@ -1,5 +1,5 @@
 /*
-AmmarServer , simple template executable
+AmmarServer , simple web framebuffer executable
 
 URLs: http://ammar.gr
 Written by Ammar Qammaz a.k.a. AmmarkoV 2012
