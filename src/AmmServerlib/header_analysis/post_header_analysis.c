@@ -268,20 +268,3 @@ int AnalyzePOSTLineRequest(
    return 0;
 }
 
-
-
-
-int TokenizePOSTFiles(
-                       struct AmmServer_Instance * instance,
-                       struct HTTPHeader * output,
-                       char * POSTRequest,
-                       unsigned int POSTRequestLength
-                     )
-{
-  //! TODO strstr ( output->boundary )
-  AmmServer_Stub("Reached TokenizePOSTFiles call but it is a stub with no implementation..\n");
-  return 0;
-}
-
-
-

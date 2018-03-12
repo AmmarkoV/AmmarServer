@@ -59,7 +59,7 @@ int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int client
 
     ASRV_StartSession(instance,&transaction);
 
-     int i= ServeClientInternal(instance , &transaction);
+     int i=ServeClientInternal(instance , &transaction);
 
     ASRV_StopSession(instance,&transaction);
 
@@ -164,5 +164,5 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
 unsigned int getActiveFreshThreads(struct AmmServer_Instance * instance)
 {
- return 0;
+ return (unsigned int) (instance->CLIENT_THREADS_STOPPED - instance->CLIENT_THREADS_STARTED);
 }

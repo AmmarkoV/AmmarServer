@@ -250,11 +250,11 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
            transaction->incomingHeader.POSTrequest=transaction->incomingHeader.headerRAW;
            transaction->incomingHeader.POSTrequestSize=transaction->incomingHeader.headerRAWSize;
            fprintf(stderr,CYAN " POST Request %s \n" NORMAL , transaction->incomingHeader.headerRAW);
-
+/*
            if (!TokenizePOSTFiles(instance,&transaction->incomingHeader,transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize))
            {
                error("Could not tokenize POST request to files..\n");
-           }
+           }*/
 
         }
         //If we use a client based request handler , call it now

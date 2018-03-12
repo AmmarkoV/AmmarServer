@@ -12,8 +12,6 @@
 #include "../tools/logs.h"
 #include "../AmmServerlib.h"
 
-
-
 struct PassToPreSpawnedThread
 {
     struct AmmServer_Instance * instance;
@@ -86,10 +84,11 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 {
   if (instance==0) { error("Cannot UsePreSpawnedThreadToServeNewClient without a valid instance"); }
 
-  #if MAX_CLIENT_PRESPAWNED_THREADS==0
+  if ( MAX_CLIENT_PRESPAWNED_THREADS == 0 )
+  {
     warning("PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n");
     return;
-  #else
+  }
   if ( (instance==0)||(instance->prespawned_pool==0) ) { fprintf(stderr,"PreSpawnThreads called on an invalid instance..\n"); return; }
 
   struct PassToPreSpawnedThread context={0};
@@ -115,7 +114,6 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
       int retres = pthread_create(&prespawned_data->thread_id,0,PreSpawnedThread,(void*) &context );
       if ( retres==0 ) { while (context.i_adapt==i) { usleep(1); } } // <- Keep i value the same for long enough without locks
    }
-  #endif // MAX_CLIENT_PRESPAWNED_THREADS activated..
 }
 
 
@@ -124,10 +122,11 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
   if ( (instance==0) || (clientsock==0) || (clientlen==0) || (webserver_root==0) || (templates_root==0) )
                            { error("Cannot UsePreSpawnedThreadToServeNewClient without a valid instance"); return 0; }
 
-  #if MAX_CLIENT_PRESPAWNED_THREADS==0
+  if ( MAX_CLIENT_PRESPAWNED_THREADS == 0 )
+  {
     warning("PreSpawning Threads is disabled , alter MAX_CLIENT_PRESPAWNED_THREADS to enable it..\n");
     return 0;
-  #else
+  }
    //Please note that this must only get called from the main process/thread..
    fprintf(stderr,"UsePreSpawnedThreadToServeNewClient instance pointing @ %p \n",instance);
 
@@ -180,10 +179,11 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
              fprintf(stderr,"Thread %u is now unlocked\n",prespawned_data->threadNum);
 
              ++instance->prespawn_turn_to_serve;
-             #if MAX_CLIENT_PRESPAWNED_THREADS > 0
-              instance->prespawn_turn_to_serve = instance->prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
-             #endif
 
+              if ( MAX_CLIENT_PRESPAWNED_THREADS > 0 )
+               {
+                instance->prespawn_turn_to_serve = instance->prespawn_turn_to_serve % MAX_CLIENT_PRESPAWNED_THREADS; // <- Round robin next thread..
+               }
              return 1;
          }
     }
@@ -192,7 +192,6 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
         fprintf(stderr,"All prespawned threads are busy.. ( start %u , end %u , max %u) \n",instance->prespawn_jobs_started,instance->prespawn_jobs_finished,MAX_CLIENT_PRESPAWNED_THREADS);
     }*/
   return 0;
-  #endif // MAX_CLIENT_PRESPAWNED_THREADS not zero..
 }
 
 unsigned int getActivePrespawnedThreads(struct AmmServer_Instance * instance)

@@ -475,7 +475,7 @@ int StripGETRequestQueryAndFragment(char * filename  , unsigned int max_query_le
    if (i==length) { return 0; } //<- could not find a ..
    if (i+1>=length) { return 0; } //<- found the question mark at i BUT it is the last character so no extension is possible..!
 
-   char * start_of_query = &filename[i+1]; // do not include ? ( question mark )
+   //char * start_of_query = &filename[i+1]; // do not include ? ( question mark )
    filename[i]=0;
 
    /*

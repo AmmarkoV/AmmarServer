@@ -64,7 +64,7 @@ switch (errno)
 
 
 
-int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int request_length, char * webserver_root)
+int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int request_length,const char * webserver_root)
 {
      if (request_length<3)  { fprintf(stderr,"A very small first line \n "); return 0; }
 
@@ -323,10 +323,12 @@ int AnalyzeHTTPLineRequest(
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_REFERRER : //The same case as HTTPHEADER_REFERER
-            payload_start+=strlen("REFERRER:");
+             payload_start+=strlen("REFERRER:");
+             output->referer=request+payload_start;
+             output->refererLength=request_length-payload_start;
+        break;
         case HTTPHEADER_REFERER :
-             if (HTTPHEADER_REFERER==requestType) {payload_start+=strlen("REFERER:");  }
-             //output->refererIndex=payload_start;
+             payload_start+=strlen("REFERER:");
              output->referer=request+payload_start;
              output->refererLength=request_length-payload_start;
              return 1;
