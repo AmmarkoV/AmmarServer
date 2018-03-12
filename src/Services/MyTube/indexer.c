@@ -57,16 +57,18 @@ int unloadVideoDatabase(struct videoCollection* vc)
 
 int loadVideoStats(struct videoCollection* vc ,  const char * databasePath , unsigned int videoID)
 {
- char statsFilePath[512]={0};
- snprintf(statsFilePath,512,"%s/%s_stats",databasePath,vc->video[videoID].filename);
+ char statsFilePath[1025]={0};
+ snprintf(statsFilePath,1024,"%s/%s_stats",databasePath,vc->video[videoID].filename);
 
 
  FILE *fp = fopen(statsFilePath,"r");
  if( fp )
     {
-      fscanf(fp, "%lu\n", &vc->video[videoID].views);
-      fscanf(fp, "%lu\n", &vc->video[videoID].likes);
-      fscanf(fp, "%lu\n", &vc->video[videoID].dislikes);
+      int res =  fscanf(fp, "%lu\n", &vc->video[videoID].views);
+          res += fscanf(fp, "%lu\n", &vc->video[videoID].likes);
+          res += fscanf(fp, "%lu\n", &vc->video[videoID].dislikes);
+
+      if (res!=3) { fprintf(stderr,"Failed to correctly read video stats item..\n"); }
       vc->video[videoID].stateChanges=0;
       fclose(fp);
       return 1;
@@ -78,7 +80,7 @@ int loadVideoStats(struct videoCollection* vc ,  const char * databasePath , uns
 
 int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , unsigned int videoID)
 {
- char statsFilePath[512]={0};
+ char statsFilePath[513]={0};
  snprintf(statsFilePath,512,"%s/%s_stats",databasePath,vc->video[videoID].filename);
 
  FILE *fp = fopen(statsFilePath,"w");

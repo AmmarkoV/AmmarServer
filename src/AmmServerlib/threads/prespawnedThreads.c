@@ -5,6 +5,7 @@
 
 #include "prespawnedThreads.h"
 #include "freshThreads.h"
+#include "clientServer.h"
 #include <pthread.h>
 #include <unistd.h>
 #include "../threads/threadedServer.h"

@@ -190,7 +190,7 @@ inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * in
 {
      SendAuthorizationHeader(instance,transaction,"AmmarServer authorization..!","authorization.html");
 
-     char reply_header[256]={0};
+     char reply_header[1024]={0};
      strcpy(reply_header,"\n\n<html><head><title>Authorization needed</title></head><body><br><h1>Unauthorized access</h1><h3>Please note that all unauthorized access attempts are logged ");
      strcat(reply_header,"and your host machine will be permenantly banned if you exceed the maximum number of incorrect login attempts..</h2></body></html>\n");
      //int opres=send(transaction->clientSock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
@@ -266,7 +266,7 @@ inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * in
 
 
 
-inline int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
   //Remember the IP of this client..
   getSocketIPAddress(instance,transaction->clientSock,transaction->ipStr,MAX_IP_STRING_SIZE,&transaction->port);

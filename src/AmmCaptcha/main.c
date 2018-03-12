@@ -160,7 +160,8 @@ int AmmCaptcha_loadDictionary(char * dictFilename)
   char str[256]={0};
   while (!feof(fd))
   {
-    fscanf (fd, "%s", str);
+    int scanres=fscanf(fd, "%s", str);
+    if (scanres!=1) { fprintf(stderr,"Failed to read dictionary item..\n"); }
     hashMap_Add(captchaStrings,str,0,0);
   }
   fclose(fd);

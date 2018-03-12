@@ -47,11 +47,12 @@ int renderVideoList(struct videoCollection *  db ,
   unsigned int remainingSize = rqst->MAXcontentSize;
 
   rqst->content[0]=0;
-  char data[512];
+  #define DATASIZE 2048
+  char data[DATASIZE];
   unsigned int dataSize;
 
 
-  snprintf(data,512,"<!DOCTYPE html>\
+  snprintf(data,DATASIZE,"<!DOCTYPE html>\
            <html>\
            <head>\
             <meta charset=\"UTF-8\">\
@@ -68,7 +69,7 @@ int renderVideoList(struct videoCollection *  db ,
 
 
 
-  snprintf(data,512,"<table>"); dataSize=strlen(data);
+  snprintf(data,DATASIZE,"<table>"); dataSize=strlen(data);
   if (dataSize>remainingSize) { outOfMemory = 1; } else { strncat(rqst->content,data,dataSize); remainingSize-=dataSize; }
 
 
@@ -78,7 +79,7 @@ int renderVideoList(struct videoCollection *  db ,
       if (strcasestr(db->video[i].filename , query)!=0)
       // if (strstr(db->video[i].filename , query)!=0) faster case sensitive search but needs all filenames to be lowercase or smth..
         {
-         snprintf(data,512,
+         snprintf(data,DATASIZE,
                   "<tr>\
                     <td>\
                      <a href=\"watch?v=%u\">\
@@ -107,7 +108,7 @@ int renderVideoList(struct videoCollection *  db ,
   }
   AmmServer_Warning("Found %u results",foundVideos);
 
-  snprintf(data,512,"</table></body></html>"); dataSize=strlen(data);
+  snprintf(data,DATASIZE,"</table></body></html>"); dataSize=strlen(data);
   if (dataSize>remainingSize) { outOfMemory = 1; } else { strncat(rqst->content,data,dataSize);  remainingSize-=dataSize;}
 
   if (doPickFromList)

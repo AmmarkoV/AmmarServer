@@ -179,7 +179,7 @@ int SendPart(
       return 1;
 }
 
-inline int TransmitFileHeaderToSocket(
+int TransmitFileHeaderToSocket(
                                       struct AmmServer_Instance * instance,
                                       struct HTTPTransaction * transaction,
                                       unsigned long start_at_byte,   // Optionally start with an offset ( resume download functionality )

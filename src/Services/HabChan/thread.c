@@ -28,7 +28,8 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
     if (buffer==0) { return 0; }
     buffer[0]=0;
 
-    char chunk[1024];
+    #define CHUNKSIZE 2048
+    char chunk[2048];
     char imageURI[2048];
 
 
@@ -41,7 +42,7 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
 
                snprintf(imageURI,1024,"board/%s/%s/image_0.jpg",boardName,ourSite.boards[boardIndex].threads[threadID].name);
 
-               snprintf(chunk,1024,
+               snprintf(chunk,2048,
                         "\
                <div style=\"background-color:#ffffee;\">\
                 <hr><br>\
@@ -80,7 +81,7 @@ char * mallocHTMLListOfThreadsOfBoard(const char * boardName,unsigned int * html
                  snprintf(imageURI,1024,"<img src=\"empty.png\" width=\"10\">");
                }
 
-                 snprintf(chunk,1024,
+                 snprintf(chunk,2048,
                  "\
                   <div style=\"background-color:#f0e0d6;\">\
                     <table>\

@@ -431,7 +431,8 @@ int AmmServer_PreCacheFile(struct AmmServer_Instance * instance,const char * fil
 
 int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context)
 {
-    char resource_name[MAX_FILE_PATH+1]={0};
+    //gcc for some weird reason complains
+    char resource_name[MAX_FILE_PATH+MAX_RESOURCE+1]={0};
 
     snprintf(resource_name,MAX_FILE_PATH,"%s%s",context->web_root_path,context->resource_name);
 

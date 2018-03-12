@@ -519,7 +519,7 @@ char * colorspace2s(int val)
 
 
 
-char * frmtype2s(unsigned type)
+const char * frmtype2s(unsigned type)
 {
 	static const char *types[] = { "Unknown", "Discrete", "Continuous", "Stepwise" };
 	if (type > 3) type = 0;
