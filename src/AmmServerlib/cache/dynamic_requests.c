@@ -10,13 +10,17 @@
 
 int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsigned int index)
 {
+  if (instance==0) { return 0; }
   struct cache_item * cache = (struct cache_item *) instance->cache;
+  if (cache==0) { return 0; }
+
   return (cache[index].dynamicRequestCallbackFunction!=0);
 }
 
 int saveDynamicRequest(const char * filename , struct AmmServer_Instance * instance , struct AmmServer_DynamicRequest * rqst)
 {
   if (instance==0) { return 0; }
+  if (rqst==0)     { return 0; }
 
   AmmServer_Stub("saveDynamicRequest is a stub..");
   FILE *fp=0;
@@ -69,12 +73,10 @@ char * dynamicRequest_serveContent
 {
  // error("Dynamic requests are disabled until further notice .. \n");
   //return 0;
- // struct cache_item * cache = (struct cache_item *) instance->cache;
 
 
   //Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
   *contentContainsPathToFileToBeStreamed=0;
-  //AmmServer_Warning("Will call %p \n",shared_context->dynamicRequestCallbackFunction);
 
   if (shared_context->dynamicRequestCallbackFunction==0)
   {
@@ -208,10 +210,7 @@ char * dynamicRequest_serveContent
                      fprintf(stderr,"Request for a maximum of %lu characters ( %lu ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
                      fprintf(stderr,"GETItems : %p , %u items\n",rqst->GETItem , rqst->GETItemNumber );
                      fprintf(stderr,"POSTItems : %p , %u items\n",rqst->POSTItem , rqst->POSTItemNumber );
-                     /*
-                     fprintf(stderr,"POST : %p , %u bytes\n",rqst->POST_request , rqst->POST_request_length );
-                     fprintf(stderr,"GET : %p , %u bytes\n",rqst->GET_request , rqst->GET_request_length );
-                     fprintf(stderr,"COOKIE : %p , %u bytes\n",rqst->COOKIE_request , rqst->COOKIE_request_length );*/
+
 
                      if ( (rqst->POSTItemNumber!=0) )
                      {
@@ -257,7 +256,6 @@ char * dynamicRequest_serveContent
                     }
 
    }
-
 
  return cacheMemory;
 
