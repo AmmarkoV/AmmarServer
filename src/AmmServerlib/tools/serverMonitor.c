@@ -27,7 +27,7 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
    started recv calls : %u <br>\
    finished recv calls : %u <br>\
    actively served requests: %u <br>\
-   current memory consumption ( cache ) : %u KB<br>\
+   current memory consumption ( cache ) : %lu KB<br>\
    data sent/recvd : %lu KB/%lu KB<br>\
    <hr>",
    ASRV_GetActiveHTTPServerThreads(instance),

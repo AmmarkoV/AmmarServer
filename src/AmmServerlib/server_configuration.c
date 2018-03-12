@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include "tools/http_tools.h"
 #include "tools/logs.h"
 #include "../InputParser/InputParser_C.h"

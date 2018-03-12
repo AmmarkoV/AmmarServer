@@ -4,6 +4,7 @@
 
 #include "tools.h"
 #include "network.h"
+#include "protocol.h"
 
 #include "AmmClient.h"
 
