@@ -7,7 +7,10 @@ cd "$DIR"
 #RUN ME TO REGENERATE TEMPLATE FILES 
 
 ../../StringEscapeFile/StringEscapeFile original/login.html include/login.html 
+sed -i 's/\\\//\//g' include/login.html  # Remove \/ because they emmit warnings ( cc1: warning: unknown escape sequence: '\/' )
 ../../StringEscapeFile/StringEscapeFile original/editor.html include/editor.html 
+sed -i 's/\\\//\//g' include/editor.html # Remove \/ because they emmit warnings ( cc1: warning: unknown escape sequence: '\/' )
+
 
 ../../StringEscapeFile/StringEscapeFile original/400.html include/400.html
 ../../StringEscapeFile/StringEscapeFile original/401.html include/401.html
