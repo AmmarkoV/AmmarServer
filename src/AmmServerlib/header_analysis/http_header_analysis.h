@@ -34,7 +34,7 @@ int AnalyzeHTTPLineRequest(
                             char * request,
                             unsigned int request_length,
                             unsigned int lines_gathered,
-                            char * webserver_root
+                            const char * webserver_root
                           );
 
 /**

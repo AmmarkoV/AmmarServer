@@ -190,7 +190,7 @@ int setSocketTimeouts(int clientSock);
 * @param length of output pointer
 * @param output port of connection
 * @retval ClientID or ,0=Failure*/
-int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , char * ipstr , unsigned int ipstrLength, int * port);
+int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , char * ipstr , unsigned int ipstrLength,unsigned int * port);
 
 /**
 * @brief Tool that resolve a client socket to its IP , then uses it to try to clientList_GetClientId and returns the id number

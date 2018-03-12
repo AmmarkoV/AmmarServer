@@ -52,7 +52,7 @@ unsigned long cache_GetCacheSizeKB(struct AmmServer_Instance * instance)
      ------------------------------------------------------------------
 */
 
-int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,unsigned int maxRequest,char * templates_root)
+int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,unsigned int maxRequest/*,char * templates_root*/)
 {
   if (instance==0) { return 0; }
   if (!ENABLE_INTERNAL_RESOURCES_RESOLVE)  { return 0; }
@@ -62,7 +62,7 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
   //If the request was indeed a change request returns 1 else 0
   if ( strlen(request)>strlen(TemplatesInternalURI)+64 )
    {
-       fprintf(stderr,"\nWARNING : Skipping cache_ChangeRequestIfTemplateRequested due to a very large request\n");
+       fprintf(stderr,"\nWARNING : Skipping cache_ChangeRequestIfTemplateRequested due to a very large request ( maxRequest = %u ) \n",maxRequest);
        return 0;
    }
 

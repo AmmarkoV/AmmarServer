@@ -434,7 +434,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
     //gcc for some weird reason complains
     char resource_name[MAX_FILE_PATH+MAX_RESOURCE+1]={0};
 
-    snprintf(resource_name,MAX_FILE_PATH,"%s%s",context->web_root_path,context->resource_name);
+    snprintf(resource_name,MAX_FILE_PATH+MAX_RESOURCE,"%s%s",context->web_root_path,context->resource_name);
 
     if (! cache_AddDoNOTCacheRuleForResource(instance,resource_name) )
      {

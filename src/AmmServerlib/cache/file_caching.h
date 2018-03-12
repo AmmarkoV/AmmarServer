@@ -99,9 +99,8 @@ int freeMallocIfNeeded(char * mem,unsigned char free_is_needed);
 * @param An AmmarServer Instance
 * @param String of Request
 * @param Maximum size of request string
-* @param Filename pointing to directory that contains templates
 * @retval 1=If request was for a template and it got changed ,0= not changed request*/
-int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,unsigned int maxRequest,char * templates_root);
+int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,char * request,unsigned int maxRequest/*,char * templates_root*/);
 
 /**
 * @brief Add a filesystem file to cache

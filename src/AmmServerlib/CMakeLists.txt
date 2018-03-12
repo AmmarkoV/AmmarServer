@@ -52,8 +52,7 @@ set(AMMARSERVER_INGREDIENTS
                 network/sendHTTPHeader.h
                 network/recvHTTPHeader.c
                 network/recvHTTPHeader.h
-                #Threads
-                threads/threadInitHelper.c
+                #Threads 
                 threads/threadInitHelper.h
                 threads/freshThreads.c
                 threads/freshThreads.h

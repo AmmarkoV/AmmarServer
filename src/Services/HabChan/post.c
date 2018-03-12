@@ -72,7 +72,7 @@ int loadPostContent(char * postHeaderFilename,struct post * ourPost)
 int loadPosts(struct board * ourBoard , struct thread * ourThread)
 {
   int i=0;
-  char postHeaderFilename[MAX_STRING_SIZE]={0};
+  char postHeaderFilename[MAX_STRING_SIZE+1]={0};
 
   ourThread->maxNumberOfReplies = MAX_POSTS_PER_THREAD;
   ourThread->numberOfReplies = 0;

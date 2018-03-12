@@ -459,6 +459,9 @@ int StripGETRequestQueryAndFragment(char * filename  , unsigned int max_query_le
    //fprintf(stderr,"StripGETRequestQueryAndFragment is not thoroughly tested yet\n");
    unsigned int length=strlen(filename);
    if (length==0) { return 0; }
+   if (length>max_query_length) { length=max_query_length; }
+
+
    unsigned int i=0,fragment_pos=length;
 
    while ( (i<length) &&  (filename[i]!='?') /*Query start character*/)
@@ -1034,7 +1037,7 @@ int setSocketTimeouts(int clientSock)
  return errorSettingTimeouts;
 }
 
-int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , char * ipstr , unsigned int ipstrLength, int * port)
+int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , char * ipstr , unsigned int ipstrLength,unsigned int * port)
 {
   //Lets find out who we are talking to , and if we want to deny him service or not..!
   socklen_t len=0;
@@ -1096,7 +1099,7 @@ clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int client
    #error "Please readjust MAX_IP_STRING_SIZE to be more than INET6_ADDRSTRLEN"
   #endif // INET6_ADDRSTRLEN
   char ipstr[INET6_ADDRSTRLEN]; ipstr[0]=0;
-  int port=0;
+  unsigned int port=0;
 
   getSocketIPAddress(instance,clientSock,ipstr,INET6_ADDRSTRLEN,&port);
 

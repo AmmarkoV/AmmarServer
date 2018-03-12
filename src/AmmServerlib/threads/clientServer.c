@@ -58,7 +58,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../server_configuration.h"
 
 
-inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
+inline int logSuccess(const struct AmmServer_Instance * instance,const struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
 {
   return AccessLogAppend( transaction->ipStr,
                           0, // Auto Date It NOW!
@@ -71,7 +71,7 @@ inline int logSuccess(struct AmmServer_Instance * instance,struct HTTPTransactio
                          );
 }
 
-inline int logError(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
+inline int logError(const struct AmmServer_Instance * instance,const struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
 {
   return ErrorLogAppend(  transaction->ipStr ,
                           0, // Auto Date It NOW!
@@ -125,7 +125,7 @@ inline void decideAboutHowToHandleRequestedResource
       //we have checked transaction->incomingHeader.verified_local_resource for .. , weird ascii characters etc, so it should be safe for usage from now on..!
 
       //There are some virtual files we want to re-route to their real path..!
-      if (cache_ChangeRequestIfTemplateRequested(instance,servefile,MAX_FILE_PATH,instance->templates_root) )
+      if (cache_ChangeRequestIfTemplateRequested(instance,servefile,MAX_FILE_PATH/*,instance->templates_root*/) )
       { //Skip disk access times for checking for directories and other stuff..!
         //We know that the resource is a file from our cache indexes..!
           *resource_is_a_directory=0;
