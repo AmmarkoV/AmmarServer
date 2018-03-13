@@ -548,11 +548,17 @@ int _GETexists(struct AmmServer_DynamicRequest * rqst,const char * name)
 
 int _GETcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo)
 {
+  //fprintf(stderr,"_GETcmp ");
   unsigned int valueLength=0;
   const char * value = _GET(rqst,name,&valueLength);
   if ( (value==0) || (valueLength==0) ) { return -1; }
   if (what2CompareTo==0)                { return 1; }
-  return strcmp(value,what2CompareTo);
+
+  //fprintf(stderr,"-> %s vs %s",value,what2CompareTo);
+  int result = strcmp(value,what2CompareTo);
+  //fprintf(stderr," = %d ",result);
+
+  return result;
 }
 
 int _GETcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)

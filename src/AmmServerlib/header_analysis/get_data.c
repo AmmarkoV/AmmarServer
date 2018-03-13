@@ -139,8 +139,12 @@ int finalizeGETData(struct HTTPHeader * output)
   for (i=0; i<output->GETItemNumber; i++)
   {
      output->GETItem[i].reallocateOnHeaderRAWResize=1;
+
      //TODO strip HTML characters here..
      //StripHTMLCharacters_Inplace(output->GETquery,0 /* 0 = Disregard dangerous bytes , Safety OFF*/); // <- This call converts char sequences like %20 to " " and %00 to \0 disregarding any form of safety , ( since it is a raw var )
+
+     output->GETItem[i].nameSize  = strlen(output->GETItem[i].name);
+     output->GETItem[i].valueSize = strlen(output->GETItem[i].value);
   }
 
 
@@ -185,6 +189,7 @@ const struct GETRequestContent * getGETItemFromName(struct AmmServer_DynamicRequ
     {
      if (strncmp(p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
      {
+       //p->valueSize=sizeOfNameToLookFor;
        return p;
      }
     }
