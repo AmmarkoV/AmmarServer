@@ -276,6 +276,8 @@ struct AmmServer_DynamicRequest
 {
    struct AmmServer_Instance * instance;
    unsigned int clientID;
+   unsigned int sessionID;
+   unsigned int useSessionLifecycle;
 
    unsigned int headerResponse;
 
@@ -415,6 +417,7 @@ struct AmmServer_Instance
     void * cacheHashMap;
 
     void * clientList;
+    void * sessionList;
     //Thread holders..
     unsigned int CLIENT_THREADS_STARTED;
     unsigned int CLIENT_THREADS_STOPPED;

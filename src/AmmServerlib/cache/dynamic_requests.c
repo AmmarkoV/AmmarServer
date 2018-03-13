@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "dynamic_requests.h"
 #include "file_caching.h"
+#include "session_list.h"
 #include "../server_configuration.h"
 #include "../tools/logs.h"
 #include "../tools/time_provider.h"
@@ -162,7 +163,7 @@ char * dynamicRequest_serveContent
           }
          }
 
-         if (waitTime>maxWaitTime)
+         if (waitTime>=maxWaitTime)
          {
            AmmServer_Error("Request requests for a callback that is TOO slow , returning nothing back :( ..\n");
            return 0;
@@ -217,6 +218,18 @@ char * dynamicRequest_serveContent
 
                      rqst->content=cacheMemory;
                      //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
+
+
+
+                     if (rqst->useSessionLifecycle)
+                      {
+                        rqst->sessionID = getSessionFromHeader(
+                                                               instance->sessionList,
+                                                               0,//const char * connectionIP ,
+                                                               0,//const char * cookieValue ,
+                                                               0//const char * BrowserIdentifier
+                                                               );
+                      }
 
 
                      shared_context->executedNow=1;

@@ -26,6 +26,8 @@ set(AMMARSERVER_INGREDIENTS
                 cache/dynamic_requests.h
                 cache/client_list.c
                 cache/client_list.h
+                cache/session_list.c
+                cache/session_list.h
                 cache/file_compression.c
                 cache/file_compression.h 
                 #Scheduler Functionality 

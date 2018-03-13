@@ -276,7 +276,8 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
                                          { fprintf(stderr,"Changed priority to %i \n",CHANGE_PRIORITY); } }
   //-------------------------------------------------------------------------------------------------------------
 
-  instance->clientList = clientList_initialize();
+  instance->clientList  = clientList_initialize(instance->instanceName);
+  instance->sessionList = sessionList_initialize(instance->instanceName);
 
   int retres=0;
   volatile struct PassToHTTPThread context={ 0 };
@@ -359,6 +360,7 @@ int StopThreadedHTTPServer(struct AmmServer_Instance * instance)
   fprintf(stderr," .. done \n");
 
   clientList_close(instance->clientList);
+  sessionList_close(instance->sessionList);
 
   //pthread_attr_destroy(&instance->attr);
   pthread_cancel(instance->server_thread_id); //This should try to kill the main thread

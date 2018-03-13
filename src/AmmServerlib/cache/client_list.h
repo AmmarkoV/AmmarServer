@@ -60,7 +60,7 @@ int clientList_signalClientStoppedUsingResource(struct clientListContext * clien
 * @brief Create , allocate and return a client list
 * @ingroup clientList
 * @retval Pointer to a freshly allocated client list or 0=Failure */
-struct clientListContext *  clientList_initialize();
+struct clientListContext *  clientList_initialize(const char * serverName);
 
 /**
 * @brief Close and destroy client list

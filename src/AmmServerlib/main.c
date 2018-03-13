@@ -34,6 +34,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // --------------------------------------------
 #include "cache/file_caching.h"
 #include "cache/dynamic_requests.h"
+#include "cache/client_list.h"
+#include "cache/session_list.h"
 // --------------------------------------------
 #include "scheduler/scheduler.h"
 // --------------------------------------------
@@ -597,8 +599,8 @@ const char * _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,un
 /// --------------------------------------------------------- SESSION ---------------------------------------------------------
 const char * _SESSION(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength)
 {
-    AmmServer_Stub("Session access not coded in yet..!");
-    return 0;
+    struct AmmServer_Instance * instance = rqst->instance;
+    return sessiontList_GetInfo(instance->sessionList,rqst->sessionID,name);
 }
 /// -----------------------------------------------------------------------------------------------------------------------
 

@@ -60,7 +60,7 @@ int clientList_signalClientStoppedUsingResource(struct clientListContext * clien
 }
 
 
-struct clientListContext *  clientList_initialize()
+struct clientListContext *  clientList_initialize(const char * serverName)
 {
   #if COMPILE_WITH_CLIENT_LIST
    return 0;
