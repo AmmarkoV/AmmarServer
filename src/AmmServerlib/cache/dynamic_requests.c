@@ -83,19 +83,18 @@ char * dynamicRequest_serveContent
     struct cache_item * cache = (struct cache_item *) instance->cache;
     if (cache[index].dynamicRequestCallbackFunction==0)
     {
-     error("dynamicRequest_serveContent : No Callback registered , cannot serve content without a function to call \n");
-     error("dynamicRequest_serveContent should never get called without a function to call \n");
+     errorID(ASV_ERROR_NO_CALLBACK_REGISTERED);
      return 0;
     } else
     {
-     warning("Something nasty is happening , dynamic request does not carry its pointer any more , was able to find it from cache information \n");
+     errorID(ASV_ERROR_CALLBACK_POINTER_CORRUPTION);
      shared_context->dynamicRequestCallbackFunction = cache[index].dynamicRequestCallbackFunction;
-     warning("Will try to continue with cache pointer.. \n");
+     //We were able to find the original callback function pointer ID through the cache so we can continue, we also emitted an error..
     }
   }
 
   *allowOtherOrigins = shared_context->allowCrossRequests;
-  AmmServer_Warning("allowOtherOrigins = %u",*allowOtherOrigins );
+  //AmmServer_Warning("allowOtherOrigins = %u",*allowOtherOrigins );
 
   char * cacheMemory=0; // <- this will hold the resulting page
 
@@ -105,13 +104,13 @@ char * dynamicRequest_serveContent
     {
      unsigned int size_to_allocate =  sizeof(char) * ( shared_context->requestContext.MAXcontentSize ) ;
      if (size_to_allocate==0)
-     { warning("BUG : We should allocate additional space for this request.. Unfortunately it appears to be zero.. \n "); }
+     { warningID(ASV_WARNING_RESOURCE_HAS_ZERO_ACCOMODATION_SIZE); }
      else
      {
       fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
       cacheMemory = (char *) malloc( size_to_allocate );
       if (cacheMemory!=0) { *freeContentAfterUsingIt=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
-                          { error("Could not allocate enough memory for responding to this request"); } //Lets work with our default buffer till the end..!
+                          { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); } //Lets work with our default buffer till the end..!
      }
     } else
    if ( (shared_context->needsSamePageForAllClients) )
@@ -119,16 +118,15 @@ char * dynamicRequest_serveContent
        cacheMemory =  shared_context->requestContext.content;
     } else
     {
-      error("Shared content has an invalid RH_Scenario flag , this version of AmmarServer does not know what it means");
-      error("Maybe this has to do with a newer version , and stuff that haven't been invented yet in this build..");
+      errorID(ASV_ERROR_INVALID_RH_SCENARIO);
     }
 
   //In case mem doesnt point to a proper buffer calling the mem_callback function will probably segfault for all we know
   //So we bail out and emmit an error message..!
   if ( (cacheMemory==0) || (shared_context->requestContext.MAXcontentSize==0) )
     {
-     warning("Not going to call callback function with an empty buffer..!");
-     fprintf(stderr," ( cacheMemory=%p , MAXcontentSize=%lu ) ..!\n",cacheMemory,shared_context->requestContext.MAXcontentSize);
+     warningID(ASV_WARNING_NOT_CALLING_CALLBACK_WITH_EMPTY_BUFFER);
+     fprintf(stderr,"( cacheMemory=%p , MAXcontentSize=%lu ) ..!\n",cacheMemory,shared_context->requestContext.MAXcontentSize);
     } else
     {
      //This means we can call the callback to prepare the memory content..! START
@@ -252,7 +250,7 @@ char * dynamicRequest_serveContent
                      //CreateCompressedVersionofDynamicContent(instance,index);
                     } else
                     {
-                      error("Could not allocate enough memory to make the request \n");
+                      errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY);
                     }
 
    }

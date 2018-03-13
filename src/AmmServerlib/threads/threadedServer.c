@@ -73,7 +73,7 @@ int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance)
 static int signalChildFinishedWithParentMessageLocal(volatile int * childSwitch)
 {
     *childSwitch=2;
-    if (*childSwitch!=2) { error("WTF , i just changed the child switch"); return 0; }
+    if (*childSwitch!=2) { errorID(ASV_ERROR_REALLOCATION_R_X86_64_PC32_GCC_ERROR); return 0; }
     return 1;
 }
 #endif // WORKAROUND_REALLOCATION_GCC_ERROR
@@ -90,14 +90,14 @@ void * MainThreadedHTTPServerThread (void * ptr)
   struct sockaddr_in client;
 
   struct AmmServer_Instance * instance = context->instance;
-  if (instance==0) { error("HTTPServerThread called with an invalid instance\n"); context->keep_var_on_stack=2;  return 0; }
+  if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); context->keep_var_on_stack=2;  return 0; }
   fprintf(stderr,"HTTPServerThread instance pointing @ %p \n",instance);
 
 
 
 
   int serversock = socket(AF_INET, SOCK_STREAM, 0);
-    if ( serversock < 0 ) { error("Server Thread : Opening socket"); instance->server_running=0; context->keep_var_on_stack=2;  return 0; }
+    if ( serversock < 0 ) { errorID(ASV_ERROR_FAILED_TO_SOCKET); instance->server_running=0; context->keep_var_on_stack=2;  return 0; }
   instance->serversock = serversock;
 
   bzero(&client,clientlen);
@@ -140,7 +140,10 @@ void * MainThreadedHTTPServerThread (void * ptr)
   //since this allows subsequent runs of the web server
   int yes = 1;
   if ( setsockopt(serversock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) < 0  )
-      {  warning("Error setting SO_REUSEADDR socket ( does the OS not support it ? ), this might cause problems rebinding.."); }
+      {
+          //"Error setting SO_REUSEADDR socket ( does the OS not support it ? ), this might cause problems rebinding.."
+          errorID(ASV_ERROR_ERROR_SETTING_SOCKET_OPTIONS);
+      }
 
   fprintf(stderr,"Binding (%s:%u) / pid %u uid %u.. \n",bindingIP,bindingPort,getpid(),getuid());
   while (
@@ -156,8 +159,8 @@ void * MainThreadedHTTPServerThread (void * ptr)
    if (bindTries>=MAX_TRIES_TO_BIND_TO_PORT)
      {
        if ( (getuid()!=0) && (bindingPort<1000) )
-              { error("UNIX does not allow binding a port below 1000 with a non root UID.. \n We tried to do it though.. \n Run with sudo or bind to a port higher than 1000 "); } else
-              { error("Server Thread : Error binding master port!\nThe server may already be running ..\n");                          }
+              { errorID(ASV_ERROR_BINDING_ROOTUID_MASTER_PORT);                  } else
+              { errorID(ASV_ERROR_BINDING_MASTER_PORT);                          }
       instance->server_running=0;
       return 0;
     }
@@ -170,7 +173,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
   //so that they will be used later
   if ( listen(serversock,MAX_CLIENTS_LISTENING_FOR /*MAX_CLIENT_THREADS*/) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
          {
-           error("Server Thread : Failed to listen on server socket");
+           errorID(ASV_ERROR_FAILED_TO_LISTEN);
            instance->server_running=0;
            return 0;
          }
@@ -196,7 +199,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
     int clientsock=0;
     if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0)
       {
-        error("Server Thread : Failed to accept client connection");
+        errorID(ASV_ERROR_FAILED_TO_ACCEPT);
         usleep(1000);
       }
       else
@@ -209,7 +212,8 @@ void * MainThreadedHTTPServerThread (void * ptr)
               // if we failed then nothing can be done for this client
             } else
             {
-                error("Server Thread : Couldn't serve client ( we are on single thread mode ) \n");
+                errorID(ASV_ERROR_OUT_OF_RESOURCES_TO_ACCOMODATE_CLIENT);
+                fprintf(stderr,"Server Thread : Couldn't serve client ( we are on single thread mode ) \n");
                 close(clientsock);
                 usleep(100);
             }
@@ -228,7 +232,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
               // if we failed then nothing can be done for this client
             } else
             {
-                error("Server Thread : We dont have enough resources to serve client\n");
+                errorID(ASV_ERROR_OUT_OF_RESOURCES_TO_ACCOMODATE_CLIENT);
                 close(clientsock);
                 usleep(10000);
             }
@@ -240,7 +244,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
   instance->server_running=0;
   instance->stop_server=2;
 
-  warning("Main AmmarServer Thread Stopped..");
+  warningID(ASV_WARNING_SERVER_STOPPED);
   //It should already be closed so skipping this : close(serversock);
   //pthread_exit(0);
 
@@ -298,7 +302,6 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
    pthread_attr_init(&instance->attr);
    size_t stacksize;
    pthread_attr_getstacksize(&instance->attr, &stacksize);
-   error("Setting Stack Size");
    fprintf(stderr,"pthread_attr_getstacksize(%u , %u MB )\n",stacksize, (stacksize/(1024*1024)) );
 
    stacksize = 16  * 1024 * 1024 ;

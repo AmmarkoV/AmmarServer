@@ -46,7 +46,7 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
      }
 
 
-    warning("Could not find a proper thread id..\n");
+    errorID(ASV_ERROR_COULD_NOT_FIND_A_THREADID);
     return starting_from;
 }
 
@@ -68,7 +68,7 @@ int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int client
 
 int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
 {
-  if (instance==0) { error("Cannot SpawnThreadToServeNewClient without a valid instance value"); return 0; }
+  if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); return 0; }
   //This Segfaults -> (inet_ntoa) fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
 
   fprintf(stderr,"SpawnThreadToServeNewClient instance pointing @ %p \n",instance);
@@ -88,7 +88,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
 
   if (!foundAvailiableThreadID)
   {
-      warning("Could not find a thread ID for spawning a new thread\n");
+      errorID(ASV_ERROR_COULD_NOT_FIND_A_THREADID);
       return 0;
   }
 
@@ -134,11 +134,11 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
         if (waitCounter>=maxWaitCounter)
         {
           retres=1; //Mark this thread creation as failed
-          error("Timed out while waiting for a new thread to get created and consume its message\n");
-          #warning "The pthread_cancel code is not tested "
+          errorID(ASV_ERROR_TIMED_OUT_WHILE_WAITING_FOR_THREAD_TO_BE_CREATED);
+
           if ( pthread_cancel(instance->threads_pool[threadID]) !=0 )
           { // http://man7.org/linux/man-pages/man3/pthread_cancel.3.html
-            error("Failed to cancel new thread creation\n");
+            errorID(ASV_ERROR_FAILED_TO_CANCEL_THREAD);
           }
         }
     #else
@@ -146,7 +146,9 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
     #endif
    }
  else //Either code failed
-     { warning("Could not create a new thread..\n ");
+     {
+       errorID(ASV_ERROR_FAILED_TO_CREATE_THREAD);
+
        switch (retres)
        {
          case EAGAIN : warning("Insufficient resources to create another thread, or a system-imposed limit on the number of threads was encountered."); break;

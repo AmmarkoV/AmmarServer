@@ -66,7 +66,7 @@ unsigned int ServerThreads_DropRootUID()
       {
         if (getuid()<1000)
              {
-              error("This version of AmmarServer is running with superuser privileges and is compiled not to drop them , this is a serious security liability");
+              errorID(ASV_ERROR_RUNNING_AS_ROOT);
              }
         return 0;
       }
@@ -93,7 +93,7 @@ unsigned int ServerThreads_DropRootUID()
         fprintf(stderr,"The user set in USERNAME_UID_FOR_DAEMON=\"%s\" is also root (his uid is %d)\n",USERNAME_UID_FOR_DAEMON,non_root_uid);
         if (CHANGE_TO_UID<1000)
             {
-              error("This should never happen , Our CHANGE_TO_UID non-root value is also a super user UID , we are forced to set a bogus non-root value..\n");
+              errorID(ASV_ERROR_FAILED_TO_DROP_ROOT_UID);
               non_root_uid=NON_ROOT_UID_IF_USER_FAILS;
             } else
             {
@@ -143,7 +143,7 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
   //fprintf(stderr,"Resolving Extension %s , length %u \n",theextension,theextensionLength );
   if (contentTypeLength<29)
   {
-    error("GetContentTypeForExtension called with a very small buffer , we will return");
+    errorID(ASV_ERROR_CALL_WITHOUT_ENOUGH_INPUT);
     fprintf(stderr,"GetContentTypeForExtension called with a very small buffer ( %u bytes )  \n",contentTypeLength );
     return 0;
   }
@@ -795,7 +795,7 @@ int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,char * where2
   if (where2copy==0) { return 0; }
   if (what2copySize+1>maxSizeWhere2Copy)
      {
-       error("Not enough space to perform copy..");
+       errorID(ASV_ERROR_NOT_ENOUGH_MEMORY_ALLOCATED);
        return 0;
      }
 
@@ -952,10 +952,10 @@ char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,u
   struct sockaddr_in their_addr;
 
   if ((he=gethostbyname(hostname)) == 0) { fprintf(stderr,"Error getting host (%s) by name \n",hostname); return 0; } else
-                                        { printf("Client-The remote host is: %s\n",hostname); }
+                                         { printf("Client-The remote host is: %s\n",hostname); }
 
-  if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) { error("Could not create the socket for the connection\n"); return 0; } else
-                                                        { printf("Client socket ok\n"); }
+  if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) { errorID(ASV_ERROR_FAILED_TO_SOCKET); return 0; } else
+                                                        { printf("Client socket ok\n");                   }
 
     // host byte order
     their_addr.sin_family = AF_INET;
@@ -966,8 +966,8 @@ char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,u
     // zero the rest of the struct
     memset(&(their_addr.sin_zero), 0 , 8); // '\0'
 
-   if(connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1) { error("Could not connect the created socket \n");  return 0; } else
-                                                                                         { printf("Starting Request for filename %s \n",filename); }
+   if(connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1) { errorID(ASV_ERROR_FAILED_TO_CONNECT);  return 0; } else
+                                                                                      { printf("Starting Request for filename %s \n",filename); }
 
 #if USE_TIMEOUTS
     struct timeval timeout;
@@ -1026,10 +1026,12 @@ int setSocketTimeouts(int clientSock)
 #if USE_TIMEOUTS
  struct timeval timeout; //We dont need to initialize here , since we initialize on the next step
  timeout.tv_sec = (unsigned int) varSocketTimeoutREAD_seconds; timeout.tv_usec = 0;
- if (setsockopt (clientSock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Receive timeout \n"); errorSettingTimeouts=0; }
+ if (setsockopt (clientSock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
+    { errorID(ASV_ERROR_COULD_NOT_SET_SOCKET_TIMEOUT); errorSettingTimeouts=0; }
 
  timeout.tv_sec = (unsigned int) varSocketTimeoutWRITE_seconds; timeout.tv_usec = 0;
- if (setsockopt (clientSock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0) { warning("Could not set socket Send timeout \n"); errorSettingTimeouts=0; }
+ if (setsockopt (clientSock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
+    { errorID(ASV_ERROR_COULD_NOT_SET_SOCKET_TIMEOUT); errorSettingTimeouts=0; }
 #else
     #error "It is a terrible idea not to use socket timeouts , this will make the webserver susceptible to DoS attacks..!"
 #endif // USE_TIMEOUTS
@@ -1066,7 +1068,7 @@ int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , c
 
   if (resolveResult == 0)
   {
-   warning("inet_ntop failed..!"); //This could be a reason to drop this connection!
+   errorID(ASV_ERROR_INNETOP_FAILED); //This could be a reason to drop this connection!
     switch ( errno )
     {
      case EAFNOSUPPORT :   warning("The af argument is invalid.\n");                              break;

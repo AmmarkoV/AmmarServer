@@ -52,7 +52,7 @@ unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HT
      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
      if (opres<=0)
         {
-          warning("could not send error code date\n");
+          warningID(ASV_WARNING_COULD_NOT_TRANSMIT_ERROR_TO_CLIENT);
           if (verified_filename!=0) { fprintf(stderr,"file we wanted to send was %s ",verified_filename); }
 
           return 0;

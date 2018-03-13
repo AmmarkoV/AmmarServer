@@ -147,7 +147,7 @@ int AnalyzePOSTLineRequest(
 {
          if (instance==0)
             {
-             warning("Cannot AnalyzePOSTLineRequest for a null instance\n");
+             errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED);
              fprintf(stderr,"AnalyzePOSTLineRequest lines_gathered = %u \n",lines_gathered);
              return 0;
             }

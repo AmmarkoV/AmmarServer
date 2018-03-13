@@ -41,7 +41,7 @@ fprintf(stderr,GREEN "Generating directory list page for directory %s \n" NORMAL
 *memoryUsed=INITIAL_DIRECTORY_LIST_RESPONSE_BODY+1;
 unsigned long memoryAllocationSize = sizeof(char) * ( *memoryUsed );
 char * memory=(char*) malloc( memoryAllocationSize+1 );
-if (memory==0) { error("Could not allocate a memory chunk to serve directory page"); }
+if (memory==0) { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); }
 
 unsigned int mem_remaining=*memoryUsed;
 
@@ -110,7 +110,6 @@ while ((dp=readdir(dir)) != 0)
      // If we haven't reached the limit just check if we have enough memory for line , if we don't , reallocate a bigger chunk
      if (mem_remaining < GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY)
      {
-        warning("Growing directory list memory");
         char * moreMemory= (char*) realloc (memory, sizeof(char) * ( *memoryUsed + GROWSTEP_DIRECTORY_LIST_RESPONSE_BODY ) );
         if (moreMemory==0)
              {

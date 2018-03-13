@@ -46,8 +46,7 @@ void printRecvError()
 switch (errno)
       {
         //case EAGAIN :
-        case EWOULDBLOCK :
-         warning("The socket is marked nonblocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received. POSIX.1-2001 allows either error to be returned for this case, and does not require these constants to have the same value, so a portable application should check for both possibilities.");
+        case EWOULDBLOCK : warning("The socket is marked nonblocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received. POSIX.1-2001 allows either error to be returned for this case, and does not require these constants to have the same value, so a portable application should check for both possibilities.");
         break;
         case EBADF : warning("The argument sockfd is an invalid descriptor."); break;
         case ECONNREFUSED : warning("A remote host refused to allow the network connection (typically because it is not running the requested service)."); break;
@@ -209,7 +208,7 @@ inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsign
    --i;
  }
 
- if ( (startOfStart==0) && (startOfEnd==0) ) { error("Could not find range in range request , will respond with an incorrect range (?) ..! "); return 0; }
+ if ( (startOfStart==0) && (startOfEnd==0) ) { errorID(ASV_ERROR_WRONG_RANGE_REQUEST); return 0; }
 
  int requestLengthMinus1 = requestLength-1;
  if (startOfEnd >= requestLengthMinus1 ) { /*This means we have a range like `Range: bytes=144687104-` i.e. Unknown ending*/ } else

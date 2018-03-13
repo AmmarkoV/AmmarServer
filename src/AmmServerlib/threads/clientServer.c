@@ -196,7 +196,8 @@ inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * in
      //int opres=send(transaction->clientSock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
      int opres=ASRV_Send(instance,transaction, reply_header, strlen(reply_header), MSG_WAITALL|MSG_NOSIGNAL );
      if (opres<=0) { fprintf(stderr,"Error sending authorization needed message\n"); }
-     warning("Client Denied access to resource due to being anauthorized!");
+
+     warningID(ASV_WARNING_CLIENT_DENIED_ACCESS);
 
      logError(instance,transaction,200,"authorization_required");
 
@@ -279,11 +280,11 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
    {
      if (transaction->clientDisconnected)
      {
-      warning("Client connection closed while waiting for keepalive..");
+      warningID(ASV_WARNING_CONNECTION_CLOSED_WHILE_KEEPALIVE);
      } else
      {
       /*We got a bad http request so we will rig it to make server emmit the 400 message*/
-      error("Failed to receive HTTP header without problems!");
+      errorID(ASV_ERROR_FAILED_TO_RECEIVE_HEADER);
       SendErrorFile(instance,transaction,400);
       logError(instance,transaction,400,"400.html");
      }
@@ -294,13 +295,15 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
-     warning("Client Denied access to resource!"); SendErrorCodeHeader(instance,transaction,403 ,"403.html",instance->templates_root);
+     warningID(ASV_WARNING_CLIENT_DENIED_ACCESS);
+     SendErrorCodeHeader(instance,transaction,403 ,"403.html",instance->templates_root);
      logError(instance,transaction,403,"403.html");
      return 0;
    } else
    if ((instance->settings.PASSWORD_PROTECTION)&&(!transaction->incomingHeader.authorized))
    {
-     error("Unauthorized Request!");  respondToClientRequestingAuthorization(instance,transaction);
+     errorID(ASV_ERROR_UNAUTHORIZED_REQUEST);
+     respondToClientRequestingAuthorization(instance,transaction);
      return 0;
    }
      else
@@ -314,8 +317,7 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
          //TODO TODO TODO
 
          fprintf(stderr,"Found a POST query %lu bytes long , %s \n",transaction->incomingHeader.POSTrequestSize, transaction->incomingHeader.POSTrequest);
-         warning("Will now pretend that we are a GET request for the rest of the page to be served nicely until I fix it :P\n");
-
+         warningID(ASV_WARNING_PRETENDING_IT_IS_A_GET_REQUEST);
          //Will now pretend that we are a GET request for the rest of the page to be served nicely
          transaction->incomingHeader.requestType=GET;
        }
@@ -374,7 +376,7 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
                  else
                 {
                  //We where unable to serve request , closing connections..\n
-                 error("We where unable to serve template request , closing connections..\n");
+                 errorID(ASV_ERROR_UNABLE_TO_SERVE_TEMPLATE);
                  return 0;
                 }
              // ------------------------------------------------------
@@ -410,7 +412,7 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
                  else
                 {
                  //We where unable to serve request , closing connections..\n
-                 error("We where unable to serve request , closing connections..\n");
+                 errorID(ASV_ERROR_UNABLE_TO_SERVE_REQUEST);
                  return 0;
                 }
              // ------------------------------------------------------
@@ -427,7 +429,7 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
    } else
      if (transaction->incomingHeader.requestType==BAD)
            { //In case some of the security features of the server sensed a BAD! request we should log it..
-            fprintf(stderr,"BAD predatory Request sensed by header analysis!");
+            warningID(ASV_WARNING_PREDATORY_REQUST);
             //TODO : call -> int ErrorLogAppend(char * IP,char * DateStr,char * Request,unsigned int ResponseCode,unsigned long ResponseLength,char * Location,char * Useragent)
             SendErrorFile(instance,transaction,400);
             logError(instance,transaction,400,"400.html");
@@ -435,13 +437,13 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
            } else
           if (transaction->incomingHeader.requestType==NONE)
            { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
-            fprintf(stderr,"Weird unrecognized Request!");
+            warningID(ASV_WARNING_UNRECOGNIZED_REQUST);
             SendErrorFile(instance,transaction,400);
             logError(instance,transaction,400,"400.html");
             return 0;
            } else
            { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
-            warning("Not Implemented Request!\n");
+            warningID(ASV_WARNING_NOTIMPLEMENTED_REQUST);
             SendErrorFile(instance,transaction,501);
             logError(instance,transaction,501,"501.html");
             return 0;
@@ -467,12 +469,13 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
 int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransaction * transaction)
 {
 
-  if (instance==0) { error("Serve Client called without a valid instance , stopping \n"); return 0; } else
+  if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); return 0; } else
                    { fprintf(stderr,"ServeClient instance pointing @ %p \n",instance); }
 
   if (!setSocketTimeouts(transaction->clientSock))
    {
-    warning("Could not set timeouts , this means something weird is going on , skipping everything");
+    errorID(ASV_ERROR_COULD_NOT_SET_SOCKET_TIMEOUT);
+    fprintf(stderr,"This means something weird is going on , skipping everything");
     return 0;
    }
 
@@ -494,7 +497,7 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
       clientIsBanned = clientList_isClientBanned(instance->clientList,transaction->clientListID);
       if (clientIsBanned)
       {
-       warning("Client became banned during keep-alive\n");
+       warningID(ASV_WARNING_CLIENT_DENIED_ACCESS);
        SendErrorCodeHeader(instance,transaction,403 /*Forbidden*/,"403.html",instance->templates_root);
        break;
       }
@@ -543,7 +546,7 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
   if (context->keep_var_on_stack!=1)
    {
-     error("KeepVarOnStack is not properly set , this is a bug .. \n Will not serve request");
+     errorID(ASV_ERROR_FAILED_TO_PASS_THREAD_CONTEXT);
      fprintf(stderr,"Bad new thread context is pointing to %p\n",context);
      return 0;
    }

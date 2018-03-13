@@ -82,7 +82,7 @@ static void signalChildFinishedWithParentMessage(volatile int * childSwitch)
     #endif // WORKAROUND_REALLOCATION_R_X86_64_PC32_GCC_ERROR
 
     *childSwitch=2;
-    if (*childSwitch!=2) { error("WTF , i just changed the child switch"); return; }
+    if (*childSwitch!=2) { errorID(ASV_ERROR_REALLOCATION_R_X86_64_PC32_GCC_ERROR); return; }
     return;
 }
 

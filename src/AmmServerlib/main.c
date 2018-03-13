@@ -111,7 +111,7 @@ void AmmServer_Stub( const char *format , ... )     { va_list arglist; va_start(
 
 int AmmServer_Stop(struct AmmServer_Instance * instance)
 {
-  warning("AmmServer_Stop started ..\n");
+  warningID(ASV_WARNING_STOP_INITIATED);
   if (!instance) { return 0; }
 
   if ( instance->webserverMonitorEnabled )
@@ -126,7 +126,7 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
   if (instance!=0)                  { free(instance); }
 
-  warning("AmmServer_Stop completed ..\n");
+  warningID(ASV_WARNING_STOP_COMPLETED);
   return 1;
 }
 
@@ -401,7 +401,7 @@ int AmmServer_AddEditorResourceHandler(
 
 int AmmServer_EnableMonitor( struct AmmServer_Instance * instance)
 {
-  warning("Enabling Monitor..");
+  warningID(ASV_WARNING_ENABLING_MONITOR);
   instance->webserverMonitorEnabled=1;
   return AmmServer_AddResourceHandler
      ( instance,

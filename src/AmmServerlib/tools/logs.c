@@ -1,4 +1,4 @@
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <time.h>
 // --------------------------------------------
@@ -7,6 +7,69 @@
 #include "../server_configuration.h"
 
 
+
+char *errorIDs[] =
+ {
+     "Instance not allocated",
+     "Request not allocated",
+     "Error binding master port, Server is already running?",
+     "UNIX does not allow binding a port below 1000 with a non root UID.. \n We tried to do it though.. \n Run with sudo or bind to a port higher than 1000",
+     "Our CHANGE_TO_UID non-root value is also a super user UID , we are forced to set a bogus non-root value..\n"
+     "Failed to create thread",
+     "Failed to create socket",
+     "Failed to bind socket",
+     "Failed to listen on socket",
+     "Failed to accept socket connection",
+     "Failed to connect to socket",
+     "Out of resource to accomodate client",
+     "Unable to serve request , closing connections..",
+     "Unable to serve template, closing connections..\n",
+     "Failed to receive HTTP header",
+     "Unauthorized Request",
+     "No Callback registered , cannot serve content",
+     "Dynamic request does pointer is corrupted",
+     "Could not set socket timeout",
+     "Could not set socket options",
+     "Server is running as a root user, this is a security liability",
+     "Call made without enough input"
+     "Could not allocate memory",
+     "Not enough memory allocated",
+     "ASV_ERROR_REALLOCATION_R_X86_64_PC32_GCC_ERROR",
+     "Shared content has an invalid RH_Scenario flag , this version of AmmarServer does not know what it means\nMaybe this has to do with a newer version , and stuff that haven't been invented yet in this build..",
+     "Bug(?) detected , no cache payload\n",
+     "Cache not allocated, so cannot be used",
+     "Could not create resource in cache",
+     "Missing or Wrong range request detected",
+     "Could not find a threadID",
+     "Could not find filesize",
+     "Timed out while waiting for a new thread to get created and consume its message",
+     "Failed to cancel new thread creation" ,
+     "Failed to pass thread context, this is probably an internal bug due to race conditions",
+     "ASV_ERROR_INNETOP_FAILED"
+  };
+
+char *warningIDs[] =
+ {
+     "Tried to perform dynamicRequest_serveContent, but got back null , if there is no regular fallback file request will probably 404\n"
+     "Client connection closed while waiting for keepalive..",
+     "Connection closed , while transmitting the file",
+     "Reached max transmission stall, stopping file transmission",
+     "Could not transmit error to client",
+     "Client Denied access to resource",
+     "Pretending that this is a GET request hack that needs fixing",
+     "Main AmmarServer Thread Stopped..",
+     "Client BUG : Size of request appears to be zero.. \n ",
+     "PreSpawning Threads is disabled , call executable with -prefork X ( with X more than 0 ) to enable them if you target heavy loads..",
+     "Not going to call callback function with an empty buffer..!",
+     "Randomizer was not random..",
+     "Creating a new cache definition, just to store a rule there",
+     "AmmServer_Stop started",
+     "AmmServer_Stop completed",
+     "Enabling monitor",
+     "Unrecognized request detected",
+     "We received a request which is not currently implemented",
+     "Predatory request received"
+  };
 
 unsigned int logAccessPolls=0;
 unsigned int logErrorPolls=0;
@@ -39,6 +102,16 @@ int FileAppend(const char * filename,const char * msg)
   fprintf(pFile,"%s\n",msg);
   fclose(pFile);
   return 1;
+}
+
+void errorID(int id)
+{
+ fprintf(stderr,RED " ERROR MESSAGE : %s\n" NORMAL,errorIDs[id]);
+}
+
+void warningID(int id)
+{
+ fprintf(stderr,YELLOW " WARNING MESSAGE : %s\n" NORMAL,errorIDs[id]);
 }
 
 

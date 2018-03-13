@@ -109,7 +109,7 @@ int cache_RandomizeETAG(struct AmmServer_Instance * instance)
 
   if (oldRandomValue == instance->cacheVersionETag)
      {
-        warning("Randomizer was crap .. \n");
+        warningID(ASV_WARNING_RANDOMIZER_IS_NOT_RANDOM);
         instance->cacheVersionETag = ( instance->cacheVersionETag +1 )% 10000;
      }
   return 1;
@@ -186,7 +186,7 @@ int cache_Destroy(struct AmmServer_Instance * instance)
 unsigned int cache_FindResource(struct AmmServer_Instance * instance,const char * resource,unsigned int * index)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
-  if (cache==0) { warning("Cache hasn't been allocated yet\n"); return 0; }
+  if (cache==0) { errorID(ASV_ERROR_CACHE_NOT_ALLOCATED); return 0; }
 
   unsigned long i=*index;
 
@@ -207,7 +207,7 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,const char 
 int cache_CreateResource(struct AmmServer_Instance * instance,const char * resource,unsigned int * index)
 {
   struct cache_item * cache = (struct cache_item *) instance->cache;
-  if (cache==0) { error("Cache hasn't been allocated yet\n"); return 0; }
+  if (cache==0) { errorID(ASV_ERROR_CACHE_NOT_ALLOCATED); return 0; }
 
   if ((unsigned int) MAX_CACHE_SIZE_IN_MB<=instance->loaded_cache_items+1) { fprintf(stderr,"Cache is full , Could not Create_CacheItem(%s)",resource); return 0; }
   *index=instance->loaded_cache_items++;
@@ -366,7 +366,7 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
   ReducePathSlashes_Inplace(full_filename);
 
   unsigned int index=0;
-  if (! cache_CreateResource(instance,full_filename,&index) ) { error("Could not create a resource for cache\n"); return 0; }
+  if (! cache_CreateResource(instance,full_filename,&index) ) { errorID(ASV_ERROR_CACHE_COULD_NOT_CREATE_RESOURCE); return 0; }
 
   cache[index].content = context->requestContext.content;
   cache[index].contentSize = &context->requestContext.contentSize;
@@ -390,7 +390,7 @@ int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,cons
      }
     else
      { //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
-       warning("Creating a new cache definition , just to activate doNOTCacheRule ");
+       warningID(ASV_WARNING_CREATING_WORKAROUND_CACHE_ITEM);
        fprintf(stderr,"Resource name is %s \n",filename);
        if (cache_CreateResource(instance,filename,&index) )
        {
@@ -454,7 +454,6 @@ int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct A
        unsigned int index=0;
        if (!cache_FindResource(instance,context->resource_name,&index) )
           {
-            warning("Could not remove direct resource ( it does not exist ) ..\n");
             return 0;
           }
        return cache_RemoveResource(instance,index);
@@ -517,11 +516,11 @@ char * cache_GetResource(
  *freeContentAfterUsingIt=0; //By default we dont want to free the memory allocation after use..
  *serveAsRegularFile=0;      //By default we dont want to end up serving this as a regular file..!
 
- if (instance==0) { error("Instance is not allocated..\n"); return 0;  }
- if (request==0)  { error("Request is not allocated..\n"); return 0;  }
+ if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); return 0;  }
+ if (request==0)  { errorID(ASV_ERROR_REQUEST_NOT_ALLOCATED);  return 0;  }
 
  struct cache_item * cache = (struct cache_item *) instance->cache;
- if (cache==0) { error("Cache is not allocated..\n"); return 0;  }
+ if (cache==0)    { errorID(ASV_ERROR_CACHE_NOT_ALLOCATED); return 0;  }
 
  if (!CACHING_ENABLED)
  {
@@ -591,12 +590,12 @@ if (cache_FindResource(instance,verified_filename,index))
 
              if (mem==0)
              {
-               warning("Tried to perform dynamicRequest_serveContent , but got back null , if there is no regular fallback file we will probably 404 now\n");
+               warningID(ASV_WARNING_DYNAMIC_REQUEST_RETURNED_NOTHING);
                return 0;
              } else
              if (memSize==0)
              {
-               warning("Tried to perform dynamicRequest_serveContent , but got back an empty buffer , we will serve an empty page\n");
+               warningID(ASV_WARNING_DYNAMIC_REQUEST_RETURNED_NOTHING);
                return 0;
              }
 

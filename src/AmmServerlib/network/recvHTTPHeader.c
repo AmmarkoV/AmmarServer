@@ -38,7 +38,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  transaction->incomingHeader.headerRAWSize = 0 ;
  transaction->incomingHeader.MAXheaderRAWSize = MAX_HTTP_REQUEST_HEADER+5 ;
  char  * incomingRequest = (char*)  malloc(sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
- if (incomingRequest==0) { error("Could not allocate enough memory for Header "); return 0; }
+ if (incomingRequest==0) { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); return 0; }
  memset(incomingRequest,0,sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
 
  transaction->incomingHeader.headerRAW = incomingRequest ;

@@ -115,7 +115,7 @@ int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
 
   if (instance->settings.BINDING_PORT<=1000 )
    {
-     warning("Please note that for binding ports below 1000 you need root privileges \nPlease also note that running this non hardened version as root is not recommended..\n");
+     fprintf(stderr,"Please note that for binding ports below 1000 you need root privileges \nPlease also note that running this non hardened version as root is not recommended..\n");
    }
 
 

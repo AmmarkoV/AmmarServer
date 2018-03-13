@@ -100,7 +100,10 @@ int SendPart(
     char * buffer = (char*) malloc ( sizeof(char) * (malloc_size));
     char * rollingBuffer = buffer;
     if (buffer == 0)
-        { error(" Could not allocate enough memory to serve file %s\n"); return 0; }
+        {
+          errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY);
+          return 0;
+        }
 
 
       #if CALCULATE_TIME_FOR_UPLOADS
@@ -136,7 +139,7 @@ int SendPart(
         {
            opres=ASRV_Send(instance,transaction,rollingBuffer,chunkToSend,MSG_WAITALL|MSG_NOSIGNAL);  //Send file parts as soon as we've got them
            if (opres < 0) {
-                            warning("Connection closed , while sending the whole file..!\n");
+                            warningID(ASV_WARNING_CONNECTION_CLOSED_WHILE_TRANSMITTING_FILE);
                             stopFileTransmission=1;
                           } else
            if (opres == 0)
@@ -145,7 +148,7 @@ int SendPart(
                             ++currentStalling;
                             if (currentStalling>=MAX_TRANSMISSION_STALL)
                                 {
-                                  warning("Reached max transmission stall , stopping file transmission\n");
+                                  warningID(ASV_WARNING_CONNECTION_MAX_TRANSMISSION_STALL);
                                   stopFileTransmission=1;
                                 }
                             fprintf(stderr,".");
@@ -246,7 +249,7 @@ int TransmitFileToSocket(
      //Try to obtain file size if not fail to transmit the fail
      if ( fseek (pFile , 0 , SEEK_END)!=0 )
       {
-        warning("Could not find file size..!\nUnable to serve client\n");
+        errorID(ASV_ERROR_COULD_NOT_FIND_FILESIZE);
         fclose(pFile);
         if (instance->statistics.filesCurrentlyOpen>0) { --instance->statistics.filesCurrentlyOpen; }  //Count the closed file
         return 0;
@@ -441,8 +444,8 @@ unsigned long SendFile
       //if we are serving it with an offset , we must emmit a 206 OK header!
       if ( (start_at_byte!=0) || (end_at_byte!=0) )
        {
-         error("No checking on Range Provided is done , the underlying mechanisms are safe , but the header could potentially display wrong things ..");
-         error("We dont know the filesize yet so can't fix it here..");
+         #warning "No checking on Range Provided is done , the underlying mechanisms are safe , but the header could potentially display wrong things "
+         //We dont know the filesize yet so can't fix it here..
 
          //Range Accepted 206 OK header
          if (! SendSuccessCodeHeader(instance,transaction,206,verified_filename)) { fprintf(stderr,"Failed sending Range Acknowledged success code \n"); return 0; }
@@ -524,10 +527,10 @@ unsigned long SendFile
               WeWantA200OK=0;
               request->requestType=HEAD;
            }
-             else
+            /* else
           {
-            warning("eTag Mismatch\n"); // <- for now mismatches are probably bugs
-          }
+            warning("eTag Mismatch\n"); // <- mismatches may be bugs?
+          }*/
         }
      }
    }
@@ -602,7 +605,7 @@ if (request->requestType!=HEAD)
 
      }
 
-     if (cached_lSize==0) { warning("Bug(?) detected , zero cache payload\n"); }
+     if (cached_lSize==0) { errorID(ASV_ERROR_CACHE_HAS_NO_PAYLOAD); }
 
 
      if ( cached_buffer_is_compressed )
