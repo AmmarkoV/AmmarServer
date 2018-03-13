@@ -507,6 +507,8 @@ int _POSTcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char
 {
   unsigned int valueLength=0;
   const char * value = _POST(rqst,name,&valueLength);
+  if ( (value==0) || (valueLength==0) ) { return -1; }
+  if (what2CompareTo==0)                { return 1; }
   return strcmp(value,what2CompareTo);
 }
 
@@ -548,6 +550,8 @@ int _GETcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char 
 {
   unsigned int valueLength=0;
   const char * value = _GET(rqst,name,&valueLength);
+  if ( (value==0) || (valueLength==0) ) { return -1; }
+  if (what2CompareTo==0)                { return 1; }
   return strcmp(value,what2CompareTo);
 }
 
