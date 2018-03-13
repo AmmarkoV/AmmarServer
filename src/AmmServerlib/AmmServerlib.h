@@ -872,8 +872,13 @@ int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * name,char * de
 /**
 * @brief Shorthand/Shortcut for AmmServer_CookieArg()
 * @ingroup shortcut */
-int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize);
+const char * _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength);
 ///-------------------------------------------------------------------------------
+/**
+* @brief Shorthand/Shortcut for AmmServer_FILES()
+* @ingroup shortcut */
+const char * _SESSION(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength);
+
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()
 * @ingroup shortcut */

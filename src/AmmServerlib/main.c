@@ -586,13 +586,23 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
 /// -----------------------------------------------------------------------------------------------------------------------
 
 /// --------------------------------------------------------- COOKIE ---------------------------------------------------------
-
-int _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
+const char * _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength)
 {
     AmmServer_Stub("Cookie access not coded in yet..!");
     return 0;
 }
 /// -----------------------------------------------------------------------------------------------------------------------
+
+
+/// --------------------------------------------------------- SESSION ---------------------------------------------------------
+const char * _SESSION(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength)
+{
+    AmmServer_Stub("Session access not coded in yet..!");
+    return 0;
+}
+/// -----------------------------------------------------------------------------------------------------------------------
+
+
 /**
     -----------------------------------------------------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------------------------------------------------
