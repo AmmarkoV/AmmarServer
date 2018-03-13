@@ -49,11 +49,11 @@
 		<Compiler>
 			<Add option="-fexpensive-optimizations" />
 			<Add option="-O3" />
-			<Add option="-pedantic-errors" />
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>
+			<Add option="-s" />
 			<Add option="-rdynamic" />
 			<Add option="-lrt" />
 			<Add option="-pthreads" />
