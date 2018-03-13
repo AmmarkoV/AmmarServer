@@ -82,6 +82,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="cache/file_compression.h" />
+		<Unit filename="cache/session_list.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="cache/session_list.h" />
 		<Unit filename="header_analysis/generic_header_tools.c">
 			<Option compilerVar="CC" />
 		</Unit>
