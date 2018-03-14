@@ -123,6 +123,15 @@ char FileExistsAmmServ(const char * filename)
  return 0;
 }
 
+
+int EraseFileAmmServ(const char * filename)
+{
+ FILE *fp = fopen(filename,"w");
+ if( fp ) { /* exists */ fclose(fp); return 1; }
+ return 0;
+}
+
+
 char DirectoryExistsAmmServ(const char* dirpath )
 {
   if ( dirpath == 0) return 0;

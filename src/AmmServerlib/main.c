@@ -882,16 +882,9 @@ int AmmServer_ConvertBufferToMemoryHandler(struct AmmServer_MemoryHandler * mh, 
   return 1;
 }
 
-const char * AmmServer_GetDirectoryFromPath(char * path)
-{
- return dirname(path);
-}
 
-const char * AmmServer_GetBasenameFromPath(char * path)
-{
- return basename(path);
-}
-
+const char * AmmServer_GetDirectoryFromPath(char * path) { return dirname(path); }
+const char * AmmServer_GetBasenameFromPath(char * path)  { return basename(path); }
 const char * AmmServer_GetExtensionFromPath(char * path)
 {
  char * bname = basename(path);
@@ -900,6 +893,7 @@ const char * AmmServer_GetExtensionFromPath(char * path)
  return dot + 1;
 }
 
+int AmmServer_EraseFile(const char * filename)       { return EraseFileAmmServ(filename); }
 int AmmServer_DirectoryExists(const char * filename) { return DirectoryExistsAmmServ(filename); }
 int AmmServer_FileExists(const char * filename)      { return FileExistsAmmServ(filename);      }
 int AmmServer_FileIsText(const char * filename)      { return CheckIfFileIsText(filename);      }
@@ -908,12 +902,6 @@ int AmmServer_FileIsImage(const char * filename)     { return CheckIfFileIsImage
 int AmmServer_FileIsVideo(const char * filename)     { return CheckIfFileIsVideo(filename);     }
 int AmmServer_FileIsFlash(const char * filename)     { return CheckIfFileIsFlash(filename);     }
 
-int AmmServer_EraseFile(const char * filename)
-{
- FILE *fp = fopen(filename,"w");
- if( fp ) { /* exists */ fclose(fp); return 1; }
- return 0;
-}
 
 unsigned int AmmServer_StringIsHTMLSafe( const char * str)
 {

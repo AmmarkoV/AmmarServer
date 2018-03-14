@@ -28,6 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../stringscanners/httpHeader.h"
 #include "../stringscanners/firstLines.h"
 
+#include "cookie_data.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -272,6 +273,7 @@ int AnalyzeHTTPLineRequest(
          //output->cookieIndex=payload_start;
          output->cookie=request+payload_start;
          output->cookieLength = request_length-payload_start;
+         finalizeCOOKIEData(output,output->cookie,output->cookieLength);
          return 1;
         break;
         //--------------------------------------------------------------

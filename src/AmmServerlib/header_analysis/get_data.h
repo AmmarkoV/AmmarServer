@@ -14,6 +14,15 @@ int wipeGETData(struct HTTPHeader * output);
 
 int createGETData(struct HTTPHeader * output);
 
+
+int finalizeGenericGETField(
+                             struct HTTPHeader * output,
+                             struct GETRequestContent * target ,
+                             unsigned int * targetNumber ,
+                             char * value,
+                             unsigned int valueLength
+                           );
+
 int finalizeGETData(struct HTTPHeader * output);
 
 

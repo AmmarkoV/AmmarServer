@@ -43,6 +43,8 @@ set(AMMARSERVER_INGREDIENTS
                 header_analysis/post_data.h
                 header_analysis/get_data.c
                 header_analysis/get_data.h
+                header_analysis/cookie_data.c
+                header_analysis/cookie_data.h
                 #Network I/O
                 network/networkAbstraction.c
                 network/networkAbstraction.h

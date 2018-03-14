@@ -50,6 +50,13 @@ long long FileSizeAmmServ(const char * filename);
 char FileExistsAmmServ(const char * filename);
 
 /**
+* @brief Erase a content file
+* @ingroup tools
+* @param Path to file
+* @retval 1=Exists,0=Does not Exist*/
+int EraseFileAmmServ(const char * filename);
+
+/**
 * @brief Check if directory Exists
 * @ingroup tools
 * @param Path to directory

@@ -21,19 +21,23 @@ int createGETData(struct HTTPHeader * output)
 }
 
 
-int finalizeGETData(struct HTTPHeader * output)
+int finalizeGenericGETField(
+                             struct HTTPHeader * output,
+                             struct GETRequestContent * target ,
+                             unsigned int * targetNumber ,
+                             char * value,
+                             unsigned int valueLength
+                           )
 {
-  createGETData(output);
-
-  output->GETItemNumber=0;
-  char * GETPtr = output->GETRequest;
+  *targetNumber=0;
+  char * GETPtr = value;
 
   if (GETPtr==0)
   {
    return 0;
   }
 
-  unsigned int GETPtrLength = strnlen(GETPtr,output->headerRAWSize);
+  unsigned int GETPtrLength = valueLength;
   char * GETPtrEnd = GETPtr + GETPtrLength;
 
   //AmmServer_Warning("GET Request %s has %u bytes of stuff..\n",GETPtr ,GETPtrLength);
@@ -58,20 +62,20 @@ int finalizeGETData(struct HTTPHeader * output)
       if (state==SEEKING_NAME)
         {
           //Last Item was a name with no value
-          output->GETItem[output->GETItemNumber].name=startOfPTR;
-          output->GETItem[output->GETItemNumber].value=0;
+          target[*targetNumber].name=startOfPTR;
+          target[*targetNumber].value=0;
           *GETPtr=0; //Null Terminate
-          ++output->GETItemNumber;
+          *targetNumber+=1;
           break;
         } else
       if (state==SEEKING_VALUE)
         {
           //We reached the end having found a name(which is already set) and a value..!
-          output->GETItem[output->GETItemNumber].value=startOfPTR;
+          target[*targetNumber].value=startOfPTR;
           *GETPtr=0; //Null Terminate
 
           //fprintf(stderr,"We finished string searching for a value so it is found value %s\n",startOfPTR);
-          ++output->GETItemNumber;
+          *targetNumber+=1;
           break;
         }
     } else
@@ -85,8 +89,8 @@ int finalizeGETData(struct HTTPHeader * output)
        //We found a value
        if (state==SEEKING_NAME)
         {
-          output->GETItem[output->GETItemNumber].name=startOfPTR;
-          output->GETItem[output->GETItemNumber].value=0;
+          target[*targetNumber].name=startOfPTR;
+          target[*targetNumber].value=0;
           *GETPtr=0;
           //fprintf(stderr,"We finished a name %s\n",startOfPTR);
 
@@ -99,17 +103,17 @@ int finalizeGETData(struct HTTPHeader * output)
        //We found a value
        if (state==SEEKING_NAME)
         {
-          output->GETItem[output->GETItemNumber].name=startOfPTR;
-          output->GETItem[output->GETItemNumber].value=0;
-          ++output->GETItemNumber;
+          target[*targetNumber].name=startOfPTR;
+          target[*targetNumber].value=0;
+          *targetNumber+=1;
 
           *GETPtr=0; //Null Terminate
           startOfPTR=GETPtr+1;
         } else
        if (state==SEEKING_VALUE)
         {
-          output->GETItem[output->GETItemNumber].value=startOfPTR;
-          ++output->GETItemNumber;
+          target[*targetNumber].value=startOfPTR;
+          *targetNumber+=1;
 
           *GETPtr=0; //Null Terminate
           state=SEEKING_NAME;
@@ -127,34 +131,34 @@ int finalizeGETData(struct HTTPHeader * output)
   if (state==SEEKING_VALUE)
         {
           //We reached the end having found a name(which is already set) and a value..!
-          output->GETItem[output->GETItemNumber].value=startOfPTR;
+          target[*targetNumber].value=startOfPTR;
           *GETPtr=0; //Null Terminate
 
           //fprintf(stderr,"We finished string searching for a value so it is found value %s\n",startOfPTR);
-          ++output->GETItemNumber;
+          *targetNumber+=1;
         }
 
   //Mark that all of the get items here point on RAW and need update on realloc
   unsigned int i=0;
-  for (i=0; i<output->GETItemNumber; i++)
+  for (i=0; i<*targetNumber; i++)
   {
-     output->GETItem[i].reallocateOnHeaderRAWResize=1;
+     target[i].reallocateOnHeaderRAWResize=1;
 
      //TODO strip HTML characters here..
      //StripHTMLCharacters_Inplace(output->GETquery,0 /* 0 = Disregard dangerous bytes , Safety OFF*/); // <- This call converts char sequences like %20 to " " and %00 to \0 disregarding any form of safety , ( since it is a raw var )
 
-     output->GETItem[i].nameSize  = strlen(output->GETItem[i].name);
-     output->GETItem[i].valueSize = strlen(output->GETItem[i].value);
+     target[i].nameSize  = strlen(target[i].name);
+     target[i].valueSize = strlen(target[i].value);
   }
 
 
 /*
-  AmmServer_Success("A total of %u GET Items \n",output->GETItemNumber);
-  for (i=0; i<output->GETItemNumber; i++)
+  AmmServer_Success("A total of %u GET Items \n",*targetNumber);
+  for (i=0; i<*targetNumber; i++)
   {
      fprintf(stderr,"GET Item %u ------------------ \n",i);
-     fprintf(stderr,"name = %s \n",output->GETItem[i].name);
-     fprintf(stderr,"value = %s \n",output->GETItem[i].value);
+     fprintf(stderr,"name = %s \n",target[i].name);
+     fprintf(stderr,"value = %s \n",target[i].value);
      fprintf(stderr,"-------------------------------- \n",i);
   }
 */
@@ -164,7 +168,17 @@ int finalizeGETData(struct HTTPHeader * output)
 
 
 
-
+int finalizeGETData(struct HTTPHeader * output)
+{
+  createGETData(output);
+  return finalizeGenericGETField(
+                                 output,
+                                 output->GETItem ,
+                                 &output->GETItemNumber ,
+                                 output->GETRequest,
+                                 strnlen(output->GETRequest,output->headerRAWSize)
+                                );
+}
 
 /*
 ----------------------------------------------

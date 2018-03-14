@@ -20,11 +20,10 @@ extern "C" {
 #include <libgen.h>
 
 /**
-* @brief An enumerator that lists the types of requests , per HTTP spec , see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html
-*        Of course not all of them are supported/used internally but they are listed in the same order to maintain spec compatibility
+* @brief An ID that is used to distinguish between different versions..
 * @bug   A potential bug might arise if the specs of the header file are changed and someone is linking with an older version libAmmServer.a thats why this value exists
 */
-#define AMMAR_SERVER_HTTP_HEADER_SPEC 134
+#define AMMAR_SERVER_HTTP_HEADER_SPEC 136
 
 
 
@@ -222,6 +221,9 @@ struct HTTPHeader
 
    unsigned int POSTItemNumber;
    struct POSTRequestBoundaryContent POSTItem[MAX_HTTP_POST_BOUNDARY_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+
+   unsigned int COOKIEItemNumber;
+   struct GETRequestContent COOKIEItem[MAX_HTTP_GET_VARIABLE_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 };
 
 
@@ -299,8 +301,8 @@ struct AmmServer_DynamicRequest
    unsigned int GETItemNumber;
    struct GETRequestContent * GETItem; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
-   char * COOKIE_request;
-   unsigned int COOKIE_request_length;
+   unsigned int COOKIEItemNumber;
+   struct GETRequestContent COOKIEItem[MAX_HTTP_GET_VARIABLE_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 };
 
 
