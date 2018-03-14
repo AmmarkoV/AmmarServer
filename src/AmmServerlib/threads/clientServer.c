@@ -62,7 +62,7 @@ inline int logSuccess(const struct AmmServer_Instance * instance,const struct HT
 {
   return AccessLogAppend( transaction->ipStr,
                           0, // Auto Date It NOW!
-                          transaction->incomingHeader.GETRequest
+                          transaction->incomingHeader.GETrequest
                           //transaction->incomingHeader.resource
                           ,logCode
                           ,transaction->outgoingBodySize // <- This might be wrong
@@ -75,7 +75,7 @@ inline int logError(const struct AmmServer_Instance * instance,const struct HTTP
 {
   return ErrorLogAppend(  transaction->ipStr ,
                           0, // Auto Date It NOW!
-                          transaction->incomingHeader.GETRequest
+                          transaction->incomingHeader.GETrequest
                           //transaction->incomingHeader.resource
                           ,logCode
                           ,transaction->outgoingBodySize // <- This might be wrong
@@ -437,13 +437,13 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
            } else
           if (transaction->incomingHeader.requestType==NONE)
            { //We couldnt find a request type so it is a weird input that doesn't seem to be HTTP based
-            warningID(ASV_WARNING_UNRECOGNIZED_REQUST);
+            warningID(ASV_WARNING_UNRECOGNIZED_REQUEST);
             SendErrorFile(instance,transaction,400);
             logError(instance,transaction,400,"400.html");
             return 0;
            } else
            { //The request we got requires not implemented functionality , so we will admit not implementing it..! :P
-            warningID(ASV_WARNING_NOTIMPLEMENTED_REQUST);
+            warningID(ASV_WARNING_NOTIMPLEMENTED_REQUEST);
             SendErrorFile(instance,transaction,501);
             logError(instance,transaction,501,"501.html");
             return 0;

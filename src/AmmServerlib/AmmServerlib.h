@@ -167,8 +167,8 @@ struct HTTPHeader
    unsigned int sizeOfExtraDataThatWillNeedToBeDeallocated;
    char * extraDataThatWillNeedToBeDeallocated;
 
-   char * GETRequest;
-   unsigned long GETsrequestSize;
+   char * GETrequest;
+   unsigned long GETrequestSize;
 
    char * POSTrequest;
    unsigned long POSTrequestSize;

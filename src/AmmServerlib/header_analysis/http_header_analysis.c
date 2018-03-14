@@ -118,13 +118,21 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
               the resource requested as the client stated it and as we verified for local filesystem..!
               */
              //In case we don't have any attributes ..
-             output->GETRequest = 0;
+             output->GETrequest = 0;
+             output->GETrequestSize = 0;
 
+             //fprintf(stderr,CYAN "Processing query now \n" NORMAL);
+             if (stripped==0)
+               {
+                 errorID(ASV_ERROR_FAILED_TO_RESOLVE_GET_QUERY);
+               } else
              if ( StripGETRequestQueryAndFragment(stripped/*,output->GETquery*/,MAX_QUERY) )
                {
                  //Now we should be pointing to the correct place of headerRAW
-                 output->GETRequest = stripped + strlen(stripped) +1 ;
-                 //fprintf(stderr,"Found a query , %s , resource is now %s \n",output->GETRequest,stripped);
+                 output->GETrequest = stripped + strlen(stripped) +1 ;
+                 output->GETrequestSize = strlen(output->GETrequest);
+                 fprintf(stderr,CYAN "GET request has payload\n" NORMAL);
+                 //fprintf(stderr,CYAN "Found a query , %s ( size %u ) , resource is now %s \n" NORMAL,output->GETrequest, output->GETrequestSize ,stripped);
                }
 
 
@@ -139,7 +147,7 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
                 return 1;
               } else
               {
-                fprintf(stderr,"Warning : Suspicious request , dropping it ..! \n");
+                warningID(ASV_WARNING_UNRECOGNIZED_REQUEST);
                 output->requestType=BAD;
                 return 0;
               }

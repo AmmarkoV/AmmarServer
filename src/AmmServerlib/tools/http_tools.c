@@ -463,35 +463,34 @@ int ReducePathSlashes_Inplace(char * filename)
  return 0;
 }
 
-int StripGETRequestQueryAndFragment(char * filename  , unsigned int max_query_length)
+int StripGETRequestQueryAndFragment(char * request, unsigned int maxQueryLength)
 {
-   //fprintf(stderr,"StripGETRequestQueryAndFragment is not thoroughly tested yet\n");
-   unsigned int length=strlen(filename);
-   if (length==0) { return 0; }
-   if (length>max_query_length) { length=max_query_length; }
+   if (request==0) { errorID(ASV_ERROR_CALL_WITHOUT_ENOUGH_INPUT); return 0;}
+   unsigned int length=strlen(request);
+   if (length==0)  { errorID(ASV_ERROR_CALL_WITHOUT_ENOUGH_INPUT); return 0; }
+   if (length>maxQueryLength) { length=maxQueryLength; }
 
 
    unsigned int i=0,fragment_pos=length;
 
-   while ( (i<length) &&  (filename[i]!='?') /*Query start character*/)
+   while ( (i<length) &&  (request[i]!='?') /*Query start character*/)
     {
-        if (filename[i]=='#' /*Fragment start character*/ ) { fragment_pos=i; }
+        if (request[i]=='#' /*Fragment start character*/ ) { fragment_pos=i; }
         ++i;
     }
 
    //fprintf(stderr,"Searching for Query : Request has a %u size , fragment at pos %u/%u \n",length,fragment_pos,length);
-   if (fragment_pos<length) { filename[fragment_pos]=0; /*Disregard any fragments , they are for the client only.. */ }
-   if (i==length) { return 0; } //<- could not find a ..
+   if (fragment_pos<length) { request[fragment_pos]=0; /*Disregard any fragments , they are for the client only.. */ }
+   if (i==length)   { return 0; } //<- could not find a ..
    if (i+1>=length) { return 0; } //<- found the question mark at i BUT it is the last character so no extension is possible..!
 
-   //char * start_of_query = &filename[i+1]; // do not include ? ( question mark )
-   filename[i]=0;
+   //char * start_of_query = &request[i+1]; // do not include ? ( question mark )
 
-   /*
-   if (strlen(start_of_query)>=max_query_length) { fprintf(stderr,"Not enough space for GET Request query\n");  return 0; }
-   snprintf(query,max_query_length,"%s",start_of_query);*/
+   //Null Terminate
+   request[i]=0;
 
-   //fprintf(stderr,"GET Request ( %s ) has a query inlined ( %s ) \n",filename,query);
+
+   //fprintf(stderr,"GET Request ( %s ) has a query inlined ( %s ) \n",request,query);
   return 1;
 }
 

@@ -13,11 +13,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
    
 add_executable(mytube main.c indexer.c thumbnailer.c renderVideoList.c renderVideoPage.c sessions.c ) 
 target_link_libraries(mytube pthread rt AmmarServerDynamic )
-set_target_properties(mytube PROPERTIES DEBUG_POSTFIX "D")
+#set_target_properties(mytube PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(mytube AmmarServer)  
        
-    set_target_properties(mytube PROPERTIES 
-                          DEBUG_POSTFIX "D"
+set_target_properties(mytube PROPERTIES 
+#                          DEBUG_POSTFIX "D"
                           ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"

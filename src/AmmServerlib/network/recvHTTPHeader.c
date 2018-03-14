@@ -142,7 +142,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
 
   if (!finalizeGETData(output))
   {
-    AmmServer_Error("Server failed to parse GET data");
+    AmmServer_Error("finalizeGETData: Server failed to parse GET data");
   }
 
   ///IN CASE WE ARE USING POST REQUESTS WE WILL JUST NEED TO FINALIZE THE DATA PARSED THROUGH THE FILE TO SETUP BOUNDARIES ETC..

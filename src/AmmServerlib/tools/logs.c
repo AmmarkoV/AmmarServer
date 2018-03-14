@@ -10,6 +10,7 @@
 
 char *errorIDs[] =
  {
+     "Failed to resolve GET Request",
      "Instance not allocated",
      "Request not allocated",
      "Error binding master port, Server is already running?",

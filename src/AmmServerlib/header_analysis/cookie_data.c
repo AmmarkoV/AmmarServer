@@ -26,6 +26,7 @@ int finalizeCOOKIEData(struct HTTPHeader * output,char * value,unsigned int valu
 {
   return 0;
   createCOOKIEData(output);
+
   return finalizeGenericGETField(
                                  output,
                                  output->COOKIEItem ,

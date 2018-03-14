@@ -7,6 +7,19 @@
 #include <string.h>
 
 
+
+/**
+* @brief An enumerator that lists the types of requests fields availiable for a POST / GET / COOKIE or FILE request
+*/
+enum GETAutomatonStates
+{
+   FOUND_NOTHING        = 0 ,
+   SEEKING_NAME           ,
+   SEEKING_VALUE
+};
+
+
+
 int wipeGETData(struct HTTPHeader * output)
 {
   output->GETItemNumber=0;
@@ -29,25 +42,24 @@ int finalizeGenericGETField(
                              unsigned int valueLength
                            )
 {
+  //-----------------------------------------------------------------------------------
+  if (value == 0)        { AmmServer_Warning("Value is not set\n");         return 0; }
+  if (valueLength == 0)  { AmmServer_Warning("Value Length is not set\n");  return 0; }
+  if (target == 0)       { AmmServer_Warning("Target is not set\n");        return 0; }
+  if (output == 0)       { AmmServer_Warning("Output is not set\n");        return 0; }
+  if (targetNumber == 0) { AmmServer_Warning("Target Number is not set\n"); return 0; }
+  //-----------------------------------------------------------------------------------
+
   *targetNumber=0;
   char * GETPtr = value;
-
-  if (GETPtr==0)
-  {
-   return 0;
-  }
 
   unsigned int GETPtrLength = valueLength;
   char * GETPtrEnd = GETPtr + GETPtrLength;
 
   //AmmServer_Warning("GET Request %s has %u bytes of stuff..\n",GETPtr ,GETPtrLength);
-  if (GETPtrLength==0) { return 0; }
 
   char * startOfPTR=GETPtr;
 
-  #define FOUND_NOTHING  0
-  #define SEEKING_NAME   1
-  #define SEEKING_VALUE  2
 
   unsigned int state = FOUND_NOTHING;
   while (GETPtr<GETPtrEnd)
@@ -151,7 +163,6 @@ int finalizeGenericGETField(
      target[i].valueSize = strlen(target[i].value);
   }
 
-
 /*
   AmmServer_Success("A total of %u GET Items \n",*targetNumber);
   for (i=0; i<*targetNumber; i++)
@@ -170,14 +181,23 @@ int finalizeGenericGETField(
 
 int finalizeGETData(struct HTTPHeader * output)
 {
+  //AmmServer_Warning("finalizeGETData\n");
   createGETData(output);
-  return finalizeGenericGETField(
+
+  unsigned int GETrequestSize = 0;
+  if (output->GETrequest!=0)
+     {
+      GETrequestSize = strnlen(output->GETrequest,output->GETrequestSize);
+     }
+
+ //AmmServer_Warning("going in\n");
+ return finalizeGenericGETField(
                                  output,
                                  output->GETItem ,
                                  &output->GETItemNumber ,
-                                 output->GETRequest,
-                                 strnlen(output->GETRequest,output->headerRAWSize)
-                                );
+                                 output->GETrequest,
+                                 GETrequestSize
+                               );
 }
 
 /*

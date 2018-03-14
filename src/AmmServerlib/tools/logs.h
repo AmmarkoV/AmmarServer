@@ -30,6 +30,7 @@
 
 ///----------------------------------------------------------------------
 typedef enum {
+               ASV_ERROR_FAILED_TO_RESOLVE_GET_QUERY,
                ASV_ERROR_INSTANCE_NOT_ALLOCATED,
                ASV_ERROR_REQUEST_NOT_ALLOCATED,
                ASV_ERROR_BINDING_MASTER_PORT,
@@ -89,8 +90,8 @@ typedef enum {
                ASV_WARNING_STOP_INITIATED,
                ASV_WARNING_STOP_COMPLETED,
                ASV_WARNING_ENABLING_MONITOR,
-               ASV_WARNING_UNRECOGNIZED_REQUST,
-               ASV_WARNING_NOTIMPLEMENTED_REQUST,
+               ASV_WARNING_UNRECOGNIZED_REQUEST,
+               ASV_WARNING_NOTIMPLEMENTED_REQUEST,
                ASV_WARNING_PREDATORY_REQUST,
              } WarningIDLabels;
 

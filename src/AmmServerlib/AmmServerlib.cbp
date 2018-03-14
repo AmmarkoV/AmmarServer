@@ -86,6 +86,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="cache/session_list.h" />
+		<Unit filename="header_analysis/cookie_data.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="header_analysis/cookie_data.h" />
 		<Unit filename="header_analysis/generic_header_tools.c">
 			<Option compilerVar="CC" />
 		</Unit>
