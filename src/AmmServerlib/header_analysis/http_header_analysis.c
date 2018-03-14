@@ -131,7 +131,7 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
                  //Now we should be pointing to the correct place of headerRAW
                  output->GETrequest = stripped + strlen(stripped) +1 ;
                  output->GETrequestSize = strlen(output->GETrequest);
-                 fprintf(stderr,CYAN "GET request has payload\n" NORMAL);
+                 //fprintf(stderr,CYAN "GET request has payload\n" NORMAL);
                  //fprintf(stderr,CYAN "Found a query , %s ( size %u ) , resource is now %s \n" NORMAL,output->GETrequest, output->GETrequestSize ,stripped);
                }
 

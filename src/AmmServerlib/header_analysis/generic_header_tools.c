@@ -211,6 +211,14 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(
     }
    }
 
+   for (i=0; i<transaction->incomingHeader.COOKIEItemNumber; i++)
+   {
+    if (transaction->incomingHeader.COOKIEItem[i].reallocateOnHeaderRAWResize)
+    {
+    transaction->incomingHeader.COOKIEItem[i].name    =  _recalculatePosition(transaction->incomingHeader.COOKIEItem[i].name       ,oldBaseAddress ,newBaseAddress);
+    transaction->incomingHeader.COOKIEItem[i].value   =  _recalculatePosition(transaction->incomingHeader.COOKIEItem[i].value      ,oldBaseAddress ,newBaseAddress);
+    }
+   }
    return 1;
 }
 
