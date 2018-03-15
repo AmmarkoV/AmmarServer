@@ -9,6 +9,19 @@
 #include "../tools/logs.h"
 #include "../tools/time_provider.h"
 
+
+/**
+* @brief An enumerator that lists the types of requests fields availiable for a POST / GET / COOKIE or FILE request
+*/
+enum TimeStates
+{
+   TIME_IS_OK_SERVE_FRESH               = 0 ,
+   TIME_IS_TOO_SLOW_SERVE_NOTHING           ,
+   TIME_IS_TOO_FAST_SERVE_CACHED
+};
+
+
+
 int  dynamicRequest_ContentAvailiable(struct AmmServer_Instance * instance,unsigned int index)
 {
   if (instance==0) { return 0; }
@@ -57,6 +70,79 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
   return 1;
 }
 
+
+void printRequestData(struct AmmServer_DynamicRequest * rqst)
+{
+ fprintf(stderr,"Request for a maximum of %lu characters\n",rqst->MAXcontentSize);
+ if ( rqst->GETItemNumber!=0 )    { fprintf(stderr,"GETItems : %p , %u items\n",rqst->GETItem , rqst->GETItemNumber );          }
+ if ( rqst->POSTItemNumber!=0 )   {
+                                    fprintf(stderr,"POSTItems : %p , %u items\n",rqst->POSTItem , rqst->POSTItemNumber );
+                                    fprintf(stderr,CYAN "Using the new POST system.. may our client have mercy on our POST request..\n" NORMAL);
+                                  }
+ if ( rqst->COOKIEItemNumber!=0 ) { fprintf(stderr,"COOKIEItems : %p , %u items\n",rqst->COOKIEItem , rqst->COOKIEItemNumber ); }
+}
+
+int checkRequestFrequency(
+                          struct AmmServer_Instance * instance,
+                          struct HTTPHeader * request,
+                          struct AmmServer_RH_Context * shared_context,
+                          unsigned long * now
+                         )
+{
+     *now=0; //If there is no callback limits the time of the call will always be 0
+     if (
+          (shared_context-> callback_every_x_msec!=0) &&
+          (shared_context->needsSamePageForAllClients)
+        )
+     { //Only Dynamic pages with time limits have to call the "expensive" GetTickCountAmmServ
+       *now=GetTickCountAmmServ();
+       if ( *now-shared_context->last_callback < shared_context-> callback_every_x_msec )
+        {
+         unsigned int waitTime=0;
+         unsigned int maxWaitTime=0;
+         /* ------------------------------------------
+           TODO:
+           Instead of waiting here have a double buffer content and serve the old one ..!
+           along with a not modified header..!
+         */
+         if (CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC>0)
+         {
+          maxWaitTime= (unsigned int) CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC / CLIENT_SLEEP_TIME_INTERVAL_NSEC ;
+          fprintf(stderr,"Hit while another thread executing callback , waiting %u intervals of %u nsec..",maxWaitTime,(unsigned int) CLIENT_SLEEP_TIME_INTERVAL_NSEC );
+          while ( (shared_context->executedNow) && (waitTime < maxWaitTime) )
+          {
+           usleep(CLIENT_SLEEP_TIME_INTERVAL_NSEC );
+           ++waitTime;
+           fprintf(stderr,"_");
+          }
+         }
+
+         if (waitTime>=maxWaitTime)
+         {
+           AmmServer_Error("Request requests for a callback that is TOO slow , returning nothing back :( ..\n");
+           return TIME_IS_TOO_SLOW_SERVE_NOTHING;
+         } else
+         {
+          AmmServer_Success("Request gets canned dynamic request page ( size %u , callback every %u msec )..\n",shared_context->requestContext.contentSize , shared_context-> callback_every_x_msec);
+          //The request came too fast.. We will serve our existing file..!
+          return TIME_IS_TOO_FAST_SERVE_CACHED;
+         }
+        } else
+        {
+         fprintf(stderr,"Request deserves fresh page , %u last gen, %lu now , %u cooldown\n",shared_context->last_callback,*now,shared_context-> callback_every_x_msec);
+         return TIME_IS_OK_SERVE_FRESH;
+        }
+      }
+}
+
+
+
+
+
+
+
+
+
 char * dynamicRequest_serveContent
           (
             struct AmmServer_Instance * instance,
@@ -72,9 +158,10 @@ char * dynamicRequest_serveContent
             unsigned char * allowOtherOrigins
           )
 {
- // error("Dynamic requests are disabled until further notice .. \n");
-  //return 0;
-
+  #if DISABLE_DYNAMIC_REQUESTS
+   error("Dynamic requests are disabled until further notice .. \n");
+   return 0;
+  #endif // DISABLE_DYNAMIC_REQUESTS
 
   //Before returning any pointers we will have to ask ourselves.. Is this a Dynamic Content Cache instance ?
   *contentContainsPathToFileToBeStreamed=0;
@@ -95,9 +182,9 @@ char * dynamicRequest_serveContent
   }
 
   *allowOtherOrigins = shared_context->allowCrossRequests;
-  //AmmServer_Warning("allowOtherOrigins = %u",*allowOtherOrigins );
 
   char * cacheMemory=0; // <- this will hold the resulting page
+  //cacheMemory =  shared_context->requestContext.content;
 
   //Before doing callback we might want to allocate a different response space dedicated to this callback instead to using
   //one common memory buffer for every client...!
@@ -127,70 +214,39 @@ char * dynamicRequest_serveContent
   if ( (cacheMemory==0) || (shared_context->requestContext.MAXcontentSize==0) )
     {
      warningID(ASV_WARNING_NOT_CALLING_CALLBACK_WITH_EMPTY_BUFFER);
-     fprintf(stderr,"( cacheMemory=%p , MAXcontentSize=%lu ) ..!\n",cacheMemory,shared_context->requestContext.MAXcontentSize);
+     return 0;
     } else
     {
      //This means we can call the callback to prepare the memory content..! START
-
      unsigned long now=0; //If there is no callback limits the time of the call will always be 0
      //That doesnt bother anything or anyone..
 
-     //Check if request falls on callback limits!
-     if (
-          (shared_context-> callback_every_x_msec!=0) &&
-          (shared_context->needsSamePageForAllClients)
-        )
-     { //Only Dynamic pages with time limits have to call the "expensive" GetTickCountAmmServ
-       now=GetTickCountAmmServ();
-       if ( now-shared_context->last_callback < shared_context-> callback_every_x_msec )
-        {
-         unsigned int waitTime=0;
-         unsigned int maxWaitTime=0;
-         /* ------------------------------------------
-           TODO:
-           Instead of waiting here have a double buffer content and serve the old one ..!
-           along with a not modified header..!
-         */
-         if (CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC>0)
-         {
-          maxWaitTime= (unsigned int) CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC / CLIENT_SLEEP_TIME_INTERVAL_NSEC ;
-          fprintf(stderr,"Hit while another thread executing callback , waiting %u intervals of %u nsec..",maxWaitTime,(unsigned int) CLIENT_SLEEP_TIME_INTERVAL_NSEC );
-          while ( (shared_context->executedNow) && (waitTime < maxWaitTime) )
-          {
-           usleep(CLIENT_SLEEP_TIME_INTERVAL_NSEC );
-           ++waitTime;
-           fprintf(stderr,"_");
-          }
-         }
-
-         if (waitTime>=maxWaitTime)
-         {
-           AmmServer_Error("Request requests for a callback that is TOO slow , returning nothing back :( ..\n");
-           return 0;
-         } else
-         {
-          AmmServer_Success("Request gets canned dynamic request page ( size %u , callback every %u msec )..\n",shared_context->requestContext.contentSize , shared_context-> callback_every_x_msec);
-          //The request came too fast.. We will serve our existing file..!
+     int requestFrequencyResult = checkRequestFrequency(
+                                                         instance,
+                                                         request,
+                                                         shared_context,
+                                                         &now
+                                                        );
+     switch (requestFrequencyResult)
+     {
+        case TIME_IS_TOO_SLOW_SERVE_NOTHING :
+          //Request requests for a callback that is TOO slow , returning nothing back :( ..\n
+          return 0;
+        break;
+        case TIME_IS_TOO_FAST_SERVE_CACHED  :
           *compressionSupported=0;
           shared_context->callback_cooldown=1;
-          //cacheMemory =  shared_context->requestContext.content;
           *memSize=shared_context->requestContext.contentSize;
           return cacheMemory;
-         }
-        } else
-        {
-         fprintf(stderr,"Request deserves fresh page , %u last gen, %lu now , %u cooldown\n",shared_context->last_callback,now,shared_context-> callback_every_x_msec);
-        }
-      }
+        break;
+        //case TIME_IS_OK_SERVE_FRESH       :
+        //  fprintf(stderr,"Serving fresh page\n");
+        //break;
+     };
 
-        fprintf(stderr,"Internal mem_callback = %p \n",shared_context->dynamicRequestCallbackFunction);
-       //Do callback here
+       //fprintf(stderr,"Internal mem_callback = %p \n",shared_context->dynamicRequestCallbackFunction);
        shared_context->callback_cooldown=0;
        shared_context->last_callback = now;
-       void ( *DoCallback) ( struct AmmServer_DynamicRequest * )=0 ;
-       DoCallback = shared_context->dynamicRequestCallbackFunction;
-
-       fprintf(stderr,"Trying to adjust GET_request length \n");
 
         struct AmmServer_DynamicRequest * rqst = (struct AmmServer_DynamicRequest * ) malloc(sizeof(struct AmmServer_DynamicRequest));
         if (rqst!=0)
@@ -198,28 +254,18 @@ char * dynamicRequest_serveContent
                      memcpy(rqst , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
 
                      rqst->POSTItemNumber = request->POSTItemNumber;
-                     rqst->POSTItem       = request->POSTItem;  //<- NEVER free this here since it is stack allocated..
+                     rqst->POSTItem       = request->POSTItem;       //<- NEVER free this here since it is stack allocated..
 
                      rqst->GETItemNumber  = request->GETItemNumber;
-                     rqst->GETItem        = request->GETItem;   //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+                     rqst->GETItem        = request->GETItem;        //<- NEVER free this here since it is stack allocated..
+
+                     rqst->COOKIEItemNumber = request->COOKIEItemNumber;
+                     rqst->COOKIEItem       = request->COOKIEItem;   //<- NEVER free this here since it is stack allocated..
 
                      rqst->sizeOfExtraDataThatWillNeedToBeDeallocated = request->sizeOfExtraDataThatWillNeedToBeDeallocated;
                      rqst->extraDataThatWillNeedToBeDeallocated       = request->extraDataThatWillNeedToBeDeallocated;
 
-                     fprintf(stderr,"Request for a maximum of %lu characters ( %lu ) \n",rqst->MAXcontentSize , shared_context->requestContext.MAXcontentSize );
-                     fprintf(stderr,"GETItems : %p , %u items\n",rqst->GETItem , rqst->GETItemNumber );
-                     fprintf(stderr,"POSTItems : %p , %u items\n",rqst->POSTItem , rqst->POSTItemNumber );
-
-
-                     if ( (rqst->POSTItemNumber!=0) )
-                     {
-                      fprintf(stderr,CYAN "Using the new POST system.. may our client have mercy on our POST request..\n" NORMAL);
-                     }
-
                      rqst->content=cacheMemory;
-                     //They are an id ov the var_caching.c list so that the callback function can produce information based on them..!
-
-
 
                      if (rqst->useSessionLifecycle)
                       {
@@ -231,11 +277,19 @@ char * dynamicRequest_serveContent
                                                                );
                       }
 
+                     ///--------------------------------------------
+                     printRequestData(rqst);
+
+
+                     void ( *DoCallback) ( struct AmmServer_DynamicRequest * )=0 ;
+                     DoCallback = shared_context->dynamicRequestCallbackFunction;
 
                      shared_context->executedNow=1;
                      struct time_snap callbackTimer;
                      startTimer (&callbackTimer);
-                     DoCallback(rqst);
+                     ///--------------------------------------------
+                                   DoCallback(rqst);
+                     ///--------------------------------------------
                      unsigned long elapsedCallbackTimeMS=endTimer (&callbackTimer);
                      fprintf(stderr,"Callback done in %lu microseconds \n",elapsedCallbackTimeMS);
                      shared_context->executedNow=0;
@@ -252,7 +306,6 @@ char * dynamicRequest_serveContent
                         *contentContainsPathToFileToBeStreamed=1;
                         snprintf(verified_filename,verified_filenameLength,"%s",rqst->content);
                      }
-
                      //Keep the new content size so if the next call has a callback_every_x_msec attribute we know how much data to serve
                      shared_context->requestContext.contentSize = rqst->contentSize;
                      *memSize = rqst->contentSize;
@@ -265,9 +318,6 @@ char * dynamicRequest_serveContent
                     {
                       errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY);
                     }
-
    }
-
  return cacheMemory;
-
 }

@@ -67,7 +67,7 @@ const struct GETRequestContent * getCOOKIEItemFromName(struct AmmServer_DynamicR
 }
 
 
-char * getPointerToGETItemValue(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength)
+char * getPointerToCOOKIEItemValue(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength)
 {
  const struct GETRequestContent * p = getCOOKIEItemFromName(rqst,nameToLookFor);
 

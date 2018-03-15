@@ -16,7 +16,7 @@ int finalizeCOOKIEData(struct HTTPHeader * output,char * value,unsigned int valu
 
 
 const struct GETRequestContent * getCOOKIEItemFromName(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor);
-char * getPointerToGETItemValue(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength);
+char * getPointerToCOOKIEItemValue(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor,unsigned int * pointerLength);
 int getNumberOfCOOKIEItems(struct AmmServer_DynamicRequest * rqst);
 
 #endif //COOKIEDATA_H_INCLUDED

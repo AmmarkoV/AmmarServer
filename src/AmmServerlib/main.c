@@ -46,6 +46,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // --------------------------------------------
 #include "header_analysis/get_data.h"
 #include "header_analysis/post_data.h"
+#include "header_analysis/cookie_data.h"
 // --------------------------------------------
 #include "templates/editor.h"
 #include "templates/login.h"
@@ -590,8 +591,12 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
 /// --------------------------------------------------------- COOKIE ---------------------------------------------------------
 const char * _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength)
 {
-    AmmServer_Stub("Cookie access not coded in yet..!");
-    return 0;
+   return getPointerToCOOKIEItemValue(rqst,name,valueLength);
+}
+
+int _COOKIEnum(struct AmmServer_DynamicRequest * rqst)
+{
+ return getNumberOfCOOKIEItems(rqst);
 }
 /// -----------------------------------------------------------------------------------------------------------------------
 

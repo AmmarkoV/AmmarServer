@@ -302,7 +302,7 @@ struct AmmServer_DynamicRequest
    struct GETRequestContent * GETItem; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 
    unsigned int COOKIEItemNumber;
-   struct GETRequestContent COOKIEItem[MAX_HTTP_GET_VARIABLE_COUNT+1]; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+   struct GETRequestContent * COOKIEItem; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
 };
 
 
@@ -878,6 +878,8 @@ int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * name,char * de
 * @brief Shorthand/Shortcut for AmmServer_CookieArg()
 * @ingroup shortcut */
 const char * _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength);
+
+int _COOKIEnum(struct AmmServer_DynamicRequest * rqst);
 ///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()
