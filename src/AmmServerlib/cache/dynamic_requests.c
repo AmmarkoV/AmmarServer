@@ -221,6 +221,8 @@ char * dynamicRequest_serveContent
      unsigned long now=0; //If there is no callback limits the time of the call will always be 0
      //That doesnt bother anything or anyone..
 
+
+     ///--------------------------------------------------------------------
      int requestFrequencyResult = checkRequestFrequency(
                                                          instance,
                                                          request,
@@ -243,10 +245,9 @@ char * dynamicRequest_serveContent
         //  fprintf(stderr,"Serving fresh page\n");
         //break;
      };
-
-       //fprintf(stderr,"Internal mem_callback = %p \n",shared_context->dynamicRequestCallbackFunction);
-       shared_context->callback_cooldown=0;
-       shared_context->last_callback = now;
+      shared_context->callback_cooldown=0;
+      shared_context->last_callback = now;
+     ///--------------------------------------------------------------------
 
         struct AmmServer_DynamicRequest * rqst = (struct AmmServer_DynamicRequest * ) malloc(sizeof(struct AmmServer_DynamicRequest));
         if (rqst!=0)
@@ -279,6 +280,8 @@ char * dynamicRequest_serveContent
 
                      ///--------------------------------------------
                      printRequestData(rqst);
+                     //fprintf(stderr,"Internal mem_callback = %p \n",shared_context->dynamicRequestCallbackFunction);
+
 
 
                      void ( *DoCallback) ( struct AmmServer_DynamicRequest * )=0 ;
