@@ -30,6 +30,20 @@ struct fastStringParser
   unsigned int longestStringLength;
 };
 
+
+
+
+
+/**
+* @brief Export a C compatible enumeration ID
+* @ingroup stringParsing
+* @param Raw input string that will be converted
+* @retval 1=Success,0=Failure
+*/
+void convertTo_ENUM_ID(char *sPtr);
+
+
+
 /**
 * @brief Export a C Scanner source code
 * @ingroup stringParsing
