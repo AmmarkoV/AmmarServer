@@ -1,0 +1,5 @@
+#Quality Setting 0.0 = 0% quality 100% performance
+#                1.0 = 100% quality 0% performance
+float32 quality 
+---
+uint8 ok
