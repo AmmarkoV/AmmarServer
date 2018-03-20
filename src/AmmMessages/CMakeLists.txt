@@ -7,6 +7,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
    
 add_executable(AmmMessages 
 main.c 
+messageGenerator.c 
+messageGenerator.h 
 ../StringRecognizer/fastStringParser.c 
 ../StringRecognizer/fastStringParser.h
 ../InputParser/InputParser_C.c

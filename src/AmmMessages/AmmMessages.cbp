@@ -45,6 +45,14 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="messageGenerator.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="messageGenerator.h" />
+		<Unit filename="mmapBridge.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mmapBridge.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

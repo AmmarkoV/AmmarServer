@@ -86,7 +86,7 @@ int writeBridge(struct bridgeContext * nbc ,void * data , unsigned int dataSize 
     return 0;
   }
 
-  unsigned int offset = 0;
+  //unsigned int offset = 0;
   void * mmapPtr = nbc->map;
   memcpy(mmapPtr , data , dataSize);
 
@@ -106,7 +106,7 @@ if (nbc->mode==0)
   }
 
   printf("Writing New Empty State \n");
-  unsigned int offset = 0;
+  //unsigned int offset = 0;
 
   void * mmapPtr = nbc->map;
   memset(mmapPtr , 0 , nbc->dataSize);
