@@ -33,7 +33,15 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-		</Compiler> 
+		</Compiler>
+		<Unit filename="../InputParser/InputParser_C.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../InputParser/InputParser_C.h" />
+		<Unit filename="../StringRecognizer/fastStringParser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../StringRecognizer/fastStringParser.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>

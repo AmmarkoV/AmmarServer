@@ -47,7 +47,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * filename);
 * @param Total Number of Strings
 * @retval fastStringParser context,0=Failure
 */
-struct fastStringParser * fastSTringParser_createRulesFromFile(char* filename,unsigned int totalStrings);
+struct fastStringParser * fastSTringParser_createRulesFromFile(const char* filename,unsigned int totalStrings);
 
 
 /**

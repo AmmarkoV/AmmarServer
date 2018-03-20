@@ -5,7 +5,13 @@ set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizat
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(AmmMessages main.c )  
+add_executable(AmmMessages 
+main.c 
+../StringRecognizer/fastStringParser.c 
+../StringRecognizer/fastStringParser.h
+../InputParser/InputParser_C.c
+../InputParser/InputParser_C.h
+)  
 set_target_properties(AmmMessages PROPERTIES DEBUG_POSTFIX "D") 
         
 

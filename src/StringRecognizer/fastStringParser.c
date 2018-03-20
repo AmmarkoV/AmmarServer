@@ -307,7 +307,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
   //PRINT OUT THE HEADER
   snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
   FILE * fp = fopen(filenameWithExtension,"wb");
-  if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",functionName); return 0; }
+  if (fp == 0) { fprintf(stderr,"Could not open output file %s\n",functionName); return 0; }
   fflush(fp);
   fprintf(fp,"\n");
 
@@ -392,7 +392,7 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
 
 
 
-struct fastStringParser * fastSTringParser_createRulesFromFile(char* filename,unsigned int totalStrings)
+struct fastStringParser * fastSTringParser_createRulesFromFile(const char* filename,unsigned int totalStrings)
 {
   FILE * fp = fopen(filename,"r");
   if (fp == 0) { fprintf(stderr,"Could not open input file %s\n",filename); return 0; }
