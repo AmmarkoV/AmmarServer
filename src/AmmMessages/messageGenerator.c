@@ -21,15 +21,27 @@
 
 
 unsigned int varTypesListNumber = 6;
-char * varTypesList[] = {   "int64"   , "unsigned long" , "atoi(%s)"               ,
-                            "int32"   , "unsigned int"  , "atoi(%s)"               ,
-                            "int"     , "unsigned long" , "atoi(%s)"               ,
-                            "float32" , "float"         , "atof(%s)"               ,
-                            "float64" , "double"        , "atof(%s)"               ,
-                            "bool"    , "int"           , "atoi(%s)"
+char * varTypesList[] = {   "int64"   , "unsigned long" , "atoi(%s);"               ,
+                            "int32"   , "unsigned int"  , "atoi(%s);"               ,
+                            "int"     , "unsigned long" , "atoi(%s);"               ,
+                            "float32" , "float"         , "atof(%s);"               ,
+                            "float64" , "double"        , "atof(%s);"               ,
+                            "bool"    , "int"           , "atoi(%s);"
                         };
 
 
+
+int typeExists(const char * rosType)
+{
+  int retval=0;
+  unsigned int i=0;
+  for (i=0; i<varTypesListNumber; i++)
+  {
+     if (strcasecmp(rosType,varTypesList[i*3+0])==0) { retval=1; }
+  }
+
+  return retval;
+}
 
 
 int writeType(
@@ -89,13 +101,17 @@ int writeServerCallback(
     {
         InputParser_GetWord(ipc,0,variableType,256);
         InputParser_GetWord(ipc,1,variableID,256);
-        fprintf(fp," if ( _GETcpy(rqst,(char*)\"%s\",value,255) )   {  %sStatic.%s=",variableID,functionName,variableID);
-        writeConversion(
-                        fp ,
-                        variableType,
-                        "value"
-                      );
-        fprintf(fp,"  }  \n");
+
+        if (typeExists(variableType))
+        {
+          fprintf(fp," if ( _GETcpy(rqst,(char*)\"%s\",value,255) )   {  %sStatic.%s=",variableID,functionName,variableID);
+          writeConversion(
+                          fp ,
+                          variableType,
+                          "value"
+                         );
+          fprintf(fp,"  }  \n");
+        }
     }
 
   }
@@ -104,7 +120,7 @@ int writeServerCallback(
 
 
   fprintf(fp,"snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>OK</body></html>\");\n");
-  fprintf(fp,"unsigned int commandLength=strlen(rqst->content);\n\n");
+  fprintf(fp,"rqst->contentSize=strlen(rqst->content);\n\n");
   fprintf(fp,"return 0;\n");
 
   InputParser_Destroy(ipc);
@@ -155,7 +171,7 @@ return 1;
 }
 
 
-int compileMessage(const char * filename,const char * label)
+int compileMessage(const char * filename,const char * label,const char * pathToMMap)
 {
   struct fastStringParser * fsp = fastSTringParser_createRulesFromFile(filename,64);
 
@@ -210,6 +226,8 @@ int compileMessage(const char * filename,const char * label)
 
   fprintf(fp,"#include \"mmapBridge.h\" \n\n");
 
+  fprintf(fp,"const char * pathToMMAP%s=\"%s/%s.mmap\";",functionName,pathToMMap,functionName);
+
   fprintf(fp,"static struct bridgeContext %sBridge={0};\n\n",functionName);
 
 //----------------------------------------------------------------------------------------------
@@ -251,9 +269,13 @@ int compileMessage(const char * filename,const char * label)
 
 
   // ------------------------------------------------------------------------------
+  fprintf(fp,"\n\n/** @brief If we don't have AmmarServer included then we don't need the rest of the code*/\n");
   fprintf(fp,"#ifdef AMMSERVERLIB_H_INCLUDED\n");
-  fprintf(fp,"\n\n/** @brief This is the static memory location where we receive stuff from the webserver ( if we have AmmarServer included )..! */\n");
+  fprintf(fp,"\n\n/** @brief This is the static memory location where we receive stuff from the scope of the webserver*/\n");
   fprintf(fp,"static struct %sMessage %sStatic={0};\n\n",functionName,functionName);
+
+  fprintf(fp,"\n\n/** @brief This is the Resource handler context that will manage requests to %s.html */\n",functionName);
+  fprintf(fp,"static struct AmmServer_RH_Context %sRH={0};\n",functionName);
 
     writeServerCallback(
                            fp ,
@@ -261,24 +283,34 @@ int compileMessage(const char * filename,const char * label)
                            fsp
                        );
 
-
-  fprintf(fp,"static int %sAddToHTTPServer(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,const char * mmapPath)\n",functionName);
+  fprintf(fp,"\n\n/** @brief This function adds %s.html to the webserver and makes it listen for GET commands and forward them to the mmaped structure %sStatic */\n",functionName,functionName);
+  fprintf(fp,"static int %sAddToHTTPServer(struct AmmServer_Instance * instance)\n",functionName);
   fprintf(fp,"{\n");
 
 
-  fprintf(fp,"if ( initializeWritingBridge(&%sBridge , mmapPath , sizeof(struct %sMessage)) )",functionName,functionName);
+  fprintf(fp,"if ( initializeWritingBridge(&%sBridge , pathToMMAP%s , sizeof(struct %sMessage)) )",functionName,functionName,functionName);
   fprintf(fp,"    { AmmServer_Success(\"Successfully initialized mmaped bridge\");");
   fprintf(fp,"      struct %sMessage empty={0};",functionName);
   fprintf(fp,"      empty.timestampInit = rand()%%10000;");
-  fprintf(fp,"        if ( writeCmdBridge(&%sBridge,&empty) )",functionName);
+  fprintf(fp,"        if ( write_%s(&%sBridge,&empty) )",functionName,functionName);
   fprintf(fp,"      { AmmServer_Success(\"Successfully flushed mmaped region\"); }");
   fprintf(fp,"        else");
   fprintf(fp,"      { AmmServer_Error(\"Could not flush mmaped region\"); }");
   fprintf(fp,"    }   else");
   fprintf(fp,"    { AmmServer_Error(\"Could not initialize mmaped bridge \");      }");
 
-  fprintf(fp,"  return AmmServer_AddResourceHandler(instance,context,\"/%s.html\",2048+sizeof(struct %sMessage),0,&%sHTTPServer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName);
+  fprintf(fp,"  return AmmServer_AddResourceHandler(instance,&%sRH,\"/%s.html\",2048+sizeof(struct %sMessage),0,&%sHTTPServer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
   fprintf(fp,"}\n\n");
+
+
+
+  fprintf(fp,"static int %sRemoveFromHTTPServer(struct AmmServer_Instance * instance)\n",functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sRH,1); \n",functionName);
+  fprintf(fp,"  closeWritingBridge(&%sBridge);\n",functionName);
+  fprintf(fp,"}\n\n");
+
+
 
   fprintf(fp,"#endif\n\n");
 //----------------------------------------------------------------------------------------------

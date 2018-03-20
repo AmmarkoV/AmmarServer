@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 
   if (strcmp(argv[1],"-msg")==0)
   {
-     compileMessage(argv[2],argv[3]);
+     compileMessage(argv[2],argv[3],argv[4]);
   } else
   if (strcmp(argv[1],"-srv")==0)
   {

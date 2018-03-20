@@ -2,7 +2,7 @@
 
   
 function generateMSG {
-                       ./AmmMessages -msg $1 $2
+                       ./AmmMessages -msg $1 $2 "/home/nao/mmap"
                        astyle $2.h 
                        mv $2.h output/
                        gcc output/$2.h -o output/$2        

@@ -2,6 +2,6 @@
 #define MESSAGEGENERATOR_H_INCLUDED
 
 
-int compileMessage(const char * filename,const char * label);
+int compileMessage(const char * filename,const char * label,const char * pathToMMap);
 
 #endif // MESSAGEGENERATOR_H_INCLUDED
