@@ -5,7 +5,7 @@
 */
 
 /*                  
-This file was automatically generated @ 20-03-2018 19:12:08 using AmmMessages                  
+This file was automatically generated @ 20-03-2018 20:07:40 using AmmMessages                  
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmMessages                 
 Please note that changes you make here may be automatically overwritten                  
 if the AmmMessages generator runs again..!              
@@ -20,6 +20,24 @@ if the AmmMessages generator runs again..!
 struct personMessage
 {
   unsigned long timestampInit;
+// #Confidence is a float ranging 0.0 to 1.0  
+// float32 confidence  
+//   
+//    
+// int32 source  
+// int32 inFieldOfView  
+//   
+//   
+// #pose  
+// float32 x  
+// float32 y  
+// float32 z  
+// float32 theta  
+//    
+// #Timestamps are actually the number of the frame  
+// int32 timestamp  
+// time stamp  
+//   
 };
 
 

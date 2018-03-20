@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "../StringRecognizer/fastStringParser.h"
+#include "../InputParser/InputParser_C.h"
 
 
 
@@ -15,17 +16,34 @@
 #define ACTIVATED_LEVELS 3
 
 
+int writeStruct(
+                 FILE * fp ,
+                 const char * line
+                )
+{
+ struct InputParserC * ipc = InputParser_Create(512,5);
+
+ int arguments = InputParser_SeperateWordsCC(ipc,line,1);
+ char variableType[256];
+ char variableID[256];
+
+ if (arguments==2)
+ {
+     InputParser_GetWord(ipc,1,variableType,256);
+     InputParser_GetWord(ipc,2,variableID,256);
+     fprintf(fp,"// %s %s; \n",variableType , variableID);
+ } else
+ {
+     fprintf(fp,"// %s  \n",line);
+ }
+return 1;
+}
+
+
 int compileMessage(const char * filename,const char * label)
 {
   struct fastStringParser * fsp = fastSTringParser_createRulesFromFile(filename,64);
 
-
-
-  unsigned int i=0;
-  for (i=0; i<fsp->stringsLoaded; i++)
-  {
-    fprintf(stderr,"STRING %u : %s\n",i,fsp->contents[i].str);
-  }
 
 
   const char *  functionName = label;
@@ -83,14 +101,13 @@ int compileMessage(const char * filename,const char * label)
   fprintf(fp,"struct %sMessage\n",functionName,functionName);
   fprintf(fp,"{\n");
   fprintf(fp,"  unsigned long timestampInit;\n",functionName);
+
+  unsigned int i=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+      writeStruct( fp , fsp->contents[i].str );
+  }
   fprintf(fp,"};\n\n");
-
-
-
-
-
-
-
 
   fprintf(fp,"\n\n/** @brief Send a %s message through the bridge\n",functionName);
   fprintf(fp,"* @ingroup stringParsing\n");
