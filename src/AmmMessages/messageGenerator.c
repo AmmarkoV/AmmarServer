@@ -11,23 +11,21 @@
 #include "../StringRecognizer/fastStringParser.h"
 #include "../InputParser/InputParser_C.h"
 
-
-
 #define MAXIMUM_FILENAME_WITH_EXTENSION 1024
 #define MAXIMUM_LINE_LENGTH 1024
-#define MAXIMUM_LEVELS 123
-#define ACTIVATED_LEVELS 3
 
 
-
-unsigned int varTypesListNumber = 6;
-char * varTypesList[] = {   "int64"   , "unsigned long" , "atoi(%s);"               ,
-                            "int32"   , "unsigned int"  , "atoi(%s);"               ,
-                            "int"     , "unsigned long" , "atoi(%s);"               ,
-                            "float32" , "float"         , "atof(%s);"               ,
-                            "float64" , "double"        , "atof(%s);"               ,
-                            "bool"    , "int"           , "atoi(%s);"
+char * varTypesList[] = {   "int64"   , "unsigned long %s;\n" , "%s=atoi(%s);"               ,
+                            "int32"   , "unsigned int %s;\n"  , "%s=atoi(%s);"               ,
+                            "int"     , "unsigned long %s;\n" , "%s=atoi(%s);"               ,
+                            "float"   , "float %s;\n"         , "%s=atof(%s);"               ,
+                            "float32" , "float %s;\n"         , "%s=atof(%s);"               ,
+                            "float64" , "double %s;\n"        , "%s=atof(%s);"               ,
+                            "bool"    , "int %s;\n"           , "%s=atoi(%s);"               ,
+                            "string"  , "char %s[512];\n"     , "snprintf(%s,512,\"%%s\",%s);"
+                            //DONT FORGET TO UPDATE  varTypesListNumber
                         };
+unsigned int varTypesListNumber = 8;
 
 
 
@@ -46,7 +44,8 @@ int typeExists(const char * rosType)
 
 int writeType(
                  FILE * fp ,
-                 const char * rosType
+                 const char * rosType,
+                 const char * variableID
                 )
 {
   int retval=0;
@@ -54,7 +53,7 @@ int writeType(
   unsigned int i=0;
   for (i=0; i<varTypesListNumber; i++)
   {
-     if (strcasecmp(rosType,varTypesList[i*3+0])==0) { fprintf(fp,"%s",varTypesList[i*3+1]); retval=1; }
+     if (strcasecmp(rosType,varTypesList[i*3+0])==0) { fprintf(fp,varTypesList[i*3+1],variableID); retval=1; }
   }
 
   return retval;
@@ -64,6 +63,7 @@ int writeType(
 int writeConversion(
                  FILE * fp ,
                  const char * rosType,
+                 const char * varDestination,
                  const char * varName
                 )
 {
@@ -71,7 +71,7 @@ int writeConversion(
   unsigned int i=0;
   for (i=0; i<varTypesListNumber; i++)
   {
-     if (strcasecmp(rosType,varTypesList[i*3+0])==0) { fprintf(fp,varTypesList[i*3+2],varName); retval=1; }
+     if (strcasecmp(rosType,varTypesList[i*3+0])==0) { fprintf(fp,varTypesList[i*3+2],varDestination,varName); retval=1; }
   }
  return retval;
 }
@@ -104,10 +104,14 @@ int writeServerCallback(
 
         if (typeExists(variableType))
         {
-          fprintf(fp," if ( _GETcpy(rqst,(char*)\"%s\",value,255) )   {  %sStatic.%s=",variableID,functionName,variableID);
+          char destination[256]={0};
+          snprintf(destination,256,"%sStatic.%s",functionName,variableID);
+
+          fprintf(fp," if ( _GETcpy(rqst,(char*)\"%s\",value,255) )   {  ",variableID);
           writeConversion(
                           fp ,
                           variableType,
+                          destination,
                           "value"
                          );
           fprintf(fp,"  }  \n");
@@ -153,11 +157,8 @@ int writeStruct(
  if (arguments==2)
  {
      InputParser_GetWord(ipc,0,variableType,256);
-     if ( writeType(fp,variableType) )
-     {
-      InputParser_GetWord(ipc,1,variableID,256);
-      fprintf(fp," %s;\n", variableID);
-     } else
+     InputParser_GetWord(ipc,1,variableID,256);
+     if (!writeType(fp,variableType,variableID) )
      {
        fprintf(fp,"//%s\n",line); //Line as a comment
      }
@@ -234,6 +235,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"struct %sMessage\n",functionName);
   fprintf(fp,"{\n");
   fprintf(fp,"  unsigned long timestampInit;\n"); //We always want the first bytes to be like this
+  fprintf(fp,"  void * callbackOnNewData;\n");
   unsigned int i=0;
   for (i=0; i<fsp->stringsLoaded; i++)
   {
@@ -241,6 +243,17 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   }
   fprintf(fp,"};\n\n");
 //----------------------------------------------------------------------------------------------
+
+  fprintf(fp,"\n\n/** @brief This is the static memory location where we receive stuff so we don't even have to declare this..*/\n");
+  fprintf(fp,"static struct %sMessage %sStatic={0};\n\n",functionName,functionName);
+
+  fprintf(fp,"\n\n/** @brief Register a callback that will get called when %s is updated*/\n",functionName);
+  fprintf(fp,"static int registerCallbackOnNewData_%s(void * callback)\n",functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"    %sStatic.callbackOnNewData = callback;\n",functionName);
+  fprintf(fp,"    return 1;\n");
+  fprintf(fp,"}\n\n");
+
 
   fprintf(fp,"\n\n/** @brief Send a %s message through the bridge\n",functionName);
   fprintf(fp,"* @ingroup stringParsing\n");
@@ -268,11 +281,34 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"}\n\n");
 
 
+  fprintf(fp,"\n\n/** @brief Initialize a bridge to write values %s */\n",functionName);
+  fprintf(fp,"static int initializeForWriting_%s()\n",functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"if ( initializeWritingBridge(&%sBridge , pathToMMAP%s , sizeof(struct %sMessage)) )",functionName,functionName,functionName);
+  fprintf(fp,"    { \n");
+  fprintf(fp,"      struct %sMessage empty={0};\n",functionName);
+  fprintf(fp,"      empty.timestampInit = rand()%%10000;\n");
+  fprintf(fp,"        if ( write_%s(&%sBridge,&empty) ) { return 1; } else { return 0; }\n ",functionName,functionName);
+  fprintf(fp,"    } else { return 0; }\n");
+  fprintf(fp,"}\n\n");
+
+
+
+  fprintf(fp,"\n\n/** @brief Initialize a bridge to read values %s */\n",functionName);
+  fprintf(fp,"static int initializeForReading_%s()\n",functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"if ( initializeReadingBridge(&%sBridge , pathToMMAP%s , sizeof(struct %sMessage)) )",functionName,functionName,functionName);
+  fprintf(fp,"    { \n");
+  fprintf(fp,"      %sStatic.timestampInit = rand()%%10000;\n",functionName);
+  fprintf(fp,"        if ( read_%s(&%sBridge,&%sStatic) ) { return 1; } else { return 0; }\n ",functionName,functionName,functionName);
+  fprintf(fp,"    } else { return 0; }\n");
+  fprintf(fp,"}\n\n");
+
+
+
   // ------------------------------------------------------------------------------
   fprintf(fp,"\n\n/** @brief If we don't have AmmarServer included then we don't need the rest of the code*/\n");
   fprintf(fp,"#ifdef AMMSERVERLIB_H_INCLUDED\n");
-  fprintf(fp,"\n\n/** @brief This is the static memory location where we receive stuff from the scope of the webserver*/\n");
-  fprintf(fp,"static struct %sMessage %sStatic={0};\n\n",functionName,functionName);
 
   fprintf(fp,"\n\n/** @brief This is the Resource handler context that will manage requests to %s.html */\n",functionName);
   fprintf(fp,"static struct AmmServer_RH_Context %sRH={0};\n",functionName);
@@ -288,19 +324,14 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"{\n");
 
 
-  fprintf(fp,"if ( initializeWritingBridge(&%sBridge , pathToMMAP%s , sizeof(struct %sMessage)) )",functionName,functionName,functionName);
+  fprintf(fp,"if ( initializeForWriting_%s() )",functionName);
   fprintf(fp,"    { AmmServer_Success(\"Successfully initialized mmaped bridge\");");
-  fprintf(fp,"      struct %sMessage empty={0};",functionName);
-  fprintf(fp,"      empty.timestampInit = rand()%%10000;");
-  fprintf(fp,"        if ( write_%s(&%sBridge,&empty) )",functionName,functionName);
-  fprintf(fp,"      { AmmServer_Success(\"Successfully flushed mmaped region\"); }");
-  fprintf(fp,"        else");
-  fprintf(fp,"      { AmmServer_Error(\"Could not flush mmaped region\"); }");
   fprintf(fp,"    }   else");
   fprintf(fp,"    { AmmServer_Error(\"Could not initialize mmaped bridge \");      }");
 
   fprintf(fp,"  return AmmServer_AddResourceHandler(instance,&%sRH,\"/%s.html\",2048+sizeof(struct %sMessage),0,&%sHTTPServer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
   fprintf(fp,"}\n\n");
+
 
 
 

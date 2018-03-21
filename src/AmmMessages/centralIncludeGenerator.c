@@ -39,7 +39,6 @@ int gatherEverything(int argc, char *argv[])
     {
       fprintf(fp," if (newBridgeMessageAvailiable(&%sBridge)) {  \n",argv[i]);
         fprintf(fp," read_%s(&%sBridge,&%sMessage); }  \n",argv[i],argv[i],argv[i]);
-
     }
   fprintf(fp,"}\n\n");
 

@@ -16,7 +16,7 @@ centralIncludeGenerator.h
 ../InputParser/InputParser_C.c
 ../InputParser/InputParser_C.h
 )  
-set_target_properties(AmmMessages PROPERTIES DEBUG_POSTFIX "D") 
+#set_target_properties(AmmMessages PROPERTIES DEBUG_POSTFIX "D") 
         
 
     set_target_properties(AmmMessages PROPERTIES 

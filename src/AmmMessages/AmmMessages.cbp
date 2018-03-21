@@ -42,6 +42,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../StringRecognizer/fastStringParser.h" />
+		<Unit filename="centralIncludeGenerator.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="centralIncludeGenerator.h" />
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>

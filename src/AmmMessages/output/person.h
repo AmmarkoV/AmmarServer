@@ -5,7 +5,7 @@
 */
 
 /*
-This file was automatically generated @ 21-03-2018 03:08:41 using AmmMessages
+This file was automatically generated @ 21-03-2018 19:40:14 using AmmMessages
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmMessages
 Please note that changes you make here may be automatically overwritten
 if the AmmMessages generator runs again..!
@@ -23,6 +23,7 @@ static struct bridgeContext personBridge= {0};
 struct personMessage
 {
     unsigned long timestampInit;
+    void * callbackOnNewData;
 //#Confidence is a float ranging 0.0 to 1.0
     float confidence;
 //
@@ -42,6 +43,20 @@ struct personMessage
 //time stamp
 //
 };
+
+
+
+/** @brief This is the static memory location where we receive stuff so we don't even have to declare this..*/
+static struct personMessage personStatic= {0};
+
+
+
+/** @brief Register a callback that will get called when person is updated*/
+static int registerCallbackOnNewData_person(void * callback)
+{
+    personStatic.callbackOnNewData = callback;
+    return 1;
+}
 
 
 
@@ -74,13 +89,46 @@ static int read_person(struct bridgeContext * nbc,struct personMessage* msg)
 
 
 
+/** @brief Initialize a bridge to write values person */
+static int initializeForWriting_person()
+{
+    if ( initializeWritingBridge(&personBridge , pathToMMAPperson , sizeof(struct personMessage)) )    {
+        struct personMessage empty= {0};
+        empty.timestampInit = rand()%10000;
+        if ( write_person(&personBridge,&empty) ) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    } else {
+        return 0;
+    }
+}
+
+
+
+/** @brief Initialize a bridge to read values person */
+static int initializeForReading_person()
+{
+    if ( initializeReadingBridge(&personBridge , pathToMMAPperson , sizeof(struct personMessage)) )    {
+        struct personMessage empty= {0};
+        empty.timestampInit = rand()%10000;
+        if ( read_person(&personBridge,&empty) ) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    } else {
+        return 0;
+    }
+}
+
+
+
 /** @brief If we don't have AmmarServer included then we don't need the rest of the code*/
 #ifdef AMMSERVERLIB_H_INCLUDED
-
-
-/** @brief This is the static memory location where we receive stuff from the scope of the webserver*/
-static struct personMessage personStatic= {0};
-
 
 
 /** @brief This is the Resource handler context that will manage requests to person.html */
@@ -125,16 +173,8 @@ static void * personHTTPServer(struct AmmServer_DynamicRequest  * rqst)
 /** @brief This function adds person.html to the webserver and makes it listen for GET commands and forward them to the mmaped structure personStatic */
 static int personAddToHTTPServer(struct AmmServer_Instance * instance)
 {
-    if ( initializeWritingBridge(&personBridge , pathToMMAPperson , sizeof(struct personMessage)) )    {
+    if ( initializeForWriting_person() )    {
         AmmServer_Success("Successfully initialized mmaped bridge");
-        struct personMessage empty= {0};
-        empty.timestampInit = rand()%10000;
-        if ( write_person(&personBridge,&empty) )      {
-            AmmServer_Success("Successfully flushed mmaped region");
-        }
-        else      {
-            AmmServer_Error("Could not flush mmaped region");
-        }
     }
     else    {
         AmmServer_Error("Could not initialize mmaped bridge ");
