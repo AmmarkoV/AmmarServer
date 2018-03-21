@@ -5,7 +5,7 @@
 */
 
 /*
-This file was automatically generated @ 21-03-2018 19:40:14 using AmmMessages
+This file was automatically generated @ 21-03-2018 20:46:02 using AmmMessages
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmMessages
 Please note that changes you make here may be automatically overwritten
 if the AmmMessages generator runs again..!
@@ -14,6 +14,8 @@ if the AmmMessages generator runs again..!
 #ifndef PERSON_H_INCLUDED
 #define PERSON_H_INCLUDED
 
+
+#include <string.h>
 
 #include "mmapBridge.h"
 
@@ -81,10 +83,25 @@ static int read_person(struct bridgeContext * nbc,struct personMessage* msg)
 {
     if (readBridge(nbc, (void*) msg , sizeof(struct personMessage) ) )
     {
+        if (personStatic.callbackOnNewData!=0)
+        {
+            void ( *DoCallback) ( struct personMessage * ) = 0 ;
+            DoCallback=personStatic.callbackOnNewData;
+            DoCallback(&personStatic);
+        }
         nbc->lastMsgTimestamp = msg->timestampInit;
         return 1;
     }
     return 0;
+}
+
+
+
+/** @brief Empty bridge  state for person */
+static int empty_person()
+{
+    memset(&personStatic,0,sizeof(struct personMessage));
+    return 1;
 }
 
 
@@ -112,9 +129,8 @@ static int initializeForWriting_person()
 static int initializeForReading_person()
 {
     if ( initializeReadingBridge(&personBridge , pathToMMAPperson , sizeof(struct personMessage)) )    {
-        struct personMessage empty= {0};
-        empty.timestampInit = rand()%10000;
-        if ( read_person(&personBridge,&empty) ) {
+        personStatic.timestampInit = rand()%10000;
+        if ( read_person(&personBridge,&personStatic) ) {
             return 1;
         }
         else {

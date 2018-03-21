@@ -31,14 +31,22 @@ int gatherEverything(int argc, char *argv[])
     { fprintf(fp,"#include \"%s.h\" \n",argv[i]); }
 
 
+  fprintf(fp,"\n\nstatic int initializeAllMessagesForWriting()\n");
+  fprintf(fp,"{\n");
+    for (i=2; i<argc; i++) { fprintf(fp," initializeForWriting_%s(); \n",argv[i]); }
+  fprintf(fp,"}\n\n");
 
+  fprintf(fp,"\n\nstatic int initializeAllMessagesForReading()\n");
+  fprintf(fp,"{\n");
+    for (i=2; i<argc; i++) { fprintf(fp," initializeForReading_%s(); \n",argv[i]); }
+  fprintf(fp,"}\n\n");
 
   fprintf(fp,"\n\nstatic int sampleAllMessages()\n");
   fprintf(fp,"{\n");
     for (i=2; i<argc; i++)
     {
       fprintf(fp," if (newBridgeMessageAvailiable(&%sBridge)) {  \n",argv[i]);
-        fprintf(fp," read_%s(&%sBridge,&%sMessage); }  \n",argv[i],argv[i],argv[i]);
+        fprintf(fp," read_%s(&%sBridge,&%sStatic); }  \n",argv[i],argv[i],argv[i]);
     }
   fprintf(fp,"}\n\n");
 

@@ -49,10 +49,19 @@
 			<Add library="../../Hashmap/libHashmap.a" />
 			<Add library="../../InputParser/libInputParser_C.a" />
 		</Linker>
+		<Unit filename="allAmmMessages.h" />
+		<Unit filename="behavior.h" />
+		<Unit filename="command.h" />
 		<Unit filename="mmapBridge.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="mmapBridge.h" />
+		<Unit filename="move.h" />
+		<Unit filename="nav.h" />
+		<Unit filename="person.h" />
+		<Unit filename="pointEvents.h" />
+		<Unit filename="say.h" />
+		<Unit filename="skeleton2D3D.h" />
 		<Unit filename="testServer.c">
 			<Option compilerVar="CC" />
 		</Unit>

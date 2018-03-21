@@ -117,7 +117,6 @@ int writeServerCallback(
           fprintf(fp,"  }  \n");
         }
     }
-
   }
 
   fprintf(fp,"write_person(&%sBridge,&%sStatic);",functionName,functionName);
@@ -176,8 +175,6 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
 {
   struct fastStringParser * fsp = fastSTringParser_createRulesFromFile(filename,64);
 
-
-
   const char *  functionName = label;
   unsigned int functionNameLength = strlen(functionName);
   fsp->functionName  = (char* ) malloc(sizeof(char) * (1+functionNameLength));
@@ -225,6 +222,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"#ifndef %s_H_INCLUDED\n",fsp->functionName);
   fprintf(fp,"#define %s_H_INCLUDED\n\n\n",fsp->functionName);
 
+  fprintf(fp,"#include <string.h> \n\n");
   fprintf(fp,"#include \"mmapBridge.h\" \n\n");
 
   fprintf(fp,"const char * pathToMMAP%s=\"%s/%s.mmap\";",functionName,pathToMMap,functionName);
@@ -274,10 +272,26 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"{\n");
   fprintf(fp,"  if (readBridge(nbc, (void*) msg , sizeof(struct %sMessage) ) )\n",functionName);
   fprintf(fp,"  {\n");
+
+  fprintf(fp,"      if (%sStatic.callbackOnNewData!=0)\n",functionName);
+  fprintf(fp,"          {\n");
+  fprintf(fp,"             void ( *DoCallback) ( struct %sMessage * ) = 0 ;\n",functionName);
+  fprintf(fp,"             DoCallback=%sStatic.callbackOnNewData;\n",functionName);
+  fprintf(fp,"             DoCallback(&%sStatic);\n",functionName);
+  fprintf(fp,"          }\n");
+
   fprintf(fp,"    nbc->lastMsgTimestamp = msg->timestampInit;\n");
   fprintf(fp,"    return 1;\n");
   fprintf(fp,"  }\n");
   fprintf(fp," return 0;\n");
+  fprintf(fp,"}\n\n");
+
+
+  fprintf(fp,"\n\n/** @brief Empty bridge  state for %s */\n",functionName);
+  fprintf(fp,"static int empty_%s()\n",functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"  memset(&%sStatic,0,sizeof(struct %sMessage));\n",functionName,functionName);
+  fprintf(fp,"  return 1;\n");
   fprintf(fp,"}\n\n");
 
 
