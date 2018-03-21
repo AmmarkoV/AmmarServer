@@ -25,8 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../../AmmServerlib/AmmServerlib.h"
 
 
-#include "person.h"
-#include "pointEvents.h"
+#include "allAmmMessages.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 
@@ -39,15 +38,13 @@ struct AmmServer_Instance  * default_server=0;
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  personAddToHTTPServer(default_server);
-  pointEventsAddToHTTPServer(default_server);
+  addAllToHTTPServer(default_server);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-  personRemoveFromHTTPServer(default_server);
-  pointEventsRemoveFromHTTPServer(default_server);
+  removeAllFromHTTPServer(default_server);
 }
 
 int main(int argc, char *argv[])

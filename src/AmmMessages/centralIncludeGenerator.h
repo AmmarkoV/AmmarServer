@@ -2,5 +2,6 @@
 #define CENTRALINCLUDEGENERATOR_H_INCLUDED
 
 
+int gatherEverything(int argc, char *argv[]);
 
 #endif // CENTRALINCLUDEGENERATOR_H_INCLUDED

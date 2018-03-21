@@ -20,4 +20,8 @@ generateMSG "samples/msg/skeleton2D3D.msg" "skeleton2D3D"
 generateMSG "samples/msg/skeletonBBox.msg" "skeletonBBox"
 generateMSG "samples/msg/pointEvents.msg" "pointEvents"
  
+./AmmMessages -gather person skeleton2D skeleton3D skeleton2D3D skeletonBBox pointEvents
+astyle allAmmMessages.h 
+mv allAmmMessages.h output/
+
 exit 0
