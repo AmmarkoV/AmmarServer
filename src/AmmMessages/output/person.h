@@ -5,7 +5,7 @@
 */
 
 /*
-This file was automatically generated @ 22-03-2018 01:08:40 using AmmMessages
+This file was automatically generated @ 22-03-2018 18:08:34 using AmmMessages
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmMessages
 Please note that changes you make here may be automatically overwritten
 if the AmmMessages generator runs again..!
@@ -15,11 +15,13 @@ if the AmmMessages generator runs again..!
 #define PERSON_H_INCLUDED
 
 
+#include <stdio.h>
+
 #include <string.h>
 
 #include "mmapBridge.h"
 
-const char * pathToMMAPperson="/home/nao/mmap/person.mmap";
+const char * pathToMMAPperson="/home/ammar/mmap/person.mmap";
 static struct bridgeContext personBridge= {0};
 
 struct personMessage
@@ -101,6 +103,26 @@ static int read_person(struct bridgeContext * nbc,struct personMessage* msg)
 static int empty_person()
 {
     memset(&personStatic,0,sizeof(struct personMessage));
+    return 1;
+}
+
+
+
+/** @brief This call crafts a request to person.html and serializes our message*/
+static int packToHTTPGETRequest_person(char * buffer,unsigned int bufferSize,struct personMessage * msg)
+{
+    return snprintf(buffer,bufferSize,"/person.html?confidence=%0.5f&source=%u&inFieldOfView=%u&x=%0.5f&y=%0.5f&z=%0.5f&theta=%0.5f&timestamp=%u&stamp=t=89383",msg->confidence,msg->source,msg->inFieldOfView,msg->x,msg->y,msg->z,msg->theta,msg->timestamp);
+}
+
+
+
+/** @brief Print message for person */
+static int print_person(struct personMessage * msg)
+{
+    char buffer[2049]= {0};
+    unsigned int bufferSize=2048;
+    packToHTTPGETRequest_person(buffer,bufferSize,msg);
+    printf("%s",buffer);
     return 1;
 }
 
@@ -203,7 +225,22 @@ static int personRemoveFromHTTPServer(struct AmmServer_Instance * instance)
     AmmServer_RemoveResourceHandler(instance,&personRH,1);
     closeWritingBridge(&personBridge);
 }
+#endif
 
+
+
+/** @brief If we don't have AmmarClient included then we won't use it and we don't need the rest of the code*/
+#ifdef AMMCLIENT_H_INCLUDED
+
+
+/** @brief If this instance of your code is running on a machine that is connected through TCP/IP and you want to send your data you can do it using this call person.html */
+static int sendToServer_person(struct AmmClient_Instance * instance,struct personMessage * msg)
+{
+    char buffer[2049]= {0};
+    unsigned int bufferSize=2048;
+    packToHTTPGETRequest_person(buffer,bufferSize,msg);
+    return AmmClient_Send(instance,buffer,bufferSize,1);
+}
 #endif
 
 #endif

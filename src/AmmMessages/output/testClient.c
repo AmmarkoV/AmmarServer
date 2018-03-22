@@ -27,24 +27,28 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "allAmmMessages.h"
 
 
-void * newPersonMessage(struct personMessage * pm)
-{
-
-}
-
-
 int main(int argc, char *argv[])
 {
-    printf("\Client starting up..\n");
+    printf("\Client starting up I will now emitting bogus move messages..\n");
 
-    initializeAllMessagesForReading();
-    registerCallbackOnNewData_person(newPersonMessage);
+    #define IP "127.0.0.1"
+    #define PORT 8080
 
+    struct AmmClient_Instance * connection =  AmmClient_Initialize(IP,PORT);
+    if (connection!=0)
+    {
          while ( 1 )
            {
+             moveStatic.velocityX        = (float) (rand()%1000);
+             moveStatic.velocityY        = (float) (rand()%1000);
+             moveStatic.orientationTheta = (float) (rand()%1000);
+
+             sendToServer_move(connection , &moveStatic);
              sleep(1);
            }
 
+     AmmClient_Close(connection);
+    }
 
     return 0;
 }

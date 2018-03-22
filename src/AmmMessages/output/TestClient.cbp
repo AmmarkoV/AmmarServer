@@ -48,7 +48,9 @@
 			<Add option="-lz" />
 			<Add library="../../Hashmap/libHashmap.a" />
 			<Add library="../../InputParser/libInputParser_C.a" />
+			<Add library="../../AmmClient/libAmmClient.a" />
 		</Linker>
+		<Unit filename="../../AmmClient/AmmClient.h" />
 		<Unit filename="allAmmMessages.h" />
 		<Unit filename="behavior.h" />
 		<Unit filename="command.h" />

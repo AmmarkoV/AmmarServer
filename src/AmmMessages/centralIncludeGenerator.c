@@ -33,21 +33,27 @@ int gatherEverything(int argc, char *argv[])
 
   fprintf(fp,"\n\nstatic int initializeAllMessagesForWriting()\n");
   fprintf(fp,"{\n");
-    for (i=2; i<argc; i++) { fprintf(fp," initializeForWriting_%s(); \n",argv[i]); }
+  fprintf(fp," unsigned int count=0;\n");
+    for (i=2; i<argc; i++) { fprintf(fp," count+=initializeForWriting_%s(); \n",argv[i]); }
+  fprintf(fp," return (count==%u);\n",argc-2);
   fprintf(fp,"}\n\n");
 
   fprintf(fp,"\n\nstatic int initializeAllMessagesForReading()\n");
   fprintf(fp,"{\n");
-    for (i=2; i<argc; i++) { fprintf(fp," initializeForReading_%s(); \n",argv[i]); }
+  fprintf(fp," unsigned int count=0;\n");
+    for (i=2; i<argc; i++) { fprintf(fp," count+=initializeForReading_%s(); \n",argv[i]); }
+  fprintf(fp," return (count==%u);\n",argc-2);
   fprintf(fp,"}\n\n");
 
   fprintf(fp,"\n\nstatic int sampleAllMessages()\n");
   fprintf(fp,"{\n");
+  fprintf(fp," unsigned int count=0;\n");
     for (i=2; i<argc; i++)
     {
       fprintf(fp," if (newBridgeMessageAvailiable(&%sBridge)) {  \n",argv[i]);
-        fprintf(fp," read_%s(&%sBridge,&%sStatic); }  \n",argv[i],argv[i],argv[i]);
+        fprintf(fp," count+=read_%s(&%sBridge,&%sStatic); }  \n",argv[i],argv[i],argv[i]);
     }
+  fprintf(fp," return (count==%u);\n",argc-2);
   fprintf(fp,"}\n\n");
 
 
@@ -56,15 +62,19 @@ int gatherEverything(int argc, char *argv[])
   fprintf(fp,"#ifdef AMMSERVERLIB_H_INCLUDED\n");
   fprintf(fp,"static int addAllToHTTPServer(struct AmmServer_Instance * instance)\n");
   fprintf(fp,"{\n");
+  fprintf(fp," unsigned int count=0;\n");
     for (i=2; i<argc; i++)
-    { fprintf(fp,"%sAddToHTTPServer(instance);\n",argv[i]); }
+    { fprintf(fp,"count+=%sAddToHTTPServer(instance);\n",argv[i]); }
+  fprintf(fp," return (count==%u);\n",argc-2);
   fprintf(fp,"}\n\n");
 
 
   fprintf(fp,"static int removeAllFromHTTPServer(struct AmmServer_Instance * instance)\n");
   fprintf(fp,"{\n");
+  fprintf(fp," unsigned int count=0;\n");
       for (i=2; i<argc; i++)
-    { fprintf(fp,"%sRemoveFromHTTPServer(instance);\n",argv[i]); }
+    { fprintf(fp,"count+=%sRemoveFromHTTPServer(instance);\n",argv[i]); }
+  fprintf(fp," return (count==%u);\n",argc-2);
   fprintf(fp,"}\n\n");
   fprintf(fp,"#endif\n\n");
 //------------------------------------------------------------------------
@@ -77,6 +87,7 @@ int gatherEverything(int argc, char *argv[])
   fprintf(fp,"{\n");
    // for (i=2; i<argc; i++)
    // { fprintf(fp,"%sAddToHTTPServer(instance);\n",argv[i]); }
+  fprintf(fp," return 0;\n");
   fprintf(fp,"}\n\n");
   fprintf(fp,"#endif\n\n");
 //------------------------------------------------------------------------

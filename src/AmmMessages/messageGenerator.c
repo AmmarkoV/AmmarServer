@@ -15,15 +15,16 @@
 #define MAXIMUM_LINE_LENGTH 1024
 
 
-char * varTypesList[] = {   "int64"   , "unsigned long %s;\n" , "%s=atoi(%s);"               ,
-                            "int32"   , "unsigned int %s;\n"  , "%s=atoi(%s);"               ,
-                            "int"     , "unsigned long %s;\n" , "%s=atoi(%s);"               ,
-                            "float"   , "float %s;\n"         , "%s=atof(%s);"               ,
-                            "float32" , "float %s;\n"         , "%s=atof(%s);"               ,
-                            "float64" , "double %s;\n"        , "%s=atof(%s);"               ,
-                            "bool"    , "int %s;\n"           , "%s=atoi(%s);"               ,
-                            "string"  , "char %s[512];\n"     , "snprintf(%s,512,\"%%s\",%s);"
+char * varTypesList[] = {   "int64"   , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%lu"  ,
+                            "int32"   , "unsigned int %s;\n"  , "%s=atoi(%s);"               , "%u"   ,
+                            "int"     , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%u"   ,
+                            "float"   , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",
+                            "float32" , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",
+                            "float64" , "double %s;\n"        , "%s=atof(%s);"               , "%f"   ,
+                            "bool"    , "int %s;\n"           , "%s=atoi(%s);"               , "%u"   ,
+                            "string"  , "char %s[512];\n"     , "snprintf(%s,512,\"%%s\",%s);", "%s"  ,
                             //DONT FORGET TO UPDATE  varTypesListNumber
+                            "fail"  , "fail"     , "fail",  "fail"
                         };
 unsigned int varTypesListNumber = 8;
 
@@ -35,7 +36,7 @@ int typeExists(const char * rosType)
   unsigned int i=0;
   for (i=0; i<varTypesListNumber; i++)
   {
-     if (strcasecmp(rosType,varTypesList[i*3+0])==0) { retval=1; }
+     if (strcasecmp(rosType,varTypesList[i*4+0])==0) { retval=1; }
   }
 
   return retval;
@@ -53,7 +54,7 @@ int writeType(
   unsigned int i=0;
   for (i=0; i<varTypesListNumber; i++)
   {
-     if (strcasecmp(rosType,varTypesList[i*3+0])==0) { fprintf(fp,varTypesList[i*3+1],variableID); retval=1; }
+     if (strcasecmp(rosType,varTypesList[i*4+0])==0) { fprintf(fp,varTypesList[i*4+1],variableID); retval=1; }
   }
 
   return retval;
@@ -71,10 +72,79 @@ int writeConversion(
   unsigned int i=0;
   for (i=0; i<varTypesListNumber; i++)
   {
-     if (strcasecmp(rosType,varTypesList[i*3+0])==0) { fprintf(fp,varTypesList[i*3+2],varDestination,varName); retval=1; }
+     if (strcasecmp(rosType,varTypesList[i*4+0])==0) { fprintf(fp,varTypesList[i*4+2],varDestination,varName); retval=1; }
   }
  return retval;
 }
+
+
+
+void writeGETPrintf(
+                 FILE * fp ,
+                 struct fastStringParser * fsp,
+                 const char * functionName
+                )
+{
+ char variableType[256]={0};
+ char variableID[256]  ={0};
+ struct InputParserC * ipc = InputParser_Create(512,5);
+ InputParser_SetDelimeter(ipc,1,' ');
+
+  //First output Initial GET URI
+  fprintf(fp,"\"/%s.html?",functionName);
+
+  //The output the formatting string
+  unsigned int numberOfArguments=0;
+  unsigned int i=0,z=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    int arguments = InputParser_SeperateWordsCC(ipc,fsp->contents[i].str,1);
+    if (arguments==2)
+    {
+     InputParser_GetWord(ipc,0,variableType,256);
+     InputParser_GetWord(ipc,1,variableID,256);
+     fprintf(fp,"%s=",variableID);
+     for (z=0; z<varTypesListNumber; z++)
+     {
+       if (strcasecmp(variableType,varTypesList[z*4+0])==0)
+         {
+              fprintf(fp,"%s&",varTypesList[z*4+3]);
+              ++numberOfArguments;
+         }
+     }
+    }
+  }
+  fprintf(fp,"t=%u",rand()%100000);
+  fprintf(fp,"\",");
+
+  //Then output the arguments..
+  unsigned int secondCountOfArguments=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
+  {
+    int arguments = InputParser_SeperateWordsCC(ipc,fsp->contents[i].str,1);
+    if (arguments==2)
+    {
+     InputParser_GetWord(ipc,0,variableType,256);
+     InputParser_GetWord(ipc,1,variableID,256);
+     for (z=0; z<varTypesListNumber; z++)
+     {
+       if (strcasecmp(variableType,varTypesList[z*4+0])==0)
+         {
+          fprintf(fp,"msg->%s",variableID);
+          ++secondCountOfArguments;
+          if (secondCountOfArguments<numberOfArguments)
+           {
+             fprintf(fp,",");
+           }
+         }
+     }
+    }
+  }
+
+  InputParser_Destroy(ipc);
+}
+
+
 
 
 int writeServerCallback(
@@ -222,6 +292,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"#ifndef %s_H_INCLUDED\n",fsp->functionName);
   fprintf(fp,"#define %s_H_INCLUDED\n\n\n",fsp->functionName);
 
+  fprintf(fp,"#include <stdio.h> \n\n");
   fprintf(fp,"#include <string.h> \n\n");
   fprintf(fp,"#include \"mmapBridge.h\" \n\n");
 
@@ -295,6 +366,25 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"}\n\n");
 
 
+
+  fprintf(fp,"\n\n/** @brief This call crafts a request to %s.html and serializes our message*/\n",functionName);
+  fprintf(fp,"static int packToHTTPGETRequest_%s(char * buffer,unsigned int bufferSize,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"  return snprintf(buffer,bufferSize,");
+      writeGETPrintf(fp,fsp,functionName);
+  fprintf(fp,");\n");
+  fprintf(fp,"}\n\n");
+
+
+  fprintf(fp,"\n\n/** @brief Print message for %s */\n",functionName);
+  fprintf(fp,"static int print_%s(struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp," char buffer[2049]={0}; unsigned int bufferSize=2048;\n");
+  fprintf(fp," packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
+  fprintf(fp," printf(\"%%s\",buffer);\n");
+  fprintf(fp," return 1;\n");
+  fprintf(fp,"}\n\n");
+
   fprintf(fp,"\n\n/** @brief Initialize a bridge to write values %s */\n",functionName);
   fprintf(fp,"static int initializeForWriting_%s()\n",functionName);
   fprintf(fp,"{\n");
@@ -337,7 +427,6 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"static int %sAddToHTTPServer(struct AmmServer_Instance * instance)\n",functionName);
   fprintf(fp,"{\n");
 
-
   fprintf(fp,"if ( initializeForWriting_%s() )",functionName);
   fprintf(fp,"    { AmmServer_Success(\"Successfully initialized mmaped bridge\");");
   fprintf(fp,"    }   else");
@@ -346,17 +435,11 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"  return AmmServer_AddResourceHandler(instance,&%sRH,\"/%s.html\",2048+sizeof(struct %sMessage),0,&%sHTTPServer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
   fprintf(fp,"}\n\n");
 
-
-
-
   fprintf(fp,"static int %sRemoveFromHTTPServer(struct AmmServer_Instance * instance)\n",functionName);
   fprintf(fp,"{\n");
   fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sRH,1); \n",functionName);
   fprintf(fp,"  closeWritingBridge(&%sBridge);\n",functionName);
-  fprintf(fp,"}\n\n");
-
-
-
+  fprintf(fp,"}\n");
   fprintf(fp,"#endif\n\n");
 //----------------------------------------------------------------------------------------------
 
@@ -364,11 +447,13 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
 //------------------------------------------------------------------------
   fprintf(fp,"\n\n/** @brief If we don't have AmmarClient included then we won't use it and we don't need the rest of the code*/\n");
   fprintf(fp,"#ifdef AMMCLIENT_H_INCLUDED\n");
-  fprintf(fp,"static int sendToServer_%s(struct AmmClient_Instance * instance)\n",functionName);
+  fprintf(fp,"\n\n/** @brief If this instance of your code is running on a machine that is connected through TCP/IP and you want to send your data you can do it using this call %s.html */\n",functionName);
+  fprintf(fp,"static int sendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
-   // for (i=2; i<argc; i++)
-   // { fprintf(fp,"%sAddToHTTPServer(instance);\n",argv[i]); }
-  fprintf(fp,"}\n\n");
+   fprintf(fp,"char buffer[2049]={0}; unsigned int bufferSize=2048;\n");
+   fprintf(fp,"packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
+   fprintf(fp,"return AmmClient_Send(instance,buffer,bufferSize,1);\n");
+  fprintf(fp,"}\n");
   fprintf(fp,"#endif\n\n");
 //------------------------------------------------------------------------
 

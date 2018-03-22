@@ -1,8 +1,9 @@
 #!/bin/bash
 
-  
+MMAPDIR="/home/ammar/mmap"  
+
 function generateMSG {
-                       ./AmmMessages -msg $1 $2 "/home/nao/mmap"
+                       ./AmmMessages -msg $1 $2 $MMAPDIR
                        astyle $2.h 
                        mv $2.h output/
                        gcc output/$2.h -o output/$2   
