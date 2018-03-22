@@ -29,7 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 void * newMoveMessage(struct moveMessage * pm)
 {
-    printf("New move message received by final client ( non http )..\n");
+    printf("\nNew move message received by final client ( non http )..\n");
     print_move(pm);
 }
 
@@ -41,10 +41,14 @@ int main(int argc, char *argv[])
     initializeAllMessagesForReading();
     registerCallbackOnNewData_move(newMoveMessage);
 
+    printf("\Now entering receive loop..\n");
          while ( 1 )
            {
+             fprintf(stderr,".");
              sampleAllMessages();
              sleep(1);
+
+             //print_move(&moveStatic);
            }
 
 

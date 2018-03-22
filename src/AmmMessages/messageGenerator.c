@@ -190,9 +190,10 @@ int writeServerCallback(
   fprintf(fp," #if DEBUG_PRINT\n");
      fprintf(fp,"fprintf(stderr,\"HTTPServer: Received a %s message \\n \");\n",functionName);
      fprintf(fp,"print_%s(&%sStatic);\n",functionName,functionName);
+     fprintf(fp,"fprintf(stderr,\" \\n \");\n");
   fprintf(fp," #endif\n");
 
-  fprintf(fp,"write_person(&%sBridge,&%sStatic);",functionName,functionName);
+  fprintf(fp,"if (!write_%s(&%sBridge,&%sStatic)) { AmmServer_Error(\"Could not send %s to mmaped bridge \");  }",functionName,functionName,functionName,functionName);
 
 
   fprintf(fp,"snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>OK</body></html>\");\n");
@@ -334,7 +335,9 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"* @retval See above enumerator*/\n");
   fprintf(fp,"static int write_%s(struct bridgeContext * nbc,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
-  fprintf(fp,"    printf(\"updating %s message.. \\n \");\n",functionName);
+  fprintf(fp," #if DEBUG_PRINT\n");
+  fprintf(fp,"    printf(\"\\nWriting %s message to bridge.. \\n \");\n",functionName);
+  fprintf(fp," #endif\n");
   fprintf(fp,"    return writeBridge(nbc, (void*) msg , sizeof(struct %sMessage) );\n",functionName);
   fprintf(fp,"}\n\n");
 
@@ -352,7 +355,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"          {\n");
   fprintf(fp,"             void ( *DoCallback) ( struct %sMessage * ) = 0 ;\n",functionName);
   fprintf(fp,"             DoCallback=%sStatic.callbackOnNewData;\n",functionName);
-  fprintf(fp,"             DoCallback(&%sStatic);\n",functionName);
+  fprintf(fp,"             DoCallback(msg);\n");
   fprintf(fp,"          }\n");
 
   fprintf(fp,"    nbc->lastMsgTimestamp = msg->timestampInit;\n");
@@ -386,6 +389,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp," char buffer[2049]={0}; unsigned int bufferSize=2048;\n");
   fprintf(fp," packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
   fprintf(fp," printf(\"%%s\",buffer);\n");
+  fprintf(fp," fflush(stdout);\n");
   fprintf(fp," return 1;\n");
   fprintf(fp,"}\n\n");
 
@@ -442,6 +446,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"{\n");
   fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sRH,1); \n",functionName);
   fprintf(fp,"  closeWritingBridge(&%sBridge);\n",functionName);
+  fprintf(fp,"  return 1;\n");
   fprintf(fp,"}\n");
   fprintf(fp,"#endif\n\n");
 //----------------------------------------------------------------------------------------------
