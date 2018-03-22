@@ -361,6 +361,17 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
 //----------------------------------------------------------------------------------------------
 
 
+//------------------------------------------------------------------------
+  fprintf(fp,"\n\n/** @brief If we don't have AmmarClient included then we won't use it and we don't need the rest of the code*/\n");
+  fprintf(fp,"#ifdef AMMCLIENT_H_INCLUDED\n");
+  fprintf(fp,"static int sendToServer_%s(struct AmmClient_Instance * instance)\n",functionName);
+  fprintf(fp,"{\n");
+   // for (i=2; i<argc; i++)
+   // { fprintf(fp,"%sAddToHTTPServer(instance);\n",argv[i]); }
+  fprintf(fp,"}\n\n");
+  fprintf(fp,"#endif\n\n");
+//------------------------------------------------------------------------
+
 
 
 
