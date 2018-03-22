@@ -452,7 +452,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"{\n");
    fprintf(fp,"char buffer[2049]={0}; unsigned int bufferSize=2048;\n");
    fprintf(fp,"packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
-   fprintf(fp,"return AmmClient_Send(instance,buffer,bufferSize,1);\n");
+   fprintf(fp,"return AmmClient_Send(instance,buffer,strlen(buffer),1);\n");
   fprintf(fp,"}\n");
   fprintf(fp,"#endif\n\n");
 //------------------------------------------------------------------------

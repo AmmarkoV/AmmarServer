@@ -31,10 +31,14 @@ int main(int argc, char *argv[])
 {
     printf("\Client starting up I will now emitting bogus move messages..\n");
 
-    #define IP "127.0.0.1"
-    #define PORT 8080
+    if (argc<3)
+    {
+       fprintf(stderr,"Please call with parameters.. \nLike : \n");
+       fprintf(stderr,"./testclient 127.0.0.1 8080\n");
+       return 1;
+    }
 
-    struct AmmClient_Instance * connection =  AmmClient_Initialize(IP,PORT);
+    struct AmmClient_Instance * connection =  AmmClient_Initialize(argv[1],atoi(argv[2]));
     if (connection!=0)
     {
          while ( 1 )
