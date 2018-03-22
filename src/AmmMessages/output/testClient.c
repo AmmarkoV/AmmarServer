@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     if (argc<3)
     {
        fprintf(stderr,"Please call with parameters.. \nLike : \n");
-       fprintf(stderr,"./testclient 127.0.0.1 8080\n");
+       fprintf(stderr,"./AmmMessagesTestClient 127.0.0.1 8080\n");
        return 1;
     }
 

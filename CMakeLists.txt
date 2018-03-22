@@ -19,6 +19,10 @@ OPTION (COMPILE_FOR_ARM OFF)
 OPTION (DO_TEST_COVERAGE OFF)
 
 
+#Use Amm Messages , if you are interested in generating custom messages through http you need this on
+OPTION (USE_AMMMESSAGES OFF)
+
+
 IF( DO_TEST_COVERAGE )
  MESSAGE("GCC will generate coverage information.. This will take a little longer") 
  MESSAGE("Compilation flags will be modified , please deactivate DO_TEST_COVERAGE if you want this to be your final build") 
@@ -49,7 +53,10 @@ ENDIF( COMPILE_FOR_ARM )
     add_subdirectory (src/UserAccounts)
     add_subdirectory (src/Hashmap)
     add_subdirectory (src/InputParser)
+
+IF (USE_AMMMESSAGES)
     add_subdirectory (src/AmmMessages)
+ENDIF (USE_AMMMESSAGES)
 
 
     #Make the basic "vanilla" server  

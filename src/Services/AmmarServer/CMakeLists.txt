@@ -19,12 +19,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
    
 add_executable(ammarserver main.c ) 
 target_link_libraries(ammarserver pthread rt AmmarServerDynamic )
-set_target_properties(ammarserver PROPERTIES DEBUG_POSTFIX "D")
+#set_target_properties(ammarserver PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(ammarserver AmmarServer)  
        
 
     set_target_properties(ammarserver PROPERTIES 
-                          DEBUG_POSTFIX ""
+                          #DEBUG_POSTFIX ""
                           ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"

@@ -19,12 +19,20 @@ centralIncludeGenerator.h
 #set_target_properties(AmmMessages PROPERTIES DEBUG_POSTFIX "D") 
         
 
-    set_target_properties(AmmMessages PROPERTIES 
-                          #DEBUG_POSTFIX "D"
-                          ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-                         )
+set_target_properties(AmmMessages PROPERTIES 
+                       #DEBUG_POSTFIX "D"
+                       ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                       LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                     )
+
+
+add_custom_command(TARGET AmmMessages
+        POST_BUILD
+        COMMAND /bin/bash ${CMAKE_CURRENT_SOURCE_DIR}/generateSampleOutput.sh
+        )
+
+add_subdirectory (output)
 
 #    install(TARGETS AmmarServer
 #                    LIBRARY DESTINATION lib
