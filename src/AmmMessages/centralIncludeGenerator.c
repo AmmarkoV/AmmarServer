@@ -80,24 +80,6 @@ int gatherEverything(int argc, char *argv[])
 //------------------------------------------------------------------------
 
 
-//------------------------------------------------------------------------
-  fprintf(fp,"\n\n/** @brief If we don't have AmmarClient included then we won't use it and we don't need the rest of the code*/\n");
-  fprintf(fp,"#ifdef AMMCLIENT_H_INCLUDED\n");
-  fprintf(fp,"static int sendAllToServer(struct AmmClient_Instance * instance)\n");
-  fprintf(fp,"{\n");
-   // for (i=2; i<argc; i++)
-   // { fprintf(fp,"%sAddToHTTPServer(instance);\n",argv[i]); }
-  fprintf(fp," return 0;\n");
-  fprintf(fp,"}\n\n");
-  fprintf(fp,"#endif\n\n");
-//------------------------------------------------------------------------
-
-
-
-
-
-
-
 
   fprintf(fp,"#endif\n");
 

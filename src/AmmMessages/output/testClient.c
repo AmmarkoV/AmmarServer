@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
              moveStatic.orientationTheta = (float) (rand()%1000);
 
              printf("Sending ");
-             print_person(&moveStatic);
+             print_move(&moveStatic);
              printf("\n");
 
              sendToServer_move(connection , &moveStatic);

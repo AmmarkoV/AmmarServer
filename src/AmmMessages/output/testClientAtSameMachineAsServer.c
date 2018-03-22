@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
 
          while ( 1 )
            {
+             sampleAllMessages();
              sleep(1);
            }
 
