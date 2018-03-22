@@ -5,7 +5,7 @@
 */
 
 /*
-This file was automatically generated @ 22-03-2018 18:28:04 using AmmMessages
+This file was automatically generated @ 22-03-2018 18:46:28 using AmmMessages
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmMessages
 Please note that changes you make here may be automatically overwritten
 if the AmmMessages generator runs again..!
@@ -199,6 +199,10 @@ static void * personHTTPServer(struct AmmServer_DynamicRequest  * rqst)
     if ( _GETcpy(rqst,(char*)"timestamp",value,255) )   {
         personStatic.timestamp=atoi(value);
     }
+#if DEBUG_PRINT
+    fprintf(stderr,"HTTPServer: Received a person message \n ");
+    print_person(&personStatic);
+#endif
     write_person(&personBridge,&personStatic);
     snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>OK</body></html>");
     rqst->contentSize=strlen(rqst->content);
@@ -240,7 +244,10 @@ static int sendToServer_person(struct AmmClient_Instance * instance,struct perso
     char buffer[2049]= {0};
     unsigned int bufferSize=2048;
     packToHTTPGETRequest_person(buffer,bufferSize,msg);
-    return AmmClient_Send(instance,buffer,strlen(buffer),1);
+    char http[2049]= {0};
+    unsigned int httpSize=2048;
+    snprintf(http,httpSize,"GET %s HTTP/1.1\nConnection: keep-alive\n\n",buffer);
+    return AmmClient_Send(instance,http,strlen(http),1);
 }
 #endif
 

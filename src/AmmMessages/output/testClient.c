@@ -47,6 +47,10 @@ int main(int argc, char *argv[])
              moveStatic.velocityY        = (float) (rand()%1000);
              moveStatic.orientationTheta = (float) (rand()%1000);
 
+             printf("Sending ");
+             print_person(&moveStatic);
+             printf("\n");
+
              sendToServer_move(connection , &moveStatic);
              sleep(1);
            }
