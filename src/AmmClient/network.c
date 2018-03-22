@@ -112,12 +112,12 @@ int AmmClient_RecvInternal(struct AmmClient_Instance * instance,
 
 
    if (result < 0 ) {
-                     fprintf(stderr,"Failed to Recv error : %u",errno);
+                     fprintf(stderr,"Failed to Recv error : %u\n",errno);
                      instance->connectionOK=0;
                      return 0;
                     } else
                     {
-                      fprintf(stderr,"Recvd %u/%u bytes",result,*bufferSize);
+                      fprintf(stderr,"Recvd %u/%u bytes\n",result,*bufferSize);
                       *bufferSize = result;
                     }
 
@@ -141,11 +141,11 @@ int AmmClient_SendInternal(struct AmmClient_Instance * instance,
    int result = send(instance->clientSocket,request,requestSize,MSG_WAITALL|MSG_NOSIGNAL);
 
    if (result < 0 ) {
-                     fprintf(stderr,"Failed to Send error : %u",errno);
+                     fprintf(stderr,"Failed to Send error : %u\n",errno);
                      instance->connectionOK=0;
                      return 0;
                     } else
-                    { fprintf(stderr,"Sent %u/%u bytes",result,requestSize); }
+                    { fprintf(stderr,"Sent %u/%u bytes\n",result,requestSize); }
 
    return 1;
   }

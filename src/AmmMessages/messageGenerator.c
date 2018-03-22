@@ -331,6 +331,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"* @retval See above enumerator*/\n");
   fprintf(fp,"static int write_%s(struct bridgeContext * nbc,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
+  fprintf(fp,"    printf(\"updating %s message.. \\n \");\n",functionName);
   fprintf(fp,"    return writeBridge(nbc, (void*) msg , sizeof(struct %sMessage) );\n",functionName);
   fprintf(fp,"}\n\n");
 
@@ -416,7 +417,6 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
 
   fprintf(fp,"\n\n/** @brief This is the Resource handler context that will manage requests to %s.html */\n",functionName);
   fprintf(fp,"static struct AmmServer_RH_Context %sRH={0};\n",functionName);
-
     writeServerCallback(
                            fp ,
                            functionName,

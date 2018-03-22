@@ -5,7 +5,7 @@
 */
 
 /*
-This file was automatically generated @ 22-03-2018 18:08:34 using AmmMessages
+This file was automatically generated @ 22-03-2018 18:28:04 using AmmMessages
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmMessages
 Please note that changes you make here may be automatically overwritten
 if the AmmMessages generator runs again..!
@@ -71,6 +71,7 @@ static int registerCallbackOnNewData_person(void * callback)
 * @retval See above enumerator*/
 static int write_person(struct bridgeContext * nbc,struct personMessage * msg)
 {
+    printf("updating person message.. \n ");
     return writeBridge(nbc, (void*) msg , sizeof(struct personMessage) );
 }
 
@@ -239,7 +240,7 @@ static int sendToServer_person(struct AmmClient_Instance * instance,struct perso
     char buffer[2049]= {0};
     unsigned int bufferSize=2048;
     packToHTTPGETRequest_person(buffer,bufferSize,msg);
-    return AmmClient_Send(instance,buffer,bufferSize,1);
+    return AmmClient_Send(instance,buffer,strlen(buffer),1);
 }
 #endif
 
