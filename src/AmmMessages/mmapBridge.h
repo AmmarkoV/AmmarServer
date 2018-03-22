@@ -22,6 +22,7 @@ struct bridgeContext
   void * map;
   size_t dataSize;
   unsigned long lastMsgTimestamp;
+  void * callbackOnNewData;
 };
 
 struct bridgePayloadHeader
