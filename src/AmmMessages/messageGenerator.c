@@ -193,6 +193,9 @@ int writeServerCallback(
      fprintf(fp,"fprintf(stderr,\" \\n \");\n");
   fprintf(fp," #endif\n");
 
+  fprintf(fp,"++%sStatic.timestampInit;\n",functionName);
+
+
   fprintf(fp,"if (!write_%s(&%sBridge,&%sStatic)) { AmmServer_Error(\"Could not send %s to mmaped bridge \");  }",functionName,functionName,functionName,functionName);
 
 
@@ -323,9 +326,20 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"\n\n/** @brief Register a callback that will get called when %s is updated*/\n",functionName);
   fprintf(fp,"static int registerCallbackOnNewData_%s(void * callback)\n",functionName);
   fprintf(fp,"{\n");
-  fprintf(fp,"    %sStatic.callbackOnNewData = callback;\n",functionName);
+  fprintf(fp,"    %sBridge.callbackOnNewData = callback;\n",functionName);
   fprintf(fp,"    return 1;\n");
   fprintf(fp,"}\n\n");
+
+
+
+  fprintf(fp,"static int new_%s_MessageAvailiable(struct bridgeContext * nbc, struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp," if (nbc==0)       { return 0; }\n");
+  fprintf(fp," if (nbc->mode!=1) { return 0; }\n");
+  fprintf(fp," struct bridgePayloadHeader * incomingCommand = (struct %sMessage *) nbc->map;\n",functionName);
+  fprintf(fp," if (nbc->lastMsgTimestamp != incomingCommand->timestampInit ) { return 1; }\n");
+  fprintf(fp,"return 0;\n");
+  fprintf(fp,"}\n");
 
 
   fprintf(fp,"\n\n/** @brief Send a %s message through the bridge\n",functionName);
@@ -338,7 +352,12 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp," #if DEBUG_PRINT\n");
   fprintf(fp,"    printf(\"\\nWriting %s message to bridge.. \\n \");\n",functionName);
   fprintf(fp," #endif\n");
-  fprintf(fp,"    return writeBridge(nbc, (void*) msg , sizeof(struct %sMessage) );\n",functionName);
+  fprintf(fp,"   if (writeBridge(nbc, (void*) msg , sizeof(struct %sMessage) ) )\n",functionName);
+  fprintf(fp,"   {\n");
+  fprintf(fp,"    nbc->lastMsgTimestamp = msg->timestampInit;\n");
+  fprintf(fp,"    return 1;\n");
+  fprintf(fp,"   }\n");
+  fprintf(fp," return 0;\n");
   fprintf(fp,"}\n\n");
 
   fprintf(fp,"\n\n/** @brief Receive a %s message through the bridge\n",functionName);
@@ -351,10 +370,10 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"  if (readBridge(nbc, (void*) msg , sizeof(struct %sMessage) ) )\n",functionName);
   fprintf(fp,"  {\n");
 
-  fprintf(fp,"      if (%sStatic.callbackOnNewData!=0)\n",functionName);
+  fprintf(fp,"      if (nbc->callbackOnNewData!=0)\n");
   fprintf(fp,"          {\n");
   fprintf(fp,"             void ( *DoCallback) ( struct %sMessage * ) = 0 ;\n",functionName);
-  fprintf(fp,"             DoCallback=%sStatic.callbackOnNewData;\n",functionName);
+  fprintf(fp,"             DoCallback=nbc->callbackOnNewData;\n");
   fprintf(fp,"             DoCallback(msg);\n");
   fprintf(fp,"          }\n");
 
@@ -429,7 +448,6 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
                            functionName,
                            fsp
                        );
-
   fprintf(fp,"\n\n/** @brief This function adds %s.html to the webserver and makes it listen for GET commands and forward them to the mmaped structure %sStatic */\n",functionName,functionName);
   fprintf(fp,"static int %sAddToHTTPServer(struct AmmServer_Instance * instance)\n",functionName);
   fprintf(fp,"{\n");

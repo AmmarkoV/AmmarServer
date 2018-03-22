@@ -183,39 +183,10 @@ int initializeReadingBridge(struct bridgeContext * nbc ,const char * fileDescrip
   // nbc->lastMsgTimestamp = incomingCommand.timestampInit;
   // printf("Initial random timestamp is %lu \n", nbc->lastMsgTimestamp);
 
-/*
-   //Do Initialization
-   struct naoCommand * initialValues = (struct naoCommand *) nbc->map;
-   initialValues->Kp_Pitch=-666.0;
-   initialValues->Ki_Pitch=-666.0;
-   initialValues->Kd_Pitch=-666.0;
-   initialValues->Kp_Roll=-666.0;
-   initialValues->Ki_Roll=-666.0;
-   initialValues->Kd_Roll=-666.0;
-*/
-
  nbc->mode=1;
  fprintf(stderr,"initializeReadingBridge success \n");
 
  return 1;
-}
-
-int newBridgeMessageAvailiable(struct bridgeContext * nbc)
-{
-  if (nbc->mode!=1) {
-                      //fprintf(stderr,"Cannot check bridge for newBridgeMessageAvailiable , not properly initialized ..\n");
-                       return 0;
-                     }
-
-
-  struct bridgePayloadHeader * incomingCommand = (struct bridgePayloadHeader *) nbc->map;
-
-  if (nbc->lastMsgTimestamp != incomingCommand->timestampInit )
-  {
-      return 1;
-  }
-
-  return 0;
 }
 
 

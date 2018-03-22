@@ -50,7 +50,7 @@ int gatherEverything(int argc, char *argv[])
   fprintf(fp," unsigned int count=0;\n");
     for (i=2; i<argc; i++)
     {
-      fprintf(fp," if (newBridgeMessageAvailiable(&%sBridge)) {  \n",argv[i]);
+      fprintf(fp," if (new_%s_MessageAvailiable(&%sBridge,&%sStatic)) {  \n",argv[i],argv[i],argv[i]);
         fprintf(fp," count+=read_%s(&%sBridge,&%sStatic); }  \n",argv[i],argv[i],argv[i]);
     }
   fprintf(fp," return (count==%u);\n",argc-2);

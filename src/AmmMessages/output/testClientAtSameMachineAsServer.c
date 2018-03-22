@@ -41,13 +41,15 @@ int main(int argc, char *argv[])
     initializeAllMessagesForReading();
     registerCallbackOnNewData_move(newMoveMessage);
 
+
+    printf("\Callback set to %s..\n");
+
     printf("\Now entering receive loop..\n");
          while ( 1 )
            {
              fprintf(stderr,".");
              sampleAllMessages();
              sleep(1);
-
              //print_move(&moveStatic);
            }
 

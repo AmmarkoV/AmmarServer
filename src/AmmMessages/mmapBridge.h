@@ -41,6 +41,5 @@ int closeWritingBridge(struct bridgeContext * nbc);
 int initializeReadingBridge(struct bridgeContext * nbc ,const char * fileDescriptor,unsigned int sizeOfBridgeMsg);
 int readBridge(struct bridgeContext * nbc,void * data , unsigned int dataSize );
 
-int newBridgeMessageAvailiable(struct bridgeContext * nbc);
 int closeReadingBridge(struct bridgeContext * nbc);
 #endif // ULTRALITENAOMMAPBRIDGE_H_INCLUDED
