@@ -114,7 +114,7 @@ void writeGETPrintf(
      }
     }
   }
-  fprintf(fp,"t=%u",rand()%100000);
+  fprintf(fp,"t=%%u");
   fprintf(fp,"\",");
 
   //Then output the arguments..
@@ -130,16 +130,13 @@ void writeGETPrintf(
      {
        if (strcasecmp(variableType,varTypesList[z*4+0])==0)
          {
-          fprintf(fp,"msg->%s",variableID);
+          fprintf(fp,"msg->%s,",variableID);
           ++secondCountOfArguments;
-          if (secondCountOfArguments<numberOfArguments)
-           {
-             fprintf(fp,",");
-           }
          }
      }
     }
   }
+  fprintf(fp,"rand()%%10000");
 
   InputParser_Destroy(ipc);
 }
