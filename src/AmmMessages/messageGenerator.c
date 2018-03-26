@@ -152,6 +152,7 @@ int writeServerViewerCallback(
 {
   fprintf(fp,"static void * %sHTTPServerViewer(struct AmmServer_DynamicRequest  * rqst)\n",functionName);
   fprintf(fp,"{\n");
+  fprintf(fp,"    read_%s(&%sBridge,&%sStatic);\n",functionName,functionName,functionName);
   fprintf(fp,"    packToHTTPGETRequest_%s(rqst->content,rqst->MAXcontentSize,&%sStatic);\n",functionName,functionName);
   fprintf(fp,"    rqst->contentSize=strlen(rqst->content);\n");
   fprintf(fp,"    return 0; \n");
