@@ -373,7 +373,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"      if (nbc->callbackOnNewData!=0)\n");
   fprintf(fp,"          {\n");
   fprintf(fp,"             void ( *DoCallback) ( struct %sMessage * ) = 0 ;\n",functionName);
-  fprintf(fp,"             DoCallback=nbc->callbackOnNewData;\n");
+  fprintf(fp,"             DoCallback=(void ( *) ( struct %sMessage * )) nbc->callbackOnNewData;\n",functionName);
   fprintf(fp,"             DoCallback(msg);\n");
   fprintf(fp,"          }\n");
 
