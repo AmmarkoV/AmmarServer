@@ -336,7 +336,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"{\n");
   fprintf(fp," if (nbc==0)       { return 0; }\n");
   fprintf(fp," if (nbc->mode!=1) { return 0; }\n");
-  fprintf(fp," struct bridgePayloadHeader * incomingCommand = (struct %sMessage *) nbc->map;\n",functionName);
+  fprintf(fp," struct %sMessage * incomingCommand = (struct %sMessage *) nbc->map;\n",functionName,functionName);
   fprintf(fp," if (nbc->lastMsgTimestamp != incomingCommand->timestampInit ) { return 1; }\n");
   fprintf(fp,"return 0;\n");
   fprintf(fp,"}\n");
