@@ -51,6 +51,29 @@ struct AmmClient_Instance * AmmClient_Initialize(
 
 int AmmClient_Close(struct AmmClient_Instance * instance);
 
+
+
+
+
+
+int AmmClient_RecvFile(
+                       struct AmmClient_Instance * instance,
+                       const char * URI ,
+                       char * filecontent ,
+                       unsigned int* filecontentSize,
+                       int keepAlive
+                      );
+
+int AmmClient_SendFile(
+                       struct AmmClient_Instance * instance,
+                       const char * URI ,
+                       const char * formname,
+                       const char * filename ,
+                       const char * filecontent ,
+                       unsigned int filecontentSize,
+                       int keepAlive
+                      );
+
 #ifdef __cplusplus
 }
 #endif

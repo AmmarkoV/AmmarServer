@@ -46,6 +46,29 @@ int AmmClient_Recv(struct AmmClient_Instance * instance,
  return AmmClient_RecvInternal( instance,  buffer ,  bufferSize );
 }
 
+
+int AmmClient_RecvFile(
+                       struct AmmClient_Instance * instance,
+                       const char * URI ,
+                       char * filecontent ,
+                       unsigned int * filecontentSize,
+                       int keepAlive
+                      )
+{
+ return AmmClient_RecvFileInternal(
+                                    instance,
+                                    URI ,
+                                    filecontent ,
+                                    filecontentSize,
+                                    keepAlive
+                                   );
+}
+
+
+
+
+
+
 int AmmClient_Send(struct AmmClient_Instance * instance,
                    const char * request ,
                    unsigned int requestSize,

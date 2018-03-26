@@ -14,4 +14,13 @@ int AmmClient_SendFileInternal(
                       );
 
 
+int AmmClient_RecvFileInternal(
+                       struct AmmClient_Instance * instance,
+                       const char * URI ,
+                       char * filecontent ,
+                       unsigned int * filecontentSize,
+                       int keepAlive
+                      );
+
+
 #endif // PROTOCOL_H_INCLUDED
