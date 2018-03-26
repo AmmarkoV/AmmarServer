@@ -12,6 +12,24 @@
 #include <string.h>
 
 
+
+
+
+
+#define NORMAL   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+
+
+
+
+
 struct AmmClient_Internals
 {
   struct sockaddr_in serverAddr;
@@ -30,16 +48,22 @@ int AmmClient_ReconnectInternal(
    /*---- Create the socket. The three arguments are: ----*/
    /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
    instance->clientSocket = socket(PF_INET, SOCK_STREAM, 0);
-
+   if (instance->clientSocket<0)
+   {
+        fprintf(stderr,RED "Failed to create new socket \n" NORMAL);
+        instance->connectionOK=0;
+        instance->socketOK=0;
+        return 0;
+   }
 
     struct timeval timeout;
-    timeout.tv_sec = (unsigned int) 5; timeout.tv_usec = 0;
+    timeout.tv_sec = (unsigned int) instance->socketTimeoutSeconds; timeout.tv_usec = 0;
     if (setsockopt (instance->clientSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
-        { fprintf(stderr,"Warning : Could not set socket Receive timeout \n"); }
+        { fprintf(stderr,YELLOW "Warning : Could not set socket Receive timeout \n" NORMAL); }
 
-    timeout.tv_sec = (unsigned int) 5; timeout.tv_usec = 0;
+    timeout.tv_sec = (unsigned int) instance->socketTimeoutSeconds; timeout.tv_usec = 0;
     if (setsockopt (instance->clientSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,sizeof(timeout)) < 0)
-        { fprintf(stderr,"Warning : Could not set socket Send timeout \n"); }
+        { fprintf(stderr,YELLOW "Warning : Could not set socket Send timeout \n" NORMAL); }
 
 
    /*---- Configure settings of the server address struct ----*/
@@ -55,6 +79,8 @@ int AmmClient_ReconnectInternal(
 
    /*---- Connect the socket to the server using the address struct ----*/
    instance->connectionOK=0;
+   instance->socketOK=1;
+
     //Check connection for the first time..
     if (triggerCheck)
        { return AmmClient_CheckConnection(instance); }
@@ -69,7 +95,7 @@ int AmmClient_CheckConnectionInternal(struct AmmClient_Instance * instance)
 
   if (ctx!=0)
   {
-   if (instance->failedReconnections%10==9)
+   if ( (instance->failedReconnections>0) || (instance->socketOK) )
      {
        AmmClient_ReconnectInternal( instance , 0 );
      }
@@ -78,12 +104,12 @@ int AmmClient_CheckConnectionInternal(struct AmmClient_Instance * instance)
    if ( connect(instance->clientSocket, (struct sockaddr *) &ctx->serverAddr, ctx->addr_size) < 0 )
      {
        instance->connectionOK=0;
-       fprintf(stderr,"Reconnection attempt %u failed .. \n" , instance->failedReconnections);
+       fprintf(stderr,YELLOW "Reconnection attempt %u failed ( error %u ).. \n" NORMAL , instance->failedReconnections,errno);
        ++instance->failedReconnections;
        usleep(100000);
      } else
      {
-      fprintf(stderr,"Reestablished connection.. \n");
+      fprintf(stderr,GREEN "Reestablished connection.. \n" NORMAL);
       instance->failedReconnections=0;
       instance->connectionOK=1;
      }
@@ -92,6 +118,18 @@ int AmmClient_CheckConnectionInternal(struct AmmClient_Instance * instance)
  return 0;
 }
 
+int AmmClient_CloseDeadConnectionIfNeeded(struct AmmClient_Instance * instance)
+{
+ if (instance->connectionOK)
+                     {
+                       fprintf(stderr,RED "Closing previous dead connection\n" NORMAL);
+                       close(instance->clientSocket);
+                       instance->connectionOK=0;
+                       instance->socketOK=0;
+                       return 1;
+                     }
+  return 0;
+}
 
 
 int AmmClient_RecvInternal(struct AmmClient_Instance * instance,
@@ -112,12 +150,12 @@ int AmmClient_RecvInternal(struct AmmClient_Instance * instance,
 
 
    if (result < 0 ) {
-                     fprintf(stderr,"Failed to Recv error : %u\n",errno);
-                     instance->connectionOK=0;
+                     fprintf(stderr,RED "Failed to Recv error : %u\n" NORMAL,errno);
+                     AmmClient_CloseDeadConnectionIfNeeded(instance);
                      return 0;
                     } else
                     {
-                      fprintf(stderr,"Recvd %u/%u bytes\n",result,*bufferSize);
+                      fprintf(stderr,GREEN "Recvd %u/%u bytes\n" NORMAL,result,*bufferSize);
                       *bufferSize = result;
                     }
 
@@ -138,14 +176,28 @@ int AmmClient_SendInternal(struct AmmClient_Instance * instance,
 
   if (ctx!=0)
   {
-   int result = send(instance->clientSocket,request,requestSize,MSG_WAITALL|MSG_NOSIGNAL);
+   unsigned int tries=0;
+   int result = 0;
+
+   while (tries<5)
+   {
+   result = send(instance->clientSocket,request,requestSize,MSG_WAITALL|MSG_NOSIGNAL);
+   ++tries;
 
    if (result < 0 ) {
-                     fprintf(stderr,"Failed to Send error : %u\n",errno);
-                     instance->connectionOK=0;
-                     return 0;
+                      fprintf(stderr,RED "Failed to Send error : %u\n" NORMAL,errno);
+                      AmmClient_CloseDeadConnectionIfNeeded(instance);
+                      AmmClient_CheckConnectionInternal(instance);
                     } else
-                    { fprintf(stderr,"Sent %u/%u bytes\n",result,requestSize); }
+                    {
+                      fprintf(stderr,GREEN "Try %u : "NORMAL,tries);
+                      fprintf(stderr,GREEN "Sent %u/%u bytes\n" NORMAL,result,requestSize);
+                      break;
+                    }
+
+   }
+
+   if (result < 0 ) { return 0; }
 
    return 1;
   }
@@ -158,7 +210,8 @@ int AmmClient_SendInternal(struct AmmClient_Instance * instance,
 
 struct AmmClient_Instance * AmmClient_InitializeInternal(
                                                   const char * ip ,
-                                                  unsigned int port
+                                                  unsigned int port,
+                                                  unsigned int socketTimeoutSeconds
                                                 )
 {
   struct AmmClient_Instance * instance = (struct AmmClient_Instance *) malloc(sizeof(struct AmmClient_Instance));
@@ -173,10 +226,11 @@ struct AmmClient_Instance * AmmClient_InitializeInternal(
 
    if (instance->internals!=0)
    {
+    instance->socketTimeoutSeconds = socketTimeoutSeconds;
     AmmClient_ReconnectInternal(instance,1);
   } else
   {
-   fprintf(stderr,"Could not allocate internals.. \n");
+   fprintf(stderr,RED "Could not allocate internals.. \n" NORMAL);
   }
 
 

@@ -80,10 +80,11 @@ int AmmClient_SendFile(
 
 struct AmmClient_Instance * AmmClient_Initialize(
                                                   const char * ip ,
-                                                  unsigned int port
+                                                  unsigned int port ,
+                                                  unsigned int socketTimeoutSeconds
                                                 )
 {
-  return AmmClient_InitializeInternal( ip , port  );
+  return AmmClient_InitializeInternal( ip , port ,socketTimeoutSeconds );
 }
 
 

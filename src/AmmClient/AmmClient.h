@@ -11,7 +11,10 @@ struct AmmClient_Instance
 {
   int clientSocket;
   int connectionOK;
+  int socketOK;
   unsigned int failedReconnections;
+
+  int socketTimeoutSeconds;
 
   char ip[32];
   int port;
@@ -41,7 +44,8 @@ int AmmClient_Send(struct AmmClient_Instance * instance,
 
 struct AmmClient_Instance * AmmClient_Initialize(
                                                   const char * ip ,
-                                                  unsigned int port
+                                                  unsigned int port,
+                                                  unsigned int socketTimeoutSeconds
                                                 );
 
 

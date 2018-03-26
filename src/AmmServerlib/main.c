@@ -649,6 +649,11 @@ int AmmServer_SetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
      case AMMSET_PASSWORD_PROTECTION      :  instance->settings.PASSWORD_PROTECTION=set_value; return 1; break;
      case AMMSET_MAX_POST_TRANSACTION_SIZE     :  instance->settings.MAX_POST_TRANSACTION_SIZE=set_value; return 1; break;
      case AMMSET_RANDOMIZE_ETAG_BEGINNING :  return cache_RandomizeETAG(instance);  break;
+     case AMMSET_TIMEOUT_SEC              :
+                                             varSocketTimeoutREAD_seconds=set_value;
+                                             varSocketTimeoutWRITE_seconds=set_value;
+                                             return 1;
+                                             break;
    };
   return 0;
 }
@@ -659,6 +664,7 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
    {
      case AMMSET_USERNAME_STR :    return instance->settings.USERNAME; break;
      case AMMSET_PASSWORD_STR :    return instance->settings.PASSWORD; break;
+     case AMMSET_TIMEOUT_SEC  :    return varSocketTimeoutREAD_seconds; break;
    };
   return 0;
 }

@@ -23,7 +23,8 @@ int AmmClient_SendInternal(struct AmmClient_Instance * instance,
 
 struct AmmClient_Instance * AmmClient_InitializeInternal(
                                                   const char * ip ,
-                                                  unsigned int port
+                                                  unsigned int port ,
+                                                  unsigned int socketTimeoutSeconds
                                                 );
 
 int AmmClient_CloseInternal(struct AmmClient_Instance * instance);

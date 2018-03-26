@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
        return 1;
     }
 
-    struct AmmClient_Instance * connection =  AmmClient_Initialize(argv[1],atoi(argv[2]));
+    struct AmmClient_Instance * connection =  AmmClient_Initialize(argv[1],atoi(argv[2]),30 /*Seconds of timeout*/);
     if (connection!=0)
     {
          while ( 1 )
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
              printf("\n");
 
              sendToServer_move(connection , &moveStatic);
-             sleep(1);
+             sleep(10);
            }
 
      AmmClient_Close(connection);

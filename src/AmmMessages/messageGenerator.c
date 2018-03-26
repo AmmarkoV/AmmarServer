@@ -493,7 +493,23 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
 
    fprintf(fp,"char http[2049]={0}; unsigned int httpSize=2048;\n");
    fprintf(fp,"snprintf(http,httpSize,\"GET %%s HTTP/1.1\\nConnection: keep-alive\\n\\n\",buffer);\n");
-   fprintf(fp,"return AmmClient_Send(instance,http,strlen(http),1);\n");
+   //fprintf(fp,"return AmmClient_Send(instance,http,strlen(http),1);\n");
+
+   fprintf(fp,"if ( AmmClient_Send(instance,http,strlen(http),1) )\n");
+   fprintf(fp,"  {\n");
+   fprintf(fp,"    if ( AmmClient_Recv(instance,http,&httpSize) )\n");
+   fprintf(fp,"    {\n");
+   fprintf(fp,"      if (strstr(http,\"OK\")!=0)\n");
+   fprintf(fp,"      {\n");
+   fprintf(fp,"        //fprintf(stderr,\"Got back %%s\\n\",http);\n");
+   fprintf(fp,"        return 1;\n");
+   fprintf(fp,"      }\n");
+   fprintf(fp,"    }\n");
+   fprintf(fp,"  }\n");
+
+   fprintf(fp," fprintf(stderr,RED \"Failed to send message..\\n\" NORMAL);\n");
+   fprintf(fp," return 0;\n");
+
   fprintf(fp,"}\n");
   fprintf(fp,"#endif\n\n");
 //------------------------------------------------------------------------

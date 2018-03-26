@@ -77,6 +77,11 @@ int main(int argc, char *argv[])
                                               templates_root
                                               );
 
+
+    //Increase timeouts..!
+    AmmServer_SetIntSettingValue(default_server,AMMSET_TIMEOUT_SEC,30);
+
+
     if (!default_server) { AmmServer_Error("Could not start server , shutting down everything.."); exit(1); }
 
     //Create dynamic content allocations and associate context to the correct files
