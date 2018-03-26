@@ -1,0 +1,42 @@
+float32 copLeftX
+float32 copLeftY
+float32 copLeftZ
+float32 forceLeft
+float32 copRightX
+float32 copRightY
+float32 forceRight
+
+float32 accX
+float32 accY
+float32 accZ
+float32 gyroX
+float32 gyroY
+float32 gyroZ
+
+float32 joint_state0
+float32 joint_state1
+float32 joint_state2
+float32 joint_state3
+float32 joint_state4
+float32 joint_state5
+float32 joint_state6
+float32 joint_state7
+float32 joint_state8
+float32 joint_state9
+float32 joint_state10
+float32 joint_state11
+float32 joint_state12
+float32 joint_state13
+float32 joint_state14
+float32 joint_state15
+float32 joint_state16
+float32 joint_state17
+float32 joint_state18
+float32 joint_state19
+float32 joint_state20
+float32 joint_state21
+float32 joint_state22
+float32 joint_state23
+float32 joint_state24
+float32 joint_state25
+

@@ -26,9 +26,12 @@ generateMSG "samples/msg/say.msg" "say"
 generateMSG "samples/msg/move.msg" "move"
 generateMSG "samples/msg/command.msg" "command"
 generateMSG "samples/msg/nav.msg" "nav"
+generateMSG "samples/msg/step.msg" "step"
+generateMSG "samples/msg/odometry.msg" "odometry"
+generateMSG "samples/msg/state.msg" "state"
  
  
-./AmmMessages -gather person skeleton2D3D pointEvents behavior say move command
+./AmmMessages -gather person skeleton2D3D pointEvents behavior say move command step odometry state
 astyle allAmmMessages.h 
 mv allAmmMessages.h output/
 

@@ -144,13 +144,31 @@ void writeGETPrintf(
 
 
 
-int writeServerCallback(
+int writeServerViewerCallback(
+                              FILE * fp ,
+                              const char *  functionName,
+                              struct fastStringParser * fsp
+                             )
+{
+  fprintf(fp,"static void * %sHTTPServerViewer(struct AmmServer_DynamicRequest  * rqst)\n",functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"    packToHTTPGETRequest_%s(rqst->content,rqst->MAXcontentSize,&%sStatic);\n",functionName,functionName);
+  fprintf(fp,"    rqst->contentSize=strlen(rqst->content);\n");
+  fprintf(fp,"    return 0; \n");
+  fprintf(fp,"}\n");
+
+  return 1;
+}
+
+
+
+int writeServerWriterCallback(
                            FILE * fp ,
                            const char *  functionName,
                            struct fastStringParser * fsp
                        )
 {
-  fprintf(fp,"static void * %sHTTPServer(struct AmmServer_DynamicRequest  * rqst)\n",functionName);
+  fprintf(fp,"static void * %sHTTPServerWriter(struct AmmServer_DynamicRequest  * rqst)\n",functionName);
   fprintf(fp,"{\n");
 
   fprintf(fp,"char value[256]={0};\n");
@@ -454,12 +472,24 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"#ifdef AMMSERVERLIB_H_INCLUDED\n");
 
   fprintf(fp,"\n\n/** @brief This is the Resource handler context that will manage requests to %s.html */\n",functionName);
-  fprintf(fp,"static struct AmmServer_RH_Context %sRH={0};\n",functionName);
-    writeServerCallback(
-                           fp ,
-                           functionName,
-                           fsp
-                       );
+  fprintf(fp,"static struct AmmServer_RH_Context %sWriterRH={0};\n",functionName);
+  fprintf(fp,"static struct AmmServer_RH_Context %sViewerRH={0};\n",functionName);
+
+
+   writeServerWriterCallback(
+                              fp ,
+                              functionName,
+                              fsp
+                             );
+
+
+   writeServerViewerCallback(
+                              fp ,
+                              functionName,
+                              fsp
+                             );
+
+
   fprintf(fp,"\n\n/** @brief This function adds %s.html to the webserver and makes it listen for GET commands and forward them to the mmaped structure %sStatic */\n",functionName,functionName);
   fprintf(fp,"static int %sAddToHTTPServer(struct AmmServer_Instance * instance)\n",functionName);
   fprintf(fp,"{\n");
@@ -469,12 +499,16 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"    }   else");
   fprintf(fp,"    { AmmServer_Error(\"Could not initialize mmaped bridge \");      }");
 
-  fprintf(fp,"  return AmmServer_AddResourceHandler(instance,&%sRH,\"/%s.html\",2048+sizeof(struct %sMessage),0,&%sHTTPServer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
+  fprintf(fp,"  int i=0;\n");
+  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sViewerRH,\"/%s.html\",4096+sizeof(struct %sMessage),0,&%sHTTPServerViewer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
+  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sWriterRH,\"/%s.html\",4096+sizeof(struct %sMessage),0,&%sHTTPServerWriter,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
+  fprintf(fp,"  return (i==2); \n");
   fprintf(fp,"}\n\n");
 
   fprintf(fp,"static int %sRemoveFromHTTPServer(struct AmmServer_Instance * instance)\n",functionName);
   fprintf(fp,"{\n");
-  fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sRH,1); \n",functionName);
+  fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sViewerRH,1); \n",functionName);
+  fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sWriterRH,1); \n",functionName);
   fprintf(fp,"  closeWritingBridge(&%sBridge);\n",functionName);
   fprintf(fp,"  return 1;\n");
   fprintf(fp,"}\n");
@@ -497,6 +531,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
 
    fprintf(fp,"if ( AmmClient_Send(instance,http,strlen(http),1) )\n");
    fprintf(fp,"  {\n");
+   fprintf(fp,"    memset(http,0,httpSize);\n");
    fprintf(fp,"    if ( AmmClient_Recv(instance,http,&httpSize) )\n");
    fprintf(fp,"    {\n");
    fprintf(fp,"      if (strstr(http,\"OK\")!=0)\n");
