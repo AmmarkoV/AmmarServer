@@ -165,19 +165,22 @@ void writeGETScanf(
           char destination[256]={0};
           snprintf(destination,256,"%sStatic.%s",functionName,variableID);
 
-          fprintf(fp," if (");
-          writeComparisonFromString(
-                          fp,
+          fprintf(fp," if ( strcmp(\"%s\",variableID)==0 )",variableID);
+          fprintf(fp,"   {  \n");
+
+          writeConversion(
+                          fp ,
                           variableType,
                           destination,
-                          "variableID"
+                          "variableValue"
                          );
-          fprintf(fp,")   {  \n");
 
-          fprintf(fp,"  }  \n");
+          fprintf(fp,"    } else \n");
         }
     }
   }
+
+  fprintf(fp," {   } \n");
 
   InputParser_Destroy(ipc);
 
