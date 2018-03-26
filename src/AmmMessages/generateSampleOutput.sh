@@ -3,7 +3,8 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-MMAPDIR="/home/ammar/mmap"  
+#MMAPDIR="/home/ammar/mmap"  
+MMAPDIR="./"  
 
 function generateMSG {
                        ./AmmMessages -msg $1 $2 $MMAPDIR

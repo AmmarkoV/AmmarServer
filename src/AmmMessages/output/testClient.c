@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
              printf("\n");
 
              sendToServer_move(connection , &moveStatic);
-             sleep(10);
+             sleep(1);
            }
 
      AmmClient_Close(connection);
