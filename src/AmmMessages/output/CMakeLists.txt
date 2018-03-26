@@ -8,7 +8,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
 add_executable(AmmMessagesTestServer testServer.c mmapBridge.c mmapBridge.h)  
 target_link_libraries(AmmMessagesTestServer pthread rt AmmarServer)
 
-add_executable(AmmMessagesTestClient testClient.c mmapBridge.c mmapBridge.h)  
+add_executable(AmmMessagesTestClient testClient.c mmapBridge.c mmapBridge.h
+../../InputParser/InputParser_C.c
+../../InputParser/InputParser_C.h
+)  
 target_link_libraries(AmmMessagesTestClient pthread rt AmmClient)
 
 add_executable(AmmMessagesTestMMAPClientAtServer testClientAtSameMachineAsServer.c ../mmapBridge.c ../mmapBridge.h)   

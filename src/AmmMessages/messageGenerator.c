@@ -14,18 +14,20 @@
 #define MAXIMUM_FILENAME_WITH_EXTENSION 1024
 #define MAXIMUM_LINE_LENGTH 1024
 
-
-char * varTypesList[] = {   "int64"   , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%lu"  ,
-                            "int32"   , "unsigned int %s;\n"  , "%s=atoi(%s);"               , "%u"   ,
-                            "int"     , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%u"   ,
-                            "float"   , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",
-                            "float32" , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",
-                            "float64" , "double %s;\n"        , "%s=atof(%s);"               , "%f"   ,
-                            "bool"    , "int %s;\n"           , "%s=atoi(%s);"               , "%u"   ,
-                            "string"  , "char %s[512];\n"     , "snprintf(%s,512,\"%%s\",%s);", "%s"  ,
+                         //    0                 1                    2                         3           4                5
+                         // .MSG TYPE       REAL C TYPE         CONVERT TO STRING            printf type comparison         cast from string for comparison
+char * varTypesList[] = {   "int64"   , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%lu"  ,  "%s==%s"          ,  "%s==atoi(%s)" ,
+                            "int32"   , "unsigned int %s;\n"  , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
+                            "int"     , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
+                            "float"   , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",  "%s==%s"          ,  "%s==atof(%s)" ,
+                            "float32" , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",  "%s==%s"          ,  "%s==atof(%s)" ,
+                            "float64" , "double %s;\n"        , "%s=atof(%s);"               , "%f"   ,  "%s==%s"          ,  "%s==atof(%s)" ,
+                            "bool"    , "int %s;\n"           , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
+                            "string"  , "char %s[512];\n"     , "snprintf(%s,512,\"%%s\",%s);", "%s"  ,  "strcmp(%s,%s)==0",  "strcmp(%s,%s)==0" ,
                             //DONT FORGET TO UPDATE  varTypesListNumber
-                            "fail"  , "fail"     , "fail",  "fail"
+                            "fail"    , "fail"                , "fail"                        ,"fail" ,  "fail"            , "fail"
                         };
+#define numberOfFields 6
 unsigned int varTypesListNumber = 8;
 
 
@@ -36,7 +38,7 @@ int typeExists(const char * rosType)
   unsigned int i=0;
   for (i=0; i<varTypesListNumber; i++)
   {
-     if (strcasecmp(rosType,varTypesList[i*4+0])==0) { retval=1; }
+     if (strcasecmp(rosType,varTypesList[i*numberOfFields+0])==0) { retval=1; }
   }
 
   return retval;
@@ -54,7 +56,7 @@ int writeType(
   unsigned int i=0;
   for (i=0; i<varTypesListNumber; i++)
   {
-     if (strcasecmp(rosType,varTypesList[i*4+0])==0) { fprintf(fp,varTypesList[i*4+1],variableID); retval=1; }
+     if (strcasecmp(rosType,varTypesList[i*numberOfFields+0])==0) { fprintf(fp,varTypesList[i*numberOfFields+1],variableID); retval=1; }
   }
 
   return retval;
@@ -72,7 +74,42 @@ int writeConversion(
   unsigned int i=0;
   for (i=0; i<varTypesListNumber; i++)
   {
-     if (strcasecmp(rosType,varTypesList[i*4+0])==0) { fprintf(fp,varTypesList[i*4+2],varDestination,varName); retval=1; }
+     if (strcasecmp(rosType,varTypesList[i*numberOfFields+0])==0) { fprintf(fp,varTypesList[i*numberOfFields+2],varDestination,varName); retval=1; }
+  }
+ return retval;
+}
+
+
+
+int writeComparison(
+                 FILE * fp ,
+                 const char * rosType,
+                 const char * varDestination,
+                 const char * varName
+                )
+{
+  int retval=0;
+  unsigned int i=0;
+  for (i=0; i<varTypesListNumber; i++)
+  {
+     if (strcasecmp(rosType,varTypesList[i*numberOfFields+0])==0) { fprintf(fp,varTypesList[i*numberOfFields+4],varDestination,varName); retval=1; }
+  }
+ return retval;
+}
+
+
+int writeComparisonFromString(
+                 FILE * fp ,
+                 const char * rosType,
+                 const char * varDestination,
+                 const char * varName
+                )
+{
+  int retval=0;
+  unsigned int i=0;
+  for (i=0; i<varTypesListNumber; i++)
+  {
+     if (strcasecmp(rosType,varTypesList[i*numberOfFields+0])==0) { fprintf(fp,varTypesList[i*numberOfFields+5],varDestination,varName); retval=1; }
   }
  return retval;
 }
@@ -85,17 +122,76 @@ void writeGETScanf(
                     const char * functionName
                    )
 {
- char variableType[256]={0};
- char variableID[256]  ={0};
- struct InputParserC * ipc = InputParser_Create(512,2);
- InputParser_SetDelimeter(ipc,1,'?');
- InputParser_SetDelimeter(ipc,2,'&');
+ fprintf(fp,"char variableValue[256]={0};\n");
+ fprintf(fp,"char variableID[256]={0};\n");
+ fprintf(fp,"struct InputParserC * ipc = InputParser_Create(512,2);\n");
+ fprintf(fp,"InputParser_SetDelimeter(ipc,1,'?');\n");
+ fprintf(fp,"InputParser_SetDelimeter(ipc,2,'&');\n");
 
- unsigned int i=0,z=0;
- for (i=0; i<fsp->stringsLoaded; i++)
+ fprintf(fp,"int arguments = InputParser_SeperateWordsCC(ipc,buffer,1);\n");
+
+ fprintf(fp,"unsigned int i=0,z=0;\n");
+ fprintf(fp,"for (i=0; i<arguments/2; i++)\n");
+ fprintf(fp," {\n");
+ fprintf(fp,"    if (\n");
+ fprintf(fp,"        ( InputParser_GetWord(ipc,i*2+1,variableID,256) ) && \n");
+ fprintf(fp,"        ( InputParser_GetWord(ipc,i*2+2,variableValue,256) ) \n");
+ fprintf(fp,"       )\n");
+ fprintf(fp,"    {\n");
+
+
+  //------------------------------------------------------------
+  //------------------------------------------------------------
+  //------------------------------------------------------------
+  //------------------------------------------------------------
+  //Well shit.. This is truly messy Forget all of the above this is an if then block that checks if variableID is equal to something else..
+
+  char variableType[256]={0};
+  char variableID[256]  ={0};
+  struct InputParserC * ipc = InputParser_Create(512,5);
+  InputParser_SetDelimeter(ipc,1,' ');
+
+  unsigned int i=0;
+  for (i=0; i<fsp->stringsLoaded; i++)
   {
+    int arguments = InputParser_SeperateWordsCC(ipc,fsp->contents[i].str,1);
+    if (arguments==2)
+    {
+        InputParser_GetWord(ipc,0,variableType,256);
+        InputParser_GetWord(ipc,1,variableID,256);
 
+        if (typeExists(variableType))
+        {
+          char destination[256]={0};
+          snprintf(destination,256,"%sStatic.%s",functionName,variableID);
+
+          fprintf(fp," if (");
+          writeComparisonFromString(
+                          fp,
+                          variableType,
+                          destination,
+                          "variableID"
+                         );
+          fprintf(fp,")   {  \n");
+
+          fprintf(fp,"  }  \n");
+        }
+    }
   }
+
+  InputParser_Destroy(ipc);
+
+  //------------------------------------------------------------
+  //------------------------------------------------------------
+  //------------------------------------------------------------
+  //------------------------------------------------------------
+
+
+
+ fprintf(fp,"    }\n");
+ fprintf(fp,"InputParser_Destroy(ipc);\n");
+ fprintf(fp," return 0;\n");
+ fprintf(fp," }\n");
 }
 
 
@@ -130,9 +226,9 @@ void writeGETPrintf(
      fprintf(fp,"%s=",variableID);
      for (z=0; z<varTypesListNumber; z++)
      {
-       if (strcasecmp(variableType,varTypesList[z*4+0])==0)
+       if (strcasecmp(variableType,varTypesList[z*numberOfFields+0])==0)
          {
-              fprintf(fp,"%s&",varTypesList[z*4+3]);
+              fprintf(fp,"%s&",varTypesList[z*numberOfFields+3]);
               ++numberOfArguments;
          }
      }
@@ -152,7 +248,7 @@ void writeGETPrintf(
      InputParser_GetWord(ipc,1,variableID,256);
      for (z=0; z<varTypesListNumber; z++)
      {
-       if (strcasecmp(variableType,varTypesList[z*4+0])==0)
+       if (strcasecmp(variableType,varTypesList[z*numberOfFields+0])==0)
          {
           fprintf(fp,"msg->%s,",variableID);
           ++secondCountOfArguments;

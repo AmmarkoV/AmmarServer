@@ -23,13 +23,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <unistd.h>
 
+#include "../../InputParser/InputParser_C.h"
 #include "../../AmmClient/AmmClient.h"
 #include "allAmmMessages.h"
 
 
 int main(int argc, char *argv[])
 {
-    printf("\Client starting up I will now emitting bogus move messages..\n");
+    printf("Client starting up I will now emitting bogus move messages..\n");
 
     if (argc<3)
     {

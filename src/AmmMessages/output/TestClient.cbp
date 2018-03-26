@@ -51,6 +51,7 @@
 			<Add library="../../AmmClient/libAmmClient.a" />
 		</Linker>
 		<Unit filename="../../AmmClient/AmmClient.h" />
+		<Unit filename="../../InputParser/InputParser_C.h" />
 		<Unit filename="allAmmMessages.h" />
 		<Unit filename="behavior.h" />
 		<Unit filename="command.h" />
