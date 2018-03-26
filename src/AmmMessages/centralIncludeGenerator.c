@@ -31,6 +31,12 @@ int gatherEverything(int argc, char *argv[])
     { fprintf(fp,"#include \"%s.h\" \n",argv[i]); }
 
 
+
+   fprintf(fp,"#ifdef __cplusplus\n");
+   fprintf(fp,"extern \"C\"\n");
+   fprintf(fp,"{\n");
+   fprintf(fp,"#endif\n");
+
   fprintf(fp,"\n\nstatic int initializeAllMessagesForWriting()\n");
   fprintf(fp,"{\n");
   fprintf(fp," unsigned int count=0;\n");
@@ -79,6 +85,9 @@ int gatherEverything(int argc, char *argv[])
   fprintf(fp,"#endif\n\n");
 //------------------------------------------------------------------------
 
+  fprintf(fp,"#ifdef __cplusplus\n");
+  fprintf(fp,"}\n");
+  fprintf(fp,"#endif\n");
 
 
   fprintf(fp,"#endif\n");

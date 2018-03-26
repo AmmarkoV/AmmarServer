@@ -303,6 +303,14 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"#include <string.h> \n\n");
   fprintf(fp,"#include \"mmapBridge.h\" \n\n");
 
+
+
+   fprintf(fp,"#ifdef __cplusplus\n");
+   fprintf(fp,"extern \"C\"\n");
+   fprintf(fp,"{\n");
+   fprintf(fp,"#endif\n");
+
+
 //  fprintf(fp,"const char * pathToMMAP%s=\"%s/%s.mmap\";",functionName,pathToMMap,functionName);
    fprintf(fp,"static const char * pathToMMAP%s=\"%s/%s.mmap\";",functionName,pathToMMap,functionName);
 
@@ -490,6 +498,10 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"#endif\n\n");
 //------------------------------------------------------------------------
 
+
+  fprintf(fp,"#ifdef __cplusplus\n");
+  fprintf(fp,"}\n");
+  fprintf(fp,"#endif\n");
 
 
 

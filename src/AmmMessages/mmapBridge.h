@@ -15,6 +15,12 @@
 #define CYAN    "\033[36m"      /* Cyan */
 #define WHITE   "\033[37m"      /* White */
 
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct bridgeContext
 {
   int mode; // 0 = not working - 1 = read , 2 = write
@@ -43,4 +49,10 @@ int initializeReadingBridge(struct bridgeContext * nbc ,const char * fileDescrip
 int readBridge(struct bridgeContext * nbc,void * data , unsigned int dataSize );
 
 int closeReadingBridge(struct bridgeContext * nbc);
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif // ULTRALITENAOMMAPBRIDGE_H_INCLUDED
