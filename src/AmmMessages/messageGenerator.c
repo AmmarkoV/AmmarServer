@@ -125,12 +125,12 @@ void writeGETScanf(
  fprintf(fp,"char variableValue[256]={0};\n");
  fprintf(fp,"char variableID[256]={0};\n");
  fprintf(fp,"struct InputParserC * ipc = InputParser_Create(512,2);\n");
- fprintf(fp,"InputParser_SetDelimeter(ipc,1,'?');\n");
- fprintf(fp,"InputParser_SetDelimeter(ipc,2,'&');\n");
+ fprintf(fp,"InputParser_SetDelimeter(ipc,0,'?');\n");
+ fprintf(fp,"InputParser_SetDelimeter(ipc,1,'&');\n");
 
  fprintf(fp,"int arguments = InputParser_SeperateWordsCC(ipc,buffer,1);\n");
 
- fprintf(fp,"unsigned int i=0,z=0;\n");
+ fprintf(fp,"unsigned int i=0;\n");
  fprintf(fp,"for (i=0; i<arguments/2; i++)\n");
  fprintf(fp," {\n");
  fprintf(fp,"    if (\n");
@@ -179,7 +179,6 @@ void writeGETScanf(
         }
     }
   }
-
   fprintf(fp," {   } \n");
 
   InputParser_Destroy(ipc);
@@ -341,7 +340,7 @@ int writeServerWriterCallback(
   fprintf(fp,"if (!write_%s(&%sBridge,&%sStatic)) { AmmServer_Error(\"Could not send %s to mmaped bridge \");  }",functionName,functionName,functionName,functionName);
 
 
-  fprintf(fp,"snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>OK</body></html>\");\n");
+  fprintf(fp,"snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>SUCCESS</body></html>\");\n");
   fprintf(fp,"rqst->contentSize=strlen(rqst->content);\n\n");
   fprintf(fp,"return 0;\n");
 
@@ -570,7 +569,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"  fprintf(stderr,RED \"Please do that and recompile if you want to access unpackFromHTTPGETRequest_%s \\n  \" NORMAL);",functionName);
   fprintf(fp,"  return 0;\n");
   fprintf(fp,"}\n");
-  fprintf(fp,"#endif\n");
+  fprintf(fp,"#endif //_INPUTPARSER_C_H_\n");
 
 
 
@@ -654,7 +653,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"  closeWritingBridge(&%sBridge);\n",functionName);
   fprintf(fp,"  return 1;\n");
   fprintf(fp,"}\n");
-  fprintf(fp,"#endif\n\n");
+  fprintf(fp,"#endif //AMMSERVERLIB_H_INCLUDED \n\n");
 //----------------------------------------------------------------------------------------------
 
 
@@ -676,7 +675,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
    fprintf(fp,"    memset(http,0,httpSize);\n");
    fprintf(fp,"    if ( AmmClient_Recv(instance,http,&httpSize) )\n");
    fprintf(fp,"    {\n");
-   fprintf(fp,"      if (strstr(http,\"OK\")!=0)\n");
+   fprintf(fp,"      if (strstr(http,\"SUCCESS\")!=0)\n");
    fprintf(fp,"      {\n");
    fprintf(fp,"        //fprintf(stderr,\"Got back %%s\\n\",http);\n");
    fprintf(fp,"        return 1;\n");
@@ -700,7 +699,56 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"  return 0;\n");
   fprintf(fp,"}\n");
 
-  fprintf(fp,"#endif\n\n");
+
+  //------------------------------------------------------------------------
+  fprintf(fp,"#ifdef  _INPUTPARSER_C_H_\n");
+
+  fprintf(fp,"static int tryToReadStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+   fprintf(fp,"char http[2049]={0}; unsigned int httpSize=2048;\n");
+   fprintf(fp,"snprintf(http,httpSize,\"GET /%sViewer.html HTTP/1.1\\nConnection: keep-alive\\n\\n\");\n",functionName);
+   //fprintf(fp,"return AmmClient_Send(instance,http,strlen(http),1);\n");
+
+   fprintf(fp,"if ( AmmClient_Send(instance,http,strlen(http),1) )\n");
+   fprintf(fp,"  {\n");
+   fprintf(fp,"    memset(http,0,httpSize);\n");
+   fprintf(fp,"    if ( AmmClient_Recv(instance,http,&httpSize) )\n");
+   fprintf(fp,"    {\n");
+   fprintf(fp,"     fprintf(stderr,\"Got back %%s\\n\",http);\n");
+   fprintf(fp,"     return unpackFromHTTPGETRequest_%s(msg,http,httpSize);\n",functionName);
+   fprintf(fp,"    }\n");
+   fprintf(fp,"  }\n");
+
+   fprintf(fp," fprintf(stderr,RED \"Failed to send message..\\n\" NORMAL);\n");
+   fprintf(fp," return 0;\n");
+   fprintf(fp,"}\n");
+
+
+  fprintf(fp,"static int readStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"   int tries=0;\n");
+  fprintf(fp,"   while (tries<5)\n");
+  fprintf(fp,"   {\n");
+  fprintf(fp,"     if (tryToReadStateFromServer_%s(instance,msg)) { return 1; }\n",functionName);
+  fprintf(fp,"     ++tries;\n");
+  fprintf(fp,"   }\n");
+  fprintf(fp,"  return 0;\n");
+  fprintf(fp,"}\n");
+
+  fprintf(fp,"#else\n");
+  fprintf(fp,"static int readStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"  fprintf(stderr,RED \"You have forgotten to #include InputParser_C.h before all message headers when compiling..\\n \" NORMAL);");
+  fprintf(fp,"  fprintf(stderr,RED \"Please do that and recompile if you want to access readStateFromServer_%s \\n  \" NORMAL);",functionName);
+  fprintf(fp,"  return 0;\n");
+  fprintf(fp,"}\n");
+
+  fprintf(fp,"#endif //_INPUTPARSER_C_H_\n\n");
+  //------------------------------------------------------------------------
+
+
+
+  fprintf(fp,"#endif //AMMCLIENT_H_INCLUDED \n\n");
 //------------------------------------------------------------------------
 
 

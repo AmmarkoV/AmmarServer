@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
 
              sendToServer_move(connection , &moveStatic);
              sleep(1);
+
+             readStateFromServer_move(connection,&moveStatic);
            }
 
      AmmClient_Close(connection);
