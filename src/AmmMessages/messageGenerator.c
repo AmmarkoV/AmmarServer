@@ -79,12 +79,36 @@ int writeConversion(
 
 
 
+void writeGETScanf(
+                    FILE * fp ,
+                    struct fastStringParser * fsp,
+                    const char * functionName
+                   )
+{
+ char variableType[256]={0};
+ char variableID[256]  ={0};
+ struct InputParserC * ipc = InputParser_Create(512,2);
+ InputParser_SetDelimeter(ipc,1,'?');
+ InputParser_SetDelimeter(ipc,2,'&');
+
+ unsigned int i=0,z=0;
+ for (i=0; i<fsp->stringsLoaded; i++)
+  {
+
+  }
+}
+
+
+
 void writeGETPrintf(
                  FILE * fp ,
                  struct fastStringParser * fsp,
                  const char * functionName
                 )
 {
+
+ fprintf(fp,"  return snprintf(buffer,bufferSize,");
+
  char variableType[256]={0};
  char variableID[256]  ={0};
  struct InputParserC * ipc = InputParser_Create(512,5);
@@ -427,10 +451,28 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"\n\n/** @brief This call crafts a request to %s.html and serializes our message*/\n",functionName);
   fprintf(fp,"static int packToHTTPGETRequest_%s(char * buffer,unsigned int bufferSize,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
-  fprintf(fp,"  return snprintf(buffer,bufferSize,");
       writeGETPrintf(fp,fsp,functionName);
   fprintf(fp,");\n");
   fprintf(fp,"}\n\n");
+
+
+
+  // ------------------------------------------------------------------------------
+  fprintf(fp,"\n\n/** @brief If we don't have InputParser included then we don't need the tokenization code*/\n");
+  fprintf(fp,"#ifdef  _INPUTPARSER_C_H_\n");
+  fprintf(fp,"static int unpackFromHTTPGETRequest_%s(struct %sMessage * msg,char * buffer,unsigned int bufferSize)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+      writeGETScanf(fp,fsp,functionName);
+  fprintf(fp,"}\n");
+  fprintf(fp,"#else\n");
+  fprintf(fp,"static int unpackFromHTTPGETRequest_%s(struct %sMessage * msg,char * buffer,unsigned int bufferSize)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"  fprintf(stderr,RED \"You have forgotten to #include InputParser_C.h before all message headers when compiling..\\n \" NORMAL);");
+  fprintf(fp,"  fprintf(stderr,RED \"Please do that and recompile if you want to access unpackFromHTTPGETRequest_%s \\n  \" NORMAL);",functionName);
+  fprintf(fp,"  return 0;\n");
+  fprintf(fp,"}\n");
+  fprintf(fp,"#endif\n");
+
 
 
   fprintf(fp,"\n\n/** @brief Print message for %s */\n",functionName);
@@ -553,7 +595,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"   int tries=0;\n");
   fprintf(fp,"   while (tries<5)\n");
   fprintf(fp,"   {\n");
-  fprintf(fp,"     if (tryToSendToServer_%s(instance,msg)) { return 1; }\n",functionName,functionName);
+  fprintf(fp,"     if (tryToSendToServer_%s(instance,msg)) { return 1; }\n",functionName);
   fprintf(fp,"     ++tries;\n");
   fprintf(fp,"   }\n");
   fprintf(fp,"  return 0;\n");
