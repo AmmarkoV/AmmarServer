@@ -303,9 +303,10 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"#include <string.h> \n\n");
   fprintf(fp,"#include \"mmapBridge.h\" \n\n");
 
-  fprintf(fp,"const char * pathToMMAP%s=\"%s/%s.mmap\";",functionName,pathToMMap,functionName);
+//  fprintf(fp,"const char * pathToMMAP%s=\"%s/%s.mmap\";",functionName,pathToMMap,functionName);
+   fprintf(fp,"static const char * pathToMMAP%s=\"%s/%s.mmap\";",functionName,pathToMMap,functionName);
 
-  fprintf(fp,"static struct bridgeContext %sBridge={0};\n\n",functionName);
+   fprintf(fp,"static struct bridgeContext %sBridge={0};\n\n",functionName);
 
 //----------------------------------------------------------------------------------------------
   fprintf(fp,"struct %sMessage\n",functionName);
@@ -323,10 +324,13 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"\n\n/** @brief This is the static memory location where we receive stuff so we don't even have to declare this..*/\n");
   fprintf(fp,"static struct %sMessage %sStatic={0};\n\n",functionName,functionName);
 
+  fprintf(fp,"typedef void (*callback_%s)(struct %sMessage *); // type for C++ sanity \n\n",functionName,functionName);
+
+
   fprintf(fp,"\n\n/** @brief Register a callback that will get called when %s is updated*/\n",functionName);
-  fprintf(fp,"static int registerCallbackOnNewData_%s(void * callback)\n",functionName);
+  fprintf(fp,"static int registerCallbackOnNewData_%s(callback_%s callback)\n",functionName,functionName);
   fprintf(fp,"{\n");
-  fprintf(fp,"    %sBridge.callbackOnNewData = callback;\n",functionName);
+  fprintf(fp,"    %sBridge.callbackOnNewData = (void*) callback;\n",functionName);
   fprintf(fp,"    return 1;\n");
   fprintf(fp,"}\n\n");
 

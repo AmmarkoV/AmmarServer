@@ -11,7 +11,7 @@ target_link_libraries(AmmMessagesTestServer pthread rt AmmarServer)
 add_executable(AmmMessagesTestClient testClient.c mmapBridge.c mmapBridge.h)  
 target_link_libraries(AmmMessagesTestClient pthread rt AmmClient)
 
-add_executable(AmmMessagesTestMMAPClientAtServer testClientAtSameMachineAsServer.c mmapBridge.c mmapBridge.h)   
+add_executable(AmmMessagesTestMMAPClientAtServer testClientAtSameMachineAsServer.c ../mmapBridge.c ../mmapBridge.h)   
         
 
 set_target_properties(AmmMessagesTestServer PROPERTIES  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
