@@ -486,7 +486,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"\n\n/** @brief If we don't have AmmarClient included then we won't use it and we don't need the rest of the code*/\n");
   fprintf(fp,"#ifdef AMMCLIENT_H_INCLUDED\n");
   fprintf(fp,"\n\n/** @brief If this instance of your code is running on a machine that is connected through TCP/IP and you want to send your data you can do it using this call %s.html */\n",functionName);
-  fprintf(fp,"static int sendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"static int tryToSendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
    fprintf(fp,"char buffer[2049]={0}; unsigned int bufferSize=2048;\n");
    fprintf(fp,"packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
@@ -509,8 +509,20 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
 
    fprintf(fp," fprintf(stderr,RED \"Failed to send message..\\n\" NORMAL);\n");
    fprintf(fp," return 0;\n");
-
   fprintf(fp,"}\n");
+
+
+  fprintf(fp,"static int sendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"   int tries=0;\n");
+  fprintf(fp,"   while (tries<5)\n");
+  fprintf(fp,"   {\n");
+  fprintf(fp,"     if (tryToSendToServer_%s(instance,msg)) { return 1; }\n",functionName,functionName);
+  fprintf(fp,"     ++tries;\n");
+  fprintf(fp,"   }\n");
+  fprintf(fp,"  return 0;\n");
+  fprintf(fp,"}\n");
+
   fprintf(fp,"#endif\n\n");
 //------------------------------------------------------------------------
 
