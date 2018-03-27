@@ -438,23 +438,14 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
     char resource_name[MAX_FILE_PATH+MAX_RESOURCE+1]={0};
 
     snprintf(resource_name,MAX_FILE_PATH+MAX_RESOURCE,"%s%s",context->web_root_path,context->resource_name);
+    ReducePathSlashes_Inplace(resource_name);
 
-    if (! cache_AddDoNOTCacheRuleForResource(instance,resource_name) )
-     {
-       fprintf(stderr,"Could not set AmmServer_DoNOTCacheResourceHandler for resource %s\n",resource_name);
-       return 0;
-     }
-    return 1;
+    return cache_AddDoNOTCacheRuleForResource(instance,resource_name);
 }
 
 int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,const char * resource_name)
 {
-    if (! cache_AddDoNOTCacheRuleForResource(instance,resource_name) )
-     {
-       fprintf(stderr,"Could not set AmmServer_DoNOTCacheResource for resource %s\n",resource_name);
-       return 0;
-     }
-    return 1;
+    return cache_AddDoNOTCacheRuleForResource(instance,resource_name);
 }
 
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)

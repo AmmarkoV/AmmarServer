@@ -10,67 +10,75 @@
 
 char *errorIDs[] =
  {
-     "Failed to resolve GET Request",
-     "Instance not allocated",
-     "Request not allocated",
-     "Error binding master port, Server is already running?",
-     "UNIX does not allow binding a port below 1000 with a non root UID.. \n We tried to do it though.. \n Run with sudo or bind to a port higher than 1000",
-     "Our CHANGE_TO_UID non-root value is also a super user UID , we are forced to set a bogus non-root value..\n"
-     "Failed to create thread",
-     "Failed to create socket",
-     "Failed to bind socket",
-     "Failed to listen on socket",
-     "Failed to accept socket connection",
-     "Failed to connect to socket",
-     "Out of resource to accomodate client",
-     "Unable to serve request , closing connections..",
-     "Unable to serve template, closing connections..\n",
-     "Failed to receive HTTP header",
-     "Unauthorized Request",
-     "No Callback registered , cannot serve content",
-     "Dynamic request does pointer is corrupted",
-     "Could not set socket timeout",
-     "Could not set socket options",
-     "Server is running as a root user, this is a security liability",
-     "Call made without enough input"
-     "Could not allocate memory",
-     "Not enough memory allocated",
-     "ASV_ERROR_REALLOCATION_R_X86_64_PC32_GCC_ERROR",
-     "Shared content has an invalid RH_Scenario flag , this version of AmmarServer does not know what it means\nMaybe this has to do with a newer version , and stuff that haven't been invented yet in this build..",
-     "Bug(?) detected , no cache payload\n",
-     "Cache not allocated, so cannot be used",
-     "Could not create resource in cache",
-     "Missing or Wrong range request detected",
-     "Could not find a threadID",
-     "Could not find filesize",
-     "Timed out while waiting for a new thread to get created and consume its message",
-     "Failed to cancel new thread creation" ,
-     "Failed to pass thread context, this is probably an internal bug due to race conditions",
-     "ASV_ERROR_INNETOP_FAILED"
+    //Be careful not to forget a comma beacause the strings will get concatenated and no compilation error will occur
+    /* 0*/  "Failed to resolve GET Request",
+    /* 1*/  "Instance not allocated",
+    /* 2*/  "Request not allocated",
+    /* 3*/  "Error binding master port, Server is already running?",
+    /* 4*/  "UNIX does not allow binding a port below 1000 with a non root UID.. \n We tried to do it though.. \n Run with sudo or bind to a port higher than 1000",
+    /* 5*/  "Our CHANGE_TO_UID non-root value is also a super user UID , we are forced to set a bogus non-root value..\n"
+    /* 6*/  "Failed to create thread",
+    /* 7*/  "Failed to create socket",
+    /* 8*/  "Failed to bind socket",
+    /* 9*/  "Failed to listen on socket",
+    /*10*/  "Failed to accept socket connection",
+    /*11*/  "Failed to connect to socket",
+    /*12*/  "Out of resource to accomodate client",
+    /*13*/  "Unable to serve request , closing connections..",
+    /*14*/  "Unable to serve template, closing connections..\n",
+    /*15*/  "Failed to receive HTTP header",
+    /*16*/  "Unauthorized Request",
+    /*17*/  "No Callback registered , cannot serve content",
+    /*18*/  "Dynamic request does pointer is corrupted",
+    /*19*/  "Could not set socket timeout",
+    /*20*/  "Could not set socket options",
+    /*21*/  "Server is running as a root user, this is a security liability",
+    /*22*/  "Call made without enough input"
+    /*23*/  "Could not allocate memory",
+    /*24*/  "Not enough memory allocated",
+    /*25*/  "ASV_ERROR_REALLOCATION_R_X86_64_PC32_GCC_ERROR",
+    /*26*/  "Shared content has an invalid RH_Scenario flag , this version of AmmarServer does not know what it means\nMaybe this has to do with a newer version , and stuff that haven't been invented yet in this build..",
+    /*27*/  "Bug(?) detected , no cache payload\n",
+    /*28*/  "Cache not allocated, so cannot be used",
+    /*29*/  "Could not create resource in cache",
+    /*30*/  "Missing or Wrong range request detected",
+    /*31*/  "Could not find a threadID",
+    /*32*/  "Could not find filesize",
+    /*33*/  "Timed out while waiting for a new thread to get created and consume its message",
+    /*34*/  "Failed to cancel new thread creation" ,
+    /*35*/  "Failed to pass thread context, this is probably an internal bug due to race conditions",
+    /*36*/  "ASV_ERROR_INNETOP_FAILED",
+    /*37*/  "ReducePathSlashes_Inplace failed to reduce slashes..",
+    /*38*/  "Failed to add NO cache rule..",
+    /*39*/  "Dynamic request client caused an overflow, This is not the server`s fault and has been caused by the programmer not thinking well about setting limits @ AmmServer_AddResourceHandler "
   };
 
 char *warningIDs[] =
  {
-     "Tried to perform dynamicRequest_serveContent, but got back null , if there is no regular fallback file request will probably 404\n"
-     "Client connection closed while waiting for keepalive..",
-     "Connection closed , while transmitting the file",
-     "Reached max transmission stall, stopping file transmission",
-     "Could not transmit error to client",
-     "Client Denied access to resource",
-     "Pretending that this is a GET request hack that needs fixing",
-     "Main AmmarServer Thread Stopped..",
-     "Client BUG : Size of request appears to be zero.. \n ",
-     "PreSpawning Threads is disabled , call executable with -prefork X ( with X more than 0 ) to enable them if you target heavy loads..",
-     "Not going to call callback function with an empty buffer..!",
-     "Randomizer was not random..",
-     "Creating a new cache definition, just to store a rule there",
-     "AmmServer_Stop started",
-     "AmmServer_Stop completed",
-     "Enabling monitor",
-     "Unrecognized request detected",
-     "We received a request which is not currently implemented",
-     "Predatory request received"
+   //Be careful not to forget a comma beacause the strings will get concatenated and no compilation error will occur
+   /* 0*/  "Tried to perform dynamicRequest_serveContent, but got back null , if there is no regular fallback file request will probably 404\n",
+   /* 1*/  "Client connection closed while waiting for keepalive..",
+   /* 2*/  "Connection closed , while transmitting the file",
+   /* 3*/  "Reached max transmission stall, stopping file transmission",
+   /* 4*/  "Could not transmit error to client",
+   /* 5*/  "Client Denied access to resource",
+   /* 6*/  "Pretending that this is a GET request hack that needs fixing",
+   /* 7*/  "Main AmmarServer Thread Stopped..",
+   /* 8*/  "Client BUG : Size of request appears to be zero.. \n ",
+   /* 9*/  "PreSpawning Threads is disabled , call executable with -prefork X ( with X more than 0 ) to enable them if you target heavy loads..",
+   /*10*/  "Not going to call callback function with an empty buffer..!",
+   /*11*/  "Randomizer was not random..",
+   /*12*/  "Creating a new resource cache definition, just to store a rule there",
+   /*13*/  "AmmServer_Stop started",
+   /*14*/  "AmmServer_Stop completed",
+   /*15*/  "Enabling monitor",
+   /*16*/  "Unrecognized request detected",
+   /*17*/  "We received a request which is not currently implemented",
+   /*18*/  "Predatory request received"
   };
+
+
+
 
 unsigned int logAccessPolls=0;
 unsigned int logErrorPolls=0;

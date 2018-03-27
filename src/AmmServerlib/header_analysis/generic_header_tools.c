@@ -105,7 +105,7 @@ int HTTPHeaderScanForHeaderEndFromEnd(char * request,unsigned int dontSearchBefo
       which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
   if (request_length<4) {  fprintf(stderr,"Header too small ( %u ) to check for an ending..!\n",request_length); return 0; } // at least LF LF is expected :P
 
-  fprintf(stderr,"HTTPHeaderScanForHeaderEndFromEnd: Checking if request with %u chars is complete .. ",request_length);
+  //fprintf(stderr,"HTTPHeaderScanForHeaderEndFromEnd: Checking if request with %u chars is complete .. ",request_length);
   unsigned int i=request_length-1;
   while (i>dontSearchBefore+1)
    {
@@ -114,7 +114,7 @@ int HTTPHeaderScanForHeaderEndFromEnd(char * request,unsigned int dontSearchBefo
         if (i>=1) {
                     if (( request[i-1]==LF )&&( request[i]==LF ))
                      {
-                      fprintf(stderr,"it is ( ux @%u [ %u %u ] ) \n",i,request[i-1],request[i]);
+                      //fprintf(stderr,"it is ( ux @%u [ %u %u ] ) \n",i,request[i-1],request[i]);
                       *thisScanResult=i;
                       return i;
                      }
@@ -123,7 +123,7 @@ int HTTPHeaderScanForHeaderEndFromEnd(char * request,unsigned int dontSearchBefo
         if (i>=3) {
                     if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF ))
                     {
-                     fprintf(stderr,"it is ( win @%u [ %u %u %u %u ] )\n",i,request[i-3],request[i-2],request[i-1],request[i]);
+                     //fprintf(stderr,"it is ( win @%u [ %u %u %u %u ] )\n",i,request[i-3],request[i-2],request[i-1],request[i]);
                      *thisScanResult=i;
                      return i;
                     }
@@ -132,7 +132,7 @@ int HTTPHeaderScanForHeaderEndFromEnd(char * request,unsigned int dontSearchBefo
      --i;
    }
 
-   fprintf(stderr,"it isn't \n");
+   //fprintf(stderr,"it isn't \n");
    return 0;
 }
 

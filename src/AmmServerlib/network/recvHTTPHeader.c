@@ -45,7 +45,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  transaction->incomingHeader.headerRAW[0]=0;
 
 
- fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
+ //fprintf(stderr,"KeepAlive Server Loop , Waiting for a valid HTTP header..\n");
  while (
         (!doneReceiving) &&
         (!transaction->incomingHeader.failed) &&
@@ -90,7 +90,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
       if (opres>0)
        { instance->statistics.totalDownloadKB+=(unsigned long) opres/1024; }
       transaction->incomingHeader.headerRAWSize+=opres;
-      fprintf(stderr,"Got %d more bytes ( %u total / %u max )\n",opres,transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.MAXheaderRAWSize);
+      //fprintf(stderr,"Got %d more bytes ( %u total / %u max )\n",opres,transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.MAXheaderRAWSize);
 
       if (!keepAnalyzingHTTPHeader(instance,transaction))
       {
@@ -142,7 +142,19 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
 
   if (!finalizeGETData(output))
   {
-    AmmServer_Error("finalizeGETData: Server failed to parse GET data");
+      if (output->GETrequest==0)
+      {
+        if ( (output->headerRAW==0) || (output->headerRAWSize==0) )
+            {
+               AmmServer_Error("Received header was empty, this means no GET request");
+            } else
+            {
+               fprintf(stderr,"Request `%s` did not have arguments\n",output->headerRAW);
+            }
+      } else
+      {
+        AmmServer_Error("finalizeGETData: Server failed to parse GET data");
+      }
   }
 
   ///IN CASE WE ARE USING POST REQUESTS WE WILL JUST NEED TO FINALIZE THE DATA PARSED THROUGH THE FILE TO SETUP BOUNDARIES ETC..

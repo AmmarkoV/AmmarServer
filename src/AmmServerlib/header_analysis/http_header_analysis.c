@@ -272,7 +272,7 @@ int AnalyzeHTTPLineRequest(
          if ( CheckHTTPHeaderCategory(request,request_length,"DEFLATE",&payload_start) ) { output->supports_compression=1; } else
                                                                                          {
                                                                                            output->supports_compression=0;
-                                                                                          warning("We found an accept-encoding header , but not the deflate method..\n");
+                                                                                           warning("We found an accept-encoding header , but not the deflate method..\n");
                                                                                          }
         break;
         //--------------------------------------------------------------
@@ -287,7 +287,7 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_CONNECTION :
          payload_start+=strlen("CONNECTION:");
-         if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; fprintf(stderr,"KeepAlive is set\n"); return 1;}
+         if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; /*fprintf(stderr,"KeepAlive is set\n");*/ return 1;}
 
         break;
         //--------------------------------------------------------------

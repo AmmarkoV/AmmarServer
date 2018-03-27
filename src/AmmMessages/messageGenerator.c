@@ -254,6 +254,7 @@ void writeGETPrintf(
      }
     }
   }
+  fprintf(fp,"serialNumber=%%lu&");
   fprintf(fp,"t=%%u");
   fprintf(fp,"\",");
 
@@ -276,6 +277,7 @@ void writeGETPrintf(
      }
     }
   }
+  fprintf(fp,"msg->serialNumber,");
   fprintf(fp,"rand()%%10000");
 
   InputParser_Destroy(ipc);
@@ -529,11 +531,9 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"static int write_%s(struct bridgeContext * nbc,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
   fprintf(fp," #if DEBUG_PRINT\n");
-  fprintf(fp,"    printf(\"\\nWriting %s message to bridge.. \\n \");\n",functionName);
+  fprintf(fp,"    printf(\"Writing %s message to bridge.. \\n \");\n",functionName);
   fprintf(fp," #endif\n");
-
   fprintf(fp,"   ++msg->serialNumber; \n");
-
   fprintf(fp,"   if (writeBridge(nbc, (void*) msg , sizeof(struct %sMessage) ) )\n",functionName);
   fprintf(fp,"   {\n");
   fprintf(fp,"    nbc->lastMsgTimestamp = msg->timestampInit;\n");
@@ -673,6 +673,10 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"  int i=0;\n");
   fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sViewerRH,\"/%sViewer.html\",4096+sizeof(struct %sMessage),0,&%sHTTPServerViewer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
   fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sWriterRH,\"/%s.html\",4096+sizeof(struct %sMessage),0,&%sHTTPServerWriter,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
+
+  fprintf(fp,"  //Always serve fresh page through dynamic requests\n");
+  fprintf(fp,"  AmmServer_DoNOTCacheResourceHandler(instance,&%sViewerRH);\n",functionName);
+  fprintf(fp,"  AmmServer_DoNOTCacheResourceHandler(instance,&%sWriterRH);\n",functionName);
   fprintf(fp,"  return (i==2); \n");
   fprintf(fp,"}\n\n");
 
@@ -717,6 +721,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"\n\n/** @brief This function sends a message %s to a webserver via AmmClient*/\n",functionName);
   fprintf(fp,"static int sendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
+  fprintf(fp,"   ++msg->serialNumber; \n");
   fprintf(fp,"   int MAXtries=5;\n");
   fprintf(fp,"   int tries=0;\n");
   fprintf(fp,"   while (tries<MAXtries)\n");

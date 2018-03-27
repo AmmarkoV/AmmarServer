@@ -73,7 +73,7 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
 
 void printRequestData(struct AmmServer_DynamicRequest * rqst)
 {
- fprintf(stderr,"Request for a maximum of %lu characters\n",rqst->MAXcontentSize);
+ //fprintf(stderr,"Request for a maximum of %lu characters\n",rqst->MAXcontentSize);
  if ( rqst->GETItemNumber!=0 )    { fprintf(stderr,"GETItems : %p , %u items\n",rqst->GETItem , rqst->GETItemNumber );          }
  if ( rqst->POSTItemNumber!=0 )   {
                                     fprintf(stderr,"POSTItems : %p , %u items\n",rqst->POSTItem , rqst->POSTItemNumber );
@@ -294,8 +294,12 @@ char * dynamicRequest_serveContent
                                    DoCallback(rqst);
                      ///--------------------------------------------
                      unsigned long elapsedCallbackTimeMS=endTimer (&callbackTimer);
-                     fprintf(stderr,"Callback done in %lu microseconds \n",elapsedCallbackTimeMS);
                      shared_context->executedNow=0;
+
+                     if ( rqst->contentSize>rqst->MAXcontentSize)
+                     {
+                         errorID(ASV_ERROR_CLIENT_CAUSED_AN_OVERFLOW);
+                     }
 
                      if (rqst->extraDataThatWillNeedToBeDeallocated!=0)
                      {
@@ -312,7 +316,10 @@ char * dynamicRequest_serveContent
                      //Keep the new content size so if the next call has a callback_every_x_msec attribute we know how much data to serve
                      shared_context->requestContext.contentSize = rqst->contentSize;
                      *memSize = rqst->contentSize;
-                     fprintf(stderr,"After callback we got back %lu bytes @ pointer %p \n",rqst->contentSize,rqst->content);
+
+
+                     fprintf(stderr,GREEN " > " NORMAL );
+                     fprintf(stderr,"Callback Summary : %lu microseconds - %lu/%lu bytes @ pointer %p \n",elapsedCallbackTimeMS,rqst->contentSize,rqst->MAXcontentSize,rqst->content);
                      safeFree(rqst,sizeof(struct AmmServer_DynamicRequest));
 
                      //This means we can call the callback to prepare the memory content..! END

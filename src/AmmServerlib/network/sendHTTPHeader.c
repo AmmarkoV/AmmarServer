@@ -70,7 +70,7 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
       char content_type[MAX_CONTENT_TYPE+1]={0};
       strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
 
-      fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
+      //fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
       GetContentType(verified_filename,content_type,MAX_CONTENT_TYPE);
 
       char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0}; //Accept-Ranges: bytes\n

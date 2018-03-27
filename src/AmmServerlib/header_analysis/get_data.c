@@ -43,7 +43,7 @@ int finalizeGenericGETField(
                            )
 {
   //-----------------------------------------------------------------------------------
-  if (value == 0)        { AmmServer_Warning("Value is not set\n");         return 0; }
+  if (value == 0)        { AmmServer_Warning("finalizeGenericGETField Value is not set\n");         return 0; }
   if (valueLength == 0)  { AmmServer_Warning("Value Length is not set\n");  return 0; }
   if (target == 0)       { AmmServer_Warning("Target is not set\n");        return 0; }
   if (output == 0)       { AmmServer_Warning("Output is not set\n");        return 0; }
@@ -189,6 +189,14 @@ int finalizeGETData(struct HTTPHeader * output)
      {
       GETrequestSize = strnlen(output->GETrequest,output->GETrequestSize);
      }
+
+
+  if (output->GETrequest==0)
+     {
+         //AmmServer_Warning("We don't have a get request to parse..\n");
+         return 0;
+     }
+
 
  //AmmServer_Warning("going in\n");
  return finalizeGenericGETField(

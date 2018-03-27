@@ -393,7 +393,7 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
       if  (resource_is_a_file)
       {
          //We have a specific request for a file ( transaction->incomingHeader.resource )
-         fprintf(stderr,"It is a file request for %s ..!\n",servefile);
+         //fprintf(stderr,"It is a file request for %s ..!\n",servefile);
              // ------------------------------------------------------
              // ------------------------------------------------------
              // ------------------------------------------------------
@@ -492,7 +492,7 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
      unsigned int keepAliveShots = 1;
      while ( ( ServeClientKeepAliveLoop(instance,transaction) ) && (instance->server_running) )
     {
-      fprintf(stderr,"Another KeepAlive Loop Served ( %u ) \n",keepAliveShots);
+      //fprintf(stderr,"Another KeepAlive Loop Served ( %u ) \n",keepAliveShots);
       ++keepAliveShots;
       clientIsBanned = clientList_isClientBanned(instance->clientList,transaction->clientListID);
       if (clientIsBanned)

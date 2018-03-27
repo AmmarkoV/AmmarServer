@@ -423,7 +423,7 @@ int ReducePathSlashes_Inplace(char * filename)
   //contained in it , that is why it is worth it to reduce slashes for every incoming request even if it means
   //growing the incoming string processing surface ..
 
-  //fprintf(stderr,"ReducePathSlashes_Inplace needs thorough testing %s.. :P\n",filename);
+  //fprintf(stderr,"ReducePathSlashes_Inplace(%s) needs thorough testing .. :P\n",filename);
   unsigned int length=strlen(filename);
   unsigned int i=0,offset=0;
      while (i+offset<length)
@@ -452,6 +452,12 @@ int ReducePathSlashes_Inplace(char * filename)
         ++i;
      }
 
+     if (strstr(filename,"//")!=0)
+     {
+         errorID(ASV_ERROR_REDUCE_SLASHSES_FAILED);
+     }
+
+
      if (offset>0)
      {
        //We have reduced the total slashes..!
@@ -460,6 +466,8 @@ int ReducePathSlashes_Inplace(char * filename)
        //fprintf(stderr,"String shortened to %s.. :P\n",filename);
        return 1;
      }
+
+ //fprintf(stderr,"String (%s) was not changed \n",filename);
  return 0;
 }
 

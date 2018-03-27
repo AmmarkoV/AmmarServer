@@ -36,15 +36,15 @@ void * newMoveMessage(struct moveMessage * pm)
 
 int main(int argc, char *argv[])
 {
-    printf("\Client starting up..\n");
+    printf("Client starting up..\n");
 
     initializeAllMessagesForReading();
     registerCallbackOnNewData_move(newMoveMessage);
 
 
-    printf("\Callback set to %s..\n");
+    printf("Callback set to %s..\n");
 
-    printf("\Now entering receive loop..\n");
+    printf("Now entering receive loop..\n");
          while ( 1 )
            {
              fprintf(stderr,".");

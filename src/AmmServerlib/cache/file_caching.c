@@ -192,7 +192,7 @@ unsigned int cache_FindResource(struct AmmServer_Instance * instance,const char 
 
   if ( hashMap_GetULongPayload((struct hashMap *) instance->cacheHashMap,resource,&i) )
     {
-      fprintf(stderr,"HashMap Found %lu (%s=%s) \n",i,resource,hashMap_GetKeyAtIndex((struct hashMap *) instance->cacheHashMap,i));
+      //fprintf(stderr,"HashMap Found %lu (%s=%s) \n",i,resource,hashMap_GetKeyAtIndex((struct hashMap *) instance->cacheHashMap,i));
       *index=i;
       return 1;
     }else
@@ -214,7 +214,7 @@ int cache_CreateResource(struct AmmServer_Instance * instance,const char * resou
 
    if ( hashMap_AddULong((struct hashMap *) instance->cacheHashMap ,resource,(unsigned long) *index) )
    {
-      AmmServer_Success("Added resource %s , loaded items are now %u \n",resource,instance->loaded_cache_items);
+      AmmServer_Success("Added resource %s | %u items loaded",resource,instance->loaded_cache_items);
    }
 
   return 1;
@@ -386,21 +386,26 @@ int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,cons
    if (cache_FindResource(instance,filename,&index))
      {
        cache[index].doNOTCacheRule=1;
+       fprintf(stderr,"Adding rule for %s => cache[%u].doNOTCacheRule=1; \n",filename,index);
+
        return 1;
      }
     else
      { //File Doesn't exist, we have to create a cache index for it , and then mark it as uncachable..!
+       fprintf(stderr,"Resource %s did not exist we have to create a cache index for it , and then mark it as uncachable..! \n",filename);
        warningID(ASV_WARNING_CREATING_WORKAROUND_CACHE_ITEM);
-       fprintf(stderr,"Resource name is %s \n",filename);
        if (cache_CreateResource(instance,filename,&index) )
        {
         if (cache_FindResource(instance,filename,&index))
          {
           cache[index].doNOTCacheRule=1;
+          fprintf(stderr,"Adding rule for %s => cache[%u].doNOTCacheRule=1; \n",filename,index);
           return 1;
          }
        }
      }
+
+   errorID(ASV_ERROR_FAILED_TO_ADD_NOCACHE_RULE);
    return 0;
 }
 
@@ -542,10 +547,10 @@ if (cache_FindResource(instance,verified_filename,index))
    }
 
    //if doNOTCache is set and this is a real file..
-   fprintf(stderr,"Found Resource in our cache : \n");
-   fprintf(stderr,"index = %u\n",*index);
-   fprintf(stderr,"doNotCache = %u \n",cache[*index].doNOTCacheRule);
-   fprintf(stderr,"dynamicRequestCallbackFunction pointer = %p \n",cache[*index].dynamicRequestCallbackFunction);
+   //fprintf(stderr,"Found Resource in our cache : \n");
+   //fprintf(stderr,"index = %u\n",*index);
+   //fprintf(stderr,"doNotCache = %u \n",cache[*index].doNOTCacheRule);
+   //fprintf(stderr,"dynamicRequestCallbackFunction pointer = %p \n",cache[*index].dynamicRequestCallbackFunction);
 
    if ( (cache[*index].doNOTCacheRule)&& //If we forbid caching
         (cache[*index].dynamicRequestCallbackFunction==0)) //And we don't have a dynamic page to load!
@@ -600,7 +605,7 @@ if (cache_FindResource(instance,verified_filename,index))
              }
 
 
-             fprintf(stderr,"dynamicRequest_ContentAvailiable produced %lu bytes of usable content ",memSize);
+             //fprintf(stderr,"dynamicRequest_ContentAvailiable produced %lu bytes of usable content ",memSize);
              *compressionSupported=0;
              *filesize = memSize;
              return mem;

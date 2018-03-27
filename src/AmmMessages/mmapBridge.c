@@ -109,7 +109,7 @@ int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescrip
 
 
  nbc->mode=2;
- fprintf(stderr,"initializeWritingBridge success \n");
+ //fprintf(stderr,"initializeWritingBridge success \n");
 
  return 1;
 }
