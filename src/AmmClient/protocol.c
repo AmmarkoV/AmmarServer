@@ -137,9 +137,13 @@ int isFileDownloadComplete(const char * content,unsigned int contentSize)
       //fprintf(stderr,YELLOW " Content Length = %u  \n" NORMAL , contentLength );
       if (contentLength!=0)
       {
-        #warning "TODO : isFileDownloadComplete check that contentLength has been reached by content Size"
-        //fprintf(stderr,GREEN " File fully downloaded\n" NORMAL );
-        return 1;
+        unsigned int headerSize = contentLengthStr - content;
+
+        if (headerSize+contentLength <= contentSize)
+              {
+                //fprintf(stderr,GREEN " File fully downloaded ( %u header + %u content = %u we have )\n" NORMAL , headerSize , contentLength , contentSize);
+                return 1;
+              }
       }
   }
   //fprintf(stderr,RED " File not fully downloaded\n" NORMAL );
