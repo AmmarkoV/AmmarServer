@@ -704,7 +704,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
    fprintf(fp,"char http[2049]={0}; unsigned int httpSize=2048;\n");
    //fprintf(fp,"snprintf(http,httpSize,\"GET %%s HTTP/1.1\\nConnection: keep-alive\\n\\n\",buffer);\n");
 
-   fprintf(fp,"    if ( AmmClient_RecvFile(instance,buffer,http,&httpSize,1) )\n");
+   fprintf(fp,"    if ( AmmClient_RecvFile(instance,buffer,http,&httpSize,1/*keep connection alive*/,1/*really fast*/) )\n");
    fprintf(fp,"    {\n");
    fprintf(fp,"      if (strstr(http,\"SUCCESS\")!=0)\n");
    fprintf(fp,"      {\n");
@@ -741,7 +741,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"static int tryToReadStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg,unsigned int tries,unsigned int maxTries)\n",functionName,functionName);
   fprintf(fp,"{\n");
    fprintf(fp,"char http[4097]={0}; unsigned int httpSize=4096;\n");
-   fprintf(fp,"    if ( AmmClient_RecvFile(instance,\"%sViewer.html\",http,&httpSize,1) )\n",functionName);
+   fprintf(fp,"    if ( AmmClient_RecvFile(instance,\"%sViewer.html\",http,&httpSize,1/*keep connection alive*/,1/*really fast*/) )\n",functionName);
    fprintf(fp,"    {\n");
    fprintf(fp,"     //fprintf(stderr,\"Got back %%s\\n\",http);\n");
    fprintf(fp,"     return unpackFromHTTPGETRequest_%s(msg,http,httpSize);\n",functionName);

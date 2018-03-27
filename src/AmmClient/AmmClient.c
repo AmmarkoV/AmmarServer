@@ -51,7 +51,8 @@ int AmmClient_RecvFile(
                        const char * URI ,
                        char * filecontent ,
                        unsigned int * filecontentSize,
-                       int keepAlive
+                       int keepAlive ,
+                       int reallyFastImplementation
                       )
 {
  return AmmClient_RecvFileInternal(
@@ -59,7 +60,8 @@ int AmmClient_RecvFile(
                                     URI ,
                                     filecontent ,
                                     filecontentSize,
-                                    keepAlive
+                                    keepAlive,
+                                    reallyFastImplementation
                                    );
 }
 

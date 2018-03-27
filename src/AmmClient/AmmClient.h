@@ -61,7 +61,8 @@ int AmmClient_RecvFile(
                        const char * URI ,
                        char * filecontent ,
                        unsigned int* filecontentSize,
-                       int keepAlive
+                       int keepAlive,
+                       int reallyFastImplementation
                       );
 
 int AmmClient_SendFile(

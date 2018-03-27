@@ -70,6 +70,31 @@ int AmmClient_SendFileInternal(
 
 
 
+int isFileDownloadComplete(const char * content,unsigned int contentSize)
+{
+ //fprintf(stderr," Content (%u bytes) : %s \n" ,contentSize , content);
+  char * contentLengthStr=strstr(content,"Content-length:");
+  if (contentLengthStr!=0)
+  {
+      contentLengthStr+=16;
+      unsigned int contentLength = atoi(contentLengthStr);
+      //fprintf(stderr,YELLOW " Content Length = %u  \n" NORMAL , contentLength );
+      if (contentLength!=0)
+      {
+        unsigned int headerSize = contentLengthStr - content;
+
+        if (headerSize+contentLength <= contentSize)
+              {
+                //fprintf(stderr,GREEN " File fully downloaded ( %u header + %u content = %u we have )\n" NORMAL , headerSize , contentLength , contentSize);
+                return 1;
+              }
+      }
+  }
+  //fprintf(stderr,RED " File not fully downloaded\n" NORMAL );
+ return 0;
+}
+
+
 
 int AmmClient_RecvFileInternalClean(
                        struct AmmClient_Instance * instance,
@@ -126,31 +151,6 @@ int AmmClient_RecvFileInternalClean(
 }
 
 
-int isFileDownloadComplete(const char * content,unsigned int contentSize)
-{
- //fprintf(stderr," Content (%u bytes) : %s \n" ,contentSize , content);
-  char * contentLengthStr=strstr(content,"Content-length:");
-  if (contentLengthStr!=0)
-  {
-      contentLengthStr+=16;
-      unsigned int contentLength = atoi(contentLengthStr);
-      //fprintf(stderr,YELLOW " Content Length = %u  \n" NORMAL , contentLength );
-      if (contentLength!=0)
-      {
-        unsigned int headerSize = contentLengthStr - content;
-
-        if (headerSize+contentLength <= contentSize)
-              {
-                //fprintf(stderr,GREEN " File fully downloaded ( %u header + %u content = %u we have )\n" NORMAL , headerSize , contentLength , contentSize);
-                return 1;
-              }
-      }
-  }
-  //fprintf(stderr,RED " File not fully downloaded\n" NORMAL );
- return 0;
-}
-
-
 
 
 
@@ -160,10 +160,12 @@ int AmmClient_RecvFileInternal(
                        const char * URI ,
                        char * filecontent ,
                        unsigned int * filecontentSize,
-                       int keepAlive
+                       int keepAlive ,
+                       int reallyFastImplementation
                       )
 {
-/*
+ if (!reallyFastImplementation)
+ {
  //This is clean and works  @ 25Hz
  return AmmClient_RecvFileInternalClean(
                                         instance,
@@ -172,7 +174,7 @@ int AmmClient_RecvFileInternal(
                                         filecontentSize,
                                         keepAlive
                                        );
-*/
+ }
 
 
 
