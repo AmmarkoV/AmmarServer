@@ -29,7 +29,6 @@
 
 
 
-#define MAX_RETRIES_WHILE_RADIO_SILENCE 2
 #define MICROSECONDS_TO_WAIT_FOR_RESPONSE 10000
 
 #define BUFFERSIZE 4096
@@ -81,26 +80,27 @@ int AmmClient_RecvFileInternalClean(
                       )
 {
  snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\nConnection: keep-alive\n\n",URI);
+
+ unsigned int bytesReceived=0;
+
  if (AmmClient_Send(instance,filecontent,strlen(filecontent),keepAlive))
  {
      memset(filecontent,0,strlen(filecontent));
      unsigned int doneReceiving=0;
-     unsigned int bytesReceived=0;
-     unsigned int connectionHalted=0;
 
      usleep(MICROSECONDS_TO_WAIT_FOR_RESPONSE);
 
-     //fprintf(stderr,RED " Waiting to receive response : \n" NORMAL);
      while (!doneReceiving)
      {
+       /* Upon successful completion, recv() shall return the length of the message in bytes.
+        If no messages are available to be received and the peer has performed an orderly shutdown,
+        recv() shall return 0.*/
        int result = recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-bytesReceived, 0);
        if (result == 0 ) {
                             fprintf(stderr,".");
-                            ++connectionHalted;
-                            //usleep(100);
-                             doneReceiving=1;
+                            doneReceiving=1;
                          } else
-       if (result < 0 ) {
+       if (result < 0 )  {
                            fprintf(stderr,RED "Failed to Recv error : %u\n" NORMAL,errno);
                            AmmClient_CloseDeadConnectionIfNeeded(instance);
                            return 0;
@@ -110,10 +110,14 @@ int AmmClient_RecvFileInternalClean(
                            //fprintf(stderr,GREEN" Received %u more bytes ( total %u ) \n" NORMAL , result , bytesReceived);
                          }
 
-       if (isFileDownloadComplete(filecontent,*filecontentSize)) { return 1; }
        if (bytesReceived>=*filecontentSize) { doneReceiving=1;}
+       if (isFileDownloadComplete(filecontent,bytesReceived))
+                         {  *filecontentSize = bytesReceived; return 1; }
+
      }
  }
+
+  *filecontentSize = bytesReceived;
 
   AmmClient_CloseDeadConnectionIfNeeded(instance);
   AmmClient_CheckConnectionInternal(instance);
@@ -168,19 +172,14 @@ int AmmClient_RecvFileInternal(
 
 
 
-
-
-
-
  snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\nConnection: keep-alive\n\n",URI);
 
+ unsigned int bytesReceived=0;
 
- //unsigned int startingToSend = AmmClient_GetTickCountMicrosecondsInternal();
  if (AmmClient_Send(instance,filecontent,strlen(filecontent),keepAlive))
  {
      memset(filecontent,0,strlen(filecontent));
      unsigned int doneReceiving=0;
-     unsigned int bytesReceived=0;
      unsigned int recvCalled=0;
      unsigned int connectionHalted=0;
      int result =0;
@@ -191,13 +190,6 @@ int AmmClient_RecvFileInternal(
      usleep(MICROSECONDS_TO_WAIT_FOR_RESPONSE);
 
 
-     //unsigned int finishedSend = AmmClient_GetTickCountMicrosecondsInternal();
-     //if (finishedSend-startingToSend!=0)
-     //    { fprintf(stderr,"AmmClient_Send : Achieved a rate of %0.2f Hz \n",(float) (1000000/(finishedSend-startingToSend) ) ); }
-
-
-     //unsigned int startingToReceive = AmmClient_GetTickCountMicrosecondsInternal();
-     //fprintf(stderr,RED " Waiting to receive response : \n" NORMAL);
      while (!doneReceiving)
      {
       recvCalled=0;
@@ -217,9 +209,6 @@ int AmmClient_RecvFileInternal(
 
                         result=0;
                         doneReceiving=1;
-
-                       //usleep(100);
-                       //if (connectionHalted>MAX_RETRIES_WHILE_RADIO_SILENCE /*Maximum connection hiccup*/) { doneReceiving=1; }
                      break;
                      default:
                        result=recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-bytesReceived, 0);
@@ -234,9 +223,7 @@ int AmmClient_RecvFileInternal(
         if (result == 0 ) {
                             fprintf(stderr,"!");
                             ++connectionHalted;
-
-                            if (connectionHalted>MAX_RETRIES_WHILE_RADIO_SILENCE /*Maximum connection hiccup*/)
-                                 { doneReceiving=1; }
+                            doneReceiving=1;
                           } else
         if (result < 0 )  {
                            fprintf(stderr,RED "\nFailed to Recv error : %u\n" NORMAL,errno);
@@ -248,17 +235,19 @@ int AmmClient_RecvFileInternal(
                            //fprintf(stderr,GREEN" Received %u more bytes ( total %u ) \n" NORMAL , result , bytesReceived);
                           }
 
-       if (isFileDownloadComplete(filecontent,*filecontentSize))
+        if (bytesReceived>=*filecontentSize) { doneReceiving=1;}
+
+        if (isFileDownloadComplete(filecontent,bytesReceived))
           {
-            //unsigned int finishedReceiving = AmmClient_GetTickCountMicrosecondsInternal();
-            //if (finishedReceiving-startingToReceive!=0)
-            //   { fprintf(stderr,"AmmClient_Recv : Achieved a rate of %0.2f Hz \n",(float) (1000000/(finishedReceiving-startingToReceive) ) ); }
+            *filecontentSize = bytesReceived;
             return 1;
           }
-       if (bytesReceived>=*filecontentSize) { doneReceiving=1;}
+
        }
      }
  }
+
+  *filecontentSize = bytesReceived;
 
   //AmmClient_CloseDeadConnectionIfNeeded(instance);
   //AmmClient_CheckConnectionInternal(instance);

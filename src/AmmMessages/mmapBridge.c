@@ -13,6 +13,10 @@
 
 char * strstrDoubleNewline(char * request,unsigned int requestLength,unsigned int * endOfLine)
 {
+  if (request==0)             { return request; }
+  if (requestLength==0)       { return request; }
+  if (endOfLine==0)           { return request; }
+
   char * ptrA=request;
   char * ptrB=request+1;
 
@@ -42,6 +46,10 @@ char * strstrDoubleNewline(char * request,unsigned int requestLength,unsigned in
 
 int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescriptor,unsigned int sizeOfBridgeMsg)
 {
+  if (nbc==0)             { return 0; }
+  if (fileDescriptor==0)  { return 0; }
+  if (sizeOfBridgeMsg==0) { return 0; }
+
   fprintf(stderr,"initializeWritingBridge @ %s \n",fileDescriptor);
   memset(nbc,0,sizeof(struct bridgeContext ));
     /* Open a file for writing.
@@ -108,6 +116,9 @@ int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescrip
 
 int writeBridge(struct bridgeContext * nbc ,void * data , unsigned int dataSize )
 {
+  if (nbc==0)       { return 0; }
+  if (data==0)      { return 0; }
+  if (dataSize==0)  { return 0; }
   if (nbc->mode==0)
   {
     fprintf(stderr,"Cannot write to bridge , not properly initialized ..\n");
@@ -116,12 +127,18 @@ int writeBridge(struct bridgeContext * nbc ,void * data , unsigned int dataSize 
 
   //unsigned int offset = 0;
   void * mmapPtr = nbc->map;
-  memcpy(mmapPtr , data , dataSize);
+  if (mmapPtr!=0)
+  {
+     memcpy(mmapPtr , data , dataSize);
 
-    // Write it to disk if needed
-    //if (msync(nbc->map, nbc->dataSize, MS_SYNC) == -1)
-    //{  perror("Could not sync the file to disk"); }
- return 1;
+     // Write it to disk if needed
+     //if (msync(nbc->map, nbc->dataSize, MS_SYNC) == -1)
+     //{  perror("Could not sync the file to disk"); }
+
+     return 1;
+  }
+
+ return 0;
 }
 
 int clearWritingBridge(struct bridgeContext * nbc)
@@ -144,6 +161,8 @@ if (nbc->mode==0)
 
 int closeWritingBridge(struct bridgeContext * nbc)
 {
+    if (nbc==0) { return 0; }
+
     nbc->mode=0;
 
     // Don't forget to free the mmapped memory
@@ -173,6 +192,10 @@ int closeWritingBridge(struct bridgeContext * nbc)
 
 int initializeReadingBridge(struct bridgeContext * nbc ,const char * fileDescriptor,unsigned int sizeOfBridgeMsg)
 {
+  if (nbc==0)             { return 0; }
+  if (sizeOfBridgeMsg==0) { return 0; }
+  if (fileDescriptor==0)  { return 0; }
+
   fprintf(stderr,"initializeReadingBridge @ %s \n",fileDescriptor);
   memset(nbc,0,sizeof(struct bridgeContext ));
 
@@ -221,13 +244,23 @@ int initializeReadingBridge(struct bridgeContext * nbc ,const char * fileDescrip
 
 int readBridge(struct bridgeContext * nbc,void * data , unsigned int dataSize )
 {
+  if (nbc==0)             { return 0; }
+  if (data==0)            { return 0; }
+  if (dataSize==0)        { return 0; }
+
   if (nbc->mode==0)
   {
     fprintf(stderr,"Cannot read from bridge , not properly initialized ..\n");
     return 0;
   }
-  memcpy(data,nbc->map,dataSize);
- return 1;
+
+  if (nbc->map!=0)
+  {
+    memcpy(data,nbc->map,dataSize);
+    return 1;
+  }
+
+ return 0;
 }
 
 
@@ -237,6 +270,8 @@ int readBridge(struct bridgeContext * nbc,void * data , unsigned int dataSize )
 
 int closeReadingBridge(struct bridgeContext * nbc)
 {
+ if (nbc==0)             { return 0; }
+
  // Don't forget to free the mmapped memory
  if (munmap(nbc->map, nbc->dataSize) == -1)
     {

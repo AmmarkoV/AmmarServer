@@ -695,8 +695,8 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
    fprintf(fp,"        return 1;\n");
    fprintf(fp,"      }\n");
    fprintf(fp,"    }\n");
-
    fprintf(fp," fprintf(stderr,RED \"Failed to send %s message ( try %%u/%%u )..\\n\" NORMAL , tries , maxTries);\n",functionName);
+   fprintf(fp," fprintf(stderr,\"Got back %%s\\n\",http);\n");
    fprintf(fp," return 0;\n");
   fprintf(fp,"}\n");
 
@@ -710,6 +710,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"     if (tryToSendToServer_%s(instance,msg,tries,MAXtries)) { return 1; }\n",functionName);
   fprintf(fp,"     ++tries;\n");
   fprintf(fp,"   }\n");
+   fprintf(fp," fprintf(stderr,RED \" All tries to send %s message failed..\\n\" NORMAL);\n",functionName);
   fprintf(fp,"  return 0;\n");
   fprintf(fp,"}\n");
 
@@ -739,6 +740,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"     if (tryToReadStateFromServer_%s(instance,msg,tries,MAXtries)) { return 1; }\n",functionName);
   fprintf(fp,"     ++tries;\n");
   fprintf(fp,"   }\n");
+   fprintf(fp," fprintf(stderr,RED \" All tries to read state for %s message failed..\\n\" NORMAL);\n",functionName);
   fprintf(fp,"  return 0;\n");
   fprintf(fp,"}\n");
 

@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
        return 1;
     }
 
-    struct AmmClient_Instance * connection =  AmmClient_Initialize(argv[1],atoi(argv[2]),30 /*Seconds of timeout*/);
+    struct AmmClient_Instance * connection         =  AmmClient_Initialize(argv[1],atoi(argv[2]),30 /*Seconds of timeout*/);
+    struct AmmClient_Instance * spammingConnection =  AmmClient_Initialize(argv[1],atoi(argv[2]),30 /*Seconds of timeout*/);
     if (connection!=0)
     {
          while ( 1 )
@@ -49,6 +50,8 @@ int main(int argc, char *argv[])
              moveStatic.velocityX        = (float) (rand()%1000);
              moveStatic.velocityY        = (float) (rand()%1000);
              moveStatic.orientationTheta = (float) (rand()%1000);
+
+
 
              printf("Sending ");
               print_move(&moveStatic);
@@ -69,7 +72,7 @@ int main(int argc, char *argv[])
              moveStatic.orientationTheta = (float) (rand()%1000);
 
              unsigned int startTime = AmmClient_GetTickCountMilliseconds();
-              if ( readStateFromServer_move(connection,&moveStatic) )
+              if ( readStateFromServer_move(spammingConnection,&moveStatic) )
               {
                   fprintf(stderr,GREEN "readStateFromServer_move Success.. \n" NORMAL);
               } else
