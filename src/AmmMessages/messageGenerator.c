@@ -189,7 +189,7 @@ void writeGETScanf(
                           "variableValue"
                          );
 
-          fprintf(fp,"    fprintf(stderr,\"Unpacked %s = %%s \\n \",variableValue);\n",destination);
+          fprintf(fp,"    //fprintf(stderr,\"Unpacked %s = %%s \\n \",variableValue);\n",destination);
           fprintf(fp,"    } else \n");
         }
     }

@@ -79,7 +79,8 @@ int isFileDownloadComplete(const char * content,unsigned int contentSize)
       //fprintf(stderr,YELLOW " Content Length = %u  \n" NORMAL , contentLength );
       if (contentLength!=0)
       {
-        fprintf(stderr,GREEN " File ALMOST fully downloaded TODO ALSO CHECK HEADER SIZE\n" NORMAL );
+        #warning "TODO : isFileDownloadComplete check that contentLength has been reached by content Size"
+        //fprintf(stderr,GREEN " File ALMOST fully downloaded TODO ALSO CHECK HEADER SIZE\n" NORMAL );
         return 1;
       }
   }
