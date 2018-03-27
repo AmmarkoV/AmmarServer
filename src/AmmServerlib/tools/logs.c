@@ -112,7 +112,7 @@ void errorID(int id)
 
 void warningID(int id)
 {
- fprintf(stderr,YELLOW " WARNING MESSAGE : %s\n" NORMAL,errorIDs[id]);
+ fprintf(stderr,YELLOW " WARNING MESSAGE : %s\n" NORMAL,warningIDs[id]);
 }
 
 

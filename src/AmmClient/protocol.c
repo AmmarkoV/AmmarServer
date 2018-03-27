@@ -29,7 +29,7 @@
 
 
 
-#define MAX_RETRIES_WHILE_RADIO_SILENCE 10
+#define MAX_RETRIES_WHILE_RADIO_SILENCE 2
 #define MICROSECONDS_TO_WAIT_FOR_RESPONSE 10000
 
 #define BUFFERSIZE 4096
@@ -215,8 +215,11 @@ int AmmClient_RecvFileInternal(
                         fprintf(stderr,".");
                         ++connectionHalted;
 
-                       usleep(100);
-                       if (connectionHalted>MAX_RETRIES_WHILE_RADIO_SILENCE /*Maximum connection hiccup*/) { doneReceiving=1; }
+                        result=0;
+                        doneReceiving=1;
+
+                       //usleep(100);
+                       //if (connectionHalted>MAX_RETRIES_WHILE_RADIO_SILENCE /*Maximum connection hiccup*/) { doneReceiving=1; }
                      break;
                      default:
                        result=recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-bytesReceived, 0);
