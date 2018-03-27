@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
               print_move(&moveStatic);
              printf("\n");
 
+             unsigned int startTime = AmmClient_GetTickCountMilliseconds();
              if (  sendToServer_move(connection , &moveStatic) )
               {
                   fprintf(stderr,GREEN "sendToServer_move Success.. \n" NORMAL);
@@ -64,6 +65,10 @@ int main(int argc, char *argv[])
               {
                   fprintf(stderr,RED "sendToServer_move Failed.. \n" NORMAL);
               }
+             unsigned int endTime = AmmClient_GetTickCountMilliseconds();
+
+             if ((endTime-startTime)!=0)
+              { fprintf(stderr,"sendToServer_move: Achieved a rate of %0.2f Hz \n",(float) (1000/(endTime-startTime) ) ); }
              //sleep(1);
 
              //Lets forget it..!
@@ -71,7 +76,7 @@ int main(int argc, char *argv[])
              moveStatic.velocityY        = (float) (rand()%1000);
              moveStatic.orientationTheta = (float) (rand()%1000);
 
-             unsigned int startTime = AmmClient_GetTickCountMilliseconds();
+             startTime = AmmClient_GetTickCountMilliseconds();
               if ( readStateFromServer_move(spammingConnection,&moveStatic) )
               {
                   fprintf(stderr,GREEN "readStateFromServer_move Success.. \n" NORMAL);
@@ -79,7 +84,7 @@ int main(int argc, char *argv[])
               {
                   fprintf(stderr,RED "readStateFromServer_move Failed.. \n" NORMAL);
               }
-             unsigned int endTime = AmmClient_GetTickCountMilliseconds();
+              endTime = AmmClient_GetTickCountMilliseconds();
 
              if ((endTime-startTime)!=0)
               { fprintf(stderr,"readStateFromServer_move: Achieved a rate of %0.2f Hz \n",(float) (1000/(endTime-startTime) ) ); }
