@@ -155,7 +155,7 @@ int AmmClient_RecvInternal(struct AmmClient_Instance * instance,
                      return 0;
                     } else
                     {
-                      fprintf(stderr,GREEN "Recvd %u/%u bytes\n" NORMAL,result,*bufferSize);
+                      //fprintf(stderr,GREEN "Recvd %u/%u bytes\n" NORMAL,result,*bufferSize);
                       *bufferSize = result;
                     }
 
@@ -190,8 +190,8 @@ int AmmClient_SendInternal(struct AmmClient_Instance * instance,
                       AmmClient_CheckConnectionInternal(instance);
                     } else
                     {
-                      fprintf(stderr,GREEN "Try %u : "NORMAL,tries);
-                      fprintf(stderr,GREEN "Sent %u/%u bytes\n" NORMAL,result,requestSize);
+                      //fprintf(stderr,GREEN "Try %u : "NORMAL,tries);
+                      //fprintf(stderr,GREEN "Sent %u/%u bytes\n" NORMAL,result,requestSize);
                       break;
                     }
 
