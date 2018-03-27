@@ -18,7 +18,7 @@
                          // .MSG TYPE       REAL C TYPE         CONVERT TO STRING            printf type comparison         cast from string for comparison
 char * varTypesList[] = {   "int64"   , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%lu"  ,  "%s==%s"          ,  "%s==atoi(%s)" ,
                             "int32"   , "unsigned int %s;\n"  , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
-                            "int"     , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
+                            "int"     , "unsigned int %s;\n"  , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
                             "float"   , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",  "%s==%s"          ,  "%s==atof(%s)" ,
                             "float32" , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",  "%s==%s"          ,  "%s==atof(%s)" ,
                             "float64" , "double %s;\n"        , "%s=atof(%s);"               , "%f"   ,  "%s==%s"          ,  "%s==atof(%s)" ,
@@ -498,7 +498,8 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"\n\n/** @brief This is the static memory location where we receive stuff so we don't even have to declare this..*/\n");
   fprintf(fp,"static struct %sMessage %sStatic={0};\n\n",functionName,functionName);
 
-  fprintf(fp,"typedef void (*callback_%s)(struct %sMessage *); // type for C++ sanity \n\n",functionName,functionName);
+  fprintf(fp,"\n/** @brief Typedef is needed to declare callbacks in C++*/\n");
+  fprintf(fp,"typedef void (*callback_%s)(struct %sMessage *);\n\n",functionName,functionName);
 
 
   fprintf(fp,"\n\n/** @brief Register a callback that will get called when %s is updated*/\n",functionName);
