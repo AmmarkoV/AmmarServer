@@ -8,7 +8,6 @@
 
 #include "AmmClient.h"
 
-
 unsigned long AmmClient_GetTickCountMicroseconds()
 {
  return AmmClient_GetTickCountMicrosecondsInternal();

@@ -47,10 +47,10 @@ extern "C" {
 
 
 /** @brief Time sleeping when a dynamic request that serves a common file across all clients is busy   */
-#define CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC 1500000
+#define CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC 500000
 
 /** @brief Time sleeping when a dynamic request that serves a common file across all clients is busy   */
-#define CLIENT_SLEEP_TIME_INTERVAL_NSEC 10000
+#define CLIENT_SLEEP_TIME_INTERVAL_NSEC 5000
 
 
 /** @brief Next prespawned thread , should be vigilant and ready to serve so it has a shorter delay than the other prespawned threads ( 0.7ms max delay seems like a good value ) */
@@ -59,7 +59,7 @@ extern "C" {
 /** @brief Sleep time for threads that are prespawned until they check for potential new work , the lowest the value here ,
            the shortest the wait time for clients , but this causes higher CPU usage ( for idle tasks ) and ultimately more power consumption
            A good default time is 25000 , ( 25ms ) */
-#define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 25000
+#define THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS 20000
 
 
 /** @brief Max sleep time while waiting for new thread to kick in and read parameters to unblock main thread.. */

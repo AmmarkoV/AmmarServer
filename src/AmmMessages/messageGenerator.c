@@ -679,7 +679,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"\n\n/** @brief If we don't have AmmarClient included then we won't use it and we don't need the rest of the code*/\n");
   fprintf(fp,"#ifdef AMMCLIENT_H_INCLUDED\n");
   fprintf(fp,"\n\n/** @brief If this instance of your code is running on a machine that is connected through TCP/IP and you want to send your data you can do it using this call %s.html */\n",functionName);
-  fprintf(fp,"static int tryToSendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"static int tryToSendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg,unsigned int try,unsigned int maxTries)\n",functionName,functionName);
   fprintf(fp,"{\n");
    fprintf(fp,"char buffer[2049]={0}; unsigned int bufferSize=2048;\n");
    fprintf(fp,"packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
@@ -696,17 +696,18 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
    fprintf(fp,"      }\n");
    fprintf(fp,"    }\n");
 
-   fprintf(fp," fprintf(stderr,RED \"Failed to send message..\\n\" NORMAL);\n");
+   fprintf(fp," fprintf(stderr,RED \"Failed to send %s message ( try %%u/%%u )..\\n\" NORMAL , try , maxTries);\n",functionName);
    fprintf(fp," return 0;\n");
   fprintf(fp,"}\n");
 
 
   fprintf(fp,"static int sendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
+  fprintf(fp,"   int MAXtries=5;\n");
   fprintf(fp,"   int tries=0;\n");
-  fprintf(fp,"   while (tries<5)\n");
+  fprintf(fp,"   while (tries<MAXtries)\n");
   fprintf(fp,"   {\n");
-  fprintf(fp,"     if (tryToSendToServer_%s(instance,msg)) { return 1; }\n",functionName);
+  fprintf(fp,"     if (tryToSendToServer_%s(instance,msg,tries,MAXtries)) { return 1; }\n",functionName);
   fprintf(fp,"     ++tries;\n");
   fprintf(fp,"   }\n");
   fprintf(fp,"  return 0;\n");
@@ -716,7 +717,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   //------------------------------------------------------------------------
   fprintf(fp,"#ifdef  _INPUTPARSER_C_H_\n");
 
-  fprintf(fp,"static int tryToReadStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"static int tryToReadStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg,unsigned int try,unsigned int maxTries)\n",functionName,functionName);
   fprintf(fp,"{\n");
    fprintf(fp,"char http[4097]={0}; unsigned int httpSize=4096;\n");
    fprintf(fp,"    if ( AmmClient_RecvFile(instance,\"%sViewer.html\",http,&httpSize,1) )\n",functionName);
@@ -724,17 +725,18 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
    fprintf(fp,"     //fprintf(stderr,\"Got back %%s\\n\",http);\n");
    fprintf(fp,"     return unpackFromHTTPGETRequest_%s(msg,http,httpSize);\n",functionName);
    fprintf(fp,"    }\n");
-   fprintf(fp," fprintf(stderr,RED \"Failed to send message..\\n\" NORMAL);\n");
+   fprintf(fp," fprintf(stderr,RED \"Failed to read full state for %s message ( try %%u/%%u )..\\n\" NORMAL , try , maxTries);\n",functionName);
    fprintf(fp," return 0;\n");
    fprintf(fp,"}\n");
 
 
   fprintf(fp,"static int readStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
+  fprintf(fp,"   int MAXtries=5;\n");
   fprintf(fp,"   int tries=0;\n");
-  fprintf(fp,"   while (tries<5)\n");
+  fprintf(fp,"   while (tries<MAXtries)\n");
   fprintf(fp,"   {\n");
-  fprintf(fp,"     if (tryToReadStateFromServer_%s(instance,msg)) { return 1; }\n",functionName);
+  fprintf(fp,"     if (tryToReadStateFromServer_%s(instance,msg,tries,MAXtries)) { return 1; }\n",functionName);
   fprintf(fp,"     ++tries;\n");
   fprintf(fp,"   }\n");
   fprintf(fp,"  return 0;\n");

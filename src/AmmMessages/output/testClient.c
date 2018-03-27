@@ -22,10 +22,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "../../InputParser/InputParser_C.h"
 #include "../../AmmClient/AmmClient.h"
 #include "allAmmMessages.h"
+
 
 
 int main(int argc, char *argv[])
@@ -52,15 +54,32 @@ int main(int argc, char *argv[])
               print_move(&moveStatic);
              printf("\n");
 
-             sendToServer_move(connection , &moveStatic);
-             sleep(1);
+             if (  sendToServer_move(connection , &moveStatic) )
+              {
+                  fprintf(stderr,GREEN "sendToServer_move Success.. \n" NORMAL);
+              } else
+              {
+                  fprintf(stderr,RED "sendToServer_move Failed.. \n" NORMAL);
+              }
+             //sleep(1);
 
              //Lets forget it..!
              moveStatic.velocityX        = (float) (rand()%1000);
              moveStatic.velocityY        = (float) (rand()%1000);
              moveStatic.orientationTheta = (float) (rand()%1000);
 
-             readStateFromServer_move(connection,&moveStatic);
+             unsigned int startTime = AmmClient_GetTickCountMilliseconds();
+              if ( readStateFromServer_move(connection,&moveStatic) )
+              {
+                  fprintf(stderr,GREEN "readStateFromServer_move Success.. \n" NORMAL);
+              } else
+              {
+                  fprintf(stderr,RED "readStateFromServer_move Failed.. \n" NORMAL);
+              }
+             unsigned int endTime = AmmClient_GetTickCountMilliseconds();
+
+             if ((endTime-startTime)!=0)
+              { fprintf(stderr,"readStateFromServer_move: Achieved a rate of %0.2f Hz \n",(float) (1000/(endTime-startTime) ) ); }
 
 
              printf("What we have now");
