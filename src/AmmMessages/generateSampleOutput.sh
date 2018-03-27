@@ -15,6 +15,8 @@ function generateMSG {
                      }  
 
 cd output 
+rm mmapBridge.h
+rm mmapBridge.c
 ln -s ../mmapBridge.h .
 ln -s ../mmapBridge.c .
 cd ..
