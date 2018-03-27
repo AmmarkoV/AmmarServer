@@ -115,7 +115,7 @@ int AmmClient_RecvFileInternal(
        if (result == 0 ) {
                             fprintf(stderr,".");
                             ++connectionHalted;
-                            usleep(100);
+                            //usleep(100);
                             if (connectionHalted>5 /*Maximum connection hiccup*/) { doneReceiving=1; }
                          } else
        if (result < 0 ) {

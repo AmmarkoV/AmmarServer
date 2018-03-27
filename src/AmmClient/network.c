@@ -106,7 +106,7 @@ int AmmClient_CheckConnectionInternal(struct AmmClient_Instance * instance)
        instance->connectionOK=0;
        fprintf(stderr,YELLOW "Reconnection attempt %u failed ( error %u ).. \n" NORMAL , instance->failedReconnections,errno);
        ++instance->failedReconnections;
-       usleep(100000);
+       //usleep(100000);
      } else
      {
       fprintf(stderr,GREEN "Reestablished connection.. \n" NORMAL);
