@@ -137,7 +137,7 @@ void writeGETScanf(
  fprintf(fp,"if (body==0) {  fprintf(stderr,\"Couldnt find body.. \\n\");  body=buffer; } \n");
 
  fprintf(fp,"int arguments = InputParser_SeperateWordsCC(ipc,body,1);\n");
- fprintf(fp,"fprintf(stderr,\"Unpacked to %%u arguments (%%s) \",arguments,body);\n");
+ //fprintf(fp,"fprintf(stderr,\"Unpacked to %%u arguments (%%s) \",arguments,body);\n");
 
  fprintf(fp,"unsigned int i=0;\n");
  fprintf(fp,"unsigned int numberOfLoops=(unsigned int) arguments/2;\n");

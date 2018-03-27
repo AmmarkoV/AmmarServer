@@ -106,6 +106,7 @@ int AmmClient_RecvFileInternal(
      memset(filecontent,0,strlen(filecontent));
      unsigned int doneReceiving=0;
      unsigned int bytesReceived=0;
+     unsigned int connectionHalted=0;
 
      //fprintf(stderr,RED " Waiting to receive response : \n" NORMAL);
      while (!doneReceiving)
@@ -113,6 +114,9 @@ int AmmClient_RecvFileInternal(
        int result = recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-bytesReceived, 0);
        if (result == 0 ) {
                             fprintf(stderr,".");
+                            ++connectionHalted;
+                            usleep(100);
+                            if (connectionHalted>5 /*Maximum connection hiccup*/) { doneReceiving=1; }
                          } else
        if (result < 0 ) {
                            fprintf(stderr,RED "Failed to Recv error : %u\n" NORMAL,errno);
@@ -128,6 +132,9 @@ int AmmClient_RecvFileInternal(
        if (bytesReceived>=*filecontentSize) { doneReceiving=1;}
      }
  }
+
+  AmmClient_CloseDeadConnectionIfNeeded(instance);
+  AmmClient_CheckConnectionInternal(instance);
 
  return 0;
 }
