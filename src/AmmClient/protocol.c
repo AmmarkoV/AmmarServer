@@ -4,6 +4,12 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <string.h>
+
 #include "protocol.h"
 #include "network.h"
 
@@ -62,7 +68,24 @@ int AmmClient_SendFileInternal(
 
 
 
-
+int isFileDownloadComplete(const char * content,unsigned int contentSize)
+{
+ //fprintf(stderr," Content (%u bytes) : %s \n" ,contentSize , content);
+  char * contentLengthStr=strstr(content,"Content-length:");
+  if (contentLengthStr!=0)
+  {
+      contentLengthStr+=16;
+      unsigned int contentLength = atoi(contentLengthStr);
+      //fprintf(stderr,YELLOW " Content Length = %u  \n" NORMAL , contentLength );
+      if (contentLength!=0)
+      {
+        fprintf(stderr,GREEN " File ALMOST fully downloaded TODO ALSO CHECK HEADER SIZE\n" NORMAL );
+        return 1;
+      }
+  }
+// fprintf(stderr,RED " File not fully downloaded\n" NORMAL );
+ return 0;
+}
 
 
 
@@ -77,16 +100,32 @@ int AmmClient_RecvFileInternal(
                        int keepAlive
                       )
 {
- fprintf(stderr,RED "TODO: AmmClient_RecvFileInternal is idiotically implemented.. \n" NORMAL);
- char buffer[BUFFERSIZE]={0};
- snprintf(buffer,BUFFERSIZE,"GET /%s HTTP/1.1\nConnection: keep-alive\n\n",URI);
- if (AmmClient_Send(instance,buffer,strlen(buffer),keepAlive))
+ snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\nConnection: keep-alive\n\n",URI);
+ if (AmmClient_Send(instance,filecontent,strlen(filecontent),keepAlive))
  {
-     usleep(100000);
-     if ( AmmClient_Recv(instance,filecontent,filecontentSize) )
+     memset(filecontent,0,strlen(filecontent));
+     unsigned int doneReceiving=0;
+     unsigned int bytesReceived=0;
+
+     //fprintf(stderr,RED " Waiting to receive response : \n" NORMAL);
+     while (!doneReceiving)
      {
-        //TODO: proper implementation here that will read the HTTP header..
-       return 1;
+       int result = recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-bytesReceived, 0);
+       if (result == 0 ) {
+                            fprintf(stderr,".");
+                         } else
+       if (result < 0 ) {
+                           fprintf(stderr,RED "Failed to Recv error : %u\n" NORMAL,errno);
+                           AmmClient_CloseDeadConnectionIfNeeded(instance);
+                           return 0;
+                         } else
+                         {
+                           bytesReceived+=result;
+                           //fprintf(stderr,GREEN" Received %u more bytes ( total %u ) \n" NORMAL , result , bytesReceived);
+                         }
+
+       if (isFileDownloadComplete(filecontent,*filecontentSize)) { return 1; }
+       if (bytesReceived>=*filecontentSize) { doneReceiving=1;}
      }
  }
 

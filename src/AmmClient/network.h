@@ -10,6 +10,8 @@ int AmmClient_ReconnectInternal(
 int AmmClient_CheckConnectionInternal(struct AmmClient_Instance * instance);
 
 
+int AmmClient_CloseDeadConnectionIfNeeded(struct AmmClient_Instance * instance);
+
 int AmmClient_RecvInternal(struct AmmClient_Instance * instance,
                    char * buffer ,
                    unsigned int * bufferSize

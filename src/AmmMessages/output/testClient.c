@@ -55,7 +55,17 @@ int main(int argc, char *argv[])
              sendToServer_move(connection , &moveStatic);
              sleep(1);
 
+             //Lets forget it..!
+             moveStatic.velocityX        = (float) (rand()%1000);
+             moveStatic.velocityY        = (float) (rand()%1000);
+             moveStatic.orientationTheta = (float) (rand()%1000);
+
              readStateFromServer_move(connection,&moveStatic);
+
+
+             printf("What we have now");
+              print_move(&moveStatic);
+             printf("\n");
            }
 
      AmmClient_Close(connection);

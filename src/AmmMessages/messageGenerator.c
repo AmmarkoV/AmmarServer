@@ -124,22 +124,36 @@ void writeGETScanf(
 {
  fprintf(fp,"char variableValue[256]={0};\n");
  fprintf(fp,"char variableID[256]={0};\n");
- fprintf(fp,"struct InputParserC * ipc = InputParser_Create(512,2);\n");
+ fprintf(fp,"struct InputParserC * ipc = InputParser_Create(512,3);\n");
  fprintf(fp,"InputParser_SetDelimeter(ipc,0,'?');\n");
  fprintf(fp,"InputParser_SetDelimeter(ipc,1,'&');\n");
+ fprintf(fp,"InputParser_SetDelimeter(ipc,2,'=');\n");
 
- fprintf(fp,"int arguments = InputParser_SeperateWordsCC(ipc,buffer,1);\n");
+
+// fprintf(fp,"const char newLine[]={10,13,10,13,0};\n");
+// fprintf(fp,"const char newLine[]={10,10,0};\n");
+ fprintf(fp,"unsigned int endOfLine=0;\n");
+ fprintf(fp,"char * body = strstrDoubleNewline(buffer,bufferSize,&endOfLine);\n");
+ fprintf(fp,"if (body==0) {  fprintf(stderr,\"Couldnt find body.. \\n\");  body=buffer; } \n");
+
+ fprintf(fp,"int arguments = InputParser_SeperateWordsCC(ipc,body,1);\n");
+ fprintf(fp,"fprintf(stderr,\"Unpacked to %%u arguments (%%s) \",arguments,body);\n");
 
  fprintf(fp,"unsigned int i=0;\n");
- fprintf(fp,"for (i=0; i<arguments/2; i++)\n");
+ fprintf(fp,"unsigned int numberOfLoops=(unsigned int) arguments/2;\n");
+ fprintf(fp,"for (i=0; i<numberOfLoops; i++)\n");
  fprintf(fp," {\n");
+ //fprintf(fp,"   fprintf(stderr,\" Loop i = %%u / %%u \\n \",i,numberOfLoops);  \n");
+   fprintf(fp,"unsigned int item=(i*2)+1;\n");
+ //fprintf(fp,"   fprintf(stderr,\" Item = %%u / %%u \\n \",item,numberOfLoops);  \n");
  fprintf(fp,"    if (\n");
- fprintf(fp,"        ( InputParser_GetWord(ipc,i*2+1,variableID,256) ) && \n");
- fprintf(fp,"        ( InputParser_GetWord(ipc,i*2+2,variableValue,256) ) \n");
+ fprintf(fp,"        ( InputParser_GetWord(ipc,item,variableID,256) ) && \n");
+ fprintf(fp,"        ( InputParser_GetWord(ipc,item+1,variableValue,256) ) \n");
  fprintf(fp,"       )\n");
  fprintf(fp,"    {\n");
 
 
+ //fprintf(fp,"    fprintf(stderr,\"ID = %%s , Value = %%s \\n \",variableID,variableValue);\n");
   //------------------------------------------------------------
   //------------------------------------------------------------
   //------------------------------------------------------------
@@ -175,6 +189,7 @@ void writeGETScanf(
                           "variableValue"
                          );
 
+          fprintf(fp,"    fprintf(stderr,\"Unpacked %s = %%s \\n \",variableValue);\n",destination);
           fprintf(fp,"    } else \n");
         }
     }
@@ -191,9 +206,12 @@ void writeGETScanf(
 
 
  fprintf(fp,"    }\n");
- fprintf(fp,"InputParser_Destroy(ipc);\n");
- fprintf(fp," return 0;\n");
+
+  fprintf(fp," else { fprintf(stderr,\"Failed to resolve for i = %%u \\n \",i);  } \n");
+
  fprintf(fp," }\n");
+ fprintf(fp,"InputParser_Destroy(ipc);\n");
+ fprintf(fp,"return 1;\n");
 }
 
 
@@ -667,9 +685,9 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
    fprintf(fp,"packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
 
    fprintf(fp,"char http[2049]={0}; unsigned int httpSize=2048;\n");
-   fprintf(fp,"snprintf(http,httpSize,\"GET %%s HTTP/1.1\\nConnection: keep-alive\\n\\n\",buffer);\n");
+   //fprintf(fp,"snprintf(http,httpSize,\"GET %%s HTTP/1.1\\nConnection: keep-alive\\n\\n\",buffer);\n");
 
-   fprintf(fp,"    if ( AmmClient_RecvFile(instance,http,http,&httpSize,1) )\n");
+   fprintf(fp,"    if ( AmmClient_RecvFile(instance,buffer,http,&httpSize,1) )\n");
    fprintf(fp,"    {\n");
    fprintf(fp,"      if (strstr(http,\"SUCCESS\")!=0)\n");
    fprintf(fp,"      {\n");
@@ -703,7 +721,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
    fprintf(fp,"char http[4097]={0}; unsigned int httpSize=4096;\n");
    fprintf(fp,"    if ( AmmClient_RecvFile(instance,\"%sViewer.html\",http,&httpSize,1) )\n",functionName);
    fprintf(fp,"    {\n");
-   fprintf(fp,"     fprintf(stderr,\"Got back %%s\\n\",http);\n");
+   fprintf(fp,"     //fprintf(stderr,\"Got back %%s\\n\",http);\n");
    fprintf(fp,"     return unpackFromHTTPGETRequest_%s(msg,http,httpSize);\n",functionName);
    fprintf(fp,"    }\n");
    fprintf(fp," fprintf(stderr,RED \"Failed to send message..\\n\" NORMAL);\n");

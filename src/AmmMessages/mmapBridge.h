@@ -36,7 +36,7 @@ struct bridgePayloadHeader
    unsigned long timestampInit;
 };
 
-
+char * strstrDoubleNewline(char * request,unsigned int requestLength,unsigned int * endOfLine);
 
 int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescriptor,unsigned int sizeOfBridgeMsg);
 int clearWritingBridge(struct bridgeContext * nbc);

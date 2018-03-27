@@ -11,6 +11,34 @@
 #include <string.h>
 
 
+char * strstrDoubleNewline(char * request,unsigned int requestLength,unsigned int * endOfLine)
+{
+  char * ptrA=request;
+  char * ptrB=request+1;
+
+  char * ptrEnd = request + requestLength;
+
+  fprintf(stderr,"\strstrDoubleNewline for 13 10 13 10 on a buffer with %u bytes of data : ",requestLength);
+   while (ptrB<ptrEnd)
+    {
+      if ( ( (*ptrA==10) && (*ptrB==10) ) || (*ptrA==0) )
+        {
+         ++ptrB;
+
+         *ptrA=0; //Also make null terminated string..
+         *endOfLine = ptrA-request;
+
+         fprintf(stderr,"done\n");
+         return ptrB;
+        }
+       fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
+      ++ptrA;   ++ptrB;
+    }
+
+  fprintf(stderr,"not found\n");
+ return request;
+}
+
 
 int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescriptor,unsigned int sizeOfBridgeMsg)
 {
