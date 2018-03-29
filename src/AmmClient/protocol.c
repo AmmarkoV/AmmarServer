@@ -169,25 +169,23 @@ int AmmClient_RecvFileInternalFast(
  {
      memset(filecontent,0,strlen(filecontent));
      unsigned int doneReceiving=0;
-     unsigned int recvCalled=0;
      unsigned int connectionHalted=0;
      int result =0;
 
      struct pollfd fd;
-     int ret;
 
      usleep(MICROSECONDS_TO_WAIT_FOR_RESPONSE);
 
 
      while (!doneReceiving)
      {
-      recvCalled=0;
+      int recvCalled=0;
 
       //Do ultra fast polling to check if connection has data..
       //---------------------------------------------------------------------
       fd.fd = instance->clientSocket; // your socket handler
       fd.events = POLLIN;
-      ret = poll(&fd, 1, 1); // 1ms for timeout
+      int ret = poll(&fd, 1, 1); // 1ms for timeout
       switch (ret) {
                      case -1:
                       doneReceiving=1;
