@@ -215,27 +215,28 @@ struct AmmClient_Instance * AmmClient_InitializeInternal(
                                                 )
 {
   struct AmmClient_Instance * instance = (struct AmmClient_Instance *) malloc(sizeof(struct AmmClient_Instance));
-  memset(instance,0,sizeof(struct AmmClient_Instance));
 
   if (instance!=0)
   {
+   memset(instance,0,sizeof(struct AmmClient_Instance));
    snprintf(instance->ip,32,"%s",ip);
    instance->port = port;
 
    instance->internals = (void *) malloc(sizeof (struct AmmClient_Internals));
-
    if (instance->internals!=0)
    {
     instance->socketTimeoutSeconds = socketTimeoutSeconds;
     AmmClient_ReconnectInternal(instance,1);
   } else
   {
-   fprintf(stderr,RED "Could not allocate internals.. \n" NORMAL);
+   fprintf(stderr,RED "Could not allocate internals, this instance failed and is unsafe to use so deallocating it.. \n" NORMAL);
+   free(instance);
+   return 0;
   }
 
-
-
-
+  } else
+  {
+   fprintf(stderr,RED "Could not allocate AmmClient_Instance.. \n" NORMAL);
   }
 
   return instance;

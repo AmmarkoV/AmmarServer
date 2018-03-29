@@ -29,7 +29,7 @@
 
 
 
-#define MICROSECONDS_TO_WAIT_FOR_RESPONSE 1500 //1.5 msec round trip time should be enough?
+#define MICROSECONDS_TO_WAIT_FOR_RESPONSE 2000 //2 msec round trip time should be enough , ultimately this only matters in reallyFastImplementation since the regular will wait until the recv is complete
 
 #define BUFFERSIZE 4096
 
@@ -43,14 +43,14 @@ int AmmClient_SendFileInternal(
                        int keepAlive
                       )
 {
-  //NOT TESTED
-  #warning "TODO: Randomize File Boundaries on POST requests"
-  char boundary[33]={"----AmmClientBoundaryAbcdefghijk"};
+  //THIS IS NOT PROPERLY TESTED
+  char boundary[33]={"----AmmClientBoundary"};
+  unsigned int boundaryRandomPart=rand()%10000000;
   char buffer[BUFFERSIZE];
-  snprintf(buffer,BUFFERSIZE,"POST %s HTTP/1.1\nContent-Type: multipart/form-data; boundary=%s\n%s\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\n \n",
+  snprintf(buffer,BUFFERSIZE,"POST %s HTTP/1.1\nContent-Type: multipart/form-data; boundary=%s%u\n%s%u\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\n \n",
            URI,
-           boundary,
-           boundary,
+           boundary,boundaryRandomPart,
+           boundary,boundaryRandomPart,
            formname,
            filename
           );
@@ -59,7 +59,7 @@ int AmmClient_SendFileInternal(
   int step1=AmmClient_SendInternal( instance, buffer , strlen(buffer) , keepAlive );
   int step2=AmmClient_SendInternal( instance, filecontent , filecontentSize , keepAlive );
 
-  snprintf(buffer,BUFFERSIZE,"%s\n",boundary );
+  snprintf(buffer,BUFFERSIZE,"%s%u\n",boundary,boundaryRandomPart );
 
   int step3=AmmClient_SendInternal( instance, buffer , strlen(buffer) , keepAlive );
 
@@ -153,31 +153,14 @@ int AmmClient_RecvFileInternalClean(
 
 
 
-
-
-int AmmClient_RecvFileInternal(
+int AmmClient_RecvFileInternalFast(
                        struct AmmClient_Instance * instance,
                        const char * URI ,
                        char * filecontent ,
                        unsigned int * filecontentSize,
-                       int keepAlive ,
-                       int reallyFastImplementation
+                       int keepAlive
                       )
 {
- if (!reallyFastImplementation)
- {
- //This is clean and works  @ 25Hz
- return AmmClient_RecvFileInternalClean(
-                                        instance,
-                                        URI ,
-                                        filecontent ,
-                                        filecontentSize,
-                                        keepAlive
-                                       );
- }
-
-
-
  snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\nConnection: keep-alive\n\n",URI);
 
  unsigned int bytesReceived=0;
@@ -257,6 +240,48 @@ int AmmClient_RecvFileInternal(
 
   //AmmClient_CloseDeadConnectionIfNeeded(instance);
   //AmmClient_CheckConnectionInternal(instance);
+
+ return 0;
+}
+
+
+
+int AmmClient_RecvFileInternal(
+                       struct AmmClient_Instance * instance,
+                       const char * URI ,
+                       char * filecontent ,
+                       unsigned int * filecontentSize,
+                       int keepAlive ,
+                       int reallyFastImplementation
+                      )
+{
+ if (reallyFastImplementation)
+ {
+ //If we are here it means we are in a terrible hurry
+ //The "fast" implementation uses poll to check sockets
+ //and will not block, providing a much faster implementation..
+ return AmmClient_RecvFileInternalFast(
+                                        instance,
+                                        URI ,
+                                        filecontent ,
+                                        filecontentSize,
+                                        keepAlive
+                                       );
+
+ }
+ else
+ {
+ //This is the clean and simple version for receiving files
+ //it uses regular recv and works @ 25Hz due to system blocking
+ //at recv for a predetermined amount of time.
+ return AmmClient_RecvFileInternalClean(
+                                        instance,
+                                        URI ,
+                                        filecontent ,
+                                        filecontentSize,
+                                        keepAlive
+                                       );
+ }
 
  return 0;
 }
