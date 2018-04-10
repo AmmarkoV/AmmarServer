@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+ <head>
+   <meta http-equiv="content-type" content="text/html; charset=UTF-8"/> 
+   <title> KWalkCommander </title>
+   <link rel="stylesheet" type="text/css" href="nao.css">
+   <script type="text/javascript" src="controlpanel.js">   
+   </script>
+ </head>
+
+<!-- setInterval('updateStatusMonitor()', statusMonitorUpdateDelay ); -->
+<body onload="makeUniqueURLs(); " >  
+   <table>
+     <tr>
+      <td> 
+            <table> 
+              <tr>
+               <td>
+                <img src="nao.png" height=300><br>  
+               </td>
+               <td align="left">
+              <strong>SYSTEM</strong><br/>
+              <select id="SystemControls" onchange="javascript:command('sys='+this.value);" > 
+               <option value="nothing">Click to control system</option>  
+                 <optgroup label="Service" > 
+                    <option value="save">Save Current Configuration</option> 
+                    <option value="restartService">Restart Service</option>
+                 </optgroup>  
+                 <optgroup label="Lifecycle" > 
+                    <option value="terminateWebInterface">Terminate Web Interface</option> 
+                    <option value="reboot">Reboot NAO</option> 
+                    <option value="shutdown">Shutdown NAO</option>  
+                 </optgroup>  
+               </select><br/><br/>      
+               <!-- - - - - - - - - - - - -->
+
+              <strong>POSE AND LOOK</strong><br/>
+              <select id="PoseControls" onchange="javascript:command('pose='+this.value);" > 
+               <option value="nothing">Click to control pose</option>  
+                 <optgroup label="Pose" > 
+                    <option value="rest">Sit Down</option> 
+                    <option value="stand">Stand Up</option>  
+                 </optgroup>  
+                 <optgroup label="LEDS" > 
+                    <option value="ledOff">Disable</option>  
+                    <option value="ledRasta">Rasta</option>  
+                 </optgroup>  
+               </select><br/><br/>    
+
+
+              <strong>ACTIONS</strong><br/>
+              <select id="Actions" onchange="javascript:command('action='+this.value);" > 
+               <option value="nothing">Click to control actions</option>  
+                 <optgroup label="Dances" > 
+                    <option value="danceGangam">Gangam Style</option> 
+                    <option value="danceEvolution">Dance Evolution</option>  
+                    <option value="danceVangelis">Vangelis</option> 
+                    <option value="danceMacarena">Macarena</option> 
+                    <option value="danceEyeOfTheTiger">Eye Of The Tiger</option> 
+                 </optgroup>  
+                 <optgroup label="Functions" > 
+                    <option value="kickLeft">Kick Left</option>  
+                    <option value="ballTracker">Red Ball Tracker</option>  
+                    <!--option value="rest">Rest</option> 
+                    <option value="wakeup">Wakeup</option --> 
+                    <option value="fallRecoveryFrontFall">Fall Recover Front Fall</option>   
+                    <option value="fallRecoveryBackFall">Fall Recover Back Fall</option>   
+                 </optgroup>  
+                 <optgroup label="Gestures" > 
+                    <option value="wave">Wave</option>   
+                    <option value="erevniti">Vradia Erevniti</option>
+
+                 </optgroup>                                    
+               </select><br/><br/>    
+               <!-- - - - - - - - - - - - -->
+
+
+              <strong>SAY</strong><br/>
+                  <form action="commander.html" accept-charset="utf-8" > 
+                   TTS : 
+                     <div style="overflow: hidden; padding-right: .5em;">
+                      <input type="text" name="say"  style="width: 60%;">
+                      <input type="submit" value="Speak" onclick="updateFormRandomNumber()" style="float: right">
+                     </div> 
+                     <input id="FormRandomField" type="hidden" name="t" value="somethingRandomHere"> 
+                   </form>
+
+              <br/><br/>    
+               <!-- - - - - - - - - - - - -->
+
+
+               </td>
+              </tr>
+             </table>
+           <div class="rtd">
+              <strong>MOVEMENT</strong><br/> 
+            <center>
+<table>
+ <tr> 
+   <td>         
+      <!-- Movement has 2 parts , First is the Joystick -->
+
+              <a href="javascript:joystickExecute(0.5,0);"><img class="turnControls" src="turnLeft.png" id="turnLeft" ></a>
+<!--  ------------------------------------------------------------------------------
+      START OF:         THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
+      ------------------------------------------------------------------------------   -->
+    <canvas id="joypadCanvas" width="160" height="160"></canvas>
+    <script src="joystick.js"> </script> 
+<!--  ------------------------------------------------------------------------------
+      END OF:           THE HTML5 CANVAS CODE FOR MAKING THE JOYSTICK WORK 
+      ------------------------------------------------------------------------------   --> 
+                <a href="javascript:joystickExecute(-0.5,0);"><img class="turnControls" src="turnRight.png" id="turnRight"></a>
+                <br/> 
+                 <center>
+                  <select id="joystickSpeed"> 
+                    <option value="0.02">Normal Speed</option>  
+                    <option value="0.005">Slow</option>    
+                    <option value="0.035">Fast</option> 
+                    <option value="0.045">Turbo</option> 
+                  </select> 
+                 <br/> 
+                 <label><input id="joystickActiveSwitch" type="checkbox" onchange='handleJoystickActiveSwitch(this);' >Joystick Active</label> <br/>
+                 <a href="javascript:joystickExecute(0,0);">STOP ALL MOVEMENT</a>
+                 </center>     
+
+
+
+</td>
+<td>
+</td>
+<td>
+        <!-- Movement has 2 parts , Second is the Discrete Movement -->
+        <table>
+          <tr>
+           <td></td>
+           <td>
+               <a href="commander.html?body=forward"><img src="head_up.png" width=40></a><br/>
+           </td>
+           <td></td>
+          </tr>
+          <tr>
+           <td>
+              <a href="commander.html?body=left"><img src="head_left.png" width=40></a><br/> 
+           </td>
+           <td>
+              <a href="commander.html?body=stop"><img src="head_stop.png" width=40></a><br/> 
+           </td>
+           <td>
+              <a href="commander.html?body=right"><img src="head_right.png" width=40></a><br/>
+           </td>
+          </tr>
+          <tr>
+           <td>
+              <a href="commander.html?body=360ccw"><img src="head_ccw.png" width=40></a><br/>
+           </td>
+           <td>
+               <a href="commander.html?body=back"><img src="head_down.png" width=40></a><br/>
+           </td>
+           <td>
+               <a href="commander.html?body=360cw"><img src="head_cw.png" width=40></a><br/>
+           </td>
+          </tr>
+
+
+          <tr>
+            <td colspan=3>
+               <center>
+                 <a href="commander.html?body=kick">KICK</a> 
+                 <a href="commander.html?sys=snap">SNAP</a> 
+               </center>
+            </td>
+          </tr>
+
+          <tr>
+            <td colspan=3>
+               <center>
+                 <a href="commander.html?body=reset">Reset Motors/Brakes</a>
+               </center>
+            </td>
+          </tr>
+
+
+          <tr>
+            <td colspan=3>
+               <center>
+                 <a href="commander.html?body=enableStiffness">Enable</a> / 
+                 <a href="commander.html?body=disableStiffness">Disable</a> Stiffness
+               </center>
+            </td>
+          </tr>
+
+          <tr>
+            <td colspan=3>
+               <center>
+                 <a href="commander.html?body=refresh">Force Refresh</a> State
+               </center>
+            </td>
+          </tr>  
+
+
+        </table>    
+        
+</td>
+</tr>
+</table>
+            </center>
+           </div> 
+
+        
+
+      </td>
+      <td>
+      </td>
+     </tr>
+   </table>
+ </body> 
+</html>

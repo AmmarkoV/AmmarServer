@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+ <head>
+   <meta http-equiv="content-type" content="text/html; charset=UTF-8"/> 
+   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+   <title> AmmBUS Control Panel </title>
+   <link rel="stylesheet" type="text/css" href="page.css">
+   <script type="text/javascript" src="controlpanel.js">   
+   </script>
+ </head>
+
+<!-- setInterval('updateStatusMonitor()', statusMonitorUpdateDelay ); -->
+<body onload="makeUniqueURLs(); " >  
+   <table>
+     <tr>
+      <td> 
+            <table> 
+              <tr> 
+               <td align="left">
+                <img src="logo.jpg" height=150><br>  
+              <strong>SYSTEM</strong><br/>
+              <select id="SystemControls" onchange="javascript:command('sys='+this.value);" > 
+               <option value="nothing">Click to control system</option>  
+                 <optgroup label="Service" > 
+                    <option value="save">Save Current Configuration</option> 
+                    <option value="restartService">Restart Service</option>
+                 </optgroup>  
+                 <optgroup label="Lifecycle" > 
+                    <option value="terminateWebInterface">Terminate Web Interface</option> 
+                    <option value="reboot">Reboot</option> 
+                    <option value="shutdown">Shutdown</option>  
+                 </optgroup>  
+               </select><br/><br/>      
+               <!-- - - - - - - - - - - - -->
+  <br/><br/>      
+
+              <strong>ACTIVATE</strong><br/>
+              <select id="ActivateControls" onchange="javascript:command('activate='+this.value);this.value=0;" > 
+               <option value="nothing">Click to activate device</option>  
+                 <optgroup label="Group 1" > 
+                    <option value="a">Device A</option> 
+                    <option value="b">Device B</option>
+                 </optgroup>  
+                 <optgroup label="Group 2" > 
+                    <option value="c">Device C</option> 
+                    <option value="d">Device D</option> 
+                    <option value="e">Device E</option>  
+                 </optgroup>  
+                 <optgroup label="Group3" > 
+                    <option value="f">Device F</option> 
+                    <option value="g">Device G</option> 
+                    <option value="h">Device H</option>  
+                 </optgroup>  
+               </select><br/><br/>      
+
+<br/><br/>      
+
+              <strong>DEACTIVATE</strong><br/>
+              <select id="ActivateControls" onchange="javascript:command('deactivate='+this.value);this.value=0;" > 
+               <option value="nothing">Click to activate device</option>  
+                 <optgroup label="Group 1" > 
+                    <option value="a">Device A</option> 
+                    <option value="b">Device B</option>
+                 </optgroup>  
+                 <optgroup label="Group 2" > 
+                    <option value="c">Device C</option> 
+                    <option value="d">Device D</option> 
+                    <option value="e">Device E</option>  
+                 </optgroup>
+                 <optgroup label="Group3" > 
+                    <option value="f">Device F</option> 
+                    <option value="g">Device G</option> 
+                    <option value="h">Device H</option>  
+                 </optgroup>    
+               </select><br/><br/>   
+
+
+              <br/><br/>    
+               <!-- - - - - - - - - - - - --> 
+               </td>
+              </tr>
+             </table> 
+ 
+
+      </td>
+      <td>
+      </td>
+     </tr>
+   </table>
+ </body> 
+</html>

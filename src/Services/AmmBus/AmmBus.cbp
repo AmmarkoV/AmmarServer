@@ -52,6 +52,10 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="serialIO.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="serialIO.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

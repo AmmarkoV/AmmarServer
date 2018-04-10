@@ -17,7 +17,7 @@ ENDIF(DO_TEST_COVERAGE)
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(ammbus main.c ) 
+add_executable(ammbus main.c serialIO.c state.c) 
 target_link_libraries(ammbus pthread rt AmmarServerDynamic )
 #set_target_properties(ammbus PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(ammbus ammbus)  
