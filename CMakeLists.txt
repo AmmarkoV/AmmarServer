@@ -76,6 +76,9 @@ ENDIF (USE_AMMMESSAGES)
     add_subdirectory (src/Services/WebFramebuffer)
     add_subdirectory (src/Services/SimpleTemplate) 
     add_subdirectory (src/Services/V4L2ToHTTP)
+
+    add_subdirectory (src/Services/AmmBus)
+
     
     IF( USE_XSERVER ) 
       #XWD is listed here maybe it should be inside remote desktop
