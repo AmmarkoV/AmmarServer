@@ -16,8 +16,8 @@
    <table>
      <tr>
       <td> 
-  <div class="rtd">
-              <strong>AmmBUS</strong><br/>
+         <div class="rtd">
+         <strong>AmmBUS Control Panel</strong><br/>
             <table> 
               <tr> 
                <td align="left">
@@ -35,11 +35,10 @@
                     <option value="shutdown">Shutdown</option>  
                  </optgroup>  
                </select><br/><br/>      
-               <!-- - - - - - - - - - - - -->
-  <br/><br/>      
+               <!-- - - - - - - - - - - - --> 
 
               <strong>ACTIVATE</strong><br/>
-              <select id="ActivateControls" onchange="javascript:command('activate='+this.value);this.value=0;" > 
+              <select id="ActivateControls" onchange="javascript:command('activate='+this.value);this.value='nothing';" > 
                <option value="nothing">Click to activate device</option>  
                  <optgroup label="Group 1" > 
                     <option value="a">Device A</option> 
@@ -55,13 +54,11 @@
                     <option value="g">Device G</option> 
                     <option value="h">Device H</option>  
                  </optgroup>  
-               </select><br/><br/>      
-
-<br/><br/>      
+               </select><br/><br/>    
 
               <strong>DEACTIVATE</strong><br/>
-              <select id="ActivateControls" onchange="javascript:command('deactivate='+this.value);this.value=0;" > 
-               <option value="nothing">Click to activate device</option>  
+              <select id="ActivateControls" onchange="javascript:command('deactivate='+this.value);this.value='nothing';" > 
+               <option value="nothing">Click to deactivate device</option>  
                  <optgroup label="Group 1" > 
                     <option value="a">Device A</option> 
                     <option value="b">Device B</option>
@@ -78,21 +75,16 @@
                  </optgroup>    
                </select><br/><br/>   
 
-
-              <br/><br/>    
+ 
                <!-- - - - - - - - - - - - --> 
                </td>
               </tr>
              </table> 
  
 
- </div>
-      </td>
-      <td>
-      </td>
+ </div> 
+      </td> 
      </tr>
-   </table>
-
-
+   </table> 
  </body> 
 </html>

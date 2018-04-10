@@ -38,8 +38,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define WEBSERVERROOT "src/Services/AmmBus/public_html/"
 char webserver_root[MAX_FILE_PATH]=WEBSERVERROOT;
 char templates_root[MAX_FILE_PATH]=WEBSERVERROOT;
-
 int deviceID = 0;
+
+
+char deviceSerialFilePath[MAX_FILE_PATH]="/dev/ttyACM0";
+
 
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
@@ -116,7 +119,15 @@ int main(int argc, char *argv[])
    unsigned int i=0;
    for (i=0; i<argc; i++)
    {
-
+     if (strstr(argv[i],"/dev/")!=0)
+     {
+       snprintf(deviceSerialFilePath,126,"%s",argv[i]);
+     } else
+     if (strcmp(argv[i],"--config")==0)
+     {
+       fprintf(stderr,"Config file : %s \n",argv[i+1]);
+     }
+   }
     //Check binary and header spec
     AmmServer_CheckIfHeaderBinaryAreTheSame(AMMAR_SERVER_HTTP_HEADER_SPEC);
     //Register termination signal for when we receive SIGKILL etc
@@ -128,7 +139,7 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
 
-    deviceID = serialport_init("/dev/ttyACM0",9600);
+    deviceID = serialport_init(deviceSerialFilePath,9600);
 
     default_server = AmmServer_StartWithArgs(
                                              "ammbus",
@@ -171,7 +182,6 @@ int main(int argc, char *argv[])
     AmmServer_Warning("Ammar Server stopped\n");
 
     return 0;
-}
 
 return 0;
 }
