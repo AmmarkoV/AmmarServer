@@ -40,6 +40,9 @@
               <strong>ACTIVATE</strong><br/>
               <select id="ActivateControls" onchange="javascript:command('activate='+this.value);this.value='nothing';" > 
                <option value="nothing">Click to activate device</option>  
+                 <optgroup label="Master Switch" > 
+                    <option value="all">Activate all devices</option> 
+                 </optgroup>  
                  <optgroup label="Group 1" > 
                     <option value="a">Device A</option> 
                     <option value="b">Device B</option>
@@ -59,6 +62,9 @@
               <strong>DEACTIVATE</strong><br/>
               <select id="ActivateControls" onchange="javascript:command('deactivate='+this.value);this.value='nothing';" > 
                <option value="nothing">Click to deactivate device</option>  
+                 <optgroup label="Master Switch" > 
+                    <option value="all">Deactivate all devices</option> 
+                 </optgroup>  
                  <optgroup label="Group 1" > 
                     <option value="a">Device A</option> 
                     <option value="b">Device B</option>

@@ -80,6 +80,13 @@ void * callback_command(struct AmmServer_DynamicRequest  * rqst)
 
   if ( (haveDev)  )
   {
+    if (strcmp(dev,"all")==0)
+    {
+     if (!setAmmBusStateAll(deviceID,state))
+     {
+       AmmServer_Warning("AmmBus: Failed to set a state for all devices");
+     }
+    } else
     if (!setAmmBusState(deviceID,dev,state))
     {
       AmmServer_Warning("AmmBus: Incorrect device to set a state for (%s)",dev);

@@ -22,3 +22,14 @@ int setAmmBusState(int deviceID , const char * dev , int state)
   }
  return 0;
 }
+
+
+
+int setAmmBusStateAll(int deviceID , int state)
+{
+   if (state) { return  serialport_writebyte(deviceID,'*'); } else
+              { return  serialport_writebyte(deviceID,'$'); }
+
+
+ return 0;
+ }

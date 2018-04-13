@@ -48,6 +48,31 @@ if (inputs.length() >0)
 {
 Serial.println(inputs);
 
+
+if(inputs == "*")
+{
+ digitalWrite(relay1, LOW);
+ digitalWrite(relay2, LOW);
+ digitalWrite(relay3, LOW);
+ digitalWrite(relay4, LOW);
+ digitalWrite(relay5, LOW);
+ digitalWrite(relay6, LOW);
+ digitalWrite(relay7, LOW);
+ digitalWrite(relay8, LOW);
+}
+else 
+if(inputs == "$")
+{
+ digitalWrite(relay1, HIGH);
+ digitalWrite(relay2, HIGH);
+ digitalWrite(relay3, HIGH);
+ digitalWrite(relay4, HIGH);
+ digitalWrite(relay5, HIGH);
+ digitalWrite(relay6, HIGH);
+ digitalWrite(relay7, HIGH);
+ digitalWrite(relay8, HIGH);
+} 
+else
 if(inputs == "A")
 {
 digitalWrite(relay1, LOW);
