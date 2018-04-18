@@ -27,6 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8085
 
+const unsigned int
 unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
 
 char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -286,6 +287,7 @@ return response;
 
 void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 {
+   AmmServer_Warning("processUploadCallback called\n");
   //md5sum file.jpg | cut -d' ' -f1
   char * storeID = getBackRandomFileDigits(32);
 

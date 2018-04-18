@@ -92,6 +92,23 @@ struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context executeScriptRC={0};
 
 
+struct AmmServer_RH_Context hello={0};
+
+
+
+
+void * helloWorld_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Hello World</body></html>");
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
+
+
+
 void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   time_t t = time(NULL);
@@ -341,6 +358,9 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+
+
+  AmmServer_AddResourceHandler(default_server,&hello,"/hello.html",4096,0,&helloWorld_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
   #if ENABLE_STOP_PAGE
     AmmServer_Error("Enabling stop page , you don't want this in a production usage\n");
