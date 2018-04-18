@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8085
 
-const unsigned int
+const unsigned int bufferPageSize=16 /*KB*/ *1024;
 unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
 
 char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -363,13 +363,13 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   AmmServer_DoNOTCacheResourceHandler(default_server,&uploadProcessor);
 
-  AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",4096,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&vFileProcessor,"/vfile.html",4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&vFileProcessorCompat,"/vfile.php",4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&fileProcessor,"/file.html",4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&fileProcessorCompat,"/file.php",4096,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",bufferPageSize,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&vFileProcessor,"/vfile.html",bufferPageSize,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&vFileProcessorCompat,"/vfile.php",bufferPageSize,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&fileProcessor,"/file.html",bufferPageSize,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&fileProcessorCompat,"/file.php",bufferPageSize,0,&prepare_vfile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
-  AmmServer_AddResourceHandler(default_server,&randomProcessor,"/random.html",4096,0,&prepare_random_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&randomProcessor,"/random.html",bufferPageSize,0,&prepare_random_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(default_server,&randomProcessor);
 
 

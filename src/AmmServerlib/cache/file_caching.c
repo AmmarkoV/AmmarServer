@@ -277,10 +277,11 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
    }
 
   //We will allocate the required memory..!
-  char * buffer = (char*) malloc ( sizeof(char) * (lSize));
+  char * buffer = (char*) malloc ( sizeof(char) * (lSize+1));
   if (buffer == 0 ) { fprintf(stderr,"Could not allocate enough memory to cache this file..!\n"); fclose(pFile); return 0;  }
   //We have allocated the new memory chunk so we will update our loaded cache counter..!
-  instance_CountNewMallocOP(instance,lSize);
+  buffer[lSize]=0;
+  instance_CountNewMallocOP(instance,lSize+1);
 
   // copy the file into the buffer:
   size_t result = fread (buffer,1,lSize,pFile);

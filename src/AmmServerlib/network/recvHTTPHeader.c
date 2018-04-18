@@ -41,7 +41,7 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  if (incomingRequest==0) { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); return 0; }
  memset(incomingRequest,0,sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
 
- transaction->incomingHeader.headerRAW = incomingRequest ;
+ transaction->incomingHeader.headerRAW = incomingRequest ; //headerRAW malloc here
  transaction->incomingHeader.headerRAW[0]=0;
 
 
@@ -129,6 +129,17 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
   } // END OF RECEIVE LOOP
 
 
+
+   //DUMP THE RECEIVED HEADER IN A FILE FOR DEBUGGING PURPOSES
+   //AmmServer_WriteFileFromMemory(
+   //                               "RECEIVED.txt",
+   //                               transaction->incomingHeader.headerRAW ,
+   //                               transaction->incomingHeader.headerRAWSize
+   //                             );
+
+
+
+
   ///-----------------------------------------------------------------------------------------------------
   ///-----------------------------------------------------------------------------------------------------
   ///-----------------------------------------------------------------------------------------------------
@@ -168,11 +179,28 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
     transaction->incomingHeader.POSTrequestBody = transaction->incomingHeader.headerRAW+transaction->incomingHeader.headerRAWHeadSize+1;
     transaction->incomingHeader.POSTrequestBodySize = transaction->incomingHeader.headerRAWSize-transaction->incomingHeader.headerRAWHeadSize;
 
+
+    //AmmServer_WriteFileFromMemory(
+    //                               "POST.txt",
+    //                               transaction->incomingHeader.POSTrequestBody ,
+    //                               transaction->incomingHeader.POSTrequestBodySize
+    //                             );
+
     //We need to finalize the POST data processing
     if (!finalizePOSTData(output))
     {
       AmmServer_Error("Server failed to parse POST data");
     }
+
+
+    //AmmServer_WriteFileFromMemory(
+    //                               "POSTFINALIZED.txt",
+    //                               transaction->incomingHeader.POSTrequestBody ,
+    //                               transaction->incomingHeader.POSTrequestBodySize
+    //                             );
+
+
+
   }
 
   //--------------------- --------------------- ---------------------

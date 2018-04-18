@@ -273,6 +273,28 @@ int growHeader(struct HTTPTransaction * transaction)
   }
 
 
+  //First time we grow header ( means we are allocating it )
+  if (oldHeaderAddress==0)
+  {
+    AmmServer_Success("First time to grow header..\n");
+
+    hdr->headerRAW = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+1) );
+     if (hdr->headerRAW!=0 )
+     {
+       hdr->MAXheaderRAWSize = wannabeHeaderSize;
+       memset(hdr->headerRAW,0,wannabeHeaderSize+1);
+       return 1;
+     } else
+     {
+       AmmServer_Error("Failed to allocate header space..!\n");
+       return 0;
+     }
+  }
+
+
+
+
+
  //There is still room for incrementing the size of the buffer
   if (hdr->MAXheaderRAWSize < instance->settings.MAX_POST_TRANSACTION_SIZE )
    {
@@ -287,6 +309,7 @@ int growHeader(struct HTTPTransaction * transaction)
      if (newBuffer!=0 )
      {
        newBuffer[wannabeHeaderSize]=0; //First of all null terminate the new header space..
+       newBuffer[wannabeHeaderSize+1]=0; //First of all null terminate the new header space..
        hdr->headerRAW=newBuffer;
        hdr->MAXheaderRAWSize = wannabeHeaderSize;
 

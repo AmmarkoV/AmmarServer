@@ -574,6 +574,10 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
     case TEMPNAME :                                                                   break;
     case TYPE :       return getPointerToPOSTItemType(rqst,POSTName,outputSize);      break;
     case SIZE :                                                                       break;
+
+    default :
+      warningID(ASV_WARNING_WRONG_ARGUMENT);
+    break;
   };
  return 0;
 }

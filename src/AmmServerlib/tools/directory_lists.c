@@ -29,7 +29,7 @@ unsigned int i,j;
 for(i=str1_len, j=0; ((i<(str1_len+str2_len)) && (j<str2_len));i++, j++) {
 result[i]=str2[j];
 }
-result[str1_len+str2_len]='\0';
+result[str1_len+str2_len]=0;
 return result;
 }
 

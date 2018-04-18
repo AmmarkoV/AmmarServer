@@ -961,6 +961,7 @@ int FindIndexFile(struct AmmServer_Instance * instance,char * webserver_root,cha
   return 0;
 }
 
+//You should use AmmCLient instead of this shitty code..!
 char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,unsigned int port,char * filename,unsigned int max_content)
 {
   int sockfd;

@@ -188,7 +188,7 @@ int AnalyzePOSTLineRequest(
                  char * boundary = strstr(request+payload_start,"boundary=");
                  if (boundary==0)
                       {
-                         fprintf(stderr,"Could not found boundary in string %s \n",output->contentType);
+                         fprintf(stderr,"Could not find `boundary=` in string `%s` \n",output->contentType);
                          return 0;
                       } else
                       {

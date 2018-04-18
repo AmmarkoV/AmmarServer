@@ -195,9 +195,12 @@ char * dynamicRequest_serveContent
      { warningID(ASV_WARNING_RESOURCE_HAS_ZERO_ACCOMODATION_SIZE); }
      else
      {
-      fprintf(stderr,"Allocating an additional %u bytes for this request \n",size_to_allocate);
-      cacheMemory = (char *) malloc( size_to_allocate );
-      if (cacheMemory!=0) { *freeContentAfterUsingIt=1; } else //Allocation was successfull , we would like parent procedure to free it after use..
+      AmmServer_Warning("Allocating an additional %u bytes for this request \n",size_to_allocate);
+      cacheMemory = (char *) malloc( size_to_allocate+1 );
+      if (cacheMemory!=0) {
+                            *freeContentAfterUsingIt=1;
+                             memset(cacheMemory,0,size_to_allocate+1); //Clean it..!
+                          } else //Allocation was successfull , we would like parent procedure to free it after use..
                           { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); } //Lets work with our default buffer till the end..!
      }
     } else

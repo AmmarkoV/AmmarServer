@@ -250,7 +250,7 @@ char * astringReadFileToMemory(const char * filename,unsigned int *length )
     rewind (pFile);
 
     // allocate memory to contain the whole file:
-    unsigned long bufferSize = sizeof(char)*(lSize+2);
+    unsigned long bufferSize = sizeof(char)*(lSize+1);
     char * buffer = (char*) malloc (bufferSize);
     if (buffer == 0 )
     {

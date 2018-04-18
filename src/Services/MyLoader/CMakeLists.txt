@@ -12,7 +12,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
    
 add_executable(myloader main.c ) 
 target_link_libraries(myloader pthread rt jpeg AmmarServerDynamic AmmCaptcha)
-set_target_properties(myloader PROPERTIES DEBUG_POSTFIX "D")
+#set_target_properties(myloader PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(myloader AmmarServer AmmCaptcha)  
        
     set_target_properties(myloader PROPERTIES 

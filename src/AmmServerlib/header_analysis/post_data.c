@@ -66,7 +66,8 @@ int addPOSTDataBoundary(struct HTTPHeader * output,char * ptr)
 
 int finalizePOSTData(struct HTTPHeader * output)
 {
- //fprintf(stderr,"finalizePOSTData POSTItems : %p , %u items\n",output->POSTItem , output->POSTItemNumber);
+ //TODO : This calls inserts garbage in data..!
+ fprintf(stderr,"finalizePOSTData POSTItems : %p , %u items\n",output->POSTItem , output->POSTItemNumber);
 
  unsigned int success=0;
  unsigned int i=0;
@@ -75,9 +76,9 @@ int finalizePOSTData(struct HTTPHeader * output)
 
  for (i=0; i<PNum; i++)
  {
-  //fprintf(stderr,"output->POSTrequestSize=%u\n",output->POSTrequestSize);
-  //fprintf(stderr,"output->POSTrequestBodySize=%u\n",output->POSTrequestBodySize);
-  //AmmServer_Success("finalizePOSTData(%u)=`%s`\n",i,output->POSTItem[i].pointerStart);
+  fprintf(stderr,"output->POSTrequestSize=%u\n",output->POSTrequestSize);
+  fprintf(stderr,"output->POSTrequestBodySize=%u\n",output->POSTrequestBodySize);
+  AmmServer_Success("finalizePOSTData(%u)=`%s`\n",i,output->POSTItem[i].pointerStart);
   unsigned int length=0;
   char * configuration = output->POSTItem[i].pointerStart;
   char * payload = reachNextBlock(
@@ -100,8 +101,8 @@ int finalizePOSTData(struct HTTPHeader * output)
 
   unsigned int configurationLength = payload-configuration;
 
-  //AmmServer_Warning("configuration(%u)=`%s`\n",i,configuration);
-  //AmmServer_Success("payload(%u)=`%s`\n",i,payload);
+  AmmServer_Warning("configuration(%u)=`%s`\n",i,configuration);
+  AmmServer_Success("payload(%u)=`%s`\n",i,payload);
 
   char * filename = strstr(configuration,"filename=\""); //TODO : use strnstr
   if (filename!=0)
