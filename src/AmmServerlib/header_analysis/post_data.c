@@ -89,6 +89,7 @@ int finalizePOSTData(struct HTTPHeader * output)
                                                                   output->POSTItem[i].pointerStart
                                                                 )  ,
                                    &length
+                                   ,1 // Null termination
                                   );
   reachNextLine( payload+1,
                  _calculateRemainingDataLength(
@@ -96,7 +97,8 @@ int finalizePOSTData(struct HTTPHeader * output)
                                                output->headerRAWSize ,
                                                payload+1
                                               ),
-                &length
+                &length,
+                1//no null termination
                );
 
   unsigned int configurationLength = payload-configuration;
@@ -108,14 +110,22 @@ int finalizePOSTData(struct HTTPHeader * output)
   if (filename!=0)
   {
     output->POSTItem[i].filename = filename+10; //skip filename="
-    output->POSTItem[i].filenameSize = countStringUntilQuotesOrNewLine(output->POSTItem[i].filename,configurationLength);
+    output->POSTItem[i].filenameSize = countStringUntilQuotesOrNewLine(
+                                                                        output->POSTItem[i].filename,
+                                                                        configurationLength ,
+                                                                        1 //Null termination
+                                                                       );
 
 
     char * name = strstr(configuration,"name=\""); //TODO : use strnstr
     if (name!=0)
      {
        output->POSTItem[i].name = name+6; //skip name="
-       output->POSTItem[i].nameSize = countStringUntilQuotesOrNewLine(output->POSTItem[i].name,configurationLength);
+       output->POSTItem[i].nameSize = countStringUntilQuotesOrNewLine(
+                                                                       output->POSTItem[i].name,
+                                                                       configurationLength,
+                                                                       1 // Null termination
+                                                                       );
      }
 
        output->POSTItem[i].value = payload;
@@ -153,7 +163,11 @@ int finalizePOSTData(struct HTTPHeader * output)
     if (name!=0)
      {
        output->POSTItem[i].name = name+6; //skip name="
-       output->POSTItem[i].nameSize = countStringUntilQuotesOrNewLine(output->POSTItem[i].name,configurationLength);
+       output->POSTItem[i].nameSize = countStringUntilQuotesOrNewLine(
+                                                                        output->POSTItem[i].name,
+                                                                        configurationLength,
+                                                                        1 // Null termination
+                                                                     );
      }
 
     if (payload!=0)

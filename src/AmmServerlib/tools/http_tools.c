@@ -653,7 +653,7 @@ int strToUpcase(char * strTarget , char * strSource , unsigned int strLength)
  return 1;
 }
 
-char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine)
+char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine,unsigned int makeNullTermination)
 {
   char * ptrA=request;
   char * ptrB=request+1;
@@ -669,7 +669,7 @@ char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * e
         {
          ++ptrD;
 
-         *ptrA=0; //Also make null terminated string..
+         if (makeNullTermination) { *ptrA=0; } //Also make null terminated string..
          *endOfLine = ptrA-request;
 
          //fprintf(stderr,"done\n");
@@ -683,7 +683,7 @@ char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * e
  return request;
 }
 
-char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine)
+char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine,unsigned int makeNullTermination)
 {
   char * ptrA=request;
 
@@ -694,7 +694,7 @@ char * reachNextLine(char * request,unsigned int requestLength,unsigned int * en
     {
       if ( (*ptrA==13) || (*ptrA==10) || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/ )
         {
-         *ptrA=0; //Also make null terminated string..
+         if (makeNullTermination) { *ptrA=0; } //Also make null terminated string..
          *endOfLine = ptrA-request;
 
          ++ptrA;
@@ -714,7 +714,7 @@ char * reachNextLine(char * request,unsigned int requestLength,unsigned int * en
  return request;
 }
 
-unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength)
+unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength,unsigned int makeNullTermination)
 {
   unsigned int endOfLine=0;
   char * ptrA=request;
@@ -726,7 +726,7 @@ unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int request
     {
       if ( (*ptrA==13) || (*ptrA==10) || (*ptrA=='"') || (*ptrA==0)/*If we encounter a null terminator this is a violent end*/  )
         {
-         *ptrA=0; //Also make null terminated string..
+         if (makeNullTermination) { *ptrA=0; } //Also make null terminated string..
          endOfLine = (unsigned int) (ptrA-request);
 
          //fprintf(stderr,"done\n");

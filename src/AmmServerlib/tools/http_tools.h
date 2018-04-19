@@ -113,9 +113,9 @@ int strToUpcase(char * strTarget , char * strSource , unsigned int strLength);
 
 int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,char * where2copy,unsigned int maxSizeWhere2Copy);
 
-char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine);
-char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine);
-unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength);
+char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine,unsigned int makeNullTermination);
+char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine,unsigned int makeNullTermination);
+unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength,unsigned int makeNullTermination);
 char * strnstr(const char *haystack,const char *needle, size_t len);
 
 int CheckHTTPHeaderCategoryAllCaps(char * lineCAPS,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start);
