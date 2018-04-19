@@ -30,7 +30,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 const unsigned int bufferPageSize=32 /*KB*/ *1024;
 unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
 
-char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+//#define WORKING_PATH "res/"
+//#define WORKING_PATH "src/Services/MyLoader/res/"
+#define WORKING_PATH "../../src/Services/MyLoader/res/"
+
+
+//char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
+char webserver_root[MAX_FILE_PATH]=WORKING_PATH; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char uploads_root[MAX_FILE_PATH]="uploads/";
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
@@ -374,9 +380,9 @@ void init_dynamic_content()
 
 
   fprintf(stderr,"Reading master index file..  ");
-  indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyLoader/res/index.html");
-  vFilePage=AmmServer_ReadFileToMemoryHandler("src/Services/MyLoader/res/vfile.html");
-  errorPage=AmmServer_ReadFileToMemoryHandler("src/Services/MyLoader/res/error.html");
+  indexPage=AmmServer_ReadFileToMemoryHandler(WORKING_PATH "/index.html");
+  vFilePage=AmmServer_ReadFileToMemoryHandler(WORKING_PATH "/vfile.html");
+  errorPage=AmmServer_ReadFileToMemoryHandler(WORKING_PATH "/error.html");
 
   fprintf(stderr,"current length %u , size is %u \n",indexPage->contentCurrentLength , indexPage->contentSize);
 

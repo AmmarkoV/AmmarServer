@@ -347,6 +347,8 @@ int growHeader(struct HTTPTransaction * transaction)
 
 int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
+
+  fprintf(stderr,"keepAnalyzingHTTPHeader checks\n");
   if (instance==0)    { return 0; }
   if (transaction==0) { return 0; }
 
@@ -354,7 +356,11 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
   struct HTTPHeader * output  = &transaction->incomingHeader;
 
   //We will not waste our time with failed requests..
+  if (output==0)            { return 0; }
   if (output->headerRAW==0) { return 0; }
+
+
+  fprintf(stderr,"ready\n");
 
   char * request = output->headerRAW + output->parsingStartOffset;
   unsigned int requestLength = transaction->incomingHeader.headerRAWSize;
@@ -374,22 +380,29 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
   unsigned int newLineLength=0;
 
   unsigned int i=0;
-  while  (i<requestLength )
+
+
+  fprintf(stderr,"steady\n");
+
+  while  (i<requestLength-1 )
    {
      switch (request[i])
      {
         //If we reached a CR or LF character we might found a new line!
         case CR :
         case LF :
+                  fprintf(stderr,"in\n");
                   if (newLineLength>0)
                   {
+                    fprintf(stderr,"in@\n");
                     //We've reached keepAnalyzingHTTPHeadera new line! , lets process the previous one
                     ++output->parsingCurrentLine;
                     AnalyzeHTTPLineRequest(instance,output,startOfNewLine,newLineLength,output->parsingCurrentLine,webserver_root);
                     output->parsingStartOffset+=newLineLength; //Remember where we are
                     newLineLength=0;
 
-                    startOfNewLine = request+i+1; //+1 gets past current CR or LF
+                    //BUG HERE ?
+                    startOfNewLine = request+(i+1); //+1 gets past current CR or LF
                     switch (*startOfNewLine)
                       { //Some hosts transmit CR LF so lets test for a second character
                         case CR :
@@ -404,6 +417,8 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 
      ++i;
    }
+
+  fprintf(stderr,"go\n");
 
 
   return 1;
