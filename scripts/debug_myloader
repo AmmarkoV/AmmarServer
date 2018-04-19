@@ -1,0 +1,9 @@
+#!/bin/bash
+clear
+killall memcheck-amd64-
+killall memcheck-amd64-
+valgrind --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes  --track-origins=yes  src/Services/MyLoader/myloader -p 8085 2> MyLoaderDebug.log&
+
+
+#valgrind  --tool=callgrind  src/Services/MyLoader/myloaderD 2> MyLoaderPerfDebug.log&
+exit 0

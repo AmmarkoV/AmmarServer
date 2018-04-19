@@ -22,6 +22,7 @@ int createCOOKIEData(struct HTTPHeader * output)
 int finalizeCOOKIEData(struct HTTPHeader * output,char * value,unsigned int valueLength)
 {
   return 0;
+  /*
   createCOOKIEData(output);
 
   return finalizeGenericGETField(
@@ -32,7 +33,7 @@ int finalizeCOOKIEData(struct HTTPHeader * output,char * value,unsigned int valu
                                  valueLength
                                 );
 
- return 1;
+ return 1;*/
 }
 /*
 ----------------------------------------------

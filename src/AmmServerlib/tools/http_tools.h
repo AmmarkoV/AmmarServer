@@ -116,7 +116,8 @@ int _GENERIC_cpy(const char * what2copy,unsigned int what2copySize,char * where2
 char * reachNextBlock(char * request,unsigned int requestLength,unsigned int * endOfLine,unsigned int makeNullTermination);
 char * reachNextLine(char * request,unsigned int requestLength,unsigned int * endOfLine,unsigned int makeNullTermination);
 unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int requestLength,unsigned int makeNullTermination);
-char * strnstr(const char *haystack,const char *needle, size_t len);
+
+
 
 int CheckHTTPHeaderCategoryAllCaps(char * lineCAPS,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start);
 int CheckHTTPHeaderCategory(char * line,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start);

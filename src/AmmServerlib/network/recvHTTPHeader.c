@@ -26,6 +26,8 @@
 #include "../tools/logs.h"
 
 
+#define EXTRA_SPACE 32
+
 int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
  //Clear incoming header structure..!
@@ -36,10 +38,10 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  int opres=0;
 
  transaction->incomingHeader.headerRAWSize = 0 ;
- transaction->incomingHeader.MAXheaderRAWSize = MAX_HTTP_REQUEST_HEADER+5 ;
- char  * incomingRequest = (char*)  malloc(sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
+ transaction->incomingHeader.MAXheaderRAWSize = MAX_HTTP_REQUEST_HEADER;
+ char  * incomingRequest = (char*)  malloc(sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+EXTRA_SPACE) );
  if (incomingRequest==0) { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); return 0; }
- memset(incomingRequest,0,sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+5) );
+ memset(incomingRequest,0,sizeof(char) * (transaction->incomingHeader.MAXheaderRAWSize+EXTRA_SPACE) );
 
  transaction->incomingHeader.headerRAW = incomingRequest ; //headerRAW malloc here
  transaction->incomingHeader.headerRAW[0]=0;
@@ -54,12 +56,12 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
  {
   ++instance->statistics.recvOperationsStarted;
    opres=ASRV_Recv(
-              instance ,
-              transaction,
-              &transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize],
-              (unsigned int) transaction->incomingHeader.MAXheaderRAWSize - transaction->incomingHeader.headerRAWSize ,
-              0
-             );
+                   instance ,
+                   transaction,
+                   &transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize],
+                   (unsigned int) transaction->incomingHeader.MAXheaderRAWSize - transaction->incomingHeader.headerRAWSize ,
+                   0
+                  );
    // More input => Null Terminate , we have allocated extra space so this is always ok..!
    if (opres>0) { transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize + opres]=0; }
   ++instance->statistics.recvOperationsFinished;
@@ -160,7 +162,8 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
                AmmServer_Error("Received header was empty, this means no GET request");
             } else
             {
-               fprintf(stderr,"Request `%s` did not have arguments\n",output->headerRAW);
+               //fprintf(stderr,"Request `%s` did not have arguments\n",output->headerRAW);
+               fprintf(stderr,"Request did not have arguments\n");
             }
       } else
       {

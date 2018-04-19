@@ -27,7 +27,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8085
 
-const unsigned int bufferPageSize=16 /*KB*/ *1024;
+const unsigned int bufferPageSize=32 /*KB*/ *1024;
 unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
 
 char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -274,10 +274,9 @@ char * getBackRandomFileDigits(unsigned int numberOfDigits)
 {
  char * response= (char *) malloc(sizeof(char)* (numberOfDigits+1));
 
- unsigned int i=0,range=0;
+ unsigned int i=0,range='z'-'a';
  for (i=0; i<numberOfDigits; i++)
  {
-   range='z'-'a';
    response[i]='a'+rand()%range;
  }
 response[numberOfDigits]=0;
@@ -294,8 +293,8 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
   if (storeID!=0)
   {
    unsigned int fSize=0;
-   char uploadedFileUNSANITIZEDPath[513]={0};
-   snprintf(uploadedFileUNSANITIZEDPath,512,"%s",_FILES(rqst,"uploadedfile",FILENAME,&fSize));
+   char uploadedFileUNSANITIZEDPath[2049]={0};
+   snprintf(uploadedFileUNSANITIZEDPath,2048,"%s",_FILES(rqst,"uploadedfile",FILENAME,&fSize));
 
    AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
 
@@ -360,7 +359,7 @@ void init_dynamic_content()
   AmmServer_SetIntSettingValue(default_server,AMMSET_MAX_POST_TRANSACTION_SIZE,(maxUploadFileSizeAllowedMB+1)*1024*1024); //+1MB for headers etc..
   //AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
 
-  AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",4096,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",bufferPageSize,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   AmmServer_DoNOTCacheResourceHandler(default_server,&uploadProcessor);
 
   AmmServer_AddResourceHandler(default_server,&indexProcessor,"/index.html",bufferPageSize,0,&prepare_index_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);

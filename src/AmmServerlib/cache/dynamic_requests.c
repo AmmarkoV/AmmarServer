@@ -196,7 +196,7 @@ char * dynamicRequest_serveContent
      else
      {
       AmmServer_Warning("Allocating an additional %u bytes for this request \n",size_to_allocate);
-      cacheMemory = (char *) malloc( size_to_allocate+1 );
+      cacheMemory = (char *) malloc( size_to_allocate+2);
       if (cacheMemory!=0) {
                             *freeContentAfterUsingIt=1;
                              memset(cacheMemory,0,size_to_allocate+1); //Clean it..!

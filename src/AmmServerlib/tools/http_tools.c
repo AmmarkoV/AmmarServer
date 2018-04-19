@@ -743,26 +743,6 @@ unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int request
  return endOfLine;
 }
 
-//From : https://stackoverflow.com/questions/23999797/implementing-strnstr#25705264
-char * strnstr(const char *haystack,const char *needle, size_t len)
-{
-  //return strstr(haystack,needle);
- int i;
-size_t needle_len;
-
-        if (0 == (needle_len = strnlen(needle, len)))
-                return (char *)haystack;
-
-        for (i=0; i<=(int)(len-needle_len); i++)
-        {
-                if ((haystack[0] == needle[0]) &&
-                        (0 == strncmp(haystack, needle, needle_len)))
-                        return (char *)haystack;
-
-                haystack++;
-        }
-        return NULL;
-}
 
 inline int stristr(char * str1CAPS,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
 {

@@ -81,28 +81,56 @@ int AmmServer_AppendToFile(const char * filename,const char * msg)
   return FileAppend(filename,msg);
 }
 
-void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
+
+void AmmServer_GeneralPrintFromBuffer( char * buffer, char * color,char * label,const char *format , va_list * arglist)
 {
-   unsigned int formatLength = 32+strlen(label)+strlen(format);
-   char * coloredFormat= (char *) malloc( sizeof(char) * formatLength );
+   unsigned int formatLength = 64+strlen(label)+strlen(format);
+   char * coloredFormat= (char *) malloc( sizeof(char) * (formatLength+1) );
+   memset(coloredFormat,0,sizeof(char)* (formatLength+1));
 
-   if (coloredFormat!=0)
+   if (buffer!=0)
    {
-     coloredFormat[0]=0;
-     strcpy(coloredFormat,color);
-     strcat(coloredFormat,label);
-     strcat(coloredFormat,": ");
-     strcat(coloredFormat,format);
-     strcat(coloredFormat," \n ");
-     strcat(coloredFormat,NORMAL );
+     buffer[0]=0;
+     strcpy(buffer,color);
+     strcat(buffer,label);
+     strcat(buffer,": ");
+     strcat(buffer,format);
+     strcat(buffer," \n ");
+     strcat(buffer,NORMAL );
 
-     vfprintf(stderr,coloredFormat, *arglist );
+     vfprintf(stderr,buffer, *arglist );
      fflush(stderr);
-     free(coloredFormat);
    } else
    {
-      fprintf(stderr,RED "AmmServer_GeneralPrint failed to output %s, not enough memory..\n",format);
+      fprintf(stderr,RED "AmmServer_GeneralPrintFromBuffer failed to output %s, not enough memory..\n",format);
    }
+ return;
+}
+
+
+void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
+{
+   char stackBuffer[4097]={0};
+   unsigned int formatLength = 64+strlen(label)+strlen(format);
+
+   if (formatLength>4096)
+   {
+     char * coloredFormat= (char *) malloc( sizeof(char) * (formatLength+1) );
+
+      if (coloredFormat!=0)
+       {
+         memset(coloredFormat,0,sizeof(char)* (formatLength+1));
+         AmmServer_GeneralPrintFromBuffer(coloredFormat,color,label,format,arglist);
+         free(coloredFormat);
+       } else
+       { fprintf(stderr,RED "AmmServer_GeneralPrint failed to output %s, not enough memory..\n",format); }
+   }
+     else
+   {
+     AmmServer_GeneralPrintFromBuffer(stackBuffer,color,label,format,arglist);
+   }
+
+
  return;
 }
 

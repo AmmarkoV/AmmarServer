@@ -76,9 +76,9 @@ int finalizePOSTData(struct HTTPHeader * output)
 
  for (i=0; i<PNum; i++)
  {
-  fprintf(stderr,"output->POSTrequestSize=%u\n",output->POSTrequestSize);
-  fprintf(stderr,"output->POSTrequestBodySize=%u\n",output->POSTrequestBodySize);
-  AmmServer_Success("finalizePOSTData(%u)=`%s`\n",i,output->POSTItem[i].pointerStart);
+  //fprintf(stderr,"output->POSTrequestSize=%u\n",output->POSTrequestSize);
+  //fprintf(stderr,"output->POSTrequestBodySize=%u\n",output->POSTrequestBodySize);
+  //AmmServer_Success("finalizePOSTData(%u)=`%s`\n",i,output->POSTItem[i].pointerStart);
   unsigned int length=0;
   char * configuration = output->POSTItem[i].pointerStart;
   char * payload = reachNextBlock(
@@ -103,10 +103,10 @@ int finalizePOSTData(struct HTTPHeader * output)
 
   unsigned int configurationLength = payload-configuration;
 
-  AmmServer_Warning("configuration(%u)=`%s`\n",i,configuration);
-  AmmServer_Success("payload(%u)=`%s`\n",i,payload);
+  //AmmServer_Warning("configuration(%u)=`%s`\n",i,configuration);
+  //AmmServer_Success("payload(%u)=`%s`\n",i,payload);
 
-  char * filename = strstr(configuration,"filename=\""); //TODO : use strnstr
+  char * filename = strstr(configuration,"filename=\""); //TODO : use memmem
   if (filename!=0)
   {
     output->POSTItem[i].filename = filename+10; //skip filename="
@@ -117,7 +117,7 @@ int finalizePOSTData(struct HTTPHeader * output)
                                                                        );
 
 
-    char * name = strstr(configuration,"name=\""); //TODO : use strnstr
+    char * name = strstr(configuration,"name=\""); //TODO : use memmem
     if (name!=0)
      {
        output->POSTItem[i].name = name+6; //skip name="
@@ -130,10 +130,17 @@ int finalizePOSTData(struct HTTPHeader * output)
 
        output->POSTItem[i].value = payload;
        //TODO : output->boundary value is wrong..
-        AmmServer_Success("Searching for boundary (%s) in file payload..!",output->boundary);
-        fprintf(stderr,"Searching for boundary that points to %p \n",output->boundary); //Do not print all the file here..
-       char * payloadEnd  = strnstr(
+        //AmmServer_Success("Searching for boundary (%s) in file payload..!",output->boundary);
+        //fprintf(stderr,"Searching for boundary that points to %p \n",output->boundary); //Do not print all the file here..
+       char * payloadEnd  = memmem(
                                      payload,
+                                     _calculateRemainingDataLength
+                                              (
+                                               output->headerRAW ,
+                                               output->headerRAWSize ,
+                                               payload
+                                              )
+                                     ,
                                      output->boundary,
                                      _calculateRemainingDataLength
                                               (
@@ -159,7 +166,7 @@ int finalizePOSTData(struct HTTPHeader * output)
        }
   } else
   {
-    char * name = strstr(configuration,"name=\""); //TODO : use strnstr
+    char * name = strstr(configuration,"name=\""); //TODO : use memmem
     if (name!=0)
      {
        output->POSTItem[i].name = name+6; //skip name="

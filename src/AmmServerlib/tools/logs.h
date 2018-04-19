@@ -96,7 +96,9 @@ typedef enum {
                /*16*/  ASV_WARNING_UNRECOGNIZED_REQUEST,
                /*17*/  ASV_WARNING_NOTIMPLEMENTED_REQUEST,
                /*18*/  ASV_WARNING_PREDATORY_REQUST,
-               /*19*/  ASV_WARNING_WRONG_ARGUMENT
+               /*19*/  ASV_WARNING_WRONG_ARGUMENT,
+               /*20*/  ASV_WARNING_BUFFER_UNDERFLOW,
+               /*21*/  ASV_WARNING_REACHED_MAX_BUFFER_SIZE
              } WarningIDLabels;
 
 extern char *warningIDs[];

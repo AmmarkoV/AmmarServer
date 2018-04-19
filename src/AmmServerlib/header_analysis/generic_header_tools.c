@@ -62,7 +62,7 @@ int HTTPHeaderScanForHeaderEndFromStart(char * request,unsigned int request_leng
 {
   /*  This call returns 1 when we find two subsequent newline characters
       which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
-  if (request_length<4) {  fprintf(stderr,"Header too small ( %u ) to check for an ending..!\n",request_length); return 0; } // at least LF LF is expected :P
+  if (request_length<4) { warningID(ASV_WARNING_BUFFER_UNDERFLOW); return 0; } // at least LF LF is expected :P
 
   fprintf(stderr,"HTTPHeaderScanForHeaderEndFromStart: Checking if request with %u chars is complete .. ",request_length);
   unsigned int i=3;
@@ -171,6 +171,8 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(
                                                   struct HTTPTransaction * transaction
                                                   )
 {
+  fprintf(stderr,"recalculateHeaderFieldsBasedOnANewBaseAddress\n");
+
   if ( (transaction==0) || (transaction->incomingHeader.headerRAW==0) )
   {
    return 0;
@@ -362,7 +364,10 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 
   //In case our headerRAWSize is bigger than our allocation this is wrong and we should correct it here..
   if (requestLength>transaction->incomingHeader.MAXheaderRAWSize)
-     { requestLength=transaction->incomingHeader.MAXheaderRAWSize; }
+     {
+        requestLength=transaction->incomingHeader.MAXheaderRAWSize;
+        warningID(ASV_WARNING_REACHED_MAX_BUFFER_SIZE);
+     }
 
   char * startOfNewLine=request;
 
@@ -429,11 +434,20 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
      } else
      if (totalHTTPRecvSize >  transaction->incomingHeader.headerRAWSize )
      {
-       AmmServer_Warning("Header needs more space ( Recvd = %u Bytes / Header size = %u Bytes / MAX allowed size = %u Bytes )..!",totalHTTPRecvSize,transaction->incomingHeader.headerRAWHeadSize , transaction->incomingHeader.MAXheaderRAWSize);
+       AmmServer_Warning(
+                          "Header needs more space ( Recvd = %u Bytes / Header size = %u Bytes / MAX allowed size = %u Bytes )..!",
+                          totalHTTPRecvSize,
+                          transaction->incomingHeader.headerRAWHeadSize ,
+                          transaction->incomingHeader.MAXheaderRAWSize
+                        );
 
        if ( (!instance->settings.ENABLE_POST)||(!MASTER_ENABLE_POST) )
-          { AmmServer_Warning("POST functionality is not enabled in this build , so allocated space for header ( MAX_HTTP_REQUEST_HEADER )  is small , this explains what happened..!\n"); } else
-          { AmmServer_Warning("You might consider tuning your AMMSET_MAX_POST_TRANSACTION_SIZE parameter to increase it ..!\n"); }
+          {
+            AmmServer_Warning("POST functionality is not enabled in this build , so allocated space for header ( MAX_HTTP_REQUEST_HEADER )  is small , this explains what happened..!\n");
+          } else
+          {
+            AmmServer_Warning("You might consider tuning your AMMSET_MAX_POST_TRANSACTION_SIZE parameter to increase it ..!\n");
+          }
 
 
        transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;

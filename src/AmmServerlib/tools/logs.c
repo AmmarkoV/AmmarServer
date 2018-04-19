@@ -75,7 +75,9 @@ char *warningIDs[] =
    /*16*/  "Unrecognized request detected",
    /*17*/  "We received a request which is not currently implemented",
    /*18*/  "Predatory request received" ,
-   /*19*/  "Wrong Argument"
+   /*19*/  "Wrong Argument",
+   /*20*/  "Buffer underflow",
+   /*21*/  "Reached the maximum buffer size"
   };
 
 

@@ -302,7 +302,7 @@ int astringWriteFileFromMemory(const char * filename,const char * memory , unsig
         return 0;
     }
 
-    result = fwrite (memory,1,memoryLength,pFile);
+    result = fwrite (memory,sizeof(char),memoryLength,pFile);
     if (result != memoryLength)
     {
         fprintf(stderr,RED "Could not write the whole file onto disk %s \n" NORMAL,filename);
