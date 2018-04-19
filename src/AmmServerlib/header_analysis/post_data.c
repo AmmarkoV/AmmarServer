@@ -89,7 +89,7 @@ int finalizePOSTData(struct HTTPHeader * output)
                                                                   output->POSTItem[i].pointerStart
                                                                 )  ,
                                    &length
-                                   ,1 // Null termination
+                                   ,1 //Null termination
                                   );
   reachNextLine( payload+1,
                  _calculateRemainingDataLength(
@@ -98,7 +98,7 @@ int finalizePOSTData(struct HTTPHeader * output)
                                                payload+1
                                               ),
                 &length,
-                1//no null termination
+                0//THIS NEEDS TO BE SET TO 0 OTHERWISE THIS BLEEDS IN THE DATA AND ADDS A NULL
                );
 
   unsigned int configurationLength = payload-configuration;
