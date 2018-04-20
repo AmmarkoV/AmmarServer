@@ -110,6 +110,10 @@ void AmmServer_GeneralPrintFromBuffer( char * buffer, char * color,char * label,
 
 void AmmServer_GeneralPrint( char * color,char * label,const char *format , va_list * arglist)
 {
+   if (color==0)  {return ; }
+   if (label==0)  {return ; }
+   if (format==0) {return ; }
+
    char stackBuffer[4097]={0};
    unsigned int formatLength = 64+strlen(label)+strlen(format);
 
@@ -710,11 +714,14 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
 
 void AmmServer_GlobalTerminationHandler(int signum)
 {
-        fprintf(stderr,"Terminating AmmarServer Instance after receiving signum %i .. \n",signum);
-          GLOBAL_KILL_SERVER_SWITCH=1;
+        fprintf(stderr,"Terminating AmmarServer Instance after receiving signum %i :  \n",signum);
+        GLOBAL_KILL_SERVER_SWITCH=1;
         //&
         if (TerminationCallback!=0) { TerminationCallback(); }
-        fprintf(stderr,"done\n");
+
+        fprintf(stderr,"AmmServer_GlobalTerminationHandler called\n");
+
+        usleep(1000);
         exit(0);
 }
 

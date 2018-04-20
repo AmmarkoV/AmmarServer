@@ -283,12 +283,12 @@ int astringWriteFileFromMemory(const char * filename,const char * memory , unsig
 {
     if (memory==0)
     {
-        fprintf(stderr,"Could not write null memory buffer\n");
+        fprintf(stderr,YELLOW "astringWriteFileFromMemory: Cannot write null memory buffer\n" NORMAL);
         return 0 ;
     }
     if (memoryLength==0)
     {
-        fprintf(stderr,"Could not write empty memory buffer\n");
+        fprintf(stderr,"astringWriteFileFromMemory: Cannot write empty memory buffer\n");
         return 0 ;
     }
 
@@ -298,14 +298,14 @@ int astringWriteFileFromMemory(const char * filename,const char * memory , unsig
     pFile = fopen ( filename , "wb" );
     if (pFile==0)
     {
-        fprintf(stderr,RED "Could not write file %s \n" NORMAL,filename);
+        fprintf(stderr,RED "astringWriteFileFromMemory: Could not write file %s \n" NORMAL,filename);
         return 0;
     }
 
     result = fwrite (memory,sizeof(char),memoryLength,pFile);
     if (result != memoryLength)
     {
-        fprintf(stderr,RED "Could not write the whole file onto disk %s \n" NORMAL,filename);
+        fprintf(stderr,RED "astringWriteFileFromMemory: Could not write the whole file onto disk %s \n" NORMAL,filename);
         fprintf(stderr,RED "We wrote %zu / %u  \n" NORMAL,result,memoryLength);
         fclose(pFile);
         return 0;

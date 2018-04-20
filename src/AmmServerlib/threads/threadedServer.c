@@ -350,14 +350,15 @@ int StopThreadedHTTPServer(struct AmmServer_Instance * instance)
   shutdown(instance->serversock,SHUT_RDWR);
 
   instance->stop_server=1;
-  fprintf(stderr,"Waiting for Server to stop.. ");
+  fprintf(stderr,"Waiting for Server to stop : ");
+  fflush(stderr);
 
   while (instance->stop_server!=2)
     {
         fprintf(stderr,".");
         usleep(10000);
     }
-  fprintf(stderr," .. done \n");
+  fprintf(stderr," .. server stopped \n");
 
   clientList_close(instance->clientList);
   sessionList_close(instance->sessionList);

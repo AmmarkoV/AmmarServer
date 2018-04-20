@@ -130,24 +130,31 @@ int finalizePOSTData(struct HTTPHeader * output)
 
        output->POSTItem[i].value = payload;
        //TODO : output->boundary value is wrong..
-        //AmmServer_Success("Searching for boundary (%s) in file payload..!",output->boundary);
-        //fprintf(stderr,"Searching for boundary that points to %p \n",output->boundary); //Do not print all the file here..
-       char * payloadEnd  = memmem(
-                                     payload,
-                                     _calculateRemainingDataLength
+       //AmmServer_Success("Searching for boundary (%s) in file payload..!",output->boundary);
+       //fprintf(stderr,"Searching for boundary that points to %p \n",output->boundary); //Do not print all the file here..
+
+
+       unsigned int payloadSize = _calculateRemainingDataLength
                                               (
                                                output->headerRAW ,
                                                output->headerRAWSize ,
                                                payload
-                                              )
-                                     ,
-                                     output->boundary,
-                                     _calculateRemainingDataLength
-                                              (
-                                               output->headerRAW ,
-                                               output->headerRAWSize ,
-                                               output->boundary
-                                              )
+                                              );
+
+/*
+       fprintf(stderr,"Payload (%p) size %u / Boundary(%p) size %u \n",
+                                     payload,
+                                     payloadSize ,
+                                     output->boundary ,
+                                     output->boundaryLength);*/
+
+       //TODO : This is not perfect..! output->boundary contains fewer chars
+
+       char * payloadEnd  = memmem(
+                                     payload,
+                                     payloadSize ,
+                                     output->boundary ,
+                                     output->boundaryLength
                                     );
 
        if (payloadEnd!=0)
@@ -156,7 +163,7 @@ int finalizePOSTData(struct HTTPHeader * output)
         //AmmServer_Success("Found boundary in file payload, size of payload is %u ..!",output->POSTItem[i].valueSize);
        } else
        {
-        AmmServer_Warning("Could not detect boundary in file payload, using unsafe length value..!");
+        AmmServer_Error("Could not detect boundary in file payload, using unsafe length value..!");
         output->POSTItem[i].valueSize= _calculateRemainingDataLength
                                               (
                                                output->headerRAW ,
