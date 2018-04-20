@@ -362,7 +362,7 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
   char * webserver_root = instance->webserver_root;
   char * request = output->headerRAW + output->parsingStartOffset;
   char * startOfNewLine=request;
-  unsigned int requestLength = transaction->incomingHeader.headerRAWSize;
+  unsigned int requestLength = transaction->incomingHeader.headerRAWSize - output->parsingStartOffset;
 
   //--------------------------------------------------------------------------------
   //--------------------------------------------------------------------------------
