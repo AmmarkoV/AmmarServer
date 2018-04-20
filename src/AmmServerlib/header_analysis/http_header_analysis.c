@@ -159,7 +159,7 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
 }
 
 
-inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length,unsigned int * payload_pos)
+int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,struct HTTPHeader * output,char * request,unsigned int request_length,unsigned int * payload_pos)
 {
         unsigned int payload_start = *payload_pos;
         //fprintf(stderr,"Got an authorization string , whole line is %s \n",request);
@@ -183,7 +183,7 @@ inline int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,str
 }
 
 
-inline int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned long * rangeStart,unsigned long * rangeEnd)
+int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned long * rangeStart,unsigned long * rangeEnd)
 {
  //What we have initially is like
  //Range: bytes=0-1024

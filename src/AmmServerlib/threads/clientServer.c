@@ -58,7 +58,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../server_configuration.h"
 
 
-inline int logSuccess(const struct AmmServer_Instance * instance,const struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
+int logSuccess(const struct AmmServer_Instance * instance,const struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
 {
   return AccessLogAppend( transaction->ipStr,
                           0, // Auto Date It NOW!
@@ -71,7 +71,7 @@ inline int logSuccess(const struct AmmServer_Instance * instance,const struct HT
                          );
 }
 
-inline int logError(const struct AmmServer_Instance * instance,const struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
+int logError(const struct AmmServer_Instance * instance,const struct HTTPTransaction * transaction,unsigned int logCode,const char * filename)
 {
   return ErrorLogAppend(  transaction->ipStr ,
                           0, // Auto Date It NOW!
@@ -84,7 +84,7 @@ inline int logError(const struct AmmServer_Instance * instance,const struct HTTP
                          );
 }
 
-inline int isResourceADirectory(const char * resource,unsigned int resourceLength)
+int isResourceADirectory(const char * resource,unsigned int resourceLength)
 {
  if (strcmp(resource,"/")==0)
     {
@@ -101,7 +101,7 @@ if (resourceLength>0)
   return 0;
 }
 
-inline void decideAboutHowToHandleRequestedResource
+void decideAboutHowToHandleRequestedResource
             (
               struct AmmServer_Instance * instance,
               struct HTTPTransaction * transaction,
@@ -186,7 +186,7 @@ inline void decideAboutHowToHandleRequestedResource
 
 
 
-inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+int respondToClientRequestingAuthorization(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
      SendAuthorizationHeader(instance,transaction,"AmmarServer authorization..!","authorization.html");
 
@@ -206,7 +206,7 @@ inline int respondToClientRequestingAuthorization(struct AmmServer_Instance * in
 
 
 
-inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,char * servefile)
+int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,char * servefile)
 {
   // We need to generate and serve a directory listing..!
   strncpy(servefile,instance->webserver_root,MAX_FILE_PATH);
@@ -233,7 +233,7 @@ inline int respondToClientBySendingAGeneratedDirectoryList(struct AmmServer_Inst
 }
 
 
-inline int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
    if ( transaction->incomingHeader.headerRAW!=0 ) { free(transaction->incomingHeader.headerRAW); transaction->incomingHeader.headerRAW=0; }
 

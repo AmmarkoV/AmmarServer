@@ -44,7 +44,7 @@ unsigned int uploadsFilesSize=0;
 unsigned int uploadsDataSize=0;
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * default_server=0;
-struct AmmServer_RequestOverride_Context GET_override={{0}};
+
 struct AmmServer_RH_Context uploadProcessor={0};
 struct AmmServer_RH_Context indexProcessor={0};
 struct AmmServer_RH_Context vFileProcessor={0};

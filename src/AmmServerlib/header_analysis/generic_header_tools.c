@@ -158,7 +158,7 @@ unsigned int _calculateRemainingDataLength(char * baseAddress,unsigned int baseA
 
 
 
-inline char * _recalculatePosition(const char * oldPosition,const char * oldBaseAddress,char *newAddress)
+char * _recalculatePosition(const char * oldPosition,const char * oldBaseAddress,char *newAddress)
 {
  if (oldPosition==0) { return 0; }
 
@@ -347,26 +347,26 @@ int growHeader(struct HTTPTransaction * transaction)
 
 int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-
   fprintf(stderr,"keepAnalyzingHTTPHeader checks\n");
-  if (instance==0)    { return 0; }
-  if (transaction==0) { return 0; }
+  if (instance==0)          { return 0; }
+  if (transaction==0)       { return 0; }
 
-  char * webserver_root = instance->webserver_root;
   struct HTTPHeader * output  = &transaction->incomingHeader;
 
   //We will not waste our time with failed requests..
-  if (output==0)            { return 0; }
-  if (output->headerRAW==0) { return 0; }
+  if (output==0)                { return 0; }
+  if (output->headerRAW==0)     { return 0; }
+  if (output->headerRAWSize==0) { return 0; }
 
 
-  fprintf(stderr,"ready\n");
-
+  char * webserver_root = instance->webserver_root;
   char * request = output->headerRAW + output->parsingStartOffset;
+  char * startOfNewLine=request;
   unsigned int requestLength = transaction->incomingHeader.headerRAWSize;
 
-  //We will not waste our time with failed requests..
-  if (requestLength==0) { return 0;}
+  //--------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------
+  //--------------------------------------------------------------------------------
 
   //In case our headerRAWSize is bigger than our allocation this is wrong and we should correct it here..
   if (requestLength>transaction->incomingHeader.MAXheaderRAWSize)
@@ -375,38 +375,47 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
         warningID(ASV_WARNING_REACHED_MAX_BUFFER_SIZE);
      }
 
-  char * startOfNewLine=request;
-
-  unsigned int newLineLength=0;
-
-  unsigned int i=0;
+  unsigned int i=0,newLineLength=0;
 
 
-  fprintf(stderr,"steady\n");
-
-  while  (i<requestLength-1 )
+  while  (i<requestLength)
    {
-     switch (request[i])
+     //fprintf(stderr,"steady\n");
+     unsigned char r = request[i];
+     //fprintf(stderr,"go\n");
+
+     switch (r)
      {
         //If we reached a CR or LF character we might found a new line!
-        case CR :
-        case LF :
-                  fprintf(stderr,"in\n");
+        case 13 :
+        case 10 :
                   if (newLineLength>0)
                   {
-                    fprintf(stderr,"in@\n");
                     //We've reached keepAnalyzingHTTPHeadera new line! , lets process the previous one
                     ++output->parsingCurrentLine;
-                    AnalyzeHTTPLineRequest(instance,output,startOfNewLine,newLineLength,output->parsingCurrentLine,webserver_root);
+
+                      AnalyzeHTTPLineRequest(
+                                              instance,
+                                              output,
+                                              startOfNewLine,
+                                              newLineLength,
+                                              output->parsingCurrentLine,
+                                              webserver_root
+                                            );
+
                     output->parsingStartOffset+=newLineLength; //Remember where we are
                     newLineLength=0;
 
                     //BUG HERE ?
                     startOfNewLine = request+(i+1); //+1 gets past current CR or LF
+                    r = *startOfNewLine;
                     switch (*startOfNewLine)
                       { //Some hosts transmit CR LF so lets test for a second character
-                        case CR :
-                        case LF : ++startOfNewLine; ++i; break;
+                        case 13 :
+                        case 10 :
+                             ++startOfNewLine;
+                             ++i;
+                        break;
                       };
                     break;
                   }
@@ -417,9 +426,6 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 
      ++i;
    }
-
-  fprintf(stderr,"go\n");
-
 
   return 1;
 }

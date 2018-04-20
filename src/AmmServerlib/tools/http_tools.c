@@ -744,7 +744,7 @@ unsigned int countStringUntilQuotesOrNewLine(char * request,unsigned int request
 }
 
 
-inline int stristr(char * str1CAPS,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
+int stristr(char * str1CAPS,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
 {
   if (str1_length<str2_length) { return 0; }
   unsigned int str1_i=0,str2_i=0;
@@ -759,7 +759,7 @@ inline int stristr(char * str1CAPS,unsigned int str1_length,char * str2CAPS,unsi
   return 0;
 }
 
-inline int stristr2Caps(char * str1,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
+int stristr2Caps(char * str1,unsigned int str1_length,char * str2CAPS,unsigned int str2_length,unsigned int * pos_found)
 {
   if (str1_length<str2_length) { return 0; }
   unsigned int str1_i=0,str2_i=0;
