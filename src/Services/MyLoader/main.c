@@ -31,9 +31,9 @@ const unsigned int bufferPageSize=32 /*KB*/ *1024;
 unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
 
 //#define WORKING_PATH "res/"
-//#define WORKING_PATH "src/Services/MyLoader/res/"
-#define WORKING_PATH "../../src/Services/MyLoader/res/"
-
+//
+//#define WORKING_PATH "../../src/Services/MyLoader/res/"
+#define WORKING_PATH "src/Services/MyLoader/res/"
 
 //char webserver_root[MAX_FILE_PATH]="src/Services/MyLoader/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char webserver_root[MAX_FILE_PATH]=WORKING_PATH; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
