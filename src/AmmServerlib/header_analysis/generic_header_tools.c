@@ -409,7 +409,7 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
                     //BUG HERE ?
                     startOfNewLine = request+(i+1); //+1 gets past current CR or LF
                     r = *startOfNewLine;
-                    switch (*startOfNewLine)
+                    switch (r)
                       { //Some hosts transmit CR LF so lets test for a second character
                         case 13 :
                         case 10 :
