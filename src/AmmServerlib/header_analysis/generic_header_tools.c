@@ -229,26 +229,14 @@ int recalculateHeaderFieldsBasedOnANewBaseAddress(
 int growHeader(struct HTTPTransaction * transaction)
 {
  if (transaction==0)  { return 0; }
- if (transaction->incomingHeader.failed)
-     {
-      AmmServer_Error("Will not try to grow a failed Header \n");
-      return 0;
-     }
+ if (transaction->incomingHeader.failed) { AmmServer_Error("Will not try to grow a failed Header \n"); return 0; }
 
   struct HTTPHeader * hdr =  &transaction->incomingHeader;
-  if (hdr == 0 )
-     {
-      AmmServer_Error("Cannot grow header on transaction with no header..");
-      return 0;
-     }
+  if (hdr == 0 )      { AmmServer_Error("Cannot grow header on transaction with no header.."); return 0; }
 
   struct AmmServer_Instance * instance = transaction->instance;
-  if (instance == 0 )
-    {
-      AmmServer_Error("Cannot grow header on transaction with no registered server instance..");
-      return 0;
-    }
-
+  if (instance == 0 ) { AmmServer_Error("Cannot grow header on transaction with no registered server instance.."); return 0; }
+  //----------------------------------------------------------------------------------------------
 
   //We need to remember our old address!
   //In case realloc changes our base address we will need to recalculate all of our pointers..
@@ -267,7 +255,11 @@ int growHeader(struct HTTPTransaction * transaction)
     wannabeHeaderSize = hdr->headerRAWRequestedSize ; // + transaction->incomingHeader.headerHeadSize;
    } else
    {
-    AmmServer_Error("Configuration does not allow growing the incoming header accomodation memory any more ( now %u / limit %u )",hdr->headerRAWRequestedSize,instance->settings.MAX_POST_TRANSACTION_SIZE);
+    AmmServer_Error(
+                    "Configuration does not allow growing the incoming header accomodation memory any more ( now %u / limit %u )",
+                    hdr->headerRAWRequestedSize,
+                    instance->settings.MAX_POST_TRANSACTION_SIZE
+                   );
     AmmServer_Error("This header should be probably handled by dumping to /tmp/files");
     hdr->dumpedToFile=1;
     return 0;
