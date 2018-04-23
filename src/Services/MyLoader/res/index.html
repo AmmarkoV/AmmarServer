@@ -55,15 +55,11 @@
  </div>
    <br>
    <table id="StayCentered" > 
-   <tr><td>  
-   <form enctype="multipart/form-data" action="upload.html" method="POST">
-       <input type="hidden" name="rawresponse" value="NO" />
-       File to upload: <input name="uploadedfile" type="file" /> 
-       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-       <input type="submit" value="Upload File" name="submit" />&nbsp;&nbsp;
-       <input type="button" value="R" name="submit" onclick="window.location.href='random.html';return false" />
-   </form>
-   </td></tr> 
+   <tr>
+    <td>  
+      $UPLOAD_HTML_CODE$  
+    </td>
+   </tr> 
    </table>
   <br/><br/> 
  <span id="Footnote">Every file should be &lt; $MAXIMUM_UPLOAD_SIZE$ MB.<br>

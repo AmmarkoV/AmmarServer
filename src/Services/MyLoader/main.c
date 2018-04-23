@@ -27,11 +27,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8085
 
+const unsigned long maximumDiskUsageAllowed=3.5 /*GB*/ *1024 *1024 *1024;
 const unsigned int bufferPageSize=32 /*KB*/ *1024;
 unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
 
 //#define WORKING_PATH "res/"
-//
 //#define WORKING_PATH "../../src/Services/MyLoader/res/"
 #define WORKING_PATH "src/Services/MyLoader/res/"
 
@@ -52,13 +52,15 @@ struct AmmServer_RH_Context vFileProcessorCompat={0};
 struct AmmServer_RH_Context fileProcessor={0};
 struct AmmServer_RH_Context fileProcessorCompat={0};
 struct AmmServer_RH_Context randomProcessor={0};
+struct AmmServer_RH_Context faviconRH={0};
 
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * vFilePage=0;
 struct AmmServer_MemoryHandler * errorPage=0;
 
 
-unsigned int getUploadsSizeLive()
+
+unsigned long getUploadsSizeLive()
 {
   if (uploadsFilesSize==0)
   {
@@ -83,9 +85,15 @@ void * prepare_error_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
+void * return_favicon(struct AmmServer_DynamicRequest  * rqst)
+{
+   AmmServer_DynamicRequestReturnFile(rqst,WORKING_PATH "images/favicon.ico");
+   return 0;
+}
+
 
 //This function prepares the content of  stats context , ( stats.content )
-void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
+void * prepare_index_callback_message(struct AmmServer_DynamicRequest  * rqst , const char * errorMessage)
 {
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(indexPage);
 
@@ -96,6 +104,27 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$NAME_OF_THIS_MYLOADER_SERVER$","AmmarServer");
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$BANNERLINK$",stringBuffer);
+
+
+  if (getUploadsSizeLive() >= maximumDiskUsageAllowed)
+  {
+    AmmServer_Error("SERVER IS FULL\n");
+    AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$UPLOAD_HTML_CODE$", "<h3>Server is Full<br></h3><h3>We are sorry but you cannot upload any more data..</h3>");
+  } else
+  if (errorMessage==0)
+  {
+  AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$UPLOAD_HTML_CODE$",
+     "<form enctype=\"multipart/form-data\" action=\"upload.html\" method=\"POST\">\
+       <input type=\"hidden\" name=\"rawresponse\" value=\"NO\" />\
+       File to upload: <input name=\"uploadedfile\" type=\"file\" />\
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\
+       <input type=\"submit\" value=\"Upload File\" name=\"submit\" />&nbsp;&nbsp;\
+       <input type=\"button\" value=\"R\" name=\"submit\" onclick=\"window.location.href='random.html';return false\" />\
+   </form>");
+  } else
+  {
+    AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$UPLOAD_HTML_CODE$",errorMessage);
+  }
 
 
   snprintf(stringBuffer,28,"%u",maxUploadFileSizeAllowedMB);
@@ -113,6 +142,13 @@ void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
 
   AmmServer_FreeMemoryHandler(&videoMH);
   return 0;
+}
+
+
+//This function prepares the content of  stats context , ( stats.content )
+void * prepare_index_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  return prepare_index_callback_message(rqst,0);
 }
 
 
@@ -186,11 +222,6 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
 
 
 
-
-
-
-
-
 void * render_upload(struct AmmServer_DynamicRequest  * rqst, const char * fileRequested)
 {
   struct AmmServer_MemoryHandler * videoMH = AmmServer_CopyMemoryHandler(vFilePage);
@@ -222,7 +253,6 @@ void * render_upload(struct AmmServer_DynamicRequest  * rqst, const char * fileR
 
 
 
-
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -249,32 +279,6 @@ void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
   return  render_vfile(rqst,fileRequested);
 }
 
-/*
-//This function could alter the content of the URI requested and then return 1
-void request_override_callback(void * request)
-{
-  struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
-  struct HTTPHeader * rqst = rqstContext->request;
-  AmmServer_Warning("With URI : %s \n Filtered URI : %s \n",rqst->resource,rqst->verified_local_resource);
-
-  if (strcmp("/favicon.ico",rqst->resource)==0 )  {
-                                                        return; //Client requested favicon.ico , no resolving to do
-                                                  } else
-  if (strcmp("/error.html",rqst->resource)==0 )   {
-                                                        return; //Client requested error.html , no resolving to do
-                                                  } else
-  if (strcmp("/upload.html",rqst->resource)==0 )  {
-                                                        return; //Client requested error.html , no resolving to do
-                                                  } else
-  if (strcmp("/",rqst->resource)==0 )             {
-                                                        return; //Client requested index.html , no resolving to do
-                                                  } else
-  if (strcmp("/random.html",rqst->resource)==0 )  {
-                                                        return; //Client requested index.html , no resolving to do
-                                                  }
-  return;
-}
-*/
 
 char * getBackRandomFileDigits(unsigned int numberOfDigits)
 {
@@ -294,6 +298,16 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 {
    AmmServer_Warning("processUploadCallback called\n");
   //md5sum file.jpg | cut -d' ' -f1
+
+  if (getUploadsSizeLive() >= maximumDiskUsageAllowed)
+  {
+    AmmServer_Error("SERVER IS FULL\n");
+    return  prepare_index_callback_message(
+                                           rqst,
+                                           (const char*) "<h3>Server is Full<br></h3><h3>We are sorry but you cannot upload any more data..</h3>"
+                                          );
+  }
+
   char * storeID = getBackRandomFileDigits(32);
 
   if (storeID!=0)
@@ -327,7 +341,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
    free(storeID);
   } else
   {
-    return prepare_error_callback(rqst);
+    return prepare_index_callback_message(rqst , "<h3>Failed to upload </h3>");
   }
   return 0;
 }
@@ -354,9 +368,9 @@ void * prepare_random_callback(struct AmmServer_DynamicRequest  * rqst)
        return render_vfile(rqst,baseName);
      }
   }
+
   return prepare_error_callback(rqst);
 }
-
 
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
@@ -377,6 +391,7 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&randomProcessor,"/random.html",bufferPageSize,0,&prepare_random_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(default_server,&randomProcessor);
 
+  AmmServer_AddResourceHandler(default_server,&faviconRH,"/favicon.ico",bufferPageSize,0,&return_favicon,SAME_PAGE_FOR_ALL_CLIENTS);
 
 
   fprintf(stderr,"Reading master index file..  ");
@@ -398,8 +413,6 @@ void close_dynamic_content()
     AmmServer_FreeMemoryHandler(&vFilePage);
     AmmServer_FreeMemoryHandler(&errorPage);
 }
-
-
 
 
 int main(int argc, char *argv[])
