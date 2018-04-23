@@ -32,6 +32,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DO_DYNAMIC_THUMBNAILS 1
+#define DO_YOUTUBE_DOWNLOADING 1
 #define UPDATE_ALL_THUMBNAILS_ON_LAUNCH 0 //<-- this will make booting the program incredibly slow
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -145,8 +146,12 @@ int checkIfItIsAValidYTID(const char * videoID)
 int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
 {
   //YOutube code currently disabled..
-  return 0;
+  #if DO_YOUTUBE_DOWNLOADING
   //sudo pip install -U youtube-dl
+  #else
+   return 0;
+  #endif // DO_YOUTUBE_DOWNLOADING
+
   if ( checkIfItIsAValidYTID(videoID) )
   {
       fprintf(stderr,"Video %s actually looks like a youtube video\n",videoID);
