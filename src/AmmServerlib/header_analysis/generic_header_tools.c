@@ -236,7 +236,7 @@ int growHeader(struct HTTPTransaction * transaction)
 
   struct AmmServer_Instance * instance = transaction->instance;
   if (instance == 0 ) { AmmServer_Error("Cannot grow header on transaction with no registered server instance.."); return 0; }
-  //----------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------------------------------------
 
   //We need to remember our old address!
   //In case realloc changes our base address we will need to recalculate all of our pointers..
@@ -267,6 +267,9 @@ int growHeader(struct HTTPTransaction * transaction)
   }
 
 
+  //---------------------------------------------------------------------------------------------------------------------------------
+
+
   //First time we grow header ( means we are allocating it )
   if (oldHeaderAddress==0)
   {
@@ -286,6 +289,7 @@ int growHeader(struct HTTPTransaction * transaction)
   }
 
 
+  //---------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -296,14 +300,11 @@ int growHeader(struct HTTPTransaction * transaction)
      if (wannabeHeaderSize > instance->settings.MAX_POST_TRANSACTION_SIZE )
                 { wannabeHeaderSize = instance->settings.MAX_POST_TRANSACTION_SIZE; }
 
-
-
      //We will not allow the header to be any more than our settings allow..!
      char  * newBuffer = (char * )  realloc (hdr->headerRAW , sizeof(char) * (wannabeHeaderSize+1) );
      if (newBuffer!=0 )
      {
        newBuffer[wannabeHeaderSize]=0; //First of all null terminate the new header space..
-       newBuffer[wannabeHeaderSize+1]=0; //First of all null terminate the new header space..
        hdr->headerRAW=newBuffer;
        hdr->MAXheaderRAWSize = wannabeHeaderSize;
 
