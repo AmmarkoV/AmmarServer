@@ -124,7 +124,7 @@ void * serve_random_videopage(struct AmmServer_DynamicRequest  * rqst)
 int checkIfItIsAValidYTID(const char * videoID)
 {
   unsigned int idLength = strlen(videoID);
-  if ( (idLength>10) && (idLength<14) )
+  if ( (idLength>10) && (idLength<15) )
   {
     unsigned int i=0;
     for (i=0; i<idLength; i++)
