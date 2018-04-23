@@ -52,7 +52,6 @@ struct AmmServer_RH_Context vFileProcessorCompat={0};
 struct AmmServer_RH_Context fileProcessor={0};
 struct AmmServer_RH_Context fileProcessorCompat={0};
 struct AmmServer_RH_Context randomProcessor={0};
-struct AmmServer_RH_Context faviconRH={0};
 
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * vFilePage=0;
@@ -85,11 +84,6 @@ void * prepare_error_callback(struct AmmServer_DynamicRequest  * rqst)
   return 0;
 }
 
-void * return_favicon(struct AmmServer_DynamicRequest  * rqst)
-{
-   AmmServer_DynamicRequestReturnFile(rqst,WORKING_PATH "images/favicon.ico");
-   return 0;
-}
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -391,7 +385,6 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&randomProcessor,"/random.html",bufferPageSize,0,&prepare_random_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(default_server,&randomProcessor);
 
-  AmmServer_AddResourceHandler(default_server,&faviconRH,"/favicon.ico",bufferPageSize,0,&return_favicon,SAME_PAGE_FOR_ALL_CLIENTS);
 
 
   fprintf(stderr,"Reading master index file..  ");
