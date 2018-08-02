@@ -44,19 +44,36 @@
 #include <LiquidCrystal.h>
 #include <Wire.h>
 
-
+//Clock
 #include <DS3231.h>
 DS3231 clock;
 RTCDateTime dt;
 
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
+int monitorOn = 1;
 
+//Joystick
 const int SW_pin = 2; // digital pin connected to switch output
 const int X_pin = 0; // analog pin connected to X output
 const int Y_pin = 1; // analog pin connected to Y output
 
-int monitorOn = 1;
+
+//74HC595
+int tDelay = 100;
+int latchPin = 4;      // (11) ST_CP [RCK] on 74HC595
+int clockPin = 3;      // (9) SH_CP [SCK] on 74HC595
+int dataPin = 5;     // (12) DS [S1] on 74HC595
+byte leds = 0;
+
+void updateShiftRegister()
+{
+   digitalWrite(latchPin, LOW);
+   shiftOut(dataPin, clockPin, LSBFIRST, leds);
+   digitalWrite(latchPin, HIGH);
+}
+
+
 
 void setup() {
   // set up the LCD's number of columns and rows:
@@ -81,14 +98,35 @@ void setup() {
   // Manual (YYYY, MM, DD, HH, II, SS
   // clock.setDateTime(2016, 12, 9, 11, 46, 00);
   
+  pinMode(latchPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);  
+  pinMode(clockPin, OUTPUT);
 }
+
+
+void loopRelays() 
+{
+  leds = 0;
+  updateShiftRegister();
+  delay(tDelay);
+  for (int i = 0; i < 8; i++)
+  {
+    bitSet(leds, i);
+    updateShiftRegister();
+    delay(tDelay);
+  }
+}
+
+
 
 void loop() {
   // set the cursor to column 0, line 1
   // (note: line 1 is the second row, since counting begins with 0):
   lcd.setCursor(0, 1);
   // print the number of seconds since reset:
-  lcd.print(millis() / 1000);
+  int seconds = millis() / 1000;
+  int valve = seconds % 8;  
+  lcd.print(valve);
   
   int button = digitalRead(SW_pin);
   if (monitorOn)
@@ -110,7 +148,13 @@ void loop() {
     
   }
   
-  
+  loopRelays();
+  //leds = 0;
+  //updateShiftRegister();
+  //delay(tDelay); 
+    bitSet(leds,valve);
+    updateShiftRegister();
+    delay(tDelay); 
   
   dt = clock.getDateTime();
 
