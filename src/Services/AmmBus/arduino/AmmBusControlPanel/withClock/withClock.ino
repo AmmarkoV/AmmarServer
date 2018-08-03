@@ -45,7 +45,7 @@
 #include <Wire.h>
 
 //Clock
-#include <DS3231.h>
+#include "DS3231.h"
 DS3231 clock;
 RTCDateTime dt;
 
@@ -60,11 +60,22 @@ const int Y_pin = 1; // analog pin connected to Y output
 
 
 //74HC595
-int tDelay = 100;
-int latchPin = 4;      // (11) ST_CP [RCK] on 74HC595
-int clockPin = 3;      // (9) SH_CP [SCK] on 74HC595
-int dataPin = 5;     // (12) DS [S1] on 74HC595
+int tDelay = 1000;
+int latchPin = 4;      // (4) ST_CP [RCK] on 74HC595
+int clockPin = 3;      // (3) SH_CP [SCK] on 74HC595
+int dataPin = 5;     // (5) DS [S1] on 74HC595
 byte leds = 0;
+
+
+//DHT11
+//      VCC: 5V or 3V
+//      GND: GND
+//      DATA: 13
+#include "SimpleDHT.h"
+int pinDHT11 = 13;
+SimpleDHT11 dht11;
+
+
 
 void updateShiftRegister()
 {
@@ -101,21 +112,12 @@ void setup() {
   pinMode(latchPin, OUTPUT);
   pinMode(dataPin, OUTPUT);  
   pinMode(clockPin, OUTPUT);
-}
-
-
-void loopRelays() 
-{
+  
   leds = 0;
   updateShiftRegister();
-  delay(tDelay);
-  for (int i = 0; i < 8; i++)
-  {
-    bitSet(leds, i);
-    updateShiftRegister();
-    delay(tDelay);
-  }
 }
+
+
 
 
 
@@ -148,13 +150,12 @@ void loop() {
     
   }
   
-  loopRelays();
+  //loopRelays();
   //leds = 0;
   //updateShiftRegister();
   //delay(tDelay); 
     bitSet(leds,valve);
     updateShiftRegister();
-    delay(tDelay); 
   
   dt = clock.getDateTime();
 
@@ -181,6 +182,24 @@ void loop() {
   Serial.println();
 
   
+  Serial.println("=================================");
+  Serial.println("Sample DHT11...");
   
+  // read with raw sample data.
+  byte temperature = 0;
+  byte humidity = 0;
+  byte data[40] = {0};
+  if (dht11.read(pinDHT11, &temperature, &humidity, data)) {
+    Serial.print("Read DHT11 failed");
+    return;
+  } 
+  Serial.println("");
+  
+  Serial.print("Sample OK: ");
+  Serial.print((int)temperature); Serial.print(" *C, ");
+  Serial.print((int)humidity); Serial.println(" %");
+  
+  //Everything works at 1Hz
+    delay(1000); 
 }
 
