@@ -20,7 +20,7 @@
 #include <Wire.h>
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
-int lcdPowerPin = 6;
+int lcdPowerPin=6;
 //-----------------------------------------------------------
 
 //Clock -----------------------------------------------------
@@ -67,6 +67,11 @@ byte dataDHT11[40] = {0};
 //-----------------------------------------------------------
 
 
+//Serial Input  -------------------------------------------
+String inputs;
+//-----------------------------------------------------------
+
+
 //State -----------------------------------------------------
 const char * valveLabels[] =
 {
@@ -106,9 +111,126 @@ void setRelayState( byte * valves )
   {
     if (!valves[i] )  { bitSet(leds,i); }
   }
-  updateShiftRegister(); 
-  
+  updateShiftRegister();  
 }
+
+
+#define ON 1
+#define OFF 0
+
+void checkForSerialInput()
+{
+while(Serial.available()) //Check if there are available bytes to read
+{
+delay(10); //Delay to make it stable
+char c = Serial.read(); //Conduct a serial read
+if (c == '#'){
+break; //Stop the loop once # is detected after a word
+}
+inputs += c; //Means inputs = inputs + c
+}
+if (inputs.length() >0)
+{
+Serial.println(inputs);
+
+
+if(inputs == "*")
+{
+ valvesState[0]=ON; 
+ valvesState[1]=ON; 
+ valvesState[2]=ON; 
+ valvesState[3]=ON; 
+ valvesState[4]=ON; 
+ valvesState[5]=ON; 
+ valvesState[6]=ON; 
+ valvesState[7]=ON;  
+}
+else 
+if(inputs == "$")
+{
+ valvesState[0]=OFF; 
+ valvesState[1]=OFF; 
+ valvesState[2]=OFF; 
+ valvesState[3]=OFF; 
+ valvesState[4]=OFF; 
+ valvesState[5]=OFF; 
+ valvesState[6]=OFF; 
+ valvesState[7]=OFF;  
+} 
+else
+if(inputs == "A")
+{
+ valvesState[0]=ON; 
+}
+else if(inputs == "a")
+{
+ valvesState[0]=OFF; 
+}
+else if(inputs == "B")
+{
+ valvesState[1]=ON; 
+}
+else if(inputs == "b")
+{
+ valvesState[1]=OFF; 
+}
+else if(inputs == "C")
+{
+  valvesState[2]=ON;  
+}
+else if(inputs == "c")
+{
+  valvesState[2]=OFF;  
+}
+else if(inputs == "D")
+{
+  valvesState[3]=ON;  
+}
+else if(inputs == "d")
+{
+  valvesState[3]=OFF;  
+}
+else if(inputs == "E")
+{
+  valvesState[4]=ON;  
+}
+else if(inputs == "e")
+{
+  valvesState[4]=OFF;  
+}
+else if(inputs == "F")
+{
+  valvesState[5]=ON;  
+}
+else if(inputs == "f")
+{
+  valvesState[5]=OFF;  
+}
+else if(inputs == "G")
+{
+  valvesState[6]=ON;  
+}
+else if(inputs == "g")
+{
+  valvesState[6]=OFF;  
+}
+else if(inputs == "H")
+{
+  valvesState[7]=ON;  
+}
+else if(inputs == "h")
+{
+  valvesState[7]=OFF;  
+}
+inputs="";
+
+setRelayState(valvesState);
+}
+
+
+}
+
+
 
 
 void turnLCDOn()
@@ -116,6 +238,7 @@ void turnLCDOn()
   if (powerSaving)
   {
    digitalWrite(lcdPowerPin, HIGH);
+   delay(100);
    // set up the LCD's number of columns and rows:
    lcd.begin(16, 2);
    // Print a message to the LCD.
@@ -129,12 +252,26 @@ void turnLCDOn()
 void turnLCDOff()
 {
   if (!powerSaving)
-  {
+  { 
+    
    lcd.setCursor(0, 0);
    lcd.print("Amm's Irrigation");
    lcd.setCursor(0, 1);
-   lcd.print("powersaving ..  ");
+   lcd.print("powersaving ..  ");   
+   lcd.noDisplay();  
+   
+   
+   
+   digitalWrite(7, LOW); 
+   digitalWrite(8, LOW); 
+   digitalWrite(9, LOW); 
+   digitalWrite(10, LOW);  
+   digitalWrite(11, LOW);  
+   digitalWrite(12, LOW);  
+    
 
+
+   delay(100);
    digitalWrite(lcdPowerPin, LOW); 
    powerSaving=1;
   }
@@ -266,7 +403,7 @@ void joystickMenuHandler()
    
  if ( (idleTicks==0) && (joystickDirection!=JOYSTICK_NONE))
   {
-  //  turnLCDOn();
+   turnLCDOn();
   } 
 }
 
@@ -363,6 +500,7 @@ void loop()
 
 {
   grabMeasurements(); 
+  checkForSerialInput();
   int seconds = millis() / 1000; 
   
   
@@ -370,8 +508,8 @@ void loop()
   
   
   
-  
-  if (idleTicks>120)
+   
+  if ( (idleTicks>120) || (powerSaving) )
   {
     //Switch monitor off 
     turnLCDOff();
@@ -379,7 +517,7 @@ void loop()
   if (idleTicks>60)
   {
     //Display ScreenSaver logos
-    int messageTicker = seconds % 4;
+    int messageTicker = (seconds/3) % 4;
     idleMessageTicker(messageTicker);
   } else 
   {
@@ -389,24 +527,7 @@ void loop()
   
   
   
-  
-  
-  // set the cursor to column 0, line 1
-  // (note: line 1 is the second row, since counting begins with 0):
-  // print the number of seconds since reset:
-  /*
-  if (monitorOn)
-  {
-   lcd.print(" X:");
-   lcd.print(joystickX);
    
-   lcd.print("Y:");
-   lcd.print(joystickY); 
-   
-   
-   lcd.print("B:");
-   lcd.print(joystickButton); 
-  }*/
     
   
 /*
@@ -435,8 +556,10 @@ void loop()
   */
   
   
-  //Everything works at 1Hz
-    ++idleTicks;
-    delay(500); 
+   //Stop counter from overflow..
+   if (idleTicks<1000) { ++idleTicks; } 
+   
+   //Everything works at 1Hz
+   delay(500); 
 }
 
