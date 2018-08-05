@@ -581,7 +581,6 @@ void valveAutopilot()
 
 void joystickMenuHandler()
 {
-  
   switch (joystickDirection)
   {
     case JOYSTICK_NONE : break;
@@ -859,6 +858,20 @@ void loop()
   grabMeasurements(); 
   checkForSerialInput();
   int seconds = millis() / 1000; 
+   
+  
+  
+  if (joystickButton) 
+  {
+    if (powerSaving)
+    {
+      joystickButton=0; 
+      idleTicks=0; 
+      turnLCDOn();
+    }
+  }
+  
+   
    
   
   joystickMenuHandler();
