@@ -73,6 +73,10 @@ String inputs;
 
 
 //State -----------------------------------------------------
+char ON_LOGO=126;
+char OFF_LOGO='x';
+const char * systemName =    { "AmmBus Waterchip" };
+const char * systemVersion = { "     v0.30      " };
 const char * valveLabels[] =
 {
     "Mikri Skala    ",
@@ -86,13 +90,34 @@ const char * valveLabels[] =
     //-----------------
     "Unknown"
 };
-byte valvesTimes[8]={30,30,30,30,30,30,30,30};
+
+const char * valveSpeeds[] =
+{
+    "Normal",
+    "Extra" ,
+    "Fast", 
+    //-----------------
+    "Unknown"
+};
+
+const byte numberOfMenus=12;
+byte currentMenu=0;
+
+byte valvesTimesNormal[8]={30,30,30,30,30,30,30,30};
+byte valvesTimesHigh[8]={60,60,60,60,60,60,60,60};
+byte valvesTimesLow[8]={15,15,15,15,15,15,15,15};
+byte *armedTimes = 0;
+byte *valvesTimes = valvesTimesNormal;
+
 byte valvesState[8]={0};
+uint32_t valveStartTimestamp[8]={0};
+
 byte errorDetected = 0;
 byte idleTicks=10000;
-byte currentMenu=0;
-const byte numberOfMenus=12;
+
 byte powerSaving=1;
+byte autopilotOn=0;
+byte jobConcurrency=1; //Max concurrent jobs
 //-----------------------------------------------------------
 
 
@@ -117,118 +142,117 @@ void setRelayState( byte * valves )
 
 #define ON 1
 #define OFF 0
-
 void checkForSerialInput()
 {
-while(Serial.available()) //Check if there are available bytes to read
-{
-delay(10); //Delay to make it stable
-char c = Serial.read(); //Conduct a serial read
-if (c == '#'){
-break; //Stop the loop once # is detected after a word
-}
-inputs += c; //Means inputs = inputs + c
-}
-if (inputs.length() >0)
-{
-Serial.println(inputs);
+    while(Serial.available()) //Check if there are available bytes to read
+    {
+        delay(10); //Delay to make it stable
+        char c = Serial.read(); //Conduct a serial read
+        if (c == '#')
+        {
+            break; //Stop the loop once # is detected after a word
+        }
+        inputs += c; //Means inputs = inputs + c
+    }
+    if (inputs.length() >0)
+    {
+        Serial.println(inputs);
 
 
-if(inputs == "*")
-{
- valvesState[0]=ON; 
- valvesState[1]=ON; 
- valvesState[2]=ON; 
- valvesState[3]=ON; 
- valvesState[4]=ON; 
- valvesState[5]=ON; 
- valvesState[6]=ON; 
- valvesState[7]=ON;  
-}
-else 
-if(inputs == "$")
-{
- valvesState[0]=OFF; 
- valvesState[1]=OFF; 
- valvesState[2]=OFF; 
- valvesState[3]=OFF; 
- valvesState[4]=OFF; 
- valvesState[5]=OFF; 
- valvesState[6]=OFF; 
- valvesState[7]=OFF;  
-} 
-else
-if(inputs == "A")
-{
- valvesState[0]=ON; 
-}
-else if(inputs == "a")
-{
- valvesState[0]=OFF; 
-}
-else if(inputs == "B")
-{
- valvesState[1]=ON; 
-}
-else if(inputs == "b")
-{
- valvesState[1]=OFF; 
-}
-else if(inputs == "C")
-{
-  valvesState[2]=ON;  
-}
-else if(inputs == "c")
-{
-  valvesState[2]=OFF;  
-}
-else if(inputs == "D")
-{
-  valvesState[3]=ON;  
-}
-else if(inputs == "d")
-{
-  valvesState[3]=OFF;  
-}
-else if(inputs == "E")
-{
-  valvesState[4]=ON;  
-}
-else if(inputs == "e")
-{
-  valvesState[4]=OFF;  
-}
-else if(inputs == "F")
-{
-  valvesState[5]=ON;  
-}
-else if(inputs == "f")
-{
-  valvesState[5]=OFF;  
-}
-else if(inputs == "G")
-{
-  valvesState[6]=ON;  
-}
-else if(inputs == "g")
-{
-  valvesState[6]=OFF;  
-}
-else if(inputs == "H")
-{
-  valvesState[7]=ON;  
-}
-else if(inputs == "h")
-{
-  valvesState[7]=OFF;  
-}
-inputs="";
+        if(inputs == "*")
+        {
+            valvesState[0]=ON;
+            valvesState[1]=ON;
+            valvesState[2]=ON;
+            valvesState[3]=ON;
+            valvesState[4]=ON;
+            valvesState[5]=ON;
+            valvesState[6]=ON;
+            valvesState[7]=ON;
+        }
+        else if(inputs == "$")
+        {
+            valvesState[0]=OFF;
+            valvesState[1]=OFF;
+            valvesState[2]=OFF;
+            valvesState[3]=OFF;
+            valvesState[4]=OFF;
+            valvesState[5]=OFF;
+            valvesState[6]=OFF;
+            valvesState[7]=OFF;
+        }
+        else if(inputs == "A")
+        {
+            valvesState[0]=ON;
+        }
+        else if(inputs == "a")
+        {
+            valvesState[0]=OFF;
+        }
+        else if(inputs == "B")
+        {
+            valvesState[1]=ON;
+        }
+        else if(inputs == "b")
+        {
+            valvesState[1]=OFF;
+        }
+        else if(inputs == "C")
+        {
+            valvesState[2]=ON;
+        }
+        else if(inputs == "c")
+        {
+            valvesState[2]=OFF;
+        }
+        else if(inputs == "D")
+        {
+            valvesState[3]=ON;
+        }
+        else if(inputs == "d")
+        {
+            valvesState[3]=OFF;
+        }
+        else if(inputs == "E")
+        {
+            valvesState[4]=ON;
+        }
+        else if(inputs == "e")
+        {
+            valvesState[4]=OFF;
+        }
+        else if(inputs == "F")
+        {
+            valvesState[5]=ON;
+        }
+        else if(inputs == "f")
+        {
+            valvesState[5]=OFF;
+        }
+        else if(inputs == "G")
+        {
+            valvesState[6]=ON;
+        }
+        else if(inputs == "g")
+        {
+            valvesState[6]=OFF;
+        }
+        else if(inputs == "H")
+        {
+            valvesState[7]=ON;
+        }
+        else if(inputs == "h")
+        {
+            valvesState[7]=OFF;
+        }
+        inputs="";
 
-setRelayState(valvesState);
-}
+        setRelayState(valvesState);
+    }
 
 
 }
+
 
 
 
@@ -242,7 +266,7 @@ void turnLCDOn()
    // set up the LCD's number of columns and rows:
    lcd.begin(16, 2);
    // Print a message to the LCD.
-   lcd.print("Amm's Irrigation");
+   lcd.print(systemName);
    lcd.setCursor(0, 1);
    lcd.print("powering up..");
    powerSaving=0;
@@ -255,7 +279,7 @@ void turnLCDOff()
   { 
     
    lcd.setCursor(0, 0);
-   lcd.print("Amm's Irrigation");
+   lcd.print(systemName);
    lcd.setCursor(0, 1);
    lcd.print("powersaving ..  ");   
    lcd.noDisplay();  
@@ -278,8 +302,15 @@ void turnLCDOff()
 }
 
 void setup() 
-{
+{  
+  pinMode(latchPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);  
+  pinMode(clockPin, OUTPUT);   
+  setRelayState(valvesState);
+  
   pinMode(lcdPowerPin, OUTPUT);
+  digitalWrite(lcdPowerPin, LOW); 
+  
   turnLCDOn();
   
   
@@ -292,6 +323,7 @@ void setup()
 
   // Set sketch compiling time
   clock.setDateTime(__DATE__, __TIME__);
+  dt = clock.getDateTime();
 
   // Set from UNIX timestamp
   // clock.setDateTime(1397408400);
@@ -299,10 +331,6 @@ void setup()
   // Manual (YYYY, MM, DD, HH, II, SS
   // clock.setDateTime(2016, 12, 9, 11, 46, 00);
   
-  pinMode(latchPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);  
-  pinMode(clockPin, OUTPUT);   
-  setRelayState(valvesState);
 }
 
 
@@ -310,7 +338,7 @@ void setup()
 
 
 void grabMeasurements()
-{
+{  
  //DHT Reading 
  if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))  { errorDetected=1; }  
  
@@ -333,32 +361,38 @@ void grabMeasurements()
 }
 
 
-void idleMessageTicker(int messageTicker)
+void idleMessageTicker(int seconds)
 {
+  #define MESSAGES 5
+  int messageTicker = (seconds/2) % MESSAGES;
   lcd.setCursor(0,0);
   switch (messageTicker)
   {
-    case 0 : lcd.print("Amm's Irrigation");  
+    case 0 : lcd.print(systemName);  
+             lcd.setCursor(0, 1); 
+             lcd.print(systemVersion);
+    break; 
+    case 1 : lcd.print(systemName);  
              lcd.setCursor(0, 1); 
              lcd.print("No Job Scheduled");
     break; 
-    case 1 :  
+    case 2 :  
              lcd.print("Temp / Humidity ");
              lcd.setCursor(0, 1);  
              lcd.print("  ");
              lcd.print((int)temperature); lcd.print(" *C, ");
              lcd.print((int)humidity); lcd.print(" %   ");  
     break; 
-    case 2 : 
+    case 3 : 
              lcd.print(clock.dateFormat(" d F Y   ",  dt));
              lcd.setCursor(0, 1);
              lcd.print(clock.dateFormat("    H:i:s   ",  dt));
     break; 
-    case 3 : 
-             lcd.print("Amm's Irrigation");  
+    case 4 : 
+             lcd.print(systemName);  
              lcd.setCursor(0, 1); 
              lcd.print("Uptime : ");
-             lcd.print((int)millis() / 60000);  
+             lcd.print((unsigned int)millis() / 1000);  
              lcd.print("  mins");
     break; 
     //REMEMBER TO UPDATE numberOfMenus
@@ -408,7 +442,31 @@ void joystickMenuHandler()
 }
 
 
-
+void valveAutopilot()
+{
+  unsigned int i=0;
+  unsigned int valvesRunning=0;
+  
+  for (i=0; i<8; i++)
+  {
+    if (valvesState[i]) {++valvesRunning;} 
+  }
+  
+  //Should a job start..?
+  if (valvesRunning==0)
+  {
+  }
+  
+  for (i=0; i<8; i++)
+  {
+    if (valvesState[i])
+    {
+      //This valve is running, should it stop?
+     // valveStartTimestamp[i]
+    }
+  }
+  
+}
 
 
 
@@ -434,7 +492,10 @@ void joystickTimeHandler(int valve)
   if (joystickButton) 
   {
    if ( valvesState[valve] ) { valvesState[valve]=0; } else
-                             { valvesState[valve]=1; } 
+                             { 
+                               valvesState[valve]=1;   
+                               valveStartTimestamp[valve]=dt.unixtime;
+                             } 
    setRelayState(valvesState);
   } 
 }
@@ -447,20 +508,56 @@ void menuDisplay(int menuOption)
   
   lcd.setCursor(0,0);
   
-
+  byte *selectedSpeeds = 0;             
   switch (menuOption)
   {
-    case 0 : lcd.print("Amm's Irrigation");  
+    case 0 :
+    case 1 :
+    case 2 :
+    lcd.print(systemName);  
+             if (menuOption==0) { selectedSpeeds = valvesTimesNormal;  } else
+             if (menuOption==1) { selectedSpeeds = valvesTimesHigh;    } else
+             if (menuOption==2) { selectedSpeeds = valvesTimesLow;     }  
+             
              lcd.setCursor(0, 1); 
-             lcd.print(" Start Regular  ");
-    break;  
-    case 1 : lcd.print("Amm's Irrigation");  
-             lcd.setCursor(0, 1); 
-             lcd.print("   Start Fast   ");
-    break;  
-    case 2 : lcd.print("Amm's Irrigation");  
-             lcd.setCursor(0, 1); 
-             lcd.print("  Start Extra   ");
+             if (armedTimes==selectedSpeeds) 
+                  { 
+                    if (autopilotOn)
+                     {
+                      lcd.print(" Running "); 
+                     } else
+                     {
+                      lcd.print(" Start "); 
+                     }
+                  } else
+                  { 
+                    if (autopilotOn)
+                     {
+                      lcd.print(" SwitchTo "); 
+                     } else
+                     { 
+                      lcd.print("   Arm ");   
+                     }
+                  }
+             lcd.print(valveSpeeds[menuOption]);
+             lcd.print("   ");
+             
+              
+             
+             if (joystickButton)
+               { 
+                 if (armedTimes==selectedSpeeds) 
+                  {
+                   valvesTimes=selectedSpeeds; 
+                   //Do start 
+                   autopilotOn=1;
+                  } else
+                  {
+                   valvesTimes=selectedSpeeds; 
+                   armedTimes=selectedSpeeds;
+                  }
+               }
+    break;   
     break;  
     //------------------------------------ 
     case 3 : 
@@ -471,18 +568,20 @@ void menuDisplay(int menuOption)
     case 8 : 
     case 9 : 
     case 10: 
-             lcd.print("V");
+             lcd.print("V");                          
              lcd.print((int) (valveHumanNum));
              lcd.print(" ");
              lcd.print(valveLabels[valveNum]);
              lcd.setCursor(0, 1); 
-             lcd.print("   Time: ");
+             if (valvesState[valveNum]) { lcd.print((char)ON_LOGO);  } else  
+                                        { lcd.print((char)OFF_LOGO); }
+             lcd.print("  Time: ");
              lcd.print((int) (valvesTimes[valveNum]));
              lcd.print("min  ");
              joystickTimeHandler(valveNum);
     break;   
     case 11 :
-             lcd.print("Amm's Irrigation");  
+             lcd.print(systemName);  
              lcd.setCursor(0, 1); 
              lcd.print("    Settings    ");
     break;
@@ -490,25 +589,15 @@ void menuDisplay(int menuOption)
 }
 
 
-
-
-
-
-
-
+ 
 void loop() 
-
 {
   grabMeasurements(); 
   checkForSerialInput();
   int seconds = millis() / 1000; 
   
-  
   joystickMenuHandler();
   
-  
-  
-   
   if ( (idleTicks>120) || (powerSaving) )
   {
     //Switch monitor off 
@@ -517,44 +606,17 @@ void loop()
   if (idleTicks>60)
   {
     //Display ScreenSaver logos
-    int messageTicker = (seconds/3) % 4;
-    idleMessageTicker(messageTicker);
+    idleMessageTicker(seconds);
   } else 
   {
     //Display Menu 
     menuDisplay(currentMenu);
   }
-  
-  
-  
    
-    
-  
-/*
-  Serial.print("Long number format:          ");
-  Serial.println(clock.dateFormat("d-m-Y H:i:s", dt));
-
-  Serial.print("Long format with month name: ");
-  Serial.println(clock.dateFormat("d F Y H:i:s",  dt));
-
-  Serial.print("Short format witch 12h mode: ");
-  Serial.println(clock.dateFormat("jS M y, h:ia", dt));
-
-  Serial.print("Today is:                    ");
-  Serial.print(clock.dateFormat("l, z", dt));
-  Serial.println(" days of the year.");
-
-  Serial.print("Actual month has:            ");
-  Serial.print(clock.dateFormat("t", dt));
-  Serial.println(" days.");
-
-  Serial.print("Unixtime:                    ");
-  Serial.println(clock.dateFormat("U", dt));
-
-  Serial.println();
- 
-  */
-  
+  if (autopilotOn)
+  { 
+   valveAutopilot(); 
+  }
   
    //Stop counter from overflow..
    if (idleTicks<1000) { ++idleTicks; } 
