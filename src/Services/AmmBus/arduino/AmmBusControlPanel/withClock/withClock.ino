@@ -1,4 +1,5 @@
  
+ #define RESET_CLOCK 0
 
 //LCD -----------------------------------------------------
 /* 
@@ -100,7 +101,7 @@ const char * valveSpeeds[] =
     "Unknown"
 };
 
-const byte numberOfMenus=14;
+const byte numberOfMenus=17;
 byte currentMenu=0;
 
 //byte valvesTimesNormal[8]={30,30,30,30,30,30,30,30};
@@ -113,6 +114,8 @@ byte *valvesTimes = valvesTimesNormal;
 byte valvesState[8]={0};
 byte valvesScheduled[8]={0};
 uint32_t valveStartedTimestamp[8]={0};
+
+uint32_t lastBootTime=0;
 
 byte errorDetected = 0;
 byte idleTicks=10000;
@@ -365,8 +368,11 @@ void setup()
   clock.begin();
 
   // Set sketch compiling time
-  clock.setDateTime(__DATE__, __TIME__);
+  if (RESET_CLOCK)
+    { clock.setDateTime(__DATE__, __TIME__); }
+    
   dt = clock.getDateTime();
+  lastBootTime  = dt.unixtime;
 
   // Set from UNIX timestamp
   // clock.setDateTime(1397408400);
@@ -461,8 +467,24 @@ void idleMessageTicker(int seconds)
              lcd.print(systemName);  
              lcd.setCursor(0, 1); 
              lcd.print("Uptime : ");
-             lcd.print((unsigned int)millis() / 1000);  
-             lcd.print("  mins  ");
+             unsigned int elapsedTime = dt.unixtime-lastBootTime;
+               
+             if (elapsedTime>26400) {  
+                                    lcd.print((unsigned int) elapsedTime/26400);
+                                    lcd.print("  days  "); 
+                                   } else
+             if (elapsedTime>3600) {  
+                                    lcd.print((unsigned int) elapsedTime/3600);
+                                    lcd.print("  hours  "); 
+                                   } else
+             if (elapsedTime>60)  {  
+                                    lcd.print((unsigned int) elapsedTime/60);
+                                    lcd.print("  min  "); 
+                                  } else
+                                  {  
+                                    lcd.print((unsigned int) elapsedTime);
+                                    lcd.print("  sec  "); 
+                                  }
     break; 
     //REMEMBER TO UPDATE numberOfMenus
   }
@@ -553,6 +575,23 @@ void valveAutopilot()
   //If autopilotCreateNewJobs is set
   if (autopilotCreateNewJobs)
   { 
+    if ( 
+         (dt.hour == jobRunAtXHour ) && 
+         (dt.minute == jobRunAtXMinute )
+       )
+    { 
+      /*   
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+    uint8_t dayOfWeek; 
+      */
+    }
+
+    
   //We can accomodate more jobs..
   if ( (valvesRunning<jobConcurrency) && (valvesRemaining>0)  )
   {
@@ -637,7 +676,9 @@ void joystickValveTimeHandler(int valve)
    
   if (joystickButton) 
   {
-   if ( valvesState[valve] ) { valvesState[valve]=0; } else
+   if ( valvesState[valve] ) { valvesState[valve]=0; 
+                               valvesScheduled[valve]=0; 
+                             } else
                              { 
                                valvesState[valve]=1;   
                                valvesScheduled[valve]=1;
@@ -808,12 +849,28 @@ void menuDisplay(int menuOption)
                lcd.print("min  ");
               }  
              joystickValveTimeHandler(valveNum);
-    break;   
+    break;
     //------------------------------------ 
     case 11 :
-             lcd.print("  Water At  :  ");
+             lcd.print("  Change Date:  ");
+             lcd.setCursor(0, 1);  
+             lcd.print(clock.dateFormat(" d F Y     ",  dt)); 
+             
+     break;
+    case 12 :
+             lcd.print("  Change Time:  ");
+             lcd.setCursor(0, 1);  
+             lcd.print(clock.dateFormat("    H:i:s     ",  dt));
+             
+     break;
+    //------------------------------------ 
+    
+    
+    
+    case 13 :
+             lcd.print("Start Water At :  ");
              lcd.setCursor(0, 1); 
-             lcd.print("  ");
+             lcd.print("     ");
              
              if (jobRunAtXHour<10) { lcd.print("0"); } 
              lcd.print((int) jobRunAtXHour);
@@ -824,10 +881,10 @@ void menuDisplay(int menuOption)
             
             joystick24HourTimeHandler(&jobRunAtXHour,&jobRunAtXMinute);    
     break;
-    case 12 :
+    case 14 :
              lcd.print("  Water Every :  ");
              lcd.setCursor(0, 1); 
-             lcd.print("  ");
+             lcd.print("    ");
              if (jobRunEveryXHours<24)
                    {
                      lcd.print((int) jobRunEveryXHours);
@@ -840,13 +897,25 @@ void menuDisplay(int menuOption)
             joystickHourTimeHandler(&jobRunEveryXHours,0,255);       
     break;
     //------------------------------------ 
-    case 13 :
+    case 15 :
              lcd.print("    Stop All    ");
              lcd.setCursor(0, 1); 
              lcd.print("     Valves     ");
              if (joystickButton)
                { 
                  turnAllValvesOff();
+               }
+    break;
+    //------------------------------------ 
+    case 16 :
+             lcd.print("    Autopilot    ");
+             lcd.setCursor(0, 1); 
+             if (autopilotCreateNewJobs) { lcd.print("       On       ");  } else
+                                         { lcd.print("       Off       "); }
+             if (joystickButton)
+               { 
+                 if (autopilotCreateNewJobs) { autopilotCreateNewJobs=0; } else
+                                             { autopilotCreateNewJobs=1; }
                }
     break;
     //------------------------------------ 
@@ -897,7 +966,11 @@ void loop()
    //Stop counter from overflow..
    if (idleTicks<1000) { ++idleTicks; } 
    
-   //Everything works at 1Hz
-   delay(500); 
+   
+   //-------------------------------------
+   //      Everything works at 1Hz
+    if (powerSaving) { delay(1500);  } else
+                     { delay(350);   }
+   //-------------------------------------
 }
 
