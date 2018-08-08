@@ -129,6 +129,7 @@ class DS3231
 	char* dateFormat(const char* dateFormat, RTCDateTime dt);
 	char* dateFormat(const char* dateFormat, RTCAlarmTime dt);
 
+
     private:
 	RTCDateTime t;
 

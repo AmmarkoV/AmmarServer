@@ -65,6 +65,7 @@ SimpleDHT11 dht11;
 byte temperature = 0;
 byte humidity = 0;
 byte dataDHT11[40] = {0};
+uint32_t lastDHT11SampleTime=0;
 //-----------------------------------------------------------
 
 
@@ -114,6 +115,7 @@ byte *valvesTimes = valvesTimesNormal;
 byte valvesState[8]={0};
 byte valvesScheduled[8]={0};
 uint32_t valveStartedTimestamp[8]={0};
+uint32_t valveStoppedTimestamp[8]={0};
 
 uint32_t lastBootTime=0;
 
@@ -387,10 +389,10 @@ void setup()
 
 
 void grabMeasurements()
-{  
- //DHT Reading 
- if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))  { errorDetected=1; }  
- 
+{   
+ //Get Time
+ dt = clock.getDateTime();  
+   
  //Joystick Reading
  joystickX=analogRead(X_pin);
  joystickY=analogRead(Y_pin);
@@ -404,22 +406,44 @@ void grabMeasurements()
  if (joystickY>512+joystickDeadZone)  {  joystickDirection=JOYSTICK_DOWN;  } else
                                       {  joystickDirection=JOYSTICK_NONE;  } 
  
+  //DHT Reading 
+  if (dt.unixtime - lastDHT11SampleTime >= 1 )
+  {
+   //DHT requires sampling at 1Hz
+   if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))  { errorDetected=1; } 
+   lastDHT11SampleTime=dt.unixtime;
+  } 
+
  
- //Get Time
- dt = clock.getDateTime();
 }
 
 
+void printAllValveState()
+{ 
+  int i=0;
+  lcd.print("");
+  for (i=0; i<8; i++) { lcd.print((int) i); lcd.print(" "); } 
+  lcd.setCursor(0, 1);
+  lcd.print("");  
+  for (i=0; i<8; i++) 
+               { 
+                  if (valvesState[i])     { lcd.print((char)ON_LOGO);  } else  
+                  if (valvesScheduled[i]) { lcd.print((char) 'W');  } else  
+                                          { lcd.print((char)OFF_LOGO); } 
+                  lcd.print(" "); 
+               }  
+}
+
 void idleMessageTicker(int seconds)
 {
-  #define MESSAGES 5
+  #define MESSAGES 7
   int messageTicker = (seconds/2) % MESSAGES;
+  unsigned int elapsedTime = dt.unixtime-lastBootTime;
   lcd.setCursor(0,0);
   switch (messageTicker)
   {
-    case 0 : lcd.print(systemName);  
-             lcd.setCursor(0, 1); 
-             lcd.print(systemVersion);
+    case 0 :  
+             printAllValveState();
     break; 
     case 1 : 
              if (autopilotCreateNewJobs)
@@ -467,32 +491,58 @@ void idleMessageTicker(int seconds)
              lcd.print(systemName);  
              lcd.setCursor(0, 1); 
              lcd.print("Uptime : ");
-             unsigned int elapsedTime = dt.unixtime-lastBootTime;
                
              if (elapsedTime>26400) {  
                                     lcd.print((unsigned int) elapsedTime/26400);
-                                    lcd.print("  days  "); 
+                                    lcd.print(" days   "); 
                                    } else
              if (elapsedTime>3600) {  
                                     lcd.print((unsigned int) elapsedTime/3600);
-                                    lcd.print("  hours  "); 
+                                    lcd.print(" hours   "); 
                                    } else
              if (elapsedTime>60)  {  
                                     lcd.print((unsigned int) elapsedTime/60);
-                                    lcd.print("  min  "); 
+                                    lcd.print(" min   "); 
                                   } else
                                   {  
                                     lcd.print((unsigned int) elapsedTime);
-                                    lcd.print("  sec  "); 
+                                    lcd.print(" sec   "); 
                                   }
+    break;   
+    case 5 :  
+             printAllValveState();
     break; 
-    //REMEMBER TO UPDATE numberOfMenus
+    case 6 : 
+             lcd.print(systemName);  
+             lcd.setCursor(0, 1); 
+             lcd.print(systemVersion);  
+    break; 
+
+    //REMEMBER TO UPDATE numberOfMenus 
   }
 }
 
  
+byte currentTimeIsCloseEnoughToHourMinute(byte hour, byte minute)
+{
+}
+ 
+unsigned int getTimeAfterWhichWeNeedToReactivateValveInSeconds(int valveNum)
+{
+ unsigned int timeThatNeedsToPass = jobRunEveryXHours * 60 * 60; 
+ return timeThatNeedsToPass; 
+}
+
+unsigned int getValveOfflineTimeSeconds(int valveNum)
+{
+  if (valvesState[valveNum]) { return 0; }
+  return (unsigned int) dt.unixtime - valveStoppedTimestamp[valveNum]; 
+}
+
+
 unsigned int getValveRunningTimeSeconds(int valveNum)
 {
+  if (!valvesState[valveNum]) { return 0; }
   return (unsigned int) dt.unixtime - valveStartedTimestamp[valveNum]; 
 }
 
@@ -538,14 +588,6 @@ void valveAutopilot()
     if (valvesScheduled[i]) {++valvesRemaining;} 
   }
   
-  //Should a job start..?
-  if ( (valvesRunning==0) && (valvesRemaining==0) )
-  {
-    //If nothing remains then we do nothing..
-    return ; 
-  }
-  
-  
   if (valvesRunning>0)
   {  
    //Check if a valve needs to be closed.. 
@@ -560,49 +602,52 @@ void valveAutopilot()
            //This valve has run its course so we stop it
            valvesScheduled[i]=0;
            valvesState[i]=0;
+           //We mark the time of stopping it
+           valveStoppedTimestamp[i]=dt.unixtime;
            ++changes;
          }
     }
    }
   }
   
+  
+  //If autopilotCreateNewJobs is set
+  if (autopilotCreateNewJobs)
+  {   
+    
+   //Check which valves should be scheduled for start
+   for (i=0; i<8; i++)
+    {
+        if ( getValveOfflineTimeSeconds(i) >  getTimeAfterWhichWeNeedToReactivateValveInSeconds(i) )
+           {  
+              if (currentTimeIsCloseEnoughToHourMinute(jobRunAtXHour,jobRunAtXMinute))
+              {
+                valvesScheduled[i]=1;
+              }
+           }
+    } 
+    
+    
+  //Recount valve status  
   for (i=0; i<8; i++)
   {
     if (valvesState[i])     {++valvesRunning;} 
     if (valvesScheduled[i]) {++valvesRemaining;} 
   }
-  
-  //If autopilotCreateNewJobs is set
-  if (autopilotCreateNewJobs)
-  { 
-    if ( 
-         (dt.hour == jobRunAtXHour ) && 
-         (dt.minute == jobRunAtXMinute )
-       )
-    { 
-      /*   
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
-    uint8_t dayOfWeek; 
-      */
-    }
-
     
+      
   //We can accomodate more jobs..
   if ( (valvesRunning<jobConcurrency) && (valvesRemaining>0)  )
   {
     for (i=0; i<8; i++)
     {
+      //Open first possible scheduled valve 
       if ( (valvesScheduled[i]) && (!valvesState[i]) && (valvesRunning<jobConcurrency) )
-      {
-           ++changes;
-           ++valvesRunning;
-           valvesState[i]=1;
-           valveStartedTimestamp[i]=dt.unixtime;
+      {    
+            ++changes;
+            ++valvesRunning;
+            valvesState[i]=1;
+            valveStartedTimestamp[i]=dt.unixtime; 
       }
     } 
   }
@@ -611,7 +656,7 @@ void valveAutopilot()
   
   
   if (changes) 
-  { 
+  {
    setRelayState(valvesState);  
   }
 }
@@ -678,6 +723,7 @@ void joystickValveTimeHandler(int valve)
   {
    if ( valvesState[valve] ) { valvesState[valve]=0; 
                                valvesScheduled[valve]=0; 
+                               valveStoppedTimestamp[valve]=dt.unixtime;
                              } else
                              { 
                                valvesState[valve]=1;   
@@ -793,7 +839,7 @@ void menuDisplay(int menuOption)
                      }
                   }
              lcd.print(valveSpeeds[menuOption]);
-             lcd.print("   ");
+             lcd.print("     ");
              
               
              
@@ -852,13 +898,13 @@ void menuDisplay(int menuOption)
     break;
     //------------------------------------ 
     case 11 :
-             lcd.print("  Change Date:  ");
+             lcd.print("  Change Date  ");
              lcd.setCursor(0, 1);  
              lcd.print(clock.dateFormat(" d F Y     ",  dt)); 
              
      break;
     case 12 :
-             lcd.print("  Change Time:  ");
+             lcd.print("  Change Time  ");
              lcd.setCursor(0, 1);  
              lcd.print(clock.dateFormat("    H:i:s     ",  dt));
              
@@ -950,7 +996,7 @@ void loop()
     //Switch monitor off 
     turnLCDOff();
   } else
-  if (idleTicks>30)
+  if (idleTicks>45)
   {
     //Display ScreenSaver logos
     idleMessageTicker(seconds);
