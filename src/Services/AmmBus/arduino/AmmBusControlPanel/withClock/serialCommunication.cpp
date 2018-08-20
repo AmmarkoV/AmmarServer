@@ -1,6 +1,11 @@
 
-void checkForSerialInput()
-{
+#include "serialCommunication.h" 
+
+//Serial Input  -------------------------------------------
+String inputs;
+//-----------------------------------------------------------
+
+int AmmBusUSBProtocol::newUSBCommands(byte * valvesState) {
     while(Serial.available()) //Check if there are available bytes to read
     {
         delay(10); //Delay to make it stable
@@ -104,10 +109,10 @@ void checkForSerialInput()
         }
         inputs="";
 
-        setRelayState(valvesState);
+        return 1;
+        
     }
-
-
+ return 0;
 }
 
 

@@ -1,6 +1,9 @@
  
  #define RESET_CLOCK 0
 
+#include "serialCommunication.h"
+AmmBusUSBProtocol ammBusUSB;
+
 //LCD -----------------------------------------------------
 /* 
   The circuit:
@@ -69,9 +72,6 @@ uint32_t lastDHT11SampleTime=0;
 //-----------------------------------------------------------
 
 
-//Serial Input  -------------------------------------------
-String inputs;
-//-----------------------------------------------------------
  
 
 //State -----------------------------------------------------
@@ -151,8 +151,6 @@ void setRelayState( byte * valves )
   updateShiftRegister();  
 }
 
-#define ON 1
-#define OFF 0
 
 void scheduleAllValves()
 { 
@@ -188,6 +186,14 @@ void turnAllValvesOff()
  setRelayState(valvesState);
 }
 
+
+void checkForSerialInput()
+{
+  if ( ammBusUSB.newUSBCommands(valvesState) )
+    {  
+     setRelayState(valvesState);
+    }
+}
 
 
 
