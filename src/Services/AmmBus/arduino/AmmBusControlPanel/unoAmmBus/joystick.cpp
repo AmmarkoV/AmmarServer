@@ -4,13 +4,57 @@
 
 
 
+int joystickValveTimeHandler(
+                             byte * joystickDirection,
+                             byte * joystickButton,
+                             int valve,
+                             uint32_t timestamp,
+                             byte * idleTicks,
+                             byte * valvesState, 
+                             byte * valvesTimes,
+                             byte * valvesScheduled,
+                             uint32_t * valveStartedTimestamp,
+                             uint32_t * valveStoppedTimestamp 
+                            )
+{ 
+  switch (*joystickDirection)
+  {
+    case JOYSTICK_NONE : break;  
+    case JOYSTICK_UP : 
+     valvesTimes[valve]+=5;
+     *idleTicks=0;
+    break;
+    //-------------------------    
+    case JOYSTICK_DOWN : 
+     valvesTimes[valve]-=5; 
+     *idleTicks=0;
+    break;
+    //-------------------------
+  }
+   
+  if (*joystickButton) 
+  {
+   if ( valvesState[valve] ) { 
+                               valvesState[valve]=0; 
+                               valvesScheduled[valve]=0; 
+                               valveStoppedTimestamp[valve]=timestamp;
+                             } else
+                             { 
+                               valvesState[valve]=1;   
+                               valvesScheduled[valve]=1;
+                               valveStartedTimestamp[valve]=timestamp;
+                             } 
+   return 1;
+  } 
+ return 0; 
+}
 
 
 
 
 
 void joystickHourTimeHandler(
-                             int * joystickDirection,
+                             byte * joystickDirection,
                              byte * idleTicks,
                              byte * output, 
                              byte minimum, 
@@ -37,7 +81,7 @@ void joystickHourTimeHandler(
 
 
 void joystick24HourTimeHandler(
-                               int * joystickDirection,
+                               byte * joystickDirection,
                                byte * idleTicks,
                                byte * outputH, 
                                byte * outputM
@@ -73,4 +117,54 @@ void joystick24HourTimeHandler(
    tmp = (unsigned int) minutes%60; 
   *outputM = (byte) tmp;
 }
+
+
+
+
+
+
+int joystickMenuHandler(
+                        byte * joystickDirection,
+                        byte * idleTicks,
+                        byte *currentMenu,
+                        const byte numberOfMenus
+                       )
+{
+  switch (*joystickDirection)
+  {
+    case JOYSTICK_NONE : break;
+    //-------------------------
+    case JOYSTICK_RIGHT : 
+     if (*currentMenu==numberOfMenus-1) { *currentMenu=0; } else
+                                       { ++*currentMenu; }     
+    *idleTicks=0;
+    break;
+    //-------------------------    
+    case JOYSTICK_LEFT : 
+     if (*currentMenu==0) { *currentMenu=numberOfMenus-1; } else
+                         { --*currentMenu; }
+    *idleTicks=0;
+    break;
+    //-------------------------    
+    case JOYSTICK_UP : 
+    
+    *idleTicks=0;
+    break;
+    //-------------------------    
+    case JOYSTICK_DOWN : 
+    
+    *idleTicks=0;
+    break;
+    //-------------------------
+  }
+   
+   
+ if ( (*idleTicks==0) && (*joystickDirection!=JOYSTICK_NONE))
+  {
+   //turnLCDOn();
+   return 1;
+  } 
+ return 0; 
+}
+
 

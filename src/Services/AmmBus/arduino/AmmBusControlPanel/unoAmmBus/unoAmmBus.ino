@@ -6,6 +6,7 @@ AmmBusUSBProtocol ammBusUSB;
 
 #include "joystick.h"
 #include "menu.h"
+#include "ammBus.h"
 
 //LCD -----------------------------------------------------
 /* 
@@ -41,11 +42,11 @@ RTCDateTime dt;
 const int SW_pin = 2; // digital pin connected to switch output
 const int X_pin = 0; // analog pin connected to X output
 const int Y_pin = 1; // analog pin connected to Y output
-const int joystickDeadZone=100;
+//const int joystickDeadZone=100;
 int joystickX = 0;
 int joystickY = 0;
-int joystickButton = 0;
-int joystickDirection = 0;
+byte joystickButton = 0;
+byte joystickDirection = 0;
 //-----------------------------------------------------------
 
 //74HC595 -----------------------------------------------------
@@ -74,30 +75,6 @@ uint32_t lastDHT11SampleTime=0;
 
 //State -----------------------------------------------------
 //-----------------------------------------------------------
-const char * systemName =    { "AmmBus Waterchip" };
-const char * systemVersion = { "     v0.30      " };
-const char * valveLabels[] =
-{
-    "Mikri Skala    ",
-    "Leyland/Porta  " ,
-    "Elato/Garage   ",
-    "Triantafylla  ",
-    "Agalma/Lemonia",
-    "Gazon A      ",
-    "Gazon B      ",
-    "Gazon C      ", 
-    //-----------------
-    "Unknown"
-};
-
-const char * valveSpeeds[] =
-{
-    "Normal",
-    "Extra" ,
-    "Fast", 
-    //-----------------
-    "Unknown"
-};
 
 const byte numberOfMenus=17;
 byte currentMenu=0;
@@ -539,84 +516,6 @@ void valveAutopilot()
 
 
 
-void joystickMenuHandler()
-{
-  switch (joystickDirection)
-  {
-    case JOYSTICK_NONE : break;
-    //-------------------------
-    case JOYSTICK_RIGHT : 
-     if (currentMenu==numberOfMenus-1) { currentMenu=0; } else
-                                       { ++currentMenu; }     
-    idleTicks=0;
-    break;
-    //-------------------------    
-    case JOYSTICK_LEFT : 
-     if (currentMenu==0) { currentMenu=numberOfMenus-1; } else
-                         { --currentMenu; }
-    idleTicks=0;
-    break;
-    //-------------------------    
-    case JOYSTICK_UP : 
-    
-    idleTicks=0;
-    break;
-    //-------------------------    
-    case JOYSTICK_DOWN : 
-    
-    idleTicks=0;
-    break;
-    //-------------------------
-  }
-   
-   
- if ( (idleTicks==0) && (joystickDirection!=JOYSTICK_NONE))
-  {
-   turnLCDOn();
-  } 
-}
-
-
-
-
-
-
-
-void joystickValveTimeHandler(int valve)
-{ 
-  switch (joystickDirection)
-  {
-    case JOYSTICK_NONE : break;  
-    case JOYSTICK_UP : 
-     valvesTimes[valve]+=5;
-     idleTicks=0;
-    break;
-    //-------------------------    
-    case JOYSTICK_DOWN : 
-     valvesTimes[valve]-=5; 
-     idleTicks=0;
-    break;
-    //-------------------------
-  }
-   
-  if (joystickButton) 
-  {
-   if ( valvesState[valve] ) { valvesState[valve]=0; 
-                               valvesScheduled[valve]=0; 
-                               valveStoppedTimestamp[valve]=dt.unixtime;
-                             } else
-                             { 
-                               valvesState[valve]=1;   
-                               valvesScheduled[valve]=1;
-                               valveStartedTimestamp[valve]=dt.unixtime;
-                             } 
-   setRelayState(valvesState);
-  } 
-}
-
-
-
-
 
 
 
@@ -717,7 +616,24 @@ void menuDisplay(int menuOption)
                lcd.print((int) (valvesTimes[valveNum]));
                lcd.print("min  ");
               }  
-             joystickValveTimeHandler(valveNum);
+             if ( 
+                 joystickValveTimeHandler(
+                                          &joystickDirection,
+                                          &joystickButton,
+                                          valveNum,
+                                          dt.unixtime,
+                                          &idleTicks,
+                                          valvesState, 
+                                          valvesTimes,
+                                          valvesScheduled,
+                                          valveStartedTimestamp,
+                                          valveStoppedTimestamp 
+                                         )
+            
+               )
+             {
+                setRelayState(valvesState);
+             }
     break;
     //------------------------------------ 
     case 11 :
@@ -816,8 +732,17 @@ void loop()
   
    
    
-  
-  joystickMenuHandler();
+  if ( 
+       joystickMenuHandler(
+                           &joystickDirection,
+                           &idleTicks,
+                           &currentMenu,
+                           numberOfMenus
+                          ) 
+     )
+   {
+     turnLCDOn();
+   }
   
   if ( (idleTicks>120) || (powerSaving) )
   {
