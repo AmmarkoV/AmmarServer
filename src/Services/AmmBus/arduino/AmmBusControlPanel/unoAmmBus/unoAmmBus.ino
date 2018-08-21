@@ -73,6 +73,7 @@ uint32_t lastDHT11SampleTime=0;
  
 
 //State -----------------------------------------------------
+//-----------------------------------------------------------
 const char * systemName =    { "AmmBus Waterchip" };
 const char * systemVersion = { "     v0.30      " };
 const char * valveLabels[] =
@@ -126,6 +127,7 @@ byte jobRunEveryXHours=5*24;
 byte jobRunAtXHour=20;
 byte jobRunAtXMinute=0;
 byte jobConcurrency=1; //Max concurrent jobs
+//-----------------------------------------------------------
 //-----------------------------------------------------------
 
 
