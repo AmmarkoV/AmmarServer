@@ -1,34 +1,5 @@
 #include "menu.h"
 
-
-void joystickHourTimeHandler(
-                             int * joystickDirection,
-                             byte * idleTicks,
-                             byte * output, 
-                             byte minimum, 
-                             byte maximum
-                            )
-{ 
-  switch (*joystickDirection)
-  {
-    case JOYSTICK_NONE : break;  
-    case JOYSTICK_UP : 
-     if (*output<maximum-1)
-                   { *output+=1; }
-     *idleTicks=0;
-    break;
-    //-------------------------    
-    case JOYSTICK_DOWN : 
-     if (*output>minimum+1)
-                   { *output-=1; } 
-     *idleTicks=0;
-    break;
-    //-------------------------
-  } 
-}
-
-
-
 void printAllValveState(
                         LiquidCrystal * lcd , 
                         byte * valvesState, 

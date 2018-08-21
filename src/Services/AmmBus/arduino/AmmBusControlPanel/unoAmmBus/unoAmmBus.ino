@@ -4,6 +4,7 @@
 #include "serialCommunication.h"
 AmmBusUSBProtocol ammBusUSB;
 
+#include "joystick.h"
 #include "menu.h"
 
 //LCD -----------------------------------------------------
@@ -397,6 +398,7 @@ void idleMessageTicker(int seconds)
  
 byte currentTimeIsCloseEnoughToHourMinute(byte hour, byte minute)
 {
+  //TODO:
 }
  
 unsigned int getTimeAfterWhichWeNeedToReactivateValveInSeconds(int valveNum)
@@ -574,6 +576,10 @@ void joystickMenuHandler()
 
 
 
+
+
+
+
 void joystickValveTimeHandler(int valve)
 { 
   switch (joystickDirection)
@@ -604,44 +610,6 @@ void joystickValveTimeHandler(int valve)
                              } 
    setRelayState(valvesState);
   } 
-}
-
-
-
-
-
-void joystick24HourTimeHandler(byte * outputH, byte * outputM)
-{ 
-  unsigned int minutes=(unsigned int) ((*outputH) * 60)  + (*outputM);
-  
-  const byte clockSpeed=15;//mins
-  
-  switch (joystickDirection)
-  {
-    case JOYSTICK_NONE : 
-     //return; 
-    break;  
-    case JOYSTICK_UP : 
-     if (minutes+clockSpeed<1440)
-                   { minutes+=clockSpeed; }else
-                   { minutes=0; }
-     idleTicks=0;
-    break;
-    //-------------------------    
-    case JOYSTICK_DOWN : 
-     if (minutes>clockSpeed)
-                   { minutes-=clockSpeed; } else
-                   { minutes=1440-clockSpeed; }
-     idleTicks=0;
-    break;
-    //-------------------------
-  } 
-  
-  unsigned int tmp = (unsigned int) minutes/60; 
-  *outputH = (byte) tmp;
-   tmp = (unsigned int) minutes%60; 
-  *outputM = (byte) tmp;
-  
 }
 
 
@@ -778,7 +746,12 @@ void menuDisplay(int menuOption)
              lcd.print((int) jobRunAtXMinute); 
              lcd.print("        ");
             
-            joystick24HourTimeHandler(&jobRunAtXHour,&jobRunAtXMinute);    
+            joystick24HourTimeHandler( 
+                                       &joystickDirection , 
+                                       &idleTicks , 
+                                       &jobRunAtXHour,
+                                       &jobRunAtXMinute
+                                     );    
     break;
     case 14 :
              lcd.print("  Water Every :  ");
