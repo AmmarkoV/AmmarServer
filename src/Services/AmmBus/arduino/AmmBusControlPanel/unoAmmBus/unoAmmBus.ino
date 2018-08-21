@@ -4,6 +4,8 @@
 #include "serialCommunication.h"
 AmmBusUSBProtocol ammBusUSB;
 
+#include "menu.h"
+
 //LCD -----------------------------------------------------
 /* 
   The circuit:
@@ -35,11 +37,6 @@ RTCDateTime dt;
 
 
 //Joystick -----------------------------------------------------
-#define JOYSTICK_NONE 0
-#define JOYSTICK_LEFT 1
-#define JOYSTICK_RIGHT 2
-#define JOYSTICK_UP 3
-#define JOYSTICK_DOWN 4
 const int SW_pin = 2; // digital pin connected to switch output
 const int X_pin = 0; // analog pin connected to X output
 const int Y_pin = 1; // analog pin connected to Y output
@@ -75,8 +72,6 @@ uint32_t lastDHT11SampleTime=0;
  
 
 //State -----------------------------------------------------
-char ON_LOGO=126;
-char OFF_LOGO='x';
 const char * systemName =    { "AmmBus Waterchip" };
 const char * systemVersion = { "     v0.30      " };
 const char * valveLabels[] =
@@ -105,8 +100,8 @@ const char * valveSpeeds[] =
 const byte numberOfMenus=17;
 byte currentMenu=0;
 
-//byte valvesTimesNormal[8]={30,30,30,30,30,30,30,30};
-byte valvesTimesNormal[8]={2,2,2,2,2,2,2,2};
+//byte valvesTimesNormal[8]={2,2,2,2,2,2,2,2};
+byte valvesTimesNormal[8]={30,30,30,30,30,30,30,30};
 byte valvesTimesHigh[8]={60,60,60,60,60,60,60,60};
 byte valvesTimesLow[8]={15,15,15,15,15,15,15,15};
 byte *armedTimes = 0;
@@ -120,7 +115,7 @@ uint32_t valveStoppedTimestamp[8]={0};
 uint32_t lastBootTime=0;
 
 byte errorDetected = 0;
-byte idleTicks=10000;
+byte idleTicks=255;
 
 byte powerSaving=1;
 byte autopilotCreateNewJobs=0;
@@ -232,9 +227,7 @@ void turnLCDOff()
    digitalWrite(10, LOW);  
    digitalWrite(11, LOW);  
    digitalWrite(12, LOW);  
-    
-
-
+     
    delay(100);
    digitalWrite(lcdPowerPin, LOW); 
    powerSaving=1;
@@ -312,21 +305,6 @@ void grabMeasurements()
 }
 
 
-void printAllValveState()
-{ 
-  int i=0;
-  lcd.print("");
-  for (i=0; i<8; i++) { lcd.print((int) i); lcd.print(" "); } 
-  lcd.setCursor(0, 1);
-  lcd.print("");  
-  for (i=0; i<8; i++) 
-               { 
-                  if (valvesState[i])     { lcd.print((char)ON_LOGO);  } else  
-                  if (valvesScheduled[i]) { lcd.print((char) 'W');  } else  
-                                          { lcd.print((char)OFF_LOGO); } 
-                  lcd.print(" "); 
-               }  
-}
 
 void idleMessageTicker(int seconds)
 {
@@ -337,7 +315,7 @@ void idleMessageTicker(int seconds)
   switch (messageTicker)
   {
     case 0 :  
-             printAllValveState();
+             printAllValveState(&lcd ,  valvesState, valvesScheduled );
     break; 
     case 1 : 
              if (autopilotCreateNewJobs)
@@ -403,8 +381,8 @@ void idleMessageTicker(int seconds)
                                     lcd.print(" sec   "); 
                                   }
     break;   
-    case 5 :  
-             printAllValveState();
+    case 5 :   
+             printAllValveState(&lcd ,  valvesState, valvesScheduled );
     break; 
     case 6 : 
              lcd.print(systemName);  
@@ -630,25 +608,6 @@ void joystickValveTimeHandler(int valve)
 
 
 
-void joystickHourTimeHandler(byte * output, byte minimum, byte maximum)
-{ 
-  switch (joystickDirection)
-  {
-    case JOYSTICK_NONE : break;  
-    case JOYSTICK_UP : 
-     if (*output<maximum-1)
-                   { *output+=1; }
-     idleTicks=0;
-    break;
-    //-------------------------    
-    case JOYSTICK_DOWN : 
-     if (*output>minimum+1)
-                   { *output-=1; } 
-     idleTicks=0;
-    break;
-    //-------------------------
-  } 
-}
 
 
 void joystick24HourTimeHandler(byte * outputH, byte * outputM)
@@ -834,7 +793,7 @@ void menuDisplay(int menuOption)
                      lcd.print((float) jobRunEveryXHours/24);
                      lcd.print(" days    ");
                    }   
-            joystickHourTimeHandler(&jobRunEveryXHours,0,255);       
+            joystickHourTimeHandler(&joystickDirection,&idleTicks,&jobRunEveryXHours,0,255);       
     break;
     //------------------------------------ 
     case 15 :
@@ -904,7 +863,7 @@ void loop()
  
   
    //Stop counter from overflow..
-   if (idleTicks<1000) { ++idleTicks; } 
+   if (idleTicks<253) { ++idleTicks; } 
    
    
    //-------------------------------------
