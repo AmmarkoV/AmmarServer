@@ -1,5 +1,5 @@
  
- #define RESET_CLOCK 0
+#define RESET_CLOCK_ON_NEXT_COMPILATION 0
 
 #include "serialCommunication.h"
 AmmBusUSBProtocol ammBusUSB;
@@ -264,7 +264,7 @@ void setup()
   clock.begin();
 
   // Set sketch compiling time
-  if (RESET_CLOCK)
+  if (RESET_CLOCK_ON_NEXT_COMPILATION)
     { clock.setDateTime(__DATE__, __TIME__); }
     
   dt = clock.getDateTime();
