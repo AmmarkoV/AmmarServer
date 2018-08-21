@@ -21,6 +21,13 @@ struct joystickState
   byte joystickDirection;
 };
 
+int getJoystickState(
+                      int joystickAnalogueXPin,
+                      int joystickAnalogueYPin,
+                      int joystickDigitalButtonPin,
+                      struct joystickState * js
+                    );
+
 int joystickValveTimeHandler(
                              byte * joystickDirection,
                              byte * joystickButton,

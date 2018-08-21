@@ -1,6 +1,27 @@
 #include "joystick.h"
 
 
+int getJoystickState(
+                      int joystickAnalogueXPin,
+                      int joystickAnalogueYPin,
+                      int joystickDigitalButtonPin,
+                      struct joystickState * js
+                    )
+{
+  //Joystick Reading
+ js->joystickX=analogRead(joystickAnalogueXPin);
+ js->joystickY=analogRead(joystickAnalogueYPin);
+ js->joystickButton = digitalRead(joystickDigitalButtonPin);
+ if (js->joystickButton) { js->joystickButton=0; } else
+                         { js->joystickButton=1; }
+  
+ if (js->joystickX<512-joystickDeadZone)  {  js->joystickDirection=JOYSTICK_LEFT;  } else
+ if (js->joystickX>512+joystickDeadZone)  {  js->joystickDirection=JOYSTICK_RIGHT; } else
+ if (js->joystickY<512-joystickDeadZone)  {  js->joystickDirection=JOYSTICK_UP;    } else
+ if (js->joystickY>512+joystickDeadZone)  {  js->joystickDirection=JOYSTICK_DOWN;  } else
+                                          {  js->joystickDirection=JOYSTICK_NONE;  } 
+ 
+}
 
 
 

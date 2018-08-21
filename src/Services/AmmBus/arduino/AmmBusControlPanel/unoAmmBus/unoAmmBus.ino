@@ -261,6 +261,7 @@ void grabMeasurements()
  dt = clock.getDateTime();  
    
  //Joystick Reading
+ //getJoystickState(X_pin,Y_pin,SW_pin, struct joystickState * js );
  joystickX=analogRead(X_pin);
  joystickY=analogRead(Y_pin);
  joystickButton = digitalRead(SW_pin);
