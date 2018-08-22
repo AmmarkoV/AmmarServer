@@ -94,7 +94,7 @@ uint32_t valveStoppedTimestamp[8]={0};
 uint32_t lastBootTime=0;
 
 byte errorDetected = 0;
-byte idleTicks=255;
+byte idleTicks=0;
 
 byte powerSaving=1;
 byte autopilotCreateNewJobs=0;
@@ -164,7 +164,7 @@ void turnAllValvesOff()
 
 void checkForSerialInput()
 {
-  if ( ammBusUSB.newUSBCommands(valvesState) )
+  if ( ammBusUSB.newUSBCommands(valvesState,&clock,&dt) )
     {  
      setRelayState(valvesState);
     }
@@ -745,7 +745,7 @@ void loop()
      turnLCDOn();
    }
   
-  if ( (idleTicks>120) || (powerSaving) )
+  if ( (idleTicks>220) || (powerSaving) )
   {
     //Switch monitor off 
     turnLCDOff();
@@ -770,7 +770,7 @@ void loop()
    //-------------------------------------
    //      Everything works at 1Hz
     if (powerSaving) { delay(1500);  } else
-                     { delay(350);   }
+                     { delay(450);   }
    //-------------------------------------
 }
 

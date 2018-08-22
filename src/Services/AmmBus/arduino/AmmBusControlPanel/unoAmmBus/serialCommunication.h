@@ -6,11 +6,12 @@
 #define OFF 0
 
 #include <Arduino.h>
+#include "DS3231.h"
 
 class AmmBusUSBProtocol {
   
 public:
-int newUSBCommands(byte * valvesState);
+int newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTime * dt);
 
 };
 
