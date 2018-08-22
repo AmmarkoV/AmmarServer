@@ -159,12 +159,13 @@ void turnAllValvesOff()
  valvesScheduled[6]=OFF;
  valvesScheduled[7]=OFF;
  setRelayState(valvesState);
+ armedTimes=0;
 }
 
 
 void checkForSerialInput()
 {
-  if ( ammBusUSB.newUSBCommands(valvesState,&clock,&dt) )
+  if ( ammBusUSB.newUSBCommands(valvesState,&clock,&dt,&idleTicks) )
     {  
      setRelayState(valvesState);
     }
@@ -370,6 +371,11 @@ void idleMessageTicker(int seconds)
              lcd.setCursor(0, 1); 
              lcd.print(systemVersion);  
     break; 
+    default :
+             lcd.print("TODO:");  
+             lcd.setCursor(0, 1); 
+             lcd.print("messages");  
+    break;
 
     //REMEMBER TO UPDATE numberOfMenus 
   }
@@ -715,6 +721,7 @@ void menuDisplay(int menuOption)
  
 void loop() 
 {  
+  byte prevIdleTicks = idleTicks;
   grabMeasurements(); 
   checkForSerialInput();
   int seconds = millis() / 1000; 
@@ -745,7 +752,7 @@ void loop()
      turnLCDOn();
    }
   
-  if ( (idleTicks>220) || (powerSaving) )
+  if ( (idleTicks>120) || (powerSaving) )
   {
     //Switch monitor off 
     turnLCDOff();
@@ -762,6 +769,11 @@ void loop()
    
    valveAutopilot(); 
  
+   //If a wakeup event has happened turn on 
+   if ( (idleTicks==0) && (prevIdleTicks!=0) )  
+   {
+     turnLCDOn();
+   }
   
    //Stop counter from overflow..
    if (idleTicks<253) { ++idleTicks; } 

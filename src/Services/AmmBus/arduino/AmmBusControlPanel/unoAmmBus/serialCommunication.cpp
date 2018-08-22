@@ -29,7 +29,7 @@ uint32_t readTimeFromSerial()
 }
 
 
-int AmmBusUSBProtocol::newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTime * dt) 
+int AmmBusUSBProtocol::newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTime * dt,byte * idleTicks) 
 { 
     byte SuccessfullOperation=1;
     char cmdA = 0;  
@@ -49,8 +49,6 @@ int AmmBusUSBProtocol::newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTi
     
     if (inputs.length() >0)
     {
-        Serial.println("ok");
-        Serial.println(inputs);
         cmdA = inputs[0];  
         int i=0;       
         
@@ -59,7 +57,10 @@ int AmmBusUSBProtocol::newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTi
         switch(cmdA)
         {
           case 0 : SuccessfullOperation=0; break; //Erroneous state
-          
+          case 'w' :  
+          case 'W' :  
+            *idleTicks=0;
+          break;
           
           //Report back valve state  ------------------------------------------------------------
           case 'T' :  
@@ -78,10 +79,10 @@ int AmmBusUSBProtocol::newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTi
           break;   
           case 't' : 
              Serial.print("Humantime>");
-             Serial.println(clock->dateFormat("d-m-Y/H:i:s", *dt)); 
+             //Serial.println(clock->dateFormat("d-m-Y/H:i:s", *dt)); 
 
              Serial.print("Unixtime>");
-             Serial.println(clock->dateFormat("U", *dt)); 
+             Serial.println(dt->unixtime); 
           break;
           
           //Report back valve state  ------------------------------------------------------------
@@ -135,7 +136,9 @@ int AmmBusUSBProtocol::newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTi
       SuccessfullOperation=0;
     }
     
-    
+ if (SuccessfullOperation)   
+        { Serial.println("ok"); }  
+        
  inputs="";    
  return SuccessfullOperation;
 }

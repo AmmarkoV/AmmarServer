@@ -35,6 +35,5 @@ void initializeAmmBusState(struct ammBusState * ambs)
  ambs->jobRunAtXMinute=0;
  
  //Max concurrent jobs  
- ambs->jobConcurrency=1;  
-  
+ ambs->jobConcurrency=1;   
 }
