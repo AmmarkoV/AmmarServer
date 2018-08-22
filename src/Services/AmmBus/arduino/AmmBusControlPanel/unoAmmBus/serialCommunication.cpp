@@ -29,7 +29,13 @@ uint32_t readTimeFromSerial()
 }
 
 
-int AmmBusUSBProtocol::newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTime * dt,byte * idleTicks) 
+int AmmBusUSBProtocol::newUSBCommands(
+                                      byte * valvesState,
+                                      byte * valvesScheduled,
+                                      DS3231 *clock,
+                                      RTCDateTime * dt,
+                                      byte * idleTicks
+                                     ) 
 { 
     byte SuccessfullOperation=1;
     char cmdA = 0;  
@@ -109,22 +115,22 @@ int AmmBusUSBProtocol::newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTi
           
           
           //Full Manual  --------------------------------------------------------------------
-          case 'a' : valvesState[0]=OFF; break;
-          case 'A' : valvesState[0]=ON;  break;
-          case 'b' : valvesState[1]=OFF; break;
-          case 'B' : valvesState[1]=ON;  break;
-          case 'c' : valvesState[2]=OFF; break;
-          case 'C' : valvesState[2]=ON;  break;
-          case 'd' : valvesState[3]=OFF; break;
-          case 'D' : valvesState[3]=ON;  break;
-          case 'e' : valvesState[4]=OFF; break;
-          case 'E' : valvesState[4]=ON;  break;
-          case 'f' : valvesState[5]=OFF; break;
-          case 'F' : valvesState[5]=ON;  break;
-          case 'g' : valvesState[6]=OFF; break;
-          case 'G' : valvesState[6]=ON;  break;
-          case 'h' : valvesState[7]=OFF; break;
-          case 'H' : valvesState[7]=ON;  break; 
+          case 'a' : valvesState[0]=OFF; valvesScheduled[0]=OFF; break;
+          case 'A' : valvesState[0]=ON;  valvesScheduled[0]=ON;  break;
+          case 'b' : valvesState[1]=OFF; valvesScheduled[1]=OFF; break;
+          case 'B' : valvesState[1]=ON;  valvesScheduled[1]=ON;  break;
+          case 'c' : valvesState[2]=OFF; valvesScheduled[2]=OFF; break;
+          case 'C' : valvesState[2]=ON;  valvesScheduled[2]=ON;  break;
+          case 'd' : valvesState[3]=OFF; valvesScheduled[3]=OFF; break;
+          case 'D' : valvesState[3]=ON;  valvesScheduled[3]=ON;  break;
+          case 'e' : valvesState[4]=OFF; valvesScheduled[4]=OFF; break;
+          case 'E' : valvesState[4]=ON;  valvesScheduled[4]=ON;  break;
+          case 'f' : valvesState[5]=OFF; valvesScheduled[5]=OFF; break;
+          case 'F' : valvesState[5]=ON;  valvesScheduled[5]=ON;  break;
+          case 'g' : valvesState[6]=OFF; valvesScheduled[6]=OFF; break;
+          case 'G' : valvesState[6]=ON;  valvesScheduled[6]=ON;  break;
+          case 'h' : valvesState[7]=OFF; valvesScheduled[7]=OFF; break;
+          case 'H' : valvesState[7]=ON;  valvesScheduled[7]=ON;  break; 
           //-------------------------------------------------------------------------------------
           
           default : 

@@ -11,7 +11,13 @@
 class AmmBusUSBProtocol {
   
 public:
-int newUSBCommands(byte * valvesState,DS3231 *clock,RTCDateTime * dt,byte * idleTicks);
+int newUSBCommands(
+                    byte * valvesState,
+                    byte * valvesScheduled,
+                    DS3231 *clock,
+                    RTCDateTime * dt,
+                    byte * idleTicks
+                  );
 
 };
 

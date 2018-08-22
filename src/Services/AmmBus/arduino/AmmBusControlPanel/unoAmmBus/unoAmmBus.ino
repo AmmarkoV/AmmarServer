@@ -165,7 +165,7 @@ void turnAllValvesOff()
 
 void checkForSerialInput()
 {
-  if ( ammBusUSB.newUSBCommands(valvesState,&clock,&dt,&idleTicks) )
+  if ( ammBusUSB.newUSBCommands(valvesState,valvesScheduled,&clock,&dt,&idleTicks) )
     {  
      setRelayState(valvesState);
     }
@@ -442,7 +442,7 @@ void valveAutopilot()
   unsigned int valvesRunning=0;
   unsigned int valvesRemaining=0;
   
-  for (i=0; i<8; i++)
+  for (i=0; i<NUMBER_OF_SWITCHES; i++)
   {
     if (valvesState[i])     {++valvesRunning;} 
     if (valvesScheduled[i]) {++valvesRemaining;} 
@@ -451,7 +451,7 @@ void valveAutopilot()
   if (valvesRunning>0)
   {  
    //Check if a valve needs to be closed.. 
-   for (i=0; i<8; i++)
+   for (i=0; i<NUMBER_OF_SWITCHES; i++)
    {
     if (valvesState[i])
     {
@@ -476,7 +476,7 @@ void valveAutopilot()
   {   
     
    //Check which valves should be scheduled for start
-   for (i=0; i<8; i++)
+   for (i=0; i<NUMBER_OF_SWITCHES; i++)
     {
         if ( getValveOfflineTimeSeconds(i) >  getTimeAfterWhichWeNeedToReactivateValveInSeconds(i) )
            {  
@@ -489,7 +489,7 @@ void valveAutopilot()
     
     
   //Recount valve status  
-  for (i=0; i<8; i++)
+  for (i=0; i<NUMBER_OF_SWITCHES; i++)
   {
     if (valvesState[i])     {++valvesRunning;} 
     if (valvesScheduled[i]) {++valvesRemaining;} 
@@ -499,7 +499,7 @@ void valveAutopilot()
   //We can accomodate more jobs..
   if ( (valvesRunning<jobConcurrency) && (valvesRemaining>0)  )
   {
-    for (i=0; i<8; i++)
+    for (i=0; i<NUMBER_OF_SWITCHES; i++)
     {
       //Open first possible scheduled valve 
       if ( (valvesScheduled[i]) && (!valvesState[i]) && (valvesRunning<jobConcurrency) )
@@ -752,7 +752,7 @@ void loop()
      turnLCDOn();
    }
   
-  if ( (idleTicks>120) || (powerSaving) )
+  if ( (idleTicks>200) || (powerSaving) )
   {
     //Switch monitor off 
     turnLCDOff();
