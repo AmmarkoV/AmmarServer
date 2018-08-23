@@ -5,12 +5,10 @@
 #define byte uint8_t
 
 #define RECENT_UNIX_TIME 1534944924
-
 #define  NUMBER_OF_SWITCHES 8
 
-
 static const char * systemName =    { "AmmBus Waterchip" };
-static const char * systemVersion = { "     v0.31      " };
+static const char * systemVersion = { "     v0.32      " };
 static const char * valveLabels[] =
 {
     "Mikri Skala    ",
@@ -56,15 +54,13 @@ struct ammBusState
  byte idleTicks;
 
  byte powerSaving;
- byte autopilotCreateNewJobs;
- byte runningWork;
+ byte autopilotCreateNewJobs; 
  
  byte jobRunEveryXHours;
  byte jobRunAtXHour;
  byte jobRunAtXMinute;
  byte jobConcurrency;
 };
-
 
 byte ammBus_getRunningValves(struct ammBusState * ambs);
 byte ammBus_getScheduledValves(struct ammBusState * ambs);

@@ -28,8 +28,7 @@ void initializeAmmBusState(struct ammBusState * ambs)
  ambs->idleTicks=0;
 
  ambs->powerSaving=1;
- ambs->autopilotCreateNewJobs=0;
- ambs->runningWork=0;
+ ambs->autopilotCreateNewJobs=1; 
  
  ambs->jobRunEveryXHours=5*24;
  ambs->jobRunAtXHour=20;

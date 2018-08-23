@@ -1,4 +1,5 @@
- 
+
+
 #define RESET_CLOCK_ON_NEXT_COMPILATION 0
 
 #include <LiquidCrystal.h> //These are needed here for the IDE to understand which modules to import
@@ -7,7 +8,6 @@
 //See configuration.h for schematics and libraries used..
 //See diagram_bbsml.png for connections on arduino
 #include "configuration.h"
-
 
 #include "serialCommunication.h"
 AmmBusUSBProtocol ammBusUSB;
@@ -27,15 +27,13 @@ const byte numberOfMenus=17;
 byte currentMenu=0;
 //-----------------------------------------------------------
 //-----------------------------------------------------------
-
-
 void updateShiftRegister()
 {
    digitalWrite(latchPin, LOW);
    shiftOut(dataPin, clockPin, LSBFIRST, leds);
    digitalWrite(latchPin, HIGH);
 }
-
+//-----------------------------------------------------------
 void setRelayState( byte * valves )
 {
   leds=0; 
@@ -46,28 +44,35 @@ void setRelayState( byte * valves )
   }
   updateShiftRegister();  
 }
-
- 
-
+//-----------------------------------------------------------
 
 void checkForSerialInput()
 {
-  if ( ammBusUSB.newUSBCommands(ambs.valvesState,ambs.valvesScheduled,&clock,&dt,&ambs.idleTicks) )
-    {  
-     setRelayState(ambs.valvesState);
-    }
+  if ( 
+       ammBusUSB.newUSBCommands(
+                                ambs.valvesState,
+                                ambs.valvesScheduled,
+                                &clock,
+                                &dt,
+                                &ambs.idleTicks
+                               ) 
+     )
+     {  
+      setRelayState(ambs.valvesState);
+     }
 }
-
-
 
 void turnLCDOn()
 {
   if (ambs.powerSaving)
   {
+   //Power up display..
    digitalWrite(lcdPowerPin, HIGH);
    delay(100);
+
    // set up the LCD's number of columns and rows:
    lcd.begin(16, 2);
+
    // Print a message to the LCD.
    lcd.print(systemName);
    lcd.setCursor(0, 1);
@@ -79,16 +84,15 @@ void turnLCDOn()
 void turnLCDOff()
 {
   if (!ambs.powerSaving)
-  { 
-    
+  {
+   //Disable powersaving name..
    lcd.setCursor(0, 0);
    lcd.print(systemName);
    lcd.setCursor(0, 1);
    lcd.print("powersaving ..  ");   
    lcd.noDisplay();  
-   
-   
-   
+
+   //Disable power on all pins..
    digitalWrite(7, LOW); 
    digitalWrite(8, LOW); 
    digitalWrite(9, LOW); 
@@ -97,6 +101,7 @@ void turnLCDOff()
    digitalWrite(12, LOW);  
      
    delay(100);
+   //Disable power on power pins..
    digitalWrite(lcdPowerPin, LOW); 
    ambs.powerSaving=1;
   }
@@ -108,6 +113,8 @@ void setup()
   pinMode(dataPin, OUTPUT);  
   pinMode(clockPin, OUTPUT);   
   setRelayState(ambs.valvesState);
+  
+  initializeAmmBusState(&ambs); 
   
   pinMode(lcdPowerPin, OUTPUT);
   digitalWrite(lcdPowerPin, LOW); 
@@ -126,8 +133,6 @@ void setup()
     
   dt = clock.getDateTime();
   ambs.lastBootTime  = dt.unixtime;
-
-  initializeAmmBusState(&ambs); 
 }
 
 
@@ -244,7 +249,7 @@ void idleMessageTicker(int seconds)
     default :
              lcd.print("TODO:");  
              lcd.setCursor(0, 1); 
-             lcd.print("messages");  
+             lcd.print("add messages");  
     break;
 
     //REMEMBER TO UPDATE numberOfMenus 
@@ -338,8 +343,9 @@ void valveAutopilot()
   }
   }
 
+  //Changes made/update relays  
   if (changes) 
-  { setRelayState(ambs.valvesState); }
+    { setRelayState(ambs.valvesState); }
 }
 
 
@@ -392,23 +398,23 @@ void menuDisplay(int menuOption)
                   }
              lcd.print(valveSpeedLabels[menuOption]);
              lcd.print("     ");
-             
-              
-             
+
              if (joystick.jButton)
                { 
                  if (ambs.armedTimes==selectedSpeeds) 
                   {
                    ambs.valvesTimes=selectedSpeeds; 
-                   //Do start 
-                   //autopilotCreateNewJobs=1;
-                   //scheduleAllValves();
+                   //Do start ---------------------
                    ammBus_enableAutopilot(&ambs);
                    ammBus_scheduleAllValves(&ambs);
+                   ambs.armedTimes=selectedSpeeds;
+                   //------------------------------
                   } else
                   {
+                   //------------------------------
                    ambs.valvesTimes=selectedSpeeds; 
                    ambs.armedTimes=selectedSpeeds;
+                   //------------------------------
                   }
                }
     break;   
@@ -539,7 +545,7 @@ void menuDisplay(int menuOption)
              if (joystick.jButton)
                { 
                  if (ambs.autopilotCreateNewJobs) { ambs.autopilotCreateNewJobs=0; } else
-                                             { ambs.autopilotCreateNewJobs=1; }
+                                                  { ambs.autopilotCreateNewJobs=1; }
                }
     break;
     //------------------------------------ 
@@ -594,6 +600,7 @@ void loop()
     menuDisplay(currentMenu);
   }
    
+   //Valve Autopilot..
    valveAutopilot(); 
  
    //If a wakeup event has happened turn on 
@@ -601,15 +608,17 @@ void loop()
    {
      turnLCDOn();
    }
-  
+
    //Stop counter from overflow..
    if (ambs.idleTicks<253) { ++ambs.idleTicks; } 
    
    
    //-------------------------------------
+   //-------------------------------------
    //      Everything works at 1Hz
     if (ambs.powerSaving) { delay(1500);  } else
                           { delay(450);   }
+   //-------------------------------------
    //-------------------------------------
 }
 
