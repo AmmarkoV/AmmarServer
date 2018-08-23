@@ -37,6 +37,8 @@ static const char * valveSpeeds[] =
 
 struct ammBusState
 {  
+ uint32_t currentTime;
+ 
  byte valvesTimesNormal[NUMBER_OF_SWITCHES];
  byte valvesTimesHigh[NUMBER_OF_SWITCHES];
  byte valvesTimesLow[NUMBER_OF_SWITCHES];
@@ -47,7 +49,7 @@ struct ammBusState
  byte valvesScheduled[NUMBER_OF_SWITCHES];
  uint32_t valveStartedTimestamp[NUMBER_OF_SWITCHES];
  uint32_t valveStoppedTimestamp[NUMBER_OF_SWITCHES];
-
+ 
  uint32_t lastBootTime;
 
  byte errorDetected;

@@ -37,3 +37,16 @@ void initializeAmmBusState(struct ammBusState * ambs)
  //Max concurrent jobs  
  ambs->jobConcurrency=1;   
 }
+
+
+
+void ammBus_startValve(
+                        struct ammBusState * ambs,
+                        byte valveNumber,
+                        byte minutesToLeaveItOpen
+                       )
+{
+
+}
+
+

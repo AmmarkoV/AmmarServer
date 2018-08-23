@@ -9,17 +9,17 @@ int getJoystickState(
                     )
 {
   //Joystick Reading
- js->joystickX=analogRead(joystickAnalogueXPin);
- js->joystickY=analogRead(joystickAnalogueYPin);
- js->joystickButton = digitalRead(joystickDigitalButtonPin);
- if (js->joystickButton) { js->joystickButton=0; } else
-                         { js->joystickButton=1; }
+ js->jX=analogRead(joystickAnalogueXPin);
+ js->jY=analogRead(joystickAnalogueYPin);
+ js->jButton = digitalRead(joystickDigitalButtonPin);
+ if (js->jButton) { js->jButton=0; } else
+                  { js->jButton=1; }
   
- if (js->joystickX<512-joystickDeadZone)  {  js->joystickDirection=JOYSTICK_LEFT;  } else
- if (js->joystickX>512+joystickDeadZone)  {  js->joystickDirection=JOYSTICK_RIGHT; } else
- if (js->joystickY<512-joystickDeadZone)  {  js->joystickDirection=JOYSTICK_UP;    } else
- if (js->joystickY>512+joystickDeadZone)  {  js->joystickDirection=JOYSTICK_DOWN;  } else
-                                          {  js->joystickDirection=JOYSTICK_NONE;  } 
+ if (js->jX<512-joystickDeadZone)  {  js->jDirection=JOYSTICK_LEFT;  } else
+ if (js->jX>512+joystickDeadZone)  {  js->jDirection=JOYSTICK_RIGHT; } else
+ if (js->jY<512-joystickDeadZone)  {  js->jDirection=JOYSTICK_UP;    } else
+ if (js->jY>512+joystickDeadZone)  {  js->jDirection=JOYSTICK_DOWN;  } else
+                                   {  js->jDirection=JOYSTICK_NONE;  } 
  
 }
 

@@ -1,6 +1,14 @@
  
 #define RESET_CLOCK_ON_NEXT_COMPILATION 0
 
+#include <LiquidCrystal.h> //These are needed here for the IDE to understand which modules to import
+#include <Wire.h>          //These are needed here for the IDE to understand which modules to import  
+
+//See configuration.h for schematics and libraries used..
+//See diagram_bbsml.png for connections on arduino
+#include "configuration.h"
+
+
 #include "serialCommunication.h"
 AmmBusUSBProtocol ammBusUSB;
 
@@ -8,73 +16,11 @@ AmmBusUSBProtocol ammBusUSB;
 #include "menu.h"
 #include "ammBus.h"
 
-//LCD -----------------------------------------------------
-/* 
-  The circuit:
- * LCD RS pin to digital pin 7
- * LCD Enable pin to digital pin 8
- * LCD D4 pin to digital pin 9
- * LCD D5 pin to digital pin 10
- * LCD D6 pin to digital pin 11
- * LCD D7 pin to digital pin 12
- * LCD R/W pin to ground
- * LCD VSS pin to ground
- * LCD VCC pin to 5V
- * 10K resistor:
- * ends to +5V and ground
- * wiper to LCD VO pin (pin 3)
- */
-#include <LiquidCrystal.h>
-#include <Wire.h>
-// initialize the library with the numbers of the interface pins
-LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
-int lcdPowerPin=6;
-//-----------------------------------------------------------
-
-//Clock -----------------------------------------------------
-#include "DS3231.h"
-DS3231 clock;
-RTCDateTime dt;
-//-----------------------------------------------------------
-
-
-//Joystick -----------------------------------------------------
-const int SW_pin = 2; // digital pin connected to switch output
-const int X_pin = 0; // analog pin connected to X output
-const int Y_pin = 1; // analog pin connected to Y output
-//const int joystickDeadZone=100;
-int joystickX = 0;
-int joystickY = 0;
-byte joystickButton = 0;
-byte joystickDirection = 0;
-//-----------------------------------------------------------
-
-//74HC595 -----------------------------------------------------
-int tDelay = 1000;
-int latchPin = 4;      // (4) ST_CP [RCK] on 74HC595
-int clockPin = 3;      // (3) SH_CP [SCK] on 74HC595
-int dataPin = 5;     // (5) DS [S1] on 74HC595
-byte leds = 0;
-//-----------------------------------------------------------
-
-//DHT11 -----------------------------------------------------
-//      VCC: 5V or 3V
-//      GND: GND
-//      DATA: 13
-#include "SimpleDHT.h"
-int pinDHT11 = 13;
-SimpleDHT11 dht11;
-byte temperature = 0;
-byte humidity = 0;
-byte dataDHT11[40] = {0};
-uint32_t lastDHT11SampleTime=0;
-//-----------------------------------------------------------
-
-
- 
 
 //State -----------------------------------------------------
 //-----------------------------------------------------------
+struct joystickState joystick={0};
+struct ammBusState ambs={0};
 
 const byte numberOfMenus=17;
 byte currentMenu=0;
@@ -216,9 +162,7 @@ void turnLCDOff()
 }
 
 void setup() 
-{   
- // pinMode(buzzerPin, OUTPUT);
-  
+{    
   pinMode(latchPin, OUTPUT);
   pinMode(dataPin, OUTPUT);  
   pinMode(clockPin, OUTPUT);   
@@ -250,6 +194,7 @@ void setup()
   // Manual (YYYY, MM, DD, HH, II, SS
   // clock.setDateTime(2016, 12, 9, 11, 46, 00);
   
+  initializeAmmBusState(&ambs); 
 }
 
 
@@ -260,20 +205,15 @@ void grabMeasurements()
 {   
  //Get Time
  dt = clock.getDateTime();  
-   
- //Joystick Reading
- //getJoystickState(X_pin,Y_pin,SW_pin, struct joystickState * js );
- joystickX=analogRead(X_pin);
- joystickY=analogRead(Y_pin);
- joystickButton = digitalRead(SW_pin);
- if (joystickButton) { joystickButton=0; } else
-                     { joystickButton=1; }
-  
- if (joystickX<512-joystickDeadZone)  {  joystickDirection=JOYSTICK_LEFT;  } else
- if (joystickX>512+joystickDeadZone)  {  joystickDirection=JOYSTICK_RIGHT; } else
- if (joystickY<512-joystickDeadZone)  {  joystickDirection=JOYSTICK_UP;    } else
- if (joystickY>512+joystickDeadZone)  {  joystickDirection=JOYSTICK_DOWN;  } else
-                                      {  joystickDirection=JOYSTICK_NONE;  } 
+ ambs.currentTime = dt.unixtime;  
+ 
+ //Joystick Reading  
+ getJoystickState(
+                  X_pin,
+                  Y_pin,
+                  SW_pin,
+                  &joystick
+                 );  
  
   //DHT Reading 
   if (dt.unixtime - lastDHT11SampleTime >= 1 )
@@ -381,10 +321,44 @@ void idleMessageTicker(int seconds)
   }
 }
 
- 
-byte currentTimeIsCloseEnoughToHourMinute(byte hour, byte minute)
+
+void unixtimeToWDHMS(
+                     uint32_t unixtimestamp,
+                     byte * week,
+                     byte * day,
+                     byte * hour, 
+                     byte * minute,
+                     byte * second
+                    )
 {
-  //TODO:
+  *week   = unixtimestamp / 86400 / 7;
+  *day    = unixtimestamp / 86400 % 7;
+  *hour   = unixtimestamp / 3600 % 24;
+  *minute = unixtimestamp / 60 % 60; 
+  *second = unixtimestamp % 60; 
+} 
+
+byte currentTimeIsCloseEnoughToHourMinute(
+                                           uint32_t unixtimestamp, 
+                                           byte hourToCheck, 
+                                           byte minuteToCheck
+                                         )
+{
+  byte week,day,hour,minute,second;  
+  unixtimeToWDHMS(
+                   unixtimestamp,
+                   &week,
+                   &day,
+                   &hour, 
+                   &minute,
+                   &second
+                 );
+                 
+  if ( (hour==hourToCheck) && (minute==minuteToCheck) )
+   {
+     return 1;
+   }
+ return 0;  
 }
  
 unsigned int getTimeAfterWhichWeNeedToReactivateValveInSeconds(int valveNum)
@@ -480,7 +454,7 @@ void valveAutopilot()
     {
         if ( getValveOfflineTimeSeconds(i) >  getTimeAfterWhichWeNeedToReactivateValveInSeconds(i) )
            {  
-              if (currentTimeIsCloseEnoughToHourMinute(jobRunAtXHour,jobRunAtXMinute))
+              if (currentTimeIsCloseEnoughToHourMinute(dt.unixtime,jobRunAtXHour,jobRunAtXMinute))
               {
                 valvesScheduled[i]=1;
               }
@@ -572,7 +546,7 @@ void menuDisplay(int menuOption)
              
               
              
-             if (joystickButton)
+             if (joystick.jButton)
                { 
                  if (armedTimes==selectedSpeeds) 
                   {
@@ -625,8 +599,8 @@ void menuDisplay(int menuOption)
               }  
              if ( 
                  joystickValveTimeHandler(
-                                          &joystickDirection,
-                                          &joystickButton,
+                                          &joystick.jDirection,
+                                          &joystick.jButton,
                                           valveNum,
                                           dt.unixtime,
                                           &idleTicks,
@@ -672,7 +646,7 @@ void menuDisplay(int menuOption)
              lcd.print("        ");
             
             joystick24HourTimeHandler( 
-                                       &joystickDirection , 
+                                       &joystick.jDirection , 
                                        &idleTicks , 
                                        &jobRunAtXHour,
                                        &jobRunAtXMinute
@@ -691,14 +665,14 @@ void menuDisplay(int menuOption)
                      lcd.print((float) jobRunEveryXHours/24);
                      lcd.print(" days    ");
                    }   
-            joystickHourTimeHandler(&joystickDirection,&idleTicks,&jobRunEveryXHours,0,255);       
+            joystickHourTimeHandler(&joystick.jDirection,&idleTicks,&jobRunEveryXHours,0,255);       
     break;
     //------------------------------------ 
     case 15 :
              lcd.print("    Stop All    ");
              lcd.setCursor(0, 1); 
              lcd.print("     Valves     ");
-             if (joystickButton)
+             if (joystick.jButton)
                { 
                  turnAllValvesOff();
                }
@@ -709,7 +683,7 @@ void menuDisplay(int menuOption)
              lcd.setCursor(0, 1); 
              if (autopilotCreateNewJobs) { lcd.print("       On       ");  } else
                                          { lcd.print("       Off       "); }
-             if (joystickButton)
+             if (joystick.jButton)
                { 
                  if (autopilotCreateNewJobs) { autopilotCreateNewJobs=0; } else
                                              { autopilotCreateNewJobs=1; }
@@ -728,11 +702,11 @@ void loop()
    
   
   
-  if (joystickButton) 
+  if (joystick.jButton) 
   {
     if (powerSaving)
     {
-      joystickButton=0; 
+      joystick.jButton=0; 
       idleTicks=0; 
       turnLCDOn();
     }
@@ -742,7 +716,7 @@ void loop()
    
   if ( 
        joystickMenuHandler(
-                           &joystickDirection,
+                           &joystick.jDirection,
                            &idleTicks,
                            &currentMenu,
                            numberOfMenus

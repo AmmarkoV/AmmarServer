@@ -15,10 +15,10 @@ const byte joystickDeadZone=100;
 
 struct joystickState
 {
-  int joystickX;
-  int joystickY;
-  byte joystickButton;
-  byte joystickDirection;
+  int jX;
+  int jY;
+  byte jButton;
+  byte jDirection;
 };
 
 int getJoystickState(

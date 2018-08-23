@@ -4,23 +4,46 @@
 
 //Serial Input  -------------------------------------------
 String inputs;
+uint16_t valveTimeSetting=30;
 //-----------------------------------------------------------
 
 
 uint32_t readTimeFromSerial()
 {  
-  Serial.println(" ");
-  Serial.print("Input is:");
-  Serial.println(inputs);
+  //Serial.println(" ");
+  //Serial.print("Input is:");
+  //Serial.println(inputs);
    
-  Serial.print("Removing the T:"); 
+  //Serial.print("Removing the T:"); 
   inputs.setCharAt(0, '0'); //Remove the T hack
-  Serial.println(inputs);
+  //Serial.println(inputs);
   
-  Serial.println(" ");
-  Serial.print("making it a uint32_t "); 
+  //Serial.println(" ");
+  //Serial.print("making it a uint32_t "); 
   uint32_t output = inputs.toInt(); //atoi(inputs.c_str());
-  Serial.println(output); 
+  //Serial.println(output); 
+ 
+  inputs="";  
+  Serial.flush();
+  
+  return output;
+}
+
+
+uint16_t readNumberFromSerial()
+{  
+  //Serial.println(" ");
+  //Serial.print("Input is:");
+  //Serial.println(inputs);
+   
+  //Serial.print("Removing the T:"); 
+  inputs.setCharAt(0, '0'); //Remove the T hack
+  //Serial.println(inputs);
+  
+  //Serial.println(" ");
+  //Serial.print("making it a uint32_t "); 
+  uint16_t output = inputs.toInt(); //atoi(inputs.c_str());
+  //Serial.println(output); 
  
   inputs="";  
   Serial.flush();
@@ -63,9 +86,14 @@ int AmmBusUSBProtocol::newUSBCommands(
         switch(cmdA)
         {
           case 0 : SuccessfullOperation=0; break; //Erroneous state
+          
           case 'w' :  
           case 'W' :  
             *idleTicks=0;
+          break;
+           
+          case '>' :   
+            valveTimeSetting = readNumberFromSerial();
           break;
           
           //Report back valve state  ------------------------------------------------------------
