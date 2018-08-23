@@ -16,6 +16,7 @@ AmmBusUSBProtocol ammBusUSB;
 #include "menu.h"
 #include "ammBus.h"
 
+#include "timeCalculations.h"
 
 //State -----------------------------------------------------
 //-----------------------------------------------------------
@@ -322,90 +323,6 @@ void idleMessageTicker(int seconds)
 }
 
 
-void unixtimeToWDHMS(
-                     uint32_t unixtimestamp,
-                     byte * week,
-                     byte * day,
-                     byte * hour, 
-                     byte * minute,
-                     byte * second
-                    )
-{
-  *week   = unixtimestamp / 86400 / 7;
-  *day    = unixtimestamp / 86400 % 7;
-  *hour   = unixtimestamp / 3600 % 24;
-  *minute = unixtimestamp / 60 % 60; 
-  *second = unixtimestamp % 60; 
-} 
-
-byte currentTimeIsCloseEnoughToHourMinute(
-                                           uint32_t unixtimestamp, 
-                                           byte hourToCheck, 
-                                           byte minuteToCheck
-                                         )
-{
-  byte week,day,hour,minute,second;  
-  unixtimeToWDHMS(
-                   unixtimestamp,
-                   &week,
-                   &day,
-                   &hour, 
-                   &minute,
-                   &second
-                 );
-                 
-  if ( (hour==hourToCheck) && (minute==minuteToCheck) )
-   {
-     return 1;
-   }
- return 0;  
-}
- 
-unsigned int getTimeAfterWhichWeNeedToReactivateValveInSeconds(int valveNum)
-{
- unsigned int timeThatNeedsToPass = jobRunEveryXHours * 60 * 60; 
- return timeThatNeedsToPass; 
-}
-
-unsigned int getValveOfflineTimeSeconds(int valveNum)
-{
-  if (valvesState[valveNum]) { return 0; }
-  return (unsigned int) dt.unixtime - valveStoppedTimestamp[valveNum]; 
-}
-
-
-unsigned int getValveRunningTimeSeconds(int valveNum)
-{
-  if (!valvesState[valveNum]) { return 0; }
-  return (unsigned int) dt.unixtime - valveStartedTimestamp[valveNum]; 
-}
-
-unsigned int getValveRunningTimeMinutes(int valveNum)
-{
-  return getValveRunningTimeSeconds(valveNum)/60;
-}
-
-
-unsigned int getValveRemainingTimeMinutes(int valveNum)
-{
-  unsigned int runningTime = getValveRunningTimeMinutes(valveNum);
-  if (runningTime>=valvesTimes[valveNum]) { return 0; }
-  
-  unsigned int remainingTime = valvesTimes[valveNum]-runningTime;
-
-  return remainingTime;
-}
-
-
-unsigned int getValveRemainingTimeSeconds(int valveNum)
-{
-  unsigned int runningTime = getValveRunningTimeSeconds(valveNum);
-  if (runningTime>=(valvesTimes[valveNum]*60)) { return 0; }
-  
-  unsigned int remainingTime = (valvesTimes[valveNum]*60)-runningTime;
-
-  return remainingTime;
-}
 
 
 
@@ -429,8 +346,12 @@ void valveAutopilot()
    {
     if (valvesState[i])
     {
-      //This valve is running, should it stop?
-      unsigned int runningTime =  getValveRunningTimeMinutes(i);
+      //This valve is running, should it stop?  
+      unsigned int runningTime =  getValveRunningTimeMinutes(
+                                                             valveStartedTimestamp[i],
+                                                             valvesState[i],
+                                                             dt.unixtime  
+                                                            );
       if ( runningTime > valvesTimes[i] ) 
          { 
            //This valve has run its course so we stop it
@@ -452,7 +373,7 @@ void valveAutopilot()
    //Check which valves should be scheduled for start
    for (i=0; i<NUMBER_OF_SWITCHES; i++)
     {
-        if ( getValveOfflineTimeSeconds(i) >  getTimeAfterWhichWeNeedToReactivateValveInSeconds(i) )
+        if ( getValveOfflineTimeSeconds(valveStoppedTimestamp[i],valvesState[i],dt.unixtime) >  getTimeAfterWhichWeNeedToReactivateValveInSeconds(jobRunEveryXHours) )
            {  
               if (currentTimeIsCloseEnoughToHourMinute(dt.unixtime,jobRunAtXHour,jobRunAtXMinute))
               {
@@ -581,16 +502,16 @@ void menuDisplay(int menuOption)
              if ((valvesScheduled[valveNum]) && (valvesState[valveNum]) )
               {
                lcd.print(" Remain: ");
-                unsigned int remainingTime = getValveRemainingTimeMinutes(valveNum);
+                unsigned int remainingTime = getValveRemainingTimeMinutes(
+                                                                          valveStartedTimestamp[valveNum],
+                                                                          valvesTimes[valveNum],
+                                                                          valvesState[valveNum],
+                                                                          dt.unixtime
+                                                                         );
                 if (remainingTime>0) { 
                                        lcd.print((int) remainingTime );
                                        lcd.print("min  ");
-                                     } else
-                                     {
-                                       remainingTime = getValveRemainingTimeSeconds(valveNum);
-                                       lcd.print((int) remainingTime );
-                                       lcd.print("sec  ");
-                                     }
+                                     }  
               } else
               {
                lcd.print("  Time: ");
