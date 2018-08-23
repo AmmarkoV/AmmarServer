@@ -9,45 +9,19 @@ uint16_t valveTimeSetting=30;
 
 
 uint32_t readTimeFromSerial()
-{  
-  //Serial.println(" ");
-  //Serial.print("Input is:");
-  //Serial.println(inputs);
-   
-  //Serial.print("Removing the T:"); 
+{
   inputs.setCharAt(0, '0'); //Remove the T hack
-  //Serial.println(inputs);
-  
-  //Serial.println(" ");
-  //Serial.print("making it a uint32_t "); 
-  uint32_t output = inputs.toInt(); //atoi(inputs.c_str());
-  //Serial.println(output); 
- 
-  inputs="";  
-  Serial.flush();
-  
+  uint32_t output = inputs.toInt();
+  inputs="";
   return output;
 }
 
 
 uint16_t readNumberFromSerial()
-{  
-  //Serial.println(" ");
-  //Serial.print("Input is:");
-  //Serial.println(inputs);
-   
-  //Serial.print("Removing the T:"); 
+{
   inputs.setCharAt(0, '0'); //Remove the T hack
-  //Serial.println(inputs);
-  
-  //Serial.println(" ");
-  //Serial.print("making it a uint32_t "); 
-  uint16_t output = inputs.toInt(); //atoi(inputs.c_str());
-  //Serial.println(output); 
- 
-  inputs="";  
-  Serial.flush();
-  
+  uint16_t output = inputs.toInt();
+  inputs="";
   return output;
 }
 
@@ -105,6 +79,8 @@ int AmmBusUSBProtocol::newUSBCommands(
               {
                Serial.print("Unixtime set to>");
                Serial.println(newTime); 
+               clock->setDateTime(newTime);
+               return 1;
               } else
               {
                Serial.print("IGNORING incorrect time>");

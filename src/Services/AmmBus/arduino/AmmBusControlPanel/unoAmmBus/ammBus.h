@@ -25,7 +25,7 @@ static const char * valveLabels[] =
     "Unknown"
 };
 
-static const char * valveSpeeds[] =
+static const char * valveSpeedLabels[] =
 {
     "Normal",
     "Extra" ,
@@ -65,6 +65,24 @@ struct ammBusState
  byte jobConcurrency;
 };
 
+
+byte ammBus_getRunningValves(struct ammBusState * ambs);
+byte ammBus_getScheduledValves(struct ammBusState * ambs);
+
 void initializeAmmBusState(struct ammBusState * ambs);
+
+void ammBus_startValve(struct ammBusState * ambs,
+                       byte valveNumber,
+                       byte minutesToLeaveItOpen);
+                       
+byte ammBus_hasValveBeenOpenEnough( struct ammBusState * ambs , byte valveNumber);
+void ammBus_stopValve(struct ammBusState * ambs,byte valveNumber);
+
+
+void ammBus_enableAutopilot(struct ammBusState * ambs);
+byte ammBus_getAutopilotState(struct ammBusState * ambs);
+
+void ammBus_scheduleAllValves(struct ammBusState * ambs);
+void ammBus_stopAllValves(struct ammBusState * ambs);
 
 #endif

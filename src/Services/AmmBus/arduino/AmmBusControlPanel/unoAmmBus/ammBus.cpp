@@ -1,4 +1,5 @@
 #include "ammBus.h"
+#include "timeCalculations.h"
 
 void initializeAmmBusState(struct ammBusState * ambs)
 {
@@ -38,6 +39,39 @@ void initializeAmmBusState(struct ammBusState * ambs)
  ambs->jobConcurrency=1;   
 }
 
+//---------------------------------------------------------
+byte ammBus_getRunningValves(struct ammBusState * ambs)
+{
+  unsigned int i=0;
+  byte valvesRunning=0;
+  for (i=0; i<NUMBER_OF_SWITCHES; i++)
+  {
+    if (ambs->valvesState[i])     {++valvesRunning;}  
+  }
+  
+  return valvesRunning;
+}
+//---------------------------------------------------------
+byte ammBus_getScheduledValves(struct ammBusState * ambs)
+{
+  unsigned int i=0;
+  byte valvesScheduled=0;
+  for (i=0; i<NUMBER_OF_SWITCHES; i++)
+  { 
+    if (ambs->valvesScheduled[i]) {++valvesScheduled;} 
+  }
+  
+  return valvesScheduled;
+}
+//---------------------------------------------------------
+
+
+
+
+
+
+
+
 
 
 void ammBus_startValve(
@@ -46,7 +80,80 @@ void ammBus_startValve(
                         byte minutesToLeaveItOpen
                        )
 {
-
+    ambs->valvesScheduled[valveNumber]=1;
+    ambs->valvesTimes[valveNumber]=minutesToLeaveItOpen; 
+    ambs->valvesState[valveNumber]=1;
+    ambs->valveStartedTimestamp[valveNumber]=ambs->currentTime; 
 }
+
+
+void ammBus_scheduleValve(
+                        struct ammBusState * ambs,
+                        byte valveNumber,
+                        byte minutesToLeaveItOpen
+                       )
+{
+    ambs->valvesScheduled[valveNumber]=1;
+    ambs->valvesTimes[valveNumber]=minutesToLeaveItOpen; 
+}
+
+byte ammBus_hasValveBeenOpenEnough( struct ammBusState * ambs , byte valveNumber)
+{
+   unsigned int runningTime =  getValveRunningTimeMinutes(
+                                                           ambs->valveStartedTimestamp[valveNumber],
+                                                           ambs->valvesState[valveNumber],
+                                                           ambs->currentTime  
+                                                          );
+  if ( runningTime > ambs->valvesTimes[valveNumber] )  { return 1; }
+  return 0;       
+}
+
+
+
+void ammBus_stopValve(
+                        struct ammBusState * ambs,
+                        byte valveNumber 
+                       )
+{
+    ambs->valvesScheduled[valveNumber]=0; 
+    ambs->valvesState[valveNumber]=0;
+    ambs->valveStoppedTimestamp[valveNumber]=ambs->currentTime; 
+}
+
+
+void ammBus_enableAutopilot(struct ammBusState * ambs)
+{
+  ambs->autopilotCreateNewJobs;
+}
+
+byte ammBus_getAutopilotState(struct ammBusState * ambs)
+{
+  return ambs->autopilotCreateNewJobs;
+}
+
+
+
+
+void ammBus_scheduleAllValves(struct ammBusState * ambs)
+{
+  unsigned int i=0; 
+  for (i=0; i<NUMBER_OF_SWITCHES; i++)
+  {
+   ambs->valvesScheduled[i]=1;
+  } 
+}
+
+
+void ammBus_stopAllValves(struct ammBusState * ambs)
+{
+  unsigned int i=0; 
+  for (i=0; i<NUMBER_OF_SWITCHES; i++)
+  {
+    ambs->valvesState[i]=0; 
+    ambs->valvesScheduled[i]=0;  
+  } 
+ ambs->armedTimes=0;
+}
+
 
 
