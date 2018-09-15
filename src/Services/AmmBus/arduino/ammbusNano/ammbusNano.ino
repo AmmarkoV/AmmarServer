@@ -1,6 +1,15 @@
 
 #include <UIPEthernet.h>
 
+#define RESET_CLOCK_ON_NEXT_COMPILATION 0
+
+//#include <Wire.h>
+//Clock -----------------------------------------------------
+//#include "DS3231.h"
+//DS3231 clock;
+//RTCDateTime dt;
+//-----------------------------------------------------------
+
 // **** ETHERNET SETTING ****
 byte mac[] = { 0x54, 0x34, 0x41, 0x30, 0x30, 0x31 };                                      
 IPAddress ip(192, 168, 1, 179);                        
@@ -34,6 +43,15 @@ void setup()
   pinMode(8, OUTPUT);  digitalWrite(8, HIGH); 
   pinMode(9, OUTPUT);  digitalWrite(9, HIGH); 
   
+  /*
+  clock.begin();
+
+  // Set sketch compiling time
+  if (RESET_CLOCK_ON_NEXT_COMPILATION)
+    { clock.setDateTime(__DATE__, __TIME__); }
+    
+  dt = clock.getDateTime();
+  */
   readString="";
 }
 
