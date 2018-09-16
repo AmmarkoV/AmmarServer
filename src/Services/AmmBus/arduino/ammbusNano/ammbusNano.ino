@@ -1,14 +1,23 @@
 
 #include <UIPEthernet.h>
 
-#define RESET_CLOCK_ON_NEXT_COMPILATION 0
 
-//#include <Wire.h>
+#define RESET_CLOCK_ON_NEXT_COMPILATION 0
+#define USE_CLOCK 0
+
+
+#if USE_CLOCK
+#include <Wire.h>
 //Clock -----------------------------------------------------
-//#include "DS3231.h"
-//DS3231 clock;
-//RTCDateTime dt;
+#include "DS3231.h"
+DS3231 clock;
+RTCDateTime dt;
 //-----------------------------------------------------------
+#endif
+
+ 
+
+
 
 // **** ETHERNET SETTING ****
 byte mac[] = { 0x54, 0x34, 0x41, 0x30, 0x30, 0x31 };                                      
@@ -43,15 +52,17 @@ void setup()
   pinMode(8, OUTPUT);  digitalWrite(8, HIGH); 
   pinMode(9, OUTPUT);  digitalWrite(9, HIGH); 
   
-  /*
-  clock.begin();
+#if USE_CLOCK
+  //clock.begin();
 
   // Set sketch compiling time
-  if (RESET_CLOCK_ON_NEXT_COMPILATION)
-    { clock.setDateTime(__DATE__, __TIME__); }
+  //if (RESET_CLOCK_ON_NEXT_COMPILATION)
+  //  { clock.setDateTime(__DATE__, __TIME__); }
     
-  dt = clock.getDateTime();
-  */
+  //dt = clock.getDateTime();
+#endif
+
+
   readString="";
 }
 
@@ -174,7 +185,7 @@ void loop()
          // control arduino pin via ethernet Start //
           if(readString.indexOf("?relay1on") >0)//checks for on
           {
-            digitalWrite(2, POWER_ON);    // set pin 4 high
+            digitalWrite(2, POWER_ON);  
             Serial.println("0 On"); 
             readString="";
           } 
@@ -182,7 +193,7 @@ void loop()
           {
           if(readString.indexOf("?relay1off") >0)//checks for off
            {
-            digitalWrite(2, POWER_OFF);    // set pin 4 low
+            digitalWrite(2, POWER_OFF);  
             Serial.println("0 Off");
             readString="";
            }
@@ -191,7 +202,7 @@ void loop()
                  // control arduino pin via ethernet Start //
           if(readString.indexOf("?relay2on") >0)//checks for on
           {
-            digitalWrite(3, POWER_ON);    // set pin 4 high
+            digitalWrite(3, POWER_ON); 
             Serial.println("1 On"); 
             readString="";
           } 
@@ -199,7 +210,7 @@ void loop()
           {
           if(readString.indexOf("?relay2off") >0)//checks for off
            {
-            digitalWrite(3, POWER_OFF);    // set pin 4 low
+            digitalWrite(3, POWER_OFF);   
             Serial.println("1 Off");
             readString="";
            }
@@ -208,7 +219,7 @@ void loop()
           // control arduino pin via ethernet Start //
           if(readString.indexOf("?relay3on") >0)//checks for on
           {
-            digitalWrite(4, POWER_ON);    // set pin 4 high
+            digitalWrite(4, POWER_ON); 
             Serial.println("2 On"); 
             readString="";
           } 
@@ -216,7 +227,7 @@ void loop()
           {
           if(readString.indexOf("?relay3off") >0)//checks for off
            {
-            digitalWrite(4, POWER_OFF);    // set pin 4 low
+            digitalWrite(4, POWER_OFF);  
             Serial.println("2 Off");
             readString="";
            }
@@ -226,7 +237,7 @@ void loop()
           // control arduino pin via ethernet Start //
           if(readString.indexOf("?relay4on") >0)//checks for on
           {
-            digitalWrite(5, POWER_ON);    // set pin 4 high
+            digitalWrite(5, POWER_ON);  
             Serial.println("3 On"); 
             readString="";
           } 
@@ -234,7 +245,7 @@ void loop()
           {
           if(readString.indexOf("?relay4off") >0)//checks for off
            {
-            digitalWrite(5, POWER_OFF);    // set pin 4 low
+            digitalWrite(5, POWER_OFF);  
             Serial.println("3 Off");
             readString="";
            }
@@ -244,7 +255,7 @@ void loop()
          // control arduino pin via ethernet Start //
           if(readString.indexOf("?relay5on") >0)//checks for on
           {
-            digitalWrite(6, POWER_ON);    // set pin 4 high
+            digitalWrite(6, POWER_ON);   
             Serial.println("4 On"); 
             readString="";
           } 
@@ -252,7 +263,7 @@ void loop()
           {
           if(readString.indexOf("?relay5off") >0)//checks for off
            {
-            digitalWrite(6, POWER_OFF);    // set pin 4 low
+            digitalWrite(6, POWER_OFF);   
             Serial.println("4 Off");
             readString="";
            }
@@ -260,14 +271,14 @@ void loop()
           
           if(readString.indexOf("?relay6on") >0)//checks for on
           {
-            digitalWrite(7, POWER_ON);    // set pin 4 high
+            digitalWrite(7, POWER_ON);   
             Serial.println("5 On");
             readString="";
           }
           else{
           if(readString.indexOf("?relay6off") >0)//checks for off
           {
-            digitalWrite(7, POWER_OFF);    // set pin 4 low
+            digitalWrite(7, POWER_OFF);   
             Serial.println("5 Off");
             readString="";
           }
@@ -275,14 +286,14 @@ void loop()
           
           if(readString.indexOf("?relay7on") >0)//checks for on
           {
-            digitalWrite(8, POWER_ON);    // set pin 4 high
+            digitalWrite(8, POWER_ON);  
             Serial.println("6 On");
             readString="";
           }
           else{
           if(readString.indexOf("?relay7off") >0)//checks for off
           {
-            digitalWrite(8, POWER_OFF);    // set pin 4 low
+            digitalWrite(8, POWER_OFF);  
             Serial.println("6 Off");
             readString="";
           }
@@ -290,14 +301,14 @@ void loop()
           
            if(readString.indexOf("?relay8on") >0)//checks for on
           {
-            digitalWrite(9, POWER_ON);    // set pin 4 high
+            digitalWrite(9, POWER_ON);  
             Serial.println("7 On");
             readString="";
           }
           else{
           if(readString.indexOf("?relay8off") >0)//checks for off
           {
-            digitalWrite(9, POWER_OFF);    // set pin 4 low
+            digitalWrite(9, POWER_OFF);     
             Serial.println("7 Off");
             readString="";
           }
