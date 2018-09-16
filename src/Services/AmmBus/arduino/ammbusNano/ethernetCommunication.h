@@ -8,15 +8,17 @@
 #include <Arduino.h>
 #include <etherShield.h>
 #include <ETHER_28J60.h>
+#include "DS3231.h"
 
 class AmmBusEthernetProtocol {
   
 public:
 
-int receiveEthernetRequests(ETHER_28J60 * e);
+int receiveEthernetRequests(ETHER_28J60 * e,
+                            DS3231 *clock,
+                            RTCDateTime * dt);
 
-void sendPage(ETHER_28J60 * e);
-void sendState(ETHER_28J60 * e);
+void sendPage(ETHER_28J60 * e); 
 
 };
 

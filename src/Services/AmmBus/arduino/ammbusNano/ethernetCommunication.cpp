@@ -1,5 +1,7 @@
 #include "ethernetCommunication.h"
 
+#include "timeCalculations.h" 
+
 unsigned int clientsServiced=0;
 char onStr[7]={"?X=on"};
 char offStr[7]={"?X=off"}; 
@@ -29,7 +31,8 @@ void AmmBusEthernetProtocol::sendPage(ETHER_28J60 * e)
 }
 
 
-void AmmBusEthernetProtocol::sendState(ETHER_28J60 * e)
+void sendState(ETHER_28J60 * e, 
+                                       RTCDateTime * dt)
 {      
   ++clientsServiced;
    byte i=0; 
@@ -37,24 +40,36 @@ void AmmBusEthernetProtocol::sendState(ETHER_28J60 * e)
    e->print("<h4>Rqst ");  
    e->print(clientsServiced);
    e->print("</h4>");
-      for (i=0; i<8; i++)
-      { 
-       onStr[1]  = 'a'+i; 
-       offStr[1]  = 'a'+i; 
-       e->print("<a href='");
-       e->print(offStr);
-       e->print("'>Off</a>|");
-       e->print("<a href='");
-       e->print(onStr);
-       e->print("'>On</a><br>"); 
-      }
-    e->print("<a href='?all=off'>All Off</a></body></html>");
+       
+   byte week, day, hour, minute, second;
+                    
+       unixtimeToWDHMS(
+                        dt->unixtime,
+                        &week,
+                        &day,
+                        &hour, 
+                        &minute,
+                        &second
+                       );
+       
+    e->print(" Week ");
+    e->print(week);
+    e->print(" Day ");
+    e->print(day);
+    e->print(" ");
+    e->print(hour);
+    e->print(":");
+    e->print(minute);
+    e->print(":");
+    e->print(second);
     e->respond();
 }
 
 
 
-int  AmmBusEthernetProtocol::receiveEthernetRequests(ETHER_28J60 * e)
+int  AmmBusEthernetProtocol::receiveEthernetRequests(ETHER_28J60 * e,
+                                                     DS3231 *clock,
+                                                     RTCDateTime * dt)
 {
   char* params;
   if (params = e->serviceRequest())
@@ -62,7 +77,7 @@ int  AmmBusEthernetProtocol::receiveEthernetRequests(ETHER_28J60 * e)
     //Serial.print("!");  
     if (strcmp(params,"state.html") == 0)
        { 
-         sendState(e); 
+         sendState(e,dt); 
        } else
        {
          sendPage(e); 

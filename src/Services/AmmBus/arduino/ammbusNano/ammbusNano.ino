@@ -1,5 +1,4 @@
-// A simple web server that always just says "Hello World"
- 
+// AmmBus Nano Version..!
 #define RESET_CLOCK_ON_NEXT_COMPILATION 0 
 
 //These are needed here for the IDE to understand which modules to import
@@ -19,12 +18,8 @@ AmmBusUSBProtocol ammBusUSB;
 #include "ammBus.h"
 struct ammBusState ambs={0};
 
-#include "timeCalculations.h"
-
-byte ticks=0;
-                             
-
-
+#include "timeCalculations.h" 
+                         
 void setup()
 {
   pinMode(2, OUTPUT);  digitalWrite(2, HIGH); 
@@ -186,7 +181,9 @@ void checkForSerialInput()
 void checkForEthernetInput()
 {
   if (  
-       ammBusEthernet.receiveEthernetRequests(&e)
+       ammBusEthernet.receiveEthernetRequests(&e,
+                                              &clock,
+                                              &dt)
      )
      {  
       //setRelayState(ambs.valvesState);
@@ -197,9 +194,9 @@ void checkForEthernetInput()
 
 void loop()
 { 
-  if (ticks==100) 
+  if (ambs.idleTicks==100) 
    { 
-    ticks=0;   
+    ambs.idleTicks=0;   
     dt = clock.getDateTime();  
     checkForSerialInput();
     //Valve Autopilot..
@@ -208,6 +205,6 @@ void loop()
    
   checkForEthernetInput(); 
   
-  ++ticks;
+  ++ambs.idleTicks;
   delay(10);
 }
