@@ -1,22 +1,17 @@
 // A simple web server that always just says "Hello World"
+ 
+#define RESET_CLOCK_ON_NEXT_COMPILATION 0 
 
-#include <stdlib.h>
+//These are needed here for the IDE to understand which modules to import
+#include <Wire.h>          
 #include <etherShield.h>
 #include <ETHER_28J60.h>
+//---------------------------------------------------------------------
 
-#define RESET_CLOCK_ON_NEXT_COMPILATION 0
-#define USE_CLOCK 1
+#include "configuration.h"
 
-
-#if USE_CLOCK
-#include <Wire.h>
-//Clock -----------------------------------------------------
-#include "DS3231.h"
-DS3231 clock;
-RTCDateTime dt;
-//-----------------------------------------------------------
-#endif
-
+#include "ethernetCommunication.h"
+AmmBusEthernetProtocol ammBusEthernet;
 
 #include "serialCommunication.h"
 AmmBusUSBProtocol ammBusUSB;
@@ -26,17 +21,9 @@ struct ammBusState ambs={0};
 
 #include "timeCalculations.h"
 
-unsigned int clientsServiced=0;
 byte ticks=0;
-char onStr[7]={"?X=on"};
-char offStr[7]={"?X=off"}; 
+                             
 
-// Define MAC address and IP address - both should be unique in your network
-static uint8_t mac[6] = {0x54, 0x55, 0x58, 0x10, 0x00, 0x24};  
-static uint8_t ip[4] = {192, 168, 1, 179};
-static uint16_t port = 80; // Use port 80 - the standard for HTTP                                    
-
-ETHER_28J60 e;
 
 void setup()
 {
@@ -54,16 +41,14 @@ void setup()
   Serial.print("Starting Up! \n");
   initializeAmmBusState(&ambs); 
   
-  
-  #if USE_CLOCK
+   
    Serial.print("Starting Up Clock! \n");
    clock.begin();
 
    // Set sketch compiling time
    if (RESET_CLOCK_ON_NEXT_COMPILATION)
        { clock.setDateTime(__DATE__, __TIME__); } 
-   dt = clock.getDateTime();  
-  #endif
+   dt = clock.getDateTime();   
    
   e.setup(mac, ip, port); 
   Serial.print("Ready \n");
@@ -176,28 +161,6 @@ void valveAutopilot()
 
 
 
-void sendPage()
-{      
-  ++clientsServiced;
-   byte i=0; 
-   e.print("<html><body><h1>Ammbus</h1>");
-   e.print("<h4>Rqst ");  
-   e.print(clientsServiced);
-   e.print("</h4>");
-      for (i=0; i<8; i++)
-      { 
-       onStr[1]  = 'a'+i; 
-       offStr[1]  = 'a'+i; 
-       e.print("<a href='");
-       e.print(offStr);
-       e.print("'>Off</a>|");
-       e.print("<a href='");
-       e.print(onStr);
-       e.print("'>On</a><br>"); 
-      }
-    e.print("<a href='?all=off'>All Off</a></body></html>");
-    e.respond();
-}
 
 
 
@@ -220,6 +183,16 @@ void checkForSerialInput()
 
 
 
+void checkForEthernetInput()
+{
+  if (  
+       ammBusEthernet.receiveEthernetRequests(&e)
+     )
+     {  
+      //setRelayState(ambs.valvesState);
+     }
+}
+
 
 
 void loop()
@@ -232,51 +205,9 @@ void loop()
     //Valve Autopilot..
     valveAutopilot(); 
    } 
+   
+  checkForEthernetInput(); 
   
-  
-  char* params;
-  if (params = e.serviceRequest())
-  { 
-    Serial.print("!");  
-    sendPage(); 
-    
-    byte port;
-    byte i;
-    
-    if (strcmp(params,"?all=off") == 0)
-       { 
-         for (i=0; i<8; i++)
-         { 
-          port=2+i;
-          digitalWrite(port, HIGH);  
-         }
-       } else
-    if (strcmp(params,"?all=on") == 0)
-       { 
-         for (i=0; i<8; i++)
-         { 
-          port=2+i;
-          digitalWrite(port, LOW);  
-         }
-       } else
-    {  
-    for (i=0; i<8; i++)
-      { 
-       onStr[1]  = 'a'+i; 
-       offStr[1]  = 'a'+i; 
-       port=2+i;
-       
-       if (strcmp(params, offStr) == 0)
-       { 
-        digitalWrite(port, HIGH);  
-       } else 
-       if (strcmp(params, onStr) == 0) 
-       { 
-        digitalWrite(port, LOW);  
-       }
-      }
-    } 
-  }
   ++ticks;
   delay(10);
 }

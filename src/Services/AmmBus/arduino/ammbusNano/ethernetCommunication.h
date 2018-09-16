@@ -6,18 +6,17 @@
 #define OFF 0
 
 #include <Arduino.h>
-#include "DS3231.h"
+#include <etherShield.h>
+#include <ETHER_28J60.h>
 
-class AmmBusUSBProtocol {
+class AmmBusEthernetProtocol {
   
 public:
-int newUSBCommands(
-                    byte * valvesState,
-                    byte * valvesScheduled,
-                    DS3231 *clock,
-                    RTCDateTime * dt,
-                    byte * idleTicks
-                  );
+
+int receiveEthernetRequests(ETHER_28J60 * e);
+
+void sendPage(ETHER_28J60 * e);
+void sendState(ETHER_28J60 * e);
 
 };
 
