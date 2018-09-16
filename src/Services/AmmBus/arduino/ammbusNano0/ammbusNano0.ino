@@ -51,10 +51,7 @@ void setup()
        { clock.setDateTime(__DATE__, __TIME__); }
     
    Serial.print("Getting Time! \n");
-   dt = clock.getDateTime();
-   
-   Serial.print("Long number format:          ");
-   Serial.println(clock.dateFormat("d-m-Y H:i:s", dt));
+   dt = clock.getDateTime(); 
    
    Serial.print("Unixtime:                    ");
    Serial.println(dt.unixtime);
@@ -70,9 +67,8 @@ void setup()
 
 void sendPage()
 {      
-      byte i=0; 
-      
-      e.print("<H1>Web Remote</H1>");
+   byte i=0; 
+   e.print("<H1>Web Remote</H1>");
       for (i=0; i<8; i++)
       { 
        onStr[4]  = 'a'+i; 
@@ -84,6 +80,7 @@ void sendPage()
        e.print(onStr);
        e.print("'>Turn On</A><br>"); 
       }
+    e.respond();
 }
 
 
@@ -96,10 +93,11 @@ void sendPage()
 
 void loop()
 {
+  Serial.print(".");  
   if (ticks==10) 
    { 
     ticks=0;  
-    Serial.print("Getting Time.. \n");  
+    Serial.print("t:");  
     dt = clock.getDateTime();
     Serial.println(dt.unixtime);
    } 
@@ -109,25 +107,35 @@ void loop()
   if (params = e.serviceRequest())
   {
     Serial.print("Client");
+    sendPage(); 
     
     byte i;
+    byte port;
     for (i=0; i<8; i++)
       { 
        onStr[4]  = 'a'+i; 
        offStr[4]  = 'a'+i; 
+       port=2+i;
        
        if (strcmp(params, offStr) == 0)
        {
-        digitalWrite(3+i, HIGH);
+        Serial.print(" Set ");
+        //Serial.print(offStr);
+        Serial.print(i);
+        Serial.println(" Off");
+        digitalWrite(port, HIGH); 
+        Serial.println(" !");
        } else 
-       if (strcmp(params, offStr) == 0) 
+       if (strcmp(params, onStr) == 0) 
        {
-        digitalWrite(3+i, LOW);
+        Serial.print("Set ");
+        //Serial.print(onStr);
+        Serial.print(i);
+        Serial.println(" On");
+        digitalWrite(port, LOW); 
+        Serial.println(" !");
        }
-      }
-    
-    sendPage(); 
-    e.respond();
+      } 
   }
   ++ticks;
   delay(100);
