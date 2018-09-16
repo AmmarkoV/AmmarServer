@@ -1,5 +1,6 @@
 // A simple web server that always just says "Hello World"
 
+#include <stdlib.h>
 #include <etherShield.h>
 #include <ETHER_28J60.h>
 
@@ -16,9 +17,19 @@ RTCDateTime dt;
 //-----------------------------------------------------------
 #endif
 
+
+#include "serialCommunication.h"
+AmmBusUSBProtocol ammBusUSB;
+
+#include "ammBus.h"
+struct ammBusState ambs={0};
+
+#include "timeCalculations.h"
+
+unsigned int clientsServiced=0;
 byte ticks=0;
-char onStr[10]={"?cmdX=on"};
-char offStr[10]={"?cmdX=off"};
+char onStr[7]={"?X=on"};
+char offStr[7]={"?X=off"}; 
 
 // Define MAC address and IP address - both should be unique in your network
 static uint8_t mac[6] = {0x54, 0x55, 0x58, 0x10, 0x00, 0x24};  
@@ -41,6 +52,8 @@ void setup()
   Serial.begin(9600);
   
   Serial.print("Starting Up! \n");
+  initializeAmmBusState(&ambs); 
+  
   
   #if USE_CLOCK
    Serial.print("Starting Up Clock! \n");
@@ -48,95 +61,222 @@ void setup()
 
    // Set sketch compiling time
    if (RESET_CLOCK_ON_NEXT_COMPILATION)
-       { clock.setDateTime(__DATE__, __TIME__); }
-    
-   Serial.print("Getting Time! \n");
-   dt = clock.getDateTime(); 
-   
-   Serial.print("Unixtime:                    ");
-   Serial.println(dt.unixtime);
+       { clock.setDateTime(__DATE__, __TIME__); } 
+   dt = clock.getDateTime();  
   #endif
-  
-  Serial.print(" ethernet.setup(mac, ip, port);\n"); 
-  e.setup(mac, ip, port);
-  
+   
+  e.setup(mac, ip, port); 
   Serial.print("Ready \n");
 }
+
+void setRelayState( byte * valves )
+{ 
+  int i=0;
+  byte port ;
+  for (i=0; i<8; i++) 
+  {
+     port=2+i;
+    if (!valves[i] )  {  digitalWrite(port, HIGH);   } else
+                      {  digitalWrite(port, LOW);   }
+  }  
+}
+
+
+
+
+void valveAutopilot()
+{
+  unsigned int changes=0;
+  unsigned int i=0;
+  byte valvesRunning=ammBus_getRunningValves(&ambs);
+  byte valvesRemaining=ammBus_getScheduledValves(&ambs);
+  
+   
+  if (valvesRunning>0)
+  {  
+   //Check if a valve needs to be closed.. 
+   for (i=0; i<NUMBER_OF_SWITCHES; i++)
+   {
+    if (ambs.valvesState[i])
+    {
+      //This valve is running, should it stop?  
+      unsigned int runningTime =  getValveRunningTimeMinutes(
+                                                             ambs.valveStartedTimestamp[i],
+                                                             ambs.valvesState[i],
+                                                             dt.unixtime  
+                                                            );
+      if ( runningTime > ambs.valvesTimes[i] ) 
+         {
+           //This valve has run its course so we stop it
+           ammBus_stopValve(&ambs,i);
+           ++changes;
+         }
+    }
+   }
+  }
+
+  //If autopilotCreateNewJobs is set
+  if (ammBus_getAutopilotState(&ambs))
+  {
+   //Check which valves should be scheduled for start
+   for (i=0; i<NUMBER_OF_SWITCHES; i++)
+    {
+        if (
+             getValveOfflineTimeSeconds(
+                                        ambs.valveStoppedTimestamp[i],
+                                        ambs.valvesState[i],
+                                        dt.unixtime
+                                       ) 
+                                        >  
+              getTimeAfterWhichWeNeedToReactivateValveInSeconds(
+                                                                ambs.jobRunEveryXHours
+                                                               ) 
+            )
+           {  
+              if (
+                   currentTimeIsCloseEnoughToHourMinute(
+                                                        dt.unixtime,
+                                                        ambs.jobRunAtXHour,
+                                                        ambs.jobRunAtXMinute
+                                                       )
+                 )
+              {
+                ambs.valvesScheduled[i]=1;
+              }
+           }
+    }
+
+  //Recount valve status  
+  valvesRunning=ammBus_getRunningValves(&ambs);
+  valvesRemaining=ammBus_getScheduledValves(&ambs);
+
+  //We can accomodate more jobs..
+  if ( (valvesRunning<ambs.jobConcurrency) && (valvesRemaining>0)  )
+  {
+    for (i=0; i<NUMBER_OF_SWITCHES; i++)
+    {
+      //Open first possible scheduled valve 
+      if ( (ambs.valvesScheduled[i]) && (!ambs.valvesState[i]) && (valvesRunning<ambs.jobConcurrency) )
+      {    
+            ++changes;
+            ++valvesRunning;
+            ambs.valvesState[i]=1;
+            ambs.valveStartedTimestamp[i]=dt.unixtime; 
+      }
+    }
+  }
+  }
+
+  //Changes made/update relays  
+  if (changes) 
+    { setRelayState(ambs.valvesState); }
+}
+
+
 
 
 
 void sendPage()
 {      
+  ++clientsServiced;
    byte i=0; 
-   e.print("<H1>Web Remote</H1>");
+   e.print("<html><body><h1>Ammbus</h1>");
+   e.print("<h4>Rqst ");  
+   e.print(clientsServiced);
+   e.print("</h4>");
       for (i=0; i<8; i++)
       { 
-       onStr[4]  = 'a'+i; 
-       offStr[4]  = 'a'+i; 
-       e.print("<A HREF='");
+       onStr[1]  = 'a'+i; 
+       offStr[1]  = 'a'+i; 
+       e.print("<a href='");
        e.print(offStr);
-       e.print("'>Turn Off</A>\&nbsp;");
-       e.print("<A HREF='");
+       e.print("'>Off</a>|");
+       e.print("<a href='");
        e.print(onStr);
-       e.print("'>Turn On</A><br>"); 
+       e.print("'>On</a><br>"); 
       }
+    e.print("<a href='?all=off'>All Off</a></body></html>");
     e.respond();
 }
 
 
 
 
+void checkForSerialInput()
+{
+  if ( 
+       ammBusUSB.newUSBCommands(
+                                ambs.valvesState,
+                                ambs.valvesScheduled,
+                                &clock,
+                                &dt,
+                                &ambs.idleTicks
+                               ) 
+     )
+     {  
+      setRelayState(ambs.valvesState);
+     }
+}
 
 
 
 
 
 void loop()
-{
-  Serial.print(".");  
-  if (ticks==10) 
+{ 
+  if (ticks==100) 
    { 
-    ticks=0;  
-    Serial.print("t:");  
-    dt = clock.getDateTime();
-    Serial.println(dt.unixtime);
+    ticks=0;   
+    dt = clock.getDateTime();  
+    checkForSerialInput();
+    //Valve Autopilot..
+    valveAutopilot(); 
    } 
   
   
   char* params;
   if (params = e.serviceRequest())
-  {
-    Serial.print("Client");
+  { 
+    Serial.print("!");  
     sendPage(); 
     
-    byte i;
     byte port;
+    byte i;
+    
+    if (strcmp(params,"?all=off") == 0)
+       { 
+         for (i=0; i<8; i++)
+         { 
+          port=2+i;
+          digitalWrite(port, HIGH);  
+         }
+       } else
+    if (strcmp(params,"?all=on") == 0)
+       { 
+         for (i=0; i<8; i++)
+         { 
+          port=2+i;
+          digitalWrite(port, LOW);  
+         }
+       } else
+    {  
     for (i=0; i<8; i++)
       { 
-       onStr[4]  = 'a'+i; 
-       offStr[4]  = 'a'+i; 
+       onStr[1]  = 'a'+i; 
+       offStr[1]  = 'a'+i; 
        port=2+i;
        
        if (strcmp(params, offStr) == 0)
-       {
-        Serial.print(" Set ");
-        //Serial.print(offStr);
-        Serial.print(i);
-        Serial.println(" Off");
-        digitalWrite(port, HIGH); 
-        Serial.println(" !");
+       { 
+        digitalWrite(port, HIGH);  
        } else 
        if (strcmp(params, onStr) == 0) 
-       {
-        Serial.print("Set ");
-        //Serial.print(onStr);
-        Serial.print(i);
-        Serial.println(" On");
-        digitalWrite(port, LOW); 
-        Serial.println(" !");
+       { 
+        digitalWrite(port, LOW);  
        }
-      } 
+      }
+    } 
   }
   ++ticks;
-  delay(100);
+  delay(10);
 }
