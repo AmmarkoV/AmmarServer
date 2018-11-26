@@ -9,6 +9,8 @@
 #include <time.h>
 
 
+const char AMM_MESSAGES_VERSION[]={"v1.0"};
+
 int gatherEverything(int argc, char *argv[])
 {
   int i=0;
@@ -20,6 +22,7 @@ int gatherEverything(int argc, char *argv[])
 
   fprintf(fp,"/** @file allAmmMessages.h\n");
   fprintf(fp,"* @brief A tool that generates code that can span messages across computers\n");
+  fprintf(fp,"* automatically generated with AmmMessages %s\n",AMM_MESSAGES_VERSION);
   fprintf(fp,"* @author Ammar Qammaz (AmmarkoV)\n");
   fprintf(fp,"*/\n\n");
 

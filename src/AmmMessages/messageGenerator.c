@@ -8,6 +8,8 @@
 #include <ctype.h>
 #include <time.h>
 
+#include "centralIncludeGenerator.h"
+
 #include "../StringRecognizer/fastStringParser.h"
 #include "../InputParser/InputParser_C.h"
 
@@ -426,11 +428,11 @@ int replaceChar(char * str , char what2replace, char withwhat)
 }
 
 
-int compileMessage(const char * filename,const char * label,const char * pathToMMap)
+int compileMessage(const char * filename,char * label,const char * pathToMMap)
 {
   struct fastStringParser * fsp = fastSTringParser_createRulesFromFile(filename,64);
 
-  const char *  functionName = label;
+  char *  functionName = label;
   char filenameWithExtension[MAXIMUM_FILENAME_WITH_EXTENSION+1]={0};
   //PRINT OUT THE HEADER
   snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
@@ -469,12 +471,12 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
 
 
   fprintf(fp,"/* \
-                 \nThis file was automatically generated @ %02d-%02d-%02d %02d:%02d:%02d using AmmMessages \
+                 \nThis file was automatically generated @ %02d-%02d-%02d %02d:%02d:%02d using AmmMessages %s \
                  \nhttps://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmMessages\
                  \nPlease note that changes you make here may be automatically overwritten \
                  \nif the AmmMessages generator runs again..!\
               \n */ \n\n" ,
-          tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
+          tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec,AMM_MESSAGES_VERSION);
 
 
   fprintf(fp,"#ifndef %s_H_INCLUDED\n",fsp->functionName);
@@ -755,7 +757,7 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   //------------------------------------------------------------------------
   fprintf(fp,"#ifdef  _INPUTPARSER_C_H_\n");
 
-  fprintf(fp,"\n\n/** @brief This function tries to update the given message from a webserver via AmmClient */\n",functionName);
+  fprintf(fp,"\n\n/** @brief This function tries to update the given message from a webserver via AmmClient */\n");
   fprintf(fp,"static int tryToReadStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg,unsigned int tries,unsigned int maxTries)\n",functionName,functionName);
   fprintf(fp,"{\n");
    fprintf(fp,"char http[4097]={0}; unsigned int httpSize=4096;\n");
