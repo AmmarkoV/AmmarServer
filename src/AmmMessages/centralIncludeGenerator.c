@@ -9,7 +9,7 @@
 #include <time.h>
 
 
-const char AMM_MESSAGES_VERSION[]={"v1.0"};
+const char AMM_MESSAGES_VERSION[]={"v1.00001"};
 
 int gatherEverything(int argc, char *argv[])
 {

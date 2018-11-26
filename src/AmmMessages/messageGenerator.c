@@ -414,18 +414,18 @@ return 1;
 
 
 
-int replaceChar(char * str , char what2replace, char withwhat)
+
+char* replaceChar(char* str, char find, char replace)
 {
-    while (str!=0)
-    {
-      if (*str==what2replace)
-      {
-        *str=withwhat;
-      }
-      ++str;
-    }
- return 1;
+    char *current_pos = strchr(str,find);
+    while (current_pos)
+        {
+         *current_pos = replace;
+          current_pos = strchr(current_pos,find);
+        }
+    return str;
 }
+
 
 
 int compileMessage(const char * filename,char * label,const char * pathToMMap)
@@ -438,6 +438,8 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
 
   replaceChar(functionName,'/','_');
+  replaceChar(functionName,'\\','_');
+  replaceChar(functionName,'!','_');
 
   unsigned int functionNameLength = strlen(functionName);
   fsp->functionName  = (char* ) malloc(sizeof(char) * (1+functionNameLength));
