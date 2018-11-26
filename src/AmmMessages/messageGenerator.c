@@ -441,12 +441,12 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   char * ommitPath = strchr(label,'/');
   if (ommitPath!=0)
   {
-    functionName = ommitPath;
+    functionName = ommitPath+1;
   }
 
   //replaceChar(functionName,'/','_');
-  replaceChar(functionName,'\\','_');
-  replaceChar(functionName,'!','_');
+  //replaceChar(functionName,'\\','_');
+  //replaceChar(functionName,'!','_');
 
   unsigned int functionNameLength = strlen(functionName);
   fsp->functionName  = (char* ) malloc(sizeof(char) * (1+functionNameLength));
