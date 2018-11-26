@@ -689,8 +689,8 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   fprintf(fp,"    { AmmServer_Error(\"Could not initialize mmaped bridge \");      }");
 
   fprintf(fp,"  int i=0;\n");
-  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sViewerRH,\"/%sViewer.html\",4096+sizeof(struct %sMessage),0,&%sHTTPServerViewer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
-  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sWriterRH,\"/%s.html\",4096+sizeof(struct %sMessage),0,&%sHTTPServerWriter,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
+  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sViewerRH,\"/%sViewer.html\",4096+sizeof(struct %sMessage),0,(void*) &%sHTTPServerViewer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
+  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sWriterRH,\"/%s.html\",4096+sizeof(struct %sMessage),0,(void*) &%sHTTPServerWriter,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
 
   fprintf(fp,"  //Always serve fresh page through dynamic requests\n");
   fprintf(fp,"  AmmServer_DoNOTCacheResourceHandler(instance,&%sViewerRH);\n",functionName);
