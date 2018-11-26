@@ -411,11 +411,32 @@ return 1;
 }
 
 
+
+int replaceChar(char * str , char what2replace, char withwhat)
+{
+    while (str!=0)
+    {
+      if (*str==what2replace)
+      {
+        *str=withwhat;
+      }
+      ++str;
+    }
+ return 1;
+}
+
+
 int compileMessage(const char * filename,const char * label,const char * pathToMMap)
 {
   struct fastStringParser * fsp = fastSTringParser_createRulesFromFile(filename,64);
 
   const char *  functionName = label;
+  char filenameWithExtension[MAXIMUM_FILENAME_WITH_EXTENSION+1]={0};
+  //PRINT OUT THE HEADER
+  snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
+
+  replaceChar(functionName,'/','_');
+
   unsigned int functionNameLength = strlen(functionName);
   fsp->functionName  = (char* ) malloc(sizeof(char) * (1+functionNameLength));
   if (fsp->functionName==0) { fprintf(stderr,"Could not allocate memory for function name\n"); return 0; }
@@ -425,12 +446,9 @@ int compileMessage(const char * filename,const char * label,const char * pathToM
   convertTo_ENUM_ID(fsp->functionName);
 
 
-  char filenameWithExtension[MAXIMUM_FILENAME_WITH_EXTENSION+1]={0};
 
 
 
-  //PRINT OUT THE HEADER
-  snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
 
 
   fprintf(stderr,"File Output %s\n",filenameWithExtension);
