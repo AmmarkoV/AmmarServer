@@ -437,7 +437,14 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   //PRINT OUT THE HEADER
   snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
 
-  replaceChar(functionName,'/','_');
+
+  char * ommitPath = strchr(label,'/');
+  if (ommitPath!=0)
+  {
+    functionName = ommitPath;
+  }
+
+  //replaceChar(functionName,'/','_');
   replaceChar(functionName,'\\','_');
   replaceChar(functionName,'!','_');
 
