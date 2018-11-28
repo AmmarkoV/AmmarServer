@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
   } else
   if (strcmp(argv[1],"-srv")==0)
   {
-
+     fprintf(stderr,"Services not implemented..\n");
   }
 
 
