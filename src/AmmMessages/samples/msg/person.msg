@@ -14,5 +14,4 @@ float32 theta
  
 #Timestamps are actually the number of the frame
 int32 timestamp
-time stamp
 

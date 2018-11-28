@@ -124,9 +124,9 @@ void writeGETScanf(
                     const char * functionName
                    )
 {
- fprintf(fp,"char variableValue[256]={0};\n");
- fprintf(fp,"char variableID[256]={0};\n");
- fprintf(fp,"struct InputParserC * ipc = InputParser_Create(512,3);\n");
+ fprintf(fp,"char variableValue[ARGUMENT_SIZE+1]={0};\n");
+ fprintf(fp,"char variableID[ARGUMENT_SIZE+1]={0};\n");
+ fprintf(fp,"struct InputParserC * ipc = InputParser_Create(HTTP_MESSAGE_SIZE,3);\n");
  fprintf(fp,"InputParser_SetDelimeter(ipc,0,'?');\n");
  fprintf(fp,"InputParser_SetDelimeter(ipc,1,'&');\n");
  fprintf(fp,"InputParser_SetDelimeter(ipc,2,'=');\n");
@@ -149,8 +149,8 @@ void writeGETScanf(
    fprintf(fp,"unsigned int item=(i*2)+1;\n");
  //fprintf(fp,"   fprintf(stderr,\" Item = %%u / %%u \\n \",item,numberOfLoops);  \n");
  fprintf(fp,"    if (\n");
- fprintf(fp,"        ( InputParser_GetWord(ipc,item,variableID,256) ) && \n");
- fprintf(fp,"        ( InputParser_GetWord(ipc,item+1,variableValue,256) ) \n");
+ fprintf(fp,"        ( InputParser_GetWord(ipc,item,variableID,ARGUMENT_SIZE) ) && \n");
+ fprintf(fp,"        ( InputParser_GetWord(ipc,item+1,variableValue,ARGUMENT_SIZE) ) \n");
  fprintf(fp,"       )\n");
  fprintf(fp,"    {\n");
 
@@ -196,7 +196,7 @@ void writeGETScanf(
         }
     }
   }
-  fprintf(fp," {   } \n");
+  fprintf(fp," { fprintf(stderr,\"Don't know how to handle %%s=%%s\\n\",variableID,variableValue);  } \n");
 
   InputParser_Destroy(ipc);
 
@@ -299,7 +299,7 @@ int writeServerViewerCallback(
                               struct fastStringParser * fsp
                              )
 {
-  fprintf(fp,"\n/** @brief This is the callback when someone requests %sViewer.html that allows HTTP clients to check the state of a message*/\n",functionName);
+  fprintf(fp,"\n/** @brief This is the callback when someone requests /view/%s.html that allows HTTP clients to check the state of a message*/\n",functionName);
   fprintf(fp,"static void * %sHTTPServerViewer(struct AmmServer_DynamicRequest  * rqst)\n",functionName);
   fprintf(fp,"{\n");
   fprintf(fp,"    read_%s(&%sBridge,&%sStatic);\n",functionName,functionName,functionName);
@@ -323,7 +323,7 @@ int writeServerWriterCallback(
   fprintf(fp,"static void * %sHTTPServerWriter(struct AmmServer_DynamicRequest  * rqst)\n",functionName);
   fprintf(fp,"{\n");
 
-  fprintf(fp,"char value[256]={0};\n");
+  fprintf(fp,"char value[ARGUMENT_SIZE+1]={0};\n");
 
  char variableType[256]={0};
  char variableID[256]  ={0};
@@ -352,7 +352,7 @@ int writeServerWriterCallback(
           char destination[256]={0};
           snprintf(destination,256,"%sStatic.%s",functionName,variableID);
 
-          fprintf(fp," if ( _GETcpy(rqst,(char*)\"%s\",value,255) )   {  ",variableID);
+          fprintf(fp," if ( _GETcpy(rqst,(char*)\"%s\",value,ARGUMENT_SIZE) )   {  ",variableID);
           writeConversion(
                           fp ,
                           variableType,
@@ -551,6 +551,12 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
    fprintf(fp,"{\n");
    fprintf(fp,"#endif\n");
 
+   fprintf(fp,"\n/** @brief This is the maximum size of an argument*/\n");
+   fprintf(fp,"#define ARGUMENT_SIZE 255\n");
+   fprintf(fp,"/** @brief This is the maximum size of an HTTP request*/\n");
+   fprintf(fp,"#define HTTP_MESSAGE_SIZE 4096\n");
+
+
 
 //  fprintf(fp,"const char * pathToMMAP%s=\"%s/%s.mmap\";",functionName,pathToMMap,functionName);
    fprintf(fp,"/** @brief This is the path to mmap descriptor*/\n");
@@ -566,6 +572,11 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"  //These 2 fields exist in all messages and are included automatically for book keeping..!\n");
   fprintf(fp,"  unsigned long timestampInit; //We always want the first bytes to be like this \n");
   fprintf(fp,"  unsigned long serialNumber;  //It is helpful to automatically count when we do write operations\n");
+  fprintf(fp,"  unsigned long failedServerReads;    //Keep a log of failed transmissions\n");
+  fprintf(fp,"  unsigned long failedServerWrites;   //Keep a log of failed transmissions\n");
+  fprintf(fp,"  unsigned long failedMMapReads;      //Keep a log of failed copies\n");
+  fprintf(fp,"  unsigned long failedMMapWrites;     //Keep a log of failed copies\n");
+
   fprintf(fp,"  //The rest are taken from the .msg file you provided to AmmMessage Generator\n");
   unsigned int i=0;
   for (i=0; i<fsp->stringsLoaded; i++)
@@ -683,7 +694,7 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"\n\n/** @brief Print message for %s */\n",functionName);
   fprintf(fp,"static int print_%s(struct %sMessage * msg)\n",functionName,functionName);
   fprintf(fp,"{\n");
-  fprintf(fp," char buffer[2049]={0}; unsigned int bufferSize=2048;\n");
+  fprintf(fp," char buffer[HTTP_MESSAGE_SIZE+1]={0}; unsigned int bufferSize=HTTP_MESSAGE_SIZE;\n");
   fprintf(fp," packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
   fprintf(fp," printf(\"%%s\",buffer);\n");
   fprintf(fp," fflush(stdout);\n");
@@ -721,9 +732,19 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
 
   fprintf(fp,"\n\n/** @brief This is the Resource handler context that will manage requests to %s.html */\n",functionName);
   fprintf(fp,"static struct AmmServer_RH_Context %sWriterRH={0};\n",functionName);
-  fprintf(fp,"/** @brief This is the Resource handler context that will manage requests to %sViewer.html */\n",functionName);
+  fprintf(fp,"/** @brief This is the Resource handler context that will manage requests to /view/%s.html */\n",functionName);
   fprintf(fp,"static struct AmmServer_RH_Context %sViewerRH={0};\n",functionName);
+  fprintf(fp,"/** @brief This is the Resource handler context that will manage requests to /flush/%s.html */\n",functionName);
+  fprintf(fp,"static struct AmmServer_RH_Context %sFlusherRH= {0};\n",functionName);
 
+
+  fprintf(fp,"\n/** @brief This is the callback when someone requests flush/%s.html in order to clean state*/\n",functionName);
+  fprintf(fp,"static void * %sHTTPServerFlusher(struct AmmServer_DynamicRequest  * rqst)\n",functionName);
+  fprintf(fp,"{\n");
+  fprintf(fp,"empty_%s();\n",functionName);
+  fprintf(fp,"snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>SUCCESS</body></html>\");\n");
+  fprintf(fp,"rqst->contentSize=strlen(rqst->content);\n");
+  fprintf(fp,"}\n");
 
    writeServerWriterCallback(
                               fp ,
@@ -749,18 +770,21 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"    { AmmServer_Error(\"Could not initialize mmaped bridge \");      }");
 
   fprintf(fp,"  int i=0;\n");
-  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sViewerRH,\"/%sViewer.html\",4096+sizeof(struct %sMessage),0,(void*) &%sHTTPServerViewer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
+  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sFlusherRH,\"/flush/%s.html\",4096+sizeof(struct %sMessage),0,(void*) &%sHTTPServerFlusher,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
+  fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sViewerRH,\"/view/%s.html\",4096+sizeof(struct %sMessage),0,(void*) &%sHTTPServerViewer,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
   fprintf(fp,"  i+= AmmServer_AddResourceHandler(instance,&%sWriterRH,\"/%s.html\",4096+sizeof(struct %sMessage),0,(void*) &%sHTTPServerWriter,SAME_PAGE_FOR_ALL_CLIENTS);\n",functionName,functionName,functionName,functionName);
 
   fprintf(fp,"  //Always serve fresh page through dynamic requests\n");
+  fprintf(fp,"  AmmServer_DoNOTCacheResourceHandler(instance,&%sFlusherRH);\n",functionName);
   fprintf(fp,"  AmmServer_DoNOTCacheResourceHandler(instance,&%sViewerRH);\n",functionName);
   fprintf(fp,"  AmmServer_DoNOTCacheResourceHandler(instance,&%sWriterRH);\n",functionName);
-  fprintf(fp,"  return (i==2); \n");
+  fprintf(fp,"  return (i==3); \n");
   fprintf(fp,"}\n\n");
 
   fprintf(fp,"\n\n/** @brief This function removes %s messages from the webserver and closes the mmaped memory etc*/\n",functionName);
   fprintf(fp,"static int %sRemoveFromHTTPServer(struct AmmServer_Instance * instance)\n",functionName);
   fprintf(fp,"{\n");
+  fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sFlusherRH,1); \n",functionName);
   fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sViewerRH,1); \n",functionName);
   fprintf(fp,"  AmmServer_RemoveResourceHandler(instance,&%sWriterRH,1); \n",functionName);
   fprintf(fp,"  closeWritingBridge(&%sBridge);\n",functionName);
@@ -776,10 +800,10 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"\n\n/** @brief If this instance of your code is running on a machine that is connected through TCP/IP and you want to send your data you can do it using this call %s.html */\n",functionName);
   fprintf(fp,"static int tryToSendToServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg,unsigned int tries,unsigned int maxTries)\n",functionName,functionName);
   fprintf(fp,"{\n");
-   fprintf(fp,"char buffer[2049]={0}; unsigned int bufferSize=2048;\n");
+   fprintf(fp,"char buffer[HTTP_MESSAGE_SIZE+1]={0}; unsigned int bufferSize=HTTP_MESSAGE_SIZE;\n");
    fprintf(fp,"packToHTTPGETRequest_%s(buffer,bufferSize,msg);\n",functionName);
 
-   fprintf(fp,"char http[2049]={0}; unsigned int httpSize=2048;\n");
+   fprintf(fp,"char http[HTTP_MESSAGE_SIZE+1]={0}; unsigned int httpSize=HTTP_MESSAGE_SIZE;\n");
    //fprintf(fp,"snprintf(http,httpSize,\"GET %%s HTTP/1.1\\nConnection: keep-alive\\n\\n\",buffer);\n");
 
    fprintf(fp,"    if ( AmmClient_RecvFile(instance,buffer,http,&httpSize,1/*keep connection alive*/,1/*really fast*/) )\n");
@@ -790,7 +814,7 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
    fprintf(fp,"        return 1;\n");
    fprintf(fp,"      }\n");
    fprintf(fp,"    }\n");
-   fprintf(fp," fprintf(stderr,RED \"Failed to send %s message ( try %%u/%%u )..\\n\" NORMAL , tries , maxTries);\n",functionName);
+   fprintf(fp," fprintf(stderr,YELLOW \"Failed to send %s message ( try %%u/%%u )..\\n\" NORMAL , tries , maxTries);\n",functionName);
    fprintf(fp," fprintf(stderr,\"Got back %%s\\n\",http);\n");
    fprintf(fp," return 0;\n");
   fprintf(fp,"}\n");
@@ -807,7 +831,8 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"     if (tryToSendToServer_%s(instance,msg,tries,MAXtries)) { return 1; }\n",functionName);
   fprintf(fp,"     ++tries;\n");
   fprintf(fp,"   }\n");
-   fprintf(fp," fprintf(stderr,RED \" All tries to send %s message failed..\\n\" NORMAL);\n",functionName);
+  fprintf(fp," ++msg->failedServerWrites;\n");
+  fprintf(fp," fprintf(stderr,RED \" All tries to send %s message failed..\\n\" NORMAL);\n",functionName);
   fprintf(fp,"  return 0;\n");
   fprintf(fp,"}\n");
 
@@ -818,13 +843,13 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"\n\n/** @brief This function tries to update the given message from a webserver via AmmClient */\n");
   fprintf(fp,"static int tryToReadStateFromServer_%s(struct AmmClient_Instance * instance,struct %sMessage * msg,unsigned int tries,unsigned int maxTries)\n",functionName,functionName);
   fprintf(fp,"{\n");
-   fprintf(fp,"char http[4097]={0}; unsigned int httpSize=4096;\n");
-   fprintf(fp,"    if ( AmmClient_RecvFile(instance,\"%sViewer.html\",http,&httpSize,1/*keep connection alive*/,1/*really fast*/) )\n",functionName);
+   fprintf(fp,"char http[HTTP_MESSAGE_SIZE+1]={0}; unsigned int httpSize=HTTP_MESSAGE_SIZE;\n");
+   fprintf(fp,"    if ( AmmClient_RecvFile(instance,\"view/%s.html\",http,&httpSize,1/*keep connection alive*/,1/*really fast*/) )\n",functionName);
    fprintf(fp,"    {\n");
    fprintf(fp,"     //fprintf(stderr,\"Got back %%s\\n\",http);\n");
    fprintf(fp,"     return unpackFromHTTPGETRequest_%s(msg,http,httpSize);\n",functionName);
    fprintf(fp,"    }\n");
-   fprintf(fp," fprintf(stderr,RED \"Failed to read full state for %s message ( try %%u/%%u )..\\n\" NORMAL , tries , maxTries);\n",functionName);
+   fprintf(fp," fprintf(stderr,YELLOW \"Failed to read full state for %s message ( try %%u/%%u )..\\n\" NORMAL , tries , maxTries); \n",functionName);
    fprintf(fp," return 0;\n");
    fprintf(fp,"}\n");
 
@@ -839,7 +864,8 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"     if (tryToReadStateFromServer_%s(instance,msg,tries,MAXtries)) { return 1; }\n",functionName);
   fprintf(fp,"     ++tries;\n");
   fprintf(fp,"   }\n");
-   fprintf(fp," fprintf(stderr,RED \" All tries to read state for %s message failed..\\n\" NORMAL);\n",functionName);
+  fprintf(fp," ++msg->failedServerReads;\n");
+  fprintf(fp," fprintf(stderr,RED \" All tries to read state for %s message failed..\\n\" NORMAL);\n",functionName);
   fprintf(fp,"  return 0;\n");
   fprintf(fp,"}\n");
 
