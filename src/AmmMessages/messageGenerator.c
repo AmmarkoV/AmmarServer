@@ -427,6 +427,21 @@ char* replaceChar(char* str, char find, char replace)
 }
 
 
+char * strLastchr(char * input , char delim)
+{
+   char * lastChr = strchr(input,delim);
+   if (lastChr==0) { return 0; }
+
+   char * thisChr = strchr(lastChr,delim);
+   while (thisChr!=0)
+    {
+        lastChr = thisChr;
+        thisChr = strchr(lastChr+1,delim);
+    }
+
+   return lastChr;
+}
+
 
 int compileMessage(const char * filename,char * label,const char * pathToMMap)
 {
@@ -438,7 +453,7 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   snprintf(filenameWithExtension,MAXIMUM_FILENAME_WITH_EXTENSION,"%s.h",functionName);
 
 
-  char * ommitPath = strchr(label,'/');
+  char * ommitPath = strLastchr(label,'/'); //strchr(label,'/');
   if (ommitPath!=0)
   {
     functionName = ommitPath+1;

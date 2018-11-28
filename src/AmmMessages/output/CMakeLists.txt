@@ -5,10 +5,10 @@ set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizat
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(AmmMessagesTestServer testServer.c mmapBridge.c mmapBridge.h)  
+add_executable(AmmMessagesTestServer testServer.c ../mmapBridge.c ../mmapBridge.h)  
 target_link_libraries(AmmMessagesTestServer pthread rt AmmarServer)
 
-add_executable(AmmMessagesTestClient testClient.c mmapBridge.c mmapBridge.h
+add_executable(AmmMessagesTestClient testClient.c ../mmapBridge.c ../mmapBridge.h
 ../../InputParser/InputParser_C.c
 ../../InputParser/InputParser_C.h
 )  
