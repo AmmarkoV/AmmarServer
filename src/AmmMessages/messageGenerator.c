@@ -325,6 +325,14 @@ int writeServerWriterCallback(
  struct InputParserC * ipc = InputParser_Create(512,5);
  InputParser_SetDelimeter(ipc,1,' ');
 
+
+
+  if (fsp->stringsLoaded==0)
+  {
+   fprintf(fp,"/*No message contents found..*/ \n");
+  }
+
+
   unsigned int i=0;
   for (i=0; i<fsp->stringsLoaded; i++)
   {
@@ -350,7 +358,6 @@ int writeServerWriterCallback(
         }
     }
   }
-
 
   fprintf(fp," #if DEBUG_PRINT\n");
      fprintf(fp,"fprintf(stderr,\"HTTPServer: Received a %s message \\n \");\n",functionName);
