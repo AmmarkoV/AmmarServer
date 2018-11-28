@@ -209,7 +209,12 @@ void writeGETScanf(
 
  fprintf(fp,"    }\n");
 
-  fprintf(fp," else { fprintf(stderr,\"Failed to resolve for i = %%u \\n \",i);  } \n");
+  fprintf(fp," else { \n");
+  fprintf(fp,"  fprintf(stderr,\"Failed to resolve for i = %%u \\n \",i); \n");
+  fprintf(fp,"  fprintf(stderr,\"ID = %%s / Value = %%s\\n\",variableID,variableValue); \n");
+  fprintf(fp," } \n");
+
+
 
  fprintf(fp," }\n");
  fprintf(fp,"InputParser_Destroy(ipc);\n");
