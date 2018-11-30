@@ -21,6 +21,7 @@ OPTION (DO_TEST_COVERAGE OFF)
 
 #Use Amm Messages , if you are interested in generating custom messages through http you need this on
 OPTION (USE_AMMMESSAGES OFF)
+OPTION (DO_TEST_AMMMESSAGES OFF)
 
 
 IF( DO_TEST_COVERAGE )

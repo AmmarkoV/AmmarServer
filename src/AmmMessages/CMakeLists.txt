@@ -32,7 +32,10 @@ add_custom_command(TARGET AmmMessages
         COMMAND /bin/bash ${CMAKE_CURRENT_SOURCE_DIR}/generateSampleOutput.sh
         )
 
-add_subdirectory (output)
+
+IF( DO_TEST_AMMMESSAGES )
+    add_subdirectory (output)
+ENDIF( DO_TEST_AMMMESSAGES )
 
 #    install(TARGETS AmmarServer
 #                    LIBRARY DESTINATION lib
