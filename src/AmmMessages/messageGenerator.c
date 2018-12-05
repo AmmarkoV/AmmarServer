@@ -367,7 +367,7 @@ int writeServerWriterCallback(
   }
 
 
-  fprintf(fp," if ( _GETcpy(rqst,(char*)\"sync\",value,ARGUMENT_SIZE) )   {  waitForAcknowledgment=1; } \n");
+  fprintf(fp," if ( _GETcpy(rqst,(char*)\"sync\",value,ARGUMENT_SIZE) )   {  waitForAcknowledgment=MAX_WAIT_TIME; } \n");
 
   fprintf(fp," #if DEBUG_PRINT\n");
      fprintf(fp,"fprintf(stderr,\"HTTPServer: Received a %s message \\n \");\n",functionName);
@@ -560,6 +560,8 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
    fprintf(fp,"#define ARGUMENT_SIZE 255\n");
    fprintf(fp,"/** @brief This is the maximum size of an HTTP request*/\n");
    fprintf(fp,"#define HTTP_MESSAGE_SIZE 4096\n");
+   fprintf(fp,"/** @brief This is the maximum time to wait in milliseconds for an acknowledgment*/\n");
+   fprintf(fp,"#define MAX_WAIT_TIME 1000 //milliseconds\n");
 
 
 

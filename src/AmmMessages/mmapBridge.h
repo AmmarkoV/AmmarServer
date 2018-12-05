@@ -1,5 +1,19 @@
-#ifndef ULTRALITENAOMMAPBRIDGE_H_INCLUDED
-#define ULTRALITENAOMMAPBRIDGE_H_INCLUDED
+/*
+ *  @file mmapBridge.h
+ *  @brief A tool that generates code that can span messages across computers
+ *  @author Ammar Qammaz (AmmarkoV)
+ */
+
+/*
+ * This file was automatically generated @ 05-12-2018 18:43:28 using AmmMessages v1.00004
+ * https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmMessages
+ * Please note that changes you make here may be automatically overwritten
+ * if the AmmMessages generator runs again..!
+ */
+
+
+#ifndef MMAPBRIDGE_H_INCLUDED
+#define MMAPBRIDGE_H_INCLUDED
 
 
 #include <stdlib.h>
@@ -40,7 +54,7 @@ char * strstrDoubleNewline(char * request,unsigned int requestLength,unsigned in
 
 int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescriptor,unsigned int sizeOfBridgeMsg);
 int clearWritingBridge(struct bridgeContext * nbc);
-int writeBridge(struct bridgeContext * nbc , void * data , unsigned int dataSize, unsigned int waitForAcknowledgment);
+int writeBridge(struct bridgeContext * nbc , void * data , unsigned int dataSize, unsigned int waitForAcknowledgmentXMilliseconds);
 int closeWritingBridge(struct bridgeContext * nbc);
 
 

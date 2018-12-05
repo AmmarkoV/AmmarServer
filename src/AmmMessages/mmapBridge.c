@@ -114,7 +114,7 @@ int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescrip
  return 1;
 }
 
-int writeBridge(struct bridgeContext * nbc ,void * data , unsigned int dataSize , unsigned int waitForAcknowledgment)
+int writeBridge(struct bridgeContext * nbc ,void * data , unsigned int dataSize , unsigned int waitForAcknowledgmentXMilliseconds)
 {
   if (nbc==0)       { return 0; }
   if (data==0)      { return 0; }
@@ -134,7 +134,7 @@ int writeBridge(struct bridgeContext * nbc ,void * data , unsigned int dataSize 
      // Write it to disk if needed
      //if (msync(nbc->map, nbc->dataSize, MS_SYNC) == -1)
      //{  perror("Could not sync the file to disk"); }
-     if (waitForAcknowledgment)
+     if (waitForAcknowledgmentXMilliseconds)
       {
         fprintf(stderr,"Waiting for acknowledgment not implemented yet..\n");
       }
