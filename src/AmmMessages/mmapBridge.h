@@ -40,7 +40,7 @@ char * strstrDoubleNewline(char * request,unsigned int requestLength,unsigned in
 
 int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescriptor,unsigned int sizeOfBridgeMsg);
 int clearWritingBridge(struct bridgeContext * nbc);
-int writeBridge(struct bridgeContext * nbc , void * data , unsigned int dataSize);
+int writeBridge(struct bridgeContext * nbc , void * data , unsigned int dataSize, unsigned int waitForAcknowledgment);
 int closeWritingBridge(struct bridgeContext * nbc);
 
 

@@ -323,7 +323,9 @@ int writeServerWriterCallback(
   fprintf(fp,"static void * %sHTTPServerWriter(struct AmmServer_DynamicRequest  * rqst)\n",functionName);
   fprintf(fp,"{\n");
 
+
   fprintf(fp,"char value[ARGUMENT_SIZE+1]={0};\n");
+  fprintf(fp,"unsigned int waitForAcknowledgment=0;\n");
 
  char variableType[256]={0};
  char variableID[256]  ={0};
@@ -364,6 +366,9 @@ int writeServerWriterCallback(
     }
   }
 
+
+  fprintf(fp," if ( _GETcpy(rqst,(char*)\"sync\",value,ARGUMENT_SIZE) )   {  waitForAcknowledgment=1; } \n");
+
   fprintf(fp," #if DEBUG_PRINT\n");
      fprintf(fp,"fprintf(stderr,\"HTTPServer: Received a %s message \\n \");\n",functionName);
      fprintf(fp,"print_%s(&%sStatic);\n",functionName,functionName);
@@ -373,10 +378,10 @@ int writeServerWriterCallback(
   fprintf(fp,"++%sStatic.timestampInit;\n",functionName);
 
 
-  fprintf(fp,"if (!write_%s(&%sBridge,&%sStatic)) { AmmServer_Error(\"Could not send %s to mmaped bridge \");  }",functionName,functionName,functionName,functionName);
+  fprintf(fp,"if (!write_%s(&%sBridge,&%sStatic,waitForAcknowledgment)) { AmmServer_Error(\"Could not send %s to mmaped bridge \"); snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>FAILED</body></html>\"); } else",functionName,functionName,functionName,functionName);
 
 
-  fprintf(fp,"snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>SUCCESS</body></html>\");\n");
+  fprintf(fp,"{ snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>SUCCESS</body></html>\"); }\n");
   fprintf(fp,"rqst->contentSize=strlen(rqst->content);\n\n");
   fprintf(fp,"return 0;\n");
 
@@ -616,14 +621,15 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"* @ingroup stringParsing\n");
   fprintf(fp,"* @param The bridge context\n");
   fprintf(fp,"* @param The message to send\n");
+  fprintf(fp,"* @param Should we wait for a signal that the final receipient got the message?\n");
   fprintf(fp,"* @retval See above enumerator*/\n");
-  fprintf(fp,"static int write_%s(struct bridgeContext * nbc,struct %sMessage * msg)\n",functionName,functionName);
+  fprintf(fp,"static int write_%s(struct bridgeContext * nbc,struct %sMessage * msg,unsigned int waitForAcknowledgment)\n",functionName,functionName);
   fprintf(fp,"{\n");
   fprintf(fp," #if DEBUG_PRINT\n");
   fprintf(fp,"    printf(\"Writing %s message to bridge.. \\n \");\n",functionName);
   fprintf(fp," #endif\n");
   fprintf(fp,"   ++msg->serialNumber; \n");
-  fprintf(fp,"   if (writeBridge(nbc, (void*) msg , sizeof(struct %sMessage) ) )\n",functionName);
+  fprintf(fp,"   if (writeBridge(nbc, (void*) msg , sizeof(struct %sMessage) , waitForAcknowledgment ) )\n",functionName);
   fprintf(fp,"   {\n");
   fprintf(fp,"    nbc->lastMsgTimestamp = msg->timestampInit;\n");
   fprintf(fp,"    return 1;\n");
@@ -708,7 +714,7 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"    { \n");
   fprintf(fp,"      struct %sMessage empty={0};\n",functionName);
   fprintf(fp,"      empty.timestampInit = rand()%%10000;\n");
-  fprintf(fp,"        if ( write_%s(&%sBridge,&empty) ) { return 1; } else { return 0; }\n ",functionName,functionName);
+  fprintf(fp,"        if ( write_%s(&%sBridge,&empty,0) ) { return 1; } else { return 0; }\n ",functionName,functionName);
   fprintf(fp,"    } else { return 0; }\n");
   fprintf(fp,"}\n\n");
 
