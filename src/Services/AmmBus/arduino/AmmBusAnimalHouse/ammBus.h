@@ -11,14 +11,14 @@ static const char * systemName =    { "AmmBus AnimalCenter" };
 static const char * systemVersion = { "v0.33" };
 static const char * valveLabels[] =
 {
-    "Mikri Skala    ",
-    "Leyland/Porta  " ,
-    "Elato/Garage   ",
-    "Triantafylla  ",
-    "Agalma/Lemonia",
-    "Gazon A      ",
-    "Gazon B      ",
-    "Gazon C      ", 
+    "A",
+    "B" ,
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H", 
     //-----------------
     "Unknown"
 };
@@ -33,9 +33,21 @@ static const char * valveSpeedLabels[] =
 };
 
 
+struct dayTemperature
+{
+  byte hour[24];
+};
+
+struct weekTemperature
+{
+  struct dayTemperature day[7];
+};
+
 struct ammBusState
 {  
  uint32_t currentTime;
+
+ struct weekTemperature lastWeek; 
  
  byte valvesTimesNormal[NUMBER_OF_SWITCHES];
  byte valvesTimesHigh[NUMBER_OF_SWITCHES];

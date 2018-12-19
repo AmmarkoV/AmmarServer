@@ -1,7 +1,6 @@
 #ifndef __TIMECALCULATIONS_H
 #define __TIMECALCULATIONS_H
 
- 
 
 static void unixtimeToWDHMS(
                      uint32_t unixtimestamp,

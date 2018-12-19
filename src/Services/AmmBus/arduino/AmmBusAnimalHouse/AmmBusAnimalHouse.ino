@@ -89,7 +89,7 @@ void loop()
   EthernetClient client = server.available();
   if (client)
     {
-      ServeWebServerClient(&client,ambs.temperature,ambs.humidity,ambs.tooHotCounter,ambs.tooColdCounter);
+      ServeWebServerClient(&ambs,&client,ambs.temperature,ambs.humidity,ambs.tooHotCounter,ambs.tooColdCounter);
     }
 
    checkForSerialInput();

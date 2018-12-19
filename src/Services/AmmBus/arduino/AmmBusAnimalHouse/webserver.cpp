@@ -1,5 +1,4 @@
 #include "webserver.h"
-#include "ammBus.h"
  
 char onStr[7]={"?X=on"};
 char offStr[7]={"?X=off"}; 
@@ -107,6 +106,7 @@ int  resolveGETRequest(const char * request)
 
 
 int ServeWebServerClient(
+                         struct ammBusState * ambs,
                          EthernetClient * client,
                          int temperature,
                          int humidity,
