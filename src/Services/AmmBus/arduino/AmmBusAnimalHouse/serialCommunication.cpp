@@ -88,10 +88,10 @@ int AmmBusUSBProtocol::newUSBCommands(
               }
           break;   
           case 't' : 
-             Serial.print("Humantime>");
+             Serial.print(F("Humantime>"));
              //Serial.println(clock->dateFormat("d-m-Y/H:i:s", *dt)); 
 
-             Serial.print("Unixtime>");
+             Serial.print(F("Unixtime>"));
              Serial.println(dt->unixtime); 
           break;
           
@@ -104,7 +104,7 @@ int AmmBusUSBProtocol::newUSBCommands(
             if (valvesState[i]) { valveStateResponse='A'+i; } else { valveStateResponse='a'+i; }
             Serial.print(valveStateResponse);
            }
-          Serial.println(" ");
+          Serial.println(F(" "));
           break;
           //-------------------------------------------------------------------------------------
           
@@ -147,10 +147,8 @@ int AmmBusUSBProtocol::newUSBCommands(
     }
     
  if (SuccessfullOperation)   
-        { Serial.println("ok"); }  
+        { Serial.println(F("ok")); }  
         
  inputs="";    
  return SuccessfullOperation;
 }
-
-

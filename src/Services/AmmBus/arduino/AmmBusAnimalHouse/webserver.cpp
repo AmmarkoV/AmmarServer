@@ -4,24 +4,115 @@
 char onStr[7]={"?X=on"};
 char offStr[7]={"?X=off"}; 
 
+
+int ServeErrorHTTPHeader(
+                          EthernetClient * client 
+                        )
+{
+  client->println(F("HTTP/1.1 500 ERROR"));
+  client->println(F("Content-Type: text/html"));
+  client->println(F("Connection: close"));  // the connection will be closed after completion of the response 
+  client->println();
+  client->println(F("Bad request"));  //A brief message
+}
+
+
 int ServeHTTPHeader(
                     EthernetClient * client,
                     unsigned int refresh
                    )
 {
-  client->println("HTTP/1.1 200 OK");
-  client->println("Content-Type: text/html");
-  client->println("Connection: close");  // the connection will be closed after completion of the response
+  client->println(F("HTTP/1.1 200 OK"));
+  client->println(F("Content-Type: text/html"));
+  client->println(F("Connection: close"));  // the connection will be closed after completion of the response
   if (refresh) 
                  { 
-                   client->print("Refresh: "); 
+                   client->print(F("Refresh: ")); 
                    client->println(int(refresh)); 
                  } // refresh the page automatically every 5 sec
   client->println();
 }
 
+int terminateStringAtFirstSpace(char * request)
+{
+   char * ptrRequest=request;
+   while (ptrRequest!=0)
+    {
+      if (*ptrRequest==' ') { *ptrRequest=0; return 1; }
+      ++ptrRequest; 
+    }
+  return 0; 
+}
 
-int ServeWebServerClient(EthernetClient * client , int temperature , int humidity , int tooHotCounter , int tooColdCounter )
+
+int  resolveGETRequest(const char * request)
+{/*
+  char* params;
+  if (params = e->serviceRequest())
+  { 
+    //Serial.print("!");  
+    if (strcmp(params,"state.html") == 0)
+       { 
+         sendState(e,dt); 
+       } else
+       {
+         sendPage(e); 
+       }
+    
+    byte port;
+    byte i;
+    
+    if (strcmp(params,"?all=off") == 0)
+       { 
+         for (i=0; i<8; i++)
+         { 
+          port=2+i;
+          digitalWrite(port, HIGH);  
+          return 1;
+         }
+       } else
+    if (strcmp(params,"?all=on") == 0)
+       { 
+         for (i=0; i<8; i++)
+         { 
+          port=2+i;
+          digitalWrite(port, LOW);  
+          return 1;
+         }
+       } else
+    {  
+    for (i=0; i<8; i++)
+      { 
+       onStr[1]  = 'a'+i; 
+       offStr[1]  = 'a'+i; 
+       port=2+i;
+       
+       if (strcmp(params, offStr) == 0)
+       { 
+        digitalWrite(port, HIGH); 
+        return 1; 
+       } else 
+       if (strcmp(params, onStr) == 0) 
+       { 
+        digitalWrite(port, LOW);  
+        return 1;
+       }
+      }
+    } 
+  }*/
+  return 0;
+}
+
+
+
+
+int ServeWebServerClient(
+                         EthernetClient * client,
+                         int temperature,
+                         int humidity,
+                         int tooHotCounter,
+                         int tooColdCounter
+                        )
 {
    #define MAX_GET_STRING 64
    char readString[MAX_GET_STRING+1]; //string for fetching data from address
@@ -31,7 +122,7 @@ int ServeWebServerClient(EthernetClient * client , int temperature , int humidit
   //listen for incoming clients
   if (client) 
   {
-    Serial.println("Client");
+    Serial.println(F("Client"));
  
     char c = 1;
     while (c!=0 && c!=10 && c!=13 && ptr<ptrLimit)
@@ -41,8 +132,27 @@ int ServeWebServerClient(EthernetClient * client , int temperature , int humidit
         ++ptr;
         *ptr=0;
      } 
-    Serial.println("Requested:");
-    Serial.println(readString);
+    //Serial.println(F("Requested:"));
+    //Serial.println(readString);
+
+    char * GETRequest = readString;
+    if (
+        ( readString[0]=='G' ) && 
+        ( readString[1]=='E' ) && 
+        ( readString[2]=='T' ) && 
+        ( readString[3]==' ' )
+       )
+       {
+          terminateStringAtFirstSpace(readString+4);
+          GETRequest+=4;
+          Serial.println(F("Resolved:"));
+          Serial.println(GETRequest); 
+       } else
+       {
+        ServeErrorHTTPHeader(client);
+       }
+       
+    
     
     
     // an http request ends with a blank line
@@ -61,71 +171,72 @@ int ServeWebServerClient(EthernetClient * client , int temperature , int humidit
           ServeHTTPHeader(client,5);
           // send a standard http response header
 
-          client->println("<!DOCTYPE HTML>");
-          client->println("<html>"); 
-          
-          client->print("<h4>");   
+          client->println(F("<!DOCTYPE HTML>"));
+          client->println(F("<html><h4>"));
           client->print(systemName);   
-          client->print(" ");   
+          client->print(F(" "));   
           client->print(systemVersion);   
-          client->print("</h4>");
+          client->print(F("</h4>"));
    
             //client->println("UnixTime:"); 
             //client->println(dt.unixtime); 
             //client->println("<br />"); 
             //------------------------
-            client->print("DHT11: ");
+            client->print(F("DHT11: "));
             client->print((int)temperature);
-            client->print(" *C ");
+            client->print(F("*C "));
             client->print((int)humidity);
-            client->println("%<br />"); 
+            client->println(F("%<br />")); 
 
             if ( tooHotCounter > 0 )
               {
-                client->print("Hot Alarms : ");
+                client->print(F("Hot"));
+                client->print(F(" Alarms : "));
                 client->print((int)tooHotCounter); 
                 client->println("<br />"); 
               }
 
             if ( tooColdCounter > 0 )
               {
-                client->print("Cold Alarms : ");
+                client->print(F("Cold"));
+                client->print(F(" Alarms : "));
                 client->print((int)tooColdCounter); 
-                client->println("<br />"); 
+                client->println(F("<br />")); 
               }
       
-      client->println("<br />"); 
+      client->println(F("<br />")); 
       int i=0;
       for (i=0; i<8; i++)
       { 
        onStr[1]  = 'a'+i; 
        offStr[1]  = 'a'+i; 
-       client->print("<a href='");
+       client->print(F("<a href='"));
        client->print(offStr);
-       client->print("'>Off</a>|");
-       client->print("<a href='");
+       client->print(F("'>Off</a>|"));
+       client->print(F("<a href='"));
        client->print(onStr);
-       client->print("'>On</a><br>"); 
+       client->print(F("'>On</a><br>")); 
       }
-    client->print("<a href='?all=off'>All Off</a></body></html>");
-          
-          client->println("</html>");
+     client->print(F("<a href='?all=off'>All Off</a></body></html>")); 
           break;
         }
-        if (c == '\n') {
-          // you're starting a new line
-          currentLineIsBlank = true;
-        } else if (c != '\r') {
-          // you've gotten a character on the current line
-          currentLineIsBlank = false;
-        }
+        if (c == '\n') 
+          {
+           // you're starting a new line
+           currentLineIsBlank = true;
+          } else 
+        if (c != '\r') 
+          {
+           // you've gotten a character on the current line
+           currentLineIsBlank = false;
+          }
       }
     }
     // give the web browser time to receive the data
     delay(1);
     // close the connection:
     client->stop();
-    Serial.println("client disconnected");
+    //Serial.println("client disconnected");
   }
   
 }

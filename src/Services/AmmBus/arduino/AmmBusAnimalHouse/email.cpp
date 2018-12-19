@@ -1,12 +1,11 @@
 #include "email.h"
 #include "DS3231.h"
 
-
 // -----------------------------------------------------------------------------
 // Private method that waits until a response is detected or timeout
 // -----------------------------------------------------------------------------
-int waitForResponse(EthernetClient * client) {
-
+int waitForResponse(EthernetClient * client) 
+{
   unsigned long endTime = millis() + 10000;
   while (!client->available()) {
     delay(1);

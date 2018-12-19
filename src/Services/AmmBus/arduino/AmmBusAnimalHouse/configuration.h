@@ -34,6 +34,9 @@ EthernetServer server(80);
 EthernetClient client;
 
 
+#define minimumTemperature 10 
+#define maximumTemperature 25
+
 //DHT11 -----------------------------------------------------
 //      VCC: 5V or 3V
 //      GND: GND

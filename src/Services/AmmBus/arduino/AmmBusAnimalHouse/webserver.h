@@ -5,6 +5,12 @@
 #include <Ethernet.h>
 
 
-int ServeWebServerClient(EthernetClient * client, int temperature , int humidity, int tooHotCounter , int tooColdCounter );
+int ServeWebServerClient(
+                         EthernetClient * client,
+                         int temperature,
+                         int humidity,
+                         int tooHotCounter,
+                         int tooColdCounter
+                        );
 
 #endif
