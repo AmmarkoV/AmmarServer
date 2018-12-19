@@ -1,5 +1,5 @@
 #include "webserver.h"
-
+#include "ammBus.h"
  
 char onStr[7]={"?X=on"};
 char offStr[7]={"?X=off"}; 
@@ -23,9 +23,10 @@ int ServeHTTPHeader(
 
 int ServeWebServerClient(EthernetClient * client , int temperature , int humidity , int tooHotCounter , int tooColdCounter )
 {
-   char readString[102]; //string for fetching data from address
+   #define MAX_GET_STRING 64
+   char readString[MAX_GET_STRING+1]; //string for fetching data from address
    char * ptr=readString;
-   char * ptrLimit=readString+100;
+   char * ptrLimit=readString+MAX_GET_STRING;
   
   //listen for incoming clients
   if (client) 
@@ -33,7 +34,7 @@ int ServeWebServerClient(EthernetClient * client , int temperature , int humidit
     Serial.println("new client");
  
     char c = 1;
-    while (c!=0 && ptr<ptrLimit)
+    while (c!=0 && c!=10 && c!=13 && ptr<ptrLimit)
      {
         c = client->read();
         *ptr=c;
@@ -63,7 +64,10 @@ int ServeWebServerClient(EthernetClient * client , int temperature , int humidit
           client->println("<!DOCTYPE HTML>");
           client->println("<html>"); 
           
-          client->print("<h4>AnimalHouse");   
+          client->print("<h4>");   
+          client->print(systemName);   
+          client->print(" ");   
+          client->print(systemVersion);   
           client->print("</h4>");
    
             //client->println("UnixTime:"); 

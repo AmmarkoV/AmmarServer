@@ -7,8 +7,8 @@
 #define RECENT_UNIX_TIME 1534944924
 #define  NUMBER_OF_SWITCHES 6
 
-static const char * systemName =    { "AmmBus Animal" };
-static const char * systemVersion = { "     v0.33      " };
+static const char * systemName =    { "AmmBus AnimalCenter" };
+static const char * systemVersion = { "v0.33" };
 static const char * valveLabels[] =
 {
     "Mikri Skala    ",
@@ -49,6 +49,7 @@ struct ammBusState
  uint32_t valveStoppedTimestamp[NUMBER_OF_SWITCHES];
  
  uint32_t lastBootTime;
+ uint32_t lastEmail;
 
  byte errorDetected;
  byte idleTicks;

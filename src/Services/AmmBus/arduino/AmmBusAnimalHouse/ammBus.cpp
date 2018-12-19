@@ -22,7 +22,8 @@ void initializeAmmBusState(struct ammBusState * ambs)
  ambs->armedTimes = 0;
  ambs->valvesTimes = ambs->valvesTimesNormal;
   
-
+ ambs->lastEmail=0;
+ 
  ambs->lastBootTime=0; 
  ambs->errorDetected=0;
  ambs->idleTicks=0;

@@ -21,13 +21,35 @@ IPAddress gateway(192, 168, 1, 1);
 // 3. Unless you have a very advanced setup this will always be this value.
 IPAddress subnet(255, 255, 255, 0);
 
-char mailServer[] = "email.yourdomain.com";
+char mailServer[] = "smtp.ics.forth.gr";
+byte sendMailEveryXMinutes=120;
 
 // Initialize the Ethernet server library
 // with the IP address and port you want to use
 // (port 80 is default for HTTP):
 EthernetServer server(80);
 EthernetClient client;
+
+
+//DHT11 -----------------------------------------------------
+//      VCC: 5V or 3V
+//      GND: GND
+//      DATA: 9
+#include "SimpleDHT.h"
+int pinDHT11 = 9;
+SimpleDHT11 dht11; 
+
+byte dataDHT11[40] = {0};
+uint32_t lastDHT11SampleTime=0;
+//-----------------------------------------------------------
+
+
+//Clock -----------------------------------------------------
+#include "DS3231.h"
+DS3231 clock;
+RTCDateTime dt;
+//-----------------------------------------------------------
+
 
 
 #endif
