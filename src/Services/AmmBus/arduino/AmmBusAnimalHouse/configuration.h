@@ -21,6 +21,9 @@ IPAddress gateway(192, 168, 1, 1);
 // 3. Unless you have a very advanced setup this will always be this value.
 IPAddress subnet(255, 255, 255, 0);
 
+char fromMail[] = "AmmBus";
+char toMail[]   = "ammarkov@ics.forth.gr";
+
 char mailServer[] = "smtp.ics.forth.gr";
 byte sendMailEveryXMinutes=120;
 

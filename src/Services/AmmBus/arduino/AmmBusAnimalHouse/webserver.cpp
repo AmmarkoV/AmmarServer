@@ -31,7 +31,7 @@ int ServeWebServerClient(EthernetClient * client , int temperature , int humidit
   //listen for incoming clients
   if (client) 
   {
-    Serial.println("new client");
+    Serial.println("Client");
  
     char c = 1;
     while (c!=0 && c!=10 && c!=13 && ptr<ptrLimit)

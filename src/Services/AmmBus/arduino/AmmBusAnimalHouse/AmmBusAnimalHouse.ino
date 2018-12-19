@@ -133,8 +133,8 @@ void loop()
                        &client,
                        dt.unixtime,
                        mailServer,
-                       "arduino",
-                       "ammarkov@ics.forth.gr"
+                       fromMail,
+                       toMail
                       ) 
             ) 
             {
