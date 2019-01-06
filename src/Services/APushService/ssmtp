@@ -1,0 +1,16 @@
+sudo apt-get update
+sudo apt-get install ssmtp
+
+sudo nano /etc/ssmtp/ssmtp.conf
+
+
+root=USERHERE@gmail.com
+mailhub=smtp.gmail.com:465
+FromLineOverride=YES
+AuthUser=USERHERE@gmail.com
+AuthPass=PASSWORDHERE
+UseTLS=YES
+
+
+
+printf "Subject: Test\n\nTesting...1...2...3" | ssmtp myusername@gmail.com
