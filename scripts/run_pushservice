@@ -1,0 +1,16 @@
+#!/bin/bash
+
+STARTDIR=`pwd`
+#Switch to this directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+cd ..
+
+until false; do
+    src/Services/APushService/apushservice -p 8087 $@ 
+    echo "Server 'APushService' stopped with exit code $?.  Respawning.." >&2
+done
+  
+cd "$STARTDIR"
+
+exit 0

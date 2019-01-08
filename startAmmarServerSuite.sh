@@ -13,6 +13,7 @@ scripts/run_mytube&
 scripts/run_myblog&
 scripts/run_geoposshare&
 scripts/run_mysearch&
+scripts/run_pushservice&
  
 exit 0
 

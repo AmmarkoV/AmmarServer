@@ -23,85 +23,64 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include "device.h"
+
 #include "../../AmmServerlib/AmmServerlib.h"
 
-#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+#define DEFAULT_BINDING_PORT 8087  // <--- Change this to 80 if you want to bind to the default http port..!
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 //The decleration of some dynamic content resources..
-struct AmmServer_Instance  * default_server=0;
-struct AmmServer_RequestOverride_Context GET_override={{0}};
-
-struct AmmServer_RH_Context random_chars={0};
-struct AmmServer_RH_Context stats={0};
+struct AmmServer_Instance  * server=0;
+struct AmmServer_RH_Context pushDataCtx={0};
+struct AmmServer_RH_Context indexDataCtx={0};
 
 
-//This function prepares the content of  stats context , ( stats.content )
-void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * index_data_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
-
-  fprintf(stderr,"Trying to write dynamic request to %p , max size %lu \n",rqst->content , rqst->MAXcontentSize);
-
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><head><title>Dynamic Content Enabled</title><meta http-equiv=\"refresh\" content=\"1\"></head>\
-            <body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>\
-            The string you see is updated dynamically every time you get a fresh copy of this file!<br><br>\n\
-            To include your own content see the <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/main.c#L46\">\
-            Dynamic content code label in ammarserver main.c</a><br>\n\
-            If you dont need dynamic content at all consider disabling it from ammServ.conf or by setting DYNAMIC_CONTENT_RESOURCE_MAPPING_ENABLED=0; in \
-            <a href=\"https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/file_caching.c\">file_caching.c</a> and recompiling.!</body></html>",
-           tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
-
+  strncpy(rqst->content,"<html><head><title>APushService</title></head><body>",rqst->MAXcontentSize);
+  strcat(rqst->content,"<center><h2>You have reached APushService</h2><br>\
+  Get the source code <a href=\"https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/APushService\">here</a>\
+  <br></center></body></html>");
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * prepare_random_content_callback(struct AmmServer_DynamicRequest  * rqst)
+void * push_data_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+   char fileRequested[129]={0};
+  if ( _GETcpy(rqst,"i",fileRequested,128) )
+              {
+                fprintf(stderr,"Requested file %s \n",fileRequested);
+              }
+
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
 
-  char hex[16+1]={0};
-  unsigned int i=0;
-  for (i=0; i<1024; i++)
-    {
-        snprintf(hex,16, "%x ", rand()%256 );
-        strcat(rqst->content,hex);
-    }
-
-  strcat(rqst->content,"</body></html>");
+  strcat(rqst->content,"OK</body></html>");
 
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
 
-//This function could alter the content of the URI requested and then return 1
-void request_override_callback(void * request)
-{
-  //struct AmmServer_RequestOverride_Context * rqstContext = (struct AmmServer_RequestOverride_Context *) request;
-  return;
-}
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
-  AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&push_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&indexDataCtx,"/index.html",4096,0,&index_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
-    AmmServer_RemoveResourceHandler(default_server,&stats,1);
+    AmmServer_RemoveResourceHandler(server,&pushDataCtx,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 
@@ -122,7 +101,7 @@ int main(int argc, char *argv[])
     unsigned int port=DEFAULT_BINDING_PORT;
 
     //Kick start AmmarServer , bind the ports , create the threads and get things going..!
-    default_server = AmmServer_StartWithArgs(
+    server = AmmServer_StartWithArgs(
                                              "APushService",
                                               argc,argv , //The internal server will use the arguments to change settings
                                               //If you don't want this look at the AmmServer_Start call
@@ -134,13 +113,13 @@ int main(int argc, char *argv[])
                                               );
 
 
-    if (!default_server) { AmmServer_Error("Could not start server , shutting down everything.."); exit(1); }
+    if (!server) { AmmServer_Error("Could not start server , shutting down everything.."); exit(1); }
 
     //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
 
-         while ( (AmmServer_Running(default_server))  )
+         while ( (AmmServer_Running(server))  )
            {
              //Main thread should just sleep and let the background threads do the hard work..!
              //In other applications the programmer could use the main thread to do anything he likes..
@@ -154,7 +133,7 @@ int main(int argc, char *argv[])
     close_dynamic_content();
 
     //Stop the server and clean state
-    AmmServer_Stop(default_server);
+    AmmServer_Stop(server);
     AmmServer_Warning("Ammar Server stopped\n");
     return 0;
 }
