@@ -53,16 +53,28 @@ void * index_data_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * push_data_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-   char fileRequested[129]={0};
-  if ( _GETcpy(rqst,"i",fileRequested,128) )
+  char deviceID[129]={0};
+  if ( _GETcpy(rqst,"i",deviceID,128) )
               {
-                fprintf(stderr,"Requested file %s \n",fileRequested);
+                fprintf(stderr,"Requested file %s \n",deviceID);
+              }
+
+  char devicePublicKey[32];
+  if ( _GETcpy(rqst,"k",devicePublicKey,128) )
+              {
+                fprintf(stderr,"Requested file %s \n",devicePublicKey);
+              }
+
+
+  char data[128];
+  if ( _GETcpy(rqst,"d",data,128) )
+              {
+                fprintf(stderr,"Requested file %s \n",data);
               }
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strncpy(rqst->content,"<html><head><title>Random Number Generator</title><meta http-equiv=\"refresh\" content=\"1\"></head><body>",rqst->MAXcontentSize);
+  strncpy(rqst->content,"<html><body>OK</body></html>",rqst->MAXcontentSize);
 
-  strcat(rqst->content,"OK</body></html>");
 
   rqst->contentSize=strlen(rqst->content);
   return 0;
