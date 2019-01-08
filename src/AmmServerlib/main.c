@@ -898,6 +898,15 @@ struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_Me
    return mh;
 }
 
+int filterStringForShellInjection(char * buffer , unsigned int bufferSize)
+{
+  AmmServer_Warning("filterStringForSystemInjection not implemented ( %s , %u ) ",buffer,bufferSize);
+
+  //Replacing all instances of ' with '\'' then enclosing the whole string in single quotes (') is one safe way. This works even with embedded newlines.
+  return 0;
+}
+
+
 int filterStringForHtmlInjection(char * buffer , unsigned int bufferSize)
 {
   AmmServer_Warning("filterStringForHtmlInjection not implemented ( %s , %u ) ",buffer,bufferSize);

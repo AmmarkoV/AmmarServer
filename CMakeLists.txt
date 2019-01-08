@@ -75,11 +75,14 @@ ENDIF (USE_AMMMESSAGES)
     add_subdirectory (src/Services/Social)
     add_subdirectory (src/Services/HabChan) 
     add_subdirectory (src/Services/WebFramebuffer)
-    add_subdirectory (src/Services/SimpleTemplate) 
     add_subdirectory (src/Services/V4L2ToHTTP)
 
+    #Parts of the AmmBus project..
     add_subdirectory (src/Services/AmmBus)
-
+    add_subdirectory (src/Services/APushService)
+    
+    #Add the template application for anyone that wants to see how this thing works
+    add_subdirectory (src/Services/SimpleTemplate) 
     
     IF( USE_XSERVER ) 
       #XWD is listed here maybe it should be inside remote desktop

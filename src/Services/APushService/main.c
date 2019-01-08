@@ -35,6 +35,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * server=0;
 struct AmmServer_RH_Context pushDataCtx={0};
+struct AmmServer_RH_Context alarmDataCtx={0};
 struct AmmServer_RH_Context indexDataCtx={0};
 
 
@@ -42,9 +43,106 @@ struct AmmServer_RH_Context indexDataCtx={0};
 void * index_data_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   strncpy(rqst->content,"<html><head><title>APushService</title></head><body>",rqst->MAXcontentSize);
-  strcat(rqst->content,"<center><h2>You have reached APushService</h2><br>\
+  strcat(rqst->content,"<center><br><br><h2>You have reached APushService</h2><br>\
   Get the source code <a href=\"https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/APushService\">here</a>\
   <br></center></body></html>");
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+int logTemperature(
+                   const char * filename,
+                   const char * deviceID,
+                   const char * temperature,
+                   const char * humidity
+                  )
+{
+ FILE * fp = fopen(filename,"a");
+ if (fp!=0)
+ {
+   fprintf(fp,"%s|%s|%s\n",deviceID,temperature,humidity);
+   fclose(fp);
+   return 1;
+ }
+ return 0;
+}
+
+
+int sendEmail(
+               const char * receipient,
+               const char * subject,
+               const char * message
+             )
+{
+  char messageBuffer[512]={0};
+  char result[512]={0};
+
+  snprintf(messageBuffer,512,"printf \"Subject:%s\n\n%s\" | ssmtp %s",subject,message,receipient);
+  if (filterStringForShellInjection(messageBuffer,512))
+  {
+   if ( AmmServer_ExecuteCommandLine(messageBuffer,result,512) )
+   {
+     fprintf(stderr,"Successfully sent message to %s..\n",receipient);
+     return 1;
+   }
+  }
+
+
+ AmmServer_Error("Failed to send message to %s..\n",receipient);
+ return 0;
+}
+
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * push_alarm_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  int haveDeviceID=0;
+  char deviceID[129]={0};
+  if ( _GETcpy(rqst,"i",deviceID,128) )
+              {
+                fprintf(stderr,"Device %s alarm!\n",deviceID);
+                haveDeviceID=1;
+              }
+
+  int haveDeviceKey=0;
+  char devicePublicKey[32]={0};
+  if ( _GETcpy(rqst,"k",devicePublicKey,128) )
+              {
+                haveDeviceKey=1;
+              }
+
+
+
+  char data[128]={0};
+  if ( _GETcpy(rqst,"data",data,128) )
+              {
+                fprintf(stderr,"Data: %s \n",data);
+              }
+
+  if (
+       (haveDeviceID)&&
+       (haveDeviceKey)
+     )
+     {
+      if (isDeviceAutheticated(deviceID,devicePublicKey))
+       {
+          if (
+              sendEmail(
+                          "ammarkov@gmail.com",
+                           "APushService Alert",
+                          data
+                        )
+              )
+              {
+                strncpy(rqst->content,"<html><body>OK</body></html>",rqst->MAXcontentSize);
+                rqst->contentSize=strlen(rqst->content);
+                return 0;
+              }
+       }
+     }
+
+  //FAILED state..
+  strncpy(rqst->content,"<html><body>FAILED</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
@@ -53,39 +151,71 @@ void * index_data_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * push_data_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+  int haveDeviceID=0;
   char deviceID[129]={0};
   if ( _GETcpy(rqst,"i",deviceID,128) )
               {
-                fprintf(stderr,"Requested file %s \n",deviceID);
+                fprintf(stderr,"Device %s connected\n",deviceID);
+                haveDeviceID=1;
               }
 
-  char devicePublicKey[32];
+  int haveDeviceKey=0;
+  char devicePublicKey[32]={0};
   if ( _GETcpy(rqst,"k",devicePublicKey,128) )
               {
-                fprintf(stderr,"Requested file %s \n",devicePublicKey);
+                haveDeviceKey=1;
               }
 
 
-  char data[128];
-  if ( _GETcpy(rqst,"d",data,128) )
+  char temperature[128]={0};
+  if ( _GETcpy(rqst,"temperature",temperature,128) )
               {
-                fprintf(stderr,"Requested file %s \n",data);
+                fprintf(stderr,"Temperature %s \n",temperature);
               }
 
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strncpy(rqst->content,"<html><body>OK</body></html>",rqst->MAXcontentSize);
+
+  char humidity[128]={0};
+  if ( _GETcpy(rqst,"humidity",humidity,128) )
+              {
+                fprintf(stderr,"Humidity %s \n",humidity);
+              }
 
 
+  if (
+       (haveDeviceID)&&
+       (haveDeviceKey)
+     )
+     {
+      if (isDeviceAutheticated(deviceID,devicePublicKey))
+       {
+        if (
+            logTemperature(
+                           "temperature.log",
+                           deviceID,
+                           temperature,
+                           humidity
+                          )
+           )
+         {
+          strncpy(rqst->content,"<html><body>OK</body></html>",rqst->MAXcontentSize);
+          rqst->contentSize=strlen(rqst->content);
+          return 0;
+         }
+       }
+     }
+
+  //FAILED state..
+  strncpy(rqst->content,"<html><body>FAILED</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
-
 
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
   AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&push_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&alarmDataCtx,"/alarm.html",4096,0,&push_alarm_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&indexDataCtx,"/index.html",4096,0,&index_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
@@ -93,6 +223,8 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(server,&pushDataCtx,1);
+    AmmServer_RemoveResourceHandler(server,&alarmDataCtx,1);
+    AmmServer_RemoveResourceHandler(server,&indexDataCtx,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
 

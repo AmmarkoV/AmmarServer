@@ -14,3 +14,9 @@ int markDeviceIDAsUpdated(deviceID * devID)
 
    return 0;
 }
+
+
+int isDeviceAutheticated(const char * deviceID, const char * devicePublicKey)
+{
+  return 1;
+}

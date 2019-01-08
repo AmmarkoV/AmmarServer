@@ -20,6 +20,7 @@ struct deviceObject
   char deviceID[32];
   char devicePrivateKey[32];
   char devicePublicKey[32];
+  char email[64];
   struct informationList info;
 
 };
@@ -31,6 +32,9 @@ struct deviceList
 };
 
 int getDeviceID(const char * serialNumber,deviceID * devID);
+
+int isDeviceAutheticated(const char * deviceID, const char * devicePublicKey);
+
 int markDeviceIDAsUpdated(deviceID * devID);
 
 #endif // DEVICE_H_INCLUDED

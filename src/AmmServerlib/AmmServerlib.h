@@ -1011,6 +1011,7 @@ struct AmmServer_MemoryHandler *  AmmServer_ReadFileToMemoryHandler(const char *
 struct AmmServer_MemoryHandler *  AmmServer_CopyMemoryHandler(struct AmmServer_MemoryHandler * inpt);
 
 
+int filterStringForShellInjection(char * buffer , unsigned int bufferSize);
 int filterStringForHtmlInjection(char * buffer , unsigned int bufferSize);
 
 /**

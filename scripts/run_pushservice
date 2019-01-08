@@ -9,6 +9,7 @@ cd ..
 until false; do
     src/Services/APushService/apushservice -p 8087 $@ 
     echo "Server 'APushService' stopped with exit code $?.  Respawning.." >&2
+    sleep 0.1
 done
   
 cd "$STARTDIR"
