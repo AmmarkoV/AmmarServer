@@ -1,6 +1,13 @@
 #include "device.h"
 
 
+int readDeviceAuthorizationList(const char * filename)
+{
+
+
+  return 0;
+}
+
 int getDeviceID(const char * serialNumber,deviceID * devID)
 {
 

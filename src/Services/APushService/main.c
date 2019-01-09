@@ -263,6 +263,11 @@ int main(int argc, char *argv[])
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
 
+    if (!readDeviceAuthorizationList("authorization.list"))
+    {
+      AmmServer_Error("Could not access authorization list..\n");
+    }
+
          while ( (AmmServer_Running(server))  )
            {
              //Main thread should just sleep and let the background threads do the hard work..!

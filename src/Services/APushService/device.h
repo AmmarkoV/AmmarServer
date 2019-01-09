@@ -28,8 +28,11 @@ struct deviceObject
 struct deviceList
 {
    unsigned int numberOfDevices;
-   struct deviceObject device[MAXIMUM_NUMBER_OF_DEVICES ];
+   struct deviceObject device[MAXIMUM_NUMBER_OF_DEVICES];
 };
+
+
+int readDeviceAuthorizationList(const char * filename);
 
 int getDeviceID(const char * serialNumber,deviceID * devID);
 
