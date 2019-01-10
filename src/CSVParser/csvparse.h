@@ -14,12 +14,36 @@
     unsigned int fileSize;
     unsigned int linesParsed;
 
+    unsigned int numberOfFields;
+
+    unsigned int fieldIDOflastDelimiter;
+    unsigned int lastDelimiterSetToNull;
+    char previousDelimiterValue;
+    char * lastFieldResult;
+    int haveAFieldResult;
+
+    char * header;
+    size_t headerLength;
+
+
 
     char * lastLine;
+    size_t lastLineLength;
 
     char * filename;
     unsigned int progress;
+
+    char * delimiters;
+    unsigned int numberOfDelimiters;
  };
 
+
+
+struct CSVParser *  csvParserCreate( const char * delimiter , unsigned int numberOfDelimiters);
+int csvParser_StartParsingFile(struct CSVParser * csv,const char * filename);
+int csvParser_StopParsingFile(struct CSVParser * csv);
+unsigned int csvParser_GetNumberOfFields(struct CSVParser * csv);
+char * csvParser_GetField(struct CSVParser * csv,unsigned int fieldNumber);
+int csvParser_ParseNextLine(struct CSVParser * csv);
 
 #endif // HASHMAP_H_INCLUDED

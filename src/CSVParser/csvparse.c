@@ -19,57 +19,128 @@
 
 struct CSVParser *  csvParserCreate( const char * delimiter , unsigned int numberOfDelimiters)
 {
-    //linesParsed
+    struct CSVParser * newParser = malloc(sizeof(struct CSVParser));
+    if (newParser!=0)
+    {
+      memset(newParser,0,sizeof(struct CSVParser));
+      return newParser;
+    }
    return 0;
 }
 
 int csvParser_StartParsingFile(struct CSVParser * csv,const char * filename)
 {
-    if (csv==0) { fprintf(stderr,"HashMap: csvParserStartParsingFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
-    return 0;
-    /*
-    FILE * pFile;
-    pFile = fopen (filename,"rb");
-    if (pFile!=0)
+    if (csv==0) { fprintf(stderr,"csvParser: csvParserStartParsingFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
+
+    csv->handle = fopen(filename,"r");
+    if (csv->handle!=0)
     {
-      //TODO IMPLEMENT!
-     fclose (pFile);
-     return 0;
+     return 1;
     }
-    */
 
-
-  csv->handle = fopen(filename,"r");
-  if (csv->handle!=0)
-  {
-    return 1;
-  }
+ return 0;
+}
 
 
 
+int csvParser_StopParsingFile(struct CSVParser * csv)
+{
+    if (csv==0) { return 0; }
+    if (csv->lastLine!=0) { free(csv->lastLine); csv->lastLine=0; }
+    if (csv->handle!=0)
+    {
+       fclose(csv->handle);
+    }
 
-
-
-
+    free(csv);
     return 0;
 }
 
+
+unsigned int csvParser_GetNumberOfFields(struct CSVParser * csv)
+{
+   if (csv==0) { return 0; }
+   return csv->numberOfFields;
+}
+
+
+char * csvParser_FindAnyDelimiter(char * line,const char * delimiterString,unsigned int numberOfDelimiters)
+{
+  char * ptr = line;
+  while (*ptr!=0)
+  {
+    unsigned int i=0;
+    for (i=0; i<numberOfDelimiters; i++)
+    {
+      if (delimiterString[i]==*ptr)
+      {
+        return ptr;
+      }
+    }
+    ++ptr;
+  }
+
+  return 0;
+}
+
+
+char * csvParser_GetField(struct CSVParser * csv,unsigned int fieldNumber)
+{
+  if (csv->handle!=0)
+  {
+    if (csv->lastLine!=0)
+    {
+      if ( (csv->haveAFieldResult) && (fieldNumber == csv->fieldIDOflastDelimiter + 1) )
+      { //We are asking for the same result..!
+        return csv->lastFieldResult;
+      } else
+      if (fieldNumber == csv->fieldIDOflastDelimiter + 1)
+      { //We are having a sequential access pattern..!
+
+      } else
+      { //Do whole work from scratch..
+
+      }
+
+
+
+      unsigned int i=0;
+
+
+      for (i=0; i<fieldNumber-csv->fieldIDOflastDelimiter; i++)
+      {
+          char * delimiterLocation = csvParser_FindAnyDelimiter(csv->lastLine,csv->delimiters,csv->numberOfDelimiters);
+          if (delimiterLocation!=0)
+          {
+
+          }
+      }
+
+
+      if (fieldNumber==0)
+      {
+        return csv->lastLine;
+      }
+
+      ++csv->linesParsed;
+      csv->lastLine=0;
+      return csv->lastLine;
+    }
+  }
+
+  csv->haveAFieldResult=0;
+  return 0;
+}
 
 
 int csvParser_ParseNextLine(struct CSVParser * csv)
 {
   if (csv->handle!=0)
   {
-    if (csv->lastLine!=0) { free(csv->lastLine); csv->lastLine=0; }
-
-    char str[512];
-    char * line = NULL;
-    size_t len = 0;
     ssize_t read;
-    if ((read = getline(&line, &len, csv->handle)) != -1)
+    if ((read = getline(&csv->lastLine, &csv->lastLineLength, csv->handle)) != -1)
     {
       ++csv->linesParsed;
-      csv->lastLine=0;
       return 1;
     }
   }

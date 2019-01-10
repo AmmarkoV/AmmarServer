@@ -41,6 +41,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="csvparse.h" />
+		<Unit filename="testCSV.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<envvars />
 			<code_completion />

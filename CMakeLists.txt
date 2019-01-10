@@ -54,6 +54,7 @@ ENDIF( COMPILE_FOR_ARM )
     add_subdirectory (src/UserAccounts)
     add_subdirectory (src/Hashmap)
     add_subdirectory (src/InputParser)
+    add_subdirectory (src/CSVParser) 
 
 IF (USE_AMMMESSAGES)
     add_subdirectory (src/AmmMessages)
