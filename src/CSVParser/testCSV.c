@@ -14,13 +14,12 @@ int main()
     {
        while (csvParser_ParseNextLine(csvParser))
        {
-         fprintf(stderr,"Line %u : ",lineCounter);
          unsigned int i;
          for (i=0; i<csvParser_GetNumberOfFields(csvParser); i++)
          {
            if (csvParser_GetField(csvParser,i))
            {
-             fprintf(stderr,"Field %u : %s",i,csvParser_GetField(csvParser,i));
+             fprintf(stderr,"!!LINE %u/FIELD %u : %s\n",lineCounter,i,csvParser_GetField(csvParser,i));
            } else
            { fprintf(stderr,"Unable to get field %u for line %u\n",i,lineCounter); }
          }
