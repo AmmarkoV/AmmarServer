@@ -68,9 +68,9 @@ char * csvParser_FindAnyDelimiter(char * line,const char * delimiterString,unsig
 
   while (*ptr!=0)
   {
-    fprintf(stderr,"character %u is %c\n",count,*ptr);
+    fprintf(stderr,"character %u is %c(%u)\n",count,*ptr,*ptr);
 
-    if (*ptr==0)
+    if ((*ptr==0)||(*ptr==10)||(*ptr==13))
     {
       return ptr;
     }
@@ -97,21 +97,24 @@ char * csvParser_FindAnyDelimiter(char * line,const char * delimiterString,unsig
 unsigned int csvParser_CountNumberOfFields(struct CSVParser * csv)
 {
    if (csv==0) { return 0; }
+   csv->numberOfFields=0;
    if (csv->lastLine==0) { return 0; }
 
    fprintf(stderr,"csvParser_CountNumberOfFields\n");
-   csv->numberOfFields=0;
    char * r = csv->lastLine;
+   ++csv->numberOfFields;
    fprintf(stderr,"r=%s\n",r);
    while ( (r!=0)&&(*r!=0))
     {
       r = csvParser_FindAnyDelimiter(r,csv->delimiters,csv->numberOfDelimiters);
-      if (*r!=0) { ++csv->numberOfFields; }
-      if (r!=0) { ++r; }
-      if (*(r+1)==0) {break;}
-
+      if (r!=0)
+      {
+       ++csv->numberOfFields;
+       ++r;
+      }
     }
 
+   fprintf(stderr,"Number of fields %u\n",csv->numberOfFields);
    csv->numberOfDelimitersCounted=1;
    return csv->numberOfFields;
 }
