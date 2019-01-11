@@ -30,33 +30,6 @@ struct CSVParser *  csvParserCreate( const char * delimiter , unsigned int numbe
    return 0;
 }
 
-int csvParser_StartParsingFile(struct CSVParser * csv,const char * filename)
-{
-    if (csv==0) { fprintf(stderr,"csvParser: csvParserStartParsingFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
-
-    csv->handle = fopen(filename,"r");
-    if (csv->handle!=0)
-    {
-     return 1;
-    }
-
- return 0;
-}
-
-
-
-int csvParser_StopParsingFile(struct CSVParser * csv)
-{
-    if (csv==0) { return 0; }
-    if (csv->lastLine!=0) { free(csv->lastLine); csv->lastLine=0; }
-    if (csv->handle!=0)
-    {
-       fclose(csv->handle);
-    }
-
-    free(csv);
-    return 0;
-}
 
 char * csvParser_FindAnyDelimiter(char * line,const char * delimiterString,unsigned int numberOfDelimiters)
 {
@@ -135,19 +108,6 @@ unsigned int csvParser_GetNumberOfFields(struct CSVParser * csv)
 
 
 
-int csvParser_ParseNextLine(struct CSVParser * csv)
-{
-  if (csv->handle!=0)
-  {
-    ssize_t read;
-    if ((read = getline(&csv->lastLine, &csv->lastLineLength, csv->handle)) != -1)
-    {
-      ++csv->linesParsed;
-      return 1;
-    }
-  }
-  return 0;
-}
 
 
 char * csvParser_GetField(struct CSVParser * csv,unsigned int fieldNumber)
@@ -206,3 +166,46 @@ char * csvParser_GetField(struct CSVParser * csv,unsigned int fieldNumber)
 }
 
 
+
+int csvParser_ParseNextLine(struct CSVParser * csv)
+{
+  if (csv->handle!=0)
+  {
+    ssize_t read;
+    if ((read = getline(&csv->lastLine, &csv->lastLineLength, csv->handle)) != -1)
+    {
+      ++csv->linesParsed;
+      return 1;
+    }
+  }
+  return 0;
+}
+
+
+int csvParser_StartParsingFile(struct CSVParser * csv,const char * filename)
+{
+    if (csv==0) { fprintf(stderr,"csvParser: csvParserStartParsingFile cannot load file `%s` without an allocated hashmap structure \n",filename); return 0; }
+
+    csv->handle = fopen(filename,"r");
+    if (csv->handle!=0)
+    {
+     return 1;
+    }
+
+ return 0;
+}
+
+
+
+int csvParser_StopParsingFile(struct CSVParser * csv)
+{
+    if (csv==0) { return 0; }
+    if (csv->lastLine!=0) { free(csv->lastLine); csv->lastLine=0; }
+    if (csv->handle!=0)
+    {
+       fclose(csv->handle);
+    }
+
+    free(csv);
+    return 0;
+}
