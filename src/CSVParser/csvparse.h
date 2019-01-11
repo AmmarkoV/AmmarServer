@@ -18,6 +18,7 @@
 
     unsigned int fieldIDOflastDelimiter;
     unsigned int lastDelimiterSetToNull;
+    char * lastDelimiterSetToNullPtr;
     char previousDelimiterValue;
     char * lastFieldResult;
     int haveAFieldResult;
@@ -35,6 +36,7 @@
 
     char * delimiters;
     unsigned int numberOfDelimiters;
+    char numberOfDelimitersCounted;
  };
 
 

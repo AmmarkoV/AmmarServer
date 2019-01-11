@@ -23,6 +23,8 @@ struct CSVParser *  csvParserCreate( const char * delimiter , unsigned int numbe
     if (newParser!=0)
     {
       memset(newParser,0,sizeof(struct CSVParser));
+      newParser->delimiters=delimiter;
+      newParser->numberOfDelimiters=numberOfDelimiters;
       return newParser;
     }
    return 0;
@@ -56,27 +58,35 @@ int csvParser_StopParsingFile(struct CSVParser * csv)
     return 0;
 }
 
-
-unsigned int csvParser_GetNumberOfFields(struct CSVParser * csv)
-{
-   if (csv==0) { return 0; }
-   return csv->numberOfFields;
-}
-
-
 char * csvParser_FindAnyDelimiter(char * line,const char * delimiterString,unsigned int numberOfDelimiters)
 {
+  fprintf(stderr,"csvParser_FindAnyDelimiter\n");
+
+  if (line==0) { return 0; }
   char * ptr = line;
+  unsigned int i=0,count=0;
+
   while (*ptr!=0)
   {
-    unsigned int i=0;
-    for (i=0; i<numberOfDelimiters; i++)
+    fprintf(stderr,"character %u is %c\n",count,*ptr);
+
+    if (*ptr==0)
     {
-      if (delimiterString[i]==*ptr)
-      {
-        return ptr;
-      }
+      return ptr;
     }
+      else
+    {
+     for (i=0; i<numberOfDelimiters; i++)
+     {
+       //fprintf(stderr," comparing to %u delimiters\n",numberOfDelimiters);
+       if (delimiterString[i]==*ptr)
+       {
+        return ptr;
+       }
+     }
+    }
+
+    ++count;
     ++ptr;
   }
 
@@ -84,53 +94,44 @@ char * csvParser_FindAnyDelimiter(char * line,const char * delimiterString,unsig
 }
 
 
-char * csvParser_GetField(struct CSVParser * csv,unsigned int fieldNumber)
+unsigned int csvParser_CountNumberOfFields(struct CSVParser * csv)
 {
-  if (csv->handle!=0)
-  {
-    if (csv->lastLine!=0)
+   if (csv==0) { return 0; }
+   if (csv->lastLine==0) { return 0; }
+
+   fprintf(stderr,"csvParser_CountNumberOfFields\n");
+   csv->numberOfFields=0;
+   char * r = csv->lastLine;
+   fprintf(stderr,"r=%s\n",r);
+   while ( (r!=0)&&(*r!=0))
     {
-      if ( (csv->haveAFieldResult) && (fieldNumber == csv->fieldIDOflastDelimiter + 1) )
-      { //We are asking for the same result..!
-        return csv->lastFieldResult;
-      } else
-      if (fieldNumber == csv->fieldIDOflastDelimiter + 1)
-      { //We are having a sequential access pattern..!
+      r = csvParser_FindAnyDelimiter(r,csv->delimiters,csv->numberOfDelimiters);
+      if (*r!=0) { ++csv->numberOfFields; }
+      if (r!=0) { ++r; }
+      if (*(r+1)==0) {break;}
 
-      } else
-      { //Do whole work from scratch..
-
-      }
-
-
-
-      unsigned int i=0;
-
-
-      for (i=0; i<fieldNumber-csv->fieldIDOflastDelimiter; i++)
-      {
-          char * delimiterLocation = csvParser_FindAnyDelimiter(csv->lastLine,csv->delimiters,csv->numberOfDelimiters);
-          if (delimiterLocation!=0)
-          {
-
-          }
-      }
-
-
-      if (fieldNumber==0)
-      {
-        return csv->lastLine;
-      }
-
-      ++csv->linesParsed;
-      csv->lastLine=0;
-      return csv->lastLine;
     }
-  }
 
-  csv->haveAFieldResult=0;
+   csv->numberOfDelimitersCounted=1;
+   return csv->numberOfFields;
+}
+
+unsigned int csvParser_GetNumberOfFields(struct CSVParser * csv)
+{
+   if (csv==0) { return 0; }
+   if (csv->numberOfDelimitersCounted)
+    {
+      return csv->numberOfFields;
+    } else
+    {
+      if ( csvParser_CountNumberOfFields(csv) )
+      {
+       return csv->numberOfFields;
+      }
+    }
   return 0;
 }
+
 
 
 int csvParser_ParseNextLine(struct CSVParser * csv)
@@ -146,3 +147,60 @@ int csvParser_ParseNextLine(struct CSVParser * csv)
   }
   return 0;
 }
+
+
+char * csvParser_GetField(struct CSVParser * csv,unsigned int fieldNumber)
+{
+  if (csv->lastDelimiterSetToNull)
+  {
+    *csv->lastDelimiterSetToNullPtr = csv->previousDelimiterValue;
+    csv->lastDelimiterSetToNull=0;
+  }
+
+  fprintf(stderr,"csvParser_GetField(%s,field=%u)\n",csv->lastLine,fieldNumber);
+
+  if (csv->handle!=0)
+  {
+    if (csv->lastLine!=0)
+    {
+      if ( (csv->haveAFieldResult) && (fieldNumber == csv->fieldIDOflastDelimiter) )
+      { //We are asking for the same result..!
+        return csv->lastFieldResult;
+      } else
+      /*
+      if (fieldNumber == csv->fieldIDOflastDelimiter + 1)
+      { //We are having a sequential access pattern..!
+        char * nextDelimiter = csvParser_FindAnyDelimiter(csv->lastFieldResult,csv->delimiters,csv->numberOfDelimiters);
+        if (nextDelimiter!=0)
+        {
+
+        }
+      } else */
+      { //Do whole work from scratch..
+        unsigned int i=0;
+        char * startOfVariable = csv->lastLine;
+
+        for (i=0; i<fieldNumber; i++)
+        {
+          startOfVariable = csvParser_FindAnyDelimiter(startOfVariable,csv->delimiters,csv->numberOfDelimiters);
+          if (startOfVariable!=0) { startOfVariable+=1; }
+        }
+
+        char * endOfVariable = csvParser_FindAnyDelimiter(startOfVariable,csv->delimiters,csv->numberOfDelimiters);
+        csv->previousDelimiterValue = *endOfVariable;
+        csv->fieldIDOflastDelimiter = fieldNumber;
+        csv->haveAFieldResult=1;
+        csv->lastDelimiterSetToNull=1;
+        csv->lastDelimiterSetToNullPtr = endOfVariable;
+        csv->lastFieldResult = startOfVariable;
+        *endOfVariable=0;
+        return startOfVariable;
+      }
+    }
+  }
+
+  csv->haveAFieldResult=0;
+  return 0;
+}
+
+
