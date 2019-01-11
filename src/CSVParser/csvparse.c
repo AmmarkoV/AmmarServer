@@ -60,16 +60,14 @@ int csvParser_StopParsingFile(struct CSVParser * csv)
 
 char * csvParser_FindAnyDelimiter(char * line,const char * delimiterString,unsigned int numberOfDelimiters)
 {
-  fprintf(stderr,"csvParser_FindAnyDelimiter\n");
-
+  //fprintf(stderr,"csvParser_FindAnyDelimiter\n");
   if (line==0) { return 0; }
   char * ptr = line;
   unsigned int i=0,count=0;
 
   while (*ptr!=0)
   {
-    fprintf(stderr,"character %u is %c(%u)\n",count,*ptr,*ptr);
-
+    //fprintf(stderr,"character %u is %c(%u)\n",count,*ptr,*ptr);
     if ((*ptr==0)||(*ptr==10)||(*ptr==13))
     {
       return ptr;
@@ -101,7 +99,7 @@ unsigned int csvParser_CountNumberOfFields(struct CSVParser * csv)
    csv->numberOfDelimitersCounted=0;
    if (csv->lastLine==0) { return 0; }
 
-   fprintf(stderr,"csvParser_CountNumberOfFields\n");
+   //fprintf(stderr,"csvParser_CountNumberOfFields\n");
    char * r = csv->lastLine;
 
    while ( (r!=0)&&(*r!=0))
@@ -114,7 +112,7 @@ unsigned int csvParser_CountNumberOfFields(struct CSVParser * csv)
       }
     }
 
-   fprintf(stderr,"Number of fields %u\n",csv->numberOfFields);
+   //fprintf(stderr,"Number of fields %u\n",csv->numberOfFields);
    csv->numberOfDelimitersCounted=1;
    return csv->numberOfFields;
 }
@@ -154,7 +152,7 @@ int csvParser_ParseNextLine(struct CSVParser * csv)
 
 char * csvParser_GetField(struct CSVParser * csv,unsigned int fieldNumber)
 {
-  fprintf(stderr,"csvParser_GetField(%s,field=%u)\n",csv->lastLine,fieldNumber);
+  //fprintf(stderr,"csvParser_GetField(%s,field=%u)\n",csv->lastLine,fieldNumber);
 
   if (csv->handle!=0)
   {
