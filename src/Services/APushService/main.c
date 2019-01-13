@@ -91,7 +91,7 @@ int sendEmail(
   char result[1024]={0};
 
   snprintf(messageBuffer,1024,"printf \"Subject:%s\n\n%s\" | ssmtp %s",subject,message,receipient);
-  if (filterStringForShellInjection(messageBuffer,512))
+  if (1)//filterStringForShellInjection(messageBuffer,512))
   {
    if ( AmmServer_ExecuteCommandLine(messageBuffer,result,512) )
    {
