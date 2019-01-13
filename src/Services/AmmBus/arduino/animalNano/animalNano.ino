@@ -4,6 +4,8 @@
 #include <EtherCard.h>
 //cd ~/Arduino/libraries && git clone https://codeload.github.com/njh/EtherCard/zip/master
 
+
+char requestsPending=0;
 char request[64];
 byte Ethernet::buffer[ETHERNET_BUFFER];
 static long timer;
@@ -58,11 +60,9 @@ void initializeEthernetClient()
     Serial.println( "dnsLookup faild");
    }
 #else
-  Serial.println( "Using static ip"); 
+  Serial.println( "Using static target ip"); 
   // if website is a string containing an IP address instead of a domain name,
-  // then use it directly. Note: the string can not be in PROGMEM.
-  //char websiteIP[] = "139.91.185.16";
-  char websiteIP[] = "192.168.1.49";
+  // then use it directly. Note: the string can not be in PROGMEM. 
   ether.parseIp(ether.hisip, websiteIP);
 #endif
 
@@ -125,6 +125,8 @@ void readTemperature(int activateLED)
 
 void setup () 
 {
+ requestsPending=0;
+       
  Serial.begin(9600);
  Serial.println("\nInitializing\n");
  initializeEthernetClient();
@@ -141,10 +143,11 @@ void testTransmission()
      {
       timerTest=millis();
       setLED(1,0,1);
-      Serial.println("\n>>> TEST");
+       ++requestsPending;
+       Serial.println("\n>>> TEST");
        ether.hisport = hisPort;//to access local host 
        snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
-       ether.browseUrl(PSTR("/test.html"), request , website, requestResult);  
+       ether.browseUrl(PSTR("/test.html"), request , website, requestResult);   
        setLED(0,0,0);
      } else
      {
@@ -167,6 +170,7 @@ void loop ()
        if (millis() > timer + REQUEST_RATE_CRITICAL) 
         {
          timer = millis();
+         ++requestsPending;
          Serial.println("\n>>> REQ_CRITICAL");
          ether.hisport = hisPort;//to access local host  
          snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
@@ -178,6 +182,7 @@ void loop ()
      if (millis() > timer + REQUEST_RATE_NORMAL) 
        {
         timer = millis();
+        ++requestsPending;
         Serial.println("\n>>> REQ_NORMAL");
         ether.hisport = hisPort;//to access local host 
         snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity); 
@@ -210,7 +215,14 @@ void loop ()
                              testTransmission();
                             } 
   //-----------------------------------------------------------------------
-    
+
+
+  if (requestsPending)
+   {
+      Serial.println("Unable to send request..");
+      setLED(1,1,0);  
+      requestsPending=0;  
+   }
 }
 
 // called when the client request is complete
@@ -220,4 +232,5 @@ static void requestResult(byte status, word off, word len)
   Serial.print(millis() - timer);
   Serial.println(" ms");
   Serial.println((const char*) Ethernet::buffer + off);
+  if (requestsPending>0) { --requestsPending; }
 }

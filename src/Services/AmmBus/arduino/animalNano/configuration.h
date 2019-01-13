@@ -28,7 +28,8 @@ static byte subnet[] = { 255,255,255,0 };
 
 
 //SERVER CONFIGURATION -------------------
-static byte hisip[] = {192,168,1,49};// {139,91,185,16};
+char websiteIP[] = "139.91.185.16"; //"192.168.1.49";
+static byte hisip[] =  {139,91,185,16}; // {192,168,1,49};//
 #define hisPort 8087
 
 const char website[] PROGMEM = "ammar.gr";
