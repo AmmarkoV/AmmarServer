@@ -146,7 +146,7 @@ void testTransmission()
        ++requestsPending;
        Serial.println("\n>>> TEST");
        ether.hisport = hisPort;//to access local host 
-       snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
+       snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
        ether.browseUrl(PSTR("/test.html"), request , website, requestResult);   
        setLED(0,0,0);
      } else
@@ -173,7 +173,7 @@ void loop ()
          ++requestsPending;
          Serial.println("\n>>> REQ_CRITICAL");
          ether.hisport = hisPort;//to access local host  
-         snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
+         snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
          ether.browseUrl(PSTR("/alarm.html"),request, website, requestResult);   
         }  
     } 
@@ -185,7 +185,7 @@ void loop ()
         ++requestsPending;
         Serial.println("\n>>> REQ_NORMAL");
         ether.hisport = hisPort;//to access local host 
-        snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity); 
+        snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity); 
         ether.browseUrl(PSTR("/push.html"),request, website, requestResult); 
        } 
     }
