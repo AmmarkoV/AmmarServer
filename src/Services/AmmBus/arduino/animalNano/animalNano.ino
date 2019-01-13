@@ -2,25 +2,10 @@
 
 #include "configuration.h"
 #include <EtherCard.h>
-//https://codeload.github.com/njh/EtherCard/zip/master
+//cd ~/Arduino/libraries && git clone https://codeload.github.com/njh/EtherCard/zip/master
 
-#define REQUEST_RATE 20000 // milliseconds
-#define USE_DHCP 0
-
-const char serialNumber[] PROGMEM = "000001";
-
-
-// ethernet interface mac address
-static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x33 };
-static byte myip[] = { 192,168,1,179 };
-static byte gwip[] = { 192,168,1,20 };
-static byte dnsip[] = { 192,168,1,20 };
-static byte subnet[] = { 255,255,255,0 };
-static byte hisip[] = {192,168,1,49};// {139,91,185,16};
-#define hisPort 8087
-
-const char website[] PROGMEM = "ammar.gr";
-byte Ethernet::buffer[300];
+char request[64];
+byte Ethernet::buffer[ETHERNET_BUFFER];
 static long timer;
 static long timerTemp;
 static long timerLedOn;
@@ -63,7 +48,7 @@ void initializeEthernetClient()
  #endif
  
  
-#if 0
+#if USE_DNS
   Serial.println( "DNS Lookup"); 
   if(ether.dnsLookup (website, false))
    {
@@ -93,8 +78,47 @@ ether.printIp("GW IP: ", ether.gwip);
 ether.printIp("DNS IP: ", ether.dnsip);
 ether.printIp("SRV: ", ether.hisip);
 
-timer = - REQUEST_RATE; // start timing out right away
+timer = - REQUEST_RATE_NORMAL; // start timing out right away
   
+}
+
+
+
+ 
+void readTemperature(int activateLED)
+{
+  //DHT requires sampling at 1Hz
+  if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))  
+   {  
+    //Unable to read..
+    setLED(1,1,1); 
+   } 
+    else
+   { 
+    criticalTemperature = 0;
+    if (lowestAcceptableTemperature>temperature) 
+    {
+      if (activateLED) { setLED(0,0,1); } //BLUE  
+      criticalTemperature=1;
+    }
+     else
+    if (highestAcceptableTemperature<temperature)
+    {
+      if (activateLED) {  setLED(1,0,0); } //RED   
+      criticalTemperature=1; 
+    } else
+    {
+      if (activateLED) {  setLED(0,1,0); } //GREEN 
+    } 
+ 
+    Serial.print("Temperature:");
+    Serial.print(temperature);
+    Serial.print("oC\n");
+
+    Serial.print("Humidity:");
+    Serial.print(humidity);
+    Serial.print("%\n");
+  } 
 }
 
 
@@ -104,41 +128,11 @@ void setup ()
  Serial.begin(9600);
  Serial.println("\nInitializing\n");
  initializeEthernetClient();
+ delay(100);
+ readTemperature(0);
 }
 
 
-
- 
-void readTemperature(int activateLED)
-{
-  //DHT requires sampling at 1Hz
-  if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))  {  setLED(1,1,1); } 
-
-  criticalTemperature = 0;
-  if (lowestAcceptableTemperature>temperature) 
-  {
-    if (activateLED) { setLED(0,0,1); } //BLUE  
-    criticalTemperature=1;
-  }
-   else
-  if (highestAcceptableTemperature<temperature)
-  {
-    if (activateLED) {  setLED(1,0,0); } //RED   
-    criticalTemperature=1; 
-  } else
-  {
-    if (activateLED) {  setLED(0,1,0); } //GREEN 
-  } 
- 
-  Serial.print("Temperature:");
-  Serial.print(temperature);
-  Serial.print("oC\n");
-
-  Serial.print("Humidity:");
-  Serial.print(humidity);
-  Serial.print("%\n");
-   
-}
 
 
 void testTransmission()
@@ -149,7 +143,8 @@ void testTransmission()
       setLED(1,0,1);
       Serial.println("\n>>> TEST");
        ether.hisport = hisPort;//to access local host 
-       ether.browseUrl(PSTR("/test.html"), "?get=temp", website, requestResult);  
+       snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
+       ether.browseUrl(PSTR("/test.html"), request , website, requestResult);  
        setLED(0,0,0);
      } else
      {
@@ -161,34 +156,48 @@ void testTransmission()
 
 void loop () 
 {
+   //Keep ethernet working..
    ether.packetLoop(ether.packetReceive());
-   
-   if (millis() > timer + REQUEST_RATE) 
+
+   ///----------------------------------------------------------------------------------
+   //                         NOTIFY ABOUT TEMPERATURE READINGS
+   ///----------------------------------------------------------------------------------
+   if (criticalTemperature)
     {
-       timer = millis();
-       Serial.println("\n>>> REQ");
-       ether.hisport = hisPort;//to access local host 
-
-       char request[64];
-       snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
-       if (criticalTemperature) 
+       if (millis() > timer + REQUEST_RATE_CRITICAL) 
+        {
+         timer = millis();
+         Serial.println("\n>>> REQ_CRITICAL");
+         ether.hisport = hisPort;//to access local host  
+         snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
+         ether.browseUrl(PSTR("/alarm.html"),request, website, requestResult);   
+        }  
+    } 
+      else
+    {
+     if (millis() > timer + REQUEST_RATE_NORMAL) 
        {
-        ether.browseUrl(PSTR("/alarm.html"),request, website, requestResult);   
-       } else
-       {
-        ether.browseUrl(PSTR("/push.html"),request, website, requestResult);
-       }
-     }
+        timer = millis();
+        Serial.println("\n>>> REQ_NORMAL");
+        ether.hisport = hisPort;//to access local host 
+        snprintf(request,64,"?k=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity); 
+        ether.browseUrl(PSTR("/push.html"),request, website, requestResult); 
+       } 
+    }
+   ///----------------------------------------------------------------------------------
+      
 
-
-    if (millis() > timerTemp + 1000) 
+   //Read DHT11 Sensor -----------------------  
+    if (millis() > timerTemp + 1500) 
      {
       timerTemp = millis();
       timerLedOn=timerTemp;
       readTemperature(1); 
      }  
+   //-----------------------------------------
 
-     if (millis() > timerLedOn + 100) 
+   
+   if (millis() > timerLedOn + 100) 
      {
       setLED(0,0,0);  
      }

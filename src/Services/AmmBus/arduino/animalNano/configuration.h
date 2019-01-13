@@ -4,13 +4,39 @@
 
 #include <Arduino.h>
 
-  
+#define REQUEST_RATE_NORMAL 120000 // milliseconds
+#define REQUEST_RATE_CRITICAL 10000 // milliseconds
+#define USE_DHCP 0
+#define USE_DNS 0
+
+//ENCRYPTION -------------------
+const char serialNumber[] PROGMEM = "000001";
+//This is the default private key currently not used and has to be manually updated for each device .. 
+static byte privateKey[16] = {0x74,0x69,0x69,0x2D,0x30,0x33,0x74,0x69,0x69,0x2D,0x30,0x33,0x74,0x69,0x69,0x2D}; 
+//------------------------------
 
 
-//-----------------------------------------------------------     
+//ETHERNET CONFIGURATION -------------------
+#define ETHERNET_BUFFER 320 //bytes
+// ethernet interface mac address
+static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x33 };
+static byte myip[] = { 192,168,1,179 };
+static byte gwip[] = { 192,168,1,20 }; //ip route | grep default
+static byte dnsip[] = { 192,168,1,20 };
+static byte subnet[] = { 255,255,255,0 };
+//------------------------------
+
+
+//SERVER CONFIGURATION -------------------
+static byte hisip[] = {192,168,1,49};// {139,91,185,16};
+#define hisPort 8087
+
+const char website[] PROGMEM = "ammar.gr";
+//------------------------------
 
 
 
+   
 //DHT11 -----------------------------------------------------
 //      VCC: 5V or 3V
 //      GND: GND

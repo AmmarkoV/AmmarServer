@@ -36,6 +36,7 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 struct AmmServer_Instance  * server=0;
 struct AmmServer_RH_Context pushDataCtx={0};
 struct AmmServer_RH_Context alarmDataCtx={0};
+struct AmmServer_RH_Context testDataCtx={0};
 struct AmmServer_RH_Context indexDataCtx={0};
 
 
@@ -93,6 +94,31 @@ int sendEmail(
  return 0;
 }
 
+int getTemperatureAndHumidityFromRequest(struct AmmServer_DynamicRequest  * rqst,float * temperature , float * humidity)
+{
+  unsigned int receivedData=0;
+  char buffer[128]={0};
+  if ( _GETcpy(rqst,"tmp",buffer,128) ) { ++receivedData; *temperature=atof(buffer); }
+  if ( _GETcpy(rqst,"hum",buffer,128) ) { ++receivedData; *humidity=atof(buffer);    }
+
+  return (receivedData==2);
+}
+
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * test_data_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  AmmServer_Success("TEST callback is working..\n");
+
+  float temperature,humidity;
+  if ( getTemperatureAndHumidityFromRequest(rqst,&temperature,&humidity) )
+   {
+     fprintf(stderr,"Test Button Temperature: %0.2f , Humidity: %0.2f\n",temperature,humidity);
+   }
+
+  strncpy(rqst->content,"<html><body>OK</body></html>",rqst->MAXcontentSize);
+  rqst->contentSize=strlen(rqst->content);
+ return 0;
+}
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * push_alarm_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -119,19 +145,12 @@ void * push_alarm_callback(struct AmmServer_DynamicRequest  * rqst)
                 fprintf(stderr,"Data: %s \n",data);
               }
 
+   float temperature,humidity;
 
-  char temperature[128]={0};
-  if ( _GETcpy(rqst,"tmp",temperature,128) )
-              {
-                fprintf(stderr,"Temperature %s \n",temperature);
-              }
-
-
-  char humidity[128]={0};
-  if ( _GETcpy(rqst,"hum",humidity,128) )
-              {
-                fprintf(stderr,"Humidity %s \n",humidity);
-              }
+   if ( getTemperatureAndHumidityFromRequest(rqst,&temperature,&humidity) )
+   {
+     fprintf(stderr,"Emergency Temperature: %0.2f , Humidity: %0.2f\n",temperature,humidity);
+   }
 
 
   if (
@@ -231,6 +250,7 @@ void init_dynamic_content()
 {
   AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&push_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&alarmDataCtx,"/alarm.html",4096,0,&push_alarm_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&testDataCtx,"/test.html",4096,0,&test_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&indexDataCtx,"/index.html",4096,0,&index_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
