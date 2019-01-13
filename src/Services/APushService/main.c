@@ -119,6 +119,21 @@ void * push_alarm_callback(struct AmmServer_DynamicRequest  * rqst)
                 fprintf(stderr,"Data: %s \n",data);
               }
 
+
+  char temperature[128]={0};
+  if ( _GETcpy(rqst,"tmp",temperature,128) )
+              {
+                fprintf(stderr,"Temperature %s \n",temperature);
+              }
+
+
+  char humidity[128]={0};
+  if ( _GETcpy(rqst,"hum",humidity,128) )
+              {
+                fprintf(stderr,"Humidity %s \n",humidity);
+              }
+
+
   if (
        (haveDeviceID)&&
        (haveDeviceKey)
@@ -168,14 +183,14 @@ void * push_data_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
   char temperature[128]={0};
-  if ( _GETcpy(rqst,"temperature",temperature,128) )
+  if ( _GETcpy(rqst,"tmp",temperature,128) )
               {
                 fprintf(stderr,"Temperature %s \n",temperature);
               }
 
 
   char humidity[128]={0};
-  if ( _GETcpy(rqst,"humidity",humidity,128) )
+  if ( _GETcpy(rqst,"hum",humidity,128) )
               {
                 fprintf(stderr,"Humidity %s \n",humidity);
               }

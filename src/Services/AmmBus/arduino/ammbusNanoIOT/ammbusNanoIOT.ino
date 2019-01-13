@@ -5,6 +5,7 @@
 //These are needed here for the IDE to understand which modules to import
 #include <Wire.h>          
 #include <etherShield.h>
+  
 //cd ~/Arduino/libraries/ &&  git clone https://github.com/kuba1999/etherShield.git
 #include <ETHER_28J60.h>
 //---------------------------------------------------------------------
@@ -34,6 +35,7 @@ void setup()
   pinMode(pinG_LED, OUTPUT);  digitalWrite(pinG_LED, LOW); 
   pinMode(pinB_LED, OUTPUT);  digitalWrite(pinB_LED, LOW);   
   
+  setLED(1,0,1);
   pinMode(buttonPin, INPUT);  digitalWrite(buttonPin, HIGH);    
 //-----------------------------------------------------------
  
@@ -52,15 +54,21 @@ void setup()
   // if (RESET_CLOCK_ON_NEXT_COMPILATION)
   //     { clock.setDateTime(__DATE__, __TIME__); } 
   // dt = clock.getDateTime();   
-   
+  
+  setLED(1,1,0);
+
   Serial.print("Setting up ethernet @ ");
   Serial.print(ip[0]);   Serial.print("."); Serial.print(ip[1]);   Serial.print("."); Serial.print(ip[2]);   Serial.print("."); Serial.print(ip[3]); 
  
   Serial.print(":");
   Serial.print(port);
   Serial.print("\n");
+
+  setLED(1,1,1);
   e.setup(mac, ip, port); 
   Serial.print("Ready \n");
+  delay(100);
+  setLED(0,0,0);
 }
   
 
@@ -83,23 +91,29 @@ void setLED(char R,char G,char B)
   if (B) { digitalWrite(pinB_LED,HIGH); } else { digitalWrite(pinB_LED,LOW); }
 }
 
+void testTransmission()
+{
+  setLED(1,0,1);
+  
+}
 
-void readTemperature()
+
+void readTemperature(int activateLED)
 {
   //DHT requires sampling at 1Hz
   if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))  { ambs.errorDetected=1; } 
 
   if (lowestAcceptableTemperature>temperature) 
   {
-     setLED(0,0,1); //BLUE  
+    if (activateLED) { setLED(0,0,1); } //BLUE  
   }
    else
   if (highestAcceptableTemperature<temperature)
   {
-     setLED(1,0,0); //RED    
+    if (activateLED) {  setLED(1,0,0); } //RED    
   } else
   {
-     setLED(0,1,0); //GREEN 
+    if (activateLED) {  setLED(0,1,0); } //GREEN 
   } 
  
   Serial.print("Temperature:");
@@ -118,16 +132,13 @@ void loop()
 
  if (idleCounter%100==0)
  {
-  readTemperature(); 
+  readTemperature(idleCounter==0); 
+  delay(200);
+  setLED(0,0,0); 
  }  
  ++idleCounter;  
-
- if (idleCounter==200)
- { 
-  setLED(0,0,0);
-  delay(500);
- } else
- if (idleCounter==300)
+ 
+ if (idleCounter>=1000)
  { 
    idleCounter=0;
  }
@@ -138,7 +149,7 @@ void loop()
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
   if (buttonState == HIGH) { 
                              // turn LED on:
-                             setLED(1,0,1);
+                             testTransmission();
                             } 
   //-----------------------------------------------------------------------
    
