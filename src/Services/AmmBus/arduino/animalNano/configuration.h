@@ -18,12 +18,22 @@ static byte privateKey[16] = {0x74,0x69,0x69,0x2D,0x30,0x33,0x74,0x69,0x69,0x2D,
 
 //ETHERNET CONFIGURATION -------------------
 #define ETHERNET_BUFFER 320 //bytes
+#define ETHERNET_CONNECTION_WAIT_TIME 500
 // ethernet interface mac address
 static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x33 };
-static byte myip[] = { 192,168,1,179 };
-static byte gwip[] = { 192,168,1,20 }; //ip route | grep default
-static byte dnsip[] = { 192,168,1,20 };
-static byte subnet[] = { 255,255,255,0 };
+
+
+//Home
+//static byte myip[] = { 192,168,1,179 };
+//static byte gwip[] = { 192,168,1,20 }; //ip route | grep default
+//static byte dnsip[] = { 192,168,1,20 };
+//static byte subnet[] = { 255,255,255,0 };
+
+//UNI
+static byte myip[] = { 147,52,73,203 };
+static byte gwip[] = { 147,52,73,1 }; //ip route | grep default
+static byte dnsip[] = { 147,52,80,1 };
+static byte subnet[] = { 255,255,255,0 }; 
 //------------------------------
 
 
@@ -32,7 +42,9 @@ char websiteIP[] = "139.91.185.16"; //"192.168.1.49";
 static byte hisip[] =  {139,91,185,16}; // {192,168,1,49};//
 #define hisPort 8087
 
-const char website[] PROGMEM = "ammar.gr";
+const char websiteA[] PROGMEM = "ammar.gr";
+const char websiteB[] PROGMEM = "spiti.ammar.gr";
+char * website = websiteA;
 //------------------------------
 
 

@@ -14,8 +14,8 @@ static long timerLedOn;
 static long timerTest;
 
 char criticalTemperature=0;
-int lowestAcceptableTemperature=24;
-int highestAcceptableTemperature=24;
+int lowestAcceptableTemperature=19;
+int highestAcceptableTemperature=26;
 
 void setLED(char R,char G,char B)
 {
@@ -44,9 +44,11 @@ void initializeEthernetClient()
 
 
  #if USE_DHCP
-    if (!ether.dhcpSetup()) Serial.println(F("DHCP failed"));
+    if (ether.dhcpSetup()) 
+     { Serial.println(F("DHCP success")); } 
+     else
  #else
-    ether.staticSetup(myip, gwip,dnsip,subnet);
+    { ether.staticSetup(myip, gwip,dnsip,subnet); }
  #endif
  
  
@@ -56,14 +58,17 @@ void initializeEthernetClient()
    {
     Serial.println( "dnsLookup ok");
    } else
+   #else
    {
-    Serial.println( "dnsLookup faild");
-   }
-#else
-  Serial.println( "Using static target ip"); 
-  // if website is a string containing an IP address instead of a domain name,
-  // then use it directly. Note: the string can not be in PROGMEM. 
-  ether.parseIp(ether.hisip, websiteIP);
+    #if USE_DNS
+     Serial.println( "dnsLookup faild");
+    #endif
+    Serial.print("Using static target ip : "); 
+    Serial.println(websiteIP); 
+    // if website is a string containing an IP address instead of a domain name,
+    // then use it directly. Note: the string can not be in PROGMEM. 
+    ether.parseIp(ether.hisip, websiteIP);
+   } 
 #endif
 
 
@@ -141,14 +146,19 @@ void testTransmission()
 {
   if (millis() > timerTest + 10000) 
      {
-      timerTest=millis();
-      setLED(1,0,1);
+       setLED(1,0,1);
        ++requestsPending;
        Serial.println("\n>>> TEST");
        ether.hisport = hisPort;//to access local host 
        snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
        ether.browseUrl(PSTR("/test.html"), request , website, requestResult);   
-       setLED(0,0,0);
+       ether.packetLoop(ether.packetReceive());
+       delay(ETHERNET_CONNECTION_WAIT_TIME);
+       if (!requestsPending)
+          {
+           timerTest=millis();
+          }
+       //setLED(0,0,0);
      } else
      {
        setLED(1,1,1);  
@@ -169,24 +179,34 @@ void loop ()
     {
        if (millis() > timer + REQUEST_RATE_CRITICAL) 
         {
-         timer = millis();
          ++requestsPending;
          Serial.println("\n>>> REQ_CRITICAL");
          ether.hisport = hisPort;//to access local host  
          snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
          ether.browseUrl(PSTR("/alarm.html"),request, website, requestResult);   
+         ether.packetLoop(ether.packetReceive());
+         delay(ETHERNET_CONNECTION_WAIT_TIME);
+         if (!requestsPending)
+          {
+           timer = millis();     
+          }
         }  
     } 
       else
     {
      if (millis() > timer + REQUEST_RATE_NORMAL) 
        {
-        timer = millis();
         ++requestsPending;
         Serial.println("\n>>> REQ_NORMAL");
         ether.hisport = hisPort;//to access local host 
         snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity); 
         ether.browseUrl(PSTR("/push.html"),request, website, requestResult); 
+        ether.packetLoop(ether.packetReceive());
+        delay(ETHERNET_CONNECTION_WAIT_TIME);
+        if (!requestsPending)
+          {
+           timer = millis();     
+          }
        } 
     }
    ///----------------------------------------------------------------------------------
@@ -216,12 +236,15 @@ void loop ()
                             } 
   //-----------------------------------------------------------------------
 
-
   if (requestsPending)
    {
-      Serial.println("Unable to send request..");
-      setLED(1,1,0);  
-      requestsPending=0;  
+      setLED(0,1,1);  
+   }
+  if (requestsPending>1)
+   {
+      Serial.println("Unable to send any request..");
+      requestsPending=1;  
+      delay(1000);
    }
 }
 
