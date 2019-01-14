@@ -4,21 +4,22 @@
 
 #include <Arduino.h>
 
+#define NUMBER_OF_TEMPERATURE_SAMPLES 10
 #define REQUEST_RATE_NORMAL 5*60*1000 // minutes to milliseconds
-#define REQUEST_RATE_CRITICAL 15000 // milliseconds
-#define USE_DHCP 0
+#define REQUEST_RATE_CRITICAL 60000 // milliseconds
+#define USE_DHCP 1
 #define USE_DNS 0
 
 //ENCRYPTION -------------------
-const char serialNumber[] PROGMEM = "000001";
+const char serialNumber[] = "0001";
+const char publicKey[] = "xxxx";
 //This is the default private key currently not used and has to be manually updated for each device .. 
 static byte privateKey[16] = {0x74,0x69,0x69,0x2D,0x30,0x33,0x74,0x69,0x69,0x2D,0x30,0x33,0x74,0x69,0x69,0x2D}; 
 //------------------------------
 
 
 //ETHERNET CONFIGURATION -------------------
-#define ETHERNET_BUFFER 420 //bytes
-#define ETHERNET_CONNECTION_WAIT_TIME 500
+#define ETHERNET_BUFFER 420 //bytes 
 // ethernet interface mac address
 static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x33 };
 
