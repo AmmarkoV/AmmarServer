@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 #define REQUEST_RATE_NORMAL 5*60*1000 // minutes to milliseconds
-#define REQUEST_RATE_CRITICAL 10000 // milliseconds
+#define REQUEST_RATE_CRITICAL 15000 // milliseconds
 #define USE_DHCP 0
 #define USE_DNS 0
 
@@ -17,7 +17,7 @@ static byte privateKey[16] = {0x74,0x69,0x69,0x2D,0x30,0x33,0x74,0x69,0x69,0x2D,
 
 
 //ETHERNET CONFIGURATION -------------------
-#define ETHERNET_BUFFER 320 //bytes
+#define ETHERNET_BUFFER 420 //bytes
 #define ETHERNET_CONNECTION_WAIT_TIME 500
 // ethernet interface mac address
 static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x33 };

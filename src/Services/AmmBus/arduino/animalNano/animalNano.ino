@@ -1,21 +1,32 @@
 #include <Arduino.h>
 
 #include "configuration.h"
-#include <EtherCard.h>
+
+#include <EtherCard.h> 
 //cd ~/Arduino/libraries && git clone https://github.com/njh/EtherCard
 
-
+unsigned int incorrectRequests=0;
 char requestsPending=0;
 char request[64];
 byte Ethernet::buffer[ETHERNET_BUFFER];
+
+
 static long timer;
 static long timerTemp;
 static long timerLedOn;
 static long timerTest;
+static long timerConnectionError;
+
 
 char criticalTemperature=0;
 int lowestAcceptableTemperature=19;
 int highestAcceptableTemperature=26;
+
+float temperatureAvg=0.0;
+float humidityAvg=0.0;
+int temperatureSum=0;
+int humiditySum=0;
+int   numberOfDHT11Samples=0;
 
 void setLED(char R,char G,char B)
 {
@@ -44,38 +55,47 @@ void initializeEthernetClient()
 
 
  #if USE_DHCP
+    Serial.println(F("Attempting to get DHCP address"));
+    setLED(1,0,1);
     if (ether.dhcpSetup()) 
-     { Serial.println(F("DHCP success")); } 
+         { Serial.println(F("DHCP success")); } 
      else
  #else
-    { ether.staticSetup(myip, gwip,dnsip,subnet); }
+    { ether.staticSetup(myip,gwip,dnsip,subnet); }
  #endif
  
  
+Serial.println("Listening for gateway.. ");
+while (ether.clientWaitingGw()) {  ether.packetLoop(ether.packetReceive()); } 
+Serial.println("Gateway found");
+
+
 #if USE_DNS
   Serial.println( "DNS Lookup"); 
   if(ether.dnsLookup (website, false))
    {
     Serial.println( "dnsLookup ok");
    } else
-   #else
+#else
    {
     #if USE_DNS
-     Serial.println( "dnsLookup faild");
+     Serial.println( "dnsLookup failed");
     #endif
     Serial.print("Using static target ip : "); 
     Serial.println(websiteIP); 
     // if website is a string containing an IP address instead of a domain name,
     // then use it directly. Note: the string can not be in PROGMEM. 
-    ether.parseIp(ether.hisip, websiteIP);
+    
+    ether.parseIp(ether.hisip,websiteIP);
+    //ether.hisip[0]=hisip[0];
+    //ether.hisip[1]=hisip[1];
+    //ether.hisip[2]=hisip[2];
+    //ether.hisip[3]=hisip[3]; 
    } 
 #endif
 
 
 
-Serial.println("Listening for gateway.. ");
-while (ether.clientWaitingGw()) {  ether.packetLoop(ether.packetReceive()); } 
-Serial.println("Gateway found");
 
 ether.printIp("My IP: ", ether.myip);
 ether.printIp("Netmask: ", ether.netmask);
@@ -84,13 +104,13 @@ ether.printIp("DNS IP: ", ether.dnsip);
 ether.printIp("SRV: ", ether.hisip);
 
 timer = - REQUEST_RATE_NORMAL; // start timing out right away
-  
+setLED(0,0,0);
 }
 
 
 
  
-void readTemperature(int activateLED)
+void readTemperature(int coldRun)
 {
   //DHT requires sampling at 1Hz
   if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))  
@@ -100,29 +120,58 @@ void readTemperature(int activateLED)
    } 
     else
    { 
-    criticalTemperature = 0;
-    if (lowestAcceptableTemperature>temperature) 
-    {
-      if (activateLED) { setLED(0,0,1); } //BLUE  
+     temperatureSum+=temperature;
+     humiditySum+=humidity;
+     ++numberOfDHT11Samples;
+
+     if (numberOfDHT11Samples==5)
+     {
+      temperatureAvg=temperatureSum/numberOfDHT11Samples;
+      humidityAvg=humiditySum/numberOfDHT11Samples;
+      temperatureSum=0;
+      humiditySum=0;
+      numberOfDHT11Samples=0;   
+    
+      Serial.print("Temperature Avg:");
+      Serial.print(temperatureAvg);
+      Serial.print("oC\n");
+
+      Serial.print("Humidity Avg:");
+      Serial.print(humidityAvg);
+      Serial.print("%\n");
+     }
+
+     //First cold run will set the average temperature to keep thermometer from freaking out.. 
+     if (coldRun)
+      {
+       temperatureAvg=(float) temperature;
+       humidityAvg=(float) humidity;    
+      }
+     
+     criticalTemperature = 0;
+     if (lowestAcceptableTemperature>temperatureAvg) 
+     {
+      setLED(0,0,1);  //BLUE  
       criticalTemperature=1;
-    }
+     }
      else
-    if (highestAcceptableTemperature<temperature)
-    {
-      if (activateLED) {  setLED(1,0,0); } //RED   
+     if (highestAcceptableTemperature<temperatureAvg)
+     {
+       setLED(1,0,0);  //RED   
       criticalTemperature=1; 
-    } else
-    {
-      if (activateLED) {  setLED(0,1,0); } //GREEN 
-    } 
- 
+     } else
+     {
+       setLED(0,1,0); //GREEN 
+     } 
+   
+   /*
     Serial.print("Temperature:");
     Serial.print(temperature);
     Serial.print("oC\n");
 
     Serial.print("Humidity:");
     Serial.print(humidity);
-    Serial.print("%\n");
+    Serial.print("%\n");*/
   } 
 }
 
@@ -135,25 +184,35 @@ void setup ()
  Serial.begin(9600);
  Serial.println("\nInitializing\n");
  initializeEthernetClient();
+ 
  delay(100);
- readTemperature(0);
+
+ //Initial thermometer reading before gathering a lot of samples..
+ readTemperature(1);  //First cold run..
 }
 
 
-
+// called when the client request is complete
+static void requestResult(byte status, word off, word len) 
+{
+  Serial.print("<<< reply ");
+  Serial.print(millis() - timer);
+  Serial.println(" ms");
+  Serial.println((const char*) Ethernet::buffer + off);
+  if (requestsPending>0) { --requestsPending; }
+}
 
 void testTransmission()
 {
   if (millis() > timerTest + 10000) 
      {
        setLED(1,0,1);
-       ++requestsPending;
+       requestsPending=1;
        timerTest=millis();
        Serial.println("\n>>> TEST");
        ether.hisport = hisPort;//to access local host 
-       snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
+       snprintf(request,64,"?s=%s&tmp=%0.2f&hum=%0.2f",serialNumber,temperatureAvg,humidityAvg);
        ether.browseUrl(PSTR("/test.html"), request , website, requestResult);   
-       ether.packetLoop(ether.packetReceive());  
        //setLED(0,0,0);
      } else
      {
@@ -168,6 +227,25 @@ void loop ()
    //Keep ethernet working..
    ether.packetLoop(ether.packetReceive());
 
+
+   ///----------------------------------------------------------------------------------
+   //                               READ TEMPERATURE READINGS
+   ///----------------------------------------------------------------------------------
+   //Read DHT11 Sensor -----------------------  
+    if (millis() > timerTemp + 1500) 
+     {
+      timerTemp = millis();
+      timerLedOn=timerTemp;
+      readTemperature(0); 
+     }  
+   //-----------------------------------------
+   if (millis() > timerLedOn + 100) 
+     {
+      setLED(0,0,0);  
+     }
+   //-----------------------------------------
+
+
    ///----------------------------------------------------------------------------------
    //                         NOTIFY ABOUT TEMPERATURE READINGS
    ///----------------------------------------------------------------------------------
@@ -175,45 +253,29 @@ void loop ()
     {
        if (millis() > timer + REQUEST_RATE_CRITICAL) 
         {
-         ++requestsPending;
+         requestsPending=1;
          timer = millis();  
          Serial.println("\n>>> REQ_CRITICAL");
          ether.hisport = hisPort;//to access local host  
-         snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
+         snprintf(request,64,"?s=%s&tmp=%0.2f&hum=%0.2f",serialNumber,temperatureAvg,humidityAvg);
          ether.browseUrl(PSTR("/alarm.html"),request, website, requestResult);   
-         ether.packetLoop(ether.packetReceive()); 
         }  
     } 
       else
     {
      if (millis() > timer + REQUEST_RATE_NORMAL) 
        {
-        ++requestsPending;
+        requestsPending=1;
         timer = millis();     
         Serial.println("\n>>> REQ_NORMAL");
         ether.hisport = hisPort;//to access local host 
-        snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity); 
+        snprintf(request,64,"?s=%s&tmp=%0.2f&hum=%0.2f",serialNumber,temperatureAvg,humidityAvg); 
         ether.browseUrl(PSTR("/push.html"),request, website, requestResult); 
-        ether.packetLoop(ether.packetReceive()); 
        } 
     }
    ///----------------------------------------------------------------------------------
       
 
-   //Read DHT11 Sensor -----------------------  
-    if (millis() > timerTemp + 1500) 
-     {
-      timerTemp = millis();
-      timerLedOn=timerTemp;
-      readTemperature(1); 
-     }  
-   //-----------------------------------------
-
-   
-   if (millis() > timerLedOn + 100) 
-     {
-      setLED(0,0,0);  
-     }
 
   //BUTTON ----------------------------------------------------------------
   int buttonState = digitalRead(buttonPin);
@@ -224,24 +286,26 @@ void loop ()
                             } 
   //-----------------------------------------------------------------------
 
+
+   ///----------------------------------------------------------------------------------
+   //                         NOTIFY ABOUT TEMPERATURE READINGS
+   ///----------------------------------------------------------------------------------
   if (requestsPending)
    {
       setLED(0,1,1);  
    }
   if (requestsPending>1)
    {
-      Serial.println("Unable to send any request..");
-      requestsPending=1;  
-      delay(1000);
+    if (millis() > timerConnectionError + REQUEST_RATE_NORMAL) 
+       { 
+          ++incorrectRequests;
+          Serial.print("Unable to contact server ( ");
+          Serial.print(incorrectRequests);
+          Serial.println(" )");
+          timerConnectionError = millis();
+       }
+      requestsPending=1;   
    }
-}
-
-// called when the client request is complete
-static void requestResult(byte status, word off, word len) 
-{
-  Serial.print("<<< reply ");
-  Serial.print(millis() - timer);
-  Serial.println(" ms");
-  Serial.println((const char*) Ethernet::buffer + off);
-  if (requestsPending>0) { --requestsPending; }
+   ///----------------------------------------------------------------------------------
+     
 }
