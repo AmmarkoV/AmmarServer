@@ -2,7 +2,7 @@
 
 #include "configuration.h"
 #include <EtherCard.h>
-//cd ~/Arduino/libraries && git clone https://codeload.github.com/njh/EtherCard/zip/master
+//cd ~/Arduino/libraries && git clone https://github.com/njh/EtherCard
 
 
 char requestsPending=0;
@@ -148,16 +148,12 @@ void testTransmission()
      {
        setLED(1,0,1);
        ++requestsPending;
+       timerTest=millis();
        Serial.println("\n>>> TEST");
        ether.hisport = hisPort;//to access local host 
        snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
        ether.browseUrl(PSTR("/test.html"), request , website, requestResult);   
-       ether.packetLoop(ether.packetReceive());
-       delay(ETHERNET_CONNECTION_WAIT_TIME);
-       if (!requestsPending)
-          {
-           timerTest=millis();
-          }
+       ether.packetLoop(ether.packetReceive());  
        //setLED(0,0,0);
      } else
      {
@@ -180,16 +176,12 @@ void loop ()
        if (millis() > timer + REQUEST_RATE_CRITICAL) 
         {
          ++requestsPending;
+         timer = millis();  
          Serial.println("\n>>> REQ_CRITICAL");
          ether.hisport = hisPort;//to access local host  
          snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity);
          ether.browseUrl(PSTR("/alarm.html"),request, website, requestResult);   
-         ether.packetLoop(ether.packetReceive());
-         delay(ETHERNET_CONNECTION_WAIT_TIME);
-         if (!requestsPending)
-          {
-           timer = millis();     
-          }
+         ether.packetLoop(ether.packetReceive()); 
         }  
     } 
       else
@@ -197,16 +189,12 @@ void loop ()
      if (millis() > timer + REQUEST_RATE_NORMAL) 
        {
         ++requestsPending;
+        timer = millis();     
         Serial.println("\n>>> REQ_NORMAL");
         ether.hisport = hisPort;//to access local host 
         snprintf(request,64,"?s=%s&tmp=%u&hum=%u",serialNumber,temperature,humidity); 
         ether.browseUrl(PSTR("/push.html"),request, website, requestResult); 
-        ether.packetLoop(ether.packetReceive());
-        delay(ETHERNET_CONNECTION_WAIT_TIME);
-        if (!requestsPending)
-          {
-           timer = millis();     
-          }
+        ether.packetLoop(ether.packetReceive()); 
        } 
     }
    ///----------------------------------------------------------------------------------
