@@ -4,7 +4,7 @@
 
 #include <Arduino.h>
 
-#define REQUEST_RATE_NORMAL 120000 // milliseconds
+#define REQUEST_RATE_NORMAL 5*60*1000 // minutes to milliseconds
 #define REQUEST_RATE_CRITICAL 10000 // milliseconds
 #define USE_DHCP 0
 #define USE_DNS 0
