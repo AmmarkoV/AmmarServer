@@ -1,5 +1,12 @@
 #include <stdio.h>
+#include <string.h>
 #include "device.h"
+
+
+int printDeviceList(struct deviceList * dl)
+{
+
+}
 
 
 int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
@@ -8,15 +15,19 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
 
    unsigned int dev=0;
    dl->device[dev].lastContact=0;
+   dl->device[dev].deviceClass=DEVICE_THERMOMETER;
    snprintf(dl->device[dev].deviceID,32,"0001");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
+   snprintf(dl->device[dev].deviceLabel,32,"Animal Sensor 1");
    snprintf(dl->device[dev].email,512,"gregoriou@uoc.gr,ammarkov@gmail.com");
 
 
    ++dev;
    dl->device[dev].lastContact=0;
+   dl->device[dev].deviceClass=DEVICE_UNKOWN;
    snprintf(dl->device[dev].deviceID,32,"DUMMY");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
+   snprintf(dl->device[dev].deviceLabel,32,"Dummy Sensor");
    snprintf(dl->device[dev].email,512,"ammarkov@gmail.com");
 
 

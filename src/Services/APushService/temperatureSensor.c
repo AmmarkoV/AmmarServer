@@ -51,11 +51,6 @@ int getTemperatureAndHumidityFromRequest(struct AmmServer_DynamicRequest  * rqst
 
 
 
-
-
-
-
-
 void * temperatureSensorTestCallback(
                                       struct deviceObject *device,
                                       struct AmmServer_DynamicRequest  * rqst
@@ -184,8 +179,7 @@ void * temperatureSensorAlarmCallback(struct deviceObject *device,
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * temperatureSensorHeartBeatCallback(struct deviceObject *device,
-                                        struct AmmServer_DynamicRequest  * rqst)
+void * temperatureSensorHeartBeatCallback(struct deviceObject *device,struct AmmServer_DynamicRequest  * rqst)
 {
   float temperature,humidity;
   int haveDeviceID=0 , haveDeviceKey=0;

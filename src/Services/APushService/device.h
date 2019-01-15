@@ -7,6 +7,28 @@
 
 typedef  unsigned int deviceID;
 
+
+
+
+enum DEVICE_CLASSES
+{
+    DEVICE_UNKOWN  = 0,
+    DEVICE_THERMOMETER,
+   //--------------------------------------------
+    NUMBER_OF_DEVICE_CLASSES
+};
+
+
+static const char * deviceClassName[] =
+{
+    "Unknown"   	,
+    "Thermometer" 	,
+   //--------------------------------------------
+    "NUMBER_OF_DEVICE_CLASSES"
+};
+
+
+
 struct informationList
 {
   char alarm;
@@ -19,6 +41,8 @@ struct informationList
 struct deviceObject
 {
   time_t  lastContact;
+  char deviceClass;
+  char deviceLabel[32];
   char deviceID[32];
   char devicePrivateKey[32];
   char devicePublicKey[32];
