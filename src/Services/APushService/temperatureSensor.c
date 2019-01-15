@@ -28,7 +28,7 @@ int logTemperature(
    time_t clock = time(NULL);
    struct tm * ptm = gmtime ( &clock );
    fprintf(fp,"%s|",deviceID);
-   fprintf(fp,"%u|%u|%u|%u|%u|%u|",ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+   fprintf(fp,"%lld|%u|%u|%u|%u|%u|%u|",(long long) clock,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
    fprintf(fp,"%0.2f|%0.2f|%u\n",temperature,humidity,alarmed);
    fclose(fp);
    return 1;
