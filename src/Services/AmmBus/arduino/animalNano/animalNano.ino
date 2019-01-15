@@ -1,4 +1,11 @@
+
 #include <Arduino.h>
+
+#if USE_ENCRYPTION  
+#include <AESLib.h>
+//cd ~/Arduino/libraries && git clone https://github.com/DavyLandman/AESLib
+#include <aes128_enc.h> 
+#endif
 
 #include "configuration.h"
 
@@ -11,11 +18,11 @@ char request[64];
 byte Ethernet::buffer[ETHERNET_BUFFER];
 
 
-static long timer=0;
-static long timerTemp=0;
-static long timerLedOn=0;
-static long timerTest=0;
-static long timerConnectionError=0;
+static unsigned long timer=0;
+static unsigned long timerTemp=0;
+static unsigned long timerLedOn=0;
+static unsigned long timerTest=0;
+static unsigned long timerConnectionError=0;
 
 
 char sTmp[6];
@@ -32,7 +39,7 @@ int   humiditySum=0;
 int   numberOfDHT11Samples=0;
 
 
-void(* resetArduino) (void) = 0;//declare reset function at address 0
+void(* resetArduino) (void) = 0; //declare reset function at address 0
 
 
 void setLED(char R,char G,char B)
@@ -57,6 +64,23 @@ void notifyTransmitting()
   setLED(1,0,1); 
 }
 
+void notifyTemperature()
+{
+ if (lowestAcceptableTemperature>temperatureAvg) 
+     {
+      setLED(0,0,1);  //BLUE   
+     }
+     else
+  if (highestAcceptableTemperature<temperatureAvg)
+     {
+       setLED(1,0,0);  //RED    
+     } else
+     {
+       setLED(0,1,0); //GREEN 
+     } 
+ timerLedOn=millis();     
+}
+
 
 void initializeEthernetClient()
 { 
@@ -69,7 +93,7 @@ void initializeEthernetClient()
 //-----------------------------------------------------------
  
 
- Serial.println("Initializing Ethernet Controller\n");
+ Serial.println(F("Initializing Ethernet Controller\n"));
  if (ether.begin(sizeof Ethernet::buffer, mymac, 10) == 0)
  {
   Serial.println( "Failed to access Ethernet controller");
@@ -89,24 +113,25 @@ void initializeEthernetClient()
  #endif
  
  
-Serial.println("Waiting for gateway..");
+Serial.println(F("Waiting for gateway.."));
 timer=millis();
 while (ether.clientWaitingGw()) 
     {  
       ether.packetLoop(ether.packetReceive()); 
 
       //If we can't find a gateway for 10 minutes we power cycle
-      if (millis() > timer + 1*60*1000) 
+      if (millis() > timer + 60000) 
        {
+         Serial.println(F("Restarting.."));
          timer=millis();
          resetArduino(); //call reset  
        }
     } 
-Serial.println("Gateway found");
+Serial.println(F("Gateway found"));
 
 
 #if USE_DNS
-  Serial.println( "DNS Lookup"); 
+  Serial.println(F("DNS Lookup")); 
   if(ether.dnsLookup (website, false))
    {
     Serial.println( "dnsLookup ok");
@@ -114,18 +139,14 @@ Serial.println("Gateway found");
 #else
    {
     #if USE_DNS
-     Serial.println( "dnsLookup failed");
+     Serial.println(F("DNSLookup failed"));
     #endif
-    Serial.print("Using static target ip : "); 
+    Serial.print(F("Using static target ip : ")); 
     Serial.println(websiteIP); 
     // if website is a string containing an IP address instead of a domain name,
     // then use it directly. Note: the string can not be in PROGMEM. 
     
     ether.parseIp(ether.hisip,websiteIP);
-    //ether.hisip[0]=hisip[0];
-    //ether.hisip[1]=hisip[1];
-    //ether.hisip[2]=hisip[2];
-    //ether.hisip[3]=hisip[3]; 
    } 
 #endif
 
@@ -162,19 +183,29 @@ void readTemperature(int coldRun)
 
      if (numberOfDHT11Samples==NUMBER_OF_TEMPERATURE_SAMPLES)
      {
-      temperatureAvg=temperatureSum/numberOfDHT11Samples;
-      humidityAvg=humiditySum/numberOfDHT11Samples;
+      temperatureAvg=(float) temperatureSum/numberOfDHT11Samples;
+      humidityAvg=(float) humiditySum/numberOfDHT11Samples;
       temperatureSum=0;
       humiditySum=0;
       numberOfDHT11Samples=0;   
     
-      Serial.print("Temperature Avg:");
+      Serial.print(F("Temperature Avg: "));
       Serial.print(temperatureAvg);
-      Serial.print("oC\n");
+      Serial.print(F("oC\n"));
 
-      Serial.print("Humidity Avg:");
+      Serial.print(F("Humidity Avg: "));
       Serial.print(humidityAvg);
-      Serial.print("%\n");
+      Serial.print(F("%\n"));
+          
+      Serial.print(F("Time until next update:"));
+      Serial.print(millis()-timer);
+      Serial.print("/");
+      
+      if (criticalTemperature)  { Serial.println(REQUEST_RATE_CRITICAL); } else
+                                { Serial.println(REQUEST_RATE_NORMAL); } 
+      
+      
+      notifyTemperature();
      }
 
      //First cold run will set the average temperature to keep thermometer from freaking out.. 
@@ -185,29 +216,15 @@ void readTemperature(int coldRun)
       }
      
      criticalTemperature = 0;
-     if (lowestAcceptableTemperature>temperatureAvg) 
-     {
-      setLED(0,0,1);  //BLUE  
+     if ( (lowestAcceptableTemperature>temperatureAvg) || (highestAcceptableTemperature<temperatureAvg) )
+     { 
       criticalTemperature=1;
      }
-     else
-     if (highestAcceptableTemperature<temperatureAvg)
-     {
-       setLED(1,0,0);  //RED   
-      criticalTemperature=1; 
-     } else
-     {
-       setLED(0,1,0); //GREEN 
-     } 
-   
-   /*
-    Serial.print("Temperature:");
-    Serial.print(temperature);
-    Serial.print("oC\n");
 
-    Serial.print("Humidity:");
-    Serial.print(humidity);
-    Serial.print("%\n");*/
+     
+   /*
+    Serial.print("Temperature:"); Serial.print(temperature); Serial.print("oC\n");
+    Serial.print("Humidity:");    Serial.print(humidity);    Serial.print("%\n");*/
   } 
 }
 
@@ -218,19 +235,19 @@ void setup ()
  requestsPending=0;
        
  Serial.begin(9600);
- Serial.println("\nInitializing");
+ Serial.println(F("\nInitializing"));
  initializeEthernetClient();
  
  //Initial thermometer reading before gathering a lot of samples..
  readTemperature(1);  //First cold run..
- Serial.println("Ready ..!\n\n\n");
+ Serial.println(F("Ready ..!\n\n\n"));
 }
 
 
 // called when the client request is complete
 static void requestResult(byte status, word off, word len) 
 {
-  Serial.print("<<< reply reqst ");
+  Serial.print(F("<<< reply reqst "));
   Serial.print(millis() - timer);
   Serial.println(" ms");
   Serial.println((const char*) Ethernet::buffer + off);
@@ -240,7 +257,7 @@ static void requestResult(byte status, word off, word len)
 // called when the client request is complete
 static void testResult(byte status, word off, word len) 
 {
-  Serial.print("<<< reply test ");
+  Serial.print(F("<<< reply test "));
   Serial.print(millis() - timerTest);
   Serial.println(" ms");
   Serial.println((const char*) Ethernet::buffer + off);
@@ -255,15 +272,20 @@ void testTransmission()
        notifyTransmitting();
        requestsPending=1;
        timerTest=millis();
-       Serial.println("\n>>> TEST");
+       Serial.println(F("\n>>> TEST"));
        ether.hisport = hisPort;//to access local host 
 
        /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
        dtostrf(temperatureAvg, 4, 2, sTmp);
        dtostrf(humidityAvg, 4, 2, sHum);
-         snprintf(request,64,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
-         
+       snprintf(request,64,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
+
+       #if USE_ENCRYPTION  
+       aes128_enc_single(privateKey,request);
+       #endif
+       
        Serial.println(request);
+       
        ether.browseUrl(PSTR("/test.html"), request , website, testResult);   
        //setLED(0,0,0);
      } else
@@ -287,7 +309,6 @@ void loop ()
     if (millis() > timerTemp + 1500) 
      {
       timerTemp = millis();
-      timerLedOn=timerTemp;
       readTemperature(0); 
      }  
    //-----------------------------------------
@@ -308,15 +329,20 @@ void loop ()
          notifyTransmitting();
          requestsPending=1;
          timer = millis();  
-         Serial.println("\n>>> REQ_CRITICAL");
+         Serial.println(F("\n>>> REQ_CRITICAL"));
          ether.hisport = hisPort;//to access local host  
          
          /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
          dtostrf(temperatureAvg, 4, 2, sTmp);
          dtostrf(humidityAvg, 4, 2, sHum);
          snprintf(request,64,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
-         
+
+         #if USE_ENCRYPTION  
+          aes128_enc_single(privateKey,request);
+         #endif
+       
          Serial.println(request);
+         
          ether.browseUrl(PSTR("/alarm.html"),request, website, requestResult);   
         }  
     } 
@@ -327,7 +353,7 @@ void loop ()
         notifyTransmitting();
         requestsPending=1;
         timer = millis();     
-        Serial.println("\n>>> REQ_NORMAL");
+        Serial.println(F("\n>>> REQ_NORMAL"));
         ether.hisport = hisPort;//to access local host 
 
          /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
@@ -335,7 +361,12 @@ void loop ()
          dtostrf(humidityAvg, 4, 2, sHum);
          snprintf(request,64,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
          
-        Serial.println(request);
+         #if USE_ENCRYPTION  
+          aes128_enc_single(privateKey,request);
+         #endif
+       
+         Serial.println(request);
+         
         ether.browseUrl(PSTR("/push.html"),request, website, requestResult); 
        } 
     }
@@ -365,13 +396,12 @@ void loop ()
     if (millis() > timerConnectionError + REQUEST_RATE_NORMAL) 
        { 
           ++incorrectRequests;
-          Serial.print("Unable to contact server ( ");
+          Serial.print(F("Unable to contact server ( "));
           Serial.print(incorrectRequests);
-          Serial.println(" )");
+          Serial.println(F(" )"));
           timerConnectionError = millis();
        }
       requestsPending=1;   
    }
    ///----------------------------------------------------------------------------------
-     
 }
