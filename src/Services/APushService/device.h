@@ -3,24 +3,26 @@
 
 #define MAXIMUM_NUMBER_OF_DEVICES 100
 
+#include <time.h>
+
 typedef  unsigned int deviceID;
 
 struct informationList
 {
   char alarm;
-  char sensors[8];
-  char temperatures[8];
+  float sensors[8];
+  float temperatures[8];
   char relays[8];
 };
 
 
 struct deviceObject
 {
-  unsigned int lastContact;
+  time_t  lastContact;
   char deviceID[32];
   char devicePrivateKey[32];
   char devicePublicKey[32];
-  char email[64];
+  char email[512];
   struct informationList info;
 
 };
@@ -32,12 +34,12 @@ struct deviceList
 };
 
 
-int readDeviceAuthorizationList(const char * filename);
+int readDeviceAuthorizationList(struct deviceList * dl,const char * filename);
 
-int getDeviceID(const char * serialNumber,deviceID * devID);
+int getDeviceID(struct deviceList * dl,const char * serialNumber,deviceID * devID);
 
 int isDeviceAutheticated(const char * deviceID, const char * devicePublicKey);
 
-int markDeviceIDAsUpdated(deviceID * devID);
+int updateDeviceHeartbeat(struct deviceList * dl,const char * serialNumber,char alarmed,float temperature,float humidity);
 
 #endif // DEVICE_H_INCLUDED

@@ -39,6 +39,10 @@
 			<Add library="../../Hashmap/libHashmap.a" />
 			<Add library="../../InputParser/libInputParser_C.a" />
 		</Linker>
+		<Unit filename="account.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="account.h" />
 		<Unit filename="device.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -46,6 +50,14 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="temperatureSensor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="temperatureSensor.h" />
+		<Unit filename="utilities.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="utilities.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

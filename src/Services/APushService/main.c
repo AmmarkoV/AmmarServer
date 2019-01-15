@@ -27,25 +27,31 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "../../AmmServerlib/AmmServerlib.h"
 
+#include "utilities.h"
+#include "temperatureSensor.h"
+
 #define DEFAULT_BINDING_PORT 8087  // <--- Change this to 80 if you want to bind to the default http port..!
 
-/**  @brief TM structures carry the year after 1900 (see http://www.cplusplus.com/reference/ctime/tm/ )  so  this is encoded here as a reminder
-     @ingroup security */
-#define EPOCH_YEAR_IN_TM_YEAR 1900
 
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 char logFile[]="temperatures.log";
 
-char email[]="gregoriou@uoc.gr";
+struct AmmServer_MemoryHandler * accountPage=0;
+
+char email[]="gregoriou@uoc.gr,ammarkov@gmail.com";
 
 //The decleration of some dynamic content resources..
 struct AmmServer_Instance  * server=0;
+struct AmmServer_RH_Context accountDataCtx={0};
 struct AmmServer_RH_Context pushDataCtx={0};
 struct AmmServer_RH_Context alarmDataCtx={0};
 struct AmmServer_RH_Context testDataCtx={0};
 struct AmmServer_RH_Context indexDataCtx={0};
+
+
+struct deviceList devices;
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
@@ -60,64 +66,25 @@ void * index_data_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
-int logTemperature(
-                   const char * filename,
-                   const char * deviceID,
-                   float temperature,
-                   float  humidity
-                  )
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * push_acccount_callback(struct AmmServer_DynamicRequest  * rqst)
 {
- FILE * fp = fopen(filename,"a");
- if (fp!=0)
- {
-   time_t clock = time(NULL);
-   struct tm * ptm = gmtime ( &clock );
-   fprintf(fp,"%s|",deviceID);
-   fprintf(fp,"%u|%u|%u|%u|%u|%u|",ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
-   fprintf(fp,"%0.2f|%0.2f\n",temperature,humidity);
-   fclose(fp);
-   return 1;
- }
- return 0;
+   struct AmmServer_MemoryHandler * response = AmmServer_CopyMemoryHandler(accountPage);
+
+   AmmServer_ReplaceAllVarsInMemoryHandler(response,2,"xxxACOUNT_NAMExxx","SAMPLE_ACCOUNT");
+
+   AmmServer_DynamicRequestReturnMemoryHandler(rqst,response);
+
+   AmmServer_FreeMemoryHandler(&response);
+
+  return 0;
 }
 
 
-int sendEmail(
-               const char * receipient,
-               const char * subject,
-               const char * message
-             )
-{
-  char messageBuffer[1024]={0};
-  char result[1024]={0};
 
-  snprintf(messageBuffer,1024,"printf \"Subject:%s\n\n%s\" | ssmtp -v %s",subject,message,receipient);
-  if (1)//filterStringForShellInjection(messageBuffer,512))
-  {
-   if ( AmmServer_ExecuteCommandLine(messageBuffer,result,512) )
-   {
-     fprintf(stderr,"Successfully sent message to %s..\n",receipient);
-     return 1;
-   }
-  }
-
-
- AmmServer_Error("Failed to send message to %s..\n",receipient);
- return 0;
-}
-
-int getTemperatureAndHumidityFromRequest(struct AmmServer_DynamicRequest  * rqst,float * temperature , float * humidity)
-{
-  unsigned int receivedData=0;
-  char buffer[128]={0};
-  if ( _GETcpy(rqst,"t",buffer,128) ) { ++receivedData; *temperature=atof(buffer); }
-  if ( _GETcpy(rqst,"h",buffer,128) ) { ++receivedData; *humidity=atof(buffer);    }
-
-  return (receivedData==2);
-}
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * test_data_callback(struct AmmServer_DynamicRequest  * rqst)
+void * generalTestCallback(struct AmmServer_DynamicRequest  * rqst)
 {
   AmmServer_Success("TEST callback is working..\n");
 
@@ -135,7 +102,8 @@ void * test_data_callback(struct AmmServer_DynamicRequest  * rqst)
                            logFile,
                            deviceID,
                            temperature,
-                           humidity
+                           humidity,
+                           0 //NotAlarming
                           );
 
 
@@ -158,7 +126,7 @@ void * test_data_callback(struct AmmServer_DynamicRequest  * rqst)
  return 0;
 }
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * push_alarm_callback(struct AmmServer_DynamicRequest  * rqst)
+void * generalAlarmCallback(struct AmmServer_DynamicRequest  * rqst)
 {
   int haveDeviceID=0;
   char deviceID[129]={0};
@@ -191,7 +159,8 @@ void * push_alarm_callback(struct AmmServer_DynamicRequest  * rqst)
                            logFile,
                            deviceID,
                            temperature,
-                           humidity
+                           humidity,
+                           1 //Alarming Temperature
                           );
    }
 
@@ -203,12 +172,19 @@ void * push_alarm_callback(struct AmmServer_DynamicRequest  * rqst)
      {
       if (isDeviceAutheticated(deviceID,devicePublicKey))
        {
+           time_t clock = time(NULL);
+           struct tm * ptm = gmtime ( &clock );
+
+           char message[512];
+           snprintf(message,512,"The sensor has sensed abnormal temperatures #%s @ %u/%u/%u %u:%u:%u Room Temp:%0.2f / Humidity: %0.2f",
+                   deviceID,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,temperature,humidity);
+
            /*
           if (
               sendEmail(
                            email,
-                           "APushService Alert",
-                          data
+                           "Sensor Alarm",
+                          message
                         )
               )*/
               {
@@ -227,24 +203,16 @@ void * push_alarm_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * push_data_callback(struct AmmServer_DynamicRequest  * rqst)
+void * generalHeartBeatCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  int haveDeviceID=0;
+  float temperature,humidity;
+  int haveDeviceID=0 , haveDeviceKey=0;
   char deviceID[129]={0};
-  if ( _GETcpy(rqst,"s",deviceID,128) )
-              {
-                fprintf(stderr,"Device %s connected\n",deviceID);
-                haveDeviceID=1;
-              }
-
-  int haveDeviceKey=0;
   char devicePublicKey[32]={0};
-  if ( _GETcpy(rqst,"k",devicePublicKey,128) )
-              {
-                haveDeviceKey=1;
-              }
 
-   float temperature,humidity;
+  if ( _GETcpy(rqst,"s",deviceID,128) )        { fprintf(stderr,"Device %s connected\n",deviceID); haveDeviceID=1; }
+  if ( _GETcpy(rqst,"k",devicePublicKey,128) ) { haveDeviceKey=1; }
+
    if ( getTemperatureAndHumidityFromRequest(rqst,&temperature,&humidity) )
    {
      fprintf(stderr,"Regular Temperature: %0.2f , Humidity: %0.2f\n",temperature,humidity);
@@ -263,7 +231,8 @@ void * push_data_callback(struct AmmServer_DynamicRequest  * rqst)
                            logFile,
                            deviceID,
                            temperature,
-                           humidity
+                           humidity,
+                           0 //NotAlarming
                           )
            )
          {
@@ -284,10 +253,15 @@ void * push_data_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&push_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(server,&alarmDataCtx,"/alarm.html",4096,0,&push_alarm_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(server,&testDataCtx,"/test.html",4096,0,&test_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&accountDataCtx,"/account.html",40096,0,&push_acccount_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&generalHeartBeatCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&alarmDataCtx,"/alarm.html",4096,0,&generalAlarmCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&testDataCtx,"/test.html",4096,0,&generalTestCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&indexDataCtx,"/index.html",4096,0,&index_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+
+
+  fprintf(stderr,"Reading account view file..\n");
+  accountPage=AmmServer_ReadFileToMemoryHandler("src/Services/APushService/res/account.html");
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
@@ -335,18 +309,13 @@ int main(int argc, char *argv[])
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
 
-    if (!readDeviceAuthorizationList("authorization.list"))
+    if (!readDeviceAuthorizationList(&devices,"db/pushServiceAuthorization.list"))
     {
       AmmServer_Error("Could not access authorization list..\n");
     }
 
          while ( (AmmServer_Running(server))  )
            {
-             //Main thread should just sleep and let the background threads do the hard work..!
-             //In other applications the programmer could use the main thread to do anything he likes..
-             //The only caveat is that he would takeup more CPU time from the server and that he would have to poll
-             //the AmmServer_Running() call once in a while to make sure everything is in order
-             //usleep(60000);
              sleep(1);
            }
 
