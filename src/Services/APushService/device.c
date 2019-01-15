@@ -11,7 +11,7 @@ int printDeviceList(struct deviceList * dl)
 
 int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
 {
-   dl->numberOfDevices=2;
+
 
    unsigned int dev=0;
    dl->device[dev].lastContact=0;
@@ -31,6 +31,15 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
    snprintf(dl->device[dev].email,512,"ammarkov@gmail.com");
 
 
+   ++dev;
+   dl->device[dev].lastContact=0;
+   dl->device[dev].deviceClass=DEVICE_UNKOWN;
+   snprintf(dl->device[dev].deviceID,32,"DUMMY");
+   snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
+   snprintf(dl->device[dev].deviceLabel,32,"Dummy Sensor");
+   snprintf(dl->device[dev].email,512,"ammarkov@gmail.com");
+
+   dl->numberOfDevices=dev+1;
 /*
   unsigned int ;
   char [32];
@@ -59,17 +68,14 @@ int getDeviceID(struct deviceList * dl,const char * serialNumber,deviceID * devI
 
 
 
-int updateDeviceHeartbeat(struct deviceList * dl,const char * serialNumber,char alarmed,float temperature,float humidity)
+int updateDeviceHeartbeat(struct deviceObject *device,char alarmed,float temperature,float humidity)
 {
-   deviceID devID=0;
-   if (getDeviceID(dl,serialNumber,&devID))
-   {
-     dl->device[devID].lastContact = time(NULL);
-     dl->device[devID].info.alarm=alarmed;
-     dl->device[devID].info.sensors[0]=humidity;
-     dl->device[devID].info.temperatures[0]=temperature;
-   }
-   return 0;
+ if (device==0) { return 1; }
+  device->lastContact = time(NULL);
+  device->info.alarm=alarmed;
+  device->info.sensors[0]=humidity;
+  device->info.temperatures[0]=temperature;
+ return 1;
 }
 
 

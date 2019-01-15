@@ -1043,6 +1043,7 @@ void AmmServer_ReplaceCharInString(char * input , char findChar , char replaceWi
 * @param String to find in buffer and replace with new content
 * @param Data we want to inject
 * @retval 1=Ok,0=Failed
+  @Bug If the length of var is smaller than the length of value there might be problems (?)
 */
 int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh ,unsigned int instances,const char * var,const char * value);
 

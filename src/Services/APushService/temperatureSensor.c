@@ -77,6 +77,7 @@ void * temperatureSensorTestCallback(
                            0 //NotAlarming
                           );
 
+     updateDeviceHeartbeat(device,0,temperature,humidity);
 
      time_t clock = time(NULL);
      struct tm * ptm = gmtime ( &clock );
@@ -131,6 +132,9 @@ void * temperatureSensorAlarmCallback(struct deviceObject *device,
    if ( getTemperatureAndHumidityFromRequest(rqst,&temperature,&humidity) )
    {
      fprintf(stderr,"Emergency Temperature: %0.2f , Humidity: %0.2f\n",temperature,humidity);
+
+     updateDeviceHeartbeat(device,1,temperature,humidity);
+
      logTemperature(
                            logFile,
                            deviceID,
@@ -192,6 +196,8 @@ void * temperatureSensorHeartBeatCallback(struct deviceObject *device,struct Amm
    if ( getTemperatureAndHumidityFromRequest(rqst,&temperature,&humidity) )
    {
      fprintf(stderr,"Regular Temperature: %0.2f , Humidity: %0.2f\n",temperature,humidity);
+
+     updateDeviceHeartbeat(device,0,temperature,humidity);
    }
 
 

@@ -58,12 +58,13 @@ struct deviceList
 };
 
 
+int updateDeviceHeartbeat(struct deviceObject *device,char alarmed,float temperature,float humidity);
+
 int readDeviceAuthorizationList(struct deviceList * dl,const char * filename);
 
 int getDeviceID(struct deviceList * dl,const char * serialNumber,deviceID * devID);
 
 int isDeviceAutheticated(const char * deviceID, const char * devicePublicKey);
 
-int updateDeviceHeartbeat(struct deviceList * dl,const char * serialNumber,char alarmed,float temperature,float humidity);
 
 #endif // DEVICE_H_INCLUDED

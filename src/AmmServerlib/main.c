@@ -308,6 +308,7 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
 
   memcpy(rqst->content,content->content,content->contentSize);
   rqst->contentSize = content->contentSize;
+  rqst->content[rqst->contentSize]=0;//Null termination..
 
   return 0;
 }
@@ -792,6 +793,13 @@ int AmmServer_ReplaceVariableInMemoryHandler(struct AmmServer_MemoryHandler * mh
 
 int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh ,unsigned int instances,const char * var,const char * value)
 {
+  unsigned int varLength = strlen(var);
+  unsigned int valueLength = strlen(value);
+  if (varLength>valueLength)
+    {
+      AmmServer_Warning("AmmServer_ReplaceAllVarsInMemoryHandler is buggy when replacing values smaller than the variable?\n");
+    }
+
   return astringReplaceAllInstancesOfVarInMemoryFile(mh,instances,var,value);
 }
 
@@ -891,8 +899,9 @@ struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_Me
       }
        else
       {
-        mh->content = (char *) malloc(sizeof(char) * inpt->contentSize );
+        mh->content = (char *) malloc(sizeof(char) * (inpt->contentSize+1) );
         memcpy(mh->content,inpt->content,inpt->contentSize);
+        mh->content[inpt->contentSize]=0; //Null Terminate it..
       }
 
    return mh;

@@ -67,24 +67,34 @@ void * index_data_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
-void * push_acccount_callback(struct AmmServer_DynamicRequest  * rqst)
+void * viewAccountDevicesCallback(struct AmmServer_DynamicRequest  * rqst)
 {
    struct AmmServer_MemoryHandler * response = AmmServer_CopyMemoryHandler(accountPage);
 
-   AmmServer_ReplaceAllVarsInMemoryHandler(response,2,"xxxACOUNT_NAMExxx","SAMPLE_ACCOUNT");
+   AmmServer_ReplaceAllVarsInMemoryHandler(response,2,"xxxACCOUNT_NAMExxx","SAMPLE_ACCOUNT");
 
 
     char placeHolder[32];
     char color[32];
+    char dateString[512];
     char deviceSummary[512];
 
     unsigned int i=0;
-    for (i=0; i<2; i++)
+    for (i=0; i<devices.numberOfDevices; i++)
     {
       if (i%2==0) { snprintf(color,32,"#EEEEEE"); } else
                   { snprintf(color,32,"#FEFEFE"); }
 
       snprintf(placeHolder,32,"xxxDEVICE_%uxxx",i);
+
+      if (devices.device[i].lastContact==0)
+      {
+       snprintf(dateString,512," <center>-</center> ");
+      } else
+      {
+       struct tm * ptm = gmtime(&devices.device[i].lastContact);
+       snprintf(dateString,512,"%u/%u/%u %02u:%02u:%02u",ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+      }
 
       snprintf(
              deviceSummary,
@@ -93,25 +103,31 @@ void * push_acccount_callback(struct AmmServer_DynamicRequest  * rqst)
                 <td>%s</td>\
                 <td>%s</td>\
                 <td>%s</td>\
-                <td>-</td>\
+                <td>%s</td>\
                 <td>%0.2f&deg;C</td>\
                 <td>%0.2f%%</td>\
                 <td><center><a href=\"#\">&copy;</a></center></td>\
                </tr>"
                ,
                color,
-               devices.device[0].deviceLabel,
-               devices.device[0].deviceID,
-               deviceClassName[(int) devices.device[0].deviceClass],
-               devices.device[0].info.temperatures[0],
-               devices.device[0].info.sensors[0]
+               devices.device[i].deviceLabel,
+               devices.device[i].deviceID,
+               deviceClassName[(int) devices.device[i].deviceClass],
+               dateString,
+               devices.device[i].info.temperatures[0],
+               devices.device[i].info.sensors[0]
              );
 
-   AmmServer_ReplaceAllVarsInMemoryHandler(response,2,placeHolder,deviceSummary);
+      AmmServer_ReplaceAllVarsInMemoryHandler(response,1,placeHolder,deviceSummary);
     }
 
 
-
+    for (i=devices.numberOfDevices; i<11; i++)
+    {
+      snprintf(placeHolder,32,"xxxDEVICE_%uxxx",i);
+      snprintf(color,32,"                     ");
+      AmmServer_ReplaceAllVarsInMemoryHandler(response,1,placeHolder,color);
+    }
 
 
    //--------------------------------------------------------
@@ -228,7 +244,7 @@ void * generalHeartBeatCallback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddResourceHandler(server,&accountDataCtx,"/account.html",40096,0,&push_acccount_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&accountDataCtx,"/account.html",46000,0,&viewAccountDevicesCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&generalHeartBeatCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&alarmDataCtx,"/alarm.html",4096,0,&generalAlarmCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&testDataCtx,"/test.html",4096,0,&generalTestCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
