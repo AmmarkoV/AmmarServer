@@ -8,7 +8,7 @@
 typedef  unsigned int deviceID;
 
 
-#define TIME_IN_SECONDS_BETWEEN_EMAILS 1200
+#define TIME_IN_SECONDS_BETWEEN_EMAILS 3600
 
 enum DEVICE_CLASSES
 {
