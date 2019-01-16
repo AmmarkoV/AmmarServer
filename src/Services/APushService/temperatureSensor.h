@@ -15,8 +15,14 @@ int logTemperature(
 
 int getTemperatureAndHumidityFromRequest(struct AmmServer_DynamicRequest  * rqst,float * temperature , float * humidity);
 
-void * temperatureSensorTestCallback(struct deviceObject *device,struct AmmServer_DynamicRequest  * rqst);
-void * temperatureSensorAlarmCallback(struct deviceObject *device,struct AmmServer_DynamicRequest  * rqst);
-void * temperatureSensorHeartBeatCallback(struct deviceObject *device,struct AmmServer_DynamicRequest  * rqst);
+int temperatureSensorTestCallback(struct deviceObject *device,struct AmmServer_DynamicRequest  * rqst);
+int temperatureSensorAlarmCallback(struct deviceObject *device,struct AmmServer_DynamicRequest  * rqst);
+int temperatureSensorHeartBeatCallback(struct deviceObject *device,struct AmmServer_DynamicRequest  * rqst);
+
+
+int temperatureSensorPlotImageCallback(
+                                          struct deviceObject *device,
+                                          struct AmmServer_DynamicRequest  * rqst
+                                         );
 
 #endif // DEVICE_H_INCLUDED

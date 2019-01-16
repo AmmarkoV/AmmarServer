@@ -5,6 +5,10 @@
      @ingroup security */
 #define EPOCH_YEAR_IN_TM_YEAR 1900
 
+#include "../../AmmServerlib/AmmServerlib.h"
+
+void generalFailureResponseToRequest(struct AmmServer_DynamicRequest  * rqst);
+void generalSuccessResponseToRequest(struct AmmServer_DynamicRequest  * rqst);
 
 int sendEmail(
                const char * receipient,

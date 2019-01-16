@@ -8,7 +8,7 @@
 typedef  unsigned int deviceID;
 
 
-
+#define TIME_IN_SECONDS_BETWEEN_EMAILS 1200
 
 enum DEVICE_CLASSES
 {
@@ -41,6 +41,7 @@ struct informationList
 struct deviceObject
 {
   time_t  lastContact;
+  time_t  lastEMailNotification;
   char deviceClass;
   char deviceLabel[32];
   char deviceID[32];

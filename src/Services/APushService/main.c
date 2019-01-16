@@ -49,9 +49,32 @@ struct AmmServer_RH_Context pushDataCtx={0};
 struct AmmServer_RH_Context alarmDataCtx={0};
 struct AmmServer_RH_Context testDataCtx={0};
 struct AmmServer_RH_Context indexDataCtx={0};
+struct AmmServer_RH_Context monitorImageCtx={0};
+
 
 
 struct deviceList devices;
+
+
+
+int authenticateDevice(struct AmmServer_DynamicRequest  * rqst,deviceID * devID)
+{
+ int haveDeviceSerial=0,haveDeviceKey=0;
+  char deviceSerial[129]={0};
+  char devicePublicKey[32]={0};
+
+  if ( _GETcpy(rqst,"s",deviceSerial,128) )        { fprintf(stderr,"Device %s connected\n",deviceSerial); haveDeviceSerial=1; }
+  if ( _GETcpy(rqst,"k",devicePublicKey,128) )     { haveDeviceKey=1; }
+
+  if ( (haveDeviceSerial)||(haveDeviceKey) )
+  {
+    if ( getDeviceID(&devices,deviceSerial,devID) )
+    {
+      return 1;
+    }
+  }
+ return 0;
+}
 
 
 //This function prepares the content of  random_chars context , ( random_chars.content )
@@ -137,37 +160,27 @@ void * viewAccountDevicesCallback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
-
 ///---------------------------------------------------------------------------------------------------------------------------------
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * generalTestCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  int haveDeviceSerial=0,haveDeviceKey=0;
-  char deviceSerial[129]={0};
-  char devicePublicKey[32]={0};
-
-  if ( _GETcpy(rqst,"s",deviceSerial,128) )        { fprintf(stderr,"Device %s connected\n",deviceSerial); haveDeviceSerial=1; }
-  if ( _GETcpy(rqst,"k",devicePublicKey,128) )     { haveDeviceKey=1; }
-
   deviceID devID=0;
-  if ( (haveDeviceSerial)||(haveDeviceKey) )
-  {
-    if ( getDeviceID(&devices,deviceSerial,&devID) )
+    if ( authenticateDevice(rqst,&devID) )
     {
        switch(devices.device[devID].deviceClass)
        {
          case DEVICE_UNKOWN       :
          break;
          case DEVICE_THERMOMETER  :
-            return temperatureSensorTestCallback(&devices.device[devID],rqst);
+            if (temperatureSensorTestCallback(&devices.device[devID],rqst) ) { return 0; }
          break;
        }
     }
-  }
 
-  //FAILED state..
-  strncpy(rqst->content,"<html><body>FAILED</body></html>",rqst->MAXcontentSize);
-  rqst->contentSize=strlen(rqst->content);
+   //If we reached this point then we respond with a failure message
+    generalFailureResponseToRequest(rqst);
+   //---------------------------------------------------------------
+
  return 0;
 }
 
@@ -175,35 +188,23 @@ void * generalTestCallback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * generalAlarmCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  int haveDeviceSerial=0 , haveDeviceKey=0;
-  char devicePublicKey[32]={0};
-  char deviceSerial[129]={0};
-
-  if ( _GETcpy(rqst,"s",deviceSerial,128) )        { fprintf(stderr,"Device %s alarm!\n",deviceSerial); haveDeviceSerial=1; }
-  if ( _GETcpy(rqst,"k",devicePublicKey,128) ) { haveDeviceKey=1; }
-
-
-
   deviceID devID=0;
-  if ( (haveDeviceSerial)||(haveDeviceKey) )
-  {
-    if ( getDeviceID(&devices,deviceSerial,&devID) )
+  if ( authenticateDevice(rqst,&devID) )
     {
        switch(devices.device[devID].deviceClass)
        {
          case DEVICE_UNKOWN       :
          break;
          case DEVICE_THERMOMETER  :
-            return temperatureSensorAlarmCallback(&devices.device[devID],rqst);
+            if ( temperatureSensorAlarmCallback(&devices.device[devID],rqst) ) { return 0; }
          break;
        }
     }
-  }
 
+   //If we reached this point then we respond with a failure message
+    generalFailureResponseToRequest(rqst);
+   //---------------------------------------------------------------
 
-  //FAILED state..
-  strncpy(rqst->content,"<html><body>FAILED</body></html>",rqst->MAXcontentSize);
-  rqst->contentSize=strlen(rqst->content);
   return 0;
 }
 
@@ -211,34 +212,57 @@ void * generalAlarmCallback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * generalHeartBeatCallback(struct AmmServer_DynamicRequest  * rqst)
 {
-  int haveDeviceSerial=0,haveDeviceKey=0;
-  char deviceSerial[129]={0};
-  char devicePublicKey[32]={0};
-
-  if ( _GETcpy(rqst,"s",deviceSerial,128) )        { fprintf(stderr,"Device %s connected\n",deviceSerial); haveDeviceSerial=1; }
-  if ( _GETcpy(rqst,"k",devicePublicKey,128) )     { haveDeviceKey=1; }
-
   deviceID devID=0;
-  if ( (haveDeviceSerial)||(haveDeviceKey) )
-  {
-    if ( getDeviceID(&devices,deviceSerial,&devID) )
+  if ( authenticateDevice(rqst,&devID) )
     {
        switch(devices.device[devID].deviceClass)
        {
          case DEVICE_UNKOWN       :
          break;
          case DEVICE_THERMOMETER  :
-            return temperatureSensorHeartBeatCallback(&devices.device[devID],rqst);
+            if ( temperatureSensorHeartBeatCallback(&devices.device[devID],rqst) ) { return 0; }
          break;
        }
     }
-  }
 
-  //FAILED state..
-  strncpy(rqst->content,"<html><body>FAILED</body></html>",rqst->MAXcontentSize);
-  rqst->contentSize=strlen(rqst->content);
+   //If we reached this point then we respond with a failure message
+    generalFailureResponseToRequest(rqst);
+   //---------------------------------------------------------------
+
   return 0;
 }
+
+
+
+
+
+///---------------------------------------------------------------------------------------------------------------------------------
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * generalMonitorImageCallback(struct AmmServer_DynamicRequest  * rqst)
+{
+  deviceID devID=0;
+  if ( authenticateDevice(rqst,&devID) )
+    {
+       switch(devices.device[devID].deviceClass)
+       {
+         case DEVICE_UNKOWN       :
+         break;
+         case DEVICE_THERMOMETER  :
+            if ( temperatureSensorPlotImageCallback(&devices.device[devID],rqst) ) { return 0; }
+         break;
+       }
+    }
+
+   //If we reached this point then we respond with a failure message
+    generalFailureResponseToRequest(rqst);
+   //---------------------------------------------------------------
+
+  return 0;
+}
+
+
+
+
 
 ///---------------------------------------------------------------------------------------------------------------------------------
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
@@ -248,6 +272,7 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&generalHeartBeatCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&alarmDataCtx,"/alarm.html",4096,0,&generalAlarmCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&testDataCtx,"/test.html",4096,0,&generalTestCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&monitorImageCtx,"/monitor.png",46000,0,&generalMonitorImageCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&indexDataCtx,"/index.html",4096,0,&index_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 
@@ -258,9 +283,11 @@ void init_dynamic_content()
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
+    AmmServer_RemoveResourceHandler(server,&accountDataCtx,1);
     AmmServer_RemoveResourceHandler(server,&pushDataCtx,1);
     AmmServer_RemoveResourceHandler(server,&alarmDataCtx,1);
     AmmServer_RemoveResourceHandler(server,&testDataCtx,1);
+    AmmServer_RemoveResourceHandler(server,&monitorImageCtx,1);
     AmmServer_RemoveResourceHandler(server,&indexDataCtx,1);
 }
 /*! Dynamic content code ..! END ------------------------*/
