@@ -7,7 +7,7 @@ set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(apushservice main.c device.c utilities.c temperatureSensor.c ) 
+add_executable(apushservice main.c account.c device.c utilities.c temperatureSensor.c  ) 
 target_link_libraries(apushservice pthread rt AmmarServerDynamic )
 set_target_properties(apushservice PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(apushservice AmmarServer)  

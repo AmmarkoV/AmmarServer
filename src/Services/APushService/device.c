@@ -104,8 +104,16 @@ int checkForDeadDevices(struct deviceList *dl)
             //We just lost this device..
             device->deviceCommunicatingProperly=0;
 
-            snprintf(message,512,"The sensor `%s` has been disconnected  @ %u/%u/%u %u:%u:%u Hopefully this is just a power black-out or temporary network problem.",
-                    device->deviceLabel,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+            snprintf(
+                     message,512,"The sensor `%s` has been disconnected  @ %u/%u/%u %u:%u:%u Hopefully this is just a power black-out or temporary network problem.",
+                     device->deviceLabel,
+                     ptm->tm_mday,
+                     1+ptm->tm_mon,
+                     EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,
+                     ptm->tm_hour,
+                     ptm->tm_min,
+                     ptm->tm_sec
+                    );
 
             if ( sendEmail( device->email, "Sensor Disconnected", message ) )
                {
@@ -119,7 +127,7 @@ int checkForDeadDevices(struct deviceList *dl)
               //If it is so much time
               device->deviceIsDead=1;
 
-              snprintf(message,512,"The sensor `%s` has been disconnected  @ %u/%u/%u %u:%u:%u Hopefully this is just a power black-out or temporary network problem.",
+              snprintf(message,512,"The sensor `%s` has been disconnected for a very long time..! @ %u/%u/%u %u:%u:%u This could be a hardware problem.",
                     device->deviceLabel,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
 
               if ( sendEmail( device->email, "Sensor Dead?", message ) )
