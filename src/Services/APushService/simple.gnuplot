@@ -11,7 +11,7 @@ set style fill transparent solid 0.3 noborder
 set style function filledcurves y1=0
 set title "Humidity Data Plot"   
 set xdata time
-set xtics 10000
+set xtics 30000
 set timefmt "%s"
 set format x "%d/%m\n%H:%M"
 set xlabel "Date/Time"

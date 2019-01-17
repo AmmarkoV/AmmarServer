@@ -31,7 +31,12 @@ int sendEmail(
                const char * message
              )
 {
-  #if DEACTIVATE_EMAIL
+
+   if  (
+        (strcmp(receipient,"local")==0) ||
+        (DEACTIVATE_EMAIL)
+       )
+   {
       AmmServer_Error("----------------------------------------\n");
       AmmServer_Error("----------------------------------------\n");
       AmmServer_Error("----------------------------------------\n");
@@ -44,9 +49,11 @@ int sendEmail(
       AmmServer_Error("----------------------------------------\n");
       AmmServer_Error("----------------------------------------\n");
       AmmServer_Error("----------------------------------------\n");
-  #else
-  char messageBuffer[1024]={0};
-  char result[1024]={0};
+   }
+  else
+  {
+   char messageBuffer[1024]={0};
+   char result[1024]={0};
    snprintf(messageBuffer,1024,"printf \"Subject:%s\n\n%s\" | ssmtp -v %s",subject,message,receipient);
    if (1)//filterStringForShellInjection(messageBuffer,512))
    {
@@ -56,7 +63,8 @@ int sendEmail(
      return 1;
     }
    }
-  #endif // DEACTIVATE_EMAIL
+
+   }
 
 
 

@@ -9,6 +9,8 @@ typedef  unsigned int deviceID;
 
 
 #define TIME_IN_SECONDS_BETWEEN_EMAILS 3600
+#define TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_LOST 1200
+#define TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_DEAD 36000
 
 enum DEVICE_CLASSES
 {
@@ -40,6 +42,8 @@ struct informationList
 
 struct deviceObject
 {
+  char    deviceIsDead;
+  char    deviceCommunicatingProperly;
   time_t  lastContact;
   time_t  lastEMailNotification;
   char deviceClass;

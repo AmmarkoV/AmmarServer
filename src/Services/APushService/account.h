@@ -3,7 +3,9 @@
 
 #define MAXIMUM_NUMBER_OF_ACCOUNTS 100
 
-typedef  unsigned int deviceID;
+#include <time.h>
+
+typedef  unsigned int accountID;
 
 struct accountAssociatedDevices
 {
@@ -13,10 +15,10 @@ struct accountAssociatedDevices
 
 struct accountObject
 {
-  unsigned int lastLogin;
-  char accountID[32];
-  char accountPass[32];
-  char email[64];
+  time_t lastLogin;
+  char accountUsername[32];
+  char accountPassword[32];
+  char email[128];
 
   unsigned int numberOfAssociatedDevices;
   struct accountAssociatedDevices device[10];
@@ -28,5 +30,7 @@ struct accountList
    struct accountObject account[MAXIMUM_NUMBER_OF_ACCOUNTS];
 };
 
+
+int readAccountList(struct accountList * acc,const char * filename);
 
 #endif // DEVICE_H_INCLUDED

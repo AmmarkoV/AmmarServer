@@ -2,18 +2,19 @@
 #include <string.h>
 #include "device.h"
 
+#include "utilities.h"
 
 int printDeviceList(struct deviceList * dl)
 {
-
+  return 0;
 }
 
 
 int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
 {
-
-
    unsigned int dev=0;
+   dl->device[dev].deviceIsDead=0;
+   dl->device[dev].deviceCommunicatingProperly=1;
    dl->device[dev].lastContact=0;
    dl->device[dev].deviceClass=DEVICE_THERMOMETER;
    snprintf(dl->device[dev].deviceID,32,"0001");
@@ -28,7 +29,7 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
    snprintf(dl->device[dev].deviceID,32,"DUMMY");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
    snprintf(dl->device[dev].deviceLabel,32,"Dummy Sensor");
-   snprintf(dl->device[dev].email,512,"ammarkov@gmail.com");
+   snprintf(dl->device[dev].email,512,"local");
 
 
    ++dev;
@@ -37,7 +38,7 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
    snprintf(dl->device[dev].deviceID,32,"DUMMY");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
    snprintf(dl->device[dev].deviceLabel,32,"Dummy Sensor");
-   snprintf(dl->device[dev].email,512,"ammarkov@gmail.com");
+   snprintf(dl->device[dev].email,512,"local");
 
    dl->numberOfDevices=dev+1;
 /*
@@ -75,7 +76,62 @@ int updateDeviceHeartbeat(struct deviceObject *device,char alarmed,float tempera
   device->info.alarm=alarmed;
   device->info.sensors[0]=humidity;
   device->info.temperatures[0]=temperature;
+  device->deviceCommunicatingProperly=1;
+  device->deviceIsDead=0;
  return 1;
+}
+
+
+int checkForDeadDevices(struct deviceList *dl)
+{
+   if (dl==0) { return 0; }
+
+   time_t clock = time(NULL);
+   struct tm * ptm = gmtime ( &clock );
+
+   char message[512];
+
+
+   unsigned int i=0;
+   for (i=0; i<dl->numberOfDevices; i++)
+   {
+      struct deviceObject * device = &dl->device[i];
+
+      if (clock - device->lastContact > TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_LOST )
+      {
+          if ( (device->deviceCommunicatingProperly) && (!device->deviceIsDead) )
+          {
+            //We just lost this device..
+            device->deviceCommunicatingProperly=0;
+
+            snprintf(message,512,"The sensor `%s` has been disconnected  @ %u/%u/%u %u:%u:%u Hopefully this is just a power black-out or temporary network problem.",
+                    device->deviceLabel,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+
+            if ( sendEmail( device->email, "Sensor Disconnected", message ) )
+               {
+                device->lastEMailNotification=clock;
+               }
+          } else
+          {
+            //We have already lost the device, do not keep spamming
+            if (clock - device->lastContact > TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_DEAD )
+            {
+              //If it is so much time
+              device->deviceIsDead=1;
+
+              snprintf(message,512,"The sensor `%s` has been disconnected  @ %u/%u/%u %u:%u:%u Hopefully this is just a power black-out or temporary network problem.",
+                    device->deviceLabel,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+
+              if ( sendEmail( device->email, "Sensor Dead?", message ) )
+               {
+                device->lastEMailNotification=clock;
+               }
+            }
+          }
+      }
+   }
+
+   return 1;
 }
 
 

@@ -25,6 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 
 #include "device.h"
+#include "account.h"
 
 #include "../../AmmServerlib/AmmServerlib.h"
 
@@ -54,7 +55,7 @@ struct AmmServer_RH_Context monitorImageCtx={0};
 
 
 struct deviceList devices;
-
+struct accountList accounts;
 
 
 int authenticateDevice(struct AmmServer_DynamicRequest  * rqst,deviceID * devID)
@@ -328,9 +329,14 @@ int main(int argc, char *argv[])
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
 
-    if (!readDeviceAuthorizationList(&devices,"db/pushServiceAuthorization.list"))
+    if (!readDeviceAuthorizationList(&devices,"db/pushServiceDevices.list"))
     {
-      AmmServer_Error("Could not access authorization list..\n");
+      AmmServer_Error("Could not access device list..\n");
+    }
+
+    if (!readAccountList(&accounts,"db/pushServiceAccounts.list"))
+    {
+      AmmServer_Error("Could not access account list..\n");
     }
 
          while ( (AmmServer_Running(server))  )
