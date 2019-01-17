@@ -20,14 +20,7 @@ enum DEVICE_CLASSES
     NUMBER_OF_DEVICE_CLASSES
 };
 
-
-static const char * deviceClassName[] =
-{
-    "Unknown"   	,
-    "Thermometer" 	,
-   //--------------------------------------------
-    "NUMBER_OF_DEVICE_CLASSES"
-};
+extern const char * deviceClassName[];
 
 
 
@@ -64,6 +57,9 @@ struct deviceList
 
 
 int updateDeviceHeartbeat(struct deviceObject *device,char alarmed,float temperature,float humidity);
+
+
+int checkForDeadDevices(struct deviceList *dl);
 
 int readDeviceAuthorizationList(struct deviceList * dl,const char * filename);
 

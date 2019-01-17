@@ -334,15 +334,15 @@ int main(int argc, char *argv[])
       AmmServer_Error("Could not access device list..\n");
     }
 
-    /*
     if (!readAccountList(&accounts,"db/pushServiceAccounts.list"))
     {
       AmmServer_Error("Could not access account list..\n");
-    }*/
+    }
 
-         while ( (AmmServer_Running(server))  )
+     while ( (AmmServer_Running(server))  )
            {
-             sleep(1);
+             sleep(160);
+             checkForDeadDevices(&devices);
            }
 
     //Delete dynamic content allocations and remove stats.html and formtest.html from the server

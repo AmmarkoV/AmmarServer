@@ -4,6 +4,16 @@
 
 #include "utilities.h"
 
+
+const char * deviceClassName[] =
+{
+    "Unknown"   	,
+    "Thermometer" 	,
+   //--------------------------------------------
+    "NUMBER_OF_DEVICE_CLASSES"
+};
+
+
 int printDeviceList(struct deviceList * dl)
 {
   return 0;
@@ -84,6 +94,7 @@ int updateDeviceHeartbeat(struct deviceObject *device,char alarmed,float tempera
 
 int checkForDeadDevices(struct deviceList *dl)
 {
+   fprintf(stderr,"Checking for disconnected devices..\n");
    if (dl==0) { return 0; }
 
    time_t clock = time(NULL);
@@ -98,7 +109,7 @@ int checkForDeadDevices(struct deviceList *dl)
       struct deviceObject * device = &dl->device[i];
       if (device->lastContact==0)
       {
-        //Don't bother with devices never active..
+        //Don't bother with devices never actived..
       } else
       if (clock - device->lastContact > TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_LOST )
       {
@@ -123,6 +134,7 @@ int checkForDeadDevices(struct deviceList *dl)
                 device->lastEMailNotification=clock;
                }
           } else
+          if ( (!device->deviceCommunicatingProperly) && (!device->deviceIsDead) )
           {
             //We have already lost the device, do not keep spamming
             if (clock - device->lastContact > TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_DEAD )
@@ -138,8 +150,11 @@ int checkForDeadDevices(struct deviceList *dl)
                 device->lastEMailNotification=clock;
                }
             }
+          } else
+          {
+            //DEAD DEVICE..
           }
-      }
+      }//-------------------------------------------------------------
    }
 
    return 1;

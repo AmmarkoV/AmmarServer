@@ -79,16 +79,23 @@ int temperatureSensorTestCallback(
               device->deviceID,
               ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,temperature,humidity);
 
-     sendEmail(
-               device->email,
-               "animalNano Sensor Test",
-               message
-             );
+     if (
+          sendEmail(
+                    device->email,
+                    "Sensor Manual Test",
+                    message
+                   )
+       )
+       {
+         //----------------------------------------
+         generalSuccessResponseToRequest(rqst);
+         return 1;
+       }
    }
 
   //----------------------------------------
-  generalSuccessResponseToRequest(rqst);
- return 1;
+  generalFailureResponseToRequest(rqst);
+ return 0;
 }
 
 
