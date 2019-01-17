@@ -96,7 +96,10 @@ int checkForDeadDevices(struct deviceList *dl)
    for (i=0; i<dl->numberOfDevices; i++)
    {
       struct deviceObject * device = &dl->device[i];
-
+      if (device->lastContact==0)
+      {
+        //Don't bother with devices never active..
+      } else
       if (clock - device->lastContact > TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_LOST )
       {
           if ( (device->deviceCommunicatingProperly) && (!device->deviceIsDead) )

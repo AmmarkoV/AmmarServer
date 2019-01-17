@@ -334,10 +334,11 @@ int main(int argc, char *argv[])
       AmmServer_Error("Could not access device list..\n");
     }
 
+    /*
     if (!readAccountList(&accounts,"db/pushServiceAccounts.list"))
     {
       AmmServer_Error("Could not access account list..\n");
-    }
+    }*/
 
          while ( (AmmServer_Running(server))  )
            {
