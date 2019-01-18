@@ -10,7 +10,13 @@ sudo touch /var/log/ammarserver.log
 sudo chown ammar /var/log/ammarserver.log
 sudo update-rc.d ammarserver defaults
 
-#systemd?
-sudo systemctl daemon-reload
+if [ -e /lib/systemd/system/ ]
+then
+ #systemd?
+ echo "SystemD bloat detected, registering with it.."
+ sudo systemctl daemon-reload
+ sudo cp ammarserver.service /lib/systemd/system/
+fi
+
 
 exit 0

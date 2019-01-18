@@ -1,0 +1,9 @@
+[Unit]
+Description=AmmarServer Suite
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /etc/init.d/ammarserver
+
+[Install]
+WantedBy=multi-user.target

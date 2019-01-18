@@ -73,7 +73,7 @@ int temperatureSensorTestCallback(
    {
 
      char logFile[64];
-     snprintf(logFile,64,"temperature_%s.log",device->deviceID);
+     snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
 
      fprintf(stderr,"Test Button Temperature: %0.2f , Humidity: %0.2f\n",temperature,humidity);
      logTemperature(
@@ -127,7 +127,7 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
      updateDeviceHeartbeat(device,1,temperature,humidity);
 
      char logFile[64];
-     snprintf(logFile,64,"temperature_%s.log",device->deviceID);
+     snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
 
      logTemperature(
                            logFile,
@@ -203,7 +203,7 @@ int temperatureSensorHeartBeatCallback(struct deviceObject *device,struct AmmSer
       if (isDeviceAutheticated(deviceID,devicePublicKey))
        {
         char logFile[64];
-        snprintf(logFile,64,"temperature_%s.log",device->deviceID);
+        snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
 
         if (
             logTemperature(
