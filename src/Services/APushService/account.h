@@ -18,7 +18,7 @@ struct accountObject
   time_t lastLogin;
   char accountUsername[32];
   char accountPassword[32];
-  char email[128];
+  char email[512];
 
   unsigned int numberOfAssociatedDevices;
   struct accountAssociatedDevices device[10];

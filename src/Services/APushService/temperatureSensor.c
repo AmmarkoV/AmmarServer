@@ -47,6 +47,21 @@ int getTemperatureAndHumidityFromRequest(struct AmmServer_DynamicRequest  * rqst
 
 
 
+int temperatureSensorSystemNotification(struct deviceObject *device,char * message)
+{
+  if  (
+       sendEmail(
+                 device->email,
+                 "Sensor System Notification",
+                 message
+                )
+       )
+       {
+         return 1;
+       }
+  return 0;
+}
+
 
 int temperatureSensorTestCallback(
                                       struct deviceObject *device,

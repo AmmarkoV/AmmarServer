@@ -35,6 +35,7 @@ struct informationList
 
 struct deviceObject
 {
+  char    deviceNeedsPlot;
   char    deviceIsDead;
   char    deviceCommunicatingProperly;
   time_t  lastContact;

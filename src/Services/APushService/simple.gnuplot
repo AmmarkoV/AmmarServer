@@ -1,5 +1,5 @@
 #Use as :
-#     gnuplot -e "filename='temperature_0002.log'" -c simple.gnuplot
+#     gnuplot -e "filename='temperature_0001.log'" -c simple.gnuplot
 #      
 set datafile separator "|"  
 set term png 

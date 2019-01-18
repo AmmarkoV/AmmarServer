@@ -4,6 +4,8 @@
 
 #include "utilities.h"
 
+//#include "configurationDefault.h" //If you don't have configuration.h then comment the next line and uncomment this
+#include "configuration.h"
 
 const char * deviceClassName[] =
 {
@@ -23,41 +25,44 @@ int printDeviceList(struct deviceList * dl)
 int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
 {
    unsigned int dev=0;
+   dl->device[dev].deviceNeedsPlot=0;
    dl->device[dev].deviceIsDead=0;
    dl->device[dev].deviceCommunicatingProperly=1;
    dl->device[dev].lastContact=0;
    dl->device[dev].deviceClass=DEVICE_THERMOMETER;
    snprintf(dl->device[dev].deviceID,32,"0001");
+   snprintf(dl->device[dev].devicePrivateKey,32,"xxxx");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
    snprintf(dl->device[dev].deviceLabel,32,"Animal Sensor 1");
-   snprintf(dl->device[dev].email,512,"gregoriou@uoc.gr,ammarkov@gmail.com");
+   snprintf(dl->device[dev].email,512,EMAIL_LIST_BIO);
 
 
    ++dev;
+   dl->device[dev].deviceNeedsPlot=0;
+   dl->device[dev].deviceIsDead=1;
+   dl->device[dev].deviceCommunicatingProperly=0;
    dl->device[dev].lastContact=0;
-   dl->device[dev].deviceClass=DEVICE_UNKOWN;
-   snprintf(dl->device[dev].deviceID,32,"DUMMY");
+   dl->device[dev].deviceClass=DEVICE_THERMOMETER;
+   snprintf(dl->device[dev].deviceID,32,"0002");
+   snprintf(dl->device[dev].devicePrivateKey,32,"xxxx");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
-   snprintf(dl->device[dev].deviceLabel,32,"Dummy Sensor");
+   snprintf(dl->device[dev].deviceLabel,32,"Animal Sensor 2 - TEST");
    snprintf(dl->device[dev].email,512,"local");
 
 
    ++dev;
+   dl->device[dev].deviceNeedsPlot=0;
+   dl->device[dev].deviceIsDead=1;
+   dl->device[dev].deviceCommunicatingProperly=0;
    dl->device[dev].lastContact=0;
    dl->device[dev].deviceClass=DEVICE_UNKOWN;
    snprintf(dl->device[dev].deviceID,32,"DUMMY");
+   snprintf(dl->device[dev].devicePrivateKey,32,"xxxx");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
    snprintf(dl->device[dev].deviceLabel,32,"Dummy Sensor");
    snprintf(dl->device[dev].email,512,"local");
 
    dl->numberOfDevices=dev+1;
-/*
-  unsigned int ;
-  char [32];
-  char devicePrivateKey[32];
-  char devicePublicKey[32];
-  char email[64];
-  struct informationList info;*/
 
   return 0;
 }
