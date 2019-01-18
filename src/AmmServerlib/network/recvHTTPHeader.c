@@ -163,7 +163,8 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
             } else
             {
                //fprintf(stderr,"Request `%s` did not have arguments\n",output->headerRAW);
-               fprintf(stderr,"Request did not have arguments\n");
+               //No arguments, no problem
+               //fprintf(stderr,"Request did not have arguments\n");
             }
       } else
       {

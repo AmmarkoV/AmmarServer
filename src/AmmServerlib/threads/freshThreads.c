@@ -114,8 +114,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //context.webserver_root=webserver_root;
   //context.templates_root=templates_root;
 
-
-  fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);
+  //Less Spam
+  //fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);
 
   int retres = pthread_create(&instance->threads_pool[threadID],0/*&instance->attr*/,ServeClientAfterUnpackingThreadMessage,(void*) &context);
   //It appears that in certain high loads pthread_create stops creating new threads ..
