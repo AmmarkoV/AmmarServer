@@ -116,7 +116,7 @@ void * viewAccountDevicesCallback(struct AmmServer_DynamicRequest  * rqst)
        snprintf(dateString,512," <center>-</center> ");
       } else
       {
-       struct tm * ptm = gmtime(&devices.device[i].lastContact);
+       struct tm * ptm = localtime(&devices.device[i].lastContact); //gmtime
        snprintf(dateString,512,"%u/%u/%u %02u:%02u:%02u",ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
       }
 

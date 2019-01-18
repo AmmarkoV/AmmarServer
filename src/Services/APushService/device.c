@@ -98,7 +98,7 @@ int checkForDeadDevices(struct deviceList *dl)
    if (dl==0) { return 0; }
 
    time_t clock = time(NULL);
-   struct tm * ptm = gmtime ( &clock );
+   struct tm * ptm = localtime( &clock );  //gmtime
 
    char message[512];
 
