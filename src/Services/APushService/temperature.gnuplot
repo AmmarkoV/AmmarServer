@@ -1,5 +1,7 @@
 #Use as :
 #     gnuplot -e "filename='temperature_0001.log'" -c temperature.gnuplot > temperature.png
+#    or 
+#     tail -n 288 temperature_0001.log | gnuplot -c temperature.gnuplot > temperature.png
 #      
 set datafile separator "|"  
 set term png 
@@ -14,7 +16,7 @@ set timefmt "%s"
 set format x "%d/%m\n%H:%M"
 set xlabel "Date/Time" 
 #+7200 to go from UTC to UTC+2
-if (!exists("filename")) filename='temperature_0001.log' 
+if (!exists("filename")) filename='/dev/stdin' 
 set yrange [0:40];
 set title "Temperature Data Plot"       
 set ylabel "Degrees Celsius "                              

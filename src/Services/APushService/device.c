@@ -4,8 +4,11 @@
 
 #include "utilities.h"
 
-//#include "configurationDefault.h" //If you don't have configuration.h then comment the next line and uncomment this
-#include "configuration.h"
+#if __has_include("configuration.h") && __has_include(<stdint.h>)
+ #include "configuration.h"  //If you don't have configuration.h then comment this line and uncomment the previous one
+ #else
+ #include "configurationDefault.h"
+#endif
 
 const char * deviceClassName[] =
 {
