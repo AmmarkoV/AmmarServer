@@ -186,7 +186,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   struct AmmServer_Instance * instance = (struct AmmServer_Instance *) malloc(sizeof(struct AmmServer_Instance));
   if (!instance) { fprintf(stderr,"AmmServer_Start failed to allocate a new instance \n"); } else
                  { memset(instance,0,sizeof(struct AmmServer_Instance)); }
-  fprintf(stderr,"Initial AmmServer_Start instance pointing @ %p \n",instance);//Clear instance..!
+  //fprintf(stderr,"Initial AmmServer_Start instance pointing @ %p \n",instance);//Clear instance..!
 
   instance->threads_pool = (pthread_t *) malloc( sizeof(pthread_t) * MAX_CLIENT_THREADS);
   if (!instance->threads_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a thread pool\n",MAX_CLIENT_THREADS);  } else
@@ -197,7 +197,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
 
 
 
-  fprintf(stderr,"Initial AmmServer_Start ( name %s ) thread pool pointing @ %p \n",instance->instanceName,instance->threads_pool);//Clear instance..!
+  //fprintf(stderr,"Initial AmmServer_Start ( name %s ) thread pool pointing @ %p \n",instance->instanceName,instance->threads_pool);//Clear instance..!
 
 
 

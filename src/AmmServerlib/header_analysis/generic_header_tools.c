@@ -340,7 +340,7 @@ int growHeader(struct HTTPTransaction * transaction)
 
 int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-  fprintf(stderr,"keepAnalyzingHTTPHeader checks\n");
+  //fprintf(stderr,"keepAnalyzingHTTPHeader checks\n");
   if (instance==0)          { return 0; }
   if (transaction==0)       { return 0; }
 

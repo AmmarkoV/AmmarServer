@@ -91,7 +91,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
 
   struct AmmServer_Instance * instance = context->instance;
   if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); context->keep_var_on_stack=2;  return 0; }
-  fprintf(stderr,"HTTPServerThread instance pointing @ %p \n",instance);
+  //fprintf(stderr,"HTTPServerThread instance pointing @ %p \n",instance);
 
 
 
@@ -298,7 +298,7 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
    strncpy((char*) instance->templates_root,templates_path,MAX_FILE_PATH);
 
 
-   fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
+   //fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
    /*
    pthread_attr_init(&instance->attr);
    size_t stacksize;

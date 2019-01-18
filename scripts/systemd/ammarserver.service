@@ -2,7 +2,9 @@
 Description=AmmarServer Suite
 
 [Service]
-Type=simple
+User=ammar
+Group=ammar
+Type=forking
 ExecStart=/bin/bash /home/ammar/Documents/Programming/AmmarServer/startSystem.sh
 
 [Install]

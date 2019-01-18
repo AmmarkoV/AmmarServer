@@ -195,7 +195,7 @@ char * dynamicRequest_serveContent
      { warningID(ASV_WARNING_RESOURCE_HAS_ZERO_ACCOMODATION_SIZE); }
      else
      {
-      AmmServer_Warning("Allocating an additional %u bytes for this request \n",size_to_allocate);
+      //AmmServer_Warning("Allocating an additional %u bytes for this request \n",size_to_allocate);
       cacheMemory = (char *) malloc( size_to_allocate+2);
       if (cacheMemory!=0) {
                             *freeContentAfterUsingIt=1;

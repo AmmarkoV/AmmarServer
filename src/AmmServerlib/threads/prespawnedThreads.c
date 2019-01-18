@@ -128,7 +128,7 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
     return 0;
   }
    //Please note that this must only get called from the main process/thread..
-   fprintf(stderr,"UsePreSpawnedThreadToServeNewClient instance pointing @ %p \n",instance);
+   //fprintf(stderr,"UsePreSpawnedThreadToServeNewClient instance pointing @ %p \n",instance);
 
    struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
    struct PreSpawnedThread * prespawned_data=0;

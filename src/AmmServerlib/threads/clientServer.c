@@ -470,7 +470,7 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
 {
 
   if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); return 0; } else
-                   { fprintf(stderr,"ServeClient instance pointing @ %p \n",instance); }
+                   { /*fprintf(stderr,"ServeClient instance pointing @ %p \n",instance);*/ }
 
   if (!setSocketTimeouts(transaction->clientSock))
    {
