@@ -56,6 +56,7 @@ struct deviceList
    struct deviceObject device[MAXIMUM_NUMBER_OF_DEVICES];
 };
 
+int saveDeviceState(struct deviceList * dl,const char * filename);
 
 int updateDeviceHeartbeat(struct deviceObject *device,char alarmed,float temperature,float humidity);
 

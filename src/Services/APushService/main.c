@@ -95,7 +95,7 @@ void * viewAccountDevicesCallback(struct AmmServer_DynamicRequest  * rqst)
 {
    struct AmmServer_MemoryHandler * response = AmmServer_CopyMemoryHandler(accountPage);
 
-   AmmServer_ReplaceAllVarsInMemoryHandler(response,2,"xxxACCOUNT_NAMExxx","SAMPLE_ACCOUNT");
+   AmmServer_ReplaceAllVarsInMemoryHandler(response,2,"xxxACCOUNTxxx","SAMPLE_ACCOUNT");
 
 
     char placeHolder[32];
@@ -149,7 +149,7 @@ void * viewAccountDevicesCallback(struct AmmServer_DynamicRequest  * rqst)
     for (i=devices.numberOfDevices; i<11; i++)
     {
       snprintf(placeHolder,32,"xxxDEVICE_%uxxx",i);
-      snprintf(color,32,"                     ");
+      snprintf(color,32,"                              ");
       AmmServer_ReplaceAllVarsInMemoryHandler(response,1,placeHolder,color);
     }
 
@@ -284,12 +284,18 @@ void init_dynamic_content()
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
+    fprintf(stderr,"Termination request received..\n");
+    saveDeviceState(&devices,"db/pushService.state");
+
     AmmServer_RemoveResourceHandler(server,&accountDataCtx,1);
     AmmServer_RemoveResourceHandler(server,&pushDataCtx,1);
     AmmServer_RemoveResourceHandler(server,&alarmDataCtx,1);
     AmmServer_RemoveResourceHandler(server,&testDataCtx,1);
     AmmServer_RemoveResourceHandler(server,&monitorImageCtx,1);
     AmmServer_RemoveResourceHandler(server,&indexDataCtx,1);
+
+
+    fprintf(stderr,"goodbye..\n");
 }
 /*! Dynamic content code ..! END ------------------------*/
 ///---------------------------------------------------------------------------------------------------------------------------------

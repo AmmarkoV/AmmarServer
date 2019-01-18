@@ -180,35 +180,19 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
 int temperatureSensorHeartBeatCallback(struct deviceObject *device,struct AmmServer_DynamicRequest  * rqst)
 {
   float temperature,humidity;
-  int haveDeviceID=0 , haveDeviceKey=0;
-  char deviceID[129]={0};
-  char devicePublicKey[32]={0};
-
-  if ( _GETcpy(rqst,"s",deviceID,128) )        { fprintf(stderr,"Device %s connected\n",deviceID); haveDeviceID=1; }
-  if ( _GETcpy(rqst,"k",devicePublicKey,128) ) { haveDeviceKey=1; }
-
    if ( getTemperatureAndHumidityFromRequest(rqst,&temperature,&humidity) )
    {
      fprintf(stderr,"Regular Temperature: %0.2f , Humidity: %0.2f\n",temperature,humidity);
 
      updateDeviceHeartbeat(device,0,temperature,humidity);
-   }
 
-
-  if (
-       (haveDeviceID)&&
-       (haveDeviceKey)
-     )
-     {
-      if (isDeviceAutheticated(deviceID,devicePublicKey))
-       {
-        char logFile[64];
-        snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
+     char logFile[64];
+     snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
 
         if (
             logTemperature(
                            logFile,
-                           deviceID,
+                           device->deviceID,
                            temperature,
                            humidity,
                            0 //NotAlarming
@@ -219,7 +203,6 @@ int temperatureSensorHeartBeatCallback(struct deviceObject *device,struct AmmSer
            generalSuccessResponseToRequest(rqst);
            return 1;
          }
-       }
      }
 
   //----------------------------------------

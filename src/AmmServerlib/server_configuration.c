@@ -105,6 +105,11 @@ int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
   @bug  Add apache like logging capabilities
   */
 
+  if ( MAX_CLIENT_PRESPAWNED_THREADS == 0 )
+  {
+    warningID(ASV_WARNING_NO_PRESPAWNED_THREADS);
+  }
+
   fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
   fprintf(stderr,"TODO: require the Host: header from HTTP 1.1 clients\n");
   fprintf(stderr,"TODO: accept absolute URL's in a request\n");

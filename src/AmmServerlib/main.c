@@ -720,9 +720,12 @@ void AmmServer_GlobalTerminationHandler(int signum)
         //&
         if (TerminationCallback!=0) { TerminationCallback(); }
 
-        fprintf(stderr,"AmmServer_GlobalTerminationHandler called\n");
+        fprintf(stderr,"AmmServer_GlobalTerminationHandler called .. \n");
 
         usleep(1000);
+
+
+        fprintf(stderr,"goodbye ..\n");
         exit(0);
 }
 
@@ -797,7 +800,8 @@ int AmmServer_ReplaceAllVarsInMemoryHandler(struct AmmServer_MemoryHandler * mh 
   unsigned int valueLength = strlen(value);
   if (varLength>valueLength)
     {
-      AmmServer_Warning("AmmServer_ReplaceAllVarsInMemoryHandler is buggy when replacing values smaller than the variable?\n");
+      AmmServer_Warning("AmmServer_ReplaceAllVarsInMemoryHandler is buggy when replacing values smaller than the variable (in our case %u var / %u val)?\n",varLength,valueLength);
+      //AmmServer_Warning("AmmServer_ReplaceAllVarsInMemoryHandler is buggy when replacing values smaller than the variable (in our case %u var [%s] / %u val [%s] )?\n",varLength,var,valueLength,value);
     }
 
   return astringReplaceAllInstancesOfVarInMemoryFile(mh,instances,var,value);

@@ -86,7 +86,8 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 
   if ( MAX_CLIENT_PRESPAWNED_THREADS == 0 )
   {
-    warningID(ASV_WARNING_NO_PRESPAWNED_THREADS);
+    //We now emmit this warning one time in log.c in EmmitPossibleConfigurationWarnings, no need to spam it again and again
+    //warningID(ASV_WARNING_NO_PRESPAWNED_THREADS);
     return;
   }
   if ( (instance==0)||(instance->prespawned_pool==0) ) { fprintf(stderr,"PreSpawnThreads called on an invalid instance..\n"); return; }
@@ -124,7 +125,8 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
 
   if ( MAX_CLIENT_PRESPAWNED_THREADS == 0 )
   {
-    warningID(ASV_WARNING_NO_PRESPAWNED_THREADS);
+    //We now emmit this warning one time in log.c in EmmitPossibleConfigurationWarnings, no need to spam it again and again
+    //warningID(ASV_WARNING_NO_PRESPAWNED_THREADS);
     return 0;
   }
    //Please note that this must only get called from the main process/thread..

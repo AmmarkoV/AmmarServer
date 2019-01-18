@@ -67,6 +67,37 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
   return 0;
 }
 
+
+int saveDeviceState(struct deviceList * dl,const char * filename)
+{
+ FILE * fp = fopen(filename,"a");
+ if (fp!=0)
+ {
+  unsigned int devID=0;
+  for (devID=0; devID<dl->numberOfDevices; devID++)
+  {
+
+
+
+
+
+  }
+    return 1;
+ }
+
+ fprintf(stderr,"Failed to saveDeviceState\n");
+ return 0;
+}
+
+
+
+
+
+
+
+
+
+
 int getDeviceID(struct deviceList * dl,const char * serialNumber,deviceID * devID)
 {
    unsigned int i=0;
