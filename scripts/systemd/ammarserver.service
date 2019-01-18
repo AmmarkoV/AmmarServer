@@ -3,7 +3,7 @@ Description=AmmarServer Suite
 
 [Service]
 Type=simple
-ExecStart=/bin/bash /etc/init.d/ammarserver
+ExecStart=/bin/bash /home/ammar/Documents/Programming/AmmarServer/startSystem.sh
 
 [Install]
 WantedBy=multi-user.target
