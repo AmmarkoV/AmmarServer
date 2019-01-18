@@ -20,7 +20,7 @@
 1491303702 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/hashmap/hashmap.h
 	<pthread.h>
 
-1524178309 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.c
+1547819152 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -35,7 +35,7 @@
 1520583704 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/cache/dynamic_requests.h
 	"../AmmServerlib.h"
 
-1522089156 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
+1547823194 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AmmServerlib.h
 	<pthread.h>
 	<libgen.h>
 
@@ -99,7 +99,7 @@
 	<string.h>
 	"hashmap.h"
 
-1524232444 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.c
+1524425609 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/http_header_analysis.c
 	"generic_header_tools.h"
 	"http_header_analysis.h"
 	"post_header_analysis.h"
@@ -117,14 +117,14 @@
 	<stdlib.h>
 	<string.h>
 
-1521039014 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/post_header_analysis.h
+1520945650 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/post_header_analysis.h
 	"../AmmServerlib.h"
 
 1519213317 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/httpHeader.h
 
 1519213317 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/firstLines.h
 
-1524172915 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/post_header_analysis.c
+1524226927 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/post_header_analysis.c
 	"post_header_analysis.h"
 	"../tools/logs.h"
 	"../tools/http_tools.h"
@@ -162,7 +162,7 @@
 	"sendHTTPHeader.h"
 	"networkAbstraction.h"
 
-1524470749 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
+1547823648 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/version.h
 
 1508568698 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/file_server.h
 	"../header_analysis/http_header_analysis.h"
@@ -191,7 +191,7 @@
 	"../templates/errors.h"
 	"networkAbstraction.h"
 
-1520961185 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.c
+1547820769 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/server_configuration.c
 	"server_configuration.h"
 	<stdio.h>
 	<stdlib.h>
@@ -201,7 +201,7 @@
 	"tools/logs.h"
 	"../InputParser/InputParser_C.h"
 
-1520963316 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/freshThreads.c
+1547819400 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/freshThreads.c
 	"freshThreads.h"
 	<stdio.h>
 	<stdlib.h>
@@ -230,7 +230,7 @@
 	<unistd.h>
 	"../server_configuration.h"
 
-1520961636 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/prespawnedThreads.c
+1547820838 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/prespawnedThreads.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -255,7 +255,7 @@
 	<unistd.h>
 	"../server_configuration.h"
 
-1521039014 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadedServer.c
+1547819005 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/threadedServer.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -299,7 +299,7 @@
 	"../templates/include/directoryListStart.html"
 	"../templates/include/directoryListEnd.html"
 
-1524232379 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/http_tools.c
+1524425609 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/http_tools.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -337,7 +337,7 @@
 
 1519213317 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/stringscanners/audioFiles.h
 
-1524175851 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/logs.c
+1524226927 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/tools/logs.c
 	<stdlib.h>
 	<time.h>
 	"logs.h"
@@ -445,17 +445,17 @@
 
 1406281864 /home/ammar/Documents/Programming/AmmarServer/public_html/templates/directoryListEnd.html
 
-1524176174 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.c
+1524425609 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
 	"AString.h"
 	"../server_configuration.h"
 
-1519599860 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.h
+1519635969 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/AString/AString.h
 	"../AmmServerlib.h"
 
-1524232490 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/clientServer.c
+1547820152 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/threads/clientServer.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -506,7 +506,7 @@
 	"../network/file_server.h"
 	"../threads/serverAbstraction.h"
 
-1524175970 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/recvHTTPHeader.c
+1547819341 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/recvHTTPHeader.c
 	"recvHTTPHeader.h"
 	<stdio.h>
 	<stdlib.h>
@@ -528,10 +528,10 @@
 	"../header_analysis/post_data.h"
 	"../tools/logs.h"
 
-1454810564 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/recvHTTPHeader.h
+1471972790 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/network/recvHTTPHeader.h
 	"../AmmServerlib.h"
 
-1524234209 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/generic_header_tools.c
+1547819121 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/generic_header_tools.c
 	"generic_header_tools.h"
 	"http_header_analysis.h"
 	"../tools/logs.h"
@@ -702,10 +702,10 @@
 
 1512469572 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/security/banlist.h
 
-1519417792 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/post_data.h
+1519399378 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/post_data.h
 	"../AmmServerlib.h"
 
-1524177778 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/post_data.c
+1524425609 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/post_data.c
 	"post_data.h"
 	"generic_header_tools.h"
 	"../tools/http_tools.h"
@@ -776,7 +776,7 @@
 	"session_list.h"
 	<stdio.h>
 
-1524174892 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/cookie_data.c
+1524226927 source:/home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/cookie_data.c
 	"cookie_data.h"
 	"get_data.h"
 	"generic_header_tools.h"
@@ -784,6 +784,6 @@
 	<stdio.h>
 	<string.h>
 
-1521159384 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/cookie_data.h
+1521125323 /home/ammar/Documents/Programming/AmmarServer/src/AmmServerlib/header_analysis/cookie_data.h
 	"../AmmServerlib.h"
 

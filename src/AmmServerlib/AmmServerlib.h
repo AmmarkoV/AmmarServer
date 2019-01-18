@@ -948,6 +948,15 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance);
 
 
 
+int AmmServer_ExecuteCommandLineAndRetreiveAllResults(
+                                                       const char *  command ,
+                                                       char * what2GetBack ,
+                                                       unsigned int what2GetBackMaxSize,
+                                                       unsigned long * what2GetBackSize
+                                                     );
+
+
+
 /**
 * @brief Execute a command and copy its output line to the provided buffer
 * @ingroup tools

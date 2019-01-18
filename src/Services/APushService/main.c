@@ -273,7 +273,7 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&generalHeartBeatCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&alarmDataCtx,"/alarm.html",4096,0,&generalAlarmCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&testDataCtx,"/test.html",4096,0,&generalTestCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(server,&monitorImageCtx,"/monitor.png",46000,0,&generalMonitorImageCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&monitorImageCtx,"/monitor.png",460000,0,&generalMonitorImageCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(server,&indexDataCtx,"/index.html",4096,0,&index_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 

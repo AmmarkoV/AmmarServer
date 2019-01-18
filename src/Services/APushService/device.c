@@ -130,7 +130,8 @@ int updateDeviceHeartbeat(struct deviceObject *device,char alarmed,float tempera
 
 int checkForDeadDevices(struct deviceList *dl)
 {
-   fprintf(stderr,"Checking for disconnected devices..\n");
+   unsigned int disconnectedDevicesFound=0;
+   fprintf(stderr,"Checking for disconnected devices starting..\n");
    if (dl==0) { return 0; }
 
    time_t clock = time(NULL);
@@ -152,6 +153,7 @@ int checkForDeadDevices(struct deviceList *dl)
           if ( (device->deviceCommunicatingProperly) && (!device->deviceIsDead) )
           {
             //We just lost this device..
+            ++disconnectedDevicesFound;
             device->deviceCommunicatingProperly=0;
 
             snprintf(
@@ -175,6 +177,7 @@ int checkForDeadDevices(struct deviceList *dl)
             //We have already lost the device, do not keep spamming
             if (clock - device->lastContact > TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_DEAD )
             {
+              ++disconnectedDevicesFound;
               //If it is so much time
               device->deviceIsDead=1;
 
@@ -193,6 +196,7 @@ int checkForDeadDevices(struct deviceList *dl)
       }//-------------------------------------------------------------
    }
 
+   fprintf(stderr,"Checking finished and found %u newly disconnected devices..\n",disconnectedDevicesFound);
    return 1;
 }
 

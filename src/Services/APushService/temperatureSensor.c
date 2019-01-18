@@ -218,6 +218,41 @@ int temperatureSensorPlotImageCallback(
                                           struct AmmServer_DynamicRequest  * rqst
                                          )
 {
-  return 0;
+
+  char buffer[128]={0};
+  if ( _GETcpy(rqst,"t",buffer,128) )
+  {
+    char command[512];
+    int haveACommand=0;
+
+    if (strcmp("0",buffer)==0)
+    {
+        haveACommand=1;
+        snprintf(command,512,"gnuplot -e \"filename='log/APushService/temperature_%s.log'\" -c src/Services/APushService/temperature.gnuplot",device->deviceID);
+    }
+     else
+    if (strcmp("1",buffer)==0)
+    {
+        haveACommand=1;
+        snprintf(command,512,"gnuplot -e \"filename='log/APushService/temperature_%s.log'\" -c src/Services/APushService/humidity.gnuplot",device->deviceID);
+    }
+
+   if (haveACommand)
+   {
+    if (
+        AmmServer_ExecuteCommandLineAndRetreiveAllResults(
+                                                           command,
+                                                           rqst->content,
+                                                           rqst->MAXcontentSize,
+                                                           &rqst->contentSize
+                                                         )
+       )
+       { return 1; }
+   }
+  }
+
+
+
+ return 0;
 }
 
