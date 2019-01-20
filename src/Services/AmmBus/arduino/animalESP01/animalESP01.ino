@@ -2,6 +2,8 @@
 //Add http://arduino.esp8266.com/stable/package_esp8266com_index.json to File->Preferences->Additional Board Manager URLs
 //And then Tools->Board ******** -> Board Manager
 #include "configuration.h"
+ 
+
 
 const char* ssid     = "AmmarNetCrete"; // Your ssid
 const char* password = ""; // Your Password
@@ -46,7 +48,8 @@ int send(char * host,float temp,float hum)
 
 
 
-void setup() {
+void setup() 
+{
 Serial.begin(115200);
 delay(10);
 Serial.println();
@@ -73,11 +76,22 @@ Serial.println("Server started");
 
 // Print the IP address
 Serial.println(WiFi.localIP());
+
+
+ dht.setup(pinDHT11, DHTesp::DHT11); // Connect DHT sensor to GPIO  
 }
 
-void loop() {
+void loop() 
+{
 int err;
 float temp, humi; 
+ 
+delay(dht.getMinimumSamplingPeriod());
+
+float humidity = dht.getHumidity();
+float temperature = dht.getTemperature();
+
+/*
 if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))
 {
   temp=(float) temperature;
@@ -88,12 +102,21 @@ if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))
   Serial.print(humi);
   Serial.println();
 }
-else
+   else
 {
-Serial.println();
-Serial.print("Error Sampling DHT :"); 
-Serial.println();
-}
+  Serial.println();
+  Serial.print("Error Sampling DHT :"); 
+  Serial.println();
+}*/
+
+  Serial.print("temperature:");
+  Serial.print(temp);
+  Serial.print(" humidity:");
+  Serial.print(humi);
+  Serial.println();
+
+
+
 WiFiClient client = server.available();
 client.println("HTTP/1.1 200 OK");
 client.println("Content-Type: text/html");
@@ -117,9 +140,9 @@ client.print("</body>\n</html>");
 delay(1500); //delay for reread
 
 
-if (tick%100==0)
+if (tick%100==99)
 {
-  send("ammar.gr",temp,humi);
+//  send("ammar.gr",temp,humi);
 }
 
   ++tick;

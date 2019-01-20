@@ -61,6 +61,10 @@ byte dataDHT11[40] = {0};
 uint32_t lastDHT11SampleTime=0;
 //-----------------------------------------------------------
  
+#include "DHTesp.h"
+DHTesp dht;
+
+
 
 
 #endif
