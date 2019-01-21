@@ -34,6 +34,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DEFAULT_BINDING_PORT 8087  // <--- Change this to 80 if you want to bind to the default http port..!
 
+//todo: Add TinyAES for encryption..
+//https://github.com/kokke/tiny-AES-c
 
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
