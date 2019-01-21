@@ -1,31 +1,199 @@
 #include <ESP8266WiFi.h>
 //Add http://arduino.esp8266.com/stable/package_esp8266com_index.json to File->Preferences->Additional Board Manager URLs
-//And then Tools->Board ******** -> Board Manager
+//And then Tools->Board ******** -> Board Manager 
+ 
+
+#if USE_ENCRYPTION  
+#include <AESLib.h>
+//cd ~/Arduino/libraries && git clone https://github.com/DavyLandman/AESLib
+#include <aes128_enc.h> 
+#endif
+
 #include "configuration.h"
  
+unsigned int incorrectRequests=0;
+char requestsPending=0;
+char request[64]; 
+
+
+static unsigned long timer=0;
+static unsigned long timerTemp=0;
+static unsigned long timerLedOn=0;
+static unsigned long timerTest=0;
+static unsigned long timerConnectionError=0;
+
+
+char sTmp[6];
+char sHum[6];
+
+
+char criticalTemperature=0;
+float lowestAcceptableTemperature=19.0;
+float highestAcceptableTemperature=26.0;
+
+float temperatureAvg=0.0;
+float humidityAvg=0.0;
+float   temperatureSum=0;
+float   humiditySum=0;
+int   numberOfDHT11Samples=0;
 
 
 const char* ssid     = "AmmarNetCrete"; // Your ssid
-const char* password = ""; // Your Password
+const char* password = "spacepirate"; // Your Password
  
 WiFiServer server(80); 
+ 
 
-int tick=0;
+int serverWebsite()
+{ 
+ WiFiClient client = server.available();
+ client.println("HTTP/1.1 200 OK");
+ client.println("Content-Type: text/html");
+ client.println("Connection: close");  // the connection will be closed after completion of the response
+ client.println("Refresh: 10");  // refresh the page automatically every 5 sec
+ client.println();
+ client.println("<!DOCTYPE html>");
+ client.println("<html xmlns='http://www.w3.org/1999/xhtml'>");
+ client.println("<head>\n<meta charset='UTF-8'>");
+ client.println("<title>Temperature & Humidity Sensor</title>");
+ client.println("</head>\n<body>");
+ client.println("<H2>Temperature & Humidity Sensor</H2>");
+ client.println("<H3>Humidity / Temperature</H3>");
+ client.println("<pre>");
+ client.print("Humidity (%)         : ");
+ client.println(humidityAvg,2);
+ client.print("Temperature (°C)  : ");
+ client.println(temperatureAvg,2); 
+ client.println("</pre><br>"); 
+ client.println("<H4>Powered by <a href=\"https://github.com/AmmarkoV/AmmarServer/wiki\">AmmarServer</a></H4>");
+ client.print("</body>\n</html>"); 
+}
 
-int send(char * host,float temp,float hum)
+
+void initializeWirelessClient()
+{  
+ // Connect to WiFi network
+ WiFi.mode(WIFI_STA);
+ Serial.println();
+ Serial.println();
+ Serial.print("Connecting to ");
+ Serial.println(ssid); 
+
+ WiFi.begin(ssid, password);
+ 
+ while (WiFi.status() != WL_CONNECTED) 
+  {
+   delay(500);
+   Serial.print(".");
+  }
+  
+  Serial.println("");
+  Serial.println("WiFi connected");
+
+  // Start the server
+  server.begin();
+  Serial.println("Server started");
+
+  // Print the IP address
+  Serial.println(WiFi.localIP());
+}
+
+
+
+
+void readTemperature(int coldRun)
+{
+  //DHT requires sampling at 1Hz
+  humidity = dht.getHumidity();
+  temperature = dht.getTemperature();
+
+  if ((temperature!=temperature) || ( humidity!=humidity))
+   {
+      //Bad Reading..
+     // Serial.print("!");
+   } 
+    else 
+   { 
+    // Serial.print("Temperature : ");
+    // Serial.print(temperature);
+    // Serial.print(" Humidity : ");
+    // Serial.println(humidity);
+     //----------------------
+     temperatureSum+=temperature;
+     humiditySum+=humidity;
+     ++numberOfDHT11Samples;
+
+     if (numberOfDHT11Samples==NUMBER_OF_TEMPERATURE_SAMPLES)
+     {
+      temperatureAvg=(float) temperatureSum/numberOfDHT11Samples;
+      humidityAvg=(float) humiditySum/numberOfDHT11Samples;
+      temperatureSum=0;
+      humiditySum=0;
+      numberOfDHT11Samples=0;   
+    
+      Serial.print(F("Temperature Avg: "));
+      Serial.print(temperatureAvg);
+      Serial.print(F("oC\n"));
+
+      Serial.print(F("Humidity Avg: "));
+      Serial.print(humidityAvg);
+      Serial.print(F("%\n"));
+          
+      Serial.print(F("Time until next update:"));
+      Serial.print(millis()-timer);
+      Serial.print("/");
+      
+      if (criticalTemperature)  { Serial.println(REQUEST_RATE_CRITICAL); } else
+                                { Serial.println(REQUEST_RATE_NORMAL); } 
+      
+      
+     // notifyTemperature();
+     }
+
+     //First cold run will set the average temperature to keep thermometer from freaking out.. 
+     if (coldRun)
+      {
+       temperatureAvg=(float) temperature;
+       humidityAvg=(float) humidity;    
+      }
+     
+     criticalTemperature = 0;
+     if ( (lowestAcceptableTemperature>temperatureAvg) || (highestAcceptableTemperature<temperatureAvg) )
+     { 
+      criticalTemperature=1;
+     }
+
+     
+   /*
+    Serial.print("Temperature:"); Serial.print(temperature); Serial.print("oC\n");
+    Serial.print("Humidity:");    Serial.print(humidity);    Serial.print("%\n");*/
+  } 
+}
+
+
+
+
+int WifiGETRequest(const char * host,unsigned int port,const char * page,const char * variables)
 { 
   WiFiClient client;
   Serial.printf("\n[Connecting to %s ... ", host);
-  if (client.connect(host, 8087))
+  if (client.connect(host, port))
   {
     Serial.println("connected]");
 
     Serial.println("[Sending a request]");
-    client.print(String("GET /") + " HTTP/1.1\r\n" +
+
+    char request[256];
+    snprintf(request,256,"GET %s%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",page,variables,host);
+
+    client.print(request);
+    Serial.println(request);
+    delay(100);
+/*
+    client.print(String("GET /") + page + variables + " HTTP/1.1\r\n" +
                  "Host: " + host + "\r\n" +
                  "Connection: close\r\n" +
-                 "\r\n"
-                );
+                 "\r\n");*/
 
     Serial.println("[Response:]");
     while (client.connected() || client.available())
@@ -47,104 +215,87 @@ int send(char * host,float temp,float hum)
 }
 
 
-
 void setup() 
 {
-Serial.begin(115200);
-delay(10);
-Serial.println();
+ Serial.begin(115200);
+ delay(10);
+ Serial.println();
 
-// Connect to WiFi network
-WiFi.mode(WIFI_STA);
-Serial.println();
-Serial.println();
-Serial.print("Connecting to ");
-Serial.println(ssid);
-
-WiFi.begin(ssid, password);
-
-while (WiFi.status() != WL_CONNECTED) {
-delay(500);
-Serial.print(".");
-}
-Serial.println("");
-Serial.println("WiFi connected");
-
-// Start the server
-server.begin();
-Serial.println("Server started");
-
-// Print the IP address
-Serial.println(WiFi.localIP());
-
+ initializeWirelessClient();
 
  dht.setup(pinDHT11, DHTesp::DHT11); // Connect DHT sensor to GPIO  
+ 
+ Serial.println("Everything ready, just waiting to sample DHT11 sensor..");
+ delay(dht.getMinimumSamplingPeriod());
+ delay(100);
+ Serial.println("Let's Go..");
+ readTemperature(1);  //First cold run..
 }
 
 void loop() 
-{
-int err;
-float temp, humi; 
+{  
+  delay(100+dht.getMinimumSamplingPeriod());     
+  
+  ///----------------------------------------------------------------------------------
+  //                               READ TEMPERATURE READINGS
+  ///----------------------------------------------------------------------------------
+   //Read DHT11 Sensor -----------------------  
+    if (millis() > timerTemp + dht.getMinimumSamplingPeriod() ) 
+     {
+      timerTemp = millis();
+      readTemperature(0); 
+     }    
+  ///----------------------------------------------------------------------------------
+
+
+
+ serverWebsite();
  
-delay(dht.getMinimumSamplingPeriod());
 
-float humidity = dht.getHumidity();
-float temperature = dht.getTemperature();
+   ///----------------------------------------------------------------------------------
+   //                         NOTIFY ABOUT TEMPERATURE READINGS
+   ///----------------------------------------------------------------------------------
+   if (criticalTemperature)
+    {
+       if (millis() > timer + REQUEST_RATE_CRITICAL) 
+        {  
+         timer = millis();  
+         Serial.println(F("\n>>> REQ_CRITICAL"));
+         
+         /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
+         dtostrf(temperatureAvg, 4, 2, sTmp);
+         dtostrf(humidityAvg, 4, 2, sHum);
+         snprintf(request,64,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
 
-/*
-if (dht11.read(pinDHT11, &temperature, &humidity, dataDHT11))
-{
-  temp=(float) temperature;
-  humi=(float) humidity;
-  Serial.print("temperature:");
-  Serial.print(temp);
-  Serial.print(" humidity:");
-  Serial.print(humi);
-  Serial.println();
-}
-   else
-{
-  Serial.println();
-  Serial.print("Error Sampling DHT :"); 
-  Serial.println();
-}*/
-
-  Serial.print("temperature:");
-  Serial.print(temp);
-  Serial.print(" humidity:");
-  Serial.print(humi);
-  Serial.println();
-
-
-
-WiFiClient client = server.available();
-client.println("HTTP/1.1 200 OK");
-client.println("Content-Type: text/html");
-client.println("Connection: close");  // the connection will be closed after completion of the response
-client.println("Refresh: 5");  // refresh the page automatically every 5 sec
-client.println();
-client.println("<!DOCTYPE html>");
-client.println("<html xmlns='http://www.w3.org/1999/xhtml'>");
-client.println("<head>\n<meta charset='UTF-8'>");
-client.println("<title>ESP8266 Temperature & Humidity DHT11 Sensor</title>");
-client.println("</head>\n<body>");
-client.println("<H2>ESP8266 & DHT11 Sensor</H2>");
-client.println("<H3>Humidity / Temperature</H3>");
-client.println("<pre>");
-client.print("Humidity (%)         : ");
-client.println((float)humi, 2);
-client.print("Temperature (°C)  : ");
-client.println((float)temp, 2); 
-client.println("</pre>"); 
-client.print("</body>\n</html>");
-delay(1500); //delay for reread
-
-
-if (tick%100==99)
-{
-//  send("ammar.gr",temp,humi);
-}
-
-  ++tick;
-
+         #if USE_ENCRYPTION  
+          aes128_enc_single(privateKey,request);
+         #endif
+       
+         Serial.println(request);
+          
+         WifiGETRequest(website,8087,"/alarm.html",request); 
+        }  
+    } 
+      else
+    {
+     if (millis() > timer + REQUEST_RATE_NORMAL) 
+       {  
+        timer = millis();     
+        Serial.println(F("\n>>> REQ_NORMAL"));
+        
+         /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
+         dtostrf(temperatureAvg, 4, 2, sTmp);
+         dtostrf(humidityAvg, 4, 2, sHum);
+         snprintf(request,64,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
+         
+         #if USE_ENCRYPTION  
+          aes128_enc_single(privateKey,request);
+         #endif
+       
+         Serial.println(request);
+         
+         WifiGETRequest(website,8087,"/push.html",request); 
+       } 
+    }
+   ///----------------------------------------------------------------------------------
 }
