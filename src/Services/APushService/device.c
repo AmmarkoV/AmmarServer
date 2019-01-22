@@ -50,7 +50,7 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
    snprintf(dl->device[dev].devicePrivateKey,32,"xxxx");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
    snprintf(dl->device[dev].deviceLabel,32,"Animal Sensor 2 - TEST");
-   snprintf(dl->device[dev].email,512,"local");
+   snprintf(dl->device[dev].email,512,"ammarkov@gmail.com");
 
 
    ++dev;
@@ -133,7 +133,7 @@ int updateDeviceHeartbeat(struct deviceObject *device,char alarmed,float tempera
 
 int checkForDeadDevices(struct deviceList *dl)
 {
-   unsigned int disconnectedDevicesFound=0;
+   unsigned int newlyDisconnectedDevicesFound=0;
    fprintf(stderr,"Checking for disconnected devices starting..\n");
    if (dl==0) { return 0; }
 
@@ -156,7 +156,7 @@ int checkForDeadDevices(struct deviceList *dl)
           if ( (device->deviceCommunicatingProperly) && (!device->deviceIsDead) )
           {
             //We just lost this device..
-            ++disconnectedDevicesFound;
+            ++newlyDisconnectedDevicesFound;
             device->deviceCommunicatingProperly=0;
 
             snprintf(
@@ -180,7 +180,7 @@ int checkForDeadDevices(struct deviceList *dl)
             //We have already lost the device, do not keep spamming
             if (clock - device->lastContact > TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_DEAD )
             {
-              ++disconnectedDevicesFound;
+              ++newlyDisconnectedDevicesFound;
               //If it is so much time
               device->deviceIsDead=1;
 
@@ -199,7 +199,18 @@ int checkForDeadDevices(struct deviceList *dl)
       }//-------------------------------------------------------------
    }
 
-   fprintf(stderr,"Checking finished and found %u newly disconnected devices..\n",disconnectedDevicesFound);
+
+   fprintf(stderr,"DeviceCheck: ");
+   unsigned int alive=0,dead=0,disconnected=0;
+   for (i=0; i<dl->numberOfDevices; i++)
+   {
+      struct deviceObject * device = &dl->device[i];
+      if (device->lastContact==0)  { } else
+      if (device->deviceCommunicatingProperly)    { ++alive; } else
+      if (device->deviceIsDead)    { ++dead; }
+   }
+
+   fprintf(stderr,"%u alive/%u dead/%u disconnected/%u newly disconnected\n ",alive,dead,disconnected,newlyDisconnectedDevicesFound);
    return 1;
 }
 
