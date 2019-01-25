@@ -120,7 +120,7 @@ int AmmBusUSBProtocol::newUSBCommands(
           
           //Full Manual  --------------------------------------------------------------------
           case 'a' : valvesState[0]=OFF; valvesScheduled[0]=OFF; break;
-          case 'A' : valvesState[0]=ON;  valvesScheduled[0]=ON;  break;
+          case 'A' : valvesState[0]=ON;  valvesScheduled[0]=ON;   break;
           case 'b' : valvesState[1]=OFF; valvesScheduled[1]=OFF; break;
           case 'B' : valvesState[1]=ON;  valvesScheduled[1]=ON;  break;
           case 'c' : valvesState[2]=OFF; valvesScheduled[2]=OFF; break;
@@ -152,5 +152,3 @@ int AmmBusUSBProtocol::newUSBCommands(
  inputs="";    
  return SuccessfullOperation;
 }
-
-

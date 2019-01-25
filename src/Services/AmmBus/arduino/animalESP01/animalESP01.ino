@@ -39,7 +39,7 @@ float   temperatureSum=0;
 float   humiditySum=0;
 int   numberOfDHT11Samples=0;
 
-
+ 
 const char* ssid     = "AmmarNetCrete"; // Your ssid
 const char* password = "spacepirate"; // Your Password
  

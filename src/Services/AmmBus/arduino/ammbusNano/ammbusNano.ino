@@ -201,7 +201,7 @@ void loop()
     dt = clock.getDateTime();  
     checkForSerialInput();
     //Valve Autopilot..
-    valveAutopilot(); 
+   // valveAutopilot(); 
    } 
    
   checkForEthernetInput(); 
