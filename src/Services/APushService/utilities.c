@@ -19,6 +19,7 @@ void generalFailureResponseToRequest(struct AmmServer_DynamicRequest  * rqst)
 
 void generalSuccessResponseToRequest(struct AmmServer_DynamicRequest  * rqst)
 {
+  //Carefull do not change this because the ESP-01 code expects a <body>OK</body> to verify
   strncpy(rqst->content,"<html><body>OK</body></html>",rqst->MAXcontentSize);
   rqst->contentSize=strlen(rqst->content);
   rqst->content[rqst->contentSize]=0;

@@ -211,7 +211,10 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
         Serial.println("Successfully sent\n"); 
      } else
      {
-        Serial.println("Failed to send\n"); 
+        Serial.print("Failed to send "); 
+        Serial.print(incorrectRequests); 
+        Serial.print("/"); 
+        Serial.println(NUMBER_OF_FAILED_ATTEMPTS_TO_RESET); 
         ++incorrectRequests;
      }
     return success;
@@ -241,13 +244,14 @@ void setup()
  delay(dht.getMinimumSamplingPeriod());
  delay(100);
  
- Serial.println("Let's Go..");
+ Serial.println("Getting 3 samples..");
  readTemperature(1);  //First cold run..
  delay(100+dht.getMinimumSamplingPeriod());     
  readTemperature(0);  //Second cold run..
  delay(100+dht.getMinimumSamplingPeriod());     
  readTemperature(0);  //Third cold run..
   
+ Serial.println("Let's Go..");
  forceUpdate=1;
 }
 
