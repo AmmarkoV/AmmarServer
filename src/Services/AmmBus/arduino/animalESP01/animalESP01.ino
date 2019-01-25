@@ -1,6 +1,6 @@
 #include <ESP8266WiFi.h>
 //Add http://arduino.esp8266.com/stable/package_esp8266com_index.json to File->Preferences->Additional Board Manager URLs
-//And then Tools->Board ******** -> Board Manager 
+//And then Tools->Board: "********" -> Board Manager and type esp8266 in the search field to download the esp8266 board from the ESP8266 Community 
  
 
 #if USE_ENCRYPTION  
@@ -26,6 +26,8 @@ static unsigned long timerConnectionError=0;
 char sTmp[6];
 char sHum[6];
 
+//We begin by forcing update..!
+char forceUpdate=1;
 
 char criticalTemperature=0;
 float lowestAcceptableTemperature=19.0;
@@ -175,6 +177,7 @@ void readTemperature(int coldRun)
 
 int WifiGETRequest(const char * host,unsigned int port,const char * page,const char * variables)
 { 
+  char success=0;
   WiFiClient client;
   Serial.printf("\n[Connecting to %s ... ", host);
   if (client.connect(host, port))
@@ -189,11 +192,6 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
     client.print(request);
     Serial.println(request);
     delay(100);
-/*
-    client.print(String("GET /") + page + variables + " HTTP/1.1\r\n" +
-                 "Host: " + host + "\r\n" +
-                 "Connection: close\r\n" +
-                 "\r\n");*/
 
     Serial.println("[Response:]");
     while (client.connected() || client.available())
@@ -201,17 +199,30 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
       if (client.available())
       {
         String line = client.readStringUntil('\n');
+        if (strstr(line.c_str(),"<body>OK</body>")!=0) { success=1; }
         Serial.println(line);
       }
     }
     client.stop();
     Serial.println("\n[Disconnected]");
+
+    if (success) 
+     {
+        Serial.println("Successfully sent\n"); 
+     } else
+     {
+        Serial.println("Failed to send\n"); 
+        ++incorrectRequests;
+     }
+    return success;
   }
   else
   {
     Serial.println("connection failed!]");
-    client.stop();
+    client.stop(); 
+     ++incorrectRequests;
   }
+ return 0;
 }
 
 
@@ -221,6 +232,7 @@ void setup()
  delay(10);
  Serial.println();
 
+ incorrectRequests=0;
  initializeWirelessClient();
 
  dht.setup(pinDHT11, DHTesp::DHT11); // Connect DHT sensor to GPIO  
@@ -228,8 +240,15 @@ void setup()
  Serial.println("Everything ready, just waiting to sample DHT11 sensor..");
  delay(dht.getMinimumSamplingPeriod());
  delay(100);
+ 
  Serial.println("Let's Go..");
  readTemperature(1);  //First cold run..
+ delay(100+dht.getMinimumSamplingPeriod());     
+ readTemperature(0);  //Second cold run..
+ delay(100+dht.getMinimumSamplingPeriod());     
+ readTemperature(0);  //Third cold run..
+  
+ forceUpdate=1;
 }
 
 void loop() 
@@ -257,9 +276,8 @@ void loop()
    ///----------------------------------------------------------------------------------
    if (criticalTemperature)
     {
-       if (millis() > timer + REQUEST_RATE_CRITICAL) 
+       if ( (millis() > timer + REQUEST_RATE_CRITICAL) || (forceUpdate) )
         {  
-         timer = millis();  
          Serial.println(F("\n>>> REQ_CRITICAL"));
          
          /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
@@ -273,14 +291,17 @@ void loop()
        
          Serial.println(request);
           
-         WifiGETRequest(website,8087,"/alarm.html",request); 
+         if ( WifiGETRequest(website,8087,"/alarm.html",request) )
+         {
+           timer = millis();  
+           forceUpdate=0;
+         }
         }  
     } 
       else
     {
-     if (millis() > timer + REQUEST_RATE_NORMAL) 
-       {  
-        timer = millis();     
+     if ( (millis() > timer + REQUEST_RATE_NORMAL) || (forceUpdate) )
+       {   
         Serial.println(F("\n>>> REQ_NORMAL"));
         
          /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
@@ -294,8 +315,21 @@ void loop()
        
          Serial.println(request);
          
-         WifiGETRequest(website,8087,"/push.html",request); 
+          if ( WifiGETRequest(website,8087,"/push.html",request) )
+          {
+           timer = millis();  
+           forceUpdate=0;
+          }
        } 
     }
    ///----------------------------------------------------------------------------------
+
+
+   if (incorrectRequests>NUMBER_OF_FAILED_ATTEMPTS_TO_RESET)
+   {
+     Serial.println(F("\n>>> REACHED MAXIMUM FAILED ATTEMPT LIMIT"));
+     delay(1000);
+     ESP.restart(); //ESP.reset();
+   } 
+   
 }

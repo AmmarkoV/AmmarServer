@@ -10,6 +10,8 @@
 //#define REQUEST_RATE_NORMAL 5*60*1000 // minutes to milliseconds
 //#define REQUEST_RATE_CRITICAL 60*1000 // milliseconds
 
+#define NUMBER_OF_FAILED_ATTEMPTS_TO_RESET 10000
+
 static unsigned long REQUEST_RATE_NORMAL=600000;
 static unsigned long REQUEST_RATE_CRITICAL=60000;
 
