@@ -36,7 +36,7 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
    snprintf(dl->device[dev].deviceID,32,"0001");
    snprintf(dl->device[dev].devicePrivateKey,32,"xxxx");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
-   snprintf(dl->device[dev].deviceLabel,32,"Animal Sensor 1");
+   snprintf(dl->device[dev].deviceLabel,32,"RD Sensor");
    snprintf(dl->device[dev].email,512,EMAIL_LIST_BIO);
 
 
@@ -49,8 +49,8 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
    snprintf(dl->device[dev].deviceID,32,"0002");
    snprintf(dl->device[dev].devicePrivateKey,32,"xxxx");
    snprintf(dl->device[dev].devicePublicKey,32,"xxxx");
-   snprintf(dl->device[dev].deviceLabel,32,"Animal Sensor 2 - TEST");
-   snprintf(dl->device[dev].email,512,"ammarkov@gmail.com");
+   snprintf(dl->device[dev].deviceLabel,32,"PR Sensor");
+   snprintf(dl->device[dev].email,512,EMAIL_LIST_BIO);
 
 
    ++dev;
