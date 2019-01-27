@@ -81,7 +81,14 @@ void initializeWirelessClient()
  Serial.print("Connecting to ");
  Serial.println(ssid); 
 
+ WiFi.hostname(deviceName);      // DHCP Hostname (useful for finding device for static lease)
+ #if STATIC_IP
+  WiFi.config(ip, dns, gateway, subnet);
+ #endif
+ 
  WiFi.begin(ssid, password);
+
+ 
  
  while (WiFi.status() != WL_CONNECTED) 
   {
