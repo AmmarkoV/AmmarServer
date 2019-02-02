@@ -212,6 +212,67 @@ int temperatureSensorHeartBeatCallback(struct deviceObject *device,struct AmmSer
 
 
 
+int getAFastAndRecentGraph(
+                            struct deviceObject *device,
+                            unsigned int sensorBufferID,
+                            const char * command,
+                            char * content,
+                            unsigned long contentMaxLength,
+                            unsigned long * contentLength
+                          )
+{
+ int haveANewGraph=0;
+ time_t clock = time(NULL);
+ struct tm * ptm = localtime( &clock );  //gmtime
+
+ if (
+       (clock - device->info.graphs[sensorBufferID].lastGraphTime > TIME_IN_SECONDS_BETWEEN_GRAPHS) ||
+       (device->info.graphs[sensorBufferID].data==0) ||
+       (device->info.graphs[sensorBufferID].lastGraphTime==0)
+     )
+      {
+        if (device->info.graphs[sensorBufferID].data==0)
+         {
+           device->info.graphs[sensorBufferID].data = (char*) malloc(sizeof(char) * MAX_GRAPH_IMAGE_SIZE_IN_BYTES);
+           device->info.graphs[sensorBufferID].dataMaxSize = MAX_GRAPH_IMAGE_SIZE_IN_BYTES;
+           device->info.graphs[sensorBufferID].dataSize    = 0; //Initially empty..
+         }
+
+
+        if (device->info.graphs[sensorBufferID].data!=0)
+        {
+        fprintf(stderr,"Fresh graphs..\n");
+         if (
+              AmmServer_ExecuteCommandLineAndRetreiveAllResults(
+                                                                 command,
+                                                                 device->info.graphs[sensorBufferID].data,
+                                                                 device->info.graphs[sensorBufferID].dataMaxSize,
+                                                                &device->info.graphs[sensorBufferID].dataSize
+                                                               )
+            )
+            {
+              device->info.graphs[sensorBufferID].lastGraphTime=clock;
+              haveANewGraph=1;
+            }
+        }
+      } else
+      {
+       fprintf(stderr,"Canned graphs..\n");
+      }
+
+
+  if (device->info.graphs[sensorBufferID].data!=0)
+        {
+           *contentLength = device->info.graphs[sensorBufferID].dataSize;
+           memcpy(content,device->info.graphs[sensorBufferID].data,device->info.graphs[sensorBufferID].dataSize);
+           return 1;
+        }
+
+  return 0;
+}
+
+
+
 
 int temperatureSensorPlotImageCallback(
                                           struct deviceObject *device,
@@ -224,28 +285,39 @@ int temperatureSensorPlotImageCallback(
   {
     char command[512];
     int haveACommand=0;
+    unsigned int sensorBuffer=0;
 
     if (strcmp("0",buffer)==0)
     {
         haveACommand=1;
+        sensorBuffer=0;
         snprintf(command,512,"tail -n 288 \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/temperature.gnuplot",device->deviceID);
     }
      else
     if (strcmp("1",buffer)==0)
     {
         haveACommand=1;
+        sensorBuffer=1;
         snprintf(command,512,"tail -n 288 \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/humidity.gnuplot",device->deviceID);
     }
 
    if (haveACommand)
    {
     if (
-        AmmServer_ExecuteCommandLineAndRetreiveAllResults(
+         getAFastAndRecentGraph(
+                                device,
+                                sensorBuffer,
+                                command,
+                                rqst->content,
+                                rqst->MAXcontentSize,
+                                &rqst->contentSize
+                               )
+    /* AmmServer_ExecuteCommandLineAndRetreiveAllResults(
                                                            command,
                                                            rqst->content,
                                                            rqst->MAXcontentSize,
                                                            &rqst->contentSize
-                                                         )
+                                                         )*/
        )
        { return 1; }
    }

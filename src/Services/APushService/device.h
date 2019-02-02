@@ -7,6 +7,8 @@
 
 typedef  unsigned int deviceID;
 
+#define MAX_GRAPH_IMAGE_SIZE_IN_BYTES 100000
+#define TIME_IN_SECONDS_BETWEEN_GRAPHS 180
 
 #define TIME_IN_SECONDS_BETWEEN_EMAILS 3600
 #define TIME_IN_SECONDS_TO_PRONOUNCE_A_DEVICE_LOST 1200
@@ -23,6 +25,15 @@ enum DEVICE_CLASSES
 extern const char * deviceClassName[];
 
 
+struct deviceGraph
+{
+  char * data;
+  unsigned long dataSize;
+  unsigned long dataMaxSize;
+  time_t lastGraphTime;
+
+};
+
 
 struct informationList
 {
@@ -30,6 +41,7 @@ struct informationList
   float sensors[8];
   float temperatures[8];
   char relays[8];
+  struct deviceGraph graphs[8];
 };
 
 

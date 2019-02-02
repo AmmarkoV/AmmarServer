@@ -85,7 +85,7 @@ void * index_data_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   strncpy(rqst->content,"<html><head><title>APushService</title></head><body>",rqst->MAXcontentSize);
   strcat(rqst->content,"<center><br><br><h2>You have reached APushService</h2><br>\
-  Get the source code <a href=\"https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/APushService\">here</a>\
+  Powered by <a href=\"https://github.com/AmmarkoV/AmmarServer/wiki\">AmmarServer</a>\
   <br></center></body></html>");
   rqst->contentSize=strlen(rqst->content);
   return 0;
@@ -271,12 +271,12 @@ void * generalMonitorImageCallback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  AmmServer_AddResourceHandler(server,&accountDataCtx,"/account.html",46000,0,&viewAccountDevicesCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(server,&pushDataCtx,"/push.html",4096,0,&generalHeartBeatCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(server,&alarmDataCtx,"/alarm.html",4096,0,&generalAlarmCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(server,&testDataCtx,"/test.html",4096,0,&generalTestCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(server,&monitorImageCtx,"/monitor.png",460000,0,&generalMonitorImageCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(server,&indexDataCtx,"/index.html",4096,0,&index_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&accountDataCtx ,"/account.html",46000,0,&viewAccountDevicesCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&pushDataCtx    ,"/push.html"   ,4096,0,&generalHeartBeatCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&alarmDataCtx   ,"/alarm.html"  ,4096,0,&generalAlarmCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&testDataCtx    ,"/test.html"   ,4096,0,&generalTestCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&monitorImageCtx,"/monitor.png" ,MAX_GRAPH_IMAGE_SIZE_IN_BYTES,0,&generalMonitorImageCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(server,&indexDataCtx   ,"/index.html"  ,4096,0,&index_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 
   fprintf(stderr,"Reading account view file..\n");
