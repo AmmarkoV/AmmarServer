@@ -10,6 +10,9 @@
  #include "configurationDefault.h"
 #endif
 
+#include "../../CSVParser/csvparse.h"
+#include "../../InputParser/InputParser_C.h"
+
 const char * deviceClassName[] =
 {
     "Unknown"   	,

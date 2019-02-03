@@ -31,6 +31,13 @@ struct CSVParser *  csvParserCreate( const char * delimiter , unsigned int numbe
 }
 
 
+int  csvParserDestroy(struct CSVParser * csv)
+{
+   free(csv);
+   return 0;
+}
+
+
 char * csvParser_FindAnyDelimiter(char * line,const char * delimiterString,unsigned int numberOfDelimiters)
 {
   //fprintf(stderr,"csvParser_FindAnyDelimiter\n");
@@ -180,6 +187,26 @@ int csvParser_ParseNextLine(struct CSVParser * csv)
   }
   return 0;
 }
+
+
+int csvParser_CountNumberOfLines(struct CSVParser * csv,const char * filename)
+{
+   unsigned int totalLinesCount=0;
+
+   FILE *fp  = fopen(filename,"r");    
+   char currentCharacter;
+
+   if (fp != NULL)
+   {
+    while((currentCharacter = fgetc(fp)) !=  EOF)
+       {
+        if(currentCharacter == '\n')  { totalLinesCount ++; }
+       }
+    fclose(fp);
+   }  
+ return totalLinesCount;
+}
+
 
 
 int csvParser_StartParsingFile(struct CSVParser * csv,const char * filename)

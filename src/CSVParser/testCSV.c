@@ -29,6 +29,7 @@ int main()
       csvParser_StopParsingFile(csvParser);
     } else
     { fprintf(stderr,"Could not open csv file..\n"); }
+   csvParserDestroy(csvParser);
   } else
   { fprintf(stderr,"Could not allocate csvParser object..\n"); }
 

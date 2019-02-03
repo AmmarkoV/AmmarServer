@@ -42,6 +42,10 @@
 
 
 struct CSVParser *  csvParserCreate( const char * delimiter , unsigned int numberOfDelimiters);
+int  csvParserDestroy(struct CSVParser * csv);
+
+
+int csvParser_CountNumberOfLines(struct CSVParser * csv,const char * filename);
 int csvParser_StartParsingFile(struct CSVParser * csv,const char * filename);
 int csvParser_StopParsingFile(struct CSVParser * csv);
 unsigned int csvParser_GetNumberOfFields(struct CSVParser * csv);

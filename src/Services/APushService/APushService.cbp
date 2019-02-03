@@ -38,7 +38,11 @@
 			<Add option="-lz" />
 			<Add library="../../Hashmap/libHashmap.a" />
 			<Add library="../../InputParser/libInputParser_C.a" />
+			<Add library="../../CSVParser/libCSVParse.a" />
+			<Add library="../../InputParser/libInputParser_C.a" />
 		</Linker>
+		<Unit filename="../../CSVParser/csvparse.h" />
+		<Unit filename="../../InputParser/InputParser_C.h" />
 		<Unit filename="account.c">
 			<Option compilerVar="CC" />
 		</Unit>
