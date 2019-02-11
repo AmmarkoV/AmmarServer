@@ -216,6 +216,7 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
     if (success) 
      {
         Serial.println("Successfully sent\n"); 
+        incorrectRequests=0; // If we succeeded sending it means everything is fine..
      } else
      {
         Serial.print("Failed to send "); 

@@ -10,7 +10,10 @@
 //#define REQUEST_RATE_NORMAL 5*60*1000 // minutes to milliseconds
 //#define REQUEST_RATE_CRITICAL 60*1000 // milliseconds
 
-#define NUMBER_OF_FAILED_ATTEMPTS_TO_RESET 10000
+
+//Given that the rate for a DHT11 sensor is 1.1 Hz and that we now reset count on success 
+//the number of failed attempts should be 1 per loop thus restart in one hour from consistent failures  
+#define NUMBER_OF_FAILED_ATTEMPTS_TO_RESET 60
 
 static unsigned long REQUEST_RATE_NORMAL=600000;
 static unsigned long REQUEST_RATE_CRITICAL=60000;
