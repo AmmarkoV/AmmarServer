@@ -1,7 +1,7 @@
 project( myurl ) 
 cmake_minimum_required( VERSION 2.8.7 )
 
-set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2")
+set(CMAKE_C_FLAGS "-fPIE -pie -s -Wl,-z,relro,-z,now -fstack-protector -O2 -D_FORTIFY_SOURCE=2")
 
 IF(DO_TEST_COVERAGE)
 set(CMAKE_C_FLAGS "-fPIE -Wall -fprofile-arcs -ftest-coverage")

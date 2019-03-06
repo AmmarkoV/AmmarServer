@@ -1,8 +1,8 @@
 project( AmmarServer ) 
 cmake_minimum_required( VERSION 2.8.7 )
  
-set(CMAKE_CXX_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
-set(CMAKE_C_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
+set(CMAKE_CXX_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC -D_FORTIFY_SOURCE=2")
+set(CMAKE_C_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC -D_FORTIFY_SOURCE=2")
 
 IF(DO_TEST_COVERAGE)
 set(CMAKE_CXX_FLAGS " -fPIC -Wall -fprofile-arcs -ftest-coverage ")

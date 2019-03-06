@@ -1,8 +1,8 @@
 project( AmmClient ) 
 cmake_minimum_required( VERSION 2.8.7 )
  
-set(CMAKE_CXX_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
-set(CMAKE_C_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC ")
+set(CMAKE_CXX_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC -D_FORTIFY_SOURCE=2 ")
+set(CMAKE_C_FLAGS "-s -Wl,-z,relro,-z,now -fstack-protector -O2 -fPIC -D_FORTIFY_SOURCE=2 ")
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
  
