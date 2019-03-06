@@ -1,5 +1,5 @@
 #include "session_list.h"
-
+#include "../AmmServerlib.h"
 #include <stdio.h>
 
 int sessiontList_StoreInfo(struct sessionListContext * sessionList,const char * sessionName ,const char * name ,const char * value)

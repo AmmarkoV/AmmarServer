@@ -666,6 +666,7 @@ int AmmServer_GetIntSettingValue(struct AmmServer_Instance * instance,unsigned i
   switch (set_type)
    {
      case AMMSET_PASSWORD_PROTECTION : return instance->settings.PASSWORD_PROTECTION; break;
+     case AMMSET_TIMEOUT_SEC         : return varSocketTimeoutREAD_seconds; break;
    };
   return 0;
 }
@@ -692,7 +693,6 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
    {
      case AMMSET_USERNAME_STR :    return instance->settings.USERNAME; break;
      case AMMSET_PASSWORD_STR :    return instance->settings.PASSWORD; break;
-     case AMMSET_TIMEOUT_SEC  :    return varSocketTimeoutREAD_seconds; break;
    };
   return 0;
 }

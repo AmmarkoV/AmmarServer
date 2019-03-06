@@ -1,3 +1,6 @@
+#define _GNU_SOURCE         /* for memmem*/
+
+
 #include "post_data.h"
 #include "generic_header_tools.h"
 
@@ -150,12 +153,12 @@ int finalizePOSTData(struct HTTPHeader * output)
 
        //TODO : This is not perfect..! output->boundary contains fewer chars
 
-       char * payloadEnd  = memmem(
-                                     payload,
-                                     payloadSize ,
-                                     output->boundary ,
-                                     output->boundaryLength
-                                    );
+       char * payloadEnd  = (char*) memmem(
+                                           payload,
+                                           payloadSize ,
+                                           output->boundary ,
+                                           output->boundaryLength
+                                          );
 
        if (payloadEnd!=0)
        {
