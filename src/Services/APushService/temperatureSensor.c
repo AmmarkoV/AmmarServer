@@ -157,7 +157,7 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
            if (clock - device->lastEMailNotification > TIME_IN_SECONDS_BETWEEN_EMAILS )
            {
             char message[512];
-            snprintf(message,512,"The sensor has sensed abnormal temperatures #%s @ %u/%u/%u %u:%u:%u Room Temp:%0.2f / Humidity: %0.2f.",
+            snprintf(message,512,"The sensor detected abnormal temperatures #%s @ %u/%u/%u %u:%u:%u Room Temp:%0.2f / Humidity: %0.2f.",
                     device->deviceID,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,temperature,humidity);
 
             if (
