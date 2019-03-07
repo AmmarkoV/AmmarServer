@@ -154,6 +154,8 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
            time_t clock = time(NULL);
            struct tm * ptm = localtime ( &clock ); //gmtime
 
+           if ( (temperature<=19) || (temperature>=28) )
+           {
            if (clock - device->lastEMailNotification > TIME_IN_SECONDS_BETWEEN_EMAILS )
            {
             char message[512];
@@ -173,10 +175,15 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
                 generalSuccessResponseToRequest(rqst);
                 return 1;
                }
-            } else
-            {
-             fprintf(stderr,"Will not spam alert e-mails , throttling mail..");
             }
+            else
+             {
+             fprintf(stderr,"Will not spam alert e-mails , throttling mail..\n");
+             }
+            }  else
+             {
+             fprintf(stderr,"Device is alarmed but we are overriding its alarm setting..\n");
+             }
 
        }
 
