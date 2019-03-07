@@ -17,7 +17,7 @@
 #define WHITE   "\033[37m"      /* White */
 
 
-struct CSVParser *  csvParserCreate( const char * delimiter , unsigned int numberOfDelimiters)
+struct CSVParser *  csvParserCreate( char * delimiter , unsigned int numberOfDelimiters)
 {
     struct CSVParser * newParser = malloc(sizeof(struct CSVParser));
     if (newParser!=0)
@@ -193,7 +193,7 @@ int csvParser_CountNumberOfLines(struct CSVParser * csv,const char * filename)
 {
    unsigned int totalLinesCount=0;
 
-   FILE *fp  = fopen(filename,"r");    
+   FILE *fp  = fopen(filename,"r");
    char currentCharacter;
 
    if (fp != NULL)
@@ -203,7 +203,7 @@ int csvParser_CountNumberOfLines(struct CSVParser * csv,const char * filename)
         if(currentCharacter == '\n')  { totalLinesCount ++; }
        }
     fclose(fp);
-   }  
+   }
  return totalLinesCount;
 }
 

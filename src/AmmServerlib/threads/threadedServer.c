@@ -49,6 +49,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../threads/threadInitHelper.h"
 
 #include "../cache/client_list.h"
+#include "../cache/session_list.h"
 #include "../cache/dynamic_requests.h"
 
 int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance)

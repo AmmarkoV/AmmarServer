@@ -41,7 +41,7 @@
 
 
 
-struct CSVParser *  csvParserCreate( const char * delimiter , unsigned int numberOfDelimiters);
+struct CSVParser *  csvParserCreate(char * delimiter , unsigned int numberOfDelimiters);
 int  csvParserDestroy(struct CSVParser * csv);
 
 
