@@ -139,13 +139,17 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
      char logFile[64];
      snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
 
-     logTemperature(
+     if (!logTemperature(
                            logFile,
                            device->deviceID,
                            temperature,
                            humidity,
                            1 //Alarming Temperature
-                          );
+                          )
+         )
+         {
+            fprintf(stderr,"Failed to log Emergency temperature..!\n");
+         }
    }
 
 
@@ -156,35 +160,37 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
 
            if ( (temperature<=19) || (temperature>=28) )
            {
-           if (clock - device->lastEMailNotification > TIME_IN_SECONDS_BETWEEN_EMAILS )
-           {
-            char message[512];
-            snprintf(message,512,"The sensor detected abnormal temperatures #%s @ %u/%u/%u %u:%u:%u Room Temp:%0.2f / Humidity: %0.2f.",
-                    device->deviceID,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,temperature,humidity);
-
-            if (
-                sendEmail(
-                            device->email,
-                           "Sensor Alarm",
-                           message
-                        )
-               )
-               {
-                device->lastEMailNotification=clock;
-                //----------------------------------------
-                generalSuccessResponseToRequest(rqst);
-                return 1;
-               }
-            }
-            else
+             if (clock - device->lastEMailNotification > TIME_IN_SECONDS_BETWEEN_EMAILS )
              {
-             fprintf(stderr,"Will not spam alert e-mails , throttling mail..\n");
-             }
+              char message[512];
+              snprintf(message,512,"The sensor detected abnormal temperatures #%s @ %u/%u/%u %u:%u:%u Room Temp:%0.2f / Humidity: %0.2f.",
+                       device->deviceID,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,temperature,humidity);
+
+              if (
+                   sendEmail(
+                              device->email,
+                              "Sensor Alarm",
+                              message
+                            )
+                 )
+                 {
+                  device->lastEMailNotification=clock;
+                  //----------------------------------------
+                  generalSuccessResponseToRequest(rqst);
+                  return 1;
+                 }
+              }
+              else
+              {
+               fprintf(stderr,"Will not spam alert e-mails , throttling mail..\n");
+              }
             }  else
-             {
+            {
              fprintf(stderr,"Device is alarmed but we are overriding its alarm setting..\n");
-             }
-
+             //This still counts as a success
+             generalSuccessResponseToRequest(rqst);
+             return 1;
+            }
        }
 
   //----------------------------------------
