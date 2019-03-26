@@ -309,19 +309,20 @@ int temperatureSensorPlotImageCallback(
     char command[512];
     int haveACommand=0;
     unsigned int sensorBuffer=0;
+    unsigned int numberOfSamplesToPlot=512;
 
     if (strcmp("0",buffer)==0)
     {
         haveACommand=1;
         sensorBuffer=0;
-        snprintf(command,512,"tail -n 288 \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/temperature.gnuplot",device->deviceID);
+        snprintf(command,512,"tail -n %u \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/temperature.gnuplot",numberOfSamplesToPlot,device->deviceID);
     }
      else
     if (strcmp("1",buffer)==0)
     {
         haveACommand=1;
         sensorBuffer=1;
-        snprintf(command,512,"tail -n 288 \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/humidity.gnuplot",device->deviceID);
+        snprintf(command,512,"tail -n %u \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/humidity.gnuplot",numberOfSamplesToPlot,device->deviceID);
     }
 
    if (haveACommand)
