@@ -9,7 +9,8 @@
 #include "utilities.h"
 //This function prepares the content of  random_chars context , ( random_chars.content )
 
-
+#define HIGH_TEMPERATURE 29
+#define LOW_TEMPERATURE 19
 
 int logTemperature(
                    const char * filename,
@@ -158,7 +159,7 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
            time_t clock = time(NULL);
            struct tm * ptm = localtime ( &clock ); //gmtime
 
-           if ( (temperature<=19) || (temperature>=28) )
+           if ( (temperature<=LOW_TEMPERATURE) || (temperature>=HIGH_TEMPERATURE) )
            {
              if (clock - device->lastEMailNotification > TIME_IN_SECONDS_BETWEEN_EMAILS )
              {
