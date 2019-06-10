@@ -6,6 +6,11 @@ unsigned int  microsecondDelayTime=772;
 unsigned int samplesToWaitForBeforeStarting=300;
 int alterTheClock=0;
 unsigned long samples = 0;
+unsigned long deadSamples = 0;
+
+#define LED1 6 
+#define LED2 7
+#define LED3 8
 
 struct ButterWorth
 {
@@ -75,16 +80,61 @@ float filter(struct ButterWorth * sensor)
 }
 
 
+void ledCycle(int positionC)
+{
+  if (positionC==0) 
+  {
+   digitalWrite(LED1, LOW);
+   digitalWrite(LED2, LOW);
+   digitalWrite(LED3, LOW);    
+  } else
+  if (positionC==1) 
+  {
+  digitalWrite(LED1, HIGH);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW); 
+  } else
+  if (positionC==2) 
+  {
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, HIGH);
+  digitalWrite(LED3, LOW); 
+  } else
+  if (positionC==3) 
+  {
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, HIGH); 
+  }
+}
+
 void setup() 
 {  
   // put your setup code here, to run once:
   initButterWorth(&readings[0],400.0,10.0);
   initButterWorth(&readings[1],400.0,10.0);
   initButterWorth(&readings[2],400.0,10.0);
-  
+
+
+  pinMode(LED1, OUTPUT);
+  pinMode(LED2, OUTPUT);
+  pinMode(LED3, OUTPUT);
+
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+  digitalWrite(LED3, LOW);
+ 
   // start serial port
-  Serial.begin(115200); 
-  //Serial.begin(250000); 
+  Serial.begin(115200);  
+  ledCycle(0);
+  delay(1000);
+  ledCycle(1);  
+  delay(1000);
+  ledCycle(2); 
+  delay(1000);
+  ledCycle(3); 
+  delay(1000); 
+  ledCycle(0); 
 }
 
   
@@ -115,6 +165,22 @@ void loop()
   readings[2].unfilteredValue  = (float) readValue(A7);
   readings[2].filteredValue    = filter(&readings[2]);
 
+
+  if (  
+       (readings[0].unfilteredValue < 400 )  &&
+       (readings[1].unfilteredValue < 400 )  &&
+       (readings[2].unfilteredValue < 400 )  
+     )
+     {
+        if (samples==999) { deadSamples+=1;  } 
+        ledCycle(deadSamples %4); 
+     } else
+     { 
+      if (readings[0].unfilteredValue < 400 ) {  digitalWrite(LED1, LOW); } else {  digitalWrite(LED1, HIGH); }
+      if (readings[1].unfilteredValue < 400 ) {  digitalWrite(LED2, LOW); } else {  digitalWrite(LED2, HIGH); }
+      if (readings[2].unfilteredValue < 400 ) {  digitalWrite(LED3, LOW); } else {  digitalWrite(LED3, HIGH); }
+     }
+  
   int showRate=0;
   samples+=1;
   
