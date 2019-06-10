@@ -9,7 +9,8 @@
 #include "utilities.h"
 //This function prepares the content of  random_chars context , ( random_chars.content )
 
-
+#define HIGH_TEMPERATURE 29
+#define LOW_TEMPERATURE 19
 
 int logTemperature(
                    const char * filename,
@@ -139,13 +140,17 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
      char logFile[64];
      snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
 
-     logTemperature(
+     if (!logTemperature(
                            logFile,
                            device->deviceID,
                            temperature,
                            humidity,
                            1 //Alarming Temperature
-                          );
+                          )
+         )
+         {
+            fprintf(stderr,"Failed to log Emergency temperature..!\n");
+         }
    }
 
 
@@ -154,37 +159,39 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
            time_t clock = time(NULL);
            struct tm * ptm = localtime ( &clock ); //gmtime
 
-           if ( (temperature<=19) || (temperature>=28) )
+           if ( (temperature<=LOW_TEMPERATURE) || (temperature>=HIGH_TEMPERATURE) )
            {
-           if (clock - device->lastEMailNotification > TIME_IN_SECONDS_BETWEEN_EMAILS )
-           {
-            char message[512];
-            snprintf(message,512,"The sensor detected abnormal temperatures #%s @ %u/%u/%u %u:%u:%u Room Temp:%0.2f / Humidity: %0.2f.",
-                    device->deviceID,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,temperature,humidity);
-
-            if (
-                sendEmail(
-                            device->email,
-                           "Sensor Alarm",
-                           message
-                        )
-               )
-               {
-                device->lastEMailNotification=clock;
-                //----------------------------------------
-                generalSuccessResponseToRequest(rqst);
-                return 1;
-               }
-            }
-            else
+             if (clock - device->lastEMailNotification > TIME_IN_SECONDS_BETWEEN_EMAILS )
              {
-             fprintf(stderr,"Will not spam alert e-mails , throttling mail..\n");
-             }
+              char message[512];
+              snprintf(message,512,"The sensor detected abnormal temperatures #%s @ %u/%u/%u %u:%u:%u Room Temp:%0.2f / Humidity: %0.2f.",
+                       device->deviceID,ptm->tm_mday,1+ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,temperature,humidity);
+
+              if (
+                   sendEmail(
+                              device->email,
+                              "Sensor Alarm",
+                              message
+                            )
+                 )
+                 {
+                  device->lastEMailNotification=clock;
+                  //----------------------------------------
+                  generalSuccessResponseToRequest(rqst);
+                  return 1;
+                 }
+              }
+              else
+              {
+               fprintf(stderr,"Will not spam alert e-mails , throttling mail..\n");
+              }
             }  else
-             {
+            {
              fprintf(stderr,"Device is alarmed but we are overriding its alarm setting..\n");
-             }
-
+             //This still counts as a success
+             generalSuccessResponseToRequest(rqst);
+             return 1;
+            }
        }
 
   //----------------------------------------
@@ -303,19 +310,20 @@ int temperatureSensorPlotImageCallback(
     char command[512];
     int haveACommand=0;
     unsigned int sensorBuffer=0;
+    unsigned int numberOfSamplesToPlot=512;
 
     if (strcmp("0",buffer)==0)
     {
         haveACommand=1;
         sensorBuffer=0;
-        snprintf(command,512,"tail -n 288 \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/temperature.gnuplot",device->deviceID);
+        snprintf(command,512,"tail -n %u \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/temperature.gnuplot",numberOfSamplesToPlot,device->deviceID);
     }
      else
     if (strcmp("1",buffer)==0)
     {
         haveACommand=1;
         sensorBuffer=1;
-        snprintf(command,512,"tail -n 288 \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/humidity.gnuplot",device->deviceID);
+        snprintf(command,512,"tail -n %u \"log/APushService/temperature_%s.log\" | gnuplot -c src/Services/APushService/humidity.gnuplot",numberOfSamplesToPlot,device->deviceID);
     }
 
    if (haveACommand)
