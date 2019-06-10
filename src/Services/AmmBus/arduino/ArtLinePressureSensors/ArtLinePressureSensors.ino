@@ -1,6 +1,11 @@
 //ttylog -b 115200 -d /dev/ttyUSB0 | tee results.txt 2>&1
-unsigned long previousTime =0;
- 
+unsigned long initialTime = 0;
+unsigned long currentTime = 0;
+unsigned long previousTime = 0;
+unsigned int  microsecondDelayTime=772;
+unsigned int samplesToWaitForBeforeStarting=300;
+int alterTheClock=0;
+unsigned long samples = 0;
 
 struct ButterWorth
 {
@@ -71,65 +76,81 @@ float filter(struct ButterWorth * sensor)
 
 
 void setup() 
-{
+{  
   // put your setup code here, to run once:
   initButterWorth(&readings[0],400.0,10.0);
   initButterWorth(&readings[1],400.0,10.0);
   initButterWorth(&readings[2],400.0,10.0);
   
   // start serial port
-  Serial.begin(115200);
-
-  delay(1500);
+  Serial.begin(115200); 
+  //Serial.begin(250000); 
 }
 
+  
+float readValue(int pin)
+{ 
+  analogRead(A1);
+  //delay(1);
+  //delayMicroseconds(100);
+  float value = analogRead(pin);  
+  //delay(1);
+  //delayMicroseconds(100);
+  analogRead(A1);
 
-float readValue(int pin,int samplesToTake)
-{
-  unsigned int sample=0; 
-  float value=0.0; 
-  for (sample=0; sample<samplesToTake; sample++)
-   {
-    value=analogRead(pin);
-    if (sample==samplesToTake) { delay(10); }
-   }
  return (float) value;  
 }
 
-void loop() {
+
+
+void loop() 
+{  
   // put your main code here, to run repeatedly:
-  previousTime = millis();
+  currentTime = millis(); 
 
-  readings[0].unfilteredValue  = (float) readValue(A0,1);   
-  readings[0].filteredValue = filter(&readings[0]);
-  readings[1].unfilteredValue  = (float) readValue(A4,1);
-  readings[1].filteredValue = filter(&readings[1]);
-  readings[2].unfilteredValue  = (float) readValue(A7,1);
-  readings[2].filteredValue = filter(&readings[2]);
+  readings[0].unfilteredValue  = (float) readValue(A0);   
+  readings[0].filteredValue    = filter(&readings[0]);
+  readings[1].unfilteredValue  = (float) readValue(A4);
+  readings[1].filteredValue    = filter(&readings[1]);
+  readings[2].unfilteredValue  = (float) readValue(A7);
+  readings[2].filteredValue    = filter(&readings[2]);
 
-  int showfiltered=1;
+  int showRate=0;
+  samples+=1;
+  
+  if (samples==samplesToWaitForBeforeStarting)
+   {
+     previousTime=currentTime;
+   }
 
-  if (!showfiltered)
-  {
-   Serial.print(readings[0].unfilteredValue);
-   Serial.print(" ");
-   Serial.print(readings[1].unfilteredValue);
-   Serial.print(" ");
-   Serial.println(readings[2].unfilteredValue); 
-  } else
-  {
-   Serial.print(readings[0].unfilteredValue);
-   Serial.print(" ");
-   Serial.print(readings[1].unfilteredValue);
-   Serial.print(" ");
-   Serial.print(readings[2].unfilteredValue); 
-   Serial.print(" ");
-   Serial.print(readings[0].filteredValue);
-   Serial.print(" ");
-   Serial.print(readings[1].filteredValue);
-   Serial.print(" ");
-   Serial.println(readings[2].filteredValue); 
-   //Serial.print(" ");
-   //Serial.println(previousTime); 
+  
+  if (samples>=samplesToWaitForBeforeStarting) 
+  { 
+    float rate = (float) (1000*(samples-samplesToWaitForBeforeStarting))/(currentTime-previousTime); 
+    //Truncated
+    if (samples < samplesToWaitForBeforeStarting+50 ) { alterTheClock=0; rate=250.0; } // Don't alter the clock  
+    if (currentTime==previousTime)  { alterTheClock=0; rate=250.0; } //Don't alter the clock
+    if (currentTime<previousTime) { alterTheClock=0; rate=250.0; } //Don't alter the clock
+    
+    if ( (alterTheClock) && (rate<250.0)) { microsecondDelayTime-=1; } 
+    if ( (alterTheClock) && (rate>250.0)) { microsecondDelayTime+=1; } 
+    
+    if (showRate) 
+       {
+         Serial.print(rate);
+         Serial.print(" ");
+       }
+    Serial.print(readings[0].filteredValue);
+    Serial.print(" ");
+    Serial.print(readings[1].filteredValue);
+    Serial.print(" ");
+    Serial.println(readings[2].filteredValue);  
   }
+
+  if (samples>=samplesToWaitForBeforeStarting+1000)
+  {
+    samples = samplesToWaitForBeforeStarting-1;
+  }
+  
+  delayMicroseconds(microsecondDelayTime);  
 }
