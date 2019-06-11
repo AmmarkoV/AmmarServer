@@ -111,9 +111,9 @@ void ledCycle(int positionC)
 void setup() 
 {  
   // put your setup code here, to run once:
-  initButterWorth(&readings[0],400.0,10.0);
-  initButterWorth(&readings[1],400.0,10.0);
-  initButterWorth(&readings[2],400.0,10.0);
+  initButterWorth(&readings[0],250.0,10.0);
+  initButterWorth(&readings[1],250.0,10.0);
+  initButterWorth(&readings[2],250.0,10.0);
 
 
   pinMode(LED1, OUTPUT);
