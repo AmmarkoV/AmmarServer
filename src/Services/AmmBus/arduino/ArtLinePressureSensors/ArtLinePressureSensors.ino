@@ -158,11 +158,11 @@ void loop()
   // put your main code here, to run repeatedly:
   currentTime = millis(); 
 
-  readings[0].unfilteredValue  = (float) readValue(A0);   
+  readings[0].unfilteredValue  = (float) readValue(A7);   
   readings[0].filteredValue    = filter(&readings[0]);
-  readings[1].unfilteredValue  = (float) readValue(A4);
+  readings[1].unfilteredValue  = (float) readValue(A0);
   readings[1].filteredValue    = filter(&readings[1]);
-  readings[2].unfilteredValue  = (float) readValue(A7);
+  readings[2].unfilteredValue  = (float) readValue(A4);
   readings[2].filteredValue    = filter(&readings[2]);
 
 
