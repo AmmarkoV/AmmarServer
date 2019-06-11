@@ -2,7 +2,11 @@
 unsigned long initialTime = 0;
 unsigned long currentTime = 0;
 unsigned long previousTime = 0;
-unsigned int  microsecondDelayTime=772;
+
+
+float rate = 250.0;
+unsigned int  ADCCooldown=50;
+unsigned int  microsecondDelayTime=20;
 unsigned int samplesToWaitForBeforeStarting=300;
 int alterTheClock=0;
 unsigned long samples = 0;
@@ -141,13 +145,11 @@ void setup()
 float readValue(int pin)
 { 
   analogRead(A1);
-  //delay(1);
-  //delayMicroseconds(100);
+  delayMicroseconds(ADCCooldown);
+  analogRead(pin);  
   float value = analogRead(pin);  
-  //delay(1);
-  //delayMicroseconds(100);
   analogRead(A1);
-
+  delayMicroseconds(ADCCooldown); 
  return (float) value;  
 }
 
@@ -192,19 +194,27 @@ void loop()
   
   if (samples>=samplesToWaitForBeforeStarting) 
   { 
-    float rate = (float) (1000*(samples-samplesToWaitForBeforeStarting))/(currentTime-previousTime); 
+    float newRate = (float) (1000*(samples-samplesToWaitForBeforeStarting))/(currentTime-previousTime);  
+
     //Truncated
-    if (samples < samplesToWaitForBeforeStarting+50 ) { alterTheClock=0; rate=250.0; } // Don't alter the clock  
-    if (currentTime==previousTime)  { alterTheClock=0; rate=250.0; } //Don't alter the clock
-    if (currentTime<previousTime) { alterTheClock=0; rate=250.0; } //Don't alter the clock
+    alterTheClock=1;
+    if (samples < samplesToWaitForBeforeStarting+50 ) { alterTheClock=0;  } else //Don't alter the clock  
+    if (currentTime==previousTime)                    { alterTheClock=0;  } else //Don't alter the clock
+    if (currentTime<previousTime)                     { alterTheClock=0;  } else //Don't alter the clock
+    {
+       rate=newRate;
+    }
+
     
-    if ( (alterTheClock) && (rate<250.0)) { microsecondDelayTime-=1; } 
-    if ( (alterTheClock) && (rate>250.0)) { microsecondDelayTime+=1; } 
+    if ( (alterTheClock) && (rate<250.0)) { if (microsecondDelayTime>0)    { microsecondDelayTime-=1; } } 
+    if ( (alterTheClock) && (rate>250.0)) { if (microsecondDelayTime<5000) { microsecondDelayTime+=1; } }
     
     if (showRate) 
        {
          Serial.print(rate);
          Serial.print(" ");
+         //Serial.print(microsecondDelayTime);
+         //Serial.print(" ");
        }
     Serial.print(readings[0].filteredValue);
     Serial.print(" ");
