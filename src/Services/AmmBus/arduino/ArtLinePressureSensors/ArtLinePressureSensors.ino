@@ -1,3 +1,5 @@
+//Written by Ammar Qammaz a.k.a. AmmarkoV , GPLv3
+//Butterworth filter taken from https://github.com/mrsp/serow/blob/master/src/butterworthLPF.cpp
 //ttylog -b 115200 -d /dev/ttyUSB0 | tee results.txt 2>&1
 unsigned long initialTime = 0;
 unsigned long currentTime = 0;
@@ -19,7 +21,7 @@ unsigned long deadSamples = 0;
 struct ButterWorth
 {
   //https://en.wikipedia.org/wiki/Butterworth_filter
-  //https://github.com/mrsp/serow/blob/master/src/butterworthLPF.cpp?fbclid=IwAR3Sz9leE7a2hKwk1GQIRpyi4xtvUPN6OYH1eUFPMtVrP9e2WFyNqZxX0kw
+  //https://github.com/mrsp/serow/blob/master/src/butterworthLPF.cpp
   float unfilteredValue;
   float filteredValue;
   //-----------

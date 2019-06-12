@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
- 
+#Written by Ammar Qammaz a.k.a. AmmarkoV , GPLv3
+
 #pip3 install pyserial matplotlib --user
 from threading import Thread
 import serial
