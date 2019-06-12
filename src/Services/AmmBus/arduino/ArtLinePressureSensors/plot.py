@@ -1,7 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
  
 #pip3 install pyserial matplotlib --user
-
 from threading import Thread
 import serial
 import time
@@ -12,12 +11,25 @@ import time
 import struct
 import sys
 
-
-
-def drawPlot(fig,sampleTime,dataSamplesA,dataSamplesB,dataSamplesC):
+def drawPlot(fig,label,sampleTime,dataSamplesA,dataSamplesB,dataSamplesC):
     fig.clear()
-    #plt.subplot(211)
-    plt.plot(sampleTime, dataSamplesA, 'k', sampleTime, dataSamplesB, 'k' , sampleTime, dataSamplesC, 'k')
+    ax = plt.subplot(111)
+
+    #ax = fig.add_subplot(111)
+    #ax.set_title(label, fontdict={'fontsize': 8, 'fontweight': 'medium'})
+
+    plt.title(label, fontsize=18)
+    plt.xlabel('Sensor Sample', fontsize=16)
+    plt.ylabel('Sensor Pressure value', fontsize=16)
+
+
+#    plt.plot(sampleTime, dataSamplesA, 'r' , sampleTime, dataSamplesB, 'g' , sampleTime, dataSamplesC, 'b')
+    lineA, = plt.plot(sampleTime, dataSamplesA, 'r' , label='Channel A' )
+    lineB, = plt.plot(sampleTime, dataSamplesB, 'g' , label='Channel B' )
+    lineC, = plt.plot(sampleTime, dataSamplesC, 'b' , label='Channel C' )
+    plt.legend(handles=[lineA,lineB,lineC])
+
+
     #plt.show() 
     plt.draw()
     plt.pause(0.001)
@@ -45,7 +57,10 @@ def main():
         print("Failed to connect with " + str(serialPort) + ' at ' + str(serialBaud) + ' BAUD.')
     
      
-    fig = plt.figure(constrained_layout=True)
+    fig = plt.figure(constrained_layout=True) 
+     
+    
+    start = time.time()
 
     samples=0
     dataSamplesA= collections.deque([0] * maxPlotLength, maxlen=maxPlotLength)
@@ -67,6 +82,9 @@ def main():
                 dataSamplesA.append(floats[0])
                 dataSamplesB.append(floats[1])
                 dataSamplesC.append(floats[2])
+                
+                end = time.time()
+                #sampleTime.append(1000*(end-start))
                 sampleTime.append(samples)
 
                 samples+=1 
@@ -74,7 +92,7 @@ def main():
                 if (samples%50==0): 
                    if plt.get_fignums():
                       # window(s) open 
-                      drawPlot(fig,sampleTime,dataSamplesA,dataSamplesB,dataSamplesC)   
+                      drawPlot(fig,'Realtime log_%s.csv @ %u s' % (timestr,(end-start)),sampleTime,dataSamplesA,dataSamplesB,dataSamplesC)   
                    else:
                       # no windows
                       print("User closed window so closing application") 
