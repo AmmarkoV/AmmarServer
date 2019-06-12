@@ -40,7 +40,7 @@ def main():
    
     
     fileCSV = open("log_%s.csv"%(timestr),"w") 
-    fileCSV.write("Channel1,Channel2,Channel2\n")
+    fileCSV.write("TimestampMS,Channel1,Channel2,Channel2\n")
 
     # portName = 'COM5'     # for windows users
     serialPort = '/dev/ttyUSB0'
@@ -59,8 +59,8 @@ def main():
      
     fig = plt.figure(constrained_layout=True) 
      
-    
-    start = time.time()
+    start = int(round(time.time() * 1000000)) 
+    #start = time.time_ns()    
 
     samples=0
     dataSamplesA= collections.deque([0] * maxPlotLength, maxlen=maxPlotLength)
@@ -69,30 +69,36 @@ def main():
     sampleTime=   collections.deque([0] * maxPlotLength, maxlen=maxPlotLength)
     while True:
                 rawData = serialConnection.read_until()  
+                end = int(round(time.time() * 1000000)) 
+                #end = time.time_ns()    
+
+
                 floats = [float(x) for x in rawData.split()] 
                 #print(samples," - ",floats[0]," ",floats[1]," ",floats[2])
+                #fileCSV.write(str(end-start))
+                fileCSV.write("%0.2f" % ((end-start)/1000) )
+                fileCSV.write(",")
                 fileCSV.write(str(floats[0]))
                 fileCSV.write(",")
                 fileCSV.write(str(floats[1]))
                 fileCSV.write(",")
                 fileCSV.write(str(floats[2]))
                 fileCSV.write("\n")
-                fileCSV.flush()
 
                 dataSamplesA.append(floats[0])
                 dataSamplesB.append(floats[1])
                 dataSamplesC.append(floats[2])
                 
-                end = time.time()
                 #sampleTime.append(1000*(end-start))
                 sampleTime.append(samples)
 
                 samples+=1 
 
                 if (samples%50==0): 
+                   fileCSV.flush()
                    if plt.get_fignums():
                       # window(s) open 
-                      drawPlot(fig,'Realtime log_%s.csv @ %u s' % (timestr,(end-start)),sampleTime,dataSamplesA,dataSamplesB,dataSamplesC)   
+                      drawPlot(fig,'Realtime log_%s.csv @ %0.2f s' % (timestr,(end-start)/1000000),sampleTime,dataSamplesA,dataSamplesB,dataSamplesC)   
                    else:
                       # no windows
                       print("User closed window so closing application") 
