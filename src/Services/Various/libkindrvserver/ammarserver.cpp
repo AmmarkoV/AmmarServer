@@ -347,9 +347,31 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
                      arm->move_joystick_axis(axes);
                      usleep(3e6);
                      arm->release_joystick();
+                  } else
+                if (strcmp(cmd,"open")==0)
+                  {
+                       printf("Opening gripper...");
+                       // set control type to angular
+                       arm->set_control_ang();
+                       // current joint values + target finger values
+                       jaco_position_t pos = arm->get_ang_pos();
+                       float finger_open[3] = {0.25, 0.25, 0.25};
+                       // set target values; this moves the arm towards the target position
+                       arm->set_target_ang(pos.joints, finger_open);
+                       // wait a little bit, until movement is finished
+                       usleep(1000*2000);
+                       printf("DONE\n");
+                  } else
+                if (strcmp(cmd,"close")==0)
+                  {
+                         printf("Closing gripper...");
+                         arm->set_control_ang();
+                         jaco_position_t pos = arm->get_ang_pos();
+                         float finger_close[3] = {50, 50, 50};
+                         arm->set_target_ang(pos.joints, finger_close);
+                         usleep(1000*2000);
+                         printf("DONE\n");
                   }
-
-
 
 
              }
@@ -421,6 +443,8 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
             <a href=\"control.html?cmd=wback\">Wrist Back</a>\n\
             <a href=\"control.html?cmd=ccw\">Wrist CCW</a>\n\
             <a href=\"control.html?cmd=cw\">Wrist CW</a>\n\
+            <a href=\"control.html?cmd=open\">Open Gripper</a>\n\
+            <a href=\"control.html?cmd=close\">Close Gripper</a>\n\
             </body>\n</html>\n",
            tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
 
@@ -556,4 +580,3 @@ int main(int argc, char *argv[])
     AmmServer_Warning("Ammar Server stopped\n");
     return 0;
 }
-
