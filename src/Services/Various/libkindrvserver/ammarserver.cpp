@@ -228,7 +228,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
                     usleep(2e6);
                     arm->release_joystick();
                   } else
-               if (strcmp(cmd,"down")==0)
+               if (strcmp(cmd,"back")==0)
                   {
                      // need cartesian-control for joystick simulation.
                      // Angular-control is also possible, then you would control each joint!
@@ -357,18 +357,71 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
   //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
   snprintf(rqst->content,rqst->MAXcontentSize, //<meta http-equiv=\"refresh\" content=\"1\">
-           "<html><head><title>Kinova Control</title></head>\
-            <body>The date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>\
-            <a href=\"control.html?cmd=home\">Home</a>\
-            <a href=\"control.html?cmd=forth\">Forth</a>\
-            <a href=\"control.html?cmd=down\">Down</a>\
-            <a href=\"control.html?cmd=left\">Left</a>\
-            <a href=\"control.html?cmd=right\">Right</a><br>\
-            <a href=\"control.html?cmd=wforth\">Wrist Forth</a>\
-            <a href=\"control.html?cmd=wdown\">Wrist Down</a>\
-            <a href=\"control.html?cmd=ccw\">Wrist CCW</a>\
-            <a href=\"control.html?cmd=cw\">Wrist CW</a>\
-            </body></html>",
+           "<!DOCTYPE html>\n<html>\n<head>\n<title>Kinova Control</title>\n<script type=\"text/javascript\">\n\
+   function getCommandPartOfURL(str)\
+   {\n\
+    return str.split('?')[1];\n\
+   }\n\
+   \n\
+   function makeUniqueURLs()\n\
+   {\n\
+     var links = document.links;\n\
+     var i = links.length;\n\
+     //Simple var randomnumber=Math.floor(Math.random()*100000);\n\
+     \n\
+     while (i--)\n\
+     {\n\
+       if (links[i].href.indexOf(\"javascript\") == -1)\n\
+          {\n\
+            //Simple links[i].href = links[i].href+\"&t=\"+randomnumber;\n\
+            if (links[i].href.indexOf(\"control.html?\") != -1)\n\
+              {\n\
+                links[i].href = \"javascript:command(\\'\"+getCommandPartOfURL(links[i].href)+\"\\');\";\n\
+              }\n\
+          }\n\
+     }\n\
+   }\n\
+ \n\
+   function httpGet(theUrl)\n\
+    {\n\
+    var xmlHttp = null;\n\
+\n\
+    xmlHttp = new XMLHttpRequest();\n\
+    xmlHttp.open( \"GET\", theUrl, true ); //Second parameter is async\n\
+    xmlHttp.send( null );\n\
+    return xmlHttp.responseText;\n\
+    }\n\
+\n\
+     function joystickExecute(joyX,joyY)\n\
+     {\n\
+        var randomnumber=Math.floor(Math.random()*100000);\n\
+        if ( (joyX==0) && (joyY==0) )\n\
+          {\n\
+            httpGet(\"control.html?body=stop&t=\"+randomnumber);\n\
+          } else\n\
+          {\n\
+            httpGet(\"control.html?body=joystick&x=\"+joyX+'&y='+joyY+\"&t=\"+randomnumber);\n\
+          }\n\
+     }\n\
+     function command(theCommand)\n\
+     {\n\
+       var randomnumber=Math.floor(Math.random()*100000);\n\
+       httpGet(\"control.html?\"+theCommand+\"&t=\"+randomnumber);\n\
+     }\n\
+    </script>\n</head>\n\
+            \n<body onload=\"makeUniqueURLs();\">\nThe date and time in AmmarServer is<br><h2>%02d-%02d-%02d %02d:%02d:%02d\n</h2>\n\
+            <a href=\"control.html?cmd=home\">Home</a>\n\
+            <a href=\"control.html?cmd=forth\">Forth</a>\n\
+            <a href=\"control.html?cmd=back\">Back</a>\n\
+            <a href=\"control.html?cmd=up\">Up</a>\n\
+            <a href=\"control.html?cmd=down\">Down</a>\n\
+            <a href=\"control.html?cmd=left\">Left</a>\n\
+            <a href=\"control.html?cmd=right\">Right</a><br>\n\
+            <a href=\"control.html?cmd=wforth\">Wrist Forth</a>\n\
+            <a href=\"control.html?cmd=wback\">Wrist Back</a>\n\
+            <a href=\"control.html?cmd=ccw\">Wrist CCW</a>\n\
+            <a href=\"control.html?cmd=cw\">Wrist CW</a>\n\
+            </body>\n</html>\n",
            tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
 
   rqst->contentSize=strlen(rqst->content);
@@ -379,11 +432,7 @@ void * prepare_stats_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
-  strncpy(rqst->content,"<html><head><title>Kinova</title</head><body>TEST</body></html>",rqst->MAXcontentSize);
-
-  rqst->contentSize=strlen(rqst->content);
-  return 0;
+  return prepare_stats_content_callback(rqst);
 }
 
 
@@ -392,7 +441,7 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 void init_dynamic_content()
 {
   AmmServer_AddResourceHandler(default_server,&stats,"/control.html",16000,0,(void*) &prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",4096,0,(void*) &prepare_index_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&indexPage,"/index.html",16000,0,(void*) &prepare_index_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
@@ -507,3 +556,4 @@ int main(int argc, char *argv[])
     AmmServer_Warning("Ammar Server stopped\n");
     return 0;
 }
+
