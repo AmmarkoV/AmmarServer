@@ -4,20 +4,20 @@
 #include <time.h>
 
 
-unsigned long tickBase = 0;
+unsigned long tickBaseAmmClient = 0;
 
 unsigned long AmmClient_GetTickCountMicrosecondsInternal()
 {
    struct timespec ts;
    if ( clock_gettime(CLOCK_MONOTONIC,&ts) != 0) { return 0; }
 
-   if (tickBase==0)
+   if (tickBaseAmmClient==0)
    {
-     tickBase = ts.tv_sec*1000000 + ts.tv_nsec/1000;
+     tickBaseAmmClient = ts.tv_sec*1000000 + ts.tv_nsec/1000;
      return 0;
    }
 
-   return ( ts.tv_sec*1000000 + ts.tv_nsec/1000 ) - tickBase;
+   return ( ts.tv_sec*1000000 + ts.tv_nsec/1000 ) - tickBaseAmmClient;
 }
 
 unsigned long AmmClient_GetTickCountMillisecondsInternal()
@@ -26,12 +26,12 @@ unsigned long AmmClient_GetTickCountMillisecondsInternal()
    struct timespec ts;
    if ( clock_gettime(CLOCK_MONOTONIC,&ts) != 0) { return 0; }
 
-   if (tickBase==0)
+   if (tickBaseAmmClient==0)
    {
-     tickBase = ts.tv_sec*1000 + ts.tv_nsec/1000000;
+     tickBaseAmmClient = ts.tv_sec*1000 + ts.tv_nsec/1000000;
      return 0;
    }
 
-   return ( ts.tv_sec*1000 + ts.tv_nsec/1000000 ) - tickBase;
+   return ( ts.tv_sec*1000 + ts.tv_nsec/1000000 ) - tickBaseAmmClient;
 }
 
