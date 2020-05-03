@@ -84,9 +84,9 @@ int AmmServer_AppendToFile(const char * filename,const char * msg)
 
 void AmmServer_GeneralPrintFromBuffer( char * buffer, char * color,char * label,const char *format , va_list * arglist)
 {
-   unsigned int formatLength = 64+strlen(label)+strlen(format);
-   char * coloredFormat= (char *) malloc( sizeof(char) * (formatLength+1) );
-   memset(coloredFormat,0,sizeof(char)* (formatLength+1));
+  // unsigned int formatLength = 64+strlen(label)+strlen(format);
+   //char * coloredFormat= (char *) malloc( sizeof(char) * (formatLength+1) );
+   //memset(coloredFormat,0,sizeof(char)* (formatLength+1));
 
    if (buffer!=0)
    {
