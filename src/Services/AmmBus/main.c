@@ -68,7 +68,7 @@ void * callback_command(struct AmmServer_DynamicRequest  * rqst)
                haveDev=1;
                state=1;
                isExclusiveDev=1;
-               fprintf(stderr,"Device : %s , State : %u \n",dev,state);
+               fprintf(stderr,"Exclusive Device : %s , State : %u \n",dev,state);
              }
 
          if ( _GETcpy(rqst,"activate",dev,128) )
@@ -102,6 +102,7 @@ void * callback_command(struct AmmServer_DynamicRequest  * rqst)
           {
               AmmServer_Warning("AmmBus: Failed to prepare exclusive state by turning off all devices");
           }
+          usleep(1000);
        }
         if (!setAmmBusState(deviceID,dev,state))
          {
