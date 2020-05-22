@@ -102,7 +102,7 @@ void * callback_command(struct AmmServer_DynamicRequest  * rqst)
           {
               AmmServer_Warning("AmmBus: Failed to prepare exclusive state by turning off all devices");
           }
-          usleep(1000);
+          serialport_flush(deviceID);
        }
         if (!setAmmBusState(deviceID,dev,state))
          {
