@@ -41,7 +41,7 @@ char templates_root[MAX_FILE_PATH]=WEBSERVERROOT;
 int deviceID = 0;
 
 
-char deviceSerialFilePath[MAX_FILE_PATH]="/dev/ttyACM0";
+char deviceSerialFilePath[MAX_FILE_PATH]="/dev/ttyUSB0"; ///dev/ttyACM0
 
 
 //The decleration of some dynamic content resources..
@@ -56,12 +56,20 @@ void * callback_command(struct AmmServer_DynamicRequest  * rqst)
 {
 
   char dev[128]={0};   int haveDev=0;
+  int isExclusiveDev=0;
   int state=0;
   char time[256]={0};  int haveTime=0;
 
  AmmServer_Warning("New Command message");
 
 
+         if ( _GETcpy(rqst,"exclusiveActivation",dev,128) )
+             {
+               haveDev=1;
+               state=1;
+               isExclusiveDev=1;
+               fprintf(stderr,"Device : %s , State : %u \n",dev,state);
+             }
 
          if ( _GETcpy(rqst,"activate",dev,128) )
              {
@@ -87,9 +95,18 @@ void * callback_command(struct AmmServer_DynamicRequest  * rqst)
        AmmServer_Warning("AmmBus: Failed to set a state for all devices");
      }
     } else
-    if (!setAmmBusState(deviceID,dev,state))
     {
-      AmmServer_Warning("AmmBus: Incorrect device to set a state for (%s)",dev);
+       if (isExclusiveDev)
+       {
+          if (!setAmmBusStateAll(deviceID,0))
+          {
+              AmmServer_Warning("AmmBus: Failed to prepare exclusive state by turning off all devices");
+          }
+       }
+        if (!setAmmBusState(deviceID,dev,state))
+         {
+           AmmServer_Warning("AmmBus: Incorrect device to set a state for (%s)",dev);
+         }
     }
   }
 
