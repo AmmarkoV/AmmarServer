@@ -201,7 +201,7 @@ int TransmitFileHeaderToSocket(
           snprintf(
                     reply_header,
                     MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,
-                    "Content-Range: bytes %lu-%lu/%lu\nContent-length: %lu\n\n",
+                    "Content-Range: bytes %lu-%lu/%lu\nContent-length: %lu\r\n\r\n",
                     start_at_byte,
                     endAtBytePrinted,
                     lSize,
@@ -213,7 +213,7 @@ int TransmitFileHeaderToSocket(
          snprintf(
                    reply_header,
                    MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,
-                   "Content-length: %lu\n\n",
+                   "Content-length: %lu\r\n\r\n",
                    lSize
                  );
        }
@@ -628,7 +628,7 @@ if (request->requestType!=HEAD)
        {
          //error("Resource Plain Content-Length ");
          //This is the last header part , so we are appending an extra \n to mark the end of the header
-         snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\n\n",(unsigned int) cached_lSize);
+         snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\r\n\r\n",(unsigned int) cached_lSize);
        }
      //TODO : Append Cookie here..
 
@@ -684,7 +684,7 @@ unsigned long SendMemoryBlockAsFile
 
 
   char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
-  snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\nConnection: close\n\n",(unsigned int) mem_block);
+  snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\nConnection: close\r\n\r\n",(unsigned int) mem_block);
   //TODO : Location : path etc
 
   if (!SendPart(instance,transaction,reply_header,strlen(reply_header)))
