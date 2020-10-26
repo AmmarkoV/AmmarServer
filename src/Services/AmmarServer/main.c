@@ -433,6 +433,11 @@ int main(int argc, char *argv[])
    unsigned int i=0;
    for (i=0; i<argc; i++)
    {
+    
+    if ((strcmp(argv[i],"--root")==0)&&(argc>i+1))
+      {
+        snprintf(webserver_root,MAX_FILE_PATH,"%s",argv[i+1]);
+      } else
     if ((strcmp(argv[i],"-e")==0)&&(argc>i+1))
       {
         if ( strlen(argv[i+1]) > MAX_RESOURCE ) { AmmServer_Error("-e argument is too long , will not allocate such a big chunk of memory"); return 1; } else
