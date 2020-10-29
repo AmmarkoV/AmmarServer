@@ -56,14 +56,15 @@ unsigned int allowControl=0;
 void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   fprintf(stderr,"Screen requested\n");
-  unsigned char * pixels=(unsigned char *) malloc(sizeof(char)*1920*1080*3);
-  unsigned int width=1920;
+  unsigned int width=3840;
   unsigned int height=1080;
+  unsigned char * pixels=(unsigned char *) malloc(sizeof(char)*width*height*3);
 
   if (pixels!=0)
   {
     #if XWDLIB_BRIDGE
      fprintf(stderr,"Trying to get screen using xwd , this might fail if done with concurrent threads..\n");
+     fprintf(stderr,"If screen resolution is more than %ux%u then this might also fail..\n",width,height);
      getScreen(pixels,&width,&height);
     #endif // XWDLIB_BRIDGE
 

@@ -108,10 +108,10 @@ static long parse_long(char *);
 static int Get24bitDirectColors(XColor **);
 static int ReadColors(Visual *, Colormap, XColor **);
 
-     int i;
-    Window target_win;
-    FILE *out_file = 0;
-    Bool frame_only = False;
+int i;
+Window target_win;
+FILE *out_file = 0;
+Bool frame_only = False;
 
 int initXwdLib(int argc, char  **argv)
 {
