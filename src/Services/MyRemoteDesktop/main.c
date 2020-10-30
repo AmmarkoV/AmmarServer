@@ -31,7 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define ALLOW_REMOTE_CONTROL 1
 
 
-#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+int DEFAULT_BINDING_PORT = 8090;  // <--- Change this to 80 if you want to bind to the default http port..!
 
 char webserver_root[MAX_FILE_PATH]="public_html/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -233,6 +233,11 @@ int main(int argc, char *argv[])
                                           resolutionX=atoi(argv[i+1]);
                                           resolutionY=atoi(argv[i+2]);
                                           fprintf(stderr,"to %u x %u\n", resolutionX,resolutionY );
+                                        }else
+    if (strcmp(argv[i],"--port")==0)     {
+                                          fprintf(stderr,"Changing default port to\n");
+                                          DEFAULT_BINDING_PORT=atoi(argv[i+1]);
+                                          fprintf(stderr,"to %u \n",DEFAULT_BINDING_PORT );
                                         }
   }
 
