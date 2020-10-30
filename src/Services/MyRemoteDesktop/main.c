@@ -46,18 +46,21 @@ struct AmmServer_RH_Context screenContext={0};
 struct AmmServer_RH_Context commandContext={0};
 
 char indexPagePath[128]="src/Services/MyRemoteDesktop/res/remotedesktop.html";
-char * indexPage=0;
+struct AmmServer_MemoryHandler * indexPage=0;
 unsigned int indexPageLength=0;
 
-unsigned int allowControl=0;
+unsigned int frameDelay = 250;
+unsigned int allowControl = 0;
+unsigned int resolutionX = 3840;
+unsigned int resolutionY = 1080;
 
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   fprintf(stderr,"Screen requested\n");
-  unsigned int width=3840;
-  unsigned int height=1080;
+  unsigned int width=resolutionX;
+  unsigned int height=resolutionY;
   unsigned char * pixels=(unsigned char *) malloc(sizeof(char)*width*height*3);
 
   if (pixels!=0)
@@ -81,9 +84,7 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  strncpy(rqst->content,indexPage,indexPageLength);
-  rqst->content[indexPageLength]=0;
-  rqst->contentSize=indexPageLength;
+  AmmServer_DynamicRequestReturnMemoryHandler(rqst,indexPage);
   return 0;
 }
 
@@ -174,8 +175,11 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
-  indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
+  indexPage=AmmServer_ReadFileToMemoryHandler(indexPagePath);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
+  char fpsInStr[128]={0};
+  snprintf(fpsInStr,128,"%u",frameDelay);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$FRAMERATE$",fpsInStr);
 
   AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",512000,400,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
@@ -201,6 +205,13 @@ int main(int argc, char *argv[])
        initXwdLib(argc,argv);
     #endif // XWDLIB_BRIDGE
 
+  char result[512];
+  AmmServer_ExecuteCommandLineNum("xwininfo -root | grep Width | cut -d ':' -f2",result,512,0);
+  resolutionX=atoi(result);
+  AmmServer_ExecuteCommandLineNum("xwininfo -root | grep Height | cut -d ':' -f2",result,512,0);
+  resolutionY=atoi(result);
+  fprintf(stderr,"Autodetected resolution  %u x %u\n", resolutionX,resolutionY );
+
 
 
   int i=0;
@@ -209,6 +220,18 @@ int main(int argc, char *argv[])
     if (strcmp(argv[i],"--control")==0) {
                                           fprintf(stderr,"Allowing Control\n");
                                            allowControl=1;
+                                        } else
+    if (strcmp(argv[i],"--fps")==0)     {
+                                          fprintf(stderr,"Changing default framerate \n");
+                                          frameDelay=atoi(argv[i+1]);
+                                          fprintf(stderr,"to %u\n", frameDelay );
+
+                                        } else
+    if (strcmp(argv[i],"--size")==0)     {
+                                          fprintf(stderr,"Changing default frame size\n");
+                                          resolutionX=atoi(argv[i+1]);
+                                          resolutionY=atoi(argv[i+2]);
+                                          fprintf(stderr,"to %u x %u\n", resolutionX,resolutionY );
                                         }
   }
 
