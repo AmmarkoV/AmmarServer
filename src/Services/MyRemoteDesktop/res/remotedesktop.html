@@ -17,7 +17,9 @@
     function command(theCommand)
      {
        var randomnumber=Math.floor(Math.random()*100000);
-       httpGet("cmd?"+theCommand+"&t="+randomnumber); 
+       var today = new Date();
+       var unique = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()+'-'+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'-'+randomnumber;
+       httpGet("cmd?"+theCommand+"&t="+unique); 
      } 
 
 

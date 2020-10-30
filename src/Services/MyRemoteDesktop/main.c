@@ -53,7 +53,7 @@ float framesPerSecondRequested = 5.0;
 unsigned int allowControl = 0;
 unsigned int resolutionX = 3840;
 unsigned int resolutionY = 1080;
-int crop=0;
+int crop=1;
 
 int cropImage(
                char * outputImage,
@@ -92,8 +92,8 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
     if (crop)
     {
-    unsigned int cropWidth  = 800;
-    unsigned int cropHeight  = 600;
+    unsigned int cropWidth  = 1024;
+    unsigned int cropHeight  = 768;
     unsigned char * cropPixels=(unsigned char *) malloc(sizeof(char)*cropWidth*cropHeight*3);
     if (cropPixels!=0)
     {
@@ -217,7 +217,8 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemoryHandler(indexPagePath);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
   char fpsInStr[128]={0};
-  snprintf(fpsInStr,128,"%0.2f",1000/framesPerSecondRequested);
+  unsigned int delayInMilliseconds =  (unsigned int) 1000/framesPerSecondRequested;
+  snprintf(fpsInStr,128,"%u",delayInMilliseconds);
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$FRAMERATE$",fpsInStr);
 
   AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",512000,400,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
