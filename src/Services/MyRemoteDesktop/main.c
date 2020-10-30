@@ -53,7 +53,9 @@ float framesPerSecondRequested = 5.0;
 unsigned int allowControl = 0;
 unsigned int resolutionX = 3840;
 unsigned int resolutionY = 1080;
-int crop=1;
+
+int crop=0;
+unsigned int cropX=0,cropY=0,cropWidth=800,cropHeight=600;
 
 int cropImage(
                char * outputImage,
@@ -92,13 +94,11 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
     if (crop)
     {
-    unsigned int cropWidth  = 1024;
-    unsigned int cropHeight  = 768;
     unsigned char * cropPixels=(unsigned char *) malloc(sizeof(char)*cropWidth*cropHeight*3);
     if (cropPixels!=0)
     {
      cropImage(
-                cropPixels,cropWidth,cropHeight,pixels,0,0,width,height
+                cropPixels,cropWidth,cropHeight,pixels,cropX,cropY,width,height
               );
     }
      fprintf(stderr,"Encoding cropped ..\n");
@@ -221,7 +221,7 @@ void init_dynamic_content()
   snprintf(fpsInStr,128,"%u",delayInMilliseconds);
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$FRAMERATE$",fpsInStr);
 
-  AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",512000,400,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",512000,delayInMilliseconds,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&commandContext,"/cmd",4096,0,&prepare_command_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
@@ -257,6 +257,15 @@ int main(int argc, char *argv[])
   int i=0;
   for (i=0; i<argc; i++)
   {
+    if (strcmp(argv[i],"--crop")==0)    {
+                                          fprintf(stderr,"Doing a crop of desktop\n");
+                                          cropX=atoi(argv[i+1]);
+                                          cropY=atoi(argv[i+2]);
+                                          cropWidth=atoi(argv[i+3]);
+                                          cropHeight=atoi(argv[i+4]);
+                                          crop=1;
+                                          fprintf(stderr,"to %u,%u -> %u x %u\n",cropX,cropY,cropWidth,cropHeight);
+                                        }else
     if (strcmp(argv[i],"--control")==0) {
                                           fprintf(stderr,"Allowing Control\n");
                                            allowControl=1;
