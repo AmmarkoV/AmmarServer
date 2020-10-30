@@ -53,6 +53,25 @@ float framesPerSecondRequested = 5.0;
 unsigned int allowControl = 0;
 unsigned int resolutionX = 3840;
 unsigned int resolutionY = 1080;
+int crop=0;
+
+int cropImage(
+               char * outputImage,
+               unsigned int outputImageWidth, unsigned int outputImageHeight,
+               char * inputImage,  unsigned int startX,  unsigned int startY,
+               unsigned int inputImageWidth,  unsigned int inputImageHeight
+             )
+{
+  char * inputPtr = inputImage + startX *3 + startY * inputImageWidth;
+  char * outputPtr = outputImage;
+  int x,y;
+  for (y=startY; y<startY+outputImageHeight; y++)
+  {
+   memcpy(outputPtr,inputPtr,outputImageWidth*3);
+   outputPtr += outputImageWidth*3;
+   inputPtr += inputImageWidth*3;
+  }
+}
 
 
 //This function prepares the content of  stats context , ( stats.content )
@@ -71,10 +90,30 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
      getScreen(pixels,&width,&height);
     #endif // XWDLIB_BRIDGE
 
-    fprintf(stderr,"Encoding it ..\n");
-    rqst->contentSize=rqst->MAXcontentSize;
-    AmmCaptcha_getJPEGFileFromPixels( (char *) pixels,width,height,3,rqst->content,&rqst->contentSize);
-    fprintf(stderr,"Serving it ..\n");
+    if (crop)
+    {
+    unsigned int cropWidth  = 800;
+    unsigned int cropHeight  = 600;
+    unsigned char * cropPixels=(unsigned char *) malloc(sizeof(char)*cropWidth*cropHeight*3);
+    if (cropPixels!=0)
+    {
+     cropImage(
+                cropPixels,cropWidth,cropHeight,pixels,0,0,width,height
+              );
+    }
+     fprintf(stderr,"Encoding cropped ..\n");
+     rqst->contentSize=rqst->MAXcontentSize;
+     AmmCaptcha_getJPEGFileFromPixels( (char *) cropPixels,cropWidth,cropHeight,3,rqst->content,&rqst->contentSize);
+     fprintf(stderr,"Serving cropped ..\n");
+
+    } else
+    {
+     fprintf(stderr,"Encoding it ..\n");
+     rqst->contentSize=rqst->MAXcontentSize;
+     AmmCaptcha_getJPEGFileFromPixels( (char *) pixels,width,height,3,rqst->content,&rqst->contentSize);
+     fprintf(stderr,"Serving it ..\n");
+    }
+
    free(pixels);
   }
   return 0;
