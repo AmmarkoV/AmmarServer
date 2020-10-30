@@ -306,8 +306,9 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
     return 0;
   }
 
+  memset(rqst->content,rqst->contentSize,0);
   memcpy(rqst->content,content->content,content->contentSize);
-  rqst->contentSize = content->contentSize;
+  rqst->contentSize = content->contentSize+1;
   rqst->content[rqst->contentSize]=0;//Null termination..
 
   return 0;

@@ -49,7 +49,7 @@ char indexPagePath[128]="src/Services/MyRemoteDesktop/res/remotedesktop.html";
 struct AmmServer_MemoryHandler * indexPage=0;
 unsigned int indexPageLength=0;
 
-unsigned int frameDelay = 250;
+float framesPerSecondRequested = 5.0;
 unsigned int allowControl = 0;
 unsigned int resolutionX = 3840;
 unsigned int resolutionY = 1080;
@@ -178,7 +178,7 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemoryHandler(indexPagePath);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
   char fpsInStr[128]={0};
-  snprintf(fpsInStr,128,"%u",frameDelay);
+  snprintf(fpsInStr,128,"%0.2f",1000/framesPerSecondRequested);
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$FRAMERATE$",fpsInStr);
 
   AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",512000,400,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
@@ -223,8 +223,9 @@ int main(int argc, char *argv[])
                                         } else
     if (strcmp(argv[i],"--fps")==0)     {
                                           fprintf(stderr,"Changing default framerate \n");
-                                          frameDelay=atoi(argv[i+1]);
-                                          fprintf(stderr,"to %u\n", frameDelay );
+                                          framesPerSecondRequested=atof(argv[i+1]);
+                                          if (framesPerSecondRequested==0.0) { framesPerSecondRequested=0.1;}
+                                          fprintf(stderr,"to %0.2f\n", framesPerSecondRequested );
 
                                         } else
     if (strcmp(argv[i],"--size")==0)     {
