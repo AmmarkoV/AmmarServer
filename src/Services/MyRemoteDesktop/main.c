@@ -224,7 +224,7 @@ void init_dynamic_content()
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$FRAMERATE$",fpsInStr);
 
   AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",512000,delayInMilliseconds,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",28096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&commandContext,"/cmd",4096,0,&prepare_command_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 }
 
