@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script> 
+    <title>MyRemoteDesktop</title>
+    <script type="text/javascript">  
+   var autoRefreshJob; 
+   function httpGet(theUrl)
+    {
+    var xmlHttp = null;
+    xmlHttp = new XMLHttpRequest();
+    xmlHttp.open( "GET", theUrl, true ); //Second parameter is async
+    xmlHttp.send( null );
+    return xmlHttp.responseText;
+    } 
+    
+    function command(theCommand)
+     {
+       var randomnumber=Math.floor(Math.random()*100000);
+       var today = new Date();
+       var unique = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()+'-'+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'-'+randomnumber;
+       httpGet("cmd?"+theCommand+"&t="+unique); 
+     } 
+
+
+   function doMovement(e) 
+   {
+    img = document.getElementById("screenImage");
+
+    var x = 3+img.naturalWidth * ( e.clientX / img.width ) ;
+    var y = 3+img.naturalHeight * ( e.clientY / img.height );
+     
+    var coor = "Coordinates: (" + x + "," + y + ")";
+    document.getElementById("coordinates").innerHTML = coor;
+    command("x="+x+"&y="+y);
+   }
+
+  function clearCoordinates() 
+  {
+    document.getElementById("coordinates").innerHTML = "";
+  }
+
+   function refreshScreen()
+   {  
+      var randomnumber=Math.floor(Math.random()*100000);
+      var today = new Date();
+      var unique = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()+'-'+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'-'+randomnumber;
+      var screenImage = document.getElementById('screenImage');
+      screenImage.src='screen.jpg?t='+unique; 
+   } 
+
+  function autoRefreshScreen()
+  {
+    refreshScreen();
+  }
+  
+
+  function initAutoRefresh() 
+  {
+    autoRefreshJob = setInterval(function() { autoRefreshScreen(); }, $FRAMERATE$ );
+  }
+
+  function stopAutoRefresh() 
+  {
+    clearInterval(autoRefreshJob); 
+  }
+
+  document.onkeypress = function (e) 
+  {
+    e = e || window.event; 
+    command('k='+(e.keyCode || e.which));
+  };
+  
+  </script>
+</head>
+  <body  onload="initAutoRefresh();">
+    <a-scene>
+      <a-sphere position="0 1.25 -5" radius="1.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/earth_atmos_4096.jpg"></a-sphere>
+      <a-plane position="0 0 -4" rotation="-90 0 0" width="3.84" height="1.08" src="screen.jpg" onclick="command('click=1');" 
+   ondblclick="command('dblclick=1');"
+   onmouseup="command('mouseup=1');"
+   onmousedown="command('mousedown=1');"
+   onmousemove="doMovement(event)" 
+   onmouseout="clearCoordinates()"></a-plane>
+      <a-sky color="#ECECEC"></a-sky>
+    </a-scene>
+ <p id="coordinates"></p>
+ Powered by <a href="https://github.com/AmmarkoV/AmmarServer/wiki" target="_new">AmmarServer</a>
+  </body>
+</html>

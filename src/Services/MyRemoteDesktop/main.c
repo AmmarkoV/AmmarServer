@@ -54,6 +54,8 @@ unsigned int allowControl = 0;
 unsigned int resolutionX = 3840;
 unsigned int resolutionY = 1080;
 
+int webXR=0;
+
 int crop=0;
 unsigned int cropX=0,cropY=0,cropWidth=800,cropHeight=600;
 
@@ -257,6 +259,12 @@ int main(int argc, char *argv[])
   int i=0;
   for (i=0; i<argc; i++)
   {
+
+    if (strcmp(argv[i],"--webxr")==0)    {
+                                          fprintf(stderr,"Enabling WebXR\n");
+                                          webXR=1;
+                                          snprintf(indexPagePath,128,"src/Services/MyRemoteDesktop/res/remotedesktopXR.html");
+                                         }
     if (strcmp(argv[i],"--crop")==0)    {
                                           fprintf(stderr,"Doing a crop of desktop\n");
                                           cropX=atoi(argv[i+1]);
