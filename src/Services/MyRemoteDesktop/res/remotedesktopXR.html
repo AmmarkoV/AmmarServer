@@ -1,6 +1,7 @@
 <html>
   <head>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script> 
+
     <title>MyRemoteDesktop</title>
     <script type="text/javascript">  
    var autoRefreshJob; 
@@ -77,7 +78,7 @@
 
     <a-assets>
       <img id="skyTexture" src="https://i.imgur.com/niHC9wI.jpg" crossorigin="anonymous">
-    </a-assets> 
+    </a-assets>  
       <a-entity cursor="downEvents: triggerdown; upEvents: triggerUp" 
                 geometry="primitive: ring; radiusInner: 0.03; radiusOuter: 0.05"
                 material="color: blue; shader: flat"
@@ -92,6 +93,14 @@
    onmousemove="doMovement(event)" 
    onmouseout="clearCoordinates()"></a-plane>
       <a-sky src="#skyTexture" ></a-sky>
+
+
+      <!-- Hands -->
+      <a-entity hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc" aabb-collider="objects: .cube;" grab></a-entity>
+      <a-entity hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc" aabb-collider="objects: .cube;" grab></a-entity>
+      <a-entity position="0 1.6 2" camera look-controls wasd-controls></a-entity>
+
+
     </a-scene>
  <p id="coordinates"></p>
  Powered by <a href="https://github.com/AmmarkoV/AmmarServer/wiki" target="_new">AmmarServer</a>
