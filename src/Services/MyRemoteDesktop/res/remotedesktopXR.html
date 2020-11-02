@@ -74,14 +74,24 @@
 </head>
   <body  onload="initAutoRefresh();">
     <a-scene>
-      <a-sphere position="0 1.25 -5" radius="1.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/earth_atmos_4096.jpg"></a-sphere>
-      <a-plane position="0 0 -4" rotation="-90 0 0" width="3.84" height="1.08" src="screen.jpg" onclick="command('click=1');" 
+
+    <a-assets>
+      <img id="skyTexture" src="https://i.imgur.com/niHC9wI.jpg" crossorigin="anonymous">
+    </a-assets> 
+      <a-entity cursor="downEvents: triggerdown; upEvents: triggerUp" 
+                geometry="primitive: ring; radiusInner: 0.03; radiusOuter: 0.05"
+                material="color: blue; shader: flat"
+                position="0 0 -1">
+      </a-entity>
+      <a-sphere position="-2 2.25 -6" radius="0.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/moon_1024.jpg"></a-sphere>
+      <a-sphere position="0 1.25 -6" radius="1.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/earth_atmos_4096.jpg"></a-sphere>
+      <a-plane position="0 0 -4" rotation="-20 0 0" width="3.84" height="1.08" src="screen.jpg" onclick="command('click=1');" 
    ondblclick="command('dblclick=1');"
    onmouseup="command('mouseup=1');"
    onmousedown="command('mousedown=1');"
    onmousemove="doMovement(event)" 
    onmouseout="clearCoordinates()"></a-plane>
-      <a-sky color="#ECECEC"></a-sky>
+      <a-sky src="#skyTexture" ></a-sky>
     </a-scene>
  <p id="coordinates"></p>
  Powered by <a href="https://github.com/AmmarkoV/AmmarServer/wiki" target="_new">AmmarServer</a>
