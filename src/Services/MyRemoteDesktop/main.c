@@ -44,6 +44,10 @@ struct AmmServer_RequestOverride_Context GET_override={{0}};
 struct AmmServer_RH_Context indexPageContext={0};
 struct AmmServer_RH_Context screenContext={0};
 struct AmmServer_RH_Context commandContext={0};
+struct AmmServer_RH_Context backgroundContext={0};
+
+char backgroundPath[128]="src/Services/MyRemoteDesktop/res/background.jpg";
+struct AmmServer_MemoryHandler * backgroundImage=0;
 
 char indexPagePath[128]="src/Services/MyRemoteDesktop/res/remotedesktop.html";
 struct AmmServer_MemoryHandler * indexPage=0;
@@ -122,6 +126,12 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+//This function prepares the content of  random_chars context , ( random_chars.content )
+void * prepare_background_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  AmmServer_DynamicRequestReturnMemoryHandler(rqst,backgroundImage);
+  return 0;
+}
 //This function prepares the content of  random_chars context , ( random_chars.content )
 void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -218,10 +228,18 @@ void init_dynamic_content()
 {
   indexPage=AmmServer_ReadFileToMemoryHandler(indexPagePath);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
+
+  //Update framerate based on our configuration
   char fpsInStr[128]={0};
   unsigned int delayInMilliseconds =  (unsigned int) 1000/framesPerSecondRequested;
   snprintf(fpsInStr,128,"%u",delayInMilliseconds);
   AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$FRAMERATE$",fpsInStr);
+
+
+  backgroundImage=AmmServer_ReadFileToMemoryHandler(backgroundPath);
+  if (backgroundImage==0) { AmmServer_Error("Could not find Background imagefile %s ",backgroundPath); exit(0); }
+  AmmServer_AddResourceHandler(default_server,&backgroundContext,"background.jpg",512000,delayInMilliseconds,&prepare_background_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+
 
   AmmServer_AddResourceHandler(default_server,&screenContext,"screen.jpg",512000,delayInMilliseconds,&prepare_screen_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",28096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);

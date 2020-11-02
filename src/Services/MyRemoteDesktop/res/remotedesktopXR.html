@@ -49,15 +49,26 @@
       var today = new Date();
       var unique = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()+'-'+today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds()+'-'+randomnumber;
 
+
       var scene = document.querySelector('a-scene'); 
-      var screenImage = scene.querySelector('#feed');
+      //console.log(THREE);
+      //console.log('Trying to refresh scene ',scene);
 
-      console.log('Trying to refresh scene ',scene);
-      console.log('Trying to refresh image ',screenImage);
-      screenImage.setAttribute('material', 'src: screen.jpg?t='+unique);
+      var plane = scene.querySelector('a-plane'); 
+      console.log('Trying to refresh plane ',plane);
+      plane.setAttribute("material", "src", "screen.jpg?t="+unique) 
+      //plane.setAttribute('material', 'color','red');
+      plane.src='screen.jpg?t='+unique; 
+      plane.needsUpdate = true;
 
-      screenImage.src='screen.jpg?t='+unique; 
-      screenImage.sceneEl.needsUpdate = true
+      //var screenImage = scene.querySelector('#feed');
+      //console.log('Trying to refresh image ',screenImage);
+
+      //screenImage.setAttribute("material", "src", "screen.jpg?t="+unique) 
+      //screenImage.src='screen.jpg?t='+unique; 
+      //screenImage.needsUpdate = true;
+
+      //screenImage.material.map=new THREE.TextureLoader().load('screen.jpg?t='+unique);  
    } 
 
   function autoRefreshScreen()
@@ -68,7 +79,7 @@
 
   function initAutoRefresh() 
   {
-    //autoRefreshJob = setInterval(function() { autoRefreshScreen(); }, $FRAMERATE$ );
+    autoRefreshJob = setInterval(function() { autoRefreshScreen(); }, $FRAMERATE$ );
   }
 
   function stopAutoRefresh() 
@@ -87,7 +98,7 @@
     var sceneEl = this.el;
     this.el.addEventListener('click', function (evt) {
     console.log('Screen clicked at: ', evt.detail.intersection.point);
-    refreshScreen();
+     //refreshScreen();
     });
   }
 });
@@ -111,7 +122,7 @@ AFRAME.registerComponent('cursor-listener', {
   <body onload="initAutoRefresh();">
     <a-scene do-something> 
     <a-assets>
-      <img id="skyTexture" src="https://i.imgur.com/niHC9wI.jpg" >
+      <img id="skyTexture" src="background.jpg" >
       <img id="feed" src="screen.jpg">
     </a-assets>  
  
@@ -122,9 +133,10 @@ AFRAME.registerComponent('cursor-listener', {
                 material="color: blue; shader: flat"
                 position="0 0 -1">
       </a-entity>
-      <a-sphere cursor-listener position="-2 2.25 -6" radius="0.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/moon_1024.jpg"></a-sphere>
-      <a-sphere  cursor-listener position="0 1.25 -6" radius="1.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/earth_atmos_4096.jpg"></a-sphere>
-      <a-plane screen-click position="0 0 -4" rotation="-20 0 0" width="3.84" height="1.08" src="#feed" 
+      <a-sphere position="-2 2.25 -6" radius="0.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/moon_1024.jpg"></a-sphere>
+      <a-sphere position="0 1.25 -6" radius="1.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/earth_atmos_4096.jpg"></a-sphere>
+      <a-plane screen-click position="0 0 -4" rotation="-20 0 0" width="3.84" height="1.08" 
+               src="#feed" 
                onclick="refreshScreen();" 
                ondblclick="command('dblclick=1');"
                onmouseup="command('mouseup=1');"
