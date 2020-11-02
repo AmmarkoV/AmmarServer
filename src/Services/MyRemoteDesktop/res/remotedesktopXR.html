@@ -6,6 +6,10 @@
     <title>MyRemoteDesktop</title>
     <script type="text/javascript">  
 
+   var absWidth=$ABSOLUTE_WIDTH$;
+   var absHeight=$ABSOLUTE_HEIGHT$;
+   var planeWidth=$SCREEN_WIDTH$;
+   var planeHeight=$SCREEN_HEIGHT$;
 
    var autoRefreshJob; 
    function httpGet(theUrl)
@@ -26,6 +30,15 @@
      } 
 
 
+   function doMovementXY(x,y) 
+   {     
+    console.log("Coordinates: (" + x + "," + y + ")");
+    var coor = "Coordinates: (" + x + "," + y + ")";
+    document.getElementById("coordinates").innerHTML = coor;
+    command("x="+x+"&y="+y);
+   }
+
+
    function doMovement(e) 
    {
     img = document.getElementById("screenImage");
@@ -33,9 +46,7 @@
     var x = 3+img.naturalWidth * ( e.clientX / img.width ) ;
     var y = 3+img.naturalHeight * ( e.clientY / img.height );
      
-    var coor = "Coordinates: (" + x + "," + y + ")";
-    document.getElementById("coordinates").innerHTML = coor;
-    command("x="+x+"&y="+y);
+    doMovementXY(x,y);
    }
 
   function clearCoordinates() 
@@ -51,24 +62,12 @@
 
 
       var scene = document.querySelector('a-scene'); 
-      //console.log(THREE);
-      //console.log('Trying to refresh scene ',scene);
-
       var plane = scene.querySelector('a-plane'); 
-      console.log('Trying to refresh plane ',plane);
+      //console.log('Trying to refresh plane ',plane);
       plane.setAttribute("material", "src", "screen.jpg?t="+unique) 
       //plane.setAttribute('material', 'color','red');
       plane.src='screen.jpg?t='+unique; 
       plane.needsUpdate = true;
-
-      //var screenImage = scene.querySelector('#feed');
-      //console.log('Trying to refresh image ',screenImage);
-
-      //screenImage.setAttribute("material", "src", "screen.jpg?t="+unique) 
-      //screenImage.src='screen.jpg?t='+unique; 
-      //screenImage.needsUpdate = true;
-
-      //screenImage.material.map=new THREE.TextureLoader().load('screen.jpg?t='+unique);  
    } 
 
   function autoRefreshScreen()
@@ -96,26 +95,44 @@
   AFRAME.registerComponent('screen-click', {
   init: function () {
     var sceneEl = this.el;
-    this.el.addEventListener('click', function (evt) {
-    console.log('Screen clicked at: ', evt.detail.intersection.point);
-     //refreshScreen();
-    });
-  }
-});
 
-// Component to change to a sequential color on click.
-AFRAME.registerComponent('cursor-listener', {
-  init: function () {
-    var lastIndex = -1;
-    var COLORS = ['red', 'green', 'blue'];
-    this.el.addEventListener('click', function (evt) {
-      lastIndex = (lastIndex + 1) % COLORS.length;
-      this.setAttribute('material', 'color', COLORS[lastIndex]);
-      console.log('I was clicked at: ', evt.detail.intersection.point);
+    this.el.addEventListener('click', function (evt) 
+    {
+      console.log('Screen clicked at: ', evt.detail.intersection.point);
+
+      actualX = (evt.detail.intersection.point.x + planeWidth/2)  / planeWidth; 
+      actualY = (evt.detail.intersection.point.y + planeHeight/2) / planeHeight; 
+      actualY = 1 - actualY ;
+
+      console.log('Pure clicked at: ', actualX,',',actualY);
+      doMovementXY(absWidth*actualX,absHeight*actualY);
+      command('click=1');
     });
+
+    this.el.addEventListener('mousedown', function (evt) 
+    {
+      console.log('Mouse down at: ', evt.detail.intersection.point);
+      command('mousedown=1');
+    });
+
+    this.el.addEventListener('mouseup', function (evt) 
+    {
+      console.log('Mouse up at: ', evt.detail.intersection.point);
+      command('mouseup=1');
+    });
+
+    this.el.addEventListener('mouseenter', function (evt) 
+    {
+      console.log('Mouse entered at: ', evt.detail.intersection.point); 
+    });
+    this.el.addEventListener('mouseleave', function (evt) 
+    {
+      console.log('Mouse leave at: ', evt.detail.intersection.point); 
+    }); 
+
   }
 });
-  </script>
+</script>
 
 
 </head>
@@ -125,38 +142,24 @@ AFRAME.registerComponent('cursor-listener', {
       <img id="skyTexture" src="background.jpg" >
       <img id="feed" src="screen.jpg">
     </a-assets>  
- 
 
+      <a-sky src="#skyTexture" ></a-sky>
 
       <a-entity cursor="downEvents: triggerdown; upEvents: triggerUp" 
                 geometry="primitive: ring; radiusInner: 0.03; radiusOuter: 0.05"
                 material="color: blue; shader: flat"
                 position="0 0 -1">
       </a-entity>
+
       <a-sphere position="-2 2.25 -6" radius="0.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/moon_1024.jpg"></a-sphere>
       <a-sphere position="0 1.25 -6" radius="1.25" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/space/earth_atmos_4096.jpg"></a-sphere>
-      <a-plane screen-click position="0 0 -4" rotation="-20 0 0" width="3.84" height="1.08" 
-               src="#feed" 
-               onclick="refreshScreen();" 
-               ondblclick="command('dblclick=1');"
-               onmouseup="command('mouseup=1');"
-               onmousedown="command('mousedown=1');"
-               onmousemove="doMovement(event)" 
-               onmouseout="clearCoordinates()"></a-plane>
-      <a-sky src="#skyTexture" ></a-sky>
+      <a-plane screen-click position="0 0 -4" rotation="-20 0 0" width="$SCREEN_WIDTH$" height="$SCREEN_HEIGHT$" src="#feed"></a-plane>
 
 
-      <!-- Hands --><!-- Match Oculus Go controller if present, regardless of hand. -->
-      <a-entity oculus-go-controls></a-entity>
-
-      <!-- Match Oculus Go controller if present and for specified hand. -->
-      <a-entity oculus-go-controls="hand: left"></a-entity>
-      <a-entity oculus-go-controls="hand: right"></a-entity>
-
-      <a-entity position="0 1.6 2" camera look-controls wasd-controls></a-entity>
+      <a-entity position="0 1.6 2" camera look-controls wasd-controls ></a-entity>
 
       <a-camera>
-	   <a-cursor fuse=“true” fuse-timeout=“1000”></a-cursor>
+	   <a-cursor></a-cursor>
       </a-camera>
 
     </a-scene>

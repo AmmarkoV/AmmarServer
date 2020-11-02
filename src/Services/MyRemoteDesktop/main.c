@@ -53,7 +53,7 @@ char indexPagePath[128]="src/Services/MyRemoteDesktop/res/remotedesktop.html";
 struct AmmServer_MemoryHandler * indexPage=0;
 unsigned int indexPageLength=0;
 
-float framesPerSecondRequested = 5.0;
+float framesPerSecondRequested = 1.0;
 unsigned int allowControl = 0;
 unsigned int resolutionX = 3840;
 unsigned int resolutionY = 1080;
@@ -194,11 +194,12 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
   int i=system(commandStr);
    if (i!=0) { AmmServer_Error("Could not execute %s\n",commandStr); }
   usleep(1000);
+    i=system(commandStr);
  } else
  if (doclick)
  {
   fprintf(stderr,"---------------------- Click \n");
-  snprintf(commandStr,128,"xdotool click 1");
+  snprintf(commandStr,128,"xdotool click 1&");
  } else
  {
   fprintf(stderr,"---------------------- Nothing \n");
@@ -230,11 +231,21 @@ void init_dynamic_content()
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); exit(0); }
 
   //Update framerate based on our configuration
-  char fpsInStr[128]={0};
+  char value[128]={0};
   unsigned int delayInMilliseconds =  (unsigned int) 1000/framesPerSecondRequested;
-  snprintf(fpsInStr,128,"%u",delayInMilliseconds);
-  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$FRAMERATE$",fpsInStr);
+  snprintf(value,128,"%u",delayInMilliseconds);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$FRAMERATE$",value);
 
+
+  snprintf(value,128,"%u",resolutionX);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$ABSOLUTE_WIDTH$",value);
+  snprintf(value,128,"%u",resolutionY);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,1,"$ABSOLUTE_HEIGHT$",value);
+
+  snprintf(value,128,"%0.2f",(float) 2*resolutionX/1000);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,2,"$SCREEN_WIDTH$",value);
+  snprintf(value,128,"%0.2f",(float) 2*resolutionY/1000);
+  AmmServer_ReplaceAllVarsInMemoryHandler(indexPage,2,"$SCREEN_HEIGHT$",value);
 
   backgroundImage=AmmServer_ReadFileToMemoryHandler(backgroundPath);
   if (backgroundImage==0) { AmmServer_Error("Could not find Background imagefile %s ",backgroundPath); exit(0); }
