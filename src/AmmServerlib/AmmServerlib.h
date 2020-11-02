@@ -19,6 +19,11 @@ extern "C" {
 #include <pthread.h>
 #include <libgen.h>
 
+#if USE_OPENSSL
+ #include <openssl/ssl.h>
+ #include <openssl/err.h>
+#endif // USE_OPENSSL
+
 /**
 * @brief An ID that is used to distinguish between different versions..
 * @bug   A potential bug might arise if the specs of the header file are changed and someone is linking with an older version libAmmServer.a thats why this value exists
@@ -436,6 +441,13 @@ struct AmmServer_Instance
 
     char webserver_root[MAX_FILE_PATH];
     char templates_root[MAX_FILE_PATH];
+
+    //SSL Stuff
+    int sslAvailable;
+    #if USE_OPENSSL
+     SSL_CTX *sslctx;
+     SSL *cSSL;
+    #endif // USE_OPENSSL
 };
 
 /** @brief Structure to keep data for an HTTP Transaction */

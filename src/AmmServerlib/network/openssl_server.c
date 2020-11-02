@@ -21,11 +21,12 @@
   SSL_CTX *ctx;
   SSL *ssl;
 
-void InitializeSSL()
+int InitializeSSL()
 {
     SSL_load_error_strings();
     SSL_library_init();
     OpenSSL_add_all_algorithms();
+    return 1;
 }
 
 void DestroySSL()
@@ -40,6 +41,13 @@ void ShutdownSSL()
     SSL_free(ssl);
 }
 #endif
+
+
+int sslAcceptStuff()
+{
+
+    return 0;
+}
 
 
 int startOpenSSLServer()
@@ -87,6 +95,8 @@ int startOpenSSLServer()
         //Error occurred, log and close down ssl
         ShutdownSSL();
     }
-#endif
 return 1;
+#else
+return 0;
+#endif
 }

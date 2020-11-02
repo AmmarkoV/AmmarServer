@@ -35,6 +35,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "threadedServer.h"
 
+
+
+#include "../network/openssl_server.h"
+
+
 #include "../tools/directory_lists.h"
 #include "../network/file_server.h"
 #include "../network/sendHTTPHeader.h"
@@ -93,6 +98,15 @@ void * MainThreadedHTTPServerThread (void * ptr)
   struct AmmServer_Instance * instance = context->instance;
   if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); context->keep_var_on_stack=2;  return 0; }
   //fprintf(stderr,"HTTPServerThread instance pointing @ %p \n",instance);
+
+
+
+
+   #if USE_OPENSSL
+     instance->sslAvailable = InitializeSSL();
+   #else
+     instance->sslAvailable =  0;
+   #endif // USE_OPENSSL
 
 
 
@@ -205,6 +219,8 @@ void * MainThreadedHTTPServerThread (void * ptr)
       }
       else
       {
+          //Successfully accepting..!
+
          #if SINGLE_THREAD_MODE
             if (SingleThreadToServeNewClient(instance,clientsock,client,clientlen))
             {
