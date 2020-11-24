@@ -221,6 +221,11 @@ void * MainThreadedHTTPServerThread (void * ptr)
       {
           //Successfully accepting..!
 
+         #if USE_OPENSSL
+           if (!sslAcceptStuff(instance))
+              { return 0;}
+         #endif // USE_OPENSSL
+
          #if SINGLE_THREAD_MODE
             if (SingleThreadToServeNewClient(instance,clientsock,client,clientlen))
             {

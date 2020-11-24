@@ -50,6 +50,7 @@ struct AmmServer_RH_Context backgroundContext={0};
 char backgroundPath[128]="src/Services/MyRemoteDesktop/res/background.jpg";
 struct AmmServer_MemoryHandler * backgroundImage=0;
 
+pthread_mutex_t serializeThreadAccess;
 
 
 char simplePagePath[128]="src/Services/MyRemoteDesktop/res/simple.html";
@@ -101,7 +102,20 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
     #if XWDLIB_BRIDGE
      fprintf(stderr,"Trying to get screen using xwd , this might fail if done with concurrent threads..\n");
      fprintf(stderr,"If screen resolution is more than %ux%u then this might also fail..\n",width,height);
-     getScreen(pixels,&width,&height);
+
+      if (pthread_mutex_lock(&serializeThreadAccess) != 0)
+        {
+            fprintf(stderr,"pthread_mutex_lock() error");
+        } else
+        {
+         getScreen(pixels,&width,&height);
+         if (pthread_mutex_unlock(&serializeThreadAccess) != 0)
+           {
+            free(pixels);
+            fprintf(stderr,"pthread_mutex_unlock() error");
+            return 0;
+           }
+        }
     #endif // XWDLIB_BRIDGE
 
     if (crop)
@@ -112,11 +126,12 @@ void * prepare_screen_content_callback(struct AmmServer_DynamicRequest  * rqst)
      cropImage(
                 cropPixels,cropWidth,cropHeight,pixels,cropX,cropY,width,height
               );
-    }
      fprintf(stderr,"Encoding cropped ..\n");
      rqst->contentSize=rqst->MAXcontentSize;
      AmmCaptcha_getJPEGFileFromPixels( (char *) cropPixels,cropWidth,cropHeight,3,rqst->content,&rqst->contentSize);
      fprintf(stderr,"Serving cropped ..\n");
+    free(cropPixels);
+    }
 
     } else
     {
@@ -303,6 +318,11 @@ int main(int argc, char *argv[])
   fprintf(stderr,"Autodetected resolution  %u x %u\n", resolutionX,resolutionY );
 
 
+  if (pthread_mutex_init(&serializeThreadAccess, NULL) != 0)
+  {
+    fprintf(stderr,"Failed setting up a mutex to ensure non concurent execution..\n");
+    exit(1);
+  }
 
   int i=0;
   for (i=0; i<argc; i++)

@@ -40,14 +40,29 @@ void ShutdownSSL()
     SSL_shutdown(ssl);
     SSL_free(ssl);
 }
-#endif
 
 
-int sslAcceptStuff()
+int sslAcceptStuff(struct AmmServer_Instance * instance, int newsockfd)
 {
+    instance->sslctx = SSL_CTX_new( SSLv23_server_method());
+    SSL_CTX_set_options(instance->sslctx, SSL_OP_SINGLE_DH_USE);
+    int use_cert = SSL_CTX_use_certificate_file(instance->sslctx, "/serverCertificate.pem", SSL_FILETYPE_PEM);
 
-    return 0;
+    int use_prv = SSL_CTX_use_PrivateKey_file(instance->sslctx, "/serverCertificate.pem", SSL_FILETYPE_PEM);
+
+    instance->cSSL = SSL_new(instance->sslctx);
+    SSL_set_fd(instance->cSSL, newsockfd );
+//Here is the SSL Accept portion.  Now all reads and writes must use SSL
+    int ssl_err = SSL_accept(instance->cSSL);
+    if(ssl_err <= 0)
+    {
+        //Error occurred, log and close down ssl
+        ShutdownSSL();
+        return 0;
+    }
+    return 1;
 }
+#endif
 
 
 int startOpenSSLServer()
