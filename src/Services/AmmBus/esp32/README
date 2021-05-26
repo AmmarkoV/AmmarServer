@@ -13,3 +13,6 @@ Select Esp32 Dev Module
 Step 4:
 sudo apt install python-is-python3
 pip install pyserial --user
+
+
+[ESP32](esp32-pinout.png)
