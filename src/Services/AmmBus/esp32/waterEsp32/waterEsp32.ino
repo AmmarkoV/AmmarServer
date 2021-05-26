@@ -7,7 +7,7 @@ const char* ssid = "VODAFONE_0365";
 const char* password = "nikosnikos";
 
 // Set web server port number to 80
-WiFiServer server(80);
+WiFiServer server(8080);
 
 // Variable to store the HTTP request
 String header;
@@ -15,6 +15,8 @@ String header;
 // Auxiliar variables to store the current output state
 String output26State = "off";
 String output27State = "off";
+
+const int ledPin = 2;
 
 // Assign output variables to GPIO pins
 const int output26 = 26;
@@ -29,6 +31,8 @@ const long timeoutTime = 2000;
 
 void setup() {
   Serial.begin(115200);
+  
+  pinMode (ledPin, OUTPUT);
   // Initialize the output variables as outputs
   pinMode(output26, OUTPUT);
   pinMode(output27, OUTPUT);
@@ -41,9 +45,14 @@ void setup() {
   Serial.println(ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    digitalWrite (ledPin, LOW);  // turn off the LED
+    delay(250);
     Serial.print(".");
+    digitalWrite (ledPin, HIGH);  // turn on the LED
+    delay(250);
   }
+ digitalWrite (ledPin, LOW);  // turn off the LED
+   
   // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
@@ -108,7 +117,7 @@ void loop(){
             client.println(".button2 {background-color: #555555;}</style></head>");
             
             // Web Page Heading
-            client.println("<body><h1>ESP32 Web Server</h1>");
+            client.println("<body><h1>Ammar Server</h1>");
             
             // Display current state, and ON/OFF buttons for GPIO 26  
             client.println("<p>GPIO 26 - State " + output26State + "</p>");
