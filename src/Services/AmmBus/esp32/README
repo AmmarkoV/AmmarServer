@@ -1,0 +1,15 @@
+Step 1:
+Download Arduino Software : https://www.arduino.cc/en/software
+
+Step 2: 
+Paste the URL: “https://dl.espressif.com/dl/package_esp32_index.json” into the “Additional Board Manager URLs” box 
+in File->Preferences 
+
+Step 3:
+Open board manager from Tools->Board Menu, type esp32 in the search bar
+Select Esp32 Dev Module
+
+
+Step 4:
+sudo apt install python-is-python3
+pip install pyserial --user
