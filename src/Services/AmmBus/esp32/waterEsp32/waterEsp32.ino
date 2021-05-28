@@ -1,13 +1,26 @@
 
 // Load Wi-Fi library
 #include <WiFi.h>
+#include "timeCalculations.h" 
+#include "configuration.h"
 
-// Replace with your network credentials
-const char* ssid = "VODAFONE_0365";
-const char* password = "nikosnikos";
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+#include "serialCommunication.h"
+AmmBusUSBProtocol ammBusUSB;
+
+//#include "wirelessCommunication.h"
+//AmmBusWirelessProtocol ammBusEthernet;
+
+
+#include "ammBus.h"
+struct ammBusState ambs={0};
 
 // Set web server port number to 80
-WiFiServer server(8080);
+WiFiServer server(serverPort);
 
 // Variable to store the HTTP request
 String header;
@@ -16,42 +29,52 @@ String header;
 String output26State = "off";
 String output27State = "off";
 
-const int ledPin = 2;
 
 // Assign output variables to GPIO pins
 const int output26 = 26;
 const int output27 = 27;
 
+
 // Current time
 unsigned long currentTime = millis();
 // Previous time
 unsigned long previousTime = 0; 
-// Define timeout time in milliseconds (example: 2000ms = 2s)
-const long timeoutTime = 2000;
 
-void setup() {
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+void setup() 
+{
   Serial.begin(115200);
   
   pinMode (ledPin, OUTPUT);
   // Initialize the output variables as outputs
-  pinMode(output26, OUTPUT);
-  pinMode(output27, OUTPUT);
-  // Set outputs to LOW
-  digitalWrite(output26, LOW);
-  digitalWrite(output27, LOW);
+
+  for (int i=0; i<NUMBER_OF_RELAYS; i++)
+  {
+    pinMode(RELAY_ADDRESS[i], OUTPUT);
+    digitalWrite(RELAY_ADDRESS[i], LOW);
+  }
+   
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
+  //-----------------------------------------------
+  while (WiFi.status() != WL_CONNECTED) 
+  {
     digitalWrite (ledPin, LOW);  // turn off the LED
     delay(250);
     Serial.print(".");
     digitalWrite (ledPin, HIGH);  // turn on the LED
     delay(250);
   }
- digitalWrite (ledPin, LOW);  // turn off the LED
+  digitalWrite (ledPin, LOW);  // turn off the LED
+  //-----------------------------------------------
+  
    
   // Print local IP address and start web server
   Serial.println("");
@@ -61,15 +84,185 @@ void setup() {
   server.begin();
 }
 
-void loop(){
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+
+void setRelayState( byte * valves )
+{ 
+  int i=0;
+  byte port ;
+  for (i=0; i<NUMBER_OF_RELAYS; i++) 
+  {    
+    port=RELAY_ADDRESS[i];
+    if (!valves[i] )  {  digitalWrite(port, HIGH);   } else
+                      {  digitalWrite(port, LOW);    }
+  }  
+
+
+  //Have a dedicated AC relay force it on or off
+  //--------------------------------------------
+  if (AC_RELAY)
+    {
+     unsigned int activeRelays = 0;
+     for (i=0; i<NUMBER_OF_RELAYS; i++) 
+      {  
+        if (!valves[i] )  { activeRelays=activeRelays+1; }
+      }
+
+      
+      if (activeRelays>0) { digitalWrite(RELAY_ADDRESS[AC_RELAY_PORT], HIGH); } else
+                          { digitalWrite(RELAY_ADDRESS[AC_RELAY_PORT], LOW);  }
+    }
+
+
+}
+
+
+
+void valveAutopilot()
+{
+  unsigned int changes=0;
+  unsigned int i=0;
+  byte valvesRunning=ammBus_getRunningValves(&ambs);
+  byte valvesRemaining=ammBus_getScheduledValves(&ambs);
+  
+   
+  if (valvesRunning>0)
+  {  
+   //Check if a valve needs to be closed.. 
+   for (i=0; i<NUMBER_OF_SWITCHES; i++)
+   {
+    if (ambs.valvesState[i])
+    {
+      //This valve is running, should it stop?  
+      unsigned int runningTime =  getValveRunningTimeMinutes(
+                                                             ambs.valveStartedTimestamp[i],
+                                                             ambs.valvesState[i],
+                                                             dt.unixtime  
+                                                            );
+      if ( runningTime > ambs.valvesTimes[i] ) 
+         {
+           //This valve has run its course so we stop it
+           ammBus_stopValve(&ambs,i);
+           ++changes;
+         }
+    }
+   }
+  }
+
+  //If autopilotCreateNewJobs is set
+  if (ammBus_getAutopilotState(&ambs))
+  {
+   //Check which valves should be scheduled for start
+   for (i=0; i<NUMBER_OF_SWITCHES; i++)
+    {
+        if (
+             getValveOfflineTimeSeconds(
+                                        ambs.valveStoppedTimestamp[i],
+                                        ambs.valvesState[i],
+                                        dt.unixtime
+                                       ) 
+                                        >  
+              getTimeAfterWhichWeNeedToReactivateValveInSeconds(
+                                                                ambs.jobRunEveryXHours
+                                                               ) 
+            )
+           {  
+              if (
+                   currentTimeIsCloseEnoughToHourMinute(
+                                                        dt.unixtime,
+                                                        ambs.jobRunAtXHour,
+                                                        ambs.jobRunAtXMinute
+                                                       )
+                 )
+              {
+                ambs.valvesScheduled[i]=1;
+              }
+           }
+    }
+
+  //Recount valve status  
+  valvesRunning=ammBus_getRunningValves(&ambs);
+  valvesRemaining=ammBus_getScheduledValves(&ambs);
+
+  //We can accomodate more jobs..
+  if ( (valvesRunning<ambs.jobConcurrency) && (valvesRemaining>0)  )
+  {
+    for (i=0; i<NUMBER_OF_SWITCHES; i++)
+    {
+      //Open first possible scheduled valve 
+      if ( (ambs.valvesScheduled[i]) && (!ambs.valvesState[i]) && (valvesRunning<ambs.jobConcurrency) )
+      {    
+            ++changes;
+            ++valvesRunning;
+            ambs.valvesState[i]=1;
+            ambs.valveStartedTimestamp[i]=dt.unixtime; 
+      }
+    }
+  }
+  }
+
+  //Changes made/update relays  
+  if (changes) 
+    { setRelayState(ambs.valvesState); }
+}
+
+
+void checkForSerialInput()
+{
+  /*
+  if ( 
+       ammBusUSB.newUSBCommands(
+                                ambs.valvesState,
+                                ambs.valvesScheduled,
+                                &clock,
+                                &dt,
+                                &ambs.idleTicks
+                               ) 
+     )
+     {  
+      setRelayState(ambs.valvesState);
+     }*/
+}
+
+
+
+void checkForEthernetInput()
+{
+  /*
+  if (  
+       ammBusEthernet.receiveEthernetRequests(&e,&clock,&dt)
+     )
+     {  
+      //setRelayState(ambs.valvesState);
+     }*/
+}
+
+
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+
+void loop()
+{
   WiFiClient client = server.available();   // Listen for incoming clients
 
-  if (client) {                             // If a new client connects,
+  if (client) 
+  { 
+    // If a new client connects,
     currentTime = millis();
     previousTime = currentTime;
     Serial.println("New Client.");          // print a message out in the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected() && currentTime - previousTime <= timeoutTime) {  // loop while the client's connected
+    while (client.connected() && currentTime - previousTime <= timeoutTime) 
+    {  // loop while the client's connected
       currentTime = millis();
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
