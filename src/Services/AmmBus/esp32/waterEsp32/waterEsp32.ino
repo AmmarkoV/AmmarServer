@@ -26,13 +26,13 @@ WiFiServer server(serverPort);
 String header;
 
 // Auxiliar variables to store the current output state
-String output26State = "off";
-String output27State = "off";
+//String output26State = "off";
+//String output27State = "off";
 
 
 // Assign output variables to GPIO pins
-const int output26 = 26;
-const int output27 = 27;
+//const int output26 = 26;
+//const int output27 = 27;
 
 
 // Current time
@@ -291,7 +291,8 @@ void loop()
         if (c == '\n') {                    // if the byte is a newline character
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
-          if (currentLine.length() == 0) {
+          if (currentLine.length() == 0) 
+          {
             // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
             // and a content-type so the client knows what's coming, then a blank line:
             client.println("HTTP/1.1 200 OK");
@@ -299,6 +300,7 @@ void loop()
             client.println("Connection: close");
             client.println();
 
+            char receivedANewCommand=0;
             char switchPattern[64];
             for (int i=0; i<NUMBER_OF_SWITCHES; i++)
               { 
@@ -307,20 +309,30 @@ void loop()
                    {
                      Serial.print("GPIO ");
                      Serial.print(i);
+                     Serial.print("-");
+                     Serial.print(RELAY_ADDRESS[i]);
                      Serial.println(" on");
                      ambs.valvesState[i]=ON; ambs.valvesScheduled[i]=OFF;  
+                     receivedANewCommand=1;
                    } 
                    //-------------------------------
-                 snprintf(switchPattern,64,"GET /%u/on",i);
+                 snprintf(switchPattern,64,"GET /%u/off",i);
                 if (header.indexOf(switchPattern) >= 0) 
                    {
                      Serial.print("GPIO ");
                      Serial.print(i);
+                     Serial.print("-");
+                     Serial.print(RELAY_ADDRESS[i]);
                      Serial.println(" off");
                      ambs.valvesState[i]=OFF; ambs.valvesScheduled[i]=OFF;  
+                     receivedANewCommand=1;
                    } 
               }
-           
+              
+             if (receivedANewCommand)
+             {
+               setRelayState(ambs.valvesState);
+             }
 
 
 
@@ -352,15 +364,16 @@ void loop()
                client.print(" - ");
                client.print(valveLabels[i]);
                client.print(" - ");
-               client.println(ambs.valvesState[i] + "</p>");
 
                if (ambs.valvesState[i])
                {
+                client.println("on </p>");
                 client.print("<p><a href=\"/");
                 client.print(i);
                 client.println("/off\"><button class=\"button button2\">OFF</button></a></p>");
                } else
                {
+                client.println("off </p>");
                 client.print("<p><a href=\"/");
                 client.print(i);
                 client.println("/on\"><button class=\"button\">ON</button></a></p>");
@@ -372,10 +385,12 @@ void loop()
             client.println();
             // Break out of the while loop
             break;
-          } else { // if you got a newline, then clear currentLine
+          } else 
+          { // if you got a newline, then clear currentLine
             currentLine = "";
           }
-        } else if (c != '\r') {  // if you got anything else but a carriage return character,
+        } else if (c != '\r') 
+        {  // if you got anything else but a carriage return character,
           currentLine += c;      // add it to the end of the currentLine
         }
       }
