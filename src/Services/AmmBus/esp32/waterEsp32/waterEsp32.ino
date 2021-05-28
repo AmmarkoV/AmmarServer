@@ -74,7 +74,13 @@ void setup()
   }
   digitalWrite (ledPin, LOW);  // turn off the LED
   //-----------------------------------------------
+
   
+   Serial.print("Starting Up Clock! \n");
+   realtime_clock.begin();
+   if (RESET_CLOCK_ON_NEXT_COMPILATION)
+       { realtime_clock.setDateTime(__DATE__, __TIME__); } 
+   dt = realtime_clock.getDateTime();   
    
   // Print local IP address and start web server
   Serial.println("");
@@ -252,6 +258,18 @@ void checkForEthernetInput()
 
 void loop()
 {
+
+  if (ambs.idleTicks==100) 
+   { 
+    ambs.idleTicks=0;   
+    dt = realtime_clock.getDateTime();  
+    checkForSerialInput();
+    //Valve Autopilot..
+   // valveAutopilot(); 
+   } 
+   
+
+  
   WiFiClient client = server.available();   // Listen for incoming clients
 
   if (client) 
@@ -350,4 +368,8 @@ void loop()
     Serial.println("Client disconnected.");
     Serial.println("");
   }
+
+
+  ++ambs.idleTicks;
+  delay(10);
 }

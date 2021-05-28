@@ -1,6 +1,13 @@
 #ifndef __CONFIGURATION_H
 #define __CONFIGURATION_H
 
+
+
+// RESET DS3231 --------------------------------------------
+#define RESET_CLOCK_ON_NEXT_COMPILATION 0 
+//----------------------------------------------------------
+
+
 //Server ---------------------------------------------------
 const int serverPort = 8080;
 
@@ -32,7 +39,7 @@ const int AC_RELAY_PORT = 7; //<- use last relay address for AC
 
 //Clock -----------------------------------------------------
 #include "DS3231.h"
-//DS3231 clock;
+DS3231 realtime_clock;
 RTCDateTime dt;
 //-----------------------------------------------------------
 
