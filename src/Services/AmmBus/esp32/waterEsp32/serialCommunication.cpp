@@ -1,5 +1,6 @@
 #include "serialCommunication.h" 
 #include "ammBus.h"
+#include "timeCalculations.h" 
 
 //Serial Input  -------------------------------------------
 String inputs;
@@ -72,7 +73,8 @@ int AmmBusUSBProtocol::newUSBCommands(
           case 'T' :  
              newTime = readTimeFromSerial();
              Serial.print("Unixtime was>");
-             Serial.println(dt->unixtime);  
+             Serial.println(dt->unixtime);   
+             
              if (RECENT_UNIX_TIME<newTime)
               {
                Serial.print("Unixtime set to>");
@@ -88,6 +90,27 @@ int AmmBusUSBProtocol::newUSBCommands(
           case 't' : 
              Serial.print("Humantime>");
              //Serial.println(clock->dateFormat("d-m-Y/H:i:s", *dt)); 
+              byte week, day, hour, minute, second;
+                    
+             unixtimeToWDHMS(
+                        dt->unixtime,
+                        &week,
+                        &day,
+                        &hour, 
+                        &minute,
+                        &second
+                       );
+       
+              Serial.print(" Week ");
+              Serial.print(week);
+              Serial.print(" Day ");
+              Serial.print(day);
+              Serial.print(" ");
+              Serial.print(hour);
+              Serial.print(":");
+              Serial.print(minute);
+              Serial.print(":");
+              Serial.println(second);
 
              Serial.print("Unixtime>");
              Serial.println(dt->unixtime); 

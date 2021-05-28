@@ -76,7 +76,7 @@ void setup()
   //-----------------------------------------------
 
   
-   Serial.print("Starting Up Clock! \n");
+   Serial.println("\nStarting Up Clock! \n");
    realtime_clock.begin();
    if (RESET_CLOCK_ON_NEXT_COMPILATION)
        { realtime_clock.setDateTime(__DATE__, __TIME__); } 
@@ -220,19 +220,19 @@ void valveAutopilot()
 
 void checkForSerialInput()
 {
-  /*
+  
   if ( 
        ammBusUSB.newUSBCommands(
                                 ambs.valvesState,
                                 ambs.valvesScheduled,
-                                &clock,
+                                &realtime_clock,
                                 &dt,
                                 &ambs.idleTicks
                                ) 
      )
      {  
       setRelayState(ambs.valvesState);
-     }*/
+     }
 }
 
 
