@@ -24,16 +24,7 @@ WiFiServer server(serverPort);
 
 // Variable to store the HTTP request
 String header;
-
-// Auxiliar variables to store the current output state
-//String output26State = "off";
-//String output27State = "off";
-
-
-// Assign output variables to GPIO pins
-//const int output26 = 26;
-//const int output27 = 27;
-
+  
 
 // Current time
 unsigned long currentTime = millis();
@@ -74,7 +65,8 @@ void setup()
   }
   digitalWrite (ledPin, LOW);  // turn off the LED
   //-----------------------------------------------
-
+  
+   setRelayState(ambs.valvesState);
   
    Serial.println("\nStarting Up Clock! \n");
    realtime_clock.begin();
@@ -87,6 +79,11 @@ void setup()
   Serial.println("WiFi connected.");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
+  Serial.print("Website: http://");
+  Serial.print(WiFi.localIP());
+  Serial.println(":8080");
+  
   server.begin();
 }
 
@@ -103,9 +100,15 @@ void setRelayState( byte * valves )
   byte port ;
   for (i=0; i<NUMBER_OF_RELAYS; i++) 
   {    
-    port=RELAY_ADDRESS[i];
-    if (!valves[i] )  {  digitalWrite(port, HIGH);   } else
-                      {  digitalWrite(port, LOW);    }
+     port=RELAY_ADDRESS[i];
+     if ( (AC_RELAY) && (port==AC_RELAY_PORT) )
+     {
+      //Skip setting auto relay port..
+     } else
+     { 
+      if (!valves[i] )  {  digitalWrite(port, HIGH);   } else
+                        {  digitalWrite(port, LOW);    }
+     }
   }  
 
 
@@ -116,12 +119,15 @@ void setRelayState( byte * valves )
      unsigned int activeRelays = 0;
      for (i=0; i<NUMBER_OF_RELAYS; i++) 
       {  
-        if (!valves[i] )  { activeRelays=activeRelays+1; }
+        if (valves[i] )  { activeRelays=activeRelays+1; }
       }
 
-      
-      if (activeRelays>0) { digitalWrite(RELAY_ADDRESS[AC_RELAY_PORT], HIGH); } else
-                          { digitalWrite(RELAY_ADDRESS[AC_RELAY_PORT], LOW);  }
+      Serial.print(activeRelays);
+      Serial.print(" active relays, setting Relay address ");
+      Serial.println(RELAY_ADDRESS[AC_RELAY_PORT]);
+      if (activeRelays>0) 
+                          { digitalWrite(RELAY_ADDRESS[AC_RELAY_PORT], LOW);  } else
+                          { digitalWrite(RELAY_ADDRESS[AC_RELAY_PORT], HIGH); } 
     }
 
 

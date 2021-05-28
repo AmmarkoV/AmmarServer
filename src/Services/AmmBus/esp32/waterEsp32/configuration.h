@@ -27,7 +27,7 @@ const char* password = "nikosnikos";
 
 
 //RELAY TO PORT RESOLUTION ----------------------------------
-const int RELAY_ADDRESS[]={34,35,32,33,25,26,27,14};
+const int RELAY_ADDRESS[]={19,18,32,33,25,26,27,5};
 const int NUMBER_OF_RELAYS = 8;
 
 const int AC_RELAY = 1;

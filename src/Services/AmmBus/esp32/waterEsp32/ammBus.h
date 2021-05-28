@@ -22,7 +22,7 @@ static const char * valveLabels[] =
     "Agalma/Lemonia",
     "Gazon A      ",
     "Gazon B      ",
-    "Gazon C      ", 
+    "Metasximatistis      ", 
     //-----------------
     "Unknown"
 };
