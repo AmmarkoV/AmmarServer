@@ -283,7 +283,8 @@ void loop()
     while (client.connected() && currentTime - previousTime <= timeoutTime) 
     {  // loop while the client's connected
       currentTime = millis();
-      if (client.available()) {             // if there's bytes to read from the client,
+      if (client.available()) 
+      {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
         Serial.write(c);                    // print it out the serial monitor
         header += c;
@@ -297,26 +298,33 @@ void loop()
             client.println("Content-type:text/html");
             client.println("Connection: close");
             client.println();
-            
-            // turns the GPIOs on and off
-            if (header.indexOf("GET /26/on") >= 0) {
-              Serial.println("GPIO 26 on");
-              output26State = "on";
-              digitalWrite(output26, HIGH);
-            } else if (header.indexOf("GET /26/off") >= 0) {
-              Serial.println("GPIO 26 off");
-              output26State = "off";
-              digitalWrite(output26, LOW);
-            } else if (header.indexOf("GET /27/on") >= 0) {
-              Serial.println("GPIO 27 on");
-              output27State = "on";
-              digitalWrite(output27, HIGH);
-            } else if (header.indexOf("GET /27/off") >= 0) {
-              Serial.println("GPIO 27 off");
-              output27State = "off";
-              digitalWrite(output27, LOW);
-            }
-            
+
+            char switchPattern[64];
+            for (int i=0; i<NUMBER_OF_SWITCHES; i++)
+              { 
+                snprintf(switchPattern,64,"GET /%u/on",i);
+                if (header.indexOf(switchPattern) >= 0) 
+                   {
+                     Serial.print("GPIO ");
+                     Serial.print(i);
+                     Serial.println(" on");
+                     ambs.valvesState[i]=ON; ambs.valvesScheduled[i]=OFF;  
+                   } 
+                   //-------------------------------
+                 snprintf(switchPattern,64,"GET /%u/on",i);
+                if (header.indexOf(switchPattern) >= 0) 
+                   {
+                     Serial.print("GPIO ");
+                     Serial.print(i);
+                     Serial.println(" off");
+                     ambs.valvesState[i]=OFF; ambs.valvesScheduled[i]=OFF;  
+                   } 
+              }
+           
+
+
+
+            //--------------------
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
@@ -329,25 +337,35 @@ void loop()
             client.println(".button2 {background-color: #555555;}</style></head>");
             
             // Web Page Heading
-            client.println("<body><h1>Ammar Server</h1>");
-            
-            // Display current state, and ON/OFF buttons for GPIO 26  
-            client.println("<p>GPIO 26 - State " + output26State + "</p>");
-            // If the output26State is off, it displays the ON button       
-            if (output26State=="off") {
-              client.println("<p><a href=\"/26/on\"><button class=\"button\">ON</button></a></p>");
-            } else {
-              client.println("<p><a href=\"/26/off\"><button class=\"button button2\">OFF</button></a></p>");
-            } 
-               
-            // Display current state, and ON/OFF buttons for GPIO 27  
-            client.println("<p>GPIO 27 - State " + output27State + "</p>");
-            // If the output27State is off, it displays the ON button       
-            if (output27State=="off") {
-              client.println("<p><a href=\"/27/on\"><button class=\"button\">ON</button></a></p>");
-            } else {
-              client.println("<p><a href=\"/27/off\"><button class=\"button button2\">OFF</button></a></p>");
-            }
+            client.println("<body><h1>");
+            client.print(systemName);
+            client.print("<br>");
+            client.print(systemVersion); 
+            client.println("</h1>");
+
+            //Print our switches as buttons..
+            //---------------------------------------------
+            for (int i=0; i<NUMBER_OF_SWITCHES; i++)
+              { 
+               client.print("<p>GPIO ");
+               client.print(RELAY_ADDRESS[i]);
+               client.print(" - ");
+               client.print(valveLabels[i]);
+               client.print(" - ");
+               client.println(ambs.valvesState[i] + "</p>");
+
+               if (ambs.valvesState[i])
+               {
+                client.print("<p><a href=\"/");
+                client.print(i);
+                client.println("/off\"><button class=\"button button2\">OFF</button></a></p>");
+               } else
+               {
+                client.print("<p><a href=\"/");
+                client.print(i);
+                client.println("/on\"><button class=\"button\">ON</button></a></p>");
+               }
+              }
             client.println("</body></html>");
             
             // The HTTP response ends with another blank line
