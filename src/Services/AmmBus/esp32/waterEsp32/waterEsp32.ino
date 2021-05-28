@@ -273,7 +273,8 @@ void loop()
   WiFiClient client = server.available();   // Listen for incoming clients
 
   if (client) 
-  { 
+  {
+    digitalWrite (ledPin, HIGH);  // turn on the LED
     // If a new client connects,
     currentTime = millis();
     previousTime = currentTime;
@@ -367,6 +368,8 @@ void loop()
     client.stop();
     Serial.println("Client disconnected.");
     Serial.println("");
+    
+    digitalWrite (ledPin, LOW);  // turn off the LED
   }
 
 
