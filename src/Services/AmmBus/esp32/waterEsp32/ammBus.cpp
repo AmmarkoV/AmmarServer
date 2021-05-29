@@ -30,8 +30,8 @@ void initializeAmmBusState(struct ammBusState * ambs)
  ambs->powerSaving=1;
  ambs->autopilotCreateNewJobs=1; 
  
- ambs->jobRunEveryXHours=5*24;
- ambs->jobRunAtXHour=20;
+ ambs->jobRunEveryXHours=1*24;
+ ambs->jobRunAtXHour=6;
  ambs->jobRunAtXMinute=0;
  
  //Max concurrent jobs  
@@ -153,6 +153,3 @@ void ammBus_stopAllValves(struct ammBusState * ambs)
   } 
  ambs->armedTimes=0;
 }
-
-
-

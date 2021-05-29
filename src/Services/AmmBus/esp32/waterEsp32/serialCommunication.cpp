@@ -90,7 +90,8 @@ int AmmBusUSBProtocol::newUSBCommands(
           case 't' : 
              Serial.print("Humantime>");
              //Serial.println(clock->dateFormat("d-m-Y/H:i:s", *dt)); 
-              byte week, day, hour, minute, second;
+              byte week, day, month, hour, minute, second;
+              unsigned short year;
                     
              unixtimeToWDHMS(
                         dt->unixtime,
@@ -111,6 +112,30 @@ int AmmBusUSBProtocol::newUSBCommands(
               Serial.print(minute);
               Serial.print(":");
               Serial.println(second);
+
+              unixtimeToDate(
+                             dt->unixtime,
+                             &second,
+                             &minute,
+                             &hour,
+                             &day,
+                             &month,
+                             &year
+                            );
+
+              Serial.print(" Normal :  ");
+              Serial.print(day);
+              Serial.print("/");
+              Serial.print(month);
+              Serial.print("/");
+              Serial.print(year);
+              Serial.print(" ");
+              Serial.print(hour);
+              Serial.print(":");
+              Serial.print(minute);
+              Serial.print(":");
+              Serial.println(second);
+
 
              Serial.print("Unixtime>");
              Serial.println(dt->unixtime); 

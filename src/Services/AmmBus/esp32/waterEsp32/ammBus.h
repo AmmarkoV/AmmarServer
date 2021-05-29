@@ -15,13 +15,13 @@ static const char * systemName =    { "AmmBus Waterchip" };
 static const char * systemVersion = { "     v0.34      " };
 static const char * valveLabels[] =
 {
-    "Mikri Skala    ",
-    "Leyland/Porta  " ,
-    "Elato/Garage   ",
-    "Triantafylla  ",
-    "Agalma/Lemonia",
-    "Gazon A      ",
-    "Gazon B      ",
+    "-",
+    "-" ,
+    "Mantra",
+    "Tetragwna",
+    "Trigwna",
+    "Pisw      ",
+    "-",
     "Metasximatistis      ", 
     //-----------------
     "Unknown"
@@ -46,7 +46,7 @@ struct ammBusState
  byte valvesTimesLow[NUMBER_OF_SWITCHES];
  byte *armedTimes;
  byte *valvesTimes;
-
+ 
  byte valvesState[NUMBER_OF_SWITCHES];
  byte valvesScheduled[NUMBER_OF_SWITCHES];
  uint32_t valveStartedTimestamp[NUMBER_OF_SWITCHES];

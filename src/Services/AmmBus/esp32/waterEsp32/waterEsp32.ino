@@ -43,6 +43,7 @@ void setup()
   pinMode (ledPin, OUTPUT);
   // Initialize the output variables as outputs
 
+  //Make sure on boot all valves are off..
   for (int i=0; i<NUMBER_OF_RELAYS; i++)
   {
     pinMode(RELAY_ADDRESS[i], OUTPUT);
@@ -83,7 +84,10 @@ void setup()
   Serial.print("Website: http://");
   Serial.print(WiFi.localIP());
   Serial.println(":8080");
-  
+
+
+  initializeAmmBusState(&ambs); 
+
   server.begin();
 }
 
@@ -144,7 +148,7 @@ void valveAutopilot()
   
    
   if (valvesRunning>0)
-  {  
+  {
    //Check if a valve needs to be closed.. 
    for (i=0; i<NUMBER_OF_SWITCHES; i++)
    {
@@ -158,6 +162,7 @@ void valveAutopilot()
                                                             );
       if ( runningTime > ambs.valvesTimes[i] ) 
          {
+          
            //This valve has run its course so we stop it
            ammBus_stopValve(&ambs,i);
            ++changes;
@@ -206,8 +211,9 @@ void valveAutopilot()
   {
     for (i=0; i<NUMBER_OF_SWITCHES; i++)
     {
+      byte valveIsNotUsedInThisSetup = (valveLabels[i][0]=='-');
       //Open first possible scheduled valve 
-      if ( (ambs.valvesScheduled[i]) && (!ambs.valvesState[i]) && (valvesRunning<ambs.jobConcurrency) )
+      if ( (!valveIsNotUsedInThisSetup) && (ambs.valvesScheduled[i]) && (!ambs.valvesState[i]) && (valvesRunning<ambs.jobConcurrency) )
       {    
             ++changes;
             ++valvesRunning;
@@ -271,7 +277,7 @@ void loop()
     dt = realtime_clock.getDateTime();  
     checkForSerialInput();
     //Valve Autopilot..
-   // valveAutopilot(); 
+    valveAutopilot(); 
    } 
    
 
