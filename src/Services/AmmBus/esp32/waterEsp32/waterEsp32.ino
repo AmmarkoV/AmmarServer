@@ -86,8 +86,46 @@ void setup()
   Serial.println(":8080");
 
 
-  initializeAmmBusState(&ambs); 
+  initializeAmmBusState(&ambs);
+  
+  //2 dead relays
+  //---------------------------
+  ambs.valvesTimesNormal[0]=1;
+  ambs.valvesTimesHigh[0]=1;
+  ambs.valvesTimesLow[0]=1;
+  //---------------------------
+  ambs.valvesTimesNormal[1]=1;
+  ambs.valvesTimesHigh[1]=1;
+  ambs.valvesTimesLow[1]=1;
 
+  //4 active relays
+  //---------------------------
+  ambs.valvesTimesNormal[2]=15;
+  ambs.valvesTimesHigh[2]=20;
+  ambs.valvesTimesLow[2]=10;
+  //---------------------------
+  ambs.valvesTimesNormal[3]=10;
+  ambs.valvesTimesHigh[3]=15;
+  ambs.valvesTimesLow[3]=5;
+  //---------------------------
+  ambs.valvesTimesNormal[4]=10;
+  ambs.valvesTimesHigh[4]=15;
+  ambs.valvesTimesLow[4]=5;
+  //---------------------------
+  ambs.valvesTimesNormal[4]=5;
+  ambs.valvesTimesHigh[4]=7;
+  ambs.valvesTimesLow[4]=3;
+
+  //2 dead relays
+  //---------------------------
+  ambs.valvesTimesNormal[5]=1;
+  ambs.valvesTimesHigh[5]=1;
+  ambs.valvesTimesLow[5]=1;
+  //---------------------------
+  ambs.valvesTimesNormal[6]=1;
+  ambs.valvesTimesHigh[6]=1;
+  ambs.valvesTimesLow[6]=1;
+    
   server.begin();
 }
 
@@ -272,10 +310,13 @@ void loop()
 {
 
   if (ambs.idleTicks==100) 
-   { 
+   {  
     ambs.idleTicks=0;   
-    dt = realtime_clock.getDateTime();  
-    checkForSerialInput();
+    dt = realtime_clock.getDateTime();   
+
+    //Autostart stuff that needs to be autostarted
+    ammBus_automaticTriggerStart(&ambs,dt.unixtime);
+    
     //Valve Autopilot..
     valveAutopilot(); 
    } 
@@ -311,6 +352,18 @@ void loop()
             client.println("Content-type:text/html");
             client.println("Connection: close");
             client.println();
+
+            
+            if (header.indexOf("GET /auto/on") >= 0) 
+                   {
+                     ammBus_enableAutopilot(&ambs);
+                     ammBus_scheduleAllValves(&ambs);
+                   } else
+           if (header.indexOf("GET /auto/off") >= 0) 
+                   {
+                     ammBus_stopAllValves(&ambs); 
+                     ammBus_disableAutopilot(&ambs);
+                   } 
 
             char receivedANewCommand=0;
             char switchPattern[64];
@@ -366,6 +419,43 @@ void loop()
             client.print("<br>");
             client.print(systemVersion); 
             client.println("</h1>");
+
+
+             byte week, day, month, hour, minute, second;
+             unsigned short year;
+                    
+             unixtimeToWDHMS(
+                        dt.unixtime,
+                        &week,
+                        &day,
+                        &hour, 
+                        &minute,
+                        &second
+                       );
+       
+              client.print(" Week ");
+              client.print(week);
+              client.print(" Day ");
+              client.print(day);
+              client.print(" ");
+              client.print(hour);
+              client.print(":");
+              client.print(minute);
+              client.print(":");
+              client.println(second);
+
+
+            client.print("<p>Auto ");
+              if (!ammBus_getAutopilotState(&ambs))
+               {
+                client.println("on </p>");
+                client.print("<p><a href=\"/auto/off\"><button class=\"button button2\">OFF</button></a></p>");
+               } else
+               {
+                client.println("off </p>");
+                client.print("<p><a href=\"/auto/on\"><button class=\"button\">ON</button></a></p>");
+               }
+
 
             //Print our switches as buttons..
             //---------------------------------------------

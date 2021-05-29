@@ -67,7 +67,44 @@ byte ammBus_getScheduledValves(struct ammBusState * ambs)
 
 
 
+int ammBus_automaticTriggerStart(struct ammBusState * ambs,uint32_t unixtimestamp)
+{
+  if (ammBus_getAutopilotState(ambs))
+  {
+    uint32_t elapsedTime = unixtimestamp - ambs->lastJobRunTimestamp;
+    if (ambs->jobRunEveryXHours * 60 * 60 >= elapsedTime )
+    {
+       byte seconds,minutes,hours,day,month;
+       unsigned short year;
+      
+      //Enough time has elapsed..!
+      unixtimeToDate(
+                     unixtimestamp,
+                     &seconds,
+                     &minutes,
+                     &hours,
+                     &day,
+                     &month,
+                     &year
+                    );
 
+      if ( 
+            ( hours == ambs->jobRunAtXHour) && 
+            ( minutes == ambs->jobRunAtXMinute)
+         )
+      {
+       ambs->lastJobRunTimestamp = unixtimestamp;
+       ammBus_scheduleAllValves(ambs);
+      }
+
+    }
+
+
+    return 1;
+  }
+
+  return 0;
+}
 
 
 
@@ -122,7 +159,13 @@ void ammBus_stopValve(
 
 void ammBus_enableAutopilot(struct ammBusState * ambs)
 {
-  ambs->autopilotCreateNewJobs;
+  ambs->autopilotCreateNewJobs=1;
+}
+
+
+void ammBus_disableAutopilot(struct ammBusState * ambs)
+{
+  ambs->autopilotCreateNewJobs=0;
 }
 
 byte ammBus_getAutopilotState(struct ammBusState * ambs)

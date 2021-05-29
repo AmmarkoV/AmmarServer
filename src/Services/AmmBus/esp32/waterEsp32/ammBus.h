@@ -60,6 +60,7 @@ struct ammBusState
  byte powerSaving;
  byte autopilotCreateNewJobs; 
  
+ uint32_t lastJobRunTimestamp;
  byte jobRunEveryXHours;
  byte jobRunAtXHour;
  byte jobRunAtXMinute;
@@ -68,6 +69,9 @@ struct ammBusState
 
 byte ammBus_getRunningValves(struct ammBusState * ambs);
 byte ammBus_getScheduledValves(struct ammBusState * ambs);
+
+
+int ammBus_automaticTriggerStart(struct ammBusState * ambs,uint32_t unixtimestamp);
 
 void initializeAmmBusState(struct ammBusState * ambs);
 
@@ -80,6 +84,7 @@ void ammBus_stopValve(struct ammBusState * ambs,byte valveNumber);
 
 
 void ammBus_enableAutopilot(struct ammBusState * ambs);
+void ammBus_disableAutopilot(struct ammBusState * ambs);
 byte ammBus_getAutopilotState(struct ammBusState * ambs);
 
 void ammBus_scheduleAllValves(struct ammBusState * ambs);
