@@ -38,8 +38,6 @@ unsigned long previousTime = 0;
 
 void setup() 
 {
-  Serial.begin(115200);
-  
   pinMode (ledPin, OUTPUT);
   // Initialize the output variables as outputs
 
@@ -51,6 +49,8 @@ void setup()
   }
    
 
+  Serial.begin(115200);
+  
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -423,27 +423,32 @@ void loop()
 
              byte week, day, month, hour, minute, second;
              unsigned short year;
-                    
-             unixtimeToWDHMS(
-                        dt.unixtime,
-                        &week,
-                        &day,
-                        &hour, 
-                        &minute,
-                        &second
-                       );
-       
-              client.print(" Week ");
-              client.print(week);
-              client.print(" Day ");
+
+
+             unixtimeToDate(
+                             dt.unixtime,
+                             &second,
+                             &minute,
+                             &hour,
+                             &day,
+                             &month,
+                             &year
+                            );
+
+              client.print(" ");
               client.print(day);
+              client.print("/");
+              client.print(month);
+              client.print("/");
+              client.print(year);
               client.print(" ");
               client.print(hour);
               client.print(":");
               client.print(minute);
               client.print(":");
               client.println(second);
-
+              client.print("<br>");
+                
 
             client.print("<p>Auto ");
               if (!ammBus_getAutopilotState(&ambs))
