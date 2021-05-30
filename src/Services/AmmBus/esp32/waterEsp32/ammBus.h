@@ -51,6 +51,9 @@ struct ammBusState
  byte valvesScheduled[NUMBER_OF_SWITCHES];
  uint32_t valveStartedTimestamp[NUMBER_OF_SWITCHES];
  uint32_t valveStoppedTimestamp[NUMBER_OF_SWITCHES];
+
+ byte ACRelayExists;
+ byte ACRelayPort;
  
  uint32_t lastBootTime;
 

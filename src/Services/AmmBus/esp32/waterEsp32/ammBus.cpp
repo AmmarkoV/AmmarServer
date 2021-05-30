@@ -1,6 +1,7 @@
 #include "ammBus.h"
 #include "timeCalculations.h"
 
+
 void initializeAmmBusState(struct ammBusState * ambs)
 {
   unsigned int i=0;
@@ -72,7 +73,7 @@ int ammBus_automaticTriggerStart(struct ammBusState * ambs,uint32_t unixtimestam
   if (ammBus_getAutopilotState(ambs))
   {
     uint32_t elapsedTime = unixtimestamp - ambs->lastJobRunTimestamp;
-    if (ambs->jobRunEveryXHours * 60 * 60 >= elapsedTime )
+    if (ambs->jobRunEveryXHours * 60 * 60 <= elapsedTime )
     {
        byte seconds,minutes,hours,day,month;
        unsigned short year;
@@ -181,7 +182,17 @@ void ammBus_scheduleAllValves(struct ammBusState * ambs)
   unsigned int i=0; 
   for (i=0; i<NUMBER_OF_SWITCHES; i++)
   {
-   ambs->valvesScheduled[i]=1;
+   byte valveIsNotUsedInThisSetup = (valveLabels[i][0]=='-');
+   if(!valveIsNotUsedInThisSetup) 
+    {
+     if ( (ambs->ACRelayExists) && (i==ambs->ACRelayPort) )
+     {
+      //Skip setting auto relay port..
+     } else
+     {
+      ambs->valvesScheduled[i]=1; 
+     }
+    }
   } 
 }
 

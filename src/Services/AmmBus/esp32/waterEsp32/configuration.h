@@ -4,7 +4,7 @@
 
 
 // RESET DS3231 --------------------------------------------
-#define RESET_CLOCK_ON_NEXT_COMPILATION 0 
+#define RESET_CLOCK_ON_NEXT_COMPILATION 0
 //----------------------------------------------------------
 
 

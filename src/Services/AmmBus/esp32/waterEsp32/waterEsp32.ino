@@ -87,6 +87,9 @@ void setup()
 
 
   initializeAmmBusState(&ambs);
+
+  ambs.ACRelayExists=AC_RELAY;
+  ambs.ACRelayPort=AC_RELAY_PORT;
   
   //2 dead relays
   //---------------------------
@@ -102,19 +105,19 @@ void setup()
   //---------------------------
   ambs.valvesTimesNormal[2]=15;
   ambs.valvesTimesHigh[2]=20;
-  ambs.valvesTimesLow[2]=10;
+  ambs.valvesTimesLow[2]=1;
   //---------------------------
   ambs.valvesTimesNormal[3]=10;
   ambs.valvesTimesHigh[3]=15;
-  ambs.valvesTimesLow[3]=5;
+  ambs.valvesTimesLow[3]=1;
   //---------------------------
   ambs.valvesTimesNormal[4]=10;
   ambs.valvesTimesHigh[4]=15;
-  ambs.valvesTimesLow[4]=5;
+  ambs.valvesTimesLow[4]=1;
   //---------------------------
   ambs.valvesTimesNormal[4]=5;
   ambs.valvesTimesHigh[4]=7;
-  ambs.valvesTimesLow[4]=3;
+  ambs.valvesTimesLow[4]=1;
 
   //2 dead relays
   //---------------------------
@@ -363,7 +366,19 @@ void loop()
                    {
                      ammBus_stopAllValves(&ambs); 
                      ammBus_disableAutopilot(&ambs);
-                   } 
+                   } else
+            if (header.indexOf("GET /auto/low") >= 0) 
+                   {
+                      ambs.valvesTimes = ambs.valvesTimesLow;
+                   }    else
+            if (header.indexOf("GET /auto/normal") >= 0) 
+                   {
+                      ambs.valvesTimes = ambs.valvesTimesNormal;
+                   }      else
+            if (header.indexOf("GET /auto/high") >= 0) 
+                   {
+                      ambs.valvesTimes = ambs.valvesTimesHigh;
+                   }         
 
             char receivedANewCommand=0;
             char switchPattern[64];
@@ -420,6 +435,7 @@ void loop()
             client.print(systemVersion); 
             client.println("</h1>");
 
+            
 
              byte week, day, month, hour, minute, second;
              unsigned short year;
@@ -442,14 +458,109 @@ void loop()
               client.print("/");
               client.print(year);
               client.print(" ");
+              if (hour<10) { client.print("0"); }
               client.print(hour);
               client.print(":");
+              if (minute<10) { client.print("0"); }
               client.print(minute);
               client.print(":");
+              if (second<10) { client.print("0"); }
               client.println(second);
-              client.print("<br>");
-                
+              client.print("<br><br>");
 
+         
+                
+            client.print(" Auto is : ");
+            if (ammBus_getAutopilotState(&ambs))
+             { 
+               client.print("Enabled <br>"); 
+
+               if (ambs.lastJobRunTimestamp>0)
+               {
+               client.print("Last Run : "); 
+               unixtimeToDate(
+                              ambs.lastJobRunTimestamp,
+                              &second,
+                              &minute,
+                              &hour,
+                              &day,
+                              &month,
+                              &year
+                            );
+               client.print(day);
+               client.print("/");
+               client.print(month);
+               client.print("/");
+               client.print(year);
+               client.print(" ");
+               if (hour<10) { client.print("0"); }
+               client.print(hour);
+               client.print(":");
+               if (minute<10) { client.print("0"); }
+               client.print(minute);
+               client.print(":");
+               if (second<10) { client.print("0"); }
+               client.println(second);
+               client.print("<br>");
+               }
+             } else
+             { client.print("Disabled <br>"); }
+            
+            client.print(ambs.jobConcurrency); 
+            client.print(" valves at a time<br>");
+
+            client.print("Run every ");
+            client.print(ambs.jobRunEveryXHours); 
+            client.print(" hours<br>");
+
+            
+            client.print("Run @ ");
+            client.print(ambs.jobRunAtXHour); 
+            client.print(":");
+            client.print(ambs.jobRunAtXMinute);  
+            client.print("<br><br>");
+
+
+             //VALVE STATE TABLE
+             //--------------------------------------
+             client.print("<center><table><tr>");
+             for (int i=0; i<NUMBER_OF_SWITCHES; i++)
+              { 
+                client.print("<td>");
+                client.print(valveLabels[i]);
+                client.print("</td>");
+              }
+             client.print("</tr><tr>");
+
+             for (int i=0; i<NUMBER_OF_SWITCHES; i++)
+              { 
+                client.print("<td>"); 
+                 client.print(ambs.valvesTimes[i]); 
+                client.print("</td>");
+              }
+ 
+             client.print("</tr><tr>");
+             
+             for (int i=0; i<NUMBER_OF_SWITCHES; i++)
+              { 
+                client.print("<td>");
+                if (ambs.valvesState[i])
+                {
+                 client.print("ON");
+                } else
+                if (ambs.valvesScheduled[i]) 
+                {
+                 client.print("Sch");
+                } else
+                {
+                 client.print("OFF");
+                } 
+                client.print("</td>");
+              }
+             client.print("</tr></table></center><br>");
+             //--------------------------------------
+
+             
             client.print("<p>Auto ");
               if (!ammBus_getAutopilotState(&ambs))
                {
