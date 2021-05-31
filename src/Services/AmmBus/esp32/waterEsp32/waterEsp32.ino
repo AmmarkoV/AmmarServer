@@ -128,6 +128,10 @@ void setup()
   ambs.valvesTimesNormal[6]=1;
   ambs.valvesTimesHigh[6]=1;
   ambs.valvesTimesLow[6]=1;
+  //---------------------------
+  ambs.valvesTimesNormal[7]=1;
+  ambs.valvesTimesHigh[7]=1;
+  ambs.valvesTimesLow[7]=1;
     
   server.begin();
 }
@@ -316,6 +320,7 @@ void loop()
    {  
     ambs.idleTicks=0;   
     dt = realtime_clock.getDateTime();   
+    ambs.currentTime = dt.unixtime;
 
     //Autostart stuff that needs to be autostarted
     ammBus_automaticTriggerStart(&ambs,dt.unixtime);
@@ -392,7 +397,12 @@ void loop()
                      Serial.print("-");
                      Serial.print(RELAY_ADDRESS[i]);
                      Serial.println(" on");
-                     ambs.valvesState[i]=ON; ambs.valvesScheduled[i]=OFF;  
+                     //ambs.valvesState[i]=ON; ambs.valvesScheduled[i]=OFF;  
+                     ammBus_startValve(
+                                       &ambs,
+                                       i,
+                                       ambs.valvesTimes[i]
+                                      );
                      receivedANewCommand=1;
                    } 
                    //-------------------------------
@@ -404,7 +414,11 @@ void loop()
                      Serial.print("-");
                      Serial.print(RELAY_ADDRESS[i]);
                      Serial.println(" off");
-                     ambs.valvesState[i]=OFF; ambs.valvesScheduled[i]=OFF;  
+                     //ambs.valvesState[i]=OFF; ambs.valvesScheduled[i]=OFF;  
+                     ammBus_stopValve(
+                                      &ambs,
+                                      i
+                                     );
                      receivedANewCommand=1;
                    } 
               }
@@ -420,6 +434,7 @@ void loop()
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
             client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+            client.println("<meta http-equiv=\"refresh\" content=\"5; url=/\">");
             client.println("<link rel=\"icon\" href=\"data:,\">");
             // CSS to style the on/off buttons 
             // Feel free to change the background-color and font-size attributes to fit your preferences
@@ -562,7 +577,7 @@ void loop()
 
              
             client.print("<p>Auto ");
-              if (!ammBus_getAutopilotState(&ambs))
+              if (ammBus_getAutopilotState(&ambs))
                {
                 client.println("on </p>");
                 client.print("<p><a href=\"/auto/off\"><button class=\"button button2\">OFF</button></a></p>");
