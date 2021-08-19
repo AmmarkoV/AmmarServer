@@ -24,7 +24,12 @@ const int ledPin = 2;
 const char* ssid = "VODAFONE_0365";
 const char* password = "nikosnikos";
 //-----------------------------------------------------------
-
+const int useDHCP = 1;
+const char IP[4]={192,168,2,80};
+const char GWIP[4]={192,168,2,1};
+const char SUBMASK[4]={255,255,255,0};
+const char DNS1[4]={8,8,8,8};
+const char DNS2[4]={8,8,4,4};
 
 //RELAY TO PORT RESOLUTION ----------------------------------
 const int RELAY_ADDRESS[]={19,18,32,33,25,26,27,5};

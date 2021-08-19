@@ -54,6 +54,33 @@ void setup()
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
+
+
+  //See configuration.h to change these
+  if (!useDHCP)
+  {
+   Serial.print("Using static IP");
+   // Set your Static IP address
+   IPAddress local_IP(IP[0],IP[1],IP[2],IP[3]);
+   // Set your Gateway IP address
+   IPAddress gateway(GWIP[0],GWIP[1],GWIP[2],GWIP[3]);
+   IPAddress subnet(SUBMASK[0],SUBMASK[1],SUBMASK[2],SUBMASK[3]);
+   IPAddress primaryDNS(DNS1[0],DNS1[1],DNS1[2],DNS1[3]);   //optional
+   IPAddress secondaryDNS(DNS2[0],DNS2[1],DNS2[2],DNS2[3]); //optional
+   
+   // Configures static IP address
+    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) 
+      {
+       Serial.println("Static wifi configuration - failed to configure");
+      }
+    Serial.println(WiFi.localIP());
+  } else
+  {
+   Serial.print("Using DHCP");
+  }
+
+
+  
   WiFi.begin(ssid, password);
   //-----------------------------------------------
   while (WiFi.status() != WL_CONNECTED) 
@@ -103,27 +130,23 @@ void setup()
 
   //4 active relays
   //---------------------------
-  ambs.valvesTimesNormal[2]=15;
-  ambs.valvesTimesHigh[2]=20;
-  ambs.valvesTimesLow[2]=1;
+  ambs.valvesTimesNormal[2]=8;
+  ambs.valvesTimesHigh[2]=15;
+  ambs.valvesTimesLow[2]=5;
   //---------------------------
-  ambs.valvesTimesNormal[3]=10;
-  ambs.valvesTimesHigh[3]=15;
-  ambs.valvesTimesLow[3]=1;
+  ambs.valvesTimesNormal[3]=5;
+  ambs.valvesTimesHigh[3]=10;
+  ambs.valvesTimesLow[3]=3;
   //---------------------------
-  ambs.valvesTimesNormal[4]=10;
-  ambs.valvesTimesHigh[4]=15;
-  ambs.valvesTimesLow[4]=1;
+  ambs.valvesTimesNormal[4]=4;
+  ambs.valvesTimesHigh[4]=5;
+  ambs.valvesTimesLow[4]=2;
   //---------------------------
-  ambs.valvesTimesNormal[4]=5;
-  ambs.valvesTimesHigh[4]=7;
-  ambs.valvesTimesLow[4]=1;
+  ambs.valvesTimesNormal[5]=4;
+  ambs.valvesTimesHigh[5]=5;
+  ambs.valvesTimesLow[5]=2;
 
   //2 dead relays
-  //---------------------------
-  ambs.valvesTimesNormal[5]=1;
-  ambs.valvesTimesHigh[5]=1;
-  ambs.valvesTimesLow[5]=1;
   //---------------------------
   ambs.valvesTimesNormal[6]=1;
   ambs.valvesTimesHigh[6]=1;
