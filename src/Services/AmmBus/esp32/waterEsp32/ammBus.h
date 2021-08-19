@@ -11,8 +11,11 @@
 #define NORMAL_TIME 30
 #define HIGH_TIME 60
 
+//check initializeAmmBusState for this get populated inside
+static const int runValvesAtTime[2]={6,0}; // First is Hour, Second is Minute
+
 static const char * systemName =    { "AmmBus Waterchip" };
-static const char * systemVersion = { "     v0.34      " };
+static const char * systemVersion = { "     v0.36      " };
 static const char * valveLabels[] =
 {
     "-",
