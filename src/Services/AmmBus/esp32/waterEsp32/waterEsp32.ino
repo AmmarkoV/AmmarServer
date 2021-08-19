@@ -79,7 +79,7 @@ void setup()
    Serial.print("Using DHCP");
   }
 
-
+  WiFi.setHostname(hostname);
   
   WiFi.begin(ssid, password);
   //-----------------------------------------------

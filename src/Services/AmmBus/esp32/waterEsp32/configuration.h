@@ -20,11 +20,13 @@ const int ledPin = 2;
 //----------------------------------------------------------
 
 //WIFI -----------------------------------------------------
+const char *hostname = "WaterChip";
 // Replace with your network credentials
 const char* ssid = "VODAFONE_0365";
 const char* password = "nikosnikos";
 //-----------------------------------------------------------
-const int useDHCP = 1;
+const int useDHCP = 0;
+//-----------------------------------------------------------
 const char IP[4]={192,168,2,80};
 const char GWIP[4]={192,168,2,1};
 const char SUBMASK[4]={255,255,255,0};
