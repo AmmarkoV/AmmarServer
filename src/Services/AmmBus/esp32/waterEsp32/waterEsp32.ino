@@ -30,6 +30,7 @@ String header;
 unsigned long currentTime = millis();
 // Previous time
 unsigned long previousTime = 0; 
+unsigned long lastDisconnectionCheck=0;
 
 unsigned long disconnections = 0;
 
@@ -354,6 +355,21 @@ void loop()
     valveAutopilot(); 
    } 
    
+
+   // if WiFi is down, try reconnecting
+  if (WiFi.status() != WL_CONNECTED) 
+    {
+      unsigned long thisDisconnectionCheck = millis();
+      if (thisDisconnectionCheck - lastDisconnectionCheck >= checkForDisconnectionEveryXSeconds*1000)) 
+          {
+           Serial.print(millis());
+           Serial.println("Reconnecting to WiFi...");
+           WiFi.disconnect();
+           WiFi.reconnect();
+           lastDisconnectionCheck = thisDisconnectionCheck;
+          }
+    }
+
 
   
   WiFiClient client = server.available();   // Listen for incoming clients
