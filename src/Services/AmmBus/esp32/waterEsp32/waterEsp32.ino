@@ -31,6 +31,8 @@ unsigned long currentTime = millis();
 // Previous time
 unsigned long previousTime = 0; 
 
+unsigned long disconnections = 0;
+
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -553,8 +555,10 @@ void loop()
 
             
             client.print("Run @ ");
+            if (ambs.jobRunAtXHour<10)   { client.print("0"); }
             client.print(ambs.jobRunAtXHour); 
             client.print(":");
+            if (ambs.jobRunAtXMinute<10) { client.print("0"); }
             client.print(ambs.jobRunAtXMinute);  
             client.print("<br><br>");
 
@@ -635,6 +639,12 @@ void loop()
                 client.println("/on\"><button class=\"button\">ON</button></a></p>");
                }
               }
+
+
+            
+            client.print("<p><a href=\"/auto/low\"><button class=\"button button2\">Low</button></a></p><br>");
+            client.print("<p><a href=\"/auto/normal\"><button class=\"button button2\">Normal</button></a></p>");
+            client.print("<p><a href=\"/auto/high\"><button class=\"button button2\">High</button></a></p>");
             client.println("</body></html>");
             
             // The HTTP response ends with another blank line
