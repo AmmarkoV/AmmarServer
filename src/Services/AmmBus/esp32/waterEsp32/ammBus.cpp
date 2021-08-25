@@ -176,6 +176,19 @@ byte ammBus_getAutopilotState(struct ammBusState * ambs)
 }
 
 
+void ammBus_resetAllValves(struct ammBusState * ambs)
+{   
+  unsigned int i=0; 
+  for (i=0; i<NUMBER_OF_SWITCHES; i++)
+  {
+    //Zero everything else
+    ambs->valvesState[i]=0;
+    ambs->valvesScheduled[i]=0;
+    ambs->valveStartedTimestamp[i]=0;
+    ambs->valveStoppedTimestamp[i]=0;
+  }
+ ambs->armedTimes=0;
+}
 
 
 void ammBus_scheduleAllValves(struct ammBusState * ambs)

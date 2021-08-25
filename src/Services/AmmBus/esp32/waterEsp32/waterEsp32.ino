@@ -31,8 +31,7 @@ unsigned long currentTime = millis();
 // Previous time
 unsigned long previousTime = 0; 
 unsigned long lastDisconnectionCheck=0;
-
-unsigned long disconnections = 0;
+unsigned long disconnections=0;
 
 //---------------------------------------------------------------------------
 //---------------------------------------------------------------------------
@@ -360,8 +359,9 @@ void loop()
   if (WiFi.status() != WL_CONNECTED) 
     {
       unsigned long thisDisconnectionCheck = millis();
-      if (thisDisconnectionCheck - lastDisconnectionCheck >= checkForDisconnectionEveryXSeconds*1000)) 
+      if ((thisDisconnectionCheck - lastDisconnectionCheck) >= (checkForDisconnectionEveryXSeconds*1000))
           {
+           disconnections=disconnections + 1;
            Serial.print(millis());
            Serial.println("Reconnecting to WiFi...");
            WiFi.disconnect();
@@ -415,14 +415,17 @@ void loop()
                    } else
             if (header.indexOf("GET /auto/low") >= 0) 
                    {
+                      ammBus_resetAllValves(&ambs);
                       ambs.valvesTimes = ambs.valvesTimesLow;
                    }    else
             if (header.indexOf("GET /auto/normal") >= 0) 
                    {
+                      ammBus_resetAllValves(&ambs);
                       ambs.valvesTimes = ambs.valvesTimesNormal;
                    }      else
             if (header.indexOf("GET /auto/high") >= 0) 
                    {
+                      ammBus_resetAllValves(&ambs);
                       ambs.valvesTimes = ambs.valvesTimesHigh;
                    }         
 
@@ -579,6 +582,14 @@ void loop()
             client.print("<br><br>");
 
 
+            if (disconnections>0)
+            {
+              client.print("WiFi Disconnections : ");
+              client.print(disconnections); 
+              client.print("<br>");
+            }
+
+
              //VALVE STATE TABLE
              //--------------------------------------
              client.print("<center><table><tr>");
@@ -657,7 +668,7 @@ void loop()
               }
 
 
-            
+             
             client.print("<p><a href=\"/auto/low\"><button class=\"button button2\">Low</button></a></p><br>");
             client.print("<p><a href=\"/auto/normal\"><button class=\"button button2\">Normal</button></a></p>");
             client.print("<p><a href=\"/auto/high\"><button class=\"button button2\">High</button></a></p>");

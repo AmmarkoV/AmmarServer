@@ -96,4 +96,7 @@ byte ammBus_getAutopilotState(struct ammBusState * ambs);
 void ammBus_scheduleAllValves(struct ammBusState * ambs);
 void ammBus_stopAllValves(struct ammBusState * ambs);
 
+
+void ammBus_resetAllValves(struct ammBusState * ambs);
+
 #endif
