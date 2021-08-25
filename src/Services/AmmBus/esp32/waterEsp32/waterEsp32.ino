@@ -669,7 +669,8 @@ void loop()
 
 
              
-            client.print("<p><a href=\"/auto/low\"><button class=\"button button2\">Low</button></a></p><br>");
+            client.print("<br><br>");
+            client.print("<p><a href=\"/auto/low\"><button class=\"button button2\">Low</button></a></p>");
             client.print("<p><a href=\"/auto/normal\"><button class=\"button button2\">Normal</button></a></p>");
             client.print("<p><a href=\"/auto/high\"><button class=\"button button2\">High</button></a></p>");
             client.println("</body></html>");
