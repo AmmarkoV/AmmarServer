@@ -355,19 +355,26 @@ void loop()
    } 
    
 
-   // if WiFi is down, try reconnecting
+  // if WiFi is down, try reconnecting
   if (WiFi.status() != WL_CONNECTED) 
     {
+      digitalWrite (ledPin, HIGH);  // turn on the LED 
+      delay(250);
       unsigned long thisDisconnectionCheck = millis();
-      if ((thisDisconnectionCheck - lastDisconnectionCheck) >= (checkForDisconnectionEveryXSeconds*1000))
+      unsigned long elapsedTimeSinceLastDisconnectionInMilliseconds = thisDisconnectionCheck - lastDisconnectionCheck;
+      unsigned long thresholdInMilliseconds = checkForDisconnectionEveryXSeconds*1000;
+      if (elapsedTimeSinceLastDisconnectionInMilliseconds >= thresholdInMilliseconds)
           {
            disconnections=disconnections + 1;
-           Serial.print(millis());
+           Serial.print(thisDisconnectionCheck);
            Serial.println("Reconnecting to WiFi...");
            WiFi.disconnect();
+           delay(250);
            WiFi.reconnect();
+           delay(250);
            lastDisconnectionCheck = thisDisconnectionCheck;
           }
+      digitalWrite (ledPin, LOW);  // turn off the LED 
     }
 
 
