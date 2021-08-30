@@ -63,7 +63,8 @@ void connectWifi()
   {
    Serial.print("Using DHCP");
   }
-
+  
+  WiFi.persistent(false);
   WiFi.setHostname(hostname);
   
   WiFi.begin(ssid, password);
@@ -78,7 +79,7 @@ void connectWifi()
     digitalWrite (ledPin, HIGH);  // turn on the LED
     delay(250);
      
-    if (attempts>5000)
+    if (attempts>100)
       {
         Serial.println("Restarting ESP to fix WiFi...");
         ESP.restart();
