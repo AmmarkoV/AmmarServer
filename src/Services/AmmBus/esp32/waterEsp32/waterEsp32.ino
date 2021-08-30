@@ -67,6 +67,8 @@ void connectWifi()
   WiFi.setHostname(hostname);
   
   WiFi.begin(ssid, password);
+
+  unsigned int attempts=0;
   //-----------------------------------------------
   while (WiFi.status() != WL_CONNECTED) 
   {
@@ -75,6 +77,13 @@ void connectWifi()
     Serial.print(".");
     digitalWrite (ledPin, HIGH);  // turn on the LED
     delay(250);
+     
+    if (attempts>5000)
+      {
+        Serial.println("Restarting ESP to fix WiFi...");
+        ESP.restart();
+      }
+    ++attempts;
   }
   digitalWrite (ledPin, LOW);  // turn off the LED
   //-----------------------------------------------
