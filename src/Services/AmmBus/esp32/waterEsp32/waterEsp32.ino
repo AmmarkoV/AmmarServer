@@ -33,30 +33,13 @@ unsigned long previousTime = 0;
 unsigned long lastDisconnectionCheck=0;
 unsigned long disconnections=0;
 
-//---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
 
-void setup() 
-{
-  pinMode (ledPin, OUTPUT);
-  // Initialize the output variables as outputs
 
-  //Make sure on boot all valves are off..
-  for (int i=0; i<NUMBER_OF_RELAYS; i++)
-  {
-    pinMode(RELAY_ADDRESS[i], OUTPUT);
-    digitalWrite(RELAY_ADDRESS[i], LOW);
-  }
-   
-
-  Serial.begin(115200);
-  
+void connectWifi()
+{  
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
-
 
   //See configuration.h to change these
   if (!useDHCP)
@@ -95,6 +78,31 @@ void setup()
   }
   digitalWrite (ledPin, LOW);  // turn off the LED
   //-----------------------------------------------
+}
+
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+
+void setup() 
+{
+  pinMode (ledPin, OUTPUT);
+  // Initialize the output variables as outputs
+
+  //Make sure on boot all valves are off..
+  for (int i=0; i<NUMBER_OF_RELAYS; i++)
+  {
+    pinMode(RELAY_ADDRESS[i], OUTPUT);
+    digitalWrite(RELAY_ADDRESS[i], LOW);
+  }
+   
+
+  Serial.begin(115200);
+  
+  connectWifi();
+
+
   
    setRelayState(ambs.valvesState);
   
@@ -360,13 +368,24 @@ void loop()
     {
       unsigned long thisDisconnectionCheck = millis();
       if ((thisDisconnectionCheck - lastDisconnectionCheck) >= (checkForDisconnectionEveryXSeconds*1000))
-          {
-           disconnections=disconnections + 1;
+          {           
+           digitalWrite (ledPin, HIGH);  // turn on the LED
+           if (disconnections > 5 )
+             {
+              Serial.println("Restarting ESP to fix WiFi...");
+              ESP.restart();
+             }
+
+           disconnections=disconnections + 1; 
            Serial.print(millis());
            Serial.println("Reconnecting to WiFi...");
-           WiFi.disconnect();
-           WiFi.reconnect();
+           //WiFi.disconnect();
+           //delay(250);
+           //WiFi.reconnect();
+           //delay(250);
+           connectWifi();
            lastDisconnectionCheck = thisDisconnectionCheck;
+           digitalWrite (ledPin, LOW);  // turn off the LED
           }
     }
 
