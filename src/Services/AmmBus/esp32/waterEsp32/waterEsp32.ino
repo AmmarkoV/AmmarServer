@@ -35,15 +35,18 @@ unsigned long disconnections=0;
 
 
 
-void connectWifi()
+int connectWifi(int firstConnection)
 {  
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  //See configuration.h to change these
-  if (!useDHCP)
+  if (firstConnection)
   {
+    Serial.print("First connection doing config setup..");
+   //See configuration.h to change these
+   if (!useDHCP)
+   {
    Serial.print("Using static IP");
    // Set your Static IP address
    IPAddress local_IP(IP[0],IP[1],IP[2],IP[3]);
@@ -59,11 +62,13 @@ void connectWifi()
        Serial.println("Static wifi configuration - failed to configure");
       }
     Serial.println(WiFi.localIP());
-  } else
-  {
-   Serial.print("Using DHCP");
+   } else
+   {
+    Serial.print("Using DHCP");
+   } 
   }
   
+  WiFi.mode(WIFI_STA);
   WiFi.persistent(false);
   WiFi.setHostname(hostname);
   
@@ -78,16 +83,30 @@ void connectWifi()
     Serial.print(".");
     digitalWrite (ledPin, HIGH);  // turn on the LED
     delay(250);
-     
-    if (attempts>100)
-      {
+
+    if (restartSystemAfterXDisconnections==0)
+    {
+     if (attempts>30)
+     {
+        Serial.println("Failed connecting, continuing without WiFi...");
+        break;
+     } 
+    } else
+    if (attempts>restartSystemAfterXDisconnections)
+    {
         Serial.println("Restarting ESP to fix WiFi...");
         ESP.restart();
-      }
+    }
+    
     ++attempts;
   }
+
+ if (WiFi.status() == WL_CONNECTED) 
+   { server.begin(); }
+  
   digitalWrite (ledPin, LOW);  // turn off the LED
   //-----------------------------------------------
+ return (WiFi.status() == WL_CONNECTED);
 }
 
 //---------------------------------------------------------------------------
@@ -109,8 +128,11 @@ void setup()
    
 
   Serial.begin(115200);
-  
-  connectWifi();
+  Serial.print(hostname);
+  Serial.println(" startup..");
+  Serial.flush();
+
+  connectWifi(1);
 
 
   
@@ -175,8 +197,6 @@ void setup()
   ambs.valvesTimesNormal[7]=1;
   ambs.valvesTimesHigh[7]=1;
   ambs.valvesTimesLow[7]=1;
-    
-  server.begin();
 }
 
 
@@ -376,6 +396,8 @@ void loop()
   // if WiFi is down, try reconnecting
   if (WiFi.status() != WL_CONNECTED) 
     {
+      Serial.println("WiFi is down...");
+              
       digitalWrite (ledPin, HIGH);  // turn on the LED 
       delay(250);
       unsigned long thisDisconnectionCheck = millis();
@@ -383,20 +405,23 @@ void loop()
       unsigned long thresholdInMilliseconds = checkForDisconnectionEveryXSeconds*1000;
       if (elapsedTimeSinceLastDisconnectionInMilliseconds >= thresholdInMilliseconds)
           {      
-           if (disconnections > 5 )
+           if (restartSystemAfterXDisconnections!=0)
+           {
+            if (disconnections > restartSystemAfterXDisconnections )
              {
               Serial.println("Restarting ESP to fix WiFi...");
               ESP.restart();
              }
+           }
 
            disconnections=disconnections + 1; 
            Serial.print(millis());
            Serial.println("Reconnecting to WiFi...");
-           //WiFi.disconnect();
-           //delay(250);
+           WiFi.disconnect();
+           delay(250);
            //WiFi.reconnect();
            //delay(250);
-           connectWifi();
+           connectWifi(0);
            lastDisconnectionCheck = thisDisconnectionCheck;
           }
       digitalWrite (ledPin, LOW);  // turn off the LED 
@@ -414,7 +439,7 @@ void loop()
     previousTime = currentTime;
     Serial.println("New Client.");          // print a message out in the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
-    while (client.connected() && currentTime - previousTime <= timeoutTime) 
+    while ( (WiFi.status() == WL_CONNECTED) && (client.connected()) && (currentTime - previousTime <= timeoutTime) ) 
     {  // loop while the client's connected
       currentTime = millis();
       if (client.available()) 
@@ -525,6 +550,10 @@ void loop()
             client.print("<br>");
             client.print(systemVersion); 
             client.println("</h1>");
+            
+            client.print("<!-- Uptime : ");
+            client.print(currentTime);
+            client.println(" milliseconds --> ");
 
             
 

@@ -24,7 +24,8 @@ const char *hostname = "WaterChip";
 // Replace with your network credentials
 const char* ssid = "VODAFONE_0365";
 const char* password = "nikosnikos";
-const unsigned int checkForDisconnectionEveryXSeconds=60;
+const unsigned int checkForDisconnectionEveryXSeconds=30;
+const unsigned int restartSystemAfterXDisconnections=0;
 //-----------------------------------------------------------
 const int useDHCP = 0;
 //-----------------------------------------------------------
