@@ -86,7 +86,7 @@ int connectWifi(int firstConnection)
 
     if (restartSystemAfterXDisconnections==0)
     {
-     if (attempts>30)
+     if (attempts>100)
      {
         Serial.println("Failed connecting, continuing without WiFi...");
         break;
@@ -106,7 +106,18 @@ int connectWifi(int firstConnection)
   
   digitalWrite (ledPin, LOW);  // turn off the LED
   //-----------------------------------------------
- return (WiFi.status() == WL_CONNECTED);
+  Serial.println(".");
+
+  int result = (WiFi.status() == WL_CONNECTED);
+
+  if (result)
+   {
+     Serial.println("Reconnected successfully..");
+   } else
+   {
+     Serial.println("Reconnection failed..");     
+   }
+ return result;
 }
 
 //---------------------------------------------------------------------------
@@ -396,7 +407,7 @@ void loop()
   // if WiFi is down, try reconnecting
   if (WiFi.status() != WL_CONNECTED) 
     {
-      Serial.println("WiFi is down...");
+      Serial.print("WiFi is down ");
               
       digitalWrite (ledPin, HIGH);  // turn on the LED 
       delay(250);
@@ -415,8 +426,8 @@ void loop()
            }
 
            disconnections=disconnections + 1; 
-           Serial.print(millis());
-           Serial.println("Reconnecting to WiFi...");
+           Serial.print("Reconnecting to WiFi @ ");
+           Serial.println(millis());
            WiFi.disconnect();
            delay(250);
            //WiFi.reconnect();
@@ -425,14 +436,16 @@ void loop()
            lastDisconnectionCheck = thisDisconnectionCheck;
           }
       digitalWrite (ledPin, LOW);  // turn off the LED 
+      Serial.println("...");
     }
 
 
-  
-  WiFiClient client = server.available();   // Listen for incoming clients
-
-  if (client) 
+  if (WiFi.status() == WL_CONNECTED)
   {
+   WiFiClient client = server.available();   // Listen for incoming clients
+
+   if (client)
+   {
     digitalWrite (ledPin, HIGH);  // turn on the LED
     // If a new client connects,
     currentTime = millis();
@@ -759,6 +772,7 @@ void loop()
     
     digitalWrite (ledPin, LOW);  // turn off the LED
   }
+}
 
 
   ++ambs.idleTicks;
