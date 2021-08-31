@@ -86,7 +86,7 @@ int connectWifi(int firstConnection)
 
     if (restartSystemAfterXDisconnections==0)
     {
-     if (attempts>100)
+     if (attempts>30)
      {
         Serial.println("Failed connecting, continuing without WiFi...");
         break;
