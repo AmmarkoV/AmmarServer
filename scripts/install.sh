@@ -5,6 +5,10 @@ STARTDIR=`pwd`
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
+#Other way is crontab -e 
+#@reboot /path/to/ammarserver/startup/script
+
+
 sudo cp init.d/ammarserver /etc/init.d/ammarserver
 sudo touch /var/log/ammarserver.log
 sudo chown ammar /var/log/ammarserver.log
