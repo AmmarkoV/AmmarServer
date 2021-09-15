@@ -1,5 +1,8 @@
-
 #include <Arduino.h>
+
+//Use 
+//Arduino AVR -> Arduino Nano -> Processor AtMEGA 328P (Old Bootloader)
+// 9600 BAUDS
 
 #if USE_ENCRYPTION  
 #include <AESLib.h>
@@ -51,7 +54,7 @@ void setLED(char R,char G,char B)
 
 void notifyErrorNetwork()
 {
-  setLED(0,1,1); 
+  setLED(1,0,0); 
 }
 
 void notifyIntializing()
@@ -111,18 +114,32 @@ void initializeEthernetClient()
  #else
     { ether.staticSetup(myip,gwip,dnsip,subnet); }
  #endif
+
  
- 
-Serial.println(F("Waiting for gateway.."));
+
+ether.printIp("My IP: ", ether.myip);
+ether.printIp("Netmask: ", ether.netmask);
+ether.printIp("GW IP: ", ether.gwip);
+ether.printIp("DNS IP: ", ether.dnsip);
+ether.printIp("SRV: ", ether.hisip);
+
+Serial.println(F("\nWaiting for gateway..\n"));
+
 timer=millis();
 while (ether.clientWaitingGw()) 
     {  
       ether.packetLoop(ether.packetReceive()); 
-
+      //If we can't find a gateway for 1 minute we throw a RED indication..
+      if (millis() > timer + 6000) 
+       {
+         notifyErrorNetwork();
+       }
+       
       //If we can't find a gateway for 10 minutes we power cycle
       if (millis() > timer + 60000) 
        {
          Serial.println(F("Restarting.."));
+         delay(1000);
          timer=millis();
          resetArduino(); //call reset  
        }
@@ -233,9 +250,16 @@ void readTemperature(int coldRun)
 void setup () 
 {
  requestsPending=0;
+
+ for (int i=0; i<10; i++)
+  {
+    Serial.println(F("\n"));  
+  }
        
  Serial.begin(9600);
  Serial.println(F("\nInitializing"));
+ Serial.println(F("\nhttps://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/AmmBus/arduino/animalNano\n"));
+ 
  initializeEthernetClient();
  
  //Initial thermometer reading before gathering a lot of samples..

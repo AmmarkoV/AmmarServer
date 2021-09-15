@@ -13,7 +13,7 @@
 //#define REQUEST_RATE_CRITICAL 60*1000 // milliseconds
 
 static unsigned long REQUEST_RATE_NORMAL=600000;
-static unsigned long REQUEST_RATE_CRITICAL=60000;
+static unsigned long REQUEST_RATE_CRITICAL=120000;
 
 //ENCRYPTION -------------------
 const char serialNumber[] = "0001";
@@ -26,7 +26,7 @@ static byte privateKey[16] = {0x74,0x69,0x69,0x2D,0x30,0x33,0x74,0x69,0x69,0x2D,
 //ETHERNET CONFIGURATION -------------------
 #define ETHERNET_BUFFER 420 //bytes 
 // ethernet interface mac address
-static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x33 };
+static byte mymac[] = { 0x74,0x69,0x69,0x2D,0x30,0x33 };  // MAC : 74:69:69:2d:30:33
 
 //Home
 //static byte myip[] = { 192,168,1,179 };
