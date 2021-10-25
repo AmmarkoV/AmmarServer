@@ -35,8 +35,6 @@
 
 //nc -l 0.0.0.0 8080
 //curl -F "submit=1" -F "fileToUpload=@/home/dji/catkin_ws/src/camera_broadcast/src/image.jpg" ammar.gr/stream/upload.php
-
-
 int AmmClient_SendFileInternal(
                        struct AmmClient_Instance * instance,
                        const char * URI ,
@@ -51,7 +49,7 @@ int AmmClient_SendFileInternal(
   fprintf(stderr,"AmmClient_SendFileInternal\n");
 
   unsigned int boundaryRandomPart=rand()%100000;
-  char boundary[128]={"---------------------------735323031399963166993862150"};
+  char boundary[128]={"------------------------0937d4fc427d27d8"};
   snprintf(boundary,128,"ammclientboundary%u",boundaryRandomPart);
   //--------------------------------------------------------------
 
@@ -60,18 +58,18 @@ int AmmClient_SendFileInternal(
 
   char header[BUFFERSIZE+1];
   //Send the header Connection: keep-alive\r\nTransfer-Encoding: chunked\r\n
-  snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: ammar.gr\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,boundary);
+  snprintf(header,BUFFERSIZE,"POST %s HTTP/1.0\r\nHost: ammar.gr\r\nUser-Agent: AmmClient/1.0\r\nAccept: */*\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,boundary);
   ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
   fprintf(stderr,"%s",header);
 
   //Send boundary and content
-  snprintf(header,BUFFERSIZE,"--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\nContent-Type: %s\r\n\r\n",boundary,formname,filename,contentType);
+  snprintf(header,BUFFERSIZE,"--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n",boundary,formname,filename,contentType);
   ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
   fprintf(stderr,"%s",header);
 
   //Send body
   ++steps; success+=AmmClient_SendInternal(instance,filecontent,filecontentSize,keepAlive);
-  fprintf(stderr,"BINARY CONTENT HERE");
+  fprintf(stderr,"BINARY CONTENT (%u bytes) HERE",filecontentSize);
   //fprintf(stderr,"%s",filecontent);
 
   //Send boundary
@@ -80,7 +78,7 @@ int AmmClient_SendFileInternal(
   fprintf(stderr,"%s",header);
 
   //Send submit
-  snprintf(header,BUFFERSIZE,"Content-Disposition: form-data; name=\"submit\"\r\n\r\nUpload Image");
+  snprintf(header,BUFFERSIZE,"Content-Disposition: form-data; name=\"submit\"\r\n\r\n1");
   ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
   fprintf(stderr,"%s",header);
 

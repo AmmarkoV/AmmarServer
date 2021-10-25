@@ -73,7 +73,8 @@ int stream()
   unsigned long startTime,endTime;
 
   unsigned int jpegSize=0;
-  char * jpegImage = AmmClient_ReadFileToMemory("test.jpg",&jpegSize);
+  //char * jpegImage = AmmClient_ReadFileToMemory("/home/ammar/tmp.txt",&jpegSize); //"test.jpg"
+  char * jpegImage = AmmClient_ReadFileToMemory("test.jpg",&jpegSize); //
   if (jpegImage==0) { return 0; }
 
   unsigned int i=0;
