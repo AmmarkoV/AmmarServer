@@ -33,6 +33,7 @@
 
 #define BUFFERSIZE 8192
 
+//https://www.w3schools.com/php/php_file_upload.asp
 //nc -l 0.0.0.0 8080
 //curl -F "submit=1" -F "fileToUpload=@/home/dji/catkin_ws/src/camera_broadcast/src/image.jpg" ammar.gr/stream/upload.php
 int AmmClient_SendFileInternal(
@@ -49,16 +50,16 @@ int AmmClient_SendFileInternal(
   fprintf(stderr,"AmmClient_SendFileInternal\n");
 
   unsigned int boundaryRandomPart=rand()%100000;
-  char boundary[128]={"------------------------0937d4fc427d27d8"};
+  char boundary[128]={"------------------------8a7a8e26954c7dff"};
   snprintf(boundary,128,"ammclientboundary%u",boundaryRandomPart);
   //--------------------------------------------------------------
 
   int success = 0;
   int steps   = 0;
 
-  char header[BUFFERSIZE+1];
+  char header[BUFFERSIZE+1]={0};
   //Send the header Connection: keep-alive\r\nTransfer-Encoding: chunked\r\n
-  snprintf(header,BUFFERSIZE,"POST %s HTTP/1.0\r\nHost: ammar.gr\r\nUser-Agent: AmmClient/1.0\r\nAccept: */*\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,boundary);
+  snprintf(header,BUFFERSIZE,"POST %s HTTP/1.0\r\nHost: ammar.gr\r\nUser-Agent: AmmClient/1.0\r\nAccept: */*\r\nContent-Type: multipart/form-data; boundary=%s\r\nExpect: 100-continue\r\n\r\n",URI,boundary);
   ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
   fprintf(stderr,"%s",header);
 
