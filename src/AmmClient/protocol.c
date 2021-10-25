@@ -58,14 +58,14 @@ int AmmClient_SendFileInternal(
   int success = 0;
   int steps   = 0;
 
-  char header[BUFFERSIZE];
+  char header[BUFFERSIZE+1];
   //Send the header Connection: keep-alive\r\nTransfer-Encoding: chunked\r\n
   snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: ammar.gr\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,boundary);
   ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
   fprintf(stderr,"%s",header);
 
   //Send boundary and content
-  snprintf(header,BUFFERSIZE,"--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n",boundary,formname,filename,contentType);
+  snprintf(header,BUFFERSIZE,"--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\nContent-Type: %s\r\n\r\n",boundary,formname,filename,contentType);
   ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
   fprintf(stderr,"%s",header);
 
