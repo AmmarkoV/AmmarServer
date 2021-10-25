@@ -73,7 +73,8 @@ int stream()
   unsigned long startTime,endTime;
 
   unsigned int jpegSize=0;
-  char * jpegImage = AmmClient_ReadFileToMemory("image.jpg",&jpegSize);
+  char * jpegImage = AmmClient_ReadFileToMemory("test.jpg",&jpegSize);
+  if (jpegImage==0) { return 0; }
 
   unsigned int i=0;
    while (1)
@@ -85,7 +86,7 @@ int stream()
                             inst,
                             "/stream/upload.php",
                             "fileToUpload",
-                            "image.jpg",
+                            "test.jpg",
                             "image/jpeg",
                             jpegImage, jpegSize,
                             //"TEST",5,
@@ -135,6 +136,7 @@ int main(int argc, char *argv[])
 {
 
   //spam();
+  stream();
 
   return 0;
 }

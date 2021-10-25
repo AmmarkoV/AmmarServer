@@ -48,22 +48,21 @@ int AmmClient_SendFileInternal(
                        int keepAlive
                       )
 {
+  fprintf(stderr,"AmmClient_SendFileInternal\n");
+
   unsigned int boundaryRandomPart=rand()%100000;
-  char boundary[128];
-  snprintf(boundary,128,"--------------%u",boundaryRandomPart);
+  char boundary[128]={"---------------------------735323031399963166993862150"};
+  snprintf(boundary,128,"ammclientboundary%u",boundaryRandomPart);
   //--------------------------------------------------------------
 
   int success = 0;
   int steps   = 0;
 
-
-
   char header[BUFFERSIZE];
-  //Send the header
-  snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: ammar.gr\r\nConnection: keep-alive\r\nTransfer-Encoding: chunked\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",
-           URI,boundary);
+  //Send the header Connection: keep-alive\r\nTransfer-Encoding: chunked\r\n
+  snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: ammar.gr\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,boundary);
   ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
-  fprintf(stderr,"SENDING\n%s",header);
+  fprintf(stderr,"%s",header);
 
   //Send boundary and content
   snprintf(header,BUFFERSIZE,"--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n",boundary,formname,filename,contentType);
@@ -72,7 +71,8 @@ int AmmClient_SendFileInternal(
 
   //Send body
   ++steps; success+=AmmClient_SendInternal(instance,filecontent,filecontentSize,keepAlive);
-  fprintf(stderr,"%s",filecontent);
+  fprintf(stderr,"BINARY CONTENT HERE");
+  //fprintf(stderr,"%s",filecontent);
 
   //Send boundary
   snprintf(header,BUFFERSIZE,"\r\n--%s\r\n",boundary);
@@ -85,7 +85,7 @@ int AmmClient_SendFileInternal(
   fprintf(stderr,"%s",header);
 
   //Send final boundary..
-  snprintf(header,BUFFERSIZE,"\r\n--%s--\r\n\r\n",boundary);
+  snprintf(header,BUFFERSIZE,"\r\n--%s--\r\n",boundary);
   ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
   fprintf(stderr,"%s",header);
 
