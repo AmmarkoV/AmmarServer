@@ -8,6 +8,7 @@ int AmmClient_SendFileInternal(
                        const char * URI ,
                        const char * formname,
                        const char * filename ,
+                       const char * contentType,
                        const char * filecontent ,
                        unsigned int filecontentSize,
                        int keepAlive

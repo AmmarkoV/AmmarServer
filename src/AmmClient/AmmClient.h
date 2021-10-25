@@ -29,6 +29,8 @@ struct AmmClient_Instance
 };
 
 
+char * AmmClient_ReadFileToMemory(const char * filename,unsigned int *length);
+
 /** @brief Get back a monotnic "uptime" value in the form of microseconds, a useful call to count how much time elapsed during file transfers etc*/
 unsigned long AmmClient_GetTickCountMicroseconds();
 /** @brief Get back a monotnic "uptime" value in the form of millitimes, a useful call to count how much time elapsed during file transfers etc*/
@@ -131,6 +133,7 @@ int AmmClient_SendFile(
                        const char * URI ,
                        const char * formname,
                        const char * filename ,
+                       const char * contentType,
                        const char * filecontent ,
                        unsigned int filecontentSize,
                        int keepAlive

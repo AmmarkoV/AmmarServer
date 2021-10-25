@@ -31,41 +31,68 @@
 
 #define MICROSECONDS_TO_WAIT_FOR_RESPONSE 2000 //2 msec round trip time should be enough , ultimately this only matters in reallyFastImplementation since the regular will wait until the recv is complete
 
-#define BUFFERSIZE 4096
+#define BUFFERSIZE 8192
+
+//nc -l 0.0.0.0 8080
+//curl -F "submit=1" -F "fileToUpload=@/home/dji/catkin_ws/src/camera_broadcast/src/image.jpg" ammar.gr/stream/upload.php
+
 
 int AmmClient_SendFileInternal(
                        struct AmmClient_Instance * instance,
                        const char * URI ,
                        const char * formname,
                        const char * filename ,
+                       const char * contentType,
                        const char * filecontent ,
                        unsigned int filecontentSize,
                        int keepAlive
                       )
 {
-  //THIS IS NOT PROPERLY TESTED
-  char boundary[33]={"----AmmClientBoundary"};
-  unsigned int boundaryRandomPart=rand()%10000000;
-  char buffer[BUFFERSIZE];
-  snprintf(buffer,BUFFERSIZE,"POST %s HTTP/1.1\nContent-Type: multipart/form-data; boundary=%s%u\n%s%u\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\n \n",
-           URI,
-           boundary,boundaryRandomPart,
-           boundary,boundaryRandomPart,
-           formname,
-           filename
-          );
+  unsigned int boundaryRandomPart=rand()%100000;
+  char boundary[128];
+  snprintf(boundary,128,"--------------%u",boundaryRandomPart);
+  //--------------------------------------------------------------
+
+  int success = 0;
+  int steps   = 0;
 
 
-  int step1=AmmClient_SendInternal( instance, buffer , strlen(buffer) , keepAlive );
-  int step2=AmmClient_SendInternal( instance, filecontent , filecontentSize , keepAlive );
 
-  snprintf(buffer,BUFFERSIZE,"%s%u\n",boundary,boundaryRandomPart );
+  char header[BUFFERSIZE];
+  //Send the header
+  snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: ammar.gr\r\nConnection: keep-alive\r\nTransfer-Encoding: chunked\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",
+           URI,boundary);
+  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
+  fprintf(stderr,"SENDING\n%s",header);
 
-  int step3=AmmClient_SendInternal( instance, buffer , strlen(buffer) , keepAlive );
+  //Send boundary and content
+  snprintf(header,BUFFERSIZE,"--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n",boundary,formname,filename,contentType);
+  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
+  fprintf(stderr,"%s",header);
+
+  //Send body
+  ++steps; success+=AmmClient_SendInternal(instance,filecontent,filecontentSize,keepAlive);
+  fprintf(stderr,"%s",filecontent);
+
+  //Send boundary
+  snprintf(header,BUFFERSIZE,"\r\n--%s\r\n",boundary);
+  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
+  fprintf(stderr,"%s",header);
+
+  //Send submit
+  snprintf(header,BUFFERSIZE,"Content-Disposition: form-data; name=\"submit\"\r\n\r\nUpload Image");
+  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
+  fprintf(stderr,"%s",header);
+
+  //Send final boundary..
+  snprintf(header,BUFFERSIZE,"\r\n--%s--\r\n\r\n",boundary);
+  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
+  fprintf(stderr,"%s",header);
 
 
- return ( (step1)&&(step2)&&(step3));
+ return ( success==steps );
 }
+
 
 
 

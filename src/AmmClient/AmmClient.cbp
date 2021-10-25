@@ -31,16 +31,25 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Linker>
-			<Add library="./libAmmClientLib.a" />
-		</Linker>
+		<Unit filename="AmmClient.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="AmmClient.h" />
+		<Unit filename="network.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="network.h" />
+		<Unit filename="protocol.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="protocol.h" />
 		<Unit filename="test.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Extensions>
-			<code_completion />
-			<debugger />
-			<envvars />
-		</Extensions>
+		<Unit filename="tools.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools.h" />
+		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
