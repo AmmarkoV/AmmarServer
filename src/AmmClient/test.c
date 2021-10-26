@@ -78,7 +78,7 @@ int stream()
   if (jpegImage==0) { return 0; }
 
   unsigned int i=0;
- //  while (1)
+   while (1)
   {
    startTime = AmmClient_GetTickCountMicroseconds();
 
@@ -120,7 +120,6 @@ int stream()
    usleep(1000);
 
    ++i;
-
   }
 
   AmmClient_Close(inst);
