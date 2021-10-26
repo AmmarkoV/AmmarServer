@@ -34,7 +34,7 @@
 
 #define BUFFERSIZE 8192
 
-int AmmClientTransmitBoundary(struct AmmClient_Instance * instance,const char * boundary,int keepAlive,int first,int last)
+int AmmClientTransmitBoundary(struct AmmClient_Instance * instance,const char * boundary,int keepAlive,int first,int after,int last)
 {
   char transmission[256]={"------------------------8a7a8e26954c7dff"};
   char bound[256]={"------------------------8a7a8e26954c7dff"};
@@ -45,10 +45,15 @@ int AmmClientTransmitBoundary(struct AmmClient_Instance * instance,const char * 
     transmissionSize = snprintf(bound,256,"--%s\r\n",boundary);
     transmissionSize += snprintf(transmission,256,"%x\r\n%s\r\n",transmissionSize,bound);
   } else
+  if (after)
+  {
+    transmissionSize = snprintf(bound,256,"--%s\r\n",boundary);
+    transmissionSize += snprintf(transmission,256,"\r\n%x\r\n%s\r\n",transmissionSize,bound);
+  } else
   if (last)
   {
     transmissionSize = snprintf(bound,256,"\r\n--%s--\r\n",boundary);
-    transmissionSize += snprintf(transmission,256,"%x\r\n%s\r\n",transmissionSize,bound);
+    transmissionSize += snprintf(transmission,256,"%x\r\n%s\r\n0\r\n\r\n",transmissionSize,bound);
   } else
   {
     transmissionSize = snprintf(bound,256,"\r\n--%s\r\n",boundary);
@@ -94,12 +99,12 @@ int AmmClient_SendFileInternal(
   char header[BUFFERSIZE+1]={0};
   char transmission[BUFFERSIZE+1]={0};
   //Send the header Connection: keep-alive\r\nTransfer-Encoding: chunked\r\n
-  headerSize = snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: AmmClient/%s\r\nAccept: */*\r\nContent-Type: multipart/form-data; boundary=%s\r\nTransfer-Encoding: chunked\r\n\r\n",URI,instance->ip,AmmClientVersion,boundary);
+  headerSize = snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: AmmClient/%s\r\nAccept: */*\r\nTransfer-Encoding: chunked\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,instance->ip,AmmClientVersion,boundary);
   ++steps; success+=AmmClient_SendInternal(instance,header,headerSize,keepAlive);
   fprintf(stderr,"%s",header);
 
   //Send boundary
-  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,1,0);
+  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,1,0,0);
   //Send content
   headerSize = snprintf(header,BUFFERSIZE,"Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n",formname,filename,contentType);
   headerSize += snprintf(transmission,256,"%x\r\n%s\r\n%x\r\n",headerSize,header,filecontentSize);
@@ -110,7 +115,7 @@ int AmmClient_SendFileInternal(
   fprintf(stderr,"BINARY CONTENT (%u bytes) HERE",filecontentSize);
 
   //Send boundary
-  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,0,0);
+  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,0,1,0);
 
   //Send submit
   headerSize = snprintf(header,BUFFERSIZE,"Content-Disposition: form-data; name=\"submit\"\r\n\r\n1");
@@ -119,7 +124,7 @@ int AmmClient_SendFileInternal(
   fprintf(stderr,"%s",transmission);
 
   //Send final boundary..
-  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,0,1);
+  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,0,0,1);
 
 
  return ( success==steps );
