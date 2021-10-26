@@ -33,9 +33,30 @@
 
 #define BUFFERSIZE 8192
 
+int AmmClientTransmitBoundary(struct AmmClient_Instance * instance,const char * boundary,int keepAlive,int last)
+{
+  char transmission[256]={"------------------------8a7a8e26954c7dff"};
+  int transmissionSize = 0;
+
+  if (last)
+  {
+    transmissionSize = snprintf(transmission,256,"\r\n--%s--\r\n",boundary);
+  } else
+  {
+    transmissionSize = snprintf(transmission,256,"\r\n--%s\r\n",boundary);
+  }
+
+  fprintf(stderr,"%s",transmission);
+
+return AmmClient_SendInternal(instance,transmission,transmissionSize,keepAlive);
+
+}
+
+
 //https://www.w3schools.com/php/php_file_upload.asp
 //nc -l 0.0.0.0 8080
 //curl -F "submit=1" -F "fileToUpload=@/home/dji/catkin_ws/src/camera_broadcast/src/image.jpg" ammar.gr/stream/upload.php
+//curl -F "fileToUpload=@/home/ammar/Documents/Programming/AmmarServer/src/AmmClient/test.jpg" -F "submit=1"  ammar.gr/stream/upload.php
 int AmmClient_SendFileInternal(
                        struct AmmClient_Instance * instance,
                        const char * URI ,
@@ -54,39 +75,37 @@ int AmmClient_SendFileInternal(
   snprintf(boundary,128,"ammclientboundary%u",boundaryRandomPart);
   //--------------------------------------------------------------
 
+  int headerSize = 0;
   int success = 0;
   int steps   = 0;
 
   char header[BUFFERSIZE+1]={0};
   //Send the header Connection: keep-alive\r\nTransfer-Encoding: chunked\r\n
-  snprintf(header,BUFFERSIZE,"POST %s HTTP/1.0\r\nHost: ammar.gr\r\nUser-Agent: AmmClient/1.0\r\nAccept: */*\r\nContent-Type: multipart/form-data; boundary=%s\r\nExpect: 100-continue\r\n\r\n",URI,boundary);
-  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
+  headerSize = snprintf(header,BUFFERSIZE,"POST %s HTTP/1.0\r\nHost: ammar.gr\r\nUser-Agent: AmmClient/%s\r\nAccept: */*\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,AmmClientVersion);
+  ++steps; success+=AmmClient_SendInternal(instance,header,headerSize,keepAlive);
   fprintf(stderr,"%s",header);
 
-  //Send boundary and content
-  snprintf(header,BUFFERSIZE,"--%s\r\nContent-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n",boundary,formname,filename,contentType);
-  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
+  //Send boundary
+  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,0);
+  //Send content
+  headerSize = snprintf(header,BUFFERSIZE,"Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"\r\nContent-Type: %s\r\n\r\n",formname,filename,contentType);
+  ++steps; success+=AmmClient_SendInternal(instance,header,headerSize,keepAlive);
   fprintf(stderr,"%s",header);
 
   //Send body
   ++steps; success+=AmmClient_SendInternal(instance,filecontent,filecontentSize,keepAlive);
   fprintf(stderr,"BINARY CONTENT (%u bytes) HERE",filecontentSize);
-  //fprintf(stderr,"%s",filecontent);
 
   //Send boundary
-  snprintf(header,BUFFERSIZE,"\r\n--%s\r\n",boundary);
-  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
-  fprintf(stderr,"%s",header);
+  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,0);
 
   //Send submit
-  snprintf(header,BUFFERSIZE,"Content-Disposition: form-data; name=\"submit\"\r\n\r\n1");
-  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
+  headerSize = snprintf(header,BUFFERSIZE,"Content-Disposition: form-data; name=\"submit\"\r\n\r\n1");
+  ++steps; success+=AmmClient_SendInternal(instance,header,headerSize,keepAlive);
   fprintf(stderr,"%s",header);
 
   //Send final boundary..
-  snprintf(header,BUFFERSIZE,"\r\n--%s--\r\n",boundary);
-  ++steps; success+=AmmClient_SendInternal(instance,header,strlen(header),keepAlive);
-  fprintf(stderr,"%s",header);
+  ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,1);
 
 
  return ( success==steps );
