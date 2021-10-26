@@ -12,6 +12,7 @@
 
 #include <poll.h>
 
+#include "AmmClient.h"
 #include "protocol.h"
 #include "network.h"
 
@@ -81,7 +82,7 @@ int AmmClient_SendFileInternal(
 
   char header[BUFFERSIZE+1]={0};
   //Send the header Connection: keep-alive\r\nTransfer-Encoding: chunked\r\n
-  headerSize = snprintf(header,BUFFERSIZE,"POST %s HTTP/1.0\r\nHost: ammar.gr\r\nUser-Agent: AmmClient/%s\r\nAccept: */*\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,AmmClientVersion);
+  headerSize = snprintf(header,BUFFERSIZE,"POST %s HTTP/1.0\r\nHost: ammar.gr\r\nUser-Agent: AmmClient/%s\r\nAccept: */*\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,AmmClientVersion,boundary);
   ++steps; success+=AmmClient_SendInternal(instance,header,headerSize,keepAlive);
   fprintf(stderr,"%s",header);
 
