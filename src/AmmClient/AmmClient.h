@@ -12,7 +12,7 @@ extern "C"
 {
 #endif
 
-static const char AmmClientVersion[] = "0.55";
+static const char AmmClientVersion[] = "0.65";
 
 /** @brief An instance of AmmClient, this holds the connection state and a pointer that gets automatically allocated with internals that include the sockets etc*/
 struct AmmClient_Instance
