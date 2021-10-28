@@ -10,6 +10,18 @@
 #include "AmmClient.h"
 
 
+char * AmmClient_seekEndOfHeader(const char * buffer,unsigned int * bufferSize)
+{
+ char * startOfFile = strstr(buffer,"\r\n\r\n");
+
+ if (startOfFile!=0)
+ {
+   startOfFile+=4;
+   *bufferSize = *bufferSize - (startOfFile - buffer);
+ }
+
+ return startOfFile;
+}
 
 int AmmClient_WriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength)
 {

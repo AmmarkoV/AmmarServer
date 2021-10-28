@@ -30,6 +30,7 @@ struct AmmClient_Instance
   void * internals;
 };
 
+char * AmmClient_seekEndOfHeader(const char * buffer,unsigned int * bufferSize);
 
 int AmmClient_WriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength);
 char * AmmClient_ReadFileToMemory(const char * filename,unsigned int *length);

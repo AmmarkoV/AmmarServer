@@ -89,7 +89,8 @@ int spam()
                          )
        )
    {
-     AmmClient_WriteFileFromMemory("downloaded.jpg",filecontent,recvdSize);
+     char * fileStart = AmmClient_seekEndOfHeader(filecontent,&recvdSize);
+     AmmClient_WriteFileFromMemory("downloaded.jpg",fileStart,recvdSize);
    } else
    {
     fprintf(stderr,"Failed #%u..\n",i);
