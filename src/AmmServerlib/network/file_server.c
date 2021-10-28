@@ -201,7 +201,7 @@ int TransmitFileHeaderToSocket(
           snprintf(
                     reply_header,
                     MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,
-                    "Content-Range: bytes %lu-%lu/%lu\nContent-length: %lu\r\n\r\n",
+                    "Content-Range: bytes %lu-%lu/%lu\nContent-Length: %lu\r\n\r\n",
                     start_at_byte,
                     endAtBytePrinted,
                     lSize,
@@ -213,13 +213,13 @@ int TransmitFileHeaderToSocket(
          snprintf(
                    reply_header,
                    MAX_HTTP_REQUEST_SHORT_HEADER_REPLY,
-                   "Content-length: %lu\r\n\r\n",
+                   "Content-Length: %lu\r\n\r\n",
                    lSize
                  );
        }
     if (!SendPart(instance,transaction,reply_header,strlen(reply_header)))
         {
-         fprintf(stderr,"Failed sending Content-length @  SendFile ..!\n");
+         fprintf(stderr,"Failed sending Content-Length @  SendFile ..!\n");
          return 0;
         }
   return 1;
@@ -623,7 +623,7 @@ if (request->requestType!=HEAD)
          //Content-Range: bytes 1000-3979/3980
          int endAtBytePrinted = end_at_byte;
          if (endAtBytePrinted == 0 ) { endAtBytePrinted = cached_lSize; }
-          snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-length: %lu\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
+          snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-Length: %lu\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
        } else
        {
          //error("Resource Plain Content-Length ");
@@ -684,7 +684,7 @@ unsigned long SendMemoryBlockAsFile
 
 
   char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
-  snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\nConnection: close\r\n\r\n",(unsigned int) mem_block);
+  snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-Length: %u\nConnection: close\r\n\r\n",(unsigned int) mem_block);
   //TODO : Location : path etc
 
   if (!SendPart(instance,transaction,reply_header,strlen(reply_header)))
