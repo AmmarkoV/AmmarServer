@@ -162,7 +162,7 @@ int AmmClient_RecvFileInternalClean(
                        int keepAlive
                       )
 {
- snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\nConnection: keep-alive\n\n",URI);
+ snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\r\nConnection: keep-alive\r\n\r\n",URI);
 
  unsigned int bytesReceived=0;
 
@@ -219,7 +219,7 @@ int AmmClient_RecvFileInternalFast(
                        int keepAlive
                       )
 {
- snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\nConnection: keep-alive\n\n",URI);
+ snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\r\nConnection: keep-alive\r\n\r\n",URI);
 
  unsigned int bytesReceived=0;
 
