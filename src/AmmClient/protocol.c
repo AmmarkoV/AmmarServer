@@ -153,7 +153,8 @@ int isFileDownloadComplete(const char * content,unsigned int contentSize)
 }
 
 
-
+//nc -l 0.0.0.0 8080
+//curl http://127.0.0.1:8080/stream/uploads/image.jpg -o downloaded.jpg
 int AmmClient_RecvFileInternalClean(
                        struct AmmClient_Instance * instance,
                        const char * URI ,
@@ -162,7 +163,7 @@ int AmmClient_RecvFileInternalClean(
                        int keepAlive
                       )
 {
- snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\r\nConnection: keep-alive\r\n\r\n",URI);
+ snprintf(filecontent,*filecontentSize,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n",URI,instance->ip);
 
  unsigned int bytesReceived=0;
 
@@ -219,7 +220,7 @@ int AmmClient_RecvFileInternalFast(
                        int keepAlive
                       )
 {
- snprintf(filecontent,*filecontentSize,"GET /%s HTTP/1.1\r\nConnection: keep-alive\r\n\r\n",URI);
+ snprintf(filecontent,*filecontentSize,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n",URI,instance->ip);
 
  unsigned int bytesReceived=0;
 

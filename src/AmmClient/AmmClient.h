@@ -31,6 +31,7 @@ struct AmmClient_Instance
 };
 
 
+int AmmClient_WriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength);
 char * AmmClient_ReadFileToMemory(const char * filename,unsigned int *length);
 
 /** @brief Get back a monotnic "uptime" value in the form of microseconds, a useful call to count how much time elapsed during file transfers etc*/

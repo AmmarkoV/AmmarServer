@@ -5,8 +5,7 @@
 #include "AmmClient.h"
 
 
-
-int spam()
+int spam2()
 {
      fprintf(stderr,"AmmClient Tester started \n");
  struct AmmClient_Instance * inst = AmmClient_Initialize("192.168.1.48",8080,10/*sec*/);
@@ -57,6 +56,63 @@ int spam()
 
  return 1;
 }
+
+
+//curl http://ammar.gr/stream/uploads/image.jpg -o downloaded.jpg
+int spam()
+{
+ fprintf(stderr,"AmmClient Tester started \n");
+ struct AmmClient_Instance * inst = AmmClient_Initialize("139.91.185.16",80,10/*sec*/);
+ fprintf(stderr,"Initialized..\n");
+
+ if (inst)
+ {
+  char filecontent[1024*1024]={0};
+  unsigned int recvdMaxSize=1024*1024;
+
+  unsigned long startTime,endTime;
+
+  unsigned int i=0;
+   while (1)
+  {
+   startTime = AmmClient_GetTickCountMicroseconds();
+
+   unsigned int recvdSize = recvdMaxSize;
+   if (
+        AmmClient_RecvFile(
+                            inst,
+                            "/stream/uploads/image.jpg",
+                            filecontent,
+                            &recvdSize,
+                            1,//keepAlive,
+                            0
+                         )
+       )
+   {
+     AmmClient_WriteFileFromMemory("downloaded.jpg",filecontent,recvdSize);
+   } else
+   {
+    fprintf(stderr,"Failed #%u..\n",i);
+   }
+
+
+   endTime = AmmClient_GetTickCountMicroseconds();
+
+   fprintf(stderr,"Took %lu microseconds \n",endTime-startTime);
+   usleep(1000);
+
+   ++i;
+   }
+  }
+
+  AmmClient_Close(inst);
+
+ return 1;
+}
+
+
+
+
 
 int stream()
 {
@@ -135,8 +191,8 @@ int stream()
 int main(int argc, char *argv[])
 {
 
-  //spam();
-  stream();
+  spam();
+  //stream();
 
   return 0;
 }
