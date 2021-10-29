@@ -310,7 +310,7 @@ int AmmClient_RecvFileInternal(
       return 0;
   }
 
- if ( (keepAlive) && (remainingSize>28) )
+ if ( (keepAlive) && (remainingSize>27) )
  {
    strncat(filecontent,"Connection: keep-alive\r\n\r\n",remainingSize);
  } else
