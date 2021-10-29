@@ -159,19 +159,14 @@ int isFileDownloadComplete(const char * content,unsigned int contentSize)
 //nc -l 0.0.0.0 8080
 //curl http://127.0.0.1:8080/stream/uploads/image.jpg -o downloaded.jpg
 int AmmClient_RecvFileInternalClean(
-                       struct AmmClient_Instance * instance,
-                       const char * URI ,
-                       char * filecontent ,
-                       unsigned int * filecontentSize,
-                       int keepAlive
-                      )
+                                    struct AmmClient_Instance * instance,
+                                    const char * URI ,
+                                    char * filecontent ,
+                                    unsigned int * filecontentSize,
+                                    int keepAlive
+                                   )
 {
- snprintf(filecontent,*filecontentSize,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n",URI,instance->ip);
-
- unsigned int bytesReceived=0;
-
- if (AmmClient_Send(instance,filecontent,strlen(filecontent),keepAlive))
- {
+     unsigned int bytesReceived=0;
      memset(filecontent,0,strlen(filecontent));
      unsigned int doneReceiving=0;
 
@@ -201,7 +196,6 @@ int AmmClient_RecvFileInternalClean(
        if (isFileDownloadComplete(filecontent,bytesReceived)) {  *filecontentSize = bytesReceived; return 1; }
 
      }
- }
 
   *filecontentSize = bytesReceived;
 
@@ -222,12 +216,7 @@ int AmmClient_RecvFileInternalFast(
                        int keepAlive
                       )
 {
- snprintf(filecontent,*filecontentSize,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept: */*\r\nConnection: keep-alive\r\n\r\n",URI,instance->ip);
-
- unsigned int bytesReceived=0;
-
- if (AmmClient_Send(instance,filecontent,strlen(filecontent),keepAlive))
- {
+     unsigned int bytesReceived=0;
      memset(filecontent,0,strlen(filecontent));
      unsigned int doneReceiving=0;
      unsigned int connectionHalted=0;
@@ -293,7 +282,6 @@ int AmmClient_RecvFileInternalFast(
 
        }
      }
- }
 
   *filecontentSize = bytesReceived;
 
@@ -314,33 +302,51 @@ int AmmClient_RecvFileInternal(
                        int reallyFastImplementation
                       )
 {
- if (reallyFastImplementation)
- {
- //If we are here it means we are in a terrible hurry
- //The "fast" implementation uses poll to check sockets
- //and will not block, providing a much faster implementation..
- return AmmClient_RecvFileInternalFast(
-                                        instance,
-                                        URI ,
-                                        filecontent ,
-                                        filecontentSize,
-                                        keepAlive
-                                       );
+ int requestSize = snprintf(filecontent,*filecontentSize,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept: */*\r\n",URI,instance->ip);
+ int remainingSize = *filecontentSize - requestSize;
+ if (remainingSize<4)
+  {
+      fprintf(stderr,"AmmClient_RecvFileInternal not enough memory for performing a request..");
+      return 0;
+  }
 
+ if ( (keepAlive) && (remainingSize>28) )
+ {
+   strncat(filecontent,"Connection: keep-alive\r\n\r\n",remainingSize);
+ } else
+ {
+   strncat(filecontent,"\r\n\r\n",remainingSize);
  }
+
+ if (AmmClient_Send(instance,filecontent,strlen(filecontent),keepAlive))
+ {
+   if (reallyFastImplementation)
+    {
+     //If we are here it means we are in a terrible hurry
+     //The "fast" implementation uses poll to check sockets
+     //and will not block, providing a much faster implementation..
+     return AmmClient_RecvFileInternalFast(
+                                           instance,
+                                           URI ,
+                                           filecontent ,
+                                           filecontentSize,
+                                           keepAlive
+                                          );
+
+    }
  else
- {
- //This is the clean and simple version for receiving files
- //it uses regular recv and works @ 25Hz due to system blocking
- //at recv for a predetermined amount of time.
- return AmmClient_RecvFileInternalClean(
-                                        instance,
-                                        URI ,
-                                        filecontent ,
-                                        filecontentSize,
-                                        keepAlive
-                                       );
+    {
+     //This is the clean and simple version for receiving files
+     //it uses regular recv and works @ 25Hz due to system blocking
+     //at recv for a predetermined amount of time.
+     return AmmClient_RecvFileInternalClean(
+                                            instance,
+                                            URI ,
+                                            filecontent ,
+                                            filecontentSize,
+                                            keepAlive
+                                          );
+    }
  }
-
  return 0;
 }

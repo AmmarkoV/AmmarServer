@@ -3,7 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR"
 
-gcc -o AmmCLient AmmClient.c network.c protocol.c tools.c test.c
+gcc -o AmmClient AmmClient.c network.c protocol.c tools.c test.c
 
 gcc curltest.c -o curltest -lcurl
 
