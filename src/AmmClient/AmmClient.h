@@ -12,7 +12,7 @@ extern "C"
 {
 #endif
 
-static const char AmmClientVersion[] = "0.65";
+static const char AmmClientVersion[] = "0.66";
 
 /** @brief An instance of AmmClient, this holds the connection state and a pointer that gets automatically allocated with internals that include the sockets etc*/
 struct AmmClient_Instance
@@ -30,9 +30,35 @@ struct AmmClient_Instance
   void * internals;
 };
 
+/**
+* @brief Given an HTTP response seek the end of the header and return a pointer to the start of the body and the bodySize
+* @ingroup AmmClient
+* @param Pointer to an HTTP response
+* @param Input Size of the HTTP response, it will be rewritten with the size of the output response
+* @retval Pointer to body data or 0 to indicate failure to detect body*/
 char * AmmClient_seekEndOfHeader(const char * buffer,unsigned int * bufferSize);
 
+
+
+/**
+* @brief Write a memory block to a file
+* @ingroup AmmClient
+* @param Pointer to path of the file we want to read
+* @param Pointer to memory buffer
+* @param Size of memory buffer
+* @retval 1=Success,0=Fail
+*/
 int AmmClient_WriteFileFromMemory(const char * filename,const char * memory , unsigned int memoryLength);
+
+
+
+/**
+* @brief Allocate a memory block and read a file into it
+* @ingroup AmmClient
+* @param Pointer to path of the file we want to read
+* @param Pointer to output length of newly allocated memory buffer
+* @retval Pointer to memory allocation,0=Fail
+*/
 char * AmmClient_ReadFileToMemory(const char * filename,unsigned int *length);
 
 /** @brief Get back a monotnic "uptime" value in the form of microseconds, a useful call to count how much time elapsed during file transfers etc*/

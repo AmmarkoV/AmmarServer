@@ -30,9 +30,10 @@
 
 
 
-#define MICROSECONDS_TO_WAIT_FOR_RESPONSE 2000 //2 msec round trip time should be enough , ultimately this only matters in reallyFastImplementation since the regular will wait until the recv is complete
+#define MICROSECONDS_TO_WAIT_FOR_RESPONSE 2000 //2 msec round trip time should be enough , ultimately this only matters in reallyFastImplementation since the regular
+//will wait until the recv is complete
 
-#define BUFFERSIZE 8192
+#define BUFFERSIZE 4096
 
 int AmmClientTransmitBoundary(struct AmmClient_Instance * instance,const char * boundary,int keepAlive,int first,int after,int last)
 {
@@ -121,6 +122,7 @@ int AmmClient_SendFileInternal(
   ++steps; success+=AmmClient_SendInternal(instance,bufferAfterFile,bufferAfterSize,keepAlive);
   ++steps; success+=AmmClientTransmitBoundary(instance,boundary,keepAlive,0,0,1);
 
+  //Maybe response should be parsed here..
  return ( success==steps );
 }
 
