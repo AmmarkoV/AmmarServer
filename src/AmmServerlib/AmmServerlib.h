@@ -969,6 +969,9 @@ int AmmServer_ExecuteCommandLineAndRetreiveAllResults(
 
 
 
+int AmmServer_ExecuteCommandLineAndRetreiveAllResultsTimed(const char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize, unsigned long * what2GetBackSize,int waitTime);
+
+
 /**
 * @brief Execute a command and copy its output line to the provided buffer
 * @ingroup tools

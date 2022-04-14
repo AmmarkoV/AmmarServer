@@ -770,7 +770,7 @@ int AmmServer_ExecuteCommandLineAndRetreiveAllResults(const char *  command , ch
          return 0;
        }
 
-
+  
   size_t contentSize = fread(what2GetBack, 1 , what2GetBackMaxSize, f);
   AmmServer_Warning("%s responded with %u bytes of output",command,contentSize);
   *what2GetBackSize = contentSize;
@@ -781,6 +781,31 @@ int AmmServer_ExecuteCommandLineAndRetreiveAllResults(const char *  command , ch
   return 1;
 }
 
+
+
+int AmmServer_ExecuteCommandLineAndRetreiveAllResultsTimed(const char *  command , char * what2GetBack , unsigned int what2GetBackMaxSize, unsigned long * what2GetBackSize,int waitTime)
+{
+  what2GetBack[0]=0;
+  what2GetBack[what2GetBackMaxSize-1]=0;
+
+ /* Open the command for reading. */
+ FILE * f = popen(command, "r");
+ if (f == 0)
+       {
+         fprintf(stderr,"Failed to run command (%s) \n",command);
+         return 0;
+       }
+  usleep(waitTime);
+  
+  size_t contentSize = fread(what2GetBack, 1 , what2GetBackMaxSize, f);
+  AmmServer_Warning("%s responded with %u bytes of output",command,contentSize);
+  *what2GetBackSize = contentSize;
+  //AmmServer_Warning(" got %s ",what2GetBack);
+
+  /* close */
+  pclose(f);
+  return 1;
+}
 
 
 

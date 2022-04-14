@@ -267,11 +267,12 @@ int getAFastAndRecentGraph(
         {
         fprintf(stderr,"Fresh graphs..\n");
          if (
-              AmmServer_ExecuteCommandLineAndRetreiveAllResults(
+              AmmServer_ExecuteCommandLineAndRetreiveAllResultsTimed(
                                                                  command,
                                                                  device->info.graphs[sensorBufferID].data,
                                                                  device->info.graphs[sensorBufferID].dataMaxSize,
-                                                                &device->info.graphs[sensorBufferID].dataSize
+                                                                &device->info.graphs[sensorBufferID].dataSize,
+                                                                 1000
                                                                )
             )
             {
