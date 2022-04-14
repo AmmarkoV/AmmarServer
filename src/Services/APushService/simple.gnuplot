@@ -2,7 +2,7 @@
 #     gnuplot -e "filename='temperature_0001.log'" -c simple.gnuplot
 #      
 set datafile separator "|"  
-set term png 
+set term png size 320,240
 set autoscale y  
 #set xrange [0:100]
 set yrange [0:100];

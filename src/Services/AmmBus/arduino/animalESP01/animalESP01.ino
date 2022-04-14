@@ -1,8 +1,14 @@
 #include <ESP8266WiFi.h>
 //Add http://arduino.esp8266.com/stable/package_esp8266com_index.json to File->Preferences->Additional Board Manager URLs
 //And then Tools->Board: "********" -> Board Manager and type esp8266 in the search field to download the esp8266 board from the ESP8266 Community 
- 
+//To flash the board :
+//   flip the switch *before* connecting the USB FTTI programmer
+//   connect the board and wait 5 seconds
+//   flip the switch again while it is connected 
+//   do the programming..
 
+//For exception decoder
+//https://github.com/me-no-dev/EspExceptionDecoder
 #if USE_ENCRYPTION  
 #include <AESLib.h>
 //cd ~/Arduino/libraries && git clone https://github.com/DavyLandman/AESLib
@@ -68,7 +74,8 @@ int serverWebsite()
  client.println(temperatureAvg,2); 
  client.println("</pre><br>"); 
  client.println("<H4>Powered by <a href=\"https://github.com/AmmarkoV/AmmarServer/wiki\">AmmarServer</a></H4>");
- client.print("</body>\n</html>"); 
+ client.print("</body>\n</html>");
+ return 1;
 }
 
 
@@ -186,8 +193,12 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
 { 
   char success=0;
   WiFiClient client;
-  Serial.printf("\n[Connecting to %s ... ", host);
-  if (client.connect(host, port))
+
+  char localCStrHost[64]={0};
+  snprintf(localCStrHost,64,"%s",host);
+
+  Serial.printf("\n[Connecting to %s ... ",localCStrHost);
+  if (client.connect(localCStrHost, port))
   {
     Serial.println("connected]");
 
