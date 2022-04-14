@@ -42,11 +42,12 @@ static byte subnet[] = { 255,255,255,0 };
 //------------------------------
 
 //SERVER CONFIGURATION -------------------
-char websiteIP[] = "139.91.185.16"; //"192.168.1.49"; 
+char websiteIP[] = "147.52.74.57"; // "139.91.185.16" "192.168.1.49"; 
 #define hisPort 8087
 
-const char websiteA[] PROGMEM = "ammar.gr";
-const char websiteB[] PROGMEM = "spiti.ammar.gr";
+const char websiteA[] PROGMEM = "147.52.74.57";
+const char websiteB[] PROGMEM = "ammar.gr";
+const char websiteC[] PROGMEM = "spiti.ammar.gr";
 const char * website = websiteA;
 //------------------------------
 
