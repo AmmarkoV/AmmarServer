@@ -32,7 +32,7 @@ int logTemperature(
    return 1;
  }
 
- fprint(stderr,"Failed to log temperature/humidity %0.2f/%0.2f to %s!!!!\n",filename);
+ fprintf(stderr,"Failed to log temperature/humidity %0.2f/%0.2f to %s!!!!\n",filename);
  return 0;
 }
 
