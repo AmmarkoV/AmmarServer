@@ -3,13 +3,23 @@ sudo apt-get install ssmtp
 
 sudo nano /etc/ssmtp/ssmtp.conf
 
-
+#For GMAIL
 root=USERHERE@gmail.com
 mailhub=smtp.gmail.com:465
 FromLineOverride=YES
 AuthUser=USERHERE@gmail.com
 AuthPass=PASSWORDHERE
 UseTLS=YES
+
+#For UOC Med school
+Debug = yes
+root=USERHERE@med.uoc.gr
+mailhub=mail.uoc.gr:465
+FromLineOverride=YES
+AuthUser=USERHERE@med.uoc.gr
+AuthPass=PASSWORDHERE
+UseTLS=YES
+
 
 
 
