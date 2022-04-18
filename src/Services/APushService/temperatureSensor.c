@@ -274,7 +274,7 @@ int getAFastAndRecentGraph(
                                                                  device->info.graphs[sensorBufferID].data,
                                                                  device->info.graphs[sensorBufferID].dataMaxSize,
                                                                 &device->info.graphs[sensorBufferID].dataSize,
-                                                                 3000
+                                                                 13000
                                                                )
             )
             {

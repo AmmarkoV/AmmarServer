@@ -4,7 +4,7 @@
 #     tail -n 288 temperature_0001.log | gnuplot -c temperature.gnuplot > temperature.png
 #      
 set datafile separator "|"  
-set term png size 640,480
+set term png size 640,400
 set autoscale y  
 #set xrange [0:100]
 set yrange [0:100];       
