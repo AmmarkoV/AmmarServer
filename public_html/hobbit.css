@@ -1,0 +1,65 @@
+
+		table{
+			border-spacing: 5px 5px;
+		}
+		hr{
+			color: orange;
+			height: 0px;
+			border: 0px;
+			border-bottom: 3px dashed orange;
+		}
+		td{
+			vertical-align:top;
+		}
+		#scissors{
+			position: relative;
+			left: -765px;
+			top: 26px;
+		}
+		.rtd{
+			border: 1px solid black;
+			background: #ffebc5;
+			padding: 20px;
+			border-radius: 10px;
+                        line-height:200%;
+		}
+		.rtd a{ color: green; }
+
+		.rtdFloating
+                {
+			border: 1px solid black;
+			background: #ffebc5;
+			padding: 20px;
+			border-radius: 10px;
+                        line-height:200%; 
+
+
+                        cursor: move;
+                        position: absolute;  
+                        visibility:hidden;
+		}   
+		.rtdFloating a{ color: green; }
+
+		.xbutton
+                {
+			 padding: 10px;
+			 border-radius: 10px;
+			 border: 1px solid black;
+                         text-decoration: none;
+                }
+
+		.turnControls
+                {
+                        visibility:hidden;
+                }
+
+                 #marker
+                {
+                        
+			height: 1px;
+                }
+
+                 #joystick
+                {
+                        position:absolute;
+                }
