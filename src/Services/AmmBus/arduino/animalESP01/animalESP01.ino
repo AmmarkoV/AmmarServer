@@ -1,14 +1,8 @@
 #include <ESP8266WiFi.h>
 //Add http://arduino.esp8266.com/stable/package_esp8266com_index.json to File->Preferences->Additional Board Manager URLs
 //And then Tools->Board: "********" -> Board Manager and type esp8266 in the search field to download the esp8266 board from the ESP8266 Community 
-//To flash the board :
-//   flip the switch *before* connecting the USB FTTI programmer
-//   connect the board and wait 5 seconds
-//   flip the switch again while it is connected 
-//   do the programming..
+ 
 
-//For exception decoder
-//https://github.com/me-no-dev/EspExceptionDecoder
 #if USE_ENCRYPTION  
 #include <AESLib.h>
 //cd ~/Arduino/libraries && git clone https://github.com/DavyLandman/AESLib
@@ -19,7 +13,6 @@
  
 unsigned int incorrectRequests=0;
 char requestsPending=0;
-char request[64]; 
 
 
 static unsigned long timer=0;
@@ -29,25 +22,23 @@ static unsigned long timerTest=0;
 static unsigned long timerConnectionError=0;
 
 
-char sTmp[6];
-char sHum[6];
+char sTmp[6]={0};
+char sHum[6]={0};
 
 //We begin by forcing update..!
 char forceUpdate=1;
 
-char criticalTemperature=0;
+char  criticalTemperature=0;
 float lowestAcceptableTemperature=19.0;
-float highestAcceptableTemperature=26.0;
+float highestAcceptableTemperature=27.0;
 
 float temperatureAvg=0.0;
 float humidityAvg=0.0;
-float   temperatureSum=0;
-float   humiditySum=0;
+float temperatureSum=0;
+float humiditySum=0;
 int   numberOfDHT11Samples=0;
 
  
-const char* ssid     = "AmmarNetCrete"; // Your ssid
-const char* password = "spacepirate"; // Your Password
  
 WiFiServer server(80); 
  
@@ -99,7 +90,7 @@ void initializeWirelessClient()
  
  while (WiFi.status() != WL_CONNECTED) 
   {
-   delay(500);
+   delay(EXPECTED_RESPONSE_LATENCY);
    Serial.print(".");
   }
   
@@ -112,6 +103,7 @@ void initializeWirelessClient()
 
   // Print the IP address
   Serial.println(WiFi.localIP());
+  return ;
 }
 
 
@@ -120,7 +112,7 @@ void initializeWirelessClient()
 void readTemperature(int coldRun)
 {
   //DHT requires sampling at 1Hz
-  humidity = dht.getHumidity();
+  humidity    = dht.getHumidity();
   temperature = dht.getTemperature();
 
   if ((temperature!=temperature) || ( humidity!=humidity))
@@ -160,7 +152,7 @@ void readTemperature(int coldRun)
       Serial.print("/");
       
       if (criticalTemperature)  { Serial.println(REQUEST_RATE_CRITICAL); } else
-                                { Serial.println(REQUEST_RATE_NORMAL); } 
+                                { Serial.println(REQUEST_RATE_NORMAL);   } 
       
       
      // notifyTemperature();
@@ -184,6 +176,7 @@ void readTemperature(int coldRun)
     Serial.print("Temperature:"); Serial.print(temperature); Serial.print("oC\n");
     Serial.print("Humidity:");    Serial.print(humidity);    Serial.print("%\n");*/
   } 
+  return ; 
 }
 
 
@@ -193,23 +186,22 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
 { 
   char success=0;
   WiFiClient client;
+  Serial.printf("\n[Connecting to %s ... ", host);
 
-  char localCStrHost[64]={0};
-  snprintf(localCStrHost,64,"%s",host);
-
-  Serial.printf("\n[Connecting to %s ... ",localCStrHost);
-  if (client.connect(localCStrHost, port))
+  char locallyAllocatedHost[64]={0};
+  snprintf(locallyAllocatedHost,63,host);
+  if (client.connect(locallyAllocatedHost, port))
   {
     Serial.println("connected]");
 
     Serial.println("[Sending a request]");
 
-    char request[256];
-    snprintf(request,256,"GET %s%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",page,variables,host);
+    char request[256]={0};
+    snprintf(request,255,"GET %s%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n",page,variables,host);
 
     client.print(request);
     Serial.println(request);
-    delay(100);
+    delay(EXPECTED_RESPONSE_LATENCY);
 
     Serial.println("[Response:]");
     while (client.connected() || client.available())
@@ -240,7 +232,10 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
   }
   else
   {
-    Serial.println("connection failed!]");
+    Serial.print(incorrectRequests); 
+    Serial.print("/"); 
+    Serial.print(NUMBER_OF_FAILED_ATTEMPTS_TO_RESET); 
+    Serial.println(" connection failed!]");
     client.stop(); 
      ++incorrectRequests;
   }
@@ -272,6 +267,7 @@ void setup()
   
  Serial.println("Let's Go..");
  forceUpdate=1;
+ return ;
 }
 
 void loop() 
@@ -294,6 +290,7 @@ void loop()
  serverWebsite();
  
 
+ char request[64]={0}; 
    ///----------------------------------------------------------------------------------
    //                         NOTIFY ABOUT TEMPERATURE READINGS
    ///----------------------------------------------------------------------------------
@@ -306,7 +303,7 @@ void loop()
          /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
          dtostrf(temperatureAvg, 4, 2, sTmp);
          dtostrf(humidityAvg, 4, 2, sHum);
-         snprintf(request,64,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
+         snprintf(request,63,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
 
          #if USE_ENCRYPTION  
           aes128_enc_single(privateKey,request);
@@ -330,7 +327,7 @@ void loop()
          /* 4 is mininum width, 2 is precision; float value is copied onto sTmp and sHum since avr doesn't support printf("%f")*/
          dtostrf(temperatureAvg, 4, 2, sTmp);
          dtostrf(humidityAvg, 4, 2, sHum);
-         snprintf(request,64,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
+         snprintf(request,63,"?s=%s&k=%s&t=%s&h=%s",serialNumber,publicKey,sTmp,sHum);
          
          #if USE_ENCRYPTION  
           aes128_enc_single(privateKey,request);
