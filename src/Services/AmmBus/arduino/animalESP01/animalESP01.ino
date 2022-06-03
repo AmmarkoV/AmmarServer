@@ -206,7 +206,7 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
     while (client.available() == 0) 
     {
         delay(1000);
-        if (millis() - timeout > EXPECTED_RESPONSE_LATENCY_MILLISECONDS) 
+        if (millis() - timeout > MAXIMUM_RESPONSE_LATENCY_MILLISECONDS) 
         {
             Serial.println(">>> Client Timeout !");
             Serial.print(incorrectRequests); 
