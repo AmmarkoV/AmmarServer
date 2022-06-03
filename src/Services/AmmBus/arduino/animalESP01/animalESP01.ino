@@ -201,17 +201,29 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
 
     client.print(request);
     Serial.println(request);
-    delay(EXPECTED_RESPONSE_LATENCY);
-
-    Serial.println("[Response:]");
-    while (client.connected() || client.available())
+    //------------------------------------------------------------------
+    unsigned long timeout = millis();
+    while (client.available() == 0) 
     {
-      if (client.available())
-      {
+        delay(1000);
+        if (millis() - timeout > EXPECTED_RESPONSE_LATENCY_MILLISECONDS) 
+        {
+            Serial.println(">>> Client Timeout !");
+            Serial.print(incorrectRequests); 
+            Serial.print("/"); 
+            Serial.println(NUMBER_OF_FAILED_ATTEMPTS_TO_RESET); 
+            ++incorrectRequests;
+            client.stop();
+            return 0;
+        }
+    }
+    //------------------------------------------------------------------
+    Serial.println("[Response:]");
+    while(client.available()) 
+    {
         String line = client.readStringUntil('\n');
         if (strstr(line.c_str(),"<body>OK</body>")!=0) { success=1; }
         Serial.println(line);
-      }
     }
     client.stop();
     Serial.println("\n[Disconnected]");
@@ -237,7 +249,7 @@ int WifiGETRequest(const char * host,unsigned int port,const char * page,const c
     Serial.print(NUMBER_OF_FAILED_ATTEMPTS_TO_RESET); 
     Serial.println(" connection failed!]");
     client.stop(); 
-     ++incorrectRequests;
+    ++incorrectRequests;
   }
  return 0;
 }

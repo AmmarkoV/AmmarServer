@@ -9,7 +9,7 @@
 #define NUMBER_OF_TEMPERATURE_SAMPLES 10
 //#define REQUEST_RATE_NORMAL 5*60*1000 // minutes to milliseconds
 //#define REQUEST_RATE_CRITICAL 60*1000 // milliseconds
-#define EXPECTED_RESPONSE_LATENCY 800
+#define EXPECTED_RESPONSE_LATENCY_MILLISECONDS 80
 
 //Given that the rate for a DHT11 sensor is 1.1 Hz and that we now reset count on success 
 //the number of failed attempts should be 1 per loop thus restart in one hour from consistent failures  
