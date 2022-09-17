@@ -80,14 +80,19 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
     //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
     memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
 
-    if  (
-         _GETexists(rqst,"query")
-        )
+    if  (_GETexists(rqst,"query"))
     {
+
         char query[MAX_QUERY_SIZE]= {0};
         if ( _GETcpy(rqst,"query",query,MAX_QUERY_SIZE) )
         {
             fprintf(stderr,"\n\n\n\n\n\nQUERY : %s \n\n\n\n\n\n\n",query);
+
+            char fullCommand[MAX_QUERY_SIZE+1024]={0};
+            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"~/workspace/tex2img.sh \"%s\"",query);
+            int i=system(fullCommand);
+            fprintf("Executed : %s \n",fullCommand);
+            fprintf("Response : %u \n",i);
         }
     }
 
