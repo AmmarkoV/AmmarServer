@@ -7,7 +7,7 @@
 <script type="text/javascript">
    function makeUniqueURLs()
    {
-     i=4
+     i=5
      while (i--) 
      {
        document.getElementById('thumb'+i).src = 'image.png?i='+i+'?t='+(Math.random() * 1000);
@@ -29,7 +29,7 @@
   <td>
    <center>
      <img name="main" id="main" src="loading.gif" width=512 ><br>
-     <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';  setTimeout(considerLoaded, 30000);">
+     <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';  setTimeout(considerLoaded, 50000);">
       <input type="text" id="query" name="query" width=512>  <input type="submit" value="Generate"> <br>
      </form> 
    </center>
