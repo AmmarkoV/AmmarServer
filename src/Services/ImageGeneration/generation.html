@@ -4,8 +4,24 @@
 <meta charset="utf-8">
 <meta content="Generation Diffusion" name="title">
 <title>Image Generation Diffusion</title>
+<script type="text/javascript">
+   function makeUniqueURLs()
+   {
+     i=4
+     while (i--) 
+     {
+       document.getElementById('thumb'+i).src = 'image.png?i='+i+'?t='+(Math.random() * 1000);
+     } 
+   } 
+
+  function considerLoaded()
+  {
+     makeUniqueURLs();
+     document.getElementById('main').src = 'image.png?i=0?t='+(Math.random() * 1000);
+  }
+</script>
 </head>
-<body bgcolor="#333333">
+<body bgcolor="#333333" onload="makeUniqueURLs();">
 <br><br><br>
 <center>
 <table>
@@ -13,7 +29,7 @@
   <td>
    <center>
      <img name="main" id="main" src="loading.gif" width=512 ><br>
-     <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';">
+     <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';  setTimeout(considerLoaded, 20000);">
       <input type="text" id="query" name="query" width=512><br>
      </form> 
    </center>
@@ -22,11 +38,11 @@
 <tr>
   <td>
    <center>
-     <a href="#"><img name="thumb1" src="image.png?i=0" width=128 onclick="document.getElementById('main').src = 'image.png?i=0';"></a>
-     <a href="#"><img name="thumb1" src="image.png?i=1" width=128 onclick="document.getElementById('main').src = 'image.png?i=1';"></a>
-     <a href="#"><img name="thumb2" src="image.png?i=2" width=128 onclick="document.getElementById('main').src = 'image.png?i=2';"></a>
-     <a href="#"><img name="thumb3" src="image.png?i=3" width=128 onclick="document.getElementById('main').src = 'image.png?i=3';"></a>
-     <a href="#"><img name="thumb4" src="image.png?i=4" width=128 onclick="document.getElementById('main').src = 'image.png?i=4';"></a>
+     <a href="#"><img name="thumb0" id="thumb0" src="image.png?i=0" width=128 onclick="document.getElementById('main').src = 'image.png?i=0?t='+(Math.random() * 1000);"></a>
+     <a href="#"><img name="thumb1" id="thumb1" src="image.png?i=1" width=128 onclick="document.getElementById('main').src = 'image.png?i=1?t='+(Math.random() * 1000);"></a>
+     <a href="#"><img name="thumb2" id="thumb2" src="image.png?i=2" width=128 onclick="document.getElementById('main').src = 'image.png?i=2?t='+(Math.random() * 1000);"></a>
+     <a href="#"><img name="thumb3" id="thumb3" src="image.png?i=3" width=128 onclick="document.getElementById('main').src = 'image.png?i=3?t='+(Math.random() * 1000);"></a>
+     <a href="#"><img name="thumb4" id="thumb4" src="image.png?i=4" width=128 onclick="document.getElementById('main').src = 'image.png?i=4?t='+(Math.random() * 1000);"></a>
    </center>
   </td>
 </tr>
