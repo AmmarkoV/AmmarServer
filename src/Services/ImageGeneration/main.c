@@ -82,6 +82,22 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+void filterQuery(char * query)
+{
+    int len = strlen(query);
+
+    for (int i=0; i<len; i++)
+    {
+       if ( (query[i]>='a')  && (query[i]<='z') ) { } else
+       if ( (query[i]>='A')  && (query[i]<='Z') ) { } else
+       if ( (query[i]>='0')  && (query[i]<='9') ) { } else
+          {
+            query[i]=' ';
+          }
+    }
+}
+
+
 //This function prepares the content of  stats context , ( stats.content )
 void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -94,6 +110,9 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
         if ( _GETcpy(rqst,"query",query,MAX_QUERY_SIZE) )
         {
             fprintf(stderr,"\n\n\n\n\n\nQUERY : %s \n\n\n\n\n\n\n",query);
+            filterQuery(query);
+            fprintf(stderr,"\n\n\n\n\n\nQUERY : %s \n\n\n\n\n\n\n",query);
+
 
             char fullCommand[MAX_QUERY_SIZE+1024]={0};
             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"rm %s/*.png",IMAGE_DIRECTORY);
