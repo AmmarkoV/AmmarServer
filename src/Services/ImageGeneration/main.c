@@ -82,7 +82,6 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
 
     if  (_GETexists(rqst,"query"))
     {
-
         char query[MAX_QUERY_SIZE]= {0};
         if ( _GETcpy(rqst,"query",query,MAX_QUERY_SIZE) )
         {

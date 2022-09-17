@@ -77,6 +77,7 @@ ENDIF (USE_AMMMESSAGES)
     add_subdirectory (src/Services/HabChan) 
     add_subdirectory (src/Services/WebFramebuffer)
     add_subdirectory (src/Services/V4L2ToHTTP)
+    add_subdirectory (src/Services/ImageGeneration)
 
     #Parts of the AmmBus project..
     add_subdirectory (src/Services/AmmBus)
