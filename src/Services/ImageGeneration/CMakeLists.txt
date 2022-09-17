@@ -4,7 +4,7 @@
 #
 # ---------------------------------------------------------------------------------------------------------- #
 #
-project( ammarserver ) 
+project( imagegeneration ) 
 cmake_minimum_required( VERSION 2.8.7 )
 
 #Server applications need all the protection we can get..!
@@ -17,19 +17,19 @@ ENDIF(DO_TEST_COVERAGE)
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(ammarserver main.c ) 
-target_link_libraries(ammarserver pthread rt AmmarServerDynamic )
-#set_target_properties(ammarserver PROPERTIES DEBUG_POSTFIX "D")
-add_dependencies(ammarserver AmmarServer)  
+add_executable(imagegeneration main.c ) 
+target_link_libraries(imagegeneration pthread rt AmmarServerDynamic )
+#set_target_properties(imagegeneration PROPERTIES DEBUG_POSTFIX "D")
+add_dependencies(imagegeneration AmmarServer)  
        
 
-    set_target_properties(ammarserver PROPERTIES 
+    set_target_properties(imagegeneration PROPERTIES 
                           #DEBUG_POSTFIX ""
                           ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                          )
-#    install(TARGETS AmmarServer
+#    install(TARGETS imagegeneration
 #                    LIBRARY DESTINATION lib
 #                    ARCHIVE DESTINATION lib
 #                    RUNTIME DESTINATION bin)
