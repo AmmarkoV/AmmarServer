@@ -37,16 +37,24 @@ char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
 //------------------------------------------------
-struct AmmServer_RH_Context indexPageContext= {0};
-struct AmmServer_RH_Context imageContext= {0};
-struct AmmServer_RH_Context form= {0};
+struct AmmServer_RH_Context indexPageContext = {0};
+struct AmmServer_RH_Context loadingGIFContext = {0};
+struct AmmServer_RH_Context imageContext = {0};
+struct AmmServer_RH_Context form = {0};
 //------------------------------------------------
 struct AmmServer_MemoryHandler * indexPage=0;
+struct AmmServer_MemoryHandler * loadingGif=0;
 struct AmmServer_MemoryHandler * loadingImage=0;
 struct AmmServer_MemoryHandler * imageFile[MAX_IMAGES_CONCURRENTLY]={0};
 //------------------------------------------------
 struct AmmServer_Instance  * default_server=0;
 
+
+void * loadingGIFContent(struct AmmServer_DynamicRequest  * rqst)
+{
+    AmmServer_DynamicRequestReturnMemoryHandler(rqst,loadingGif);
+    return 0;
+}
 
 void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -113,12 +121,15 @@ void init_dynamic_content()
 {
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+    AmmServer_AddResourceHandler(default_server,&loadingGIFContext,"/loading.gif",644096,0,&loadingGIFContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&form,"/go",4096,0,&generateImagesBasedOnQuery,SAME_PAGE_FOR_ALL_CLIENTS);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&imageContext,"/image.png",1024000,0,&prepare_image_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     indexPage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/generation.html");
     loadingImage = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/1.png");
+    loadingGif   = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.gif");
+
     if (indexPage==0)
     {
         AmmServer_Error("Could not find Index Page file");

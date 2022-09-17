@@ -13,7 +13,7 @@
   <td>
    <center>
      <img name="main" id="main" src="loading.gif" width=512 ><br>
-     <form action="go" method="get">
+     <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';">
       <input type="text" id="query" name="query" width=512><br>
      </form> 
    </center>
@@ -22,6 +22,7 @@
 <tr>
   <td>
    <center>
+     <a href="#"><img name="thumb1" src="image.png?i=0" width=128 onclick="document.getElementById('main').src = 'image.png?i=0';"></a>
      <a href="#"><img name="thumb1" src="image.png?i=1" width=128 onclick="document.getElementById('main').src = 'image.png?i=1';"></a>
      <a href="#"><img name="thumb2" src="image.png?i=2" width=128 onclick="document.getElementById('main').src = 'image.png?i=2';"></a>
      <a href="#"><img name="thumb3" src="image.png?i=3" width=128 onclick="document.getElementById('main').src = 'image.png?i=3';"></a>
