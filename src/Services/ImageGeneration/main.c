@@ -30,7 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define MAX_QUERY_SIZE 4096
 #define MAX_IMAGES_CONCURRENTLY 5
 
-#define IMAGE_DIRECTORY "~/workspace/outputs/txt2img-samples/samples/"
+#define IMAGE_DIRECTORY "/home/user/workspace/outputs/txt2img-samples/samples/"
 #define WEBSERVERROOT "public_html/"
 char webserver_root[MAX_FILE_PATH]=WEBSERVERROOT; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -94,7 +94,7 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
             fprintf(stderr,"Response : %u \n",i);
 
 
-            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"~/workspace/tex2img.sh \"%s\"",query);
+            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/tex2img.sh \"%s\"",query);
             i=system(fullCommand);
             fprintf(stderr,"Executed : %s \n",fullCommand);
             fprintf(stderr,"Response : %u \n",i);
