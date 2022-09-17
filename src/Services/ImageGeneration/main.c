@@ -59,10 +59,11 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
          snprintf(filename,512,"%s/%05u.png",IMAGE_DIRECTORY,imageChannel);
          imageFile[imageChannel] = AmmServer_ReadFileToMemoryHandler(filename);
          AmmServer_DynamicRequestReturnMemoryHandler(rqst,imageFile[imageChannel]);
+         return 0;
         }
-
     }
-    //AmmServer_DynamicRequestReturnMemoryHandler(rqst,indexPage);
+
+    AmmServer_DynamicRequestReturnMemoryHandler(rqst,loadingImage);
     return 0;
 }
 
@@ -123,11 +124,7 @@ void init_dynamic_content()
     }
 
     //fresh.txt will always be served fresh
-    AmmServer_DoNOTCacheResource(default_server,"1.png");
-    AmmServer_DoNOTCacheResource(default_server,"2.png");
-    AmmServer_DoNOTCacheResource(default_server,"3.png");
-    AmmServer_DoNOTCacheResource(default_server,"4.png");
-    AmmServer_DoNOTCacheResource(default_server,"5.png");
+    AmmServer_DoNOTCacheResource(default_server,"image.png");
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
