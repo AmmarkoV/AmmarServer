@@ -28,9 +28,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DYNAMIC_PAGES_MEMORY_COMMITED 4096
 #define MAX_QUERY_SIZE 4096
+#define MAX_IMAGES_CONCURRENTLY 5
 
-char admin_root[MAX_FILE_PATH]="admin_html/"; // <- change this to the directory that contains your content if you dont want to use the default admin_html dir..
-
+#define IMAGE_DIRECTORY "workspace/outputs/txt2img-samples/samples/"
 #define WEBSERVERROOT "public_html/"
 char webserver_root[MAX_FILE_PATH]=WEBSERVERROOT; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
@@ -42,12 +42,26 @@ struct AmmServer_RH_Context imageContext= {0};
 struct AmmServer_RH_Context form= {0};
 //------------------------------------------------
 struct AmmServer_MemoryHandler * indexPage=0;
+struct AmmServer_MemoryHandler * loadingImage=0;
+struct AmmServer_MemoryHandler * imageFile[MAX_IMAGES_CONCURRENTLY]={0};
 //------------------------------------------------
 struct AmmServer_Instance  * default_server=0;
 
 
 void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+    if (_GETexists(rqst,"i"))
+    {
+        int imageChannel = _GETuint(rqst,"i");
+        if ( (imageChannel>=0) && (imageChannel<MAX_IMAGES_CONCURRENTLY) )
+        {
+         char filename[512]={0};
+         snprintf(filename,512,"%s/%05u.png",IMAGE_DIRECTORY,imageChannel);
+         imageFile[imageChannel] = AmmServer_ReadFileToMemoryHandler(filename);
+         AmmServer_DynamicRequestReturnMemoryHandler(rqst,imageFile[imageChannel]);
+        }
+
+    }
     //AmmServer_DynamicRequestReturnMemoryHandler(rqst,indexPage);
     return 0;
 }
@@ -66,8 +80,8 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
     memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
 
     if  (
-        _GETexists(rqst,"query")
-    )
+         _GETexists(rqst,"query")
+        )
     {
         char query[MAX_QUERY_SIZE]= {0};
         if ( _GETcpy(rqst,"query",query,MAX_QUERY_SIZE) )
@@ -75,10 +89,8 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
             fprintf(stderr,"\n\n\n\n\n\nQUERY : %s \n\n\n\n\n\n\n",query);
         }
     }
-    else
-    {
-        strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Could not find a name to go to .. </body></html>",rqst->MAXcontentSize);
-    }
+
+    strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Refresh</body></html>",rqst->MAXcontentSize);
 
     rqst->contentSize=strlen(rqst->content);
     return 0;
@@ -94,13 +106,21 @@ void init_dynamic_content()
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&imageContext,"/image.png",1024000,0,&prepare_image_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
     //--------------------------------------------------------------------------------------------------------------------------------------------
-    indexPage=AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/generation.html");
+    indexPage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/generation.html");
+    loadingImage = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/1.png");
     if (indexPage==0)
     {
         AmmServer_Error("Could not find Index Page file");
         exit(0);
     }
     //--------------------------------------------------------------------------------------------------------------------------------------------
+
+    for (int i=0; i<MAX_IMAGES_CONCURRENTLY; i++)
+    {
+        char filename[512]={0};
+        snprintf(filename,512,"src/Services/ImageGeneration/%u.png",i);
+        imageFile[i] = AmmServer_ReadFileToMemoryHandler(filename);
+    }
 
     //fresh.txt will always be served fresh
     AmmServer_DoNOTCacheResource(default_server,"1.png");
