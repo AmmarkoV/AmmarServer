@@ -30,7 +30,11 @@ body {
 
      document.getElementById('main').src = 'image.png?i=0?t='+(Math.random() * 1000);
    } 
-
+ function clickPress(e){
+    if (event.keyCode == 13) 
+     {
+      document.getElementById('main').src = 'loading.gif';
+     }
   function considerLoaded()
   {
      makeUniqueURLs();
@@ -52,7 +56,7 @@ body {
        </td>
        <td>
         <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';">
-         <input type="text" id="query" name="query" width=512>  
+         <input type="text" id="query" name="query" width=512 onkeypress="clickPress(event)">  
          <input type="submit" value="Generate"> <br>
          </form>
       </td>
