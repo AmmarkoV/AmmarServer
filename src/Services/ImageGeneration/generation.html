@@ -18,9 +18,12 @@ body {
   height: 100vh;
   margin: 0;
 }
+p { 
+   color: #FFFFFF; 
+  }
 </style>
 <script type="text/javascript">
-var timeleft = 65;
+var timeleft = 125;
 
 // global variables for reference
 var downloadTimer;
@@ -30,9 +33,10 @@ function startInterval() {  // everything inside this function that is called wi
     document.getElementById("countdown").innerHTML = timeleft + "&nbsp"+"seconds remaining";
 
     timeleft -= 1;
-    if(timeleft <= 0){
+    if(timeleft <= 0)
+    {
       clearInterval(downloadTimer);
-      document.getElementById("countdown").innerHTML = "Time is up!"
+      document.getElementById("countdown").innerHTML = "Retrieving new images!"
     }
   }, 1000);
 } 
