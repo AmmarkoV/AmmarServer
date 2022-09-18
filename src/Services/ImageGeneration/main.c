@@ -70,7 +70,7 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
         int imageChannel = _GETuint(rqst,"i");
         if ( (imageChannel>=0) && (imageChannel<MAX_IMAGES_CONCURRENTLY) )
         {
-         AmmServer_FreeMemoryHandler(&imageFile[imageChannel]);
+         AmmServer_FreeMemoryHandler(imageFile[imageChannel]);
          char filename[512]={0};
          snprintf(filename,512,"%s/%05u.png",IMAGE_DIRECTORY,imageChannel);
          imageFile[imageChannel] = AmmServer_ReadFileToMemoryHandler(filename);
@@ -138,7 +138,7 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
             if (i!=0)
             {
                 //SERVER IS BUSY
-                strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"15;URL='index.html'\"></head><body>Server is Busy, Please Wait</body></html>",rqst->MAXcontentSize);
+                snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\"></head><body>Server is Busy, Please Wait, then try again</body></html>");
                 rqst->contentSize=strlen(rqst->content);
                 return 0;
             }
@@ -146,8 +146,7 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
         }
     }
 
-    strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Refresh</body></html>",rqst->MAXcontentSize);
-
+    snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Refresh</body></html>");
     rqst->contentSize=strlen(rqst->content);
     return 0;
 }
