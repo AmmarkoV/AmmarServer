@@ -63,7 +63,7 @@ body {
        </td>
        <td>
         <form action="go" method="get" onsubmit="loading();">
-         <input type="text" id="query" name="query" width=512 onkeypress="clickPress(event)">  
+         <input type="text" id="query" name="query" width=512 onkeypress="if(event.key === 'Enter') { loading(); }" placeholder="Enter your prompt here.">  
          <input type="submit" value="Generate"> <br>
          </form>
       </td>
