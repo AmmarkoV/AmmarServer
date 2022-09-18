@@ -30,11 +30,16 @@ body {
 
      document.getElementById('main').src = 'image.png?i=0?t='+(Math.random() * 1000);
    } 
+ function loading()
+ {
+  document.getElementById('main').src = 'loading.gif'; 
+  return true;
+ }
  function clickPress(event)
  {
     if (event.keyCode == 13) 
      {
-      document.getElementById('main').src = 'loading.gif';
+       loading();
      }
   }
   function considerLoaded()
@@ -57,7 +62,7 @@ body {
         <button onclick="document.getElementById('query').value = ''">Clear</button>
        </td>
        <td>
-        <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';">
+        <form action="go" method="get" onsubmit="loading();">
          <input type="text" id="query" name="query" width=512 onkeypress="clickPress(event)">  
          <input type="submit" value="Generate"> <br>
          </form>
