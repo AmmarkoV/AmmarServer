@@ -124,17 +124,14 @@ void filterQuery(char * query)
 //This function prepares the content of  stats context , ( stats.content )
 void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
 {
-    //The url , to Long , Short eetc conventions are shit.. :P I should really make them better :p
-    memset(rqst->content,0,DYNAMIC_PAGES_MEMORY_COMMITED);
-
-    if  (_GETexists(rqst,"query"))
+  if  (_GETexists(rqst,"query"))
     {
         char query[MAX_QUERY_SIZE]= {0};
         if ( _GETcpy(rqst,"query",query,MAX_QUERY_SIZE) )
         {
-            fprintf(stderr,"\n\n\n\n\n\nQUERY : %s \n\n\n\n\n\n\n",query);
+            fprintf(stderr,"\n\n\n\n\n\nQUERY HTTP: %s \n\n\n\n\n\n\n",query);
             filterQuery(query);
-            fprintf(stderr,"\n\n\n\n\n\nQUERY : %s \n\n\n\n\n\n\n",query);
+            fprintf(stderr,"\n\n\n\n\n\nQUERY ASCII: %s \n\n\n\n\n\n\n",query);
 
             char fullCommand[MAX_QUERY_SIZE+1024]={0};
             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/tex2imgOnlyOnce.sh \"%s\"",query);
@@ -145,14 +142,14 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
             if (i!=0)
             {
                 //SERVER IS BUSY
-                snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"5;URL='index.html'\"></head><body>Server is Busy, Please Wait, then try again</body></html>");
+                snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"15;URL='index.html'\"></head><body>Server is Busy, Please Wait, then try again</body></html>");
                 rqst->contentSize=strlen(rqst->content);
                 return 0;
             }
 
         }
     }
-
+    //SERVER EXECUTED REQUEST SUCCESSFULLY
     snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Refresh</body></html>");
     rqst->contentSize=strlen(rqst->content);
     return 0;
@@ -163,35 +160,35 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
 void init_dynamic_content()
 {
     //--------------------------------------------------------------------------------------------------------------------------------------------
-    AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+    AmmServer_AddResourceHandler(default_server,&indexPageContext ,"/index.html",16000,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingGIFContext,"/loading.gif",644096,0,&loadingGIFContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingPNGContext,"/loading.png",644096,0,&loadingPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
-    AmmServer_AddResourceHandler(default_server,&logoPNGContext,"/logod.png",644096,0,&logoPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
-    AmmServer_AddResourceHandler(default_server,&form,"/go",4096,0,&generateImagesBasedOnQuery,SAME_PAGE_FOR_ALL_CLIENTS);
+    AmmServer_AddResourceHandler(default_server,&logoPNGContext   ,"/logod.png",644096,0,&logoPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
     //--------------------------------------------------------------------------------------------------------------------------------------------
-    AmmServer_AddResourceHandler(default_server,&imageContext,"/image.png",1024000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+    AmmServer_AddResourceHandler(default_server,&form             ,"/go",4096,0,&generateImagesBasedOnQuery,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+    //--------------------------------------------------------------------------------------------------------------------------------------------
+    AmmServer_AddResourceHandler(default_server,&imageContext     ,"/image.png",1024000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     indexPage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/generation.html");
     loadingImage = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.png");
     loadingGif   = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.gif");
     logoImage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/logod.png");
     //--------------------------------------------------------------------------------------------------------------------------------------------
-
-    if (indexPage==0)
+    if ( (indexPage==0) || (loadingImage==0) || (loadingGif==0) || (logoImage==0)  )
     {
-        AmmServer_Error("Could not find Index Page file");
+        AmmServer_Error("Could not find required files on disk");
         exit(0);
     }
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
+    char filename[512]={0};
     for (int i=0; i<MAX_IMAGES_CONCURRENTLY; i++)
     {
-        char filename[512]={0};
         snprintf(filename,512,"src/Services/ImageGeneration/%u.png",i);
         imageFile[i] = AmmServer_ReadFileToMemoryHandler(filename);
     }
 
-    //fresh.txt will always be served fresh
+    //Always be served fresh
     AmmServer_DoNOTCacheResource(default_server,"image.png");
 }
 
@@ -199,6 +196,21 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&form,1);
+    AmmServer_RemoveResourceHandler(default_server,&imageContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&logoPNGContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&loadingPNGContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&loadingGIFContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&indexPageContext,1);
+    //--------------------------------------------------------------------------------------------------------------------------------------------
+    AmmServer_FreeMemoryHandler(&indexPage);
+    AmmServer_FreeMemoryHandler(&loadingImage);
+    AmmServer_FreeMemoryHandler(&loadingGif);
+    AmmServer_FreeMemoryHandler(&logoImage);
+    for (int i=0; i<MAX_IMAGES_CONCURRENTLY; i++)
+    {
+     AmmServer_FreeMemoryHandler(&imageFile[i]);
+    }
+    //--------------------------------------------------------------------------------------------------------------------------------------------
 }
 /*! Dynamic content code ..! END ------------------------*/
 

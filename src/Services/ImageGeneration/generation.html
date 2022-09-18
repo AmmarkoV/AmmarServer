@@ -16,11 +16,13 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  width:600;
   margin: 0;
 }
-p { 
-   color: #FFFFFF; 
-  }
+button { font-size: 1.2em; }
+input  { font-size: 1.2em; }
+h3     { color: #FFFFFF;   }
+p      { font-size: 1.2em; color: #FFFFFF;   }
 </style>
 <script type="text/javascript">
 var timeleft = 125;
@@ -30,13 +32,13 @@ var downloadTimer;
 
 function startInterval() {  // everything inside this function that is called with click on button
   downloadTimer = setInterval(function function1(){
-    document.getElementById("countdown").innerHTML = Number(timeleft/2) + "&nbsp"+"s remaining";
+    document.getElementById("countdown").innerHTML = "<br>"+Number(timeleft/2) + "&nbsp"+"s remaining";
 
     timeleft -= 1;
     if(timeleft <= 0)
     {
       clearInterval(downloadTimer);
-      document.getElementById("countdown").innerHTML = "Retrieving new images!"
+      document.getElementById("countdown").innerHTML = "<br>Retrieving new images!"
     }
   }, 1000);
 } 
@@ -77,11 +79,12 @@ function startInterval() {  // everything inside this function that is called wi
 
 <table>
 <tr> 
+  <td>
     <center>
-      <td>
-        <img src="logod.png">
-      </td>
-     </center>
+      <img src="logod.png">
+        <h3>Neural Network Image Generation Demo</h3>
+    </center>
+  </td>   
 </tr>
 <tr>
   <td>
