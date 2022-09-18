@@ -30,7 +30,7 @@ var downloadTimer;
 
 function startInterval() {  // everything inside this function that is called with click on button
   downloadTimer = setInterval(function function1(){
-    document.getElementById("countdown").innerHTML = timeleft + "&nbsp"+"s remaining";
+    document.getElementById("countdown").innerHTML = (timeleft/2) + "&nbsp"+"s remaining";
 
     timeleft -= 1;
     if(timeleft <= 0)
