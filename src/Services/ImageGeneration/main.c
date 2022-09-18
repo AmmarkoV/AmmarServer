@@ -70,7 +70,7 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
         int imageChannel = _GETuint(rqst,"i");
         if ( (imageChannel>=0) && (imageChannel<MAX_IMAGES_CONCURRENTLY) )
         {
-         AmmServer_FreeMemoryHandler(imageFile[imageChannel]);
+         AmmServer_FreeMemoryHandler(&imageFile[imageChannel]);
          char filename[512]={0};
          snprintf(filename,512,"%s/%05u.png",IMAGE_DIRECTORY,imageChannel);
          imageFile[imageChannel] = AmmServer_ReadFileToMemoryHandler(filename);

@@ -990,7 +990,11 @@ int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh)
   if (*mh==0) { return 0; }
 
   struct AmmServer_MemoryHandler * tmp = *mh;
-  free(tmp->content);
+  if (tmp->content!=0) 
+   { 
+    free(tmp->content);
+    tmp->content=0;
+   }
   free(*mh);
   return 0;
 }
