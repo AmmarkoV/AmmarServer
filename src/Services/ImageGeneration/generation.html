@@ -30,7 +30,7 @@ var downloadTimer;
 
 function startInterval() {  // everything inside this function that is called with click on button
   downloadTimer = setInterval(function function1(){
-    document.getElementById("countdown").innerHTML = (timeleft/2) + "&nbsp"+"s remaining";
+    document.getElementById("countdown").innerHTML = (timeleft/2) + "s remaining";
 
     timeleft -= 1;
     if(timeleft <= 0)
@@ -49,6 +49,7 @@ function startInterval() {  // everything inside this function that is called wi
      } 
 
      document.getElementById('main').src = 'image.png?i=0?t='+(Math.random() * 1000);
+     document.getElementById('t').value = ''+(Math.random() * 1000);
    } 
  function loading()
  {
@@ -93,6 +94,7 @@ function startInterval() {  // everything inside this function that is called wi
        </td>
        <td>
         <form action="go" method="get" onsubmit="loading();">
+         <input type="hidden" id="t" name="t" value="0">
          <input type="text" id="query" name="query" width=512 onkeypress="if(event.key === 'Enter') { loading(); }" placeholder="Enter your prompt here.">  
          <input type="submit" value="Generate"> <br>
          </form>
