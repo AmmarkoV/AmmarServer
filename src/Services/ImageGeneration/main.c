@@ -166,7 +166,7 @@ void init_dynamic_content()
     AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingGIFContext,"/loading.gif",644096,0,&loadingGIFContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingPNGContext,"/loading.png",644096,0,&loadingPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
-    AmmServer_AddResourceHandler(default_server,&logoPNGContext,"/logo.png",644096,0,&logoPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
+    AmmServer_AddResourceHandler(default_server,&logoPNGContext,"/logod.png",644096,0,&logoPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&form,"/go",4096,0,&generateImagesBasedOnQuery,SAME_PAGE_FOR_ALL_CLIENTS);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&imageContext,"/image.png",1024000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
