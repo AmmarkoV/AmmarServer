@@ -130,7 +130,7 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
             fprintf(stderr,"Response : %u \n",i);
 
 
-            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/tex2img.sh \"%s\"",query);
+            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/tex2imgOnlyOnce.sh \"%s\"",query);
             i=system(fullCommand);
             fprintf(stderr,"Executed : %s \n",fullCommand);
             fprintf(stderr,"Response : %u \n",i);
@@ -155,7 +155,7 @@ void init_dynamic_content()
     AmmServer_AddResourceHandler(default_server,&imageContext,"/image.png",1024000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     indexPage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/generation.html");
-    loadingImage = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/1.png");
+    loadingImage = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.png");
     loadingGif   = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.gif");
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
