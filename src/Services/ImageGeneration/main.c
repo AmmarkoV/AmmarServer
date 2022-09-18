@@ -88,6 +88,8 @@ void filterQuery(char * query)
 
     for (int i=0; i<len; i++)
     {
+       if ( (query[i]=='.')  || (query[i]==',') ) { } else
+       if ( (query[i]=='(')  || (query[i]==')') ) { } else
        if ( (query[i]>='a')  && (query[i]<='z') ) { } else
        if ( (query[i]>='A')  && (query[i]<='Z') ) { } else
        if ( (query[i]>='0')  && (query[i]<='9') ) { } else

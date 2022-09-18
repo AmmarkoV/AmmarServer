@@ -4,6 +4,21 @@
 <meta charset="utf-8">
 <meta content="Generation Diffusion" name="title">
 <title>Image Generation Diffusion</title>
+<style>
+.container {
+  height: 800px;
+  position: relative;
+}
+
+.center {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+</style>
 <script type="text/javascript">
    function makeUniqueURLs()
    {
@@ -24,16 +39,26 @@
 </script>
 </head>
 <body bgcolor="#333333" onload="makeUniqueURLs();">
-<br><br><br>
-<center>
+<div class="container">
+  <div class="center">
 <table>
 <tr>
   <td>
    <center>
      <img name="main" id="main" src="image.png?i=0" width=512 ><br>
-     <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';">
-      <input type="text" id="query" name="query" width=512>  <input type="submit" value="Generate"> <br>
-     </form> 
+     <table>
+      <tr> 
+       <td>
+        <button onclick="document.getElementById('query').value = ''">Clear</button>
+       </td>
+       <td>
+        <form action="go" method="get" onsubmit="document.getElementById('main').src = 'loading.gif';">
+         <input type="text" id="query" name="query" width=512>  
+         <input type="submit" value="Generate"> <br>
+         </form>
+      </td>
+     </tr>
+    </table> 
    </center>
   </td>
 </tr>
@@ -49,6 +74,7 @@
   </td>
 </tr>
 </table>
-</center>
+</div>
+</div>
 </body>
 </html>
