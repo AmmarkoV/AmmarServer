@@ -20,6 +20,22 @@ body {
 }
 </style>
 <script type="text/javascript">
+var timeleft = 65;
+
+// global variables for reference
+var downloadTimer;
+
+function startInterval() {  // everything inside this function that is called with click on button
+  downloadTimer = setInterval(function function1(){
+    document.getElementById("countdown").innerHTML = timeleft + "&nbsp"+"seconds remaining";
+
+    timeleft -= 1;
+    if(timeleft <= 0){
+      clearInterval(downloadTimer);
+      document.getElementById("countdown").innerHTML = "Time is up!"
+    }
+  }, 1000);
+} 
    function makeUniqueURLs()
    {
      i=4
@@ -32,6 +48,7 @@ body {
    } 
  function loading()
  {
+  startInterval();
   document.getElementById('main').src = 'loading.gif'; 
   return true;
  }
@@ -51,6 +68,8 @@ body {
 </head>
 <body bgcolor="#333333" onload="makeUniqueURLs();">
   <div class="center">
+
+
 <table>
 <tr>
   <td>
@@ -66,6 +85,9 @@ body {
          <input type="text" id="query" name="query" width=512 onkeypress="if(event.key === 'Enter') { loading(); }" placeholder="Enter your prompt here.">  
          <input type="submit" value="Generate"> <br>
          </form>
+      </td>
+      <td>
+        <p id="countdown"></p>
       </td>
      </tr>
     </table> 
