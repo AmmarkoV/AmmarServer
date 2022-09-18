@@ -30,11 +30,13 @@ body {
 
      document.getElementById('main').src = 'image.png?i=0?t='+(Math.random() * 1000);
    } 
- function clickPress(event){
+ function clickPress(event)
+ {
     if (event.keyCode == 13) 
      {
       document.getElementById('main').src = 'loading.gif';
      }
+  }
   function considerLoaded()
   {
      makeUniqueURLs();
