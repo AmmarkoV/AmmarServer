@@ -174,7 +174,7 @@ void init_dynamic_content()
     indexPage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/generation.html");
     loadingImage = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.png");
     loadingGif   = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.gif");
-    logoImage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/logo.png");
+    logoImage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/logod.png");
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
     if (indexPage==0)
