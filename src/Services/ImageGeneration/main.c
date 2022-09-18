@@ -28,7 +28,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DYNAMIC_PAGES_MEMORY_COMMITED 4096
 #define MAX_QUERY_SIZE 4096
-#define MAX_IMAGES_CONCURRENTLY 5
+#define MAX_IMAGES_CONCURRENTLY 4
 
 #define IMAGE_DIRECTORY "/home/user/workspace/outputs/txt2img-samples/samples/"
 #define WEBSERVERROOT "public_html/"
@@ -36,9 +36,11 @@ char webserver_root[MAX_FILE_PATH]=WEBSERVERROOT; // <- change this to the direc
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
 
+struct AmmServer_Instance  * default_server=0;
 //------------------------------------------------
 struct AmmServer_RH_Context indexPageContext = {0};
 struct AmmServer_RH_Context loadingGIFContext = {0};
+struct AmmServer_RH_Context loadingPNGContext = {0};
 struct AmmServer_RH_Context imageContext = {0};
 struct AmmServer_RH_Context form = {0};
 //------------------------------------------------
@@ -47,8 +49,13 @@ struct AmmServer_MemoryHandler * loadingGif=0;
 struct AmmServer_MemoryHandler * loadingImage=0;
 struct AmmServer_MemoryHandler * imageFile[MAX_IMAGES_CONCURRENTLY]={0};
 //------------------------------------------------
-struct AmmServer_Instance  * default_server=0;
 
+
+void * loadingPNGContent(struct AmmServer_DynamicRequest  * rqst)
+{
+    AmmServer_DynamicRequestReturnMemoryHandler(rqst,loadingImage);
+    return 0;
+}
 
 void * loadingGIFContent(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -122,18 +129,20 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
             filterQuery(query);
             fprintf(stderr,"\n\n\n\n\n\nQUERY : %s \n\n\n\n\n\n\n",query);
 
-
             char fullCommand[MAX_QUERY_SIZE+1024]={0};
-            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"rm %s/*.png",IMAGE_DIRECTORY);
+            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/tex2imgOnlyOnce.sh \"%s\"",query);
             int i=system(fullCommand);
             fprintf(stderr,"Executed : %s \n",fullCommand);
             fprintf(stderr,"Response : %u \n",i);
 
+            if (i!=0)
+            {
+                //SERVER IS BUSY
+                strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"15;URL='index.html'\"></head><body>Server is Busy, Please Wait</body></html>",rqst->MAXcontentSize);
+                rqst->contentSize=strlen(rqst->content);
+                return 0;
+            }
 
-            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/tex2imgOnlyOnce.sh \"%s\"",query);
-            i=system(fullCommand);
-            fprintf(stderr,"Executed : %s \n",fullCommand);
-            fprintf(stderr,"Response : %u \n",i);
         }
     }
 
@@ -150,6 +159,7 @@ void init_dynamic_content()
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingGIFContext,"/loading.gif",644096,0,&loadingGIFContent,SAME_PAGE_FOR_ALL_CLIENTS);
+    AmmServer_AddResourceHandler(default_server,&loadingPNGContext,"/loading.png",644096,0,&loadingPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&form,"/go",4096,0,&generateImagesBasedOnQuery,SAME_PAGE_FOR_ALL_CLIENTS);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&imageContext,"/image.png",1024000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
