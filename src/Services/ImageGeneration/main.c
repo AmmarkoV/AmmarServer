@@ -41,15 +41,22 @@ struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RH_Context indexPageContext = {0};
 struct AmmServer_RH_Context loadingGIFContext = {0};
 struct AmmServer_RH_Context loadingPNGContext = {0};
+struct AmmServer_RH_Context logoPNGContext = {0};
 struct AmmServer_RH_Context imageContext = {0};
 struct AmmServer_RH_Context form = {0};
 //------------------------------------------------
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * loadingGif=0;
 struct AmmServer_MemoryHandler * loadingImage=0;
+struct AmmServer_MemoryHandler * logoImage=0;
 struct AmmServer_MemoryHandler * imageFile[MAX_IMAGES_CONCURRENTLY]={0};
 //------------------------------------------------
 
+void * logoPNGContent(struct AmmServer_DynamicRequest  * rqst)
+{
+    AmmServer_DynamicRequestReturnMemoryHandler(rqst,logoImage);
+    return 0;
+}
 
 void * loadingPNGContent(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -159,6 +166,7 @@ void init_dynamic_content()
     AmmServer_AddResourceHandler(default_server,&indexPageContext,"/index.html",4096,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingGIFContext,"/loading.gif",644096,0,&loadingGIFContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingPNGContext,"/loading.png",644096,0,&loadingPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
+    AmmServer_AddResourceHandler(default_server,&logoPNGContext,"/logo.png",644096,0,&logoPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&form,"/go",4096,0,&generateImagesBasedOnQuery,SAME_PAGE_FOR_ALL_CLIENTS);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&imageContext,"/image.png",1024000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
@@ -166,6 +174,7 @@ void init_dynamic_content()
     indexPage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/generation.html");
     loadingImage = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.png");
     loadingGif   = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.gif");
+    logoImage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/logo.png");
     //--------------------------------------------------------------------------------------------------------------------------------------------
 
     if (indexPage==0)
