@@ -31,6 +31,25 @@ var timeleft = 125;
 // global variables for reference
 var downloadTimer;
 
+function reloadThumbs()
+   {
+     i=4
+     while (i--) 
+     {
+       document.getElementById('thumb'+i).src = 'image.png?i='+i+'?t='+(Math.random() * 1000);
+     } 
+   } 
+
+
+const interval = setInterval(function() {
+   // method to be executed;
+   reloadThumbs();
+   //clearInterval(interval); // To Stop
+ }, 60000);
+
+
+
+
 function startInterval() {  // everything inside this function that is called with click on button
   downloadTimer = setInterval(function function1(){
     document.getElementById("countdown").innerHTML = "<br>"+Number(timeleft/2) + "&nbsp"+"s remaining";
@@ -39,11 +58,14 @@ function startInterval() {  // everything inside this function that is called wi
     if(timeleft <= 0)
     {
       clearInterval(downloadTimer);
-      document.getElementById("countdown").innerHTML = "<br>Retrieving new images!"
+      document.getElementById("countdown").innerHTML = "<br>Retrieving Images!"
     }
   }, 1000);
 } 
-   function makeUniqueURLs()
+
+
+
+function makeUniqueURLs()
    {
      i=4
      while (i--) 
