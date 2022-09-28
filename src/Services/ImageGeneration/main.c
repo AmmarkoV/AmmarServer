@@ -273,6 +273,7 @@ void init_dynamic_content()
 void close_dynamic_content()
 {
     AmmServer_RemoveResourceHandler(default_server,&form,1);
+    AmmServer_RemoveResourceHandler(default_server,&sendMailContext,1);
     AmmServer_RemoveResourceHandler(default_server,&imageContext,1);
     AmmServer_RemoveResourceHandler(default_server,&logoPNGContext,1);
     AmmServer_RemoveResourceHandler(default_server,&loadingPNGContext,1);
