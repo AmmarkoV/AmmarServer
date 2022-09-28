@@ -35,6 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 char webserver_root[MAX_FILE_PATH]=WEBSERVERROOT; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
 char templates_root[MAX_FILE_PATH]="public_html/templates/";
 
+int DEACTIVATE_EMAIL =1;
 
 struct AmmServer_Instance  * default_server=0;
 //------------------------------------------------
@@ -51,6 +52,54 @@ struct AmmServer_MemoryHandler * loadingImage=0;
 struct AmmServer_MemoryHandler * logoImage=0;
 struct AmmServer_MemoryHandler * imageFile[MAX_IMAGES_CONCURRENTLY]={0};
 //------------------------------------------------
+
+
+int sendEmail(
+               const char * receipient,
+               const char * subject,
+               const char * message
+             )
+{
+   if  (
+        (strcmp(receipient,"local")==0) ||
+        (DEACTIVATE_EMAIL)
+       )
+   {
+      AmmServer_Error("----------------------------------------\n");
+      AmmServer_Error("----------------------------------------\n");
+      AmmServer_Error("----------------------------------------\n");
+      AmmServer_Error("----------------------------------------\n");
+      AmmServer_Error("            NOT SENDING MAIL \n");
+      AmmServer_Error(" Recpt  : %s \n" , receipient);
+      AmmServer_Error(" Subject  : %s \n" , subject);
+      AmmServer_Error(" Message  : %s \n" , message);
+      AmmServer_Error("----------------------------------------\n");
+      AmmServer_Error("----------------------------------------\n");
+      AmmServer_Error("----------------------------------------\n");
+      AmmServer_Error("----------------------------------------\n");
+   }
+  else
+  {
+   char messageBuffer[1024]={0};
+   char result[1024]={0};
+   snprintf(messageBuffer,1024,"printf \"Subject:%s\n\n%s\" | ssmtp -v %s",subject,message,receipient);
+   if (1)//filterStringForShellInjection(messageBuffer,512))
+   {
+    if ( AmmServer_ExecuteCommandLine(messageBuffer,result,512) )
+    {
+     fprintf(stderr,"Successfully sent message to %s..\n",receipient);
+     return 1;
+    }
+   }
+
+   }
+
+//printf "Subject:Test Image\n\nCVRL -ICS -FORTH - 2022" | (cat - base64 && 00985.png )  | ssmtp -v ammarkov@gmail.com
+
+
+ AmmServer_Error("Failed to send message to %s..\n",receipient);
+ return 0;
+}
 
 void * logoPNGContent(struct AmmServer_DynamicRequest  * rqst)
 {
