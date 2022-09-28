@@ -47,7 +47,17 @@ const interval = setInterval(function() {
    //clearInterval(interval); // To Stop
  }, 60000);
 
+function hideEmailForm(){
+                          var element = document.getElementById("mailsender");
+                          element.style.display = "none";
+                          element.style.visibility = 'hidden';      // Hide
+                        }
 
+function showEmailForm(){
+                          var element = document.getElementById("mailsender");
+                          element.style.display = "block";
+                          element.style.visibility = 'visible'; 
+                        }
 
 
 function startInterval() {  // everything inside this function that is called with click on button
@@ -97,7 +107,7 @@ function makeUniqueURLs()
   }
 </script>
 </head>
-<body bgcolor="#333333" onload="makeUniqueURLs();">
+<body bgcolor="#333333" onload="makeUniqueURLs(); hideEmailForm();">
   <div class="center">
 
 
@@ -118,8 +128,8 @@ function makeUniqueURLs()
       <tr> 
        <td>
         <button onclick="document.getElementById('query').value = ''">Clear</button>
-         <a href="#" onclick="document.getElementById('mailsender').style.visibility='visible';">+</a>
-         <a href="#" onclick="document.getElementById('mailsender').style.visibility='invisible';">-</a>
+         <a href="#" onclick="showEmailForm();">+</a>
+         <a href="#" onclick="hideEmailForm();">-</a>
        </td>
        <td>
         <form action="go" method="get" onsubmit="loading();">
