@@ -45,6 +45,7 @@ struct AmmServer_RH_Context loadingPNGContext = {0};
 struct AmmServer_RH_Context logoPNGContext = {0};
 struct AmmServer_RH_Context imageContext = {0};
 struct AmmServer_RH_Context form = {0};
+struct AmmServer_RH_Context sendMailContext = {0};
 //------------------------------------------------
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * loadingGif=0;
@@ -163,6 +164,35 @@ void filterQuery(char * query)
     }
 }
 
+//This function prepares the content of  stats context , ( stats.content )
+void * sendMail(struct AmmServer_DynamicRequest  * rqst)
+{
+  if  ((_GETexists(rqst,"user")) && (_GETexists(rqst,"server") ) )
+    {
+        char user[MAX_QUERY_SIZE]   = {0};
+        char server[MAX_QUERY_SIZE] = {0};
+        if (
+             ( _GETcpy(rqst,"user",user,MAX_QUERY_SIZE) ) &&
+             ( _GETcpy(rqst,"server",server,MAX_QUERY_SIZE) )
+           )
+        {
+          filterQuery(user);
+          filterQuery(server);
+          sendEmail(
+                     user,
+                     server,
+                     "FORTH-ICS-CVRL Your AI Generated Images",
+                     "Σας ευχαριστούμε που μας επισκευθήκατε. \n\
+                      Σας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης. \n\
+                      FORTH-ICS-CVRL - 2022\n \n \n "
+                     );
+        }
+    }
+
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"0;URL='index.html'\"></head><body>Refresh</body></html>");
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
 
 //This function prepares the content of  stats context , ( stats.content )
 void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
@@ -201,32 +231,6 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
 
 
 
-//This function prepares the content of  stats context , ( stats.content )
-void * sendMail(struct AmmServer_DynamicRequest  * rqst)
-{
-  if  ((_GETexists(rqst,"user")) && (_GETexists(rqst,"server") ) )
-    {
-        char user[MAX_QUERY_SIZE]   = {0};
-        char server[MAX_QUERY_SIZE] = {0};
-        if (
-             ( _GETcpy(rqst,"user",user,MAX_QUERY_SIZE) ) &&
-             ( _GETcpy(rqst,"server",server,MAX_QUERY_SIZE) )
-           )
-        {
-          filterQuery(user);
-          filterQuery(server);
-          sendEmail(
-                     user,
-                     server,
-                     "FORTH-ICS-CVRL Your AI Generated Images",
-                     "Σας ευχαριστούμε που μας επισκευθήκατε. \n\
-                      Σας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης. \n\
-                      FORTH-ICS-CVRL - 2022\n \n \n "
-                     );
-        }
-    }
-  return 0;
-}
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
@@ -238,6 +242,7 @@ void init_dynamic_content()
     AmmServer_AddResourceHandler(default_server,&logoPNGContext   ,"/logod.png",644096,0,&logoPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&form             ,"/go",4096,0,&generateImagesBasedOnQuery,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+    AmmServer_AddResourceHandler(default_server,&sendMailContext  ,"/mail",4096,0,&sendMail,DIFFERENT_PAGE_FOR_EACH_CLIENT);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&imageContext     ,"/image.png",1024000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
     //--------------------------------------------------------------------------------------------------------------------------------------------
