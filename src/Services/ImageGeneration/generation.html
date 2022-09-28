@@ -117,6 +117,8 @@ function makeUniqueURLs()
       <tr> 
        <td>
         <button onclick="document.getElementById('query').value = ''">Clear</button>
+         <a href="#" onclick="document.getElementById('mailsender').style.visibility='visible';">+</a>
+         <a href="#" onclick="document.getElementById('mailsender').style.visibility='invisible';">-</a>
        </td>
        <td>
         <form action="go" method="get" onsubmit="loading();">
@@ -129,6 +131,20 @@ function makeUniqueURLs()
         <p id="countdown"></p>
       </td>
      </tr>
+     <!--                                                                                -->
+     <tr>
+        <td colspan=3>
+         <form action="mail" method="get" >
+          <div id="mailsender" style="overflow: hidden; padding-right: .5em;">
+           <input type="hidden" id="t2" name="t" value="0">
+           <input type="text" id="user" name="user" width=128 placeholder="username"> @  
+           <input type="text" id="server" name="server" width=128 placeholder="mail.com">  
+           <input type="submit" value="Send"> <br>
+          </div>
+         </form>
+        </td>
+     </tr>
+     <!--                                                                                -->
     </table> 
    </center>
   </td>

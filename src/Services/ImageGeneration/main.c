@@ -55,49 +55,43 @@ struct AmmServer_MemoryHandler * imageFile[MAX_IMAGES_CONCURRENTLY]={0};
 
 
 int sendEmail(
-               const char * receipient,
+               const char * username,
+               const char * password,
+               //const char * receipient,
                const char * subject,
                const char * message
              )
 {
-   if  (
-        (strcmp(receipient,"local")==0) ||
-        (DEACTIVATE_EMAIL)
-       )
-   {
-      AmmServer_Error("----------------------------------------\n");
-      AmmServer_Error("----------------------------------------\n");
-      AmmServer_Error("----------------------------------------\n");
-      AmmServer_Error("----------------------------------------\n");
-      AmmServer_Error("            NOT SENDING MAIL \n");
-      AmmServer_Error(" Recpt  : %s \n" , receipient);
-      AmmServer_Error(" Subject  : %s \n" , subject);
-      AmmServer_Error(" Message  : %s \n" , message);
-      AmmServer_Error("----------------------------------------\n");
-      AmmServer_Error("----------------------------------------\n");
-      AmmServer_Error("----------------------------------------\n");
-      AmmServer_Error("----------------------------------------\n");
-   }
-  else
-  {
-   char messageBuffer[1024]={0};
+   char messageBuffer[4096]={0};
    char result[1024]={0};
-   snprintf(messageBuffer,1024,"printf \"Subject:%s\n\n%s\" | ssmtp -v %s",subject,message,receipient);
+   snprintf(messageBuffer,4096,"printf \"Subject:%s\n\n%s\n\" | \
+            (cat - && uuencode %s/%05u.png image1.png) | \
+            (cat - && uuencode %s/%05u.png image2.png) | \
+            (cat - && uuencode %s/%05u.png image3.png) | \
+            (cat - && uuencode %s/%05u.png image4.png) | \
+            ssmtp -v %s@%s",
+            subject,message,
+            IMAGE_DIRECTORY,0,
+            IMAGE_DIRECTORY,1,
+            IMAGE_DIRECTORY,2,
+            IMAGE_DIRECTORY,3,
+            username,
+            password
+            );
    if (1)//filterStringForShellInjection(messageBuffer,512))
    {
     if ( AmmServer_ExecuteCommandLine(messageBuffer,result,512) )
     {
-     fprintf(stderr,"Successfully sent message to %s..\n",receipient);
+     fprintf(stderr,"Successfully sent message to %s@%s..\n",username,password);
      return 1;
     }
    }
+//sudo apt install sharutils
+//printf "Subject:Test Image\n\nCVRL -ICS -FORTH - 2022\n" | (cat - base64 && 00985.png )  | ssmtp -v ammarkov@gmail.com
+//printf "Subject:Test Image\n\nCVRL -ICS -FORTH - 2022\n" | ( cat 00985.png | base64 )  | ssmtp -v ammarkov@gmail.com
+//printf "Subject:FORTH-ICS-CVRL Your AI Generated Images\n\nΣας ευχαριστούμε που μας επισκευθήκατε. \nΣας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης. \nFORTH-ICS-CVRL - 2022\n \n \n \n" | (cat - && uuencode 00982.png image1.png) | (cat - && uuencode 00983.png image2.png) | (cat - && uuencode 00984.png image3.png) | (cat - && uuencode 00985.png image4.png) | ssmtp -v ammarkov@gmail.com
 
-   }
-
-//printf "Subject:Test Image\n\nCVRL -ICS -FORTH - 2022" | (cat - base64 && 00985.png )  | ssmtp -v ammarkov@gmail.com
-
-
- AmmServer_Error("Failed to send message to %s..\n",receipient);
+ AmmServer_Error("Failed to send message to %s@%s..\n",username,password);
  return 0;
 }
 
@@ -204,6 +198,35 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
     return 0;
 }
 
+
+
+
+//This function prepares the content of  stats context , ( stats.content )
+void * sendMail(struct AmmServer_DynamicRequest  * rqst)
+{
+  if  ((_GETexists(rqst,"user")) && (_GETexists(rqst,"server") ) )
+    {
+        char user[MAX_QUERY_SIZE]   = {0};
+        char server[MAX_QUERY_SIZE] = {0};
+        if (
+             ( _GETcpy(rqst,"user",user,MAX_QUERY_SIZE) ) &&
+             ( _GETcpy(rqst,"server",server,MAX_QUERY_SIZE) )
+           )
+        {
+          filterQuery(user);
+          filterQuery(server);
+          sendEmail(
+                     user,
+                     server,
+                     "FORTH-ICS-CVRL Your AI Generated Images",
+                     "Σας ευχαριστούμε που μας επισκευθήκατε. \n\
+                      Σας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης. \n\
+                      FORTH-ICS-CVRL - 2022\n \n \n "
+                     );
+        }
+    }
+  return 0;
+}
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
