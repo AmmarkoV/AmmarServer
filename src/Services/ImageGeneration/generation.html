@@ -159,13 +159,8 @@ https://github.com/AmmarkoV/stable-diffusion
         <td colspan=3>
         <div id="mailsender" style="overflow: hidden; padding-right: .5em;">
          <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
-          <form action="mail" method="get" >
-           <input type="hidden" id="t2" name="t" value="0">
-           <input type="text" id="user" name="user" width=128 placeholder="username"> @  
-           <input type="text" id="server" name="server" width=128 placeholder="mail.com">  
-           <input type="submit" value="Send"> <br>
+         <br>
           </form> 
-         <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
           <form enctype="multipart/form-data" action="upload.html" method="POST">
            <input type="hidden" id="t3" name="t3" value="0" />
            <input type="hidden" name="rawresponse" value="NO" />
@@ -173,6 +168,13 @@ https://github.com/AmmarkoV/stable-diffusion
            File to upload: <input name="uploadedfile" type="file" />
            <input type="submit" value="Upload File" name="submit" />
          </form>
+         <br>
+         <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+          <form action="mail" method="get" >
+           <input type="hidden" id="t2" name="t" value="0">
+           <input type="text" id="user" name="user" width=128 placeholder="username"> @  
+           <input type="text" id="server" name="server" width=128 placeholder="mail.com">  
+           <input type="submit" value="Send"> <br>
          <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
           </div>
         </td>
