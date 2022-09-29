@@ -159,7 +159,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
    fprintf(stderr,"Executed : %s \n",fullCommand);
    fprintf(stderr,"Response : %u \n",i);
 
-   if (i!=0)
+   //if (i==0)
      {
       if  (_GETexists(rqst,"query3"))
        {
