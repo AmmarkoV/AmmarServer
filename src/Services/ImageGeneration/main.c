@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
@@ -46,6 +47,7 @@ struct AmmServer_RH_Context logoPNGContext = {0};
 struct AmmServer_RH_Context imageContext = {0};
 struct AmmServer_RH_Context form = {0};
 struct AmmServer_RH_Context sendMailContext = {0};
+struct AmmServer_RH_Context uploadProcessor = {0};
 //------------------------------------------------
 struct AmmServer_MemoryHandler * indexPage=0;
 struct AmmServer_MemoryHandler * loadingGif=0;
@@ -53,6 +55,103 @@ struct AmmServer_MemoryHandler * loadingImage=0;
 struct AmmServer_MemoryHandler * logoImage=0;
 struct AmmServer_MemoryHandler * imageFile[MAX_IMAGES_CONCURRENTLY]={0};
 //------------------------------------------------
+
+const unsigned long maximumDiskUsageAllowed=3.5 /*GB*/ *1024 *1024 *1024;
+const unsigned int bufferPageSize=32 /*KB*/ *1024;
+unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
+char uploads_root[MAX_FILE_PATH]="uploads/";
+unsigned int uploadsFilesSize=0;
+unsigned int uploadsDataSize=0;
+
+//------------------------------------------------
+
+void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+    AmmServer_DynamicRequestReturnMemoryHandler(rqst,indexPage);
+    return 0;
+}
+
+
+
+unsigned long getUploadsSizeLive()
+{
+  if (uploadsFilesSize==0)
+  {
+    char command[4096]={0};
+    char sizeOfUploadsString[257]={0};
+
+    snprintf(command,4096,"du -sb %s%s | cut -f1",webserver_root,uploads_root);
+    if ( AmmServer_ExecuteCommandLine(command,sizeOfUploadsString,256) )
+    {
+      uploadsFilesSize = atoi(sizeOfUploadsString);
+      fprintf(stderr,"getUploadsSizeLive raw result = %s ( %u ) \n",sizeOfUploadsString,uploadsFilesSize);
+    }
+  }
+ return uploadsFilesSize;
+}
+
+
+char * getBackRandomFileDigits(unsigned int numberOfDigits)
+{
+ char * response= (char *) malloc(sizeof(char)* (numberOfDigits+1));
+
+ unsigned int i=0,range='z'-'a';
+ for (i=0; i<numberOfDigits; i++)
+ {
+   response[i]='a'+rand()%range;
+ }
+response[numberOfDigits]=0;
+return response;
+}
+
+void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
+{
+   AmmServer_Warning("processUploadCallback called\n");
+  //md5sum file.jpg | cut -d' ' -f1
+
+  if (getUploadsSizeLive() >= maximumDiskUsageAllowed)
+  {
+    AmmServer_Error("SERVER IS FULL\n");
+    return  prepare_index_content_callback(rqst);
+  }
+
+  char * storeID = getBackRandomFileDigits(32);
+
+  if (storeID!=0)
+  {
+   unsigned int fSize=0;
+   char uploadedFileUNSANITIZEDPath[4096]={0};
+   snprintf(uploadedFileUNSANITIZEDPath,4095,"%s",_FILES(rqst,"uploadedfile",FILENAME,&fSize));
+
+   AmmServer_Warning("Unsanitized filename is %s \n",uploadedFileUNSANITIZEDPath);
+
+   if (AmmServer_StringHasSafePath(uploads_root,uploadedFileUNSANITIZEDPath))
+   {
+    char * uploadedFilePath = uploadedFileUNSANITIZEDPath;
+    char finalPath[4096]={0};
+    snprintf(finalPath,4095,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath);
+
+   const char * f = _FILES(rqst,"uploadedfile",VALUE,&fSize);
+   AmmServer_WriteFileFromMemory(finalPath,f,fSize);
+
+
+    //This is slightly bigger ( plus the header but almost correct )
+    uploadsFilesSize+=fSize;
+
+    //snprintf(finalPath,512,"%s/%s/%s.raw",webserver_root,uploads_root,storeID);
+    //AmmServer_WriteFileFromMemory(finalPath,rqst->POST_request,rqst->POST_request_length);
+
+    //No range check but since everything here is static max_stats_size should be big enough not to segfault with the strcat calls!
+    snprintf(finalPath,4095,"%s-%s",storeID,uploadedFilePath);
+    return prepare_index_content_callback(rqst);
+   }
+   free(storeID);
+  } else
+  {
+    return prepare_index_content_callback(rqst);
+  }
+  return 0;
+}
 
 
 int sendEmail(
@@ -87,9 +186,7 @@ int sendEmail(
      return 1;
     }
    }
-//sudo apt install sharutils
-//printf "Subject:Test Image\n\nCVRL -ICS -FORTH - 2022\n" | (cat - base64 && 00985.png )  | ssmtp -v ammarkov@gmail.com
-//printf "Subject:Test Image\n\nCVRL -ICS -FORTH - 2022\n" | ( cat 00985.png | base64 )  | ssmtp -v ammarkov@gmail.com
+//sudo apt install sharutils ssmtp
 //printf "Subject:FORTH-ICS-CVRL Your AI Generated Images\n\nΣας ευχαριστούμε που μας επισκευθήκατε. \nΣας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης. \nFORTH-ICS-CVRL - 2022\n \n \n \n" | (cat - && uuencode 00982.png image1.png) | (cat - && uuencode 00983.png image2.png) | (cat - && uuencode 00984.png image3.png) | (cat - && uuencode 00985.png image4.png) | ssmtp -v ammarkov@gmail.com
 
  AmmServer_Error("Failed to send message to %s@%s..\n",username,password);
@@ -140,12 +237,6 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
     return 0;
 }
 
-void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
-{
-    AmmServer_DynamicRequestReturnMemoryHandler(rqst,indexPage);
-    return 0;
-}
-
 
 void filterQuery(char * query)
 {
@@ -179,13 +270,11 @@ void * sendMail(struct AmmServer_DynamicRequest  * rqst)
           filterQuery(user);
           filterQuery(server);
           sendEmail(
-                     user,
-                     server,
-                     "FORTH-ICS-CVRL Your AI Generated Images",
-                     "Σας ευχαριστούμε που μας επισκευθήκατε. \n\
-                      Σας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης. \n\
-                      FORTH-ICS-CVRL - 2022\n \n \n "
-                     );
+                    user,
+                    server,
+                    "FORTH-ICS-CVRL Your AI Generated Images",
+                    "Σας ευχαριστούμε που μας επισκευθήκατε.\nΣας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης.\nFORTH-ICS-CVRL - 2022\n \n \n "
+                   );
         }
     }
 
@@ -235,6 +324,9 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
 void init_dynamic_content()
 {
+    mkdir(uploads_root, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    AmmServer_AddResourceHandler(default_server,&uploadProcessor,"/upload.html",bufferPageSize,0,&processUploadCallback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+    AmmServer_DoNOTCacheResourceHandler(default_server,&uploadProcessor);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&indexPageContext ,"/index.html",16000,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingGIFContext,"/loading.gif",644096,0,&loadingGIFContent,SAME_PAGE_FOR_ALL_CLIENTS);
@@ -320,7 +412,6 @@ int main(int argc, char *argv[])
 
     unsigned int port=DEFAULT_BINDING_PORT;
 
-
     default_server = AmmServer_StartWithArgs(
                          "imagegeneration",
                          argc,argv,  //The internal server will use the arguments to change settings
@@ -338,11 +429,9 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-
     //Create dynamic content allocations and associate context to the correct files
     init_dynamic_content();
     //stats.html and formtest.html should be availiable from now on..!
-
 
     while ( (AmmServer_Running(default_server))  )
     {
@@ -353,7 +442,6 @@ int main(int argc, char *argv[])
         //usleep(60000);
         sleep(1);
     }
-
 
     //Delete dynamic content allocations and remove stats.html and formtest.html from the server
     close_dynamic_content();
