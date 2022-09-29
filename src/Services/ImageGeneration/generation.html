@@ -51,12 +51,20 @@ function hideEmailForm(){
                           var element = document.getElementById("mailsender");
                           element.style.display = "none";
                           element.style.visibility = 'hidden';      // Hide
+                          //------------------------------------------------------
+                          var elementG = document.getElementById("generateButton");
+                          elementG.style.display = "none";
+                          elementG.style.visibility = 'hidden';      // Hide
                         }
 
 function showEmailForm(){
                           var element = document.getElementById("mailsender");
                           element.style.display = "block";
-                          element.style.visibility = 'visible'; 
+                          element.style.visibility = 'visible';
+                          //------------------------------------------------------
+                          var elementG = document.getElementById("generateButton");
+                          elementG.style.display = "block";
+                          elementG.style.visibility = 'visible'; 
                         }
 
 
@@ -146,7 +154,7 @@ https://github.com/AmmarkoV/stable-diffusion
         <form action="go" method="get" onsubmit="loading();">
          <input type="hidden" id="t" name="t" value="0">
          <input type="text" id="query" name="query" width=512 onkeypress="if(event.key === 'Enter') { loading(); }" onchange="document.getElementById('query3').value = document.getElementById('query').value;" placeholder="Enter your prompt here.">  
-         <input type="submit" value="Generate"> <br>
+         <input type="submit" id="generateButton" value="Generate"> <br>
          </form>
          <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
       </td>
