@@ -72,6 +72,23 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+void filterQuery(char * query)
+{
+    int len = strlen(query);
+
+    for (int i=0; i<len; i++)
+    {
+       if ( (query[i]=='.')  || (query[i]==',') ) { } else
+       if ( (query[i]=='(')  || (query[i]==')') ) { } else
+       if ( (query[i]>='a')  && (query[i]<='z') ) { } else
+       if ( (query[i]>='A')  && (query[i]<='Z') ) { } else
+       if ( (query[i]>='0')  && (query[i]<='9') ) { } else
+          {
+            query[i]=' ';
+          }
+    }
+}
+
 
 unsigned long getUploadsSizeLive()
 {
@@ -134,6 +151,34 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
    const char * f = _FILES(rqst,"uploadedfile",VALUE,&fSize);
    AmmServer_WriteFileFromMemory(finalPath,f,fSize);
 
+
+   char fullCommand[MAX_QUERY_SIZE+1024]={0};
+
+   snprintf(fullCommand,MAX_QUERY_SIZE+1024,"convert \"%s\" -resize 512x512^ -gravity Center -extent 512x512 /home/user/workspace/upimage.jpg",finalPath);
+   int i=system(fullCommand);
+   fprintf(stderr,"Executed : %s \n",fullCommand);
+   fprintf(stderr,"Response : %u \n",i);
+
+   if (i!=0)
+     {
+      if  (_GETexists(rqst,"query3"))
+       {
+        char query[MAX_QUERY_SIZE]= {0};
+        if ( _GETcpy(rqst,"query3",query,MAX_QUERY_SIZE) )
+        {
+             filterQuery(query);
+             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/img2imgOnlyOnce.sh \"%s\"",query);
+             i=system(fullCommand);
+             fprintf(stderr,"Executed : %s \n",fullCommand);
+             fprintf(stderr,"Response : %u \n",i);
+
+             if (i!=0)
+                     {
+
+                     }
+        }
+       }
+      }
 
     //This is slightly bigger ( plus the header but almost correct )
     uploadsFilesSize+=fSize;
@@ -237,23 +282,6 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
     return 0;
 }
 
-
-void filterQuery(char * query)
-{
-    int len = strlen(query);
-
-    for (int i=0; i<len; i++)
-    {
-       if ( (query[i]=='.')  || (query[i]==',') ) { } else
-       if ( (query[i]=='(')  || (query[i]==')') ) { } else
-       if ( (query[i]>='a')  && (query[i]<='z') ) { } else
-       if ( (query[i]>='A')  && (query[i]<='Z') ) { } else
-       if ( (query[i]>='0')  && (query[i]<='9') ) { } else
-          {
-            query[i]=' ';
-          }
-    }
-}
 
 //This function prepares the content of  stats context , ( stats.content )
 void * sendMail(struct AmmServer_DynamicRequest  * rqst)

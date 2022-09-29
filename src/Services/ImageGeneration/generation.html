@@ -86,6 +86,7 @@ function makeUniqueURLs()
      document.getElementById('main').src = 'image.png?i=0?t='+(Math.random() * 1000);
      document.getElementById('t').value = ''+(Math.random() * 1000);
      document.getElementById('t2').value = ''+(Math.random() * 1000);
+     document.getElementById('t3').value = ''+(Math.random() * 1000);
    } 
  function loading()
  {
@@ -144,14 +145,8 @@ https://github.com/AmmarkoV/stable-diffusion
          <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
         <form action="go" method="get" onsubmit="loading();">
          <input type="hidden" id="t" name="t" value="0">
-         <input type="text" id="query" name="query" width=512 onkeypress="if(event.key === 'Enter') { loading(); }" placeholder="Enter your prompt here.">  
+         <input type="text" id="query" name="query" width=512 onkeypress="if(event.key === 'Enter') { loading(); }" onchange="document.getElementById('query3').value = document.getElementById('query').value;" placeholder="Enter your prompt here.">  
          <input type="submit" value="Generate"> <br>
-         </form>
-         <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
-         <form enctype=\"multipart/form-data\" action=\"upload.html\" method=\"POST\">
-           <input type=\"hidden\" name=\"rawresponse\" value=\"NO\" />
-           File to upload: <input name=\"uploadedfile\" type=\"file\" />
-           <input type=\"submit\" value=\"Upload File\" name=\"submit\" />&nbsp;&nbsp;
          </form>
          <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
       </td>
@@ -162,14 +157,24 @@ https://github.com/AmmarkoV/stable-diffusion
      <!--                                                                                -->
      <tr>
         <td colspan=3>
-         <form action="mail" method="get" >
-          <div id="mailsender" style="overflow: hidden; padding-right: .5em;">
+        <div id="mailsender" style="overflow: hidden; padding-right: .5em;">
+         <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+          <form action="mail" method="get" >
            <input type="hidden" id="t2" name="t" value="0">
            <input type="text" id="user" name="user" width=128 placeholder="username"> @  
            <input type="text" id="server" name="server" width=128 placeholder="mail.com">  
            <input type="submit" value="Send"> <br>
-          </div>
+          </form> 
+         <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+          <form enctype="multipart/form-data" action="upload.html" method="POST">
+           <input type="hidden" id="t3" name="t3" value="0" />
+           <input type="hidden" name="rawresponse" value="NO" />
+           <input type="hidden" id="query3" name="query3" />  
+           File to upload: <input name="uploadedfile" type="file" />
+           <input type="submit" value="Upload File" name="submit" />
          </form>
+         <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
+          </div>
         </td>
      </tr>
      <!--                                                                                -->
