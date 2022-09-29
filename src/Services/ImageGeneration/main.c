@@ -176,6 +176,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
              fprintf(stderr,"Executed : %s \n",fullCommand);
              fprintf(stderr,"Response : %u \n",i);
 
+            fprintf(stderr,"\n\n\n\n\n\nQUERY ASCII: %s \n\n\n\n\n\n\n",query);
              if (i!=0)
                      {
 
