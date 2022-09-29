@@ -159,12 +159,16 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
    fprintf(stderr,"Executed : %s \n",fullCommand);
    fprintf(stderr,"Response : %u \n",i);
 
+
+   unsigned int query3Size=0;
+   const char * query3 = _FILES(rqst,"query3",VALUE,&query3Size);
    //if (i==0)
      {
-      if  (_GETexists(rqst,"query3"))
+      //if  (_GETexists(rqst,"query3"))
        {
         char query[MAX_QUERY_SIZE]= {0};
-        if ( _GETcpy(rqst,"query3",query,MAX_QUERY_SIZE) )
+        snprintf(query,MAX_QUERY_SIZE,"%s",query3);
+        //if ( _GETcpy(rqst,"query3",query,MAX_QUERY_SIZE) )
         {
              filterQuery(query);
              snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/img2imgOnlyOnce.sh \"%s\"",query);
