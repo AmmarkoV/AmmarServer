@@ -165,19 +165,27 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
    const char * query3 = _FILES(rqst,"query3",VALUE,&query3Size);
    unsigned int strengthSize=0;
    const char * strength = _FILES(rqst,"strength",VALUE,&strengthSize);
+   unsigned int stepsSize=0;
+   const char * steps = _FILES(rqst,"steps",VALUE,&stepsSize);
    //if (i==0)
      {
       //if  (_GETexists(rqst,"query3"))
        {
         char query[MAX_QUERY_SIZE]= {0};
         snprintf(query,MAX_QUERY_SIZE,"%s",query3);
+        //-----------------------------------------------
         float strengthF = 0.4;
         if (strength!=0)
            { strengthF = (float) atof(strength) / 100; }
+        //-----------------------------------------------
+        unsigned int stepsU = 100;
+        if (steps!=0)
+           { stepsU = (float) atoi(steps); }
+        //-----------------------------------------------
         //if ( _GETcpy(rqst,"query3",query,MAX_QUERY_SIZE) )
         {
              filterQuery(query);
-             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/img2imgOnlyOnce.sh \"%0.2f\" \"%s\"",strengthF,query);
+             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/img2imgOnlyOnce.sh \"%0.2f\" \"%u\" \"%s\"",strengthF,stepsU,query);
              i=system(fullCommand);
              fprintf(stderr,"Executed : %s \n",fullCommand);
              fprintf(stderr,"Response : %u \n",i);
@@ -312,7 +320,7 @@ void * sendMail(struct AmmServer_DynamicRequest  * rqst)
                     user,
                     server,
                     "FORTH-ICS-CVRL Your AI Generated Images",
-                    "Σας ευχαριστούμε που μας επισκευθήκατε.\nΣας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης.\nFORTH-ICS-CVRL - 2022\n \n \n "
+                    "Σας ευχαριστούμε που μας επισκευθήκατε.\nΣας επισυνάπτουμε τις εικόνες που δημιουργήσατε με την βοήθεια της Τεχνητής Νοημοσύνης.\nFORTH-ICS-CVRL - 2023\n \n \n "
                    );
         }
     }

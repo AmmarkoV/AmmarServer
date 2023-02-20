@@ -21,6 +21,7 @@ datalist {
   align-items: center;
   height: 100%;
 }
+
 body {
   display: flex;
   align-items: center;
@@ -29,6 +30,7 @@ body {
   width:600;
   margin: 0;
 }
+
 button { font-size: 1.2em; }
 input  { font-size: 1.2em; }
 h3     { color: #FFFFFF;   }
@@ -41,18 +43,22 @@ var timeleft = 125;
 var downloadTimer;
 
 
-function updateSliderBox(){
+function updateStrengthSliderBox()
+{
     var strength = document.getElementById('strength');
-    var box = document.getElementById("box");
+    var box = document.getElementById("strengthbox");
     box.value = strength.value;
 }
 
-function updateSliderValue()
+function updateStrengthSliderValue()
 {
     var strength = document.getElementById('strength');
-    var box = document.getElementById("box");
+    var box = document.getElementById("strengthbox");
       strength.value = box.value;      
 }
+
+
+
 
 function reloadThumbs()
    {
@@ -201,7 +207,8 @@ https://github.com/AmmarkoV/stable-diffusion
            File to upload: <input name="uploadedfile" type="file" />
            <input type="submit" value="Upload File" name="submit" />
            <br>
-           Strength : <input type="range" min="1" max="100" value="40" class="slider" id="strength" name="strength" onchange="updateSliderBox()">  <input id="box" type="text" value="0" width=30 length=3 onchange="updateSliderValue()"/>
+           Strength : <input type="range" min="1" max="100" value="40" class="slider" id="strength" name="strength" onchange="updateStrengthSliderBox()">  <input id="strengthbox" type="text" value="40" width=30 length=3 onchange="updateStrengthSliderValue()"/><br>
+           Steps : <input type="range" min="1" max="1000" value="100" class="slider" id="steps" name="steps" onchange="updateStepsSliderBox()">  <input id="stepsbox" type="text" value="100" width=30 length=3 onchange="updateStepsSliderValue()"/><br>
          </form>
          <br>
          <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
