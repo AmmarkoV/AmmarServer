@@ -54,9 +54,22 @@ function updateStrengthSliderValue()
 {
     var strength = document.getElementById('strength');
     var box = document.getElementById("strengthbox");
-      strength.value = box.value;      
+    strength.value = box.value;      
 }
 
+function updateStepsSliderBox()
+{
+    var strength = document.getElementById('steps');
+    var box = document.getElementById("stepsbox");
+    box.value = strength.value;
+}
+
+function updateStepsSliderValue()
+{
+    var strength = document.getElementById('steps');
+    var box = document.getElementById("stepsbox");
+    strength.value = box.value;      
+}
 
 
 
