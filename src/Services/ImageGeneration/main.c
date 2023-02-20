@@ -171,7 +171,9 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
        {
         char query[MAX_QUERY_SIZE]= {0};
         snprintf(query,MAX_QUERY_SIZE,"%s",query3);
-        float strengthF = (float) atof(strength) / 100;
+        float strengthF = 0.4;
+        if (strength!=0)
+           { strengthF = (float) atof(strength) / 100; }
         //if ( _GETcpy(rqst,"query3",query,MAX_QUERY_SIZE) )
         {
              filterQuery(query);
