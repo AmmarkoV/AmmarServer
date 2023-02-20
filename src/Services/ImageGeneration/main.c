@@ -177,7 +177,7 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
         //if ( _GETcpy(rqst,"query3",query,MAX_QUERY_SIZE) )
         {
              filterQuery(query);
-             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/img2imgOnlyOnce.sh \"%0.2f\" \"%s\"",query);
+             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/img2imgOnlyOnce.sh \"%0.2f\" \"%s\"",strengthF,query);
              i=system(fullCommand);
              fprintf(stderr,"Executed : %s \n",fullCommand);
              fprintf(stderr,"Response : %u \n",i);
