@@ -6,6 +6,15 @@
 <!--meta http-equiv="refresh" content="65; url=index.html"-->
 <title>Image Generation Diffusion</title>
 <style>
+
+datalist {
+  display: flex;
+  justify-content: space-between;
+  color: red;
+  width: 50%;
+}
+
+
 .center {
   display: flex;
   justify-content: center;
@@ -30,6 +39,20 @@ var timeleft = 125;
 
 // global variables for reference
 var downloadTimer;
+
+
+function updateSliderBox(){
+    var strength = document.getElementById('strength');
+    var box = document.getElementById("box");
+    box.value = strength.value;
+}
+
+function updateSliderValue()
+{
+    var strength = document.getElementById('strength');
+    var box = document.getElementById("box");
+      strength.value = box.value;      
+}
 
 function reloadThumbs()
    {
@@ -114,6 +137,8 @@ function makeUniqueURLs()
      makeUniqueURLs();
      document.getElementById('main').src = 'image.png?i=0?t='+(Math.random() * 1000);
   }
+
+
 </script>
 </head>
 <body bgcolor="#333333" onload="makeUniqueURLs(); hideEmailForm();">
@@ -175,6 +200,8 @@ https://github.com/AmmarkoV/stable-diffusion
            <input type="hidden" id="query3" name="query3" />  
            File to upload: <input name="uploadedfile" type="file" />
            <input type="submit" value="Upload File" name="submit" />
+           <br>
+           Strength : <input type="range" min="1" max="100" value="40" class="slider" id="strength" onchange="updateSliderBox()">  <input id="box" type="text" value="0" width=30 length=3 onchange="updateSliderValue()"/>
          </form>
          <br>
          <!--  ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| -->
