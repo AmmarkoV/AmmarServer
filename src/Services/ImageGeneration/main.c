@@ -390,7 +390,7 @@ void init_dynamic_content()
     AmmServer_AddResourceHandler(default_server,&form             ,"/go",4096,0,&generateImagesBasedOnQuery,DIFFERENT_PAGE_FOR_EACH_CLIENT);
     AmmServer_AddResourceHandler(default_server,&sendMailContext  ,"/mail",4096,0,&sendMail,DIFFERENT_PAGE_FOR_EACH_CLIENT);
     //--------------------------------------------------------------------------------------------------------------------------------------------
-    AmmServer_AddResourceHandler(default_server,&imageContext     ,"/image.png",1024000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+    AmmServer_AddResourceHandler(default_server,&imageContext     ,"/image.png",1824000,0,&prepare_image_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     indexPage    = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/generation.html");
     loadingImage = AmmServer_ReadFileToMemoryHandler("src/Services/ImageGeneration/loading.png");
