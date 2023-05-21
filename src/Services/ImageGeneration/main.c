@@ -299,6 +299,9 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
         {
          fprintf("Image Access Denied for item %u \n",imageChannel);
         }
+    } else
+    {
+         fprintf("Image Access had no index\n");
     }
 
     AmmServer_DynamicRequestReturnMemoryHandler(rqst,loadingImage);
