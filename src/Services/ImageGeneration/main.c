@@ -285,6 +285,7 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
          AmmServer_FreeMemoryHandler(&imageFile[imageChannel]);
          char filename[512]={0};
          snprintf(filename,512,"%s/%05u.png",IMAGE_DIRECTORY,imageChannel);
+         fprintf("Image Access : %s \n",filename);
          imageFile[imageChannel] = AmmServer_ReadFileToMemoryHandler(filename);
          if (imageFile[imageChannel]!=0)
          {
