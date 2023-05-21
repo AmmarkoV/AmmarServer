@@ -295,6 +295,9 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
            AmmServer_DynamicRequestReturnMemoryHandler(rqst,loadingImage);
          }
          return 0;
+        } else
+        {
+         fprintf("Image Access Denied for item %u \n",imageChannel);
         }
     }
 
