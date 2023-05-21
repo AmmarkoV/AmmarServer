@@ -285,7 +285,7 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
          AmmServer_FreeMemoryHandler(&imageFile[imageChannel]);
          char filename[512]={0};
          snprintf(filename,512,"%s/%05u.png",IMAGE_DIRECTORY,imageChannel);
-         fprintf("Image Access : %s \n",filename);
+         fprintf(stderr,"Image Access : %s \n",filename);
          imageFile[imageChannel] = AmmServer_ReadFileToMemoryHandler(filename);
          if (imageFile[imageChannel]!=0)
          {
@@ -297,11 +297,11 @@ void * prepare_image_content_callback(struct AmmServer_DynamicRequest  * rqst)
          return 0;
         } else
         {
-         fprintf("Image Access Denied for item %u \n",imageChannel);
+         fprintf(stderr,"Image Access Denied for item %u \n",imageChannel);
         }
     } else
     {
-         fprintf("Image Access had no index\n");
+         fprintf(stderr,"Image Access had no index\n");
     }
 
     AmmServer_DynamicRequestReturnMemoryHandler(rqst,loadingImage);
