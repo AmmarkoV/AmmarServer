@@ -41,6 +41,7 @@ int DEACTIVATE_EMAIL =1;
 struct AmmServer_Instance  * default_server=0;
 //------------------------------------------------
 struct AmmServer_RH_Context indexPageContext = {0};
+struct AmmServer_RH_Context seedPageContext = {0};
 struct AmmServer_RH_Context loadingGIFContext = {0};
 struct AmmServer_RH_Context loadingPNGContext = {0};
 struct AmmServer_RH_Context logoPNGContext = {0};
@@ -60,8 +61,9 @@ const unsigned long maximumDiskUsageAllowed=3.5 /*GB*/ *1024 *1024 *1024;
 const unsigned int bufferPageSize=32 /*KB*/ *1024;
 unsigned int maxUploadFileSizeAllowedMB=4; /*MB*/
 char uploads_root[MAX_FILE_PATH]="uploads/";
-unsigned int uploadsFilesSize=0;
-unsigned int uploadsDataSize=0;
+unsigned int uploadsFilesSize = 0;
+unsigned int uploadsDataSize  = 0;
+unsigned long currentSeed     = 0;
 
 //------------------------------------------------
 
@@ -69,6 +71,13 @@ void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
 {
     AmmServer_DynamicRequestReturnMemoryHandler(rqst,indexPage);
     return 0;
+}
+
+void * prepare_seed_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  snprintf(rqst->content,rqst->MAXcontentSize,"<html><head><meta http-equiv=\"refresh\" content=\"15;URL='seed.html'\"></head><body>Seed : %lu </body></html>",currentSeed);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
 }
 
 
@@ -184,8 +193,9 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
         //-----------------------------------------------
         //if ( _GETcpy(rqst,"query3",query,MAX_QUERY_SIZE) )
         {
+             currentSeed = (unsigned long) time(NULL);
              filterQuery(query);
-             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/img2imgOnlyOnce.sh \"%0.2f\" \"%u\" \"%s\"",strengthF,stepsU,query);
+             snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/img2imgOnlyOnce.sh \"%0.2f\" \"%u\" \"%s\" \"%lu\" ",strengthF,stepsU,query,currentSeed);
              i=system(fullCommand);
              fprintf(stderr,"Executed : %s \n",fullCommand);
              fprintf(stderr,"Response : %u \n",i);
@@ -349,8 +359,12 @@ void * generateImagesBasedOnQuery(struct AmmServer_DynamicRequest  * rqst)
             filterQuery(query);
             fprintf(stderr,"\n\n\n\n\n\nQUERY ASCII: %s \n\n\n\n\n\n\n",query);
 
+            float strengthF=1.0;
+            currentSeed = (unsigned long) time(NULL);
+            unsigned int stepsU = 100;
+
             char fullCommand[MAX_QUERY_SIZE+1024]={0};
-            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/tex2imgOnlyOnce.sh \"%s\"",query);
+            snprintf(fullCommand,MAX_QUERY_SIZE+1024,"/home/user/workspace/tex2imgOnlyOnce.sh  \"%0.2f\" \"%u\" \"%s\" \"%lu\" ",strengthF,stepsU,query,currentSeed);
             int i=system(fullCommand);
             fprintf(stderr,"Executed : %s \n",fullCommand);
             fprintf(stderr,"Response : %u \n",i);
@@ -383,6 +397,7 @@ void init_dynamic_content()
     AmmServer_DoNOTCacheResourceHandler(default_server,&uploadProcessor);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&indexPageContext ,"/index.html",16000,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+    AmmServer_AddResourceHandler(default_server,&seedPageContext  ,"/seed.html",16000,0,&prepare_seed_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingGIFContext,"/loading.gif",644096,0,&loadingGIFContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingPNGContext,"/loading.png",644096,0,&loadingPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&logoPNGContext   ,"/logod.png",644096,0,&logoPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
@@ -425,6 +440,7 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&loadingPNGContext,1);
     AmmServer_RemoveResourceHandler(default_server,&loadingGIFContext,1);
     AmmServer_RemoveResourceHandler(default_server,&indexPageContext,1);
+    AmmServer_RemoveResourceHandler(default_server,&seedPageContext,1);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_FreeMemoryHandler(&indexPage);
     AmmServer_FreeMemoryHandler(&loadingImage);
