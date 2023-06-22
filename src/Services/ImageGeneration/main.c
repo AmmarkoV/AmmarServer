@@ -397,7 +397,8 @@ void init_dynamic_content()
     AmmServer_DoNOTCacheResourceHandler(default_server,&uploadProcessor);
     //--------------------------------------------------------------------------------------------------------------------------------------------
     AmmServer_AddResourceHandler(default_server,&indexPageContext ,"/index.html",16000,0,&prepare_index_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
-    AmmServer_AddResourceHandler(default_server,&seedPageContext  ,"/seed.html",16000,0,&prepare_seed_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+    AmmServer_AddResourceHandler(default_server,&seedPageContext  ,"/seed.html",16000,0,&prepare_seed_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+    AmmServer_DoNOTCacheResourceHandler(default_server,&seedPageContext);
     AmmServer_AddResourceHandler(default_server,&loadingGIFContext,"/loading.gif",644096,0,&loadingGIFContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&loadingPNGContext,"/loading.png",644096,0,&loadingPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
     AmmServer_AddResourceHandler(default_server,&logoPNGContext   ,"/logod.png",644096,0,&logoPNGContent,SAME_PAGE_FOR_ALL_CLIENTS);
