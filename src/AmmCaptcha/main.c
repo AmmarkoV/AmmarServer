@@ -103,6 +103,12 @@ int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsign
   if (height==0)   { fprintf(stderr,"No input image height , can't convert to JPEG\n");   return 0; }
   if (channels==0) { fprintf(stderr,"No input image channels , can't convert to JPEG\n"); return 0; }
 
+
+
+  if (mem==0)       { fprintf(stderr,"No target memory location, can't convert to JPEG\n"); return 0; }
+  if (mem_size==0)  { fprintf(stderr,"No target memory location size, can't convert to JPEG\n"); return 0; }
+  if (*mem_size==0) { fprintf(stderr,"Zero target memory size, can't convert to JPEG\n"); return 0; }
+
   //struct Image * outputJPEGFile = createImage(width,height,channels);
   //memcpy(outputJPEGFile->pixels,pixels,width*height*channels);
   //Zero Copy..!
