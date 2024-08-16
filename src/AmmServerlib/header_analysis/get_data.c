@@ -227,7 +227,7 @@ const struct GETRequestContent * getGETItemFromName(struct AmmServer_DynamicRequ
   {
     struct GETRequestContent * p = &rqst->GETItem[i];
     //AmmServer_Info("POSTItem[%u].name = %s and we have %s \n",i,p->name,nameToLookFor);
-    if (p->name!=0)
+    if ( (p!=0) && (p->name!=0) )
     {
      if (strncmp(p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
      {

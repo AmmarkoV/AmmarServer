@@ -551,7 +551,8 @@ int _POSTcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * des
 /// --------------------------------------------------------- GET ---------------------------------------------------------
 int _GETnum(struct AmmServer_DynamicRequest * rqst)
 {
- return getNumberOfPOSTItems(rqst);
+ //return getNumberOfPOSTItems(rqst); ?
+ return getNumberOfGETItems(rqst);
 }
 
 char * _GET(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength)
@@ -561,10 +562,10 @@ char * _GET(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned in
 
 unsigned int _GETuint(struct AmmServer_DynamicRequest * rqst,const char * name)
 {
-  unsigned int valueLength=0;
+  unsigned int valueLength = 0;
   const char * value = _GET(rqst,name,&valueLength);
   if (value!=0)
-   { return  atoi(value); }
+   { return atoi(value); }
   return 0;
 }
 
@@ -770,7 +771,7 @@ int AmmServer_ExecuteCommandLineAndRetreiveAllResults(const char *  command , ch
          return 0;
        }
 
-  
+
   size_t contentSize = fread(what2GetBack, 1 , what2GetBackMaxSize, f);
   AmmServer_Warning("%s responded with %u bytes of output",command,contentSize);
   *what2GetBackSize = contentSize;
@@ -796,7 +797,7 @@ int AmmServer_ExecuteCommandLineAndRetreiveAllResultsTimed(const char *  command
          return 0;
        }
   usleep(waitTime);
-  
+
   size_t contentSize = fread(what2GetBack, 1 , what2GetBackMaxSize, f);
   AmmServer_Warning("%s responded with %u bytes of output",command,contentSize);
   *what2GetBackSize = contentSize;
@@ -990,8 +991,8 @@ int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh)
   if (*mh==0) { return 0; }
 
   struct AmmServer_MemoryHandler * tmp = *mh;
-  if (tmp->content!=0) 
-   { 
+  if (tmp->content!=0)
+   {
     free(tmp->content);
     tmp->content=0;
    }
