@@ -8,7 +8,6 @@
 		<Project filename="src/AmmCaptcha/AmmCaptcha.cbp" />
 		<Project filename="src/AmmServerlib/AmmServerlib.cbp" />
 		<Project filename="src/Services/MyLoader/MyLoader.cbp" />
-		<Project filename="src/UnitTests/UnitTests.cbp" />
 		<Project filename="src/Services/MyURL/MyURL.cbp" />
 		<Project filename="src/Services/MyTube/MyTube.cbp" />
 		<Project filename="src/Services/MyBlog/MyBlog.cbp" />
@@ -21,5 +20,6 @@
 		<Project filename="src/Services/WebFramebuffer/WebFramebuffer.cbp" />
 		<Project filename="src/Services/MyRemoteDesktop/xwd-1.0.5/XwdLib.cbp" />
 		<Project filename="src/Services/MyRemoteDesktop/MyRemoteDesktop.cbp" />
+		<Project filename="../ComputerVisionServer/src/WebServer/WebServer.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
