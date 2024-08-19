@@ -302,6 +302,7 @@ char * dynamicRequest_serveContent
                      if ( rqst->contentSize>rqst->MAXcontentSize)
                      {
                          errorID(ASV_ERROR_CLIENT_CAUSED_AN_OVERFLOW);
+                         fprintf(stderr,"Problematic Rqst %s | Content Size %u / Max Content Size %u ",verified_filename,rqst->contentSize,rqst->MAXcontentSize);
                      }
 
                      if (rqst->extraDataThatWillNeedToBeDeallocated!=0)
