@@ -155,33 +155,45 @@ int ReadJPEG( char *filename,struct Image * pic,char read_only_header)
  * \param *filename char string specifying the file name to save to
  *
  */
-int WriteJPEGInternal( char *filename,struct Image * pic,char *mem,unsigned long * mem_size)
+/**
+ * write_jpeg_file Writes the raw image data stored in the raw_image buffer
+ * to a jpeg image with default compression and smoothing options in the file
+ * specified by *filename.
+ *
+ * \returns positive integer if successful, -1 otherwise
+ * \param *filename char string specifying the file name to save to
+ *
+ */
+int WriteJPEGInternal(const char *filename,struct Image * pic,char *mem,unsigned long * mem_size,int quality)
 {
     if ( (filename==0) && ( (mem==0) || (mem_size==0) ) ) { fprintf(stderr,"WriteJPEGInternal called with null filename and this is not a memory write call\n"); return 0;}
     fprintf(stderr,"WriteJPEG(%s,%p,%p,%p); called \n",filename,pic,mem,mem_size);
+    fprintf(stderr,"width %u | height %u | channels %u\n",pic->width,pic->height,pic->depth);
 
-    if (pic==0) { fprintf(stderr,"WriteJPEG called with an incorrect image structure \n "); return 0; }
+    if (pic==0)         { fprintf(stderr,"WriteJPEG called with an incorrect image structure \n "); return 0; }
+	if (pic->pixels==0) { fprintf(stderr,"WriteJPEG called with a problematic raw image..\n ");     return 0; }
+	if ( (pic->depth!=1) && (pic->depth!=3) )
+    {
+      fprintf(stderr,"WriteJPEG called with a problematic raw image (START)..\n ");
+      fprintf(stderr,"However we were given a JPEG file with %u channels.. \n",pic->depth);
+      return 0;
+    }
 
-	unsigned char * raw_image = (unsigned char * ) pic->pixels;
-	if (raw_image==0) { fprintf(stderr,"WriteJPEG called with a problematic raw image..\n "); return 0; }
-
-
-
-	struct jpeg_compress_struct cinfo; memset(&cinfo,0,sizeof(struct jpeg_compress_struct));
-	struct jpeg_error_mgr jerr; memset(&jerr,0,sizeof(struct jpeg_error_mgr));
-    struct jpeg_destination_mgr dmgr; memset(&dmgr,0,sizeof(struct jpeg_destination_mgr));
-    unsigned long initial_mem_size = 0; //*mem_size; can crash with a zero mem_size because it tries for the value of a zero pointer..
+	unsigned char * raw_image         = (unsigned char * ) pic->pixels;
+	struct jpeg_compress_struct cinfo = {0}; // memset(&cinfo,0,sizeof(struct jpeg_compress_struct));;
+	struct jpeg_error_mgr jerr        = {0}; // memset(&jerr,0,sizeof(struct jpeg_error_mgr));;
+    struct jpeg_destination_mgr dmgr  = {0}; // memset(&dmgr,0,sizeof(struct jpeg_destination_mgr));;
+    unsigned long initial_mem_size    = 0;   //*mem_size; can crash with a zero mem_size because it tries for the value of a zero pointer..
 
     FILE *outfile =0;
 
 	/* this is a pointer to one row of image data */
-	JSAMPROW row_pointer[1];
+	JSAMPROW row_pointer[1]={0};
 
 	cinfo.err = jpeg_std_error( &jerr );
 	jpeg_create_compress(&cinfo);
 
 	/* Setting the parameters of the output file here */
-
     if ( (mem!=0) && (mem_size!=0) )
 	 {
 	   //We want destination to be our buffer..!
@@ -190,7 +202,7 @@ int WriteJPEGInternal( char *filename,struct Image * pic,char *mem,unsigned long
 	   dmgr.term_destination    = term_buffer;
 	   dmgr.next_output_byte    = (JOCTET*) mem;
 	   dmgr.free_in_buffer      = *mem_size;
-       initial_mem_size = *mem_size;
+       initial_mem_size         = *mem_size;
 
 	   cinfo.dest = &dmgr;
 	 } else
@@ -202,19 +214,36 @@ int WriteJPEGInternal( char *filename,struct Image * pic,char *mem,unsigned long
 		    return 0;
 	     }
 
-
-
 	   jpeg_stdio_dest(&cinfo, outfile);
 	 }
 
-	cinfo.image_width = pic->width;
+    int JPEGcolor_space = 0;
+	cinfo.image_width  = pic->width;
 	cinfo.image_height = pic->height;
-	cinfo.input_components = 3;//pic.depth bytes_per_pixel;
-    int JPEGcolor_space = JCS_RGB; /* or JCS_GRAYSCALE for grayscale images */
+
+	if (pic->depth==3)
+    {
+	 cinfo.input_components = 3;
+     JPEGcolor_space = JCS_RGB;
+    } else
+    if (pic->depth==1)
+    {
+     cinfo.input_components   = 1;
+     JPEGcolor_space  = JCS_GRAYSCALE;
+    } else
+    {
+     fprintf(stderr,"Asked to encode %s as JPEG\n",filename);
+     fprintf(stderr,"However we were given a JPEG file with %u channels.. \n",pic->depth);
+     fprintf(stderr,"Can only handle RGB (3) / or Monochrome (1) channel images.. \n");
+     fclose(outfile);
+     return 0;
+    }
+
+
 	cinfo.in_color_space = (J_COLOR_SPACE) JPEGcolor_space;
     /* default compression parameters, we shouldn't be worried about these */
 	jpeg_set_defaults( &cinfo );
-	jpeg_set_quality (&cinfo, 75,1/*TRUE*/);
+	jpeg_set_quality (&cinfo, quality ,1/*TRUE*/);
 	/* Now do the compression .. */
 	jpeg_start_compress( &cinfo, 1/*TRUE*/ );
 	/* like reading a file, this time write one row at a time */
@@ -243,13 +272,13 @@ int WriteJPEGInternal( char *filename,struct Image * pic,char *mem,unsigned long
 
 int WriteJPEGFile(struct Image * pic,char *filename)
 {
-    return WriteJPEGInternal(filename,pic,0,0);
+    return WriteJPEGInternal(filename,pic,0,0,90);//Use 90% quality
 }
 
 
 int WriteJPEGMemory(struct Image * pic,char *mem,unsigned long * mem_size)
 {
-    return WriteJPEGInternal(0,pic,mem,mem_size);
+    return WriteJPEGInternal(0,pic,mem,mem_size,90);//Use 90% quality
 }
 
 

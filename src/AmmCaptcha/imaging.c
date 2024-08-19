@@ -17,9 +17,9 @@ struct Image * createImageUsingExistingBuffer( unsigned int width , unsigned int
   if (img == 0 ) { fprintf(stderr,"Could not allocate a new image %ux%u %u channels %u bitsperpixel\n",width,height,channels,bitsPerPixel); return 0; }
   memset(img,0,sizeof(struct Image));
 
-  img->width = width;
+  img->width  = width;
   img->height = height;
-  img->depth=channels * (bitsPerPixel/8);
+  img->depth  = channels * (bitsPerPixel/8);
 
   img->pixels = pixels;
   return  img;
