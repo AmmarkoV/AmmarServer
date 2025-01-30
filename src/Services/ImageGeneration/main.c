@@ -26,7 +26,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <sys/stat.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
-#define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
+int DEFAULT_BINDING_PORT = 8080;  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DYNAMIC_PAGES_MEMORY_COMMITED 4096
 #define MAX_QUERY_SIZE 4096
 #define MAX_IMAGES_CONCURRENTLY 4
@@ -464,12 +464,21 @@ int main(int argc, char *argv[])
     printf("\nAmmar Server %s starting up..\n",AmmServer_Version());
     //If we have a command line arguments we overwrite our buffers
 
+
+    unsigned int port=DEFAULT_BINDING_PORT;
+
+
     unsigned int i=0;
     for (i=0; i<argc; i++)
     {
         if ((strcmp(argv[i],"--root")==0)&&(argc>i+1))
         {
             snprintf(webserver_root,MAX_FILE_PATH,"%s",argv[i+1]);
+        }
+         else
+        if ((strcmp(argv[i],"--port")==0)&&(argc>i+1))
+        {
+            port = atoi(argv[i+1]);
         }
     }
 
@@ -481,7 +490,6 @@ int main(int argc, char *argv[])
     char bindIP[MAX_IP_STRING_SIZE];
     strncpy(bindIP,"0.0.0.0",MAX_IP_STRING_SIZE);
 
-    unsigned int port=DEFAULT_BINDING_PORT;
 
     default_server = AmmServer_StartWithArgs(
                          "imagegeneration",
