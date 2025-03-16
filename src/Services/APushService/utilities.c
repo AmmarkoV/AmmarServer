@@ -55,7 +55,15 @@ int sendEmail(
   {
    char messageBuffer[1024]={0};
    char result[1024]={0};
-   snprintf(messageBuffer,1024,"printf \"Subject:%s\n\n%s\" | ssmtp -v %s",subject,message,receipient);
+   //SSMTP
+   //printf \"Subject:Test Message\n\nThis is a maintenance test message\" | ssmtp -v ammarkov@gmail.com
+   //snprintf(messageBuffer,1024,"printf \"Subject:%s\n\n%s\" | ssmtp -v %s",subject,message,receipient);
+
+   //MSMTP
+   //echo -e "Subject: Test Email\n\nHello, this is a test email from temperatures control." | msmtp ammarkov@gmail.com
+   snprintf(messageBuffer,1024,"printf \"Subject:%s\n\n%s\" | msmtp %s",subject,message,receipient);
+
+
    if (1)//filterStringForShellInjection(messageBuffer,512))
    {
     if ( AmmServer_ExecuteCommandLine(messageBuffer,result,512) )
