@@ -127,7 +127,7 @@ void * prepare_camera_data_callback(struct AmmServer_DynamicRequest * rqst)
   fprintf(stderr,"Converting to JPEG (%ux%u:%u)\n",getV4L2ColorWidth(0),getV4L2ColorHeight(0),getV4L2ColorChannels(0));
   // int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsigned int height , unsigned int channels , char *mem,unsigned long * mem_size);
 
-
+  rqst->contentSize = rqst->MAXcontentSize;//<- This should be the max size
   AmmCaptcha_getJPEGFileFromPixels(
                                     (char *) getV4L2ColorPixels(0),
                                              getV4L2ColorWidth(0),
@@ -173,7 +173,7 @@ void init_dynamic_pages()
 
   //Do not empty jpeg_picture struct since mallocs have already happened.. memset(&jpeg_picture,0,sizeof(struct AmmServer_RH_Context));
 
-  AmmServer_AddResourceHandler(v4l2_server,&jpeg_picture,(char *) "/cam.jpg",jpg_width * jpg_height * 3, 250 /*Poll camera no sooner than once every x ms*/,(void *) &prepare_camera_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(v4l2_server,&jpeg_picture,(char *) "/cam.jpg",jpg_width * jpg_height * 4, 250 /*Poll camera no sooner than once every x ms*/,(void *) &prepare_camera_data_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   jpeg_picture.requestContext.contentSize=jpg_width * jpg_height * 3;
   jpeg_picture.requestContext.MAXcontentSize=jpg_width * jpg_height * 3;
 

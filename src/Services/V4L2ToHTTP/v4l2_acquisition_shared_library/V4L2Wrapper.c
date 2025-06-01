@@ -82,6 +82,9 @@ int VideoInput_InitializeLibrary(int numofinputs)
     camera_feeds = (struct Video * ) malloc ( sizeof( struct Video ) * (numofinputs+1) );
     if (camera_feeds==0) { fprintf(stderr,"Error , cannot allocate memory for %u video inputs \n",total_cameras); return 0;}
 
+    //Zero out everything
+    memset(camera_feeds,0,sizeof( struct Video ) * (numofinputs+1) );
+
     int i;
     for ( i=0; i<total_cameras; i++ )
       {  /*We mark each camera as dead , to preserve a clean state*/
