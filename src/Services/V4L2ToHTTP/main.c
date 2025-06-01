@@ -124,15 +124,17 @@ void * prepare_camera_data_callback(struct AmmServer_DynamicRequest * rqst)
   fprintf(stderr,"Calling Camera callback \n");
   snapV4L2Frames(0);
 
-  fprintf(stderr,"Converting to JPEG \n");
+  fprintf(stderr,"Converting to JPEG (%ux%u:%u)\n",getV4L2ColorWidth(0),getV4L2ColorHeight(0),getV4L2ColorChannels(0));
   // int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsigned int height , unsigned int channels , char *mem,unsigned long * mem_size);
+
+
   AmmCaptcha_getJPEGFileFromPixels(
                                     (char *) getV4L2ColorPixels(0),
                                              getV4L2ColorWidth(0),
                                              getV4L2ColorHeight(0),
                                              getV4L2ColorChannels(0),
-                                    (char *) rqst->content,
-                                    (unsigned long *) &rqst->contentSize
+                                    rqst->content,
+                                    &rqst->contentSize
                                    );
 
 
@@ -202,7 +204,7 @@ int main(int argc, char *argv[])
 {
   printf("V4L2ToHTTP starting up linked to Ammar Server v%s\n",AmmServer_Version());
 
-  AmmServer_RegisterTerminationSignal(&termination_handler); 
+  AmmServer_RegisterTerminationSignal(&termination_handler);
 
   char bindIP[MAX_INPUT_IP];
   strcpy(bindIP,"0.0.0.0");

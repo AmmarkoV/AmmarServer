@@ -33,15 +33,14 @@
 		</Compiler>
 		<Linker>
 			<Add option="../libAmmCaptcha.a" />
+			<Add option="../../Hashmap/libHashmap.a" />
 			<Add option="-ljpeg" />
+			<Add option="-lm" />
 		</Linker>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>
-			<envvars />
-			<code_completion />
-			<debugger />
 			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>

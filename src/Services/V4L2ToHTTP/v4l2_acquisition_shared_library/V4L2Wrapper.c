@@ -23,6 +23,8 @@ io_method io=IO_METHOD_MMAP;//  /*IO_METHOD_MMAP;  IO_METHOD_READ; IO_METHOD_USE
 
 int DecodePixels(int webcam_id)
 {
+ if (camera_feeds==0) {  return 0; }
+
  if ( camera_feeds[webcam_id].frame_decoded==0)
      { /*THIS FRAME HASN`T BEEN DECODED YET!*/
        int i=Convert2RGB24( (unsigned char*)camera_feeds[webcam_id].frame,
@@ -46,6 +48,7 @@ unsigned char * ReturnDecodedLiveFrame(int webcam_id)
           THIS FRAME DECIDES IF THE VIDEO FORMAT NEEDS DECODING OR CAN BE RETURNED RAW FROM THE DEVICE
           SEE PixelFormats.cpp / PixelFormatConversions.cpp
    */
+   if (camera_feeds==0) {  return empty_frame; }
 
    if (VideoFormatNeedsDecoding(camera_feeds[webcam_id].input_pixel_format,camera_feeds[webcam_id].input_pixel_format_bitdepth)==1)
     {
