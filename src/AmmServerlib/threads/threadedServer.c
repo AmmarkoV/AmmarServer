@@ -102,11 +102,9 @@ void * MainThreadedHTTPServerThread (void * ptr)
 
 
 
-   #if USE_OPENSSL
-     instance->sslAvailable = InitializeSSL();
-   #else
-     instance->sslAvailable =  0;
-   #endif // USE_OPENSSL
+   /* SSL context is initialized before the thread starts, in AmmServer_Start
+      or AmmServer_StartWithArgs, once cert/key paths are known. */
+   instance->sslAvailable = (instance->sslAvailable != 0);
 
 
 
@@ -222,8 +220,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
           //Successfully accepting..!
 
          #if USE_OPENSSL
-           if (!sslAcceptStuff(instance))
-              { return 0;}
+           /* SSL handshake is deferred to the worker thread via ASRV_SSL_AcceptConnection */
          #endif // USE_OPENSSL
 
          #if SINGLE_THREAD_MODE

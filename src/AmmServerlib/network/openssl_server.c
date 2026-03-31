@@ -1,117 +1,109 @@
 #include "openssl_server.h"
-// --------------------------------------------
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/uio.h>
-// --------------------------------------------
-
-
 
 #if USE_OPENSSL
-#warning "Please note that OpenSSL is not yet correctly implemented , this is just a stab that will be used when I get time to properly support it"
+// --------------------------------------------
+#include <stdio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+// --------------------------------------------
 
-#define PORT 2024
-
-  SSL_CTX *ctx;
-  SSL *ssl;
-
-int InitializeSSL()
+int ASRV_SSL_InitContext(struct AmmServer_Instance * instance)
 {
-    SSL_load_error_strings();
-    SSL_library_init();
-    OpenSSL_add_all_algorithms();
-    return 1;
-}
+    if (!instance) { return 0; }
 
-void DestroySSL()
-{
-    ERR_free_strings();
-    EVP_cleanup();
-}
+    OPENSSL_init_ssl(0, NULL);
 
-void ShutdownSSL()
-{
-    SSL_shutdown(ssl);
-    SSL_free(ssl);
-}
-
-
-int sslAcceptStuff(struct AmmServer_Instance * instance, int newsockfd)
-{
-    instance->sslctx = SSL_CTX_new( SSLv23_server_method());
-    SSL_CTX_set_options(instance->sslctx, SSL_OP_SINGLE_DH_USE);
-    int use_cert = SSL_CTX_use_certificate_file(instance->sslctx, "/serverCertificate.pem", SSL_FILETYPE_PEM);
-
-    int use_prv = SSL_CTX_use_PrivateKey_file(instance->sslctx, "/serverCertificate.pem", SSL_FILETYPE_PEM);
-
-    instance->cSSL = SSL_new(instance->sslctx);
-    SSL_set_fd(instance->cSSL, newsockfd );
-//Here is the SSL Accept portion.  Now all reads and writes must use SSL
-    int ssl_err = SSL_accept(instance->cSSL);
-    if(ssl_err <= 0)
+    SSL_CTX * ctx = SSL_CTX_new(TLS_server_method());
+    if (!ctx)
     {
-        //Error occurred, log and close down ssl
-        ShutdownSSL();
+        fprintf(stderr, "ASRV_SSL_InitContext: SSL_CTX_new failed\n");
+        ERR_print_errors_fp(stderr);
         return 0;
     }
+
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_SINGLE_DH_USE);
+
+    if (!instance->settings.SSL_CERT_PATH || !instance->settings.SSL_KEY_PATH)
+    {
+        fprintf(stderr, "ASRV_SSL_InitContext: SSL_CERT_PATH or SSL_KEY_PATH not set\n");
+        SSL_CTX_free(ctx);
+        return 0;
+    }
+
+    if (SSL_CTX_use_certificate_file(ctx, instance->settings.SSL_CERT_PATH, SSL_FILETYPE_PEM) <= 0)
+    {
+        fprintf(stderr, "ASRV_SSL_InitContext: failed to load certificate %s\n", instance->settings.SSL_CERT_PATH);
+        ERR_print_errors_fp(stderr);
+        SSL_CTX_free(ctx);
+        return 0;
+    }
+
+    if (SSL_CTX_use_PrivateKey_file(ctx, instance->settings.SSL_KEY_PATH, SSL_FILETYPE_PEM) <= 0)
+    {
+        fprintf(stderr, "ASRV_SSL_InitContext: failed to load private key %s\n", instance->settings.SSL_KEY_PATH);
+        ERR_print_errors_fp(stderr);
+        SSL_CTX_free(ctx);
+        return 0;
+    }
+
+    if (!SSL_CTX_check_private_key(ctx))
+    {
+        fprintf(stderr, "ASRV_SSL_InitContext: certificate and private key do not match\n");
+        ERR_print_errors_fp(stderr);
+        SSL_CTX_free(ctx);
+        return 0;
+    }
+
+    instance->sslctx = ctx;
+    instance->sslAvailable = 1;
+    fprintf(stderr, "ASRV_SSL_InitContext: TLS context ready (cert=%s)\n", instance->settings.SSL_CERT_PATH);
     return 1;
 }
-#endif
 
 
-int startOpenSSLServer()
+int ASRV_SSL_AcceptConnection(struct AmmServer_Instance * instance,
+                               struct HTTPTransaction    * transaction,
+                               int                        clientsock)
 {
-#if USE_OPENSSL
-  unsigned int clilen = sizeof(struct sockaddr_in);
-  struct sockaddr_in cli_addr;
-  struct sockaddr_in serv_addr;
+    if (!instance || !transaction || !instance->sslctx) { return 0; }
 
-
-    int sockfd, newsockfd;
-    SSL_CTX *sslctx;
-    SSL *cSSL;
-
-    InitializeSSL();
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd< 0)
+    SSL * ssl = SSL_new(instance->sslctx);
+    if (!ssl)
     {
-        //Log and Error
-        return;
+        fprintf(stderr, "ASRV_SSL_AcceptConnection: SSL_new failed\n");
+        return 0;
     }
-    struct sockaddr_in saiServerAddress;
-    bzero((char *) &saiServerAddress, sizeof(saiServerAddress));
-    saiServerAddress.sin_family = AF_INET;
-    //saiServerAddress.sin_addr.s_addr = serv_addr;
-    saiServerAddress.sin_port = htons(PORT);
 
-    bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+    SSL_set_fd(ssl, clientsock);
 
-    listen(sockfd,5);
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-
-    sslctx = SSL_CTX_new( SSLv23_server_method());
-    SSL_CTX_set_options(sslctx, SSL_OP_SINGLE_DH_USE);
-    int use_cert = SSL_CTX_use_certificate_file(sslctx, "/serverCertificate.pem", SSL_FILETYPE_PEM);
-
-    int use_prv = SSL_CTX_use_PrivateKey_file(sslctx, "/serverCertificate.pem", SSL_FILETYPE_PEM);
-
-    cSSL = SSL_new(sslctx);
-    SSL_set_fd(cSSL, newsockfd );
-//Here is the SSL Accept portion.  Now all reads and writes must use SSL
-    int ssl_err = SSL_accept(cSSL);
-    if(ssl_err <= 0)
+    if (SSL_accept(ssl) <= 0)
     {
-        //Error occurred, log and close down ssl
-        ShutdownSSL();
+        ERR_print_errors_fp(stderr);
+        SSL_free(ssl);
+        return 0;
     }
-return 1;
-#else
-return 0;
-#endif
+
+    transaction->ssl = ssl;
+    return 1;
 }
+
+
+void ASRV_SSL_ShutdownConnection(struct HTTPTransaction * transaction)
+{
+    if (!transaction || !transaction->ssl) { return; }
+    /* Send close_notify; do not wait for peer reply to avoid hanging on broken clients. */
+    SSL_shutdown(transaction->ssl);
+    SSL_free(transaction->ssl);
+    transaction->ssl = NULL;
+}
+
+
+void ASRV_SSL_DestroyContext(struct AmmServer_Instance * instance)
+{
+    if (!instance || !instance->sslctx) { return; }
+    SSL_CTX_free(instance->sslctx);
+    instance->sslctx    = NULL;
+    instance->sslAvailable = 0;
+}
+
+#endif // USE_OPENSSL

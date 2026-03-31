@@ -1,4 +1,5 @@
 #include "networkAbstraction.h"
+#include "openssl_server.h"
 // --------------------------------------------
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,15 +12,20 @@
 #include <netdb.h>
 #include <sys/uio.h>
 // --------------------------------------------
+#if USE_OPENSSL
+ #include <openssl/ssl.h>
+#endif // USE_OPENSSL
+// --------------------------------------------
 
-//Counters for performance , these should  be put inside the the server instance so this is work to do in the future..
 
 int ASRV_StartSession(
                       struct AmmServer_Instance * instance,
                       struct HTTPTransaction * transaction
                      )
 {
-
+  #if USE_OPENSSL
+   transaction->ssl = NULL;
+  #endif
   return 0;
 }
 
@@ -28,11 +34,11 @@ int ASRV_StopSession(
                       struct HTTPTransaction * transaction
                      )
 {
-
+  #if USE_OPENSSL
+   ASRV_SSL_ShutdownConnection(transaction);
+  #endif
   return 0;
 }
-
-
 
 
 int ASRV_Send(
@@ -43,7 +49,17 @@ int ASRV_Send(
               int flags
               )
 {
-  int opres=send(transaction->clientSock,buf,len,flags);
+  int opres;
+  #if USE_OPENSSL
+  if (transaction->ssl != NULL)
+    {
+      opres = SSL_write(transaction->ssl, buf, (int)len);
+    } else
+  #endif // USE_OPENSSL
+    {
+      opres = send(transaction->clientSock, buf, len, flags);
+    }
+
   if (opres>0)
        {
         instance->statistics.totalUploadKB+=(unsigned long) opres/1024;
@@ -58,7 +74,17 @@ ssize_t ASRV_Recv(
                   struct HTTPTransaction * transaction,
                   void *buf, size_t len, int flags)
 {
-  ssize_t opres=recv(transaction->clientSock,buf,len,flags);
+  ssize_t opres;
+  #if USE_OPENSSL
+  if (transaction->ssl != NULL)
+    {
+      opres = SSL_read(transaction->ssl, buf, (int)len);
+    } else
+  #endif // USE_OPENSSL
+    {
+      opres = recv(transaction->clientSock, buf, len, flags);
+    }
+
   if (opres>0)
        {
          instance->statistics.totalDownloadKB+=(unsigned long) opres/1024;

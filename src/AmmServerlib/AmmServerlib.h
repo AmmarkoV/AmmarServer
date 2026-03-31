@@ -354,6 +354,12 @@ struct AmmServer_Instance_Settings
 
     unsigned int MAX_POST_TRANSACTION_SIZE;
     int ENABLE_POST;
+
+    //HTTPS / SSL configuration
+    int    ENABLE_HTTPS;
+    int    HTTPS_PORT;
+    char * SSL_CERT_PATH;
+    char * SSL_KEY_PATH;
 };
 
 
@@ -444,9 +450,9 @@ struct AmmServer_Instance
 
     //SSL Stuff
     int sslAvailable;
+    int sslserversock;  /* listening socket for HTTPS port, -1 if disabled */
     #if USE_OPENSSL
      SSL_CTX *sslctx;
-     SSL *cSSL;
     #endif // USE_OPENSSL
 };
 
@@ -471,6 +477,10 @@ struct HTTPTransaction
 
   char ipStr[MAX_IP_STRING_SIZE];
   unsigned int port;
+
+  #if USE_OPENSSL
+   SSL * ssl;  /* non-NULL when this connection is TLS */
+  #endif // USE_OPENSSL
 };
 
 /** @brief Enumerator for calls AmmServer_GetInfo */
@@ -495,6 +505,8 @@ enum AmmServStrSettings
 {
     AMMSET_USERNAME_STR=0,
     AMMSET_PASSWORD_STR,
+    AMMSET_SSL_CERT_STR,
+    AMMSET_SSL_KEY_STR,
     AMMSET_TESTSTR
 };
 

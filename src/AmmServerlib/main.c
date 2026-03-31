@@ -31,6 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "AString/AString.h"
 // --------------------------------------------
 #include "threads/serverAbstraction.h"
+#include "network/openssl_server.h"
 // --------------------------------------------
 #include "cache/file_caching.h"
 #include "cache/dynamic_requests.h"
@@ -213,6 +214,15 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   //This line explains configuration conflicts in a user understandable manner :p
   EmmitPossibleConfigurationWarnings(instance);
 
+  //Initialize SSL context if cert+key were provided via config file
+  #if USE_OPENSSL
+  if ( instance->settings.ENABLE_HTTPS &&
+       instance->settings.SSL_CERT_PATH &&
+       instance->settings.SSL_KEY_PATH  )
+  {
+    ASRV_SSL_InitContext(instance);
+  }
+  #endif // USE_OPENSSL
 
   cache_Initialize( instance,
                    /*These are the file cache settings , file caching is the mechanism that holds dynamic content and
@@ -252,14 +262,16 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
    char configuration_file[MAX_FILE_PATH]={0};
    char bindIP[MAX_IP_STRING_SIZE]="0.0.0.0";
    unsigned int bindPort=8080;
+   char sslCert[MAX_FILE_PATH]={0};
+   char sslKey[MAX_FILE_PATH]={0};
 
    //If we have arguments we change our buffers
-   if (name!=0)           {  strncpy(serverName,name,MAX_FILE_PATH); }
-   if (web_root_path!=0)  {  strncpy(webserver_root,web_root_path,MAX_FILE_PATH); }
-   if (templates_root!=0) {  strncpy(templates_root,templates_root_path,MAX_FILE_PATH); }
-   if (conf_file!=0)      {  strncpy(configuration_file,conf_file,MAX_FILE_PATH); }
-   if (ip!=0)             {  strncpy(bindIP,ip,MAX_IP_STRING_SIZE); }
-   if (port!=0)           {  bindPort=port; }
+   if (name!=0)              {  strncpy(serverName,name,MAX_FILE_PATH); }
+   if (web_root_path!=0)     {  strncpy(webserver_root,web_root_path,MAX_FILE_PATH); }
+   if (templates_root_path!=0) {  strncpy(templates_root,templates_root_path,MAX_FILE_PATH); }
+   if (conf_file!=0)         {  strncpy(configuration_file,conf_file,MAX_FILE_PATH); }
+   if (ip!=0)                {  strncpy(bindIP,ip,MAX_IP_STRING_SIZE); }
+   if (port!=0)              {  bindPort=port; }
 
    //If we have a command line arguments we overwrite our buffers
   unsigned int argcUI = argc;
@@ -274,11 +286,27 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
     if ((strcmp(argv[i],"-port")==0)&&(argcUI>i+1))        { bindPort = atoi(argv[i+1]);                          fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-rootdir")==0)&&(argcUI>i+1))     { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH);     fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
     if ((strcmp(argv[i],"-templatedir")==0)&&(argcUI>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH);     fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
-    if  (strcmp(argv[i],"-conf")==0)                       { strncpy(configuration_file,conf_file,MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); }
+    if ((strcmp(argv[i],"-conf")==0)&&(argcUI>i+1))        { strncpy(configuration_file,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); } else
+    if ((strcmp(argv[i],"-sslcert")==0)&&(argcUI>i+1))     { strncpy(sslCert,argv[i+1],MAX_FILE_PATH);            fprintf(stderr,"SSL certificate set to %s \n",sslCert); } else
+    if ((strcmp(argv[i],"-sslkey")==0)&&(argcUI>i+1))      { strncpy(sslKey,argv[i+1],MAX_FILE_PATH);             fprintf(stderr,"SSL private key set to %s \n",sslKey); }
    }
   }
 
-  return AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
+  struct AmmServer_Instance * instance = AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
+
+  if ( (instance!=0) && (sslCert[0]!=0) && (sslKey[0]!=0) )
+  {
+    AssignStr(&instance->settings.SSL_CERT_PATH, sslCert);
+    AssignStr(&instance->settings.SSL_KEY_PATH,  sslKey);
+    instance->settings.ENABLE_HTTPS = 1;
+    fprintf(stderr,"SSL enabled (cert=%s, key=%s)\n", sslCert, sslKey);
+    #if USE_OPENSSL
+    ASRV_SSL_DestroyContext(instance); /* no-op if not yet initialized */
+    ASRV_SSL_InitContext(instance);
+    #endif // USE_OPENSSL
+  }
+
+  return instance;
 }
 
 int AmmServer_Running(struct AmmServer_Instance * instance)
@@ -695,6 +723,8 @@ char * AmmServer_GetStrSettingValue(struct AmmServer_Instance * instance,unsigne
    {
      case AMMSET_USERNAME_STR :    return instance->settings.USERNAME; break;
      case AMMSET_PASSWORD_STR :    return instance->settings.PASSWORD; break;
+     case AMMSET_SSL_CERT_STR :    return instance->settings.SSL_CERT_PATH; break;
+     case AMMSET_SSL_KEY_STR  :    return instance->settings.SSL_KEY_PATH;  break;
    };
   return 0;
 }
@@ -705,6 +735,8 @@ int AmmServer_SetStrSettingValue(struct AmmServer_Instance * instance,unsigned i
    {
      case AMMSET_USERNAME_STR :  AssignStr(&instance->settings.USERNAME,set_value); return SetUsernameAndPassword(instance,instance->settings.USERNAME,instance->settings.PASSWORD); break;
      case AMMSET_PASSWORD_STR :  AssignStr(&instance->settings.PASSWORD,set_value); return SetUsernameAndPassword(instance,instance->settings.USERNAME,instance->settings.PASSWORD); break;
+     case AMMSET_SSL_CERT_STR :  AssignStr(&instance->settings.SSL_CERT_PATH,set_value); instance->settings.ENABLE_HTTPS=1; return 1; break;
+     case AMMSET_SSL_KEY_STR  :  AssignStr(&instance->settings.SSL_KEY_PATH, set_value); instance->settings.ENABLE_HTTPS=1; return 1; break;
    };
   return 0;
 }
