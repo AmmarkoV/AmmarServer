@@ -23,6 +23,7 @@ struct PassToHTTPThread
      struct AmmServer_Instance * instance;
 
      int pre_spawned_thread;
+     int is_ssl_connection;  /* 1 if accepted on the HTTPS socket */
 
      char ip[MAX_IP_STRING_SIZE];
 };
@@ -39,7 +40,8 @@ struct PassToHTTPThread
 * @retval 1=Success,0=Fail
 * @bug There might be issues with the way the compiler optimizes the code that waits for the stack to be read before continuing on from the main thread..
 */
-int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen);
+int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,int is_ssl_connection);
+int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,int is_ssl_connection);
 
 
 

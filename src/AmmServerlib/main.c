@@ -187,6 +187,13 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   struct AmmServer_Instance * instance = (struct AmmServer_Instance *) malloc(sizeof(struct AmmServer_Instance));
   if (!instance) { fprintf(stderr,"AmmServer_Start failed to allocate a new instance \n"); } else
                  { memset(instance,0,sizeof(struct AmmServer_Instance)); }
+
+  instance->sslserversock          = -1;
+  instance->settings.HTTPS_PORT    = 443;
+
+  #if USE_OPENSSL
+  signal(SIGPIPE, SIG_IGN); /* SSL_write can trigger SIGPIPE on broken connections */
+  #endif // USE_OPENSSL
   //fprintf(stderr,"Initial AmmServer_Start instance pointing @ %p \n",instance);//Clear instance..!
 
   instance->threads_pool = (pthread_t *) malloc( sizeof(pthread_t) * MAX_CLIENT_THREADS);

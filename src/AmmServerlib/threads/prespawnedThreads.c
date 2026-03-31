@@ -56,6 +56,7 @@ void * PreSpawnedThread(void * ptr)
              context.clientsock=prespawned_data->clientsock;
              context.client=prespawned_data->client;
              context.clientlen=prespawned_data->clientlen;
+             context.is_ssl_connection=prespawned_data->is_ssl_connection;
              context.pre_spawned_thread = 1; // THIS IS A !!!!PRE SPAWNED!!!! THREAD
              context.keep_var_on_stack=1;
 
@@ -118,7 +119,7 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
 }
 
 
-int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root)
+int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root,int is_ssl_connection)
 {
   if ( (instance==0) || (clientsock==0) || (clientlen==0) || (webserver_root==0) || (templates_root==0) )
                            { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); return 0; }
@@ -171,6 +172,7 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
              prespawned_data->clientsock=clientsock;
              prespawned_data->client=client;
              prespawned_data->clientlen=clientlen;
+             prespawned_data->is_ssl_connection=is_ssl_connection;
              strncpy(prespawned_data->webserver_root,webserver_root,MAX_FILE_PATH);
              strncpy(prespawned_data->templates_root,templates_root,MAX_FILE_PATH);
              // The busy byte gets filled in last because it is what causes the client thread to wake up..!

@@ -10,6 +10,7 @@
 // --------------------------------------------
 #include "../server_configuration.h"
 #include "../network/networkAbstraction.h"
+#include "../network/openssl_server.h"
 #include "../threads/clientServer.h"
 #include "../threads/threadedServer.h"
 #include "../tools/logs.h"
@@ -50,7 +51,7 @@ unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * succ
     return starting_from;
 }
 
-int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
+int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,int is_ssl_connection)
 {
     struct HTTPTransaction transaction={0};
     transaction.instance=instance;
@@ -59,6 +60,18 @@ int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int client
 
     ASRV_StartSession(instance,&transaction);
 
+    #if USE_OPENSSL
+    if (is_ssl_connection && instance->sslAvailable)
+    {
+        if (!ASRV_SSL_AcceptConnection(instance,&transaction,clientsock))
+        {
+            close(clientsock);
+            ASRV_StopSession(instance,&transaction);
+            return 0;
+        }
+    }
+    #endif // USE_OPENSSL
+
      int i=ServeClientInternal(instance , &transaction);
 
     ASRV_StopSession(instance,&transaction);
@@ -66,7 +79,7 @@ int SingleThreadToServeNewClient(struct AmmServer_Instance * instance,int client
     return i;
 }
 
-int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen)
+int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,int is_ssl_connection)
 {
   if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); return 0; }
   //This Segfaults -> (inet_ntoa) fprintf(stderr,"Server Thread : Client connected: %s , %u total active threads\n", inet_ntoa(client.sin_addr),instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED);
@@ -107,6 +120,7 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   context.client=client;
   context.clientlen=clientlen;
   context.pre_spawned_thread = 0; // THIS IS A !!!NEW!!! THREAD , NOT A PRESPAWNED ONE
+  context.is_ssl_connection = is_ssl_connection;
   context.thread_id =threadID;
   context.instance = instance;
 

@@ -54,6 +54,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../header_analysis/post_header_analysis.h"
 // --------------------------------------------
 #include "../network/recvHTTPHeader.h"
+#include "../network/openssl_server.h"
 // --------------------------------------------
 #include "../server_configuration.h"
 
@@ -506,6 +507,9 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
   //----------------------------- ---------------------------- ----------------------------
 
   //fprintf(stderr,"Done with client / Closing Socket ( %u )  ..\n",transaction->clientSock);
+  #if USE_OPENSSL
+  ASRV_SSL_ShutdownConnection(transaction);
+  #endif // USE_OPENSSL
   close(transaction->clientSock);
 //  shutdown(transaction->clientSock,SHUT_RDWR);
 
@@ -587,6 +591,18 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
   fprintf(stderr,"Passing message to HTTP thread is done (%u)\n",transaction.threadID);
 
   ASRV_StartSession(instance,&transaction);
+
+  #if USE_OPENSSL
+  if (context->is_ssl_connection && instance->sslAvailable)
+  {
+      if (!ASRV_SSL_AcceptConnection(instance,&transaction,transaction.clientSock))
+      {
+          close(transaction.clientSock);
+          ASRV_StopSession(instance,&transaction);
+          return 0;
+      }
+  }
+  #endif // USE_OPENSSL
 
     //int i=
     ServeClientInternal(instance,&transaction);

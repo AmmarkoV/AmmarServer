@@ -23,6 +23,7 @@ struct PreSpawnedThread
     int clientsock;
     struct sockaddr_in client;
     unsigned int clientlen;
+    int is_ssl_connection;
 
     //pthread_mutex_t operation_mutex;
 	//pthread_cond_t  condition_var;
@@ -49,7 +50,7 @@ void PreSpawnThreads(struct AmmServer_Instance * instance);
 * @param Filename of root directory for this connection ( public_html )
 * @param Filename of template directory for this connection ( for 404.html etc )
 * @retval 1=Success,0=Fail */
-int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root);
+int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,char * webserver_root,char * templates_root,int is_ssl_connection);
 
 
 

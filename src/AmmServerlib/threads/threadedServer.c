@@ -200,17 +200,61 @@ void * MainThreadedHTTPServerThread (void * ptr)
    PreSpawnThreads(instance);
   #endif // MAX_CLIENT_PRESPAWNED_THREADS
 
+  //Bind a second socket for HTTPS if SSL is available
+  #if USE_OPENSSL
+  if (instance->sslAvailable && instance->settings.HTTPS_PORT > 0)
+  {
+    int sslsock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sslsock >= 0)
+    {
+        int yes2=1;
+        setsockopt(sslsock, SOL_SOCKET, SO_REUSEADDR, &yes2, sizeof(int));
+        struct sockaddr_in ssl_server={0};
+        ssl_server.sin_family = AF_INET;
+        ssl_server.sin_port   = htons(instance->settings.HTTPS_PORT);
+        ssl_server.sin_addr.s_addr = htonl(INADDR_ANY);
+        if ( bind(sslsock,(struct sockaddr *)&ssl_server,sizeof(ssl_server)) < 0 ||
+             listen(sslsock, MAX_CLIENTS_LISTENING_FOR) < 0 )
+        {
+            fprintf(stderr,"Failed to bind HTTPS socket on port %u\n",instance->settings.HTTPS_PORT);
+            close(sslsock);
+        } else {
+            instance->sslserversock = sslsock;
+            fprintf(stderr,"HTTPS listening on port %u\n",instance->settings.HTTPS_PORT);
+        }
+    }
+  }
+  #endif // USE_OPENSSL
+
   while ( (instance->server_running) && (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
   {
-    fprintf(stderr,"\nServer Thread : Waiting for a new client\n");
-    #if SINGLE_THREAD_MODE
-      fprintf(stderr,"\n\nCompiled for Single Thread Mode..! \n");
-    #endif // SINGLE_THREAD_MODE
+    /* Use select() with a 1s timeout so stop_server is checked regularly */
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(serversock, &readfds);
+    int maxfd = serversock;
+    #if USE_OPENSSL
+    if (instance->sslserversock >= 0) { FD_SET(instance->sslserversock,&readfds); if (instance->sslserversock>maxfd) maxfd=instance->sslserversock; }
+    #endif // USE_OPENSSL
+    struct timeval tv={1,0};
+    int sel = select(maxfd+1,&readfds,NULL,NULL,&tv);
+    if (sel <= 0) { continue; } // timeout or error — recheck stop_server
 
+    int clientsock = -1;
+    int is_ssl_connection = 0;
+    #if USE_OPENSSL
+    if (instance->sslserversock >= 0 && FD_ISSET(instance->sslserversock,&readfds))
+    {
+        clientsock = accept(instance->sslserversock,(struct sockaddr *)&client,&clientlen);
+        is_ssl_connection = 1;
+    } else
+    #endif // USE_OPENSSL
+    if (FD_ISSET(serversock,&readfds))
+    {
+        clientsock = accept(serversock,(struct sockaddr *)&client,&clientlen);
+    }
 
-    /* Wait for client connection */
-    int clientsock=0;
-    if ( (clientsock = accept(serversock,(struct sockaddr *) &client, &clientlen)) < 0)
+    if (clientsock < 0)
       {
         errorID(ASV_ERROR_FAILED_TO_ACCEPT);
         usleep(1000);
@@ -218,13 +262,8 @@ void * MainThreadedHTTPServerThread (void * ptr)
       else
       {
           //Successfully accepting..!
-
-         #if USE_OPENSSL
-           /* SSL handshake is deferred to the worker thread via ASRV_SSL_AcceptConnection */
-         #endif // USE_OPENSSL
-
          #if SINGLE_THREAD_MODE
-            if (SingleThreadToServeNewClient(instance,clientsock,client,clientlen))
+            if (SingleThreadToServeNewClient(instance,clientsock,client,clientlen,is_ssl_connection))
             {
               // This request got served by a freshly spawned thread..!
               // Nothing to do here , proceeding to the next incoming connection..
@@ -238,17 +277,13 @@ void * MainThreadedHTTPServerThread (void * ptr)
             }
          #else
            fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
-           if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root))
+           if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root,is_ssl_connection))
             {
               // This request got served by a prespawned thread..!
-              // Nothing to do here , proceeding to the next incoming connection..
-              // if we failed to use a pre spawned thread we will spawn a new one using the next call..!
             } else
-            if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen))
+            if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,is_ssl_connection))
             {
               // This request got served by a freshly spawned thread..!
-              // Nothing to do here , proceeding to the next incoming connection..
-              // if we failed then nothing can be done for this client
             } else
             {
                 errorID(ASV_ERROR_OUT_OF_RESOURCES_TO_ACCOMODATE_CLIENT);
@@ -256,8 +291,6 @@ void * MainThreadedHTTPServerThread (void * ptr)
                 usleep(10000);
             }
          #endif // SINGLE_THREAD_MODE
-
-
       }
  }
   instance->server_running=0;
@@ -367,6 +400,9 @@ int StopThreadedHTTPServer(struct AmmServer_Instance * instance)
   fprintf(stderr,"Force closing bind socket... ");
   //close(instance->serversock);
   shutdown(instance->serversock,SHUT_RDWR);
+  #if USE_OPENSSL
+  if (instance->sslserversock >= 0) { shutdown(instance->sslserversock,SHUT_RDWR); }
+  #endif // USE_OPENSSL
 
   instance->stop_server=1;
   fprintf(stderr,"Waiting for Server to stop : ");
