@@ -166,6 +166,74 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   return 1;
 }
 
+struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
+                                               const char * ip,
+                                               unsigned int port,
+                                               const char * conf_file,
+                                               const char * web_root_path,
+                                               const char * templates_root_path,
+                                               const char * ssl_cert,
+                                               const char * ssl_key
+                                              )
+{
+  fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
+  printDisclaimer();
+
+  snprintf(AccessLog,MAX_FILE_PATH,"log/%s_access.log",name);
+  snprintf(ErrorLog,MAX_FILE_PATH,"log/%s_error.log",name);
+  fprintf(stderr,"Access logged @ %s , Errors logged @ %s \n ",AccessLog,ErrorLog);
+
+  struct AmmServer_Instance * instance = (struct AmmServer_Instance *) malloc(sizeof(struct AmmServer_Instance));
+  if (!instance) { fprintf(stderr,"AmmServer_StartSSL failed to allocate instance\n"); return 0; }
+  memset(instance,0,sizeof(struct AmmServer_Instance));
+
+  instance->sslserversock          = -1;
+  instance->settings.HTTPS_PORT    = 443;
+  #if USE_OPENSSL
+  signal(SIGPIPE, SIG_IGN);
+  #endif
+
+  instance->threads_pool = (pthread_t *) malloc(sizeof(pthread_t) * MAX_CLIENT_THREADS);
+  if (!instance->threads_pool) { fprintf(stderr,"AmmServer_StartSSL failed to allocate thread pool\n"); free(instance); return 0; }
+  memset(instance->threads_pool,0,sizeof(pthread_t)*MAX_CLIENT_THREADS);
+
+  strncpy(instance->instanceName, name, MAX_INSTANCE_NAME_STRING);
+  instance->settings.MAX_POST_TRANSACTION_SIZE = DEFAULT_MAX_HTTP_POST_REQUEST_HEADER;
+
+  LoadConfigurationFile(instance,conf_file);
+  if (port!=0) { instance->settings.BINDING_PORT = port; }
+  EmmitPossibleConfigurationWarnings(instance);
+
+  /* Apply SSL cert/key BEFORE spawning the server thread so that
+     StartThreadedHTTPServer can bind port 443 while still root. */
+  #if USE_OPENSSL
+  if (ssl_cert && ssl_key && ssl_cert[0]!=0 && ssl_key[0]!=0)
+  {
+    AssignStr(&instance->settings.SSL_CERT_PATH, ssl_cert);
+    AssignStr(&instance->settings.SSL_KEY_PATH,  ssl_key);
+    instance->settings.ENABLE_HTTPS = 1;
+    fprintf(stderr,"SSL: initializing context (cert=%s key=%s) uid=%u\n", ssl_cert, ssl_key, getuid());
+    if (!ASRV_SSL_InitContext(instance))
+    {
+      fprintf(stderr,"SSL: InitContext FAILED — HTTPS disabled\n");
+    } else {
+      fprintf(stderr,"SSL: context ready, will bind HTTPS port %u in server thread\n", instance->settings.HTTPS_PORT);
+    }
+  }
+  #endif // USE_OPENSSL
+
+  cache_Initialize(instance, MAX_SEPERATE_CACHE_ITEMS, MAX_CACHE_SIZE_IN_MB, MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB);
+
+  if (ASRV_StartHTTPServer(instance,ip,instance->settings.BINDING_PORT,web_root_path,templates_root_path))
+  {
+    AccessLogAppend("127.0.0.1",0,"startup",1,0,"startup","ammarserver");
+    return instance;
+  } else {
+    AmmServer_Stop(instance);
+    return 0;
+  }
+}
+
 struct AmmServer_Instance * AmmServer_Start( const char * name ,
                                              const char * ip,
                                              unsigned int port,
@@ -228,6 +296,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
        instance->settings.SSL_KEY_PATH  )
   {
     ASRV_SSL_InitContext(instance);
+    /* HTTPS socket is bound inside StartThreadedHTTPServer while root is still held */
   }
   #endif // USE_OPENSSL
 
@@ -299,21 +368,14 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
    }
   }
 
-  struct AmmServer_Instance * instance = AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
-
-  if ( (instance!=0) && (sslCert[0]!=0) && (sslKey[0]!=0) )
+  if (sslCert[0]!=0 && sslKey[0]!=0)
   {
-    AssignStr(&instance->settings.SSL_CERT_PATH, sslCert);
-    AssignStr(&instance->settings.SSL_KEY_PATH,  sslKey);
-    instance->settings.ENABLE_HTTPS = 1;
-    fprintf(stderr,"SSL enabled (cert=%s, key=%s)\n", sslCert, sslKey);
-    #if USE_OPENSSL
-    ASRV_SSL_DestroyContext(instance); /* no-op if not yet initialized */
-    ASRV_SSL_InitContext(instance);
-    #endif // USE_OPENSSL
+    /* AmmServer_StartSSL initializes the SSL context BEFORE spawning the server
+       thread, so StartThreadedHTTPServer can bind the HTTPS port while still root. */
+    return AmmServer_StartSSL(name,bindIP,bindPort,configuration_file,webserver_root,templates_root,sslCert,sslKey);
   }
 
-  return instance;
+  return AmmServer_Start(name,bindIP,bindPort,configuration_file,webserver_root,templates_root);
 }
 
 int AmmServer_Running(struct AmmServer_Instance * instance)

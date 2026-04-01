@@ -598,6 +598,7 @@ void AmmServer_Stub( const char *format , ... );
 * @retval An Ammar Server instance or 0=Failure
 */
 struct AmmServer_Instance * AmmServer_Start(const char * name ,const char * ip,unsigned int port,const char * conf_file,const char * web_root_path,const char * templates_root_path);
+struct AmmServer_Instance * AmmServer_StartSSL(const char * name ,const char * ip,unsigned int port,const char * conf_file,const char * web_root_path,const char * templates_root_path,const char * ssl_cert,const char * ssl_key);
 
 /**
 * @brief Start a Web Server , allocate memory , bind ports and return its instance , also process arguments ( argc and argv from int main(int argc, char *argv[]) ) ..

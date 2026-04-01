@@ -16,6 +16,9 @@
   /** Send TLS close_notify and free the SSL object. Idempotent (safe to call twice). */
   void ASRV_SSL_ShutdownConnection(struct HTTPTransaction * transaction);
 
+  /** Bind and listen on the HTTPS port. Call after ASRV_SSL_InitContext succeeds. */
+  int  ASRV_SSL_BindHTTPSSocket(struct AmmServer_Instance * instance);
+
   /** Free the SSL_CTX at server shutdown. */
   void ASRV_SSL_DestroyContext(struct AmmServer_Instance * instance);
 #endif // USE_OPENSSL

@@ -200,31 +200,10 @@ void * MainThreadedHTTPServerThread (void * ptr)
    PreSpawnThreads(instance);
   #endif // MAX_CLIENT_PRESPAWNED_THREADS
 
-  //Bind a second socket for HTTPS if SSL is available
-  #if USE_OPENSSL
-  if (instance->sslAvailable && instance->settings.HTTPS_PORT > 0)
-  {
-    int sslsock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sslsock >= 0)
-    {
-        int yes2=1;
-        setsockopt(sslsock, SOL_SOCKET, SO_REUSEADDR, &yes2, sizeof(int));
-        struct sockaddr_in ssl_server={0};
-        ssl_server.sin_family = AF_INET;
-        ssl_server.sin_port   = htons(instance->settings.HTTPS_PORT);
-        ssl_server.sin_addr.s_addr = htonl(INADDR_ANY);
-        if ( bind(sslsock,(struct sockaddr *)&ssl_server,sizeof(ssl_server)) < 0 ||
-             listen(sslsock, MAX_CLIENTS_LISTENING_FOR) < 0 )
-        {
-            fprintf(stderr,"Failed to bind HTTPS socket on port %u\n",instance->settings.HTTPS_PORT);
-            close(sslsock);
-        } else {
-            instance->sslserversock = sslsock;
-            fprintf(stderr,"HTTPS listening on port %u\n",instance->settings.HTTPS_PORT);
-        }
-    }
-  }
-  #endif // USE_OPENSSL
+  /* sslserversock is bound by the main thread in AmmServer_Start/StartWithArgs
+     after ASRV_SSL_InitContext completes. We just use it here if it is ready. */
+  fprintf(stderr, "SSL accept loop: serversock=%d sslserversock=%d sslAvailable=%d\n",
+          serversock, instance->sslserversock, instance->sslAvailable);
 
   while ( (instance->server_running) && (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
   {
@@ -234,19 +213,26 @@ void * MainThreadedHTTPServerThread (void * ptr)
     FD_SET(serversock, &readfds);
     int maxfd = serversock;
     #if USE_OPENSSL
-    if (instance->sslserversock >= 0) { FD_SET(instance->sslserversock,&readfds); if (instance->sslserversock>maxfd) maxfd=instance->sslserversock; }
+    if (instance->sslserversock >= 0)
+    {
+        FD_SET(instance->sslserversock,&readfds);
+        if (instance->sslserversock>maxfd) maxfd=instance->sslserversock;
+    }
     #endif // USE_OPENSSL
     struct timeval tv={1,0};
     int sel = select(maxfd+1,&readfds,NULL,NULL,&tv);
-    if (sel <= 0) { continue; } // timeout or error — recheck stop_server
+    if (sel < 0) { perror("select"); continue; }
+    if (sel == 0) { continue; } // timeout — recheck stop_server
 
     int clientsock = -1;
     int is_ssl_connection = 0;
     #if USE_OPENSSL
     if (instance->sslserversock >= 0 && FD_ISSET(instance->sslserversock,&readfds))
     {
+        fprintf(stderr, "SSL accept loop: incoming connection on HTTPS socket fd=%d\n", instance->sslserversock);
         clientsock = accept(instance->sslserversock,(struct sockaddr *)&client,&clientlen);
         is_ssl_connection = 1;
+        fprintf(stderr, "SSL accept loop: accepted HTTPS clientsock=%d\n", clientsock);
     } else
     #endif // USE_OPENSSL
     if (FD_ISSET(serversock,&readfds))
@@ -382,8 +368,19 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
    //We flip the retres
    if (retres!=0) retres = 0; else retres = 1;
 
-   //After changing our priority , binding our port ( which could be 80 and could require superuser powers ) , it may be time to drop RootUID
-   //There could be a user like www-run or something else that we could setuid to , but this isn't yet implemented...
+   //The HTTP socket is now bound (thread signalled us). While we still have root, bind the HTTPS socket too.
+   #if USE_OPENSSL
+   if (instance->sslAvailable && instance->settings.HTTPS_PORT > 0)
+   {
+       fprintf(stderr,"SSL: binding HTTPS socket while still root (uid=%u)\n", getuid());
+       ASRV_SSL_BindHTTPSSocket(instance);
+   } else {
+       fprintf(stderr,"SSL: skipping HTTPS bind (sslAvailable=%d HTTPS_PORT=%u)\n",
+               instance->sslAvailable, instance->settings.HTTPS_PORT);
+   }
+   #endif // USE_OPENSSL
+
+   //After binding all ports ( which could require superuser powers ) , drop RootUID
    ServerThreads_DropRootUID();
 
   return retres;
