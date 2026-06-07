@@ -64,7 +64,7 @@ int HTTPHeaderScanForHeaderEndFromStart(char * request,unsigned int request_leng
       which mark the ending of an HTTP header..! The function returns 1 or 0 ..! */
   if (request_length<4) { warningID(ASV_WARNING_BUFFER_UNDERFLOW); return 0; } // at least LF LF is expected :P
 
-  fprintf(stderr,"HTTPHeaderScanForHeaderEndFromStart: Checking if request with %u chars is complete .. ",request_length);
+  //fprintf(stderr,"HTTPHeaderScanForHeaderEndFromStart: Checking if request with %u chars is complete .. ",request_length);
   unsigned int i=3;
   while (i<request_length)
    {
@@ -73,7 +73,7 @@ int HTTPHeaderScanForHeaderEndFromStart(char * request,unsigned int request_leng
         if (i>=1) {
                     if (( request[i-1]==LF )&&( request[i]==LF ))
                      {
-                      fprintf(stderr,"it is ( ux @%u [ %d %d ] ) \n",i,request[i-1],request[i]);
+                      //fprintf(stderr,"it is ( ux @%u [ %d %d ] ) \n",i,request[i-1],request[i]);
                       *thisScanResult=i;
                       return i;
                      }
@@ -82,7 +82,7 @@ int HTTPHeaderScanForHeaderEndFromStart(char * request,unsigned int request_leng
         if (i>=3) {
                     if (( request[i-3]==CR )&&( request[i-2]==LF )&&( request[i-1]==CR )&&( request[i]==LF ))
                     {
-                     fprintf(stderr,"it is ( win @%u [ %d %d %d %d ] )\n",i,request[i-3],request[i-2],request[i-1],request[i]);
+                     //fprintf(stderr,"it is ( win @%u [ %d %d %d %d ] )\n",i,request[i-3],request[i-2],request[i-1],request[i]);
                      *thisScanResult=i;
                      return i;
                     }
@@ -91,7 +91,7 @@ int HTTPHeaderScanForHeaderEndFromStart(char * request,unsigned int request_leng
      ++i;
    }
 
-   fprintf(stderr,"it isn't \n");
+   //fprintf(stderr,"it isn't \n");
    return 0;
 }
 
@@ -351,6 +351,21 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
   if (output->headerRAW==0)     { return 0; }
   if (output->headerRAWSize==0) { return 0; }
 
+  // Record the HTTP header end (the first blank line) the first time it is
+  // visible, while the buffer is still pristine.  AnalyzeHTTPLineRequest() below
+  // tokenises the header in place and overwrites that CRLFCRLF; for multipart
+  // POSTs a later re-scan (HTTPRequestIsComplete) would then lock onto the first
+  // multipart part's blank line instead, pushing headerRAWHeadSize past the
+  // part preamble.  Since that preamble is also inside Content-Length, the
+  // expected size (Content-Length + headerRAWHeadSize) over-counted it and the
+  // request never completed (recv blocked until SO_RCVTIMEO).  Captured once.
+  if (output->headerRAWHeadSize==0)
+  {
+    unsigned int httpHeaderEnd=0;
+    if (HTTPHeaderScanForHeaderEndFromStart(output->headerRAW,output->headerRAWSize,&httpHeaderEnd))
+       { output->headerRAWHeadSize=httpHeaderEnd; }
+  }
+
 
   char * webserver_root = instance->webserver_root;
   char * request = output->headerRAW + output->parsingStartOffset;
@@ -432,11 +447,17 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
   if (transaction->incomingHeader.requestType == POST)
   {
      //POST Requests have a Content-Length , and we detect their end using that..
-       HTTPHeaderScanForHeaderEndFromStart(
-                                           transaction->incomingHeader.headerRAW ,
-                                           transaction->incomingHeader.headerRAWSize ,
-                                           &transaction->incomingHeader.headerRAWHeadSize
-                                          );
+     //headerRAWHeadSize is captured once on the pristine buffer in
+     //keepAnalyzingHTTPHeader(); only fall back to scanning here if that did not
+     //happen (re-scanning now would hit the in-place-tokenised header).
+     if (transaction->incomingHeader.headerRAWHeadSize==0)
+       {
+         HTTPHeaderScanForHeaderEndFromStart(
+                                             transaction->incomingHeader.headerRAW ,
+                                             transaction->incomingHeader.headerRAWSize ,
+                                             &transaction->incomingHeader.headerRAWHeadSize
+                                            );
+       }
      unsigned int totalHTTPRecvSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
 
      fprintf(stderr,"Our header content length is %lu , we got %u bytes at a buffer of %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize , transaction->incomingHeader.MAXheaderRAWSize );
