@@ -110,8 +110,11 @@ int AmmClient_SendFileInternal(
 
 
   char header[BUFFERSIZE+1]={0};
-  //Send the header Connection: keep-alive\r\nTransfer-Encoding: chunked\r\n
-  int headerSize = snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: AmmClient/%s\r\nAccept: */*\r\nContent-Length: %u\r\nContent-Type: multipart/form-data; boundary=%s\r\n\r\n",URI,instance->ip,AmmClientVersion,contentLength,boundary);
+  //The server only keeps the connection open when the request asks for it
+  //(AnalyzeHTTPLineRequest sets keepalive from the Connection: header), so when
+  //the caller wants keepAlive we have to say so or the reply is followed by a
+  //close and our next send() gets an ECONNRESET.
+  int headerSize = snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: AmmClient/%s\r\nAccept: */*\r\nContent-Length: %u\r\nContent-Type: multipart/form-data; boundary=%s\r\nConnection: %s\r\n\r\n",URI,instance->ip,AmmClientVersion,contentLength,boundary,(keepAlive)?"keep-alive":"close");
 
   //Send everything..
   ++steps; success+=AmmClient_SendInternal(instance,header,headerSize,keepAlive);

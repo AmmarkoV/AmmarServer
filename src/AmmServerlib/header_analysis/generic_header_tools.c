@@ -458,7 +458,15 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
                                              &transaction->incomingHeader.headerRAWHeadSize
                                             );
        }
-     unsigned int totalHTTPRecvSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
+     //headerRAWHeadSize is the *index* of the header's final LF (that is why
+     //POSTrequestBody is headerRAW+headerRAWHeadSize+1), so the header is one
+     //byte longer than it.  Using it as a length made us stop one byte short of
+     //the request: harmless when the connection closes after the reply, but on a
+     //keep-alive connection that byte stayed in the socket and was read as the
+     //start of the next request ("Header too small ( 1 )" -> 400 -> close).
+     unsigned int httpHeaderLength = transaction->incomingHeader.headerRAWHeadSize;
+     if (httpHeaderLength>0) { httpHeaderLength+=1; }
+     unsigned int totalHTTPRecvSize = transaction->incomingHeader.ContentLength + httpHeaderLength;
 
      fprintf(stderr,"Our header content length is %lu , we got %u bytes at a buffer of %u bytes \n" , transaction->incomingHeader.ContentLength , transaction->incomingHeader.headerRAWSize , transaction->incomingHeader.MAXheaderRAWSize );
      if (transaction->incomingHeader.ContentLength> instance->settings.MAX_POST_TRANSACTION_SIZE)
@@ -485,7 +493,7 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
           }
 
 
-       transaction->incomingHeader.headerRAWRequestedSize = transaction->incomingHeader.ContentLength + transaction->incomingHeader.headerRAWHeadSize;
+       transaction->incomingHeader.headerRAWRequestedSize = totalHTTPRecvSize;
        return 0;
      } else
      if (transaction->incomingHeader.headerRAWSize <=  totalHTTPRecvSize )
