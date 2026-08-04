@@ -174,7 +174,18 @@ int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,struct HTT
          {
           trim_last_empty_chars(request,request_length);
           char * payload = &request[payload_start];
-          fprintf(stderr,"Got an authorization string -> `%s` \n",payload);
+
+          //This header line still ends in CRLF , and base64 contains neither ,
+          //so cut the value short at the first one. trim_last_empty_chars()
+          //above trims the end of the whole request , not the end of this line ,
+          //so without this the comparison below is against "....==\r" and no
+          //correct password could ever match it.
+          unsigned int payloadLength = 0;
+          while ( (payload[payloadLength]!=0) &&
+                  (payload[payloadLength]!='\r') &&
+                  (payload[payloadLength]!='\n') ) { ++payloadLength; }
+          payload[payloadLength] = 0;
+
           //fprintf(stderr,"Got an authorization string -> `%s` , ours is `%s`\n",payload,BASE64PASSWORD);
           if (strcmp(instance->settings.BASE64PASSWORD,payload)==0) { output->authorized=1; } else
                                                                       { output->authorized=0; }
