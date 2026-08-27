@@ -6,4 +6,7 @@
 
 int loadPosts(struct board * ourBoard , struct thread * ourThread);
 
+int savePostHeader(const char * postHeaderFilename , struct post * ourPost);
+int savePostContent(const char * postFilename , struct post * ourPost);
+
 #endif

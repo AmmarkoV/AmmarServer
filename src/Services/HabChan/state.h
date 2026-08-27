@@ -123,6 +123,10 @@ int loadSite( char *filename );
 int unloadSite();
 
 
-int addPostToThread( char * boardName ,  struct thread * newThread ,  struct post * newPost );
+int addPostToThread( const char * boardName ,  struct thread * newThread ,  struct post * newPost , const char * fileBytes , unsigned int fileBytesSize );
+
+void fillTimestampNow( struct timestamp * t );
+
+void deriveCachedImageName( const char * originalFilename , unsigned int postIndex , char * outCachedName , unsigned int outCachedNameSize );
 
 #endif // STATE_H_INCLUDED

@@ -9,7 +9,7 @@
 
 #include "../../InputParser/InputParser_C.h"
 
-int loadPostHeader(char * postHeaderFilename , struct post * ourPost)
+int loadPostHeader(char * postHeaderFilename , struct post * ourPost , unsigned int postIndex)
 {
    FILE * fp = fopen(postHeaderFilename,"r");
    if (fp == 0 ) { fprintf(stderr,"Cannot open loadPostHeader file %s \n",postHeaderFilename); return 0; }
@@ -55,6 +55,11 @@ int loadPostHeader(char * postHeaderFilename , struct post * ourPost)
 
     InputParser_Destroy(ipc);
     fclose(fp);
+
+    //header_N only ever stores the name a file was originally uploaded as ( imagename(...) ) , never the
+    //actual on-disk filename , so derive it the same deterministic way addPostToThread does when saving..!
+    if (ourPost->hasFile) { deriveCachedImageName(ourPost->fileOriginalName,postIndex,ourPost->fileCachedName,MAX_STRING_SIZE); }
+
     return 1;
 }
 
@@ -69,6 +74,29 @@ int loadPostContent(char * postHeaderFilename,struct post * ourPost)
 
 
 
+int savePostHeader(const char * postHeaderFilename , struct post * ourPost)
+{
+   FILE * fp = fopen(postHeaderFilename,"w");
+   if (fp == 0 ) { fprintf(stderr,"Cannot open %s for writing\n",postHeaderFilename); return 0; }
+
+   fprintf(fp,"op(%s)\n",ourPost->op);
+   if (ourPost->hasFile) { fprintf(fp,"imagename(%s)\n",ourPost->fileOriginalName); }
+   fprintf(fp,"timestamp(%u,%u,%u,%u,%u,%u)\n",
+           ourPost->creation.year , ourPost->creation.month , ourPost->creation.day ,
+           ourPost->creation.hour , ourPost->creation.minute , ourPost->creation.second);
+
+   fclose(fp);
+   return 1;
+}
+
+
+int savePostContent(const char * postFilename , struct post * ourPost)
+{
+   if (ourPost->message == 0 ) { return 0; }
+   return AmmServer_WriteFileFromMemory(postFilename,ourPost->message,strlen(ourPost->message));
+}
+
+
 int loadPosts(struct board * ourBoard , struct thread * ourThread)
 {
   int i=0;
@@ -77,14 +105,14 @@ int loadPosts(struct board * ourBoard , struct thread * ourThread)
   ourThread->maxNumberOfReplies = MAX_POSTS_PER_THREAD;
   ourThread->numberOfReplies = 0;
   ourThread->numberOfImages = 0;
-  ourThread->replies = (struct post * ) malloc(sizeof(struct post) * MAX_STRING_SIZE);
+  ourThread->replies = (struct post * ) malloc(sizeof(struct post) * MAX_POSTS_PER_THREAD);
 
   if (ourThread->replies!=0)
   {
    while (i<ourThread->maxNumberOfReplies)
     {
      snprintf(postHeaderFilename,MAX_STRING_SIZE,"data/board/%s/%s/header_%u" , ourBoard->name ,  ourThread->name , i);
-     if (loadPostHeader(postHeaderFilename,&ourThread->replies[i]) )
+     if (loadPostHeader(postHeaderFilename,&ourThread->replies[i],i) )
      {
        snprintf(postHeaderFilename,MAX_STRING_SIZE,"data/board/%s/%s/post_%u" , ourBoard->name ,  ourThread->name , i);
        loadPostContent(postHeaderFilename,&ourThread->replies[i]);

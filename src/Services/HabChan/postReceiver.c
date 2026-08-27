@@ -13,37 +13,73 @@
 
 void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
 {
-   //board=b&replythread=0&MAX_FILE_SIZE=3072000&email=&name=tettee&s=ttete&em=etetet&message=etetete&imagefile=&embed=tete&embedtype=youtube&postpassword=tetetet
-   struct post newPost={0};
-   struct thread newThread={0};
+   //board=b&replythread=new&name=tettee&s=ttete&message=etetete&imagefile=&postpassword=tetetet
    unsigned int succesfulAddition=0;
 
-   char * boardName = (char *) malloc ( MAX_STRING_SIZE * sizeof(char) );
+   char boardName[MAX_STRING_SIZE]={0};
+   char replyThread[MAX_STRING_SIZE]={0};
+   char resultThreadName[MAX_STRING_SIZE]={0};
 
+   struct post newPost={0};
    newPost.message =  (char *) malloc ( MAX_STRING_SIZE * sizeof(char) );
+   if (newPost.message!=0) { newPost.message[0]=0; }
 
-         if ( _GETcpy(rqst,"board",boardName,MAX_STRING_SIZE) ) { }
-         if ( _GETcpy(rqst,"name",newThread.op,MAX_STRING_SIZE) ) { }
-         if ( _GETcpy(rqst,"s",newThread.title,MAX_STRING_SIZE) ) { }
-         if ( _GETcpy(rqst,"postpassword",newThread.password,MAX_STRING_SIZE) ) { }
-         //TODO Process options if ( _GET(rqst,"em",newThread->op,MAX_STRING_SIZE) ) { }
-         if ( _GETcpy(rqst,"message",newPost.message ,MAX_STRING_SIZE) ) { }
-         //if ( _GET(rqst,"name",newThread.op,MAX_STRING_SIZE) ) { }
+   _POSTcpy(rqst,"board",boardName,MAX_STRING_SIZE);
+   _POSTcpy(rqst,"replythread",replyThread,MAX_STRING_SIZE);
 
+   _POSTcpy(rqst,"name",newPost.op,MAX_STRING_SIZE);
+   if ( strlen(newPost.op)==0 ) { snprintf(newPost.op,MAX_STRING_SIZE,"Anonymous"); }
+   _POSTcpy(rqst,"postpassword",newPost.password,MAX_STRING_SIZE);
 
+   char subject[MAX_STRING_SIZE]={0};
+   _POSTcpy(rqst,"s",subject,MAX_STRING_SIZE);
 
-   //TODO : CREATE FILE HERE
+   if (newPost.message!=0) { _POSTcpy(rqst,"message",newPost.message,MAX_STRING_SIZE); }
 
-
-
-/*
-   if ( addThreadToBoard( boardName , &newThread ) )
+   const char * fileBytes = 0;
+   unsigned int fileBytesSize = 0;
+   unsigned int fileNameSize = 0;
+   const char * uploadedFileName = _FILES(rqst,"imagefile",FILENAME,&fileNameSize);
+   if ( (uploadedFileName!=0) && (strlen(uploadedFileName)>0) )
    {
-      if ( addPostToThread( boardName , &newThread , &newPost ) )
-      {
-        succesfulAddition = 1;
-      }
-   }*/
+     unsigned int candidateSize=0;
+     const char * candidateBytes = _FILES(rqst,"imagefile",VALUE,&candidateSize);
+     if ( (candidateBytes!=0) && (candidateSize>0) )
+     {
+       fileBytes = candidateBytes;
+       fileBytesSize = candidateSize;
+       newPost.hasFile = 1;
+       snprintf(newPost.fileOriginalName,MAX_STRING_SIZE,"%s",uploadedFileName);
+     }
+   }
+
+   if ( (newPost.message!=0) && (strlen(newPost.message)>0) && hashMap_ContainsKey(boardHashMap,boardName) )
+   {
+     if ( (strlen(replyThread)==0) || (strcmp(replyThread,"new")==0) )
+     {
+       //A brand new thread , newPost becomes reply #0 ( the OP post ) of it
+       if ( createThread(boardName,newPost.op,subject,newPost.password,&newPost,fileBytes,fileBytesSize,resultThreadName,MAX_STRING_SIZE) )
+       {
+         succesfulAddition=1;
+       }
+     } else
+     {
+       //A reply to an existing thread , make sure the thread we were pointed at really belongs to this board
+       unsigned long boardIndex=0;
+       unsigned long encoded=0;
+       if ( hashMap_GetULongPayload(boardHashMap,boardName,&boardIndex) &&
+            hashMap_GetULongPayload(threadHashMap,replyThread,&encoded) &&
+            ( (encoded / MAX_THREADS_PER_BOARD) == boardIndex ) )
+       {
+         unsigned long threadSlot = encoded % MAX_THREADS_PER_BOARD;
+         if ( addPostToThread(boardName,&ourSite.boards[boardIndex].threads[threadSlot],&newPost,fileBytes,fileBytesSize) )
+         {
+           succesfulAddition=1;
+           snprintf(resultThreadName,MAX_STRING_SIZE,"%s",replyThread);
+         }
+       }
+     }
+   }
 
 
   if (succesfulAddition)
@@ -51,18 +87,9 @@ void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
    snprintf(rqst->content,rqst->MAXcontentSize,
            "<html>\
              <head>\
-              <meta http-equiv=\"refresh\" content=\"5; url=threadView.html?board=%s&&id=%u\">\
+              <meta http-equiv=\"refresh\" content=\"0; url=threadView.html?board=%s&thread=%s\">\
              </head>\
-             <body>\
-           \
-            <br> Got a message going to board %s <br>\
-            From : %s  <br>\
-            Subject : %s <br>\
-            Password : %s <br>\
-            Message : %s <br> \
-           \
-           \
-           Got back something</body></html>" , boardName , 666 , boardName , newThread.op , newThread.title , newThread.password , newPost.message );
+             <body>Post received , redirecting..</body></html>" , boardName , resultThreadName );
    rqst->contentSize=strlen(rqst->content);
   } else
   {
@@ -78,9 +105,7 @@ void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
 
 
  //Deallocate everything ..
- if (boardName!=0) { free(boardName); }
  if (newPost.message  !=0) { free(newPost.message ); }
 
  return 0;
 }
-

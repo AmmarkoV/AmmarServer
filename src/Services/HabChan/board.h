@@ -10,6 +10,7 @@
 
 void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst);
 
+char * mallocChannelListHTML(const char * currentBoardName);
 
 int addBoardToSite( struct site * targetSite , char * boardName );
 #endif // BOARD_H_INCLUDED

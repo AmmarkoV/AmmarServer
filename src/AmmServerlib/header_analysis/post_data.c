@@ -162,7 +162,13 @@ int finalizePOSTData(struct HTTPHeader * output)
 
        if (payloadEnd!=0)
        {
-        output->POSTItem[i].valueSize=payloadEnd-payload;
+        //output->boundary does not include the mandatory "--" that always precedes a boundary occurrence on
+        //the wire , and the payload also carries a trailing CRLF right before that "--" which is framing , not
+        //data , so both have to be stripped off to get the real file size..!
+        unsigned int rawSize = payloadEnd-payload;
+        if (rawSize>=2) { rawSize-=2; }
+        while ( (rawSize>0) && ( (payload[rawSize-1]==13) || (payload[rawSize-1]==10) ) ) { --rawSize; }
+        output->POSTItem[i].valueSize=rawSize;
         //AmmServer_Success("Found boundary in file payload, size of payload is %u ..!",output->POSTItem[i].valueSize);
        } else
        {
@@ -190,7 +196,39 @@ int finalizePOSTData(struct HTTPHeader * output)
     if (payload!=0)
      {
        output->POSTItem[i].value = payload;
-       output->POSTItem[i].valueSize=length;
+
+       //A plain ( non file ) part's value is not delimited by a single line , it can be empty , span multiple
+       //lines or contain arbitrary bytes , so just like the file case above we have to search for the next
+       //boundary occurrence to know where it actually ends , otherwise valueSize ends up wrong and , since
+       //callers like _GENERIC_cpy treat this pointer as a NUL terminated C string , the value bleeds into
+       //whatever comes after it in the raw request buffer..!
+       unsigned int payloadSize = _calculateRemainingDataLength(
+                                                                  output->headerRAW ,
+                                                                  output->headerRAWSize ,
+                                                                  payload
+                                                                 );
+
+       char * payloadEnd = (char*) memmem(
+                                           payload,
+                                           payloadSize ,
+                                           output->boundary ,
+                                           output->boundaryLength
+                                          );
+
+       if (payloadEnd!=0)
+       {
+        //output->boundary does not include the mandatory "--" that always precedes a boundary occurrence on
+        //the wire , and the payload also carries a trailing CRLF right before that "--" which is framing , not
+        //data , so both have to be stripped off . Text fields are safe to also NUL terminate , unlike file data..!
+        unsigned int rawSize = payloadEnd-payload;
+        if (rawSize>=2) { rawSize-=2; }
+        while ( (rawSize>0) && ( (payload[rawSize-1]==13) || (payload[rawSize-1]==10) ) ) { --rawSize; }
+        output->POSTItem[i].valueSize=rawSize;
+        payload[rawSize]=0;
+       } else
+       {
+        output->POSTItem[i].valueSize=length;
+       }
      }
 
     if (name!=0)

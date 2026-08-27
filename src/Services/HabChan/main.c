@@ -53,7 +53,7 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&boardIndexView,"/index.html",4096,0,&prepareBoardIndexView,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&threadIndexView,"/threadIndexView.html",46096,0,&prepareThreadIndexView,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&threadView,"/threadView.html",46096,0,&prepareThreadView,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&postReceiver,"/postReceiver.html",4096,0,&processPostReceiver,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&postReceiver,"/postReceiver.html",4096,0,&processPostReceiver,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
 
 
   loadSite("data/settings.ini");

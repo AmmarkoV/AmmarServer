@@ -48,6 +48,50 @@ void * prepareBoardIndexView(struct AmmServer_DynamicRequest  * rqst)
 
 
 
+//Builds the small "[ b / v / ... ]" nav bar used to jump between boards , bolding whichever board is currently being viewed
+char * mallocChannelListHTML(const char * currentBoardName)
+{
+  unsigned int bufferCapacity = 4096;
+  char * buffer = (char *) malloc(sizeof(char) * bufferCapacity);
+  if (buffer==0) { return 0; }
+  buffer[0]=0;
+
+  if (boardHashMap->curNumberOfEntries==0)
+  {
+    snprintf(buffer,bufferCapacity,"No boards available");
+    return buffer;
+  }
+
+  strncat(buffer,"[ ",bufferCapacity-strlen(buffer)-1);
+
+  unsigned int i=0;
+  unsigned int printed=0;
+  for (i=0; i<=boardHashMap->curNumberOfEntries; i++)
+  {
+    const char * key = hashMap_GetKeyAtIndex(boardHashMap,i);
+    if (key!=0)
+    {
+      char chunk[600]={0};
+      if (printed>0) { strncat(buffer," / ",bufferCapacity-strlen(buffer)-1); }
+
+      if ( (currentBoardName!=0) && (strcmp(key,currentBoardName)==0) )
+      {
+        snprintf(chunk,sizeof(chunk),"<b>%s</b>",key);
+      } else
+      {
+        snprintf(chunk,sizeof(chunk),"<a href=\"threadIndexView.html?board=%s\">%s</a>",key,key);
+      }
+
+      strncat(buffer,chunk,bufferCapacity-strlen(buffer)-1);
+      ++printed;
+    }
+  }
+
+  strncat(buffer," ]",bufferCapacity-strlen(buffer)-1);
+  return buffer;
+}
+
+
 int loadBoardSettings(char * boardName , struct board * ourBoard)
 {
    if (ourBoard==0) { fprintf(stderr,"Cannot load board without an allocated board\n"); return 0; }
@@ -120,11 +164,12 @@ int addBoardToSite( struct site * targetSite , char * boardName )
    return 0;
   }
 
-  //Update hashmap used to check for sites
-  hashMap_Add(boardHashMap,boardName,0,0);
+  //Update hashmap used to check for sites , the payload holds the stable slot of this board inside
+  //targetSite->boards[] , since hashMap_FindIndex can return a position that shifts once the hashmap
+  //gets internally re-sorted by a later insertion ( see hashMap_Sort / cmpHashTableItems )..!
+  unsigned long boardID = targetSite->numberOfBoards;
+  hashMap_AddULong(boardHashMap,boardName,boardID);
 
-  unsigned long boardID=0;
-  if ( hashMap_FindIndex(boardHashMap,boardName,&boardID) )
   {
     targetSite->numberOfBoards++;
     strncpy( targetSite->boards[boardID].name  , boardName , MAX_STRING_SIZE );
@@ -137,6 +182,7 @@ int addBoardToSite( struct site * targetSite , char * boardName )
     }
    ourSite.boards[boardID].currentThreads=0;
    ourSite.boards[boardID].maxThreads=MAX_THREADS_PER_BOARD;
+   ourSite.boards[boardID].threadUID=1;
   }
 
 
@@ -167,7 +213,8 @@ int addBoardToSite( struct site * targetSite , char * boardName )
      fprintf(stderr,"Cannot open directory to list channels \n");
     }
 
-
+   //New threads created at runtime get numbered after everything found on disk at load time..!
+   ourSite.boards[boardID].threadUID = ourSite.boards[boardID].currentThreads + 1;
 
  return 0;
 }
