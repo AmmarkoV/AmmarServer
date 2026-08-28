@@ -111,12 +111,16 @@ int checkRequestFrequency(
          if (CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC>0)
          {
           maxWaitTime= (unsigned int) CLIENT_SLEEP_TIME_WHEN_DYNAMIC_REQUEST_CALLBACK_IS_BUSY_NSEC / CLIENT_SLEEP_TIME_INTERVAL_NSEC ;
+          #if DEBUG_MESSAGES
           fprintf(stderr,"Hit while another thread executing callback , waiting %u intervals of %u nsec..",maxWaitTime,(unsigned int) CLIENT_SLEEP_TIME_INTERVAL_NSEC );
+          #endif // DEBUG_MESSAGES
           while ( (shared_context->executedNow) && (waitTime < maxWaitTime) )
           {
            usleep(CLIENT_SLEEP_TIME_INTERVAL_NSEC );
            ++waitTime;
+           #if DEBUG_MESSAGES
            fprintf(stderr,"_");
+           #endif // DEBUG_MESSAGES
           }
          }
 
@@ -126,16 +130,23 @@ int checkRequestFrequency(
            return TIME_IS_TOO_SLOW_SERVE_NOTHING;
          } else
          {
+          #if DEBUG_MESSAGES
           AmmServer_Success("Request gets canned dynamic request page ( size %u , callback every %u msec )..\n",shared_context->requestContext.contentSize , shared_context-> callback_every_x_msec);
+          #endif // DEBUG_MESSAGES
           //The request came too fast.. We will serve our existing file..!
           return TIME_IS_TOO_FAST_SERVE_CACHED;
          }
         } else
         {
+         #if DEBUG_MESSAGES
          fprintf(stderr,"Request deserves fresh page , %u last gen, %lu now , %u cooldown\n",shared_context->last_callback,*now,shared_context-> callback_every_x_msec);
+         #endif // DEBUG_MESSAGES
          return TIME_IS_OK_SERVE_FRESH;
         }
       }
+
+     //No time limit configured for this resource ( or it isn't a SAME_PAGE_FOR_ALL_CLIENTS resource ) , always serve fresh
+     return TIME_IS_OK_SERVE_FRESH;
 }
 
 

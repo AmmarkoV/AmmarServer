@@ -354,13 +354,15 @@ void * request_override_callback(char * content)
 void init_dynamic_content()
 {
   AmmServer_AddRequestHandler(default_server,&GET_override,"GET",&request_override_callback);
-  AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",4096,0,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&stats,"/stats.html",4096,500,&prepare_stats_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  //formtest.html echoes back this request's own GET/POST fields into the "shared" page ( see prepare_form_content_callback ) ,
+  //so it isn't actually the same output for every client - a time-based cache here would leak one client's submitted values to another. Left at 0.
   AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 
-  AmmServer_AddResourceHandler(default_server,&hello,"/hello.html",4096,0,&helloWorld_callback,SAME_PAGE_FOR_ALL_CLIENTS);
+  AmmServer_AddResourceHandler(default_server,&hello,"/hello.html",4096,5000,&helloWorld_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
   #if ENABLE_STOP_PAGE
     AmmServer_Error("Enabling stop page , you don't want this in a production usage\n");
@@ -391,6 +393,8 @@ void init_dynamic_content()
 
   if (ENABLE_CHAT_BOX)
   {
+   //chatbox.html echoes this request's own just-POSTed username/comment back into the "shared" page ( see prepare_chatbox_content_callback ) ,
+   //so it isn't actually the same output for every client - a time-based cache here would show one client's submission to another. Left at 0.
    AmmServer_AddResourceHandler(default_server,&chatbox,"/chatbox.html",4096,0,&prepare_chatbox_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
 
      char chatlog_path[MAX_FILE_PATH]={0};
