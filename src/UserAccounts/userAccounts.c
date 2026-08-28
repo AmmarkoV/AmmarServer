@@ -34,7 +34,17 @@ struct UserAccountDatabase * uadb_initializeUserAccountDatabase(const char * fil
 
      return uadb;
     }
-  return 0;
+
+ //No database file yet ( first run ) , start with an empty , writable one instead of failing outright..!
+ struct UserAccountDatabase * uadb = (struct UserAccountDatabase *) malloc(sizeof(struct UserAccountDatabase));
+ if (uadb==0) { return 0; }
+ snprintf(uadb->filename,512,"%s",filename);
+ uadb->userListSize=0;
+ uadb->userListMaxSize=100;
+ uadb->userList = (struct RegisteredUser *) malloc(sizeof(struct RegisteredUser) * uadb->userListMaxSize);
+ if (uadb->userList==0) { free(uadb); return 0; }
+ fprintf(stderr,"No existing user database at %s , starting with an empty one\n",filename);
+ return uadb;
 };
 
 
@@ -238,18 +248,39 @@ int uadb_addUser(
                    const char * browserFingerprint
                  )
 {
- FILE *fp=fopen(uadb->filename,"a");
- if (fp!=0)
+ //This used to only fprintf-append the new user's lines to the file , without ever touching uadb->userList[] /
+ //uadb->userListSize , and without updating the header count line either. That meant a freshly signed up user
+ //could not log in until the process restarted , and even then a later uadb_saveUserAccountDatabase() call
+ //( e.g. on shutdown ) would rewrite the file using the stale in-memory count and silently drop the new account.
+ //It also always `return 0;` , reporting failure even when nothing went wrong. Fixed to actually register the
+ //user in memory and persist through the existing save path , which keeps the file's header count correct.
+ if (uadb==0) { return 0; }
+
+ unsigned int i=0;
+ for (i=0; i<uadb->userListSize; i++)
  {
-   fprintf(fp,"%s\n",username);
-   fprintf(fp,"%s\n",password);
-
-
-   struct UserAccountAuthenticationToken token={0};
-   uadb_getBackRandomFileDigitsInplace(token.sessionID,32);
-   fprintf(fp,"%s\n",token.sessionID);
-   fclose(fp);
+   if (strcmp(uadb->userList[i].username,username)==0) { return 0; } //Username already taken
  }
 
- return 0;
+ if (uadb->userListSize>=uadb->userListMaxSize)
+ {
+   unsigned int newMaxSize=uadb->userListMaxSize+100;
+   struct RegisteredUser * grown=(struct RegisteredUser*) realloc(uadb->userList,sizeof(struct RegisteredUser)*newMaxSize);
+   if (grown==0) { return 0; }
+   uadb->userList=grown;
+   uadb->userListMaxSize=newMaxSize;
+ }
+
+ unsigned int newID=uadb->userListSize;
+ snprintf(uadb->userList[newID].username,32,"%s",username);
+ snprintf(uadb->userList[newID].password,32,"%s",password);
+ //sessionID is char[32] , so it only has room for 31 characters plus the NUL terminator uadb_getBackRandomFileDigitsInplace()
+ //always appends at str[numberOfDigits] : asking for 32 digits here would write that terminator at sessionID[32] , one
+ //byte past the array , silently corrupting the first byte of the next struct in uadb->userList[]..!
+ uadb_getBackRandomFileDigitsInplace(uadb->userList[newID].sessionID,31);
+ ++uadb->userListSize;
+
+ uadb_saveUserAccountDatabase(uadb); //Persist immediately so a crash right after signup doesn't lose the account
+
+ return 1;
 }

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="UTF-8">
+ <title>ShareTex</title>
+ <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ <div class="topbar"><h1>ShareTex</h1><div class="sub">A tiny multiuser LaTeX workspace built on AmmarServer</div></div>
+ <div class="authbox">
+  <div class="authcol">
+   <h2>Log in</h2>
+   <form method="post" enctype="multipart/form-data" action="doLogin.html">
+    <label>Username</label><input type="text" name="username" autocomplete="username" required>
+    <label>Password</label><input type="password" name="password" autocomplete="current-password" required>
+    <button type="submit">Log in</button>
+   </form>
+  </div>
+  <div class="authcol">
+   <h2>Sign up</h2>
+   <form method="post" enctype="multipart/form-data" action="doSignup.html">
+    <label>Username</label><input type="text" name="username" autocomplete="username" required>
+    <label>Password</label><input type="password" name="password" autocomplete="new-password" required>
+    <button type="submit">Create account</button>
+   </form>
+  </div>
+ </div>
+</body>
+</html>
