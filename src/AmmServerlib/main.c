@@ -200,6 +200,7 @@ struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
   memset(instance,0,sizeof(struct AmmServer_Instance));
 
   instance->sslserversock          = -1;
+  instance->accept_epoll_fd        = -1;
   instance->settings.HTTPS_PORT    = 443;
   #if USE_OPENSSL
   signal(SIGPIPE, SIG_IGN);
@@ -270,6 +271,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
                  { memset(instance,0,sizeof(struct AmmServer_Instance)); }
 
   instance->sslserversock          = -1;
+  instance->accept_epoll_fd        = -1;
   instance->settings.HTTPS_PORT    = 443;
 
   #if USE_OPENSSL

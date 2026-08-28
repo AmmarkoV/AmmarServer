@@ -458,6 +458,11 @@ struct AmmServer_Instance
     #if USE_OPENSSL
      SSL_CTX *sslctx;
     #endif // USE_OPENSSL
+
+    //Epoll accept layer : newly accepted connections sit here ( costing no thread ) until they have their first
+    //byte ready to read , only then do they get handed to a prespawned/fresh worker thread like today
+    int accept_epoll_fd;      /* -1 if not running */
+    pthread_t accept_epoll_thread_id;
 };
 
 /** @brief Structure to keep data for an HTTP Transaction */

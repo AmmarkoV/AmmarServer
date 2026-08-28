@@ -36,6 +36,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <sys/epoll.h>
 
 #include "threadedServer.h"
 
@@ -89,26 +90,24 @@ static int signalChildFinishedWithParentMessageLocal(volatile int * childSwitch)
 #endif // WORKAROUND_REALLOCATION_GCC_ERROR
 
 
-static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener_sock,int is_ssl_connection)
+//Epoll accept layer : a connection accepted from a slow/idle client would otherwise tie up a whole worker thread
+//blocked in recv() until it finally sends something. Instead we hand freshly accepted sockets to this epoll set
+//and only pull them out to a prespawned/fresh worker ( same dispatch as always ) once they actually have a byte
+//ready to read - an idle connection costs an fd and a small heap struct while it waits, not a thread.
+//Set to 0 to disable entirely ; drain_and_dispatch then falls straight back to dispatching every accept directly.
+#define ACCEPT_EPOLL_LAYER_ENABLED 1
+#define MAX_EPOLL_EVENTS_PER_WAIT 256
+
+struct PendingAccept
 {
-  while (1)
-  {
+    int clientsock;
     struct sockaddr_in client;
-    unsigned int clientlen = sizeof(struct sockaddr_in);
-    bzero(&client,clientlen);
+    unsigned int clientlen;
+    int is_ssl_connection;
+};
 
-    int clientsock = accept4(listener_sock,(struct sockaddr *)&client,&clientlen,SOCK_CLOEXEC);
-    if (clientsock < 0)
-      {
-        if ( (errno==EAGAIN) || (errno==EWOULDBLOCK) ) { break; } // normal drain, backlog is empty
-        if ( errno==ECONNABORTED )                     { continue; }
-        if ( errno==EINTR )                             { break; }
-        errorID(ASV_ERROR_FAILED_TO_ACCEPT);
-        usleep(1000);
-        break;
-      }
-
-      //Successfully accepting..!
+static void dispatch_accepted_client(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,int is_ssl_connection)
+{
      #if SINGLE_THREAD_MODE
         if (SingleThreadToServeNewClient(instance,clientsock,client,clientlen,is_ssl_connection))
         {
@@ -140,6 +139,72 @@ static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener
             usleep(10000);
         }
      #endif // SINGLE_THREAD_MODE
+}
+
+static void * EpollAcceptLayerThread(void * ptr)
+{
+  struct AmmServer_Instance * instance = (struct AmmServer_Instance *) ptr;
+  struct epoll_event events[MAX_EPOLL_EVENTS_PER_WAIT];
+
+  while ( (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
+   {
+     int n = epoll_wait(instance->accept_epoll_fd,events,MAX_EPOLL_EVENTS_PER_WAIT,1000); // 1s timeout to recheck stop_server
+     if (n<0) { if (errno==EINTR) { continue; } break; } // most likely accept_epoll_fd got closed during shutdown
+
+     int i=0;
+     for (i=0;i<n;i++)
+      {
+        struct PendingAccept * pending = (struct PendingAccept *) events[i].data.ptr;
+        epoll_ctl(instance->accept_epoll_fd,EPOLL_CTL_DEL,pending->clientsock,0); // ownership moves to the worker now
+        dispatch_accepted_client(instance,pending->clientsock,pending->client,pending->clientlen,pending->is_ssl_connection);
+        free(pending);
+      }
+   }
+
+  return 0;
+}
+
+static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener_sock,int is_ssl_connection)
+{
+  while (1)
+  {
+    struct sockaddr_in client;
+    unsigned int clientlen = sizeof(struct sockaddr_in);
+    bzero(&client,clientlen);
+
+    int clientsock = accept4(listener_sock,(struct sockaddr *)&client,&clientlen,SOCK_CLOEXEC);
+    if (clientsock < 0)
+      {
+        if ( (errno==EAGAIN) || (errno==EWOULDBLOCK) ) { break; } // normal drain, backlog is empty
+        if ( errno==ECONNABORTED )                     { continue; }
+        if ( errno==EINTR )                             { break; }
+        errorID(ASV_ERROR_FAILED_TO_ACCEPT);
+        usleep(1000);
+        break;
+      }
+
+      //Successfully accepting..! Hand it to the epoll accept layer if it's running , so it doesn't cost a worker
+      //thread until it actually has a byte to read ; falls back to dispatching directly if that's unavailable.
+      if (instance->accept_epoll_fd>=0)
+       {
+         struct PendingAccept * pending = (struct PendingAccept *) malloc(sizeof(struct PendingAccept));
+         if (pending!=0)
+          {
+            pending->clientsock=clientsock;
+            pending->client=client;
+            pending->clientlen=clientlen;
+            pending->is_ssl_connection=is_ssl_connection;
+
+            struct epoll_event ev={0};
+            ev.events = EPOLLIN|EPOLLONESHOT;
+            ev.data.ptr = pending;
+            if (epoll_ctl(instance->accept_epoll_fd,EPOLL_CTL_ADD,clientsock,&ev)==0) { continue; } // handed off
+
+            free(pending); // epoll_ctl failed - fall through to dispatching it directly below
+          }
+       }
+
+      dispatch_accepted_client(instance,clientsock,client,clientlen,is_ssl_connection);
   } // drain until EAGAIN
 }
 
@@ -261,6 +326,21 @@ void * MainThreadedHTTPServerThread (void * ptr)
   //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
   PreSpawnThreads(instance);
+
+  #if ACCEPT_EPOLL_LAYER_ENABLED
+  instance->accept_epoll_fd = epoll_create1(EPOLL_CLOEXEC);
+  if (instance->accept_epoll_fd<0)
+   {
+     fprintf(stderr,"Failed to create the accept epoll layer , falling back to dispatching every accept directly\n");
+     instance->accept_epoll_fd=-1;
+   }
+  else if (pthread_create(&instance->accept_epoll_thread_id,0,EpollAcceptLayerThread,(void*)instance)!=0)
+   {
+     fprintf(stderr,"Failed to start the accept epoll layer thread , falling back to dispatching every accept directly\n");
+     close(instance->accept_epoll_fd);
+     instance->accept_epoll_fd=-1;
+   }
+  #endif // ACCEPT_EPOLL_LAYER_ENABLED
 
   /* sslserversock is bound by the main thread in AmmServer_Start/StartWithArgs
      after ASRV_SSL_InitContext completes. We just use it here if it is ready. */
@@ -444,6 +524,13 @@ int StopThreadedHTTPServer(struct AmmServer_Instance * instance)
           pthread_mutex_destroy(&prespawned_data->operation_mutex);
           pthread_cond_destroy(&prespawned_data->condition_var);
         }
+    }
+
+  if (instance->accept_epoll_fd>=0)
+    {
+      pthread_join(instance->accept_epoll_thread_id,0); // notices stop_server within its 1s epoll_wait timeout
+      close(instance->accept_epoll_fd);
+      instance->accept_epoll_fd=-1;
     }
 
   clientList_close(instance->clientList);
