@@ -18,22 +18,26 @@ ENDIF(DO_TEST_COVERAGE)
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(habchan   
- main.c 
- state.c 
- state.h 
- thread.c 
- thread.h 
- board.c 
- board.h 
+add_executable(habchan
+ main.c
+ state.c
+ state.h
+ thread.c
+ thread.h
+ board.c
+ board.h
  post.c
  post.h
  postReceiver.c
  postReceiver.h
- ) 
-target_link_libraries(habchan pthread rt AmmarServerDynamic )
+ moderation.c
+ moderation.h
+ csrf.c
+ csrf.h
+ )
+target_link_libraries(habchan pthread rt m AmmarServerDynamic AmmCaptcha )
 set_target_properties(habchan PROPERTIES DEBUG_POSTFIX "D")
-add_dependencies(habchan AmmarServer)  
+add_dependencies(habchan AmmarServer AmmCaptcha)
        
 
     set_target_properties(habchan PROPERTIES 

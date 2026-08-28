@@ -1155,6 +1155,19 @@ int AmmServer_EraseFile(const char * filename);
 unsigned int AmmServer_StringIsHTMLSafe(const char * str);
 
 /**
+* @brief Escapes the characters that are unsafe to place directly into HTML ( & < > " ' ) into their entity
+*        equivalents , so arbitrary user supplied text ( post bodies, names, form fields, ... ) can be safely
+*        embedded into a page without allowing HTML/script injection or breaking out of a quoted attribute.
+*        Unlike AmmServer_StringIsHTMLSafe() this does not reject anything , it makes any input safe to use.
+* @ingroup tools
+* @param Input string to escape
+* @param Output buffer that receives the escaped , always NUL terminated , string
+* @param Size of the output buffer , escaping stops before it would overflow it ( no partial entities are ever emitted )
+* @retval Number of bytes written to output , not including the terminating NUL
+*/
+unsigned int AmmServer_HTMLEscape(const char * input , char * output , unsigned int outputMaxSize);
+
+/**
 * @brief Check if a string has html elements inside it , so if we append it to a web site we won't have html injected
 * @ingroup tools
 * @param Directory path

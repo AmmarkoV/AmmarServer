@@ -309,7 +309,10 @@ int WriteJPEGInternal(const char *filename,struct Image * pic,char *mem,unsigned
 {
     //debug where things get loaded using next line..
     //fprintf(stderr,"WriteJPEG(%s,%p,%p,%p); called \n",filename,pic,mem,mem_size);
-    if (filename==0)    { return 0; }
+    //This used to unconditionally bail out here whenever filename was 0 , which is exactly what
+    //WriteJPEGMemory() always passes , so the ( mem , mem_size ) destination branch a few lines
+    //below could never actually be reached : every WriteJPEGMemory() call silently failed.
+    if ( (filename==0) && ( (mem==0) || (mem_size==0) ) ) { return 0; }
     if (pic==0)         { fprintf(stderr,"WriteJPEG called with an incorrect image structure \n "); return 0; }
 	if (pic->pixels==0) { fprintf(stderr,"WriteJPEG called with a problematic raw image..\n ");     return 0; }
 	if ( (pic->depth!=1) && (pic->depth!=3) )

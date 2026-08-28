@@ -256,8 +256,6 @@ int finalizePOSTData(struct HTTPHeader * output)
 */
 const struct POSTRequestBoundaryContent * getPOSTItemFromName(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor)
 {
- unsigned int sizeOfNameToLookFor = strlen(nameToLookFor);
-
  unsigned int i=0;
  unsigned int PNum=rqst->POSTItemNumber;
  if (PNum>MAX_HTTP_POST_BOUNDARY_COUNT) { PNum=MAX_HTTP_POST_BOUNDARY_COUNT; }
@@ -270,7 +268,11 @@ const struct POSTRequestBoundaryContent * getPOSTItemFromName(struct AmmServer_D
     //AmmServer_Info("POSTItem[%u].name = %s and we have %s \n",i,p->name,nameToLookFor);
     if (p->name!=0)
     {
-     if (strncmp(p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
+     //This used to be a strncmp bounded by nameToLookFor's length , which means looking up "captcha" would
+     //also match a field actually named "captchaID" ( or any field whose name merely starts with "captcha" ) ,
+     //silently returning the wrong POST item. Field names are NUL terminated ( see finalizePOSTData() ) so a
+     //plain exact strcmp is both correct and safe here.
+     if (strcmp(p->name,nameToLookFor) == 0)
      {
        return p;
      }

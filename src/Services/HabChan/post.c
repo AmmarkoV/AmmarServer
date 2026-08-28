@@ -14,6 +14,9 @@ int loadPostHeader(char * postHeaderFilename , struct post * ourPost , unsigned 
    FILE * fp = fopen(postHeaderFilename,"r");
    if (fp == 0 ) { fprintf(stderr,"Cannot open loadPostHeader file %s \n",postHeaderFilename); return 0; }
 
+   //ourThread->replies[] comes from a plain malloc() , not calloc() , so fields like `deleted` or `password`
+   //that have no line in an older header_N file must be explicitly zeroed here rather than left as garbage..!
+   memset(ourPost,0,sizeof(struct post));
 
     char line [LINE_MAX_LENGTH]={0};
     //Allocate a token parser
@@ -35,10 +38,22 @@ int loadPostHeader(char * postHeaderFilename , struct post * ourPost , unsigned 
                 {
                    InputParser_GetWord(ipc,1,ourPost->op,MAX_STRING_SIZE);
                 } else
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"PASSWORD")==1)
+                {
+                   InputParser_GetWord(ipc,1,ourPost->password,MAX_STRING_SIZE);
+                } else
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"DELETED")==1)
+                {
+                   ourPost->deleted =  InputParser_GetWordInt(ipc,1);
+                } else
                 if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IMAGENAME")==1)
                 {
                    ourPost->hasFile=1;
                    InputParser_GetWord(ipc,1,ourPost->fileOriginalName,MAX_STRING_SIZE);
+                } else
+                if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IMAGECACHED")==1)
+                {
+                   InputParser_GetWord(ipc,1,ourPost->fileCachedName,MAX_STRING_SIZE);
                 } else
                 if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"TIMESTAMP")==1)
                 {
@@ -56,9 +71,12 @@ int loadPostHeader(char * postHeaderFilename , struct post * ourPost , unsigned 
     InputParser_Destroy(ipc);
     fclose(fp);
 
-    //header_N only ever stores the name a file was originally uploaded as ( imagename(...) ) , never the
-    //actual on-disk filename , so derive it the same deterministic way addPostToThread does when saving..!
-    if (ourPost->hasFile) { deriveCachedImageName(ourPost->fileOriginalName,postIndex,ourPost->fileCachedName,MAX_STRING_SIZE); }
+    //Older header_N files ( written before imagecached(...) existed ) never recorded the real on-disk filename ,
+    //so fall back to guessing it from the original upload name for those only.
+    if ( (ourPost->hasFile) && (strlen(ourPost->fileCachedName)==0) )
+    {
+      deriveCachedImageName(ourPost->fileOriginalName,postIndex,ourPost->fileCachedName,MAX_STRING_SIZE);
+    }
 
     return 1;
 }
@@ -80,7 +98,13 @@ int savePostHeader(const char * postHeaderFilename , struct post * ourPost)
    if (fp == 0 ) { fprintf(stderr,"Cannot open %s for writing\n",postHeaderFilename); return 0; }
 
    fprintf(fp,"op(%s)\n",ourPost->op);
-   if (ourPost->hasFile) { fprintf(fp,"imagename(%s)\n",ourPost->fileOriginalName); }
+   fprintf(fp,"password(%s)\n",ourPost->password);
+   fprintf(fp,"deleted(%u)\n",ourPost->deleted);
+   if (ourPost->hasFile)
+   {
+     fprintf(fp,"imagename(%s)\n",ourPost->fileOriginalName);
+     fprintf(fp,"imagecached(%s)\n",ourPost->fileCachedName);
+   }
    fprintf(fp,"timestamp(%u,%u,%u,%u,%u,%u)\n",
            ourPost->creation.year , ourPost->creation.month , ourPost->creation.day ,
            ourPost->creation.hour , ourPost->creation.minute , ourPost->creation.second);

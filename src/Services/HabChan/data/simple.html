@@ -27,6 +27,7 @@
 	<input type="hidden" name="board" value="!BOARDNAME!" />
 	<input type="hidden" name="replythread" value="!THREADID!" />
 	<input type="hidden" name="MAX_FILE_SIZE" value="3072000" />
+	<input type="hidden" name="csrftoken" value="!CSRFTOKEN!" />
 	<input type="text" name="email" size="28" maxlength="75" value="" style="display: none;" />
 	  <table class="postform">
 	    <tbody>
@@ -47,18 +48,17 @@
 	       </tr>
 	
 	       <tr>
-	         <td class="postblock">Video</td> <td> <input type="text" name="embed" size="28" maxlength="75" accesskey="e" />&nbsp;
-	                                                <select name="embedtype">
-	                                                 <option value="youtube">Youtube</option> 
-	                                                </select>
-	         <a class="rules" href="#postbox" onclick="window.open('help.html','embedhelp','toolbar=0,location=0,status=0,menubar=0,scrollbars=0,resizable=0,width=300,height=210');return false;">Help</a>
-	                                           </td>
-	       </tr>
-	
-	       <tr>
 	         <td class="postblock">Password</td> <td><input type="password" name="postpassword" size="8" accesskey="p" />&nbsp;(for deleting your post)</td>
 	       </tr>
-	       
+	       <tr>
+	         <td class="postblock">Verification</td>
+	         <td>
+	           <input type="hidden" name="captchaID" value="!CAPTCHAID!" />
+	           <img src="captcha.jpg?id=!CAPTCHAID!" alt="captcha" width="300" height="70"><br>
+	           <input type="text" name="captcha" size="15" autocomplete="off" />
+	         </td>
+	       </tr>
+
 	         <tr id="passwordbox"><td></td><td></td></tr>
 	
 	       <tr>

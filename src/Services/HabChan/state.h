@@ -46,6 +46,7 @@ struct post
   char op[MAX_STRING_SIZE];
   char password[MAX_STRING_SIZE];
 
+  unsigned char deleted;
 
   unsigned char hasFile;
   unsigned char fileType;
@@ -69,6 +70,7 @@ struct thread
 
   unsigned char sticky;
   unsigned char repliable;
+  unsigned char deleted;
 
   char op[MAX_STRING_SIZE];
   char password[MAX_STRING_SIZE];
@@ -128,5 +130,9 @@ int addPostToThread( const char * boardName ,  struct thread * newThread ,  stru
 void fillTimestampNow( struct timestamp * t );
 
 void deriveCachedImageName( const char * originalFilename , unsigned int postIndex , char * outCachedName , unsigned int outCachedNameSize );
+
+int detectImageType( const char * bytes , unsigned int size , char * outExt , unsigned int outExtSize );
+
+void deriveThumbnailName( const char * cachedImageName , char * outThumbName , unsigned int outThumbNameSize );
 
 #endif // STATE_H_INCLUDED

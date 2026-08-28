@@ -149,25 +149,28 @@ void fillTimestampNow( struct timestamp * t )
 }
 
 
-//Only allow a small whitelist of image extensions to be written to disk , everything else gets dropped
-static int getSafeImageExtension(const char * originalFilename , char * outExt , unsigned int outExtSize)
+//Determines the REAL type of an uploaded file by sniffing its magic bytes , rather than trusting the extension
+//on the filename the browser sent us ( which is trivial to fake , e.g. naming an arbitrary file "x.jpg" ).
+//Only files that are genuinely one of these 3 formats are ever accepted for storage.
+int detectImageType(const char * bytes , unsigned int size , char * outExt , unsigned int outExtSize)
 {
-  if ( (originalFilename==0) || (outExt==0) ) { return 0; }
+  if ( (bytes==0) || (outExt==0) ) { return 0; }
 
-  const char * dot = strrchr(originalFilename,'.');
-  if (dot==0) { return 0; }
-  ++dot;
-  if (strlen(dot)==0) { return 0; }
-
-  char ext[16]={0};
-  unsigned int i=0;
-  for (i=0; (dot[i]!=0) && (i<sizeof(ext)-1); i++) { ext[i]=tolower((unsigned char) dot[i]); }
-  ext[i]=0;
-
-  if ( (strcmp(ext,"jpg")==0)  || (strcmp(ext,"jpeg")==0) ||
-       (strcmp(ext,"png")==0)  || (strcmp(ext,"gif")==0) )
+  if ( (size>=3) && ((unsigned char)bytes[0]==0xFF) && ((unsigned char)bytes[1]==0xD8) && ((unsigned char)bytes[2]==0xFF) )
   {
-    snprintf(outExt,outExtSize,"%s",ext);
+    snprintf(outExt,outExtSize,"jpg");
+    return 1;
+  }
+
+  if ( (size>=8) && (memcmp(bytes,"\x89\x50\x4E\x47\x0D\x0A\x1A\x0A",8)==0) )
+  {
+    snprintf(outExt,outExtSize,"png");
+    return 1;
+  }
+
+  if ( (size>=6) && ( (memcmp(bytes,"GIF87a",6)==0) || (memcmp(bytes,"GIF89a",6)==0) ) )
+  {
+    snprintf(outExt,outExtSize,"gif");
     return 1;
   }
 
@@ -175,9 +178,33 @@ static int getSafeImageExtension(const char * originalFilename , char * outExt ,
 }
 
 
-//Builds the on-disk filename an image is/will be stored as , independent of whatever name it was originally uploaded with.
-//Both addPostToThread ( at save time ) and loadPostHeader ( at load time ) call this with the same arguments so they
-//always agree on the filename , without needing to persist a second field in header_N..!
+//Thumbnails live right next to the full image , named the same way just with the "image_" prefix swapped for
+//"thumb_" , so no extra bookkeeping ( or header_N field ) is needed to know a thumbnail's name from the full one.
+void deriveThumbnailName( const char * cachedImageName , char * outThumbName , unsigned int outThumbNameSize )
+{
+  const char * rest = cachedImageName;
+  if ( (cachedImageName!=0) && (strncmp(cachedImageName,"image_",6)==0) ) { rest = cachedImageName+6; }
+  snprintf(outThumbName,outThumbNameSize,"thumb_%s",(rest!=0)?rest:"");
+}
+
+
+//Best effort thumbnail generation via ImageMagick's `convert` , which is not a hard dependency : if it is not
+//installed or fails for any reason , rendering simply falls back to serving the full sized image instead.
+static int generateThumbnail(const char * sourcePath , const char * thumbPath)
+{
+  char command[MAX_STRING_SIZE*4]={0};
+  snprintf(command,sizeof(command),"convert '%s' -resize 200x200 '%s' >/dev/null 2>&1",sourcePath,thumbPath);
+
+  char scratch[16]={0};
+  AmmServer_ExecuteCommandLine(command,scratch,sizeof(scratch));
+
+  return AmmServer_FileExists(thumbPath);
+}
+
+
+//Fallback used only by loadPostHeader() for header_N files written before "imagecached(...)" existed , where the
+//real on-disk filename was never recorded and has to be guessed from the ( untrusted , possibly wrong ) original
+//upload name instead. addPostToThread() knows the real type from detectImageType() and never needs to guess.
 void deriveCachedImageName( const char * originalFilename , unsigned int postIndex , char * outCachedName , unsigned int outCachedNameSize )
 {
   char ext[16]="jpg"; //Legacy default : every image HabChan ever saved before fileCachedName existed was a plain image_N.jpg
@@ -220,10 +247,10 @@ int addPostToThread( const char * boardName ,  struct thread * newThread ,  stru
 
   char ext[16]={0};
   if ( newPost->hasFile && (fileBytes!=0) && (fileBytesSize>0) &&
-       getSafeImageExtension(newPost->fileOriginalName,ext,sizeof(ext)) )
+       detectImageType(fileBytes,fileBytesSize,ext,sizeof(ext)) )
   {
     snprintf(storedPost->fileOriginalName,MAX_STRING_SIZE,"%s",newPost->fileOriginalName);
-    deriveCachedImageName(storedPost->fileOriginalName,postIndex,storedPost->fileCachedName,MAX_STRING_SIZE);
+    snprintf(storedPost->fileCachedName,MAX_STRING_SIZE,"image_%u.%s",postIndex,ext);
 
     char imagePath[MAX_STRING_SIZE*2]={0};
     snprintf(imagePath,sizeof(imagePath),"data/board/%s/%s/%s",boardName,newThread->name,storedPost->fileCachedName);
@@ -233,6 +260,12 @@ int addPostToThread( const char * boardName ,  struct thread * newThread ,  stru
       storedPost->hasFile=1;
       storedPost->fileType=FILETYPE_IMAGE;
       ++newThread->numberOfImages;
+
+      char thumbName[MAX_STRING_SIZE]={0};
+      deriveThumbnailName(storedPost->fileCachedName,thumbName,sizeof(thumbName));
+      char thumbPath[MAX_STRING_SIZE*2]={0};
+      snprintf(thumbPath,sizeof(thumbPath),"data/board/%s/%s/%s",boardName,newThread->name,thumbName);
+      generateThumbnail(imagePath,thumbPath); //Best effort : a full-size image is still shown if this fails
     } else
     {
       fprintf(stderr,"addPostToThread : failed to write image `%s`\n",imagePath);
@@ -243,7 +276,8 @@ int addPostToThread( const char * boardName ,  struct thread * newThread ,  stru
   } else
   if ( newPost->hasFile )
   {
-    fprintf(stderr,"addPostToThread : rejected attachment `%s` , unsupported extension\n",newPost->fileOriginalName);
+    fprintf(stderr,"addPostToThread : rejected attachment `%s` , not a recognized jpg/png/gif file\n",newPost->fileOriginalName);
+    newPost->hasFile=0; //So the caller can tell the attachment did not make it in and say so
   }
 
   char postHeaderFilename[MAX_STRING_SIZE*2]={0};

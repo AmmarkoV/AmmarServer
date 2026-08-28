@@ -29,6 +29,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "thread.h"
 #include "board.h"
 #include "postReceiver.h"
+#include "moderation.h"
+
+#include "../../AmmCaptcha/AmmCaptcha.h"
+
+#define CAPTCHA_FONT_PATH "../../AmmCaptcha/font.ppm"
+#define CAPTCHA_DICTIONARY_PATH "../../AmmCaptcha/ourDictionaryCaptcha.txt"
+#define MAX_CAPTCHA_JPG_SIZE (10*1024) //10KB is more than enough
 
 #define MAX_BINDING_PORT 65534
 
@@ -45,6 +52,20 @@ struct AmmServer_RH_Context boardIndexView={0};
 struct AmmServer_RH_Context threadIndexView={0};
 struct AmmServer_RH_Context threadView={0};
 struct AmmServer_RH_Context postReceiver={0};
+struct AmmServer_RH_Context deletePostView={0};
+struct AmmServer_RH_Context captchaView={0};
+
+
+//Serves the JPEG image for a captcha , the same way MyURL's serve_captcha_page does
+void * serve_captcha_page(struct AmmServer_DynamicRequest * rqst)
+{
+  char captchaIDStr[32]={0};
+  _GETcpy(rqst,"id",captchaIDStr,sizeof(captchaIDStr));
+  unsigned int captchaID = (unsigned int) atoi(captchaIDStr);
+
+  AmmCaptcha_getCaptchaFrame(captchaID,rqst->content,&rqst->contentSize);
+  return 0;
+}
 
 
 //This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
@@ -54,7 +75,15 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&threadIndexView,"/threadIndexView.html",46096,0,&prepareThreadIndexView,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&threadView,"/threadView.html",46096,0,&prepareThreadView,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&postReceiver,"/postReceiver.html",4096,0,&processPostReceiver,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  AmmServer_AddResourceHandler(default_server,&deletePostView,"/deletePost.html",4096,0,&processDeletePost,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
+  AmmServer_AddResourceHandler(default_server,&captchaView,"/captcha.jpg",MAX_CAPTCHA_JPG_SIZE,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_DoNOTCacheResourceHandler(default_server,&captchaView);
+
+  if ( !AmmCaptcha_initialize(CAPTCHA_FONT_PATH,CAPTCHA_DICTIONARY_PATH) )
+  {
+    AmmServer_Error("Could not initialize AmmCaptcha , posting will not be spam protected\n");
+  }
 
   loadSite("data/settings.ini");
 }
@@ -64,10 +93,14 @@ void close_dynamic_content()
 {
     unloadSite();
 
+    AmmCaptcha_destroy();
+
     AmmServer_RemoveResourceHandler(default_server,&boardIndexView,1);
     AmmServer_RemoveResourceHandler(default_server,&threadIndexView,1);
     AmmServer_RemoveResourceHandler(default_server,&threadView,1);
     AmmServer_RemoveResourceHandler(default_server,&postReceiver,1);
+    AmmServer_RemoveResourceHandler(default_server,&deletePostView,1);
+    AmmServer_RemoveResourceHandler(default_server,&captchaView,1);
 
 }
 

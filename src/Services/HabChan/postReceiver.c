@@ -8,13 +8,17 @@
 #include "state.h"
 #include "board.h"
 #include "thread.h"
+#include "csrf.h"
 
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../AmmCaptcha/AmmCaptcha.h"
 
 void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
 {
    //board=b&replythread=new&name=tettee&s=ttete&message=etetete&imagefile=&postpassword=tetetet
    unsigned int succesfulAddition=0;
+   const char * failureReason = 0;
+   unsigned int imageWasDropped = 0;
 
    char boardName[MAX_STRING_SIZE]={0};
    char replyThread[MAX_STRING_SIZE]={0};
@@ -53,32 +57,90 @@ void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
      }
    }
 
-   if ( (newPost.message!=0) && (strlen(newPost.message)>0) && hashMap_ContainsKey(boardHashMap,boardName) )
+   //Every check below runs in order and the first one that fails wins , so the visitor is told exactly
+   //what went wrong instead of a single generic "Incorrect post" for every possible reason.
+   char csrfToken[64]={0};
+   _POSTcpy(rqst,"csrftoken",csrfToken,sizeof(csrfToken));
+
+   char captchaIDStr[32]={0};
+   _POSTcpy(rqst,"captchaID",captchaIDStr,sizeof(captchaIDStr));
+   char captchaReply[64]={0};
+   _POSTcpy(rqst,"captcha",captchaReply,sizeof(captchaReply));
+
+   unsigned long boardIndex=0;
+   unsigned long encodedThread=0;
+   struct thread * targetThread = 0;
+   unsigned int isNewThread = ( (strlen(replyThread)==0) || (strcmp(replyThread,"new")==0) );
+
+   if ( !isCSRFTokenValid(csrfToken) )
    {
-     if ( (strlen(replyThread)==0) || (strcmp(replyThread,"new")==0) )
+     failureReason = "This form has expired , please reload the page and try again";
+   } else
+   if ( !AmmCaptcha_isReplyCorrect((unsigned int)atoi(captchaIDStr),captchaReply) )
+   {
+     failureReason = "Captcha answer was incorrect";
+   } else
+   if ( !hashMap_ContainsKey(boardHashMap,boardName) )
+   {
+     failureReason = "Unknown board";
+   } else
+   if ( (newPost.message==0) || (strlen(newPost.message)==0) )
+   {
+     failureReason = "Message cannot be empty";
+   } else
+   if ( isNewThread )
+   {
+     hashMap_GetULongPayload(boardHashMap,boardName,&boardIndex);
+     if ( ourSite.boards[boardIndex].currentThreads >= ourSite.boards[boardIndex].maxThreads )
      {
-       //A brand new thread , newPost becomes reply #0 ( the OP post ) of it
+       failureReason = "This board is full and cannot accept new threads";
+     }
+   } else
+   {
+     if ( ! ( hashMap_GetULongPayload(boardHashMap,boardName,&boardIndex) &&
+              hashMap_GetULongPayload(threadHashMap,replyThread,&encodedThread) &&
+              ( (encodedThread / MAX_THREADS_PER_BOARD) == boardIndex ) ) )
+     {
+       failureReason = "Thread not found";
+     } else
+     {
+       targetThread = &ourSite.boards[boardIndex].threads[encodedThread % MAX_THREADS_PER_BOARD];
+       if (targetThread->deleted)
+       {
+         failureReason = "Thread not found";
+       } else
+       if (targetThread->numberOfReplies >= targetThread->maxNumberOfReplies)
+       {
+         failureReason = "This thread is full and cannot accept more replies";
+       }
+     }
+   }
+
+   if (failureReason==0)
+   {
+     if (isNewThread)
+     {
        if ( createThread(boardName,newPost.op,subject,newPost.password,&newPost,fileBytes,fileBytesSize,resultThreadName,MAX_STRING_SIZE) )
        {
          succesfulAddition=1;
+       } else
+       {
+         failureReason = "Internal error while creating the thread , please try again";
        }
      } else
      {
-       //A reply to an existing thread , make sure the thread we were pointed at really belongs to this board
-       unsigned long boardIndex=0;
-       unsigned long encoded=0;
-       if ( hashMap_GetULongPayload(boardHashMap,boardName,&boardIndex) &&
-            hashMap_GetULongPayload(threadHashMap,replyThread,&encoded) &&
-            ( (encoded / MAX_THREADS_PER_BOARD) == boardIndex ) )
+       if ( addPostToThread(boardName,targetThread,&newPost,fileBytes,fileBytesSize) )
        {
-         unsigned long threadSlot = encoded % MAX_THREADS_PER_BOARD;
-         if ( addPostToThread(boardName,&ourSite.boards[boardIndex].threads[threadSlot],&newPost,fileBytes,fileBytesSize) )
-         {
-           succesfulAddition=1;
-           snprintf(resultThreadName,MAX_STRING_SIZE,"%s",replyThread);
-         }
+         succesfulAddition=1;
+         snprintf(resultThreadName,MAX_STRING_SIZE,"%s",replyThread);
+       } else
+       {
+         failureReason = "Internal error while storing the reply , please try again";
        }
      }
+
+     //addPostToThread() clears newPost.hasFile if an attachment was provided but rejected ( not a real jpg/png/gif )
+     if ( (fileBytes!=0) && (fileBytesSize>0) && (!newPost.hasFile) ) { imageWasDropped=1; }
    }
 
 
@@ -89,7 +151,9 @@ void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
              <head>\
               <meta http-equiv=\"refresh\" content=\"0; url=threadView.html?board=%s&thread=%s\">\
              </head>\
-             <body>Post received , redirecting..</body></html>" , boardName , resultThreadName );
+             <body>Post received%s , redirecting..</body></html>" ,
+             boardName , resultThreadName ,
+             imageWasDropped ? " ( attachment was rejected : not a valid jpg/png/gif )" : "" );
    rqst->contentSize=strlen(rqst->content);
   } else
   {
@@ -98,7 +162,8 @@ void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
              <head>\
               <meta http-equiv=\"refresh\" content=\"5; url=index.html\">\
              </head>\
-             <body><br><br><br><br><br><br><center><h1>Incorrect post , please try again</h1></center></body></html>");
+             <body><br><br><br><br><br><br><center><h1>%s</h1></center></body></html>",
+             (failureReason!=0) ? failureReason : "Incorrect post , please try again");
    rqst->contentSize=strlen(rqst->content);
   }
 

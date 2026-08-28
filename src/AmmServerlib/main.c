@@ -1138,6 +1138,48 @@ unsigned int AmmServer_StringIsHTMLSafe( const char * str)
   return 1;
 }
 
+unsigned int AmmServer_HTMLEscape(const char * input , char * output , unsigned int outputMaxSize)
+{
+  if ( (input==0) || (output==0) || (outputMaxSize==0) ) { return 0; }
+
+  unsigned int inputLength = strlen(input);
+  unsigned int outPos=0;
+  unsigned int i=0;
+
+  while (i<inputLength)
+  {
+    const char * entity=0;
+    unsigned int entityLength=0;
+
+    switch (input[i])
+    {
+      case '&'  : entity="&amp;";  entityLength=5; break;
+      case '<'  : entity="&lt;";   entityLength=4; break;
+      case '>'  : entity="&gt;";   entityLength=4; break;
+      case '"'  : entity="&quot;"; entityLength=6; break;
+      case '\'' : entity="&#39;";  entityLength=5; break;
+      default   : entity=0;                        break;
+    }
+
+    if (entity!=0)
+    {
+      if (outPos+entityLength >= outputMaxSize) { break; } //Would overflow ( or leave no room for the NUL ) , stop here
+      memcpy(output+outPos,entity,entityLength);
+      outPos+=entityLength;
+    } else
+    {
+      if (outPos+1 >= outputMaxSize) { break; }
+      output[outPos]=input[i];
+      ++outPos;
+    }
+
+    ++i;
+  }
+
+  output[outPos]=0;
+  return outPos;
+}
+
 unsigned int AmmServer_StringHasSafePath( const char * directory , const char * filenameUNSANITIZEDString)
 {
   const char * str = filenameUNSANITIZEDString;
