@@ -70,8 +70,10 @@ void * PreSpawnedThread(void * ptr)
        context.pre_spawned_thread = 1; // THIS IS A !!!!PRE SPAWNED!!!! THREAD
        context.keep_var_on_stack=1;
 
-       prespawned_data->busy=0; // <- This signals we finished our task ..! ( slot is refillable already , we serve from our local copy )
        pthread_mutex_unlock(&prespawned_data->operation_mutex);
+       // busy stays 1 until ServeClient actually returns below: freeing it earlier would let the master hand this
+       // same slot a second connection while we're still blocked in a long keep-alive session, and since we're the
+       // only thread watching this slot that second connection would never get served until our current one ends.
 
         //ServeClient from this thread ( without forking..! )
         #if DEBUG_MESSAGES
@@ -82,6 +84,10 @@ void * PreSpawnedThread(void * ptr)
         fprintf(stderr,"Prespawned thread %u/%u finished serving new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
         #endif // DEBUG_MESSAGES
         //---------------------------------------------------
+
+       pthread_mutex_lock(&prespawned_data->operation_mutex);
+       prespawned_data->busy=0; // <- Now we are actually free for new work
+       pthread_mutex_unlock(&prespawned_data->operation_mutex);
 
        ++instance->prespawn_jobs_finished;
   } // while the server doesn't stop..
