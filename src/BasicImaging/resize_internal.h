@@ -17,7 +17,7 @@ enum BasicImaging_ResizePath
 {
   BASICIMAGING_RESIZE_AUTO = 0, //default : runtime CPU dispatch - what every real caller gets
   BASICIMAGING_RESIZE_SCALAR,
-  BASICIMAGING_RESIZE_SSE2,
+  BASICIMAGING_RESIZE_SSE3,     //SSSE3 window gather + SSE2 vertical blend - the "SSE" tier
   BASICIMAGING_RESIZE_AVX2
 };
 
@@ -36,8 +36,7 @@ void BasicImaging_Resize_ForcePath(enum BasicImaging_ResizePath path);
 */
 enum BasicImaging_ResizePath BasicImaging_Resize_ActivePath(void);
 
-/** @brief Human-readable name for a BasicImaging_ResizePath value, e.g. "AVX2". Never returns NULL. */
-const char * BasicImaging_Resize_PathName(enum BasicImaging_ResizePath path);
+/** @brief Human-readable name for a BasicImaging_ResizePath value, e.g. "AVX2". Never returns NULL. */const char * BasicImaging_Resize_PathName(enum BasicImaging_ResizePath path);
 
 #ifdef __cplusplus
 }

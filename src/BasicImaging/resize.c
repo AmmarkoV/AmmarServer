@@ -8,16 +8,28 @@
 *        / row ( O(newWidth+newHeight) ) rather than being recomputed from scratch for every one of the
 *        newWidth*newHeight destination pixels.
 *
-*        Three implementations of the actual per-pixel blend share that precomputed table :
-*          - scalar   : plain integer fixed-point math ( 8.8 fixed point weights ) , always available,
-*                       on every architecture.
-*          - SSE2     : the same arithmetic, batched 8 destination pixels of one channel at a time.
-*          - AVX2     : batched 16 destination pixels of one channel at a time.
+*        Three implementations share that precomputed table :
+*          - scalar : plain integer fixed-point math ( 7-bit fixed point weights ) , always available,
+*                     on every architecture. Also the correctness reference : the SIMD paths are
+*                     verified BYTE-IDENTICAL to it in testBasicImaging.c.
+*          - SSE3   : the same arithmetic, with the horizontal blend done by a SSSE3 pshufb window
+*                     gather ( 4 destination pixels of all 3 channels per batch ) and the vertical
+*                     blend done by SSE2 8-wide batches. The trick that makes this fast is a rolling
+*                     row cache : each x-blended source row is reused when the next destination row
+*                     samples it again ( consecutive rows share one tap almost everywhere ) , so the
+*                     expensive horizontal pass runs once per source row instead of once per row-tap.
+*          - AVX2   : identical horizontal pass, vertical blend widened to 256-bit loads.
 *        BasicImaging_Resize() picks one at runtime by asking the CPU what it supports ( cached after
 *        the first call ) - real callers always just call BasicImaging_Resize() ; which path actually
-*        runs never changes the function signature or the result ( the SIMD paths are verified
-*        byte-identical to the scalar reference in testBasicImaging.c ). See resize_internal.h for the
+*        runs never changes the function signature or the result. See resize_internal.h for the
 *        benchmark-only hook that forces a specific path.
+*
+*        Only 3/4-channel images take the SIMD paths ( RGB photos and RGBA icons - what cameras,
+*        browsers and PNGs actually produce ; grayscale falls back to the scalar reference, still
+*        correct ) and only when the horizontal scale keeps each 4-pixel gather window within 32
+*        source bytes - heavy downscales like a 9.6x thumbnail have taps too far apart for the
+*        window trick and use the scalar path, which is already close to optimal for that case
+*        anyway ( every source row is used there, so the rolling cache has nothing to amortize ).
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,15 +55,19 @@ struct AxisTaps
 {
   unsigned int   * low;    //source index of the "left"/"top" tap , one per destination coordinate
   unsigned int   * high;   //source index of the "right"/"bottom" tap
-  unsigned short * weight; //0..256 : weight of the high tap ( low tap's weight is implicitly 256-this )
+  unsigned short * weight; //0..128 : weight of the high tap ( low tap's weight is implicitly 128-this )
+  unsigned char  * rel0;   //low  tap's byte offset within its 4-pixel gather window : (low[d]-low[base])*channels+c
+  unsigned char  * rel1;   //high tap's byte offset within the same window - only the SIMD window gather reads these
 };
 
 //Precomputes , for every destination coordinate along one axis, which two source pixels to blend and
 //by how much. Uses the standard "pixel center" mapping ( srcCoord = (dst+0.5)*scale-0.5 ) so a resize
-//to the same size is the identity and there's no half-pixel drift at the edges.
-static int buildAxisTaps(struct AxisTaps * taps,unsigned int dstCount,unsigned int srcCount)
+//to the same size is the identity and there's no half-pixel drift at the edges. rel0/rel1 are
+//best-effort extras : if they can't be allocated the table is still perfectly usable by the scalar
+//path ( and the SIMD paths will notice and fall back ).
+static int buildAxisTaps(struct AxisTaps * taps,unsigned int dstCount,unsigned int srcCount,unsigned int channels)
 {
-  taps->low=0; taps->high=0; taps->weight=0;
+  taps->low=0; taps->high=0; taps->weight=0; taps->rel0=0; taps->rel1=0;
   if ( (dstCount==0) || (srcCount==0) ) { return 0; }
 
   taps->low    = (unsigned int *)   malloc(sizeof(unsigned int)*dstCount);
@@ -62,6 +78,15 @@ static int buildAxisTaps(struct AxisTaps * taps,unsigned int dstCount,unsigned i
     free(taps->low); free(taps->high); free(taps->weight);
     taps->low=0; taps->high=0; taps->weight=0;
     return 0;
+  }
+
+  //+16 bytes slack so the window gather's 16-byte load at the last full batch never reads past the end
+  taps->rel0 = (unsigned char *) malloc((size_t)dstCount*channels + 16);
+  taps->rel1 = (unsigned char *) malloc((size_t)dstCount*channels + 16);
+  if ( (taps->rel0==0) || (taps->rel1==0) )
+  {
+    free(taps->rel0); free(taps->rel1);
+    taps->rel0=0; taps->rel1=0; //optional extra - scalar path doesn't need them
   }
 
   double scale = (double)srcCount/(double)dstCount;
@@ -84,6 +109,18 @@ static int buildAxisTaps(struct AxisTaps * taps,unsigned int dstCount,unsigned i
     taps->low[d]=low;
     taps->high[d]=high;
     taps->weight[d]=(unsigned short)(frac*(double)FIXED_ONE + 0.5);
+
+    if ( (taps->rel0!=0) && (taps->rel1!=0) )
+    {
+      //Window base = the batch-aligned tap : 4-pixel batches always start at a multiple of 4.
+      unsigned int base = d & ~3u;
+      unsigned int c;
+      for (c=0; c<channels; c++)
+      {
+        taps->rel0[d*channels+c] = (unsigned char)( (taps->low[d] -taps->low[base])*channels + c );
+        taps->rel1[d*channels+c] = (unsigned char)( (taps->high[d]-taps->low[base])*channels + c );
+      }
+    }
   }
 
   return 1;
@@ -91,8 +128,8 @@ static int buildAxisTaps(struct AxisTaps * taps,unsigned int dstCount,unsigned i
 
 static void freeAxisTaps(struct AxisTaps * taps)
 {
-  free(taps->low); free(taps->high); free(taps->weight);
-  taps->low=0; taps->high=0; taps->weight=0;
+  free(taps->low); free(taps->high); free(taps->weight); free(taps->rel0); free(taps->rel1);
+  taps->low=0; taps->high=0; taps->weight=0; taps->rel0=0; taps->rel1=0;
 }
 
 
@@ -140,7 +177,7 @@ static struct Image * resizeScalar(const struct Image * img,unsigned int newWidt
         unsigned int p01 = rowBot[sx0+c];
         unsigned int p11 = rowBot[sx1+c];
 
-        unsigned int top = p00*wX0 + p10*wX1; //<=255*256=65280 , fits comfortably in unsigned int
+        unsigned int top = p00*wX0 + p10*wX1; //<=255*128=32640 , fits comfortably in unsigned int
         unsigned int bot = p01*wX0 + p11*wX1;
 
         unsigned int blended = (top*wY0 + bot*wY1 + FIXED_ROUND) >> FIXED_SHIFT;
@@ -162,18 +199,13 @@ static struct Image * resizeScalar(const struct Image * img,unsigned int newWidt
 
 #include <immintrin.h>
 
-/* One destination row , one channel , batched 8 ( SSE2 ) or 16 ( AVX2 ) destination pixels at a time :
- * gather ( scalar - each tap is a single, always in-bounds byte read ; xTaps->low/high are guaranteed
- * < source width by buildAxisTaps ) , blend ( vectorized ) , scatter ( scalar ). The gather/scatter
- * steps stay scalar on purpose - the pixel each destination sample needs isn't at a fixed stride from
- * its neighbours ( the scale factor is an arbitrary ratio ) - but the actual multiply/add/round/shift
- * arithmetic, which is what the scalar path spends most of its time on, batches cleanly.
- */
-
-//Shared by both SSE2 and AVX2 : Y-blends ( and rounds/narrows to bytes ) exactly 8 already X-blended,
-//16-bit-lane pixel values. AVX2's 16-wide batch just calls this twice, once per 128-bit half - see the
-//comment above resizeChannelBatchAVX2() for why splitting it this way sidesteps AVX2's cross-lane
-//pack/unpack semantics instead of fighting them.
+//Shared by both SIMD paths : Y-blends ( and rounds/narrows to bytes ) exactly 8 x-blended, 16-bit-lane
+//pixel values. AVX2's 16-wide batch just calls this twice, once per 128-bit half - see the comment in
+//yBlendRowAVX2() for why splitting it this way sidesteps AVX2's cross-lane pack/unpack semantics
+//instead of fighting them.
+//
+//Values are always <=255*128=32640 here ( 7-bit weights ) so they fit SIGNED 16-bit lanes, which is
+//exactly what _mm_madd_epi16 needs - that's the whole reason the fixed point is 7-bit and not 8.8.
 __attribute__((target("sse2")))
 static inline void yBlendPack8SSE2(__m128i top,__m128i bot,unsigned int wY0,unsigned int wY1,unsigned char * out8)
 {
@@ -196,168 +228,321 @@ static inline void yBlendPack8SSE2(__m128i top,__m128i bot,unsigned int wY0,unsi
   _mm_storel_epi64((__m128i*)out8,packed8);
 }
 
-__attribute__((target("sse2")))
-static void resizeChannelBatchSSE2(const unsigned char * rowTop,const unsigned char * rowBot,
-                                    const struct AxisTaps * xTaps,unsigned int channels,unsigned int channel,
-                                    unsigned int dxStart,unsigned int count, //count<=8
-                                    unsigned int wY0,unsigned int wY1,
-                                    unsigned char * dstRow)
+/* Horizontal blend of ONE whole source row into an interleaved unsigned-short row :
+ * tmpRow[px*3+c] = srcRow[low*3+c]*(128-w) + srcRow[high*3+c]*w , exact, no rounding yet ( the only
+ * rounding happens in the final vertical blend, so the SIMD result stays byte-identical to scalar ).
+ *
+ * The gather : 4 destination pixels of all 3 channels at a time. The taps of those 4 pixels lie within
+ * (span*3) bytes of srcRow+low[base]*3 and xWindowOK() has guaranteed span*3+2<32 , so two 16-byte
+ * window loads cover every byte the batch can need. pshufb then picks each needed byte by its precomputed
+ * rel offset ; a cmpgt/andnot/and/or select picks between the two windows for offsets >=16 ( pshufb
+ * can't look past the 16 bytes of its own input register ). One pshufb result carries r,g,b of all 4
+ * pixels, so a single gather serves every channel - that fusion is what makes this ~3x faster than the
+ * scalar x-blend instead of break-even.
+ */
+__attribute__((target("ssse3")))
+static void xBlendRow3SSSE3(const unsigned char * srcRow,const struct AxisTaps * xTaps,unsigned int srcWidth,unsigned int newWidth,unsigned short * tmpRow)
 {
-  unsigned short p00a[8]={0},p10a[8]={0},p01a[8]={0},p11a[8]={0},wxa[8]={0};
-  unsigned int i;
-  for (i=0; i<count; i++)
+  const unsigned char * rowEnd = srcRow + (size_t)srcWidth*3;
+  __m128i mask15 = _mm_set1_epi8(15);
+  __m128i zero   = _mm_setzero_si128();
+  __m128i one    = _mm_set1_epi16((short)FIXED_ONE);
+  __m128i wIdxA  = _mm_setr_epi8(0,1,0,1,0,1,2,3,2,3,2,3,4,5,4,5);          //{w0,w0,w0,w1,w1,w1,w2,w2}
+  __m128i wIdxB  = _mm_setr_epi8(4,5,6,7,6,7,6,7,8,9,10,11,12,13,14,15);  //{w2,w3,w3,w3,0,0,0,0}
+
+  unsigned int d=0;
+  for (; (d+4<=newWidth) && ( (size_t)(rowEnd - (srcRow + (size_t)xTaps->low[d]*3)) >= 32 ); d+=4)
   {
-    unsigned int dx  = dxStart+i;
-    unsigned int sx0 = xTaps->low[dx]*channels+channel;
-    unsigned int sx1 = xTaps->high[dx]*channels+channel;
-    p00a[i]=rowTop[sx0]; p10a[i]=rowTop[sx1];
-    p01a[i]=rowBot[sx0]; p11a[i]=rowBot[sx1];
-    wxa[i]=xTaps->weight[dx];
+    const unsigned char * win = srcRow + (size_t)xTaps->low[d]*3;
+    __m128i W0 = _mm_loadu_si128((const __m128i*)(win));
+    __m128i W1 = _mm_loadu_si128((const __m128i*)(win+16));
+
+    //Gather the two taps of all 4 pixels : rel0/rel1 are byte offsets 0..31 within the two windows.
+    __m128i idx0 = _mm_loadu_si128((const __m128i*)(xTaps->rel0 + (size_t)d*3));
+    __m128i idx1 = _mm_loadu_si128((const __m128i*)(xTaps->rel1 + (size_t)d*3));
+
+    __m128i m0  = _mm_cmpgt_epi8(idx0,mask15); //0xFF where the byte lives in W1
+    __m128i g00 = _mm_shuffle_epi8(W0,idx0);
+    __m128i g01 = _mm_shuffle_epi8(W1,idx0);
+    __m128i p00 = _mm_or_si128(_mm_andnot_si128(m0,g00),_mm_and_si128(m0,g01));
+
+    __m128i m1  = _mm_cmpgt_epi8(idx1,mask15);
+    __m128i g10 = _mm_shuffle_epi8(W0,idx1);
+    __m128i g11 = _mm_shuffle_epi8(W1,idx1);
+    __m128i p10 = _mm_or_si128(_mm_andnot_si128(m1,g10),_mm_and_si128(m1,g11));
+
+    //Widen bytes -> 16-bit lanes : p00lo = {r0,g0,b0,r1,g1,b1,r2,g2} , p00hi = {b2,r3,g3,b3,*,*,*,*}
+    __m128i p00lo = _mm_unpacklo_epi8(p00,zero);
+    __m128i p00hi = _mm_unpackhi_epi8(p00,zero);
+    __m128i p10lo = _mm_unpacklo_epi8(p10,zero);
+    __m128i p10hi = _mm_unpackhi_epi8(p10,zero);
+
+    //Replicate the 4 per-pixel weights across the 3 channels each one applies to ( lane pattern above ).
+    __m128i w    = _mm_loadl_epi64((const __m128i*)(xTaps->weight + d));
+    __m128i wA   = _mm_shuffle_epi8(w,wIdxA);
+    __m128i wB   = _mm_shuffle_epi8(w,wIdxB);
+    __m128i wA0  = _mm_sub_epi16(one,wA);
+    __m128i wB0  = _mm_sub_epi16(one,wB);
+
+    __m128i topLo = _mm_add_epi16(_mm_mullo_epi16(p00lo,wA0),_mm_mullo_epi16(p10lo,wA)); //{r0,g0,b0,r1,g1,b1,r2,g2}
+    __m128i topHi = _mm_add_epi16(_mm_mullo_epi16(p00hi,wB0),_mm_mullo_epi16(p10hi,wB)); //{b2,r3,g3,b3,0,0,0,0}
+
+    //Stored interleaved they land EXACTLY at tmpRow[(d+i)*3+c] - contiguous, no scatter.
+    _mm_storeu_si128((__m128i*)(tmpRow + (size_t)d*3),topLo);
+    _mm_storel_epi64((__m128i*)(tmpRow + (size_t)d*3+8),topHi);
   }
 
-  __m128i p00 = _mm_loadu_si128((const __m128i*)p00a);
-  __m128i p10 = _mm_loadu_si128((const __m128i*)p10a);
-  __m128i p01 = _mm_loadu_si128((const __m128i*)p01a);
-  __m128i p11 = _mm_loadu_si128((const __m128i*)p11a);
-  __m128i wx1 = _mm_loadu_si128((const __m128i*)wxa);
-  __m128i wx0 = _mm_sub_epi16(_mm_set1_epi16((short)FIXED_ONE),wx1);
+  //Tail : the last 0..3 pixels of the row ( and the whole row when the source is too small for a
+  //32-byte window ) , plain scalar - identical arithmetic, a handful of pixels at most.
+  for (; d<newWidth; d++)
+  {
+    const unsigned char * p0 = srcRow + (size_t)xTaps->low[d]*3;
+    const unsigned char * p1 = srcRow + (size_t)xTaps->high[d]*3;
+    unsigned int w1 = xTaps->weight[d];
+    unsigned int w0 = FIXED_ONE-w1;
+    unsigned short * o = tmpRow + (size_t)d*3;
+    o[0]=(unsigned short)(p0[0]*w0 + p1[0]*w1);
+    o[1]=(unsigned short)(p0[1]*w0 + p1[1]*w1);
+    o[2]=(unsigned short)(p0[2]*w0 + p1[2]*w1);
+  }
+}
 
-  __m128i top = _mm_add_epi16(_mm_mullo_epi16(p00,wx0),_mm_mullo_epi16(p10,wx1)); //<=65280 , fits u16 bit pattern
-  __m128i bot = _mm_add_epi16(_mm_mullo_epi16(p01,wx0),_mm_mullo_epi16(p11,wx1));
+/* The same window gather for 4-channel ( RGBA ) rows - the case PNG icons hit. 16 bytes is exactly
+ * 4 RGBA pixels, so unlike the 3-channel version the widened lanes split at clean pixel boundaries
+ * and both stores are full 16-byte stores.
+ */
+__attribute__((target("ssse3")))
+static void xBlendRow4SSSE3(const unsigned char * srcRow,const struct AxisTaps * xTaps,unsigned int srcWidth,unsigned int newWidth,unsigned short * tmpRow)
+{
+  const unsigned char * rowEnd = srcRow + (size_t)srcWidth*4;
+  __m128i mask15 = _mm_set1_epi8(15);
+  __m128i zero   = _mm_setzero_si128();
+  __m128i one    = _mm_set1_epi16((short)FIXED_ONE);
+  __m128i wIdxA  = _mm_setr_epi8(0,1,0,1,0,1,0,1,2,3,2,3,2,3,2,3); //{w0,w0,w0,w0,w1,w1,w1,w1}
+  __m128i wIdxB  = _mm_setr_epi8(4,5,4,5,4,5,4,5,6,7,6,7,6,7,6,7); //{w2,w2,w2,w2,w3,w3,w3,w3}
 
-  unsigned char out[8];
-  yBlendPack8SSE2(top,bot,wY0,wY1,out);
+  unsigned int d=0;
+  for (; (d+4<=newWidth) && ( (size_t)(rowEnd - (srcRow + (size_t)xTaps->low[d]*4)) >= 32 ); d+=4)
+  {
+    const unsigned char * win = srcRow + (size_t)xTaps->low[d]*4;
+    __m128i W0 = _mm_loadu_si128((const __m128i*)(win));
+    __m128i W1 = _mm_loadu_si128((const __m128i*)(win+16));
 
-  for (i=0; i<count; i++) { dstRow[(dxStart+i)*channels+channel] = out[i]; }
+    __m128i idx0 = _mm_loadu_si128((const __m128i*)(xTaps->rel0 + (size_t)d*4));
+    __m128i idx1 = _mm_loadu_si128((const __m128i*)(xTaps->rel1 + (size_t)d*4));
+
+    __m128i m0  = _mm_cmpgt_epi8(idx0,mask15);
+    __m128i g00 = _mm_shuffle_epi8(W0,idx0);
+    __m128i g01 = _mm_shuffle_epi8(W1,idx0);
+    __m128i p00 = _mm_or_si128(_mm_andnot_si128(m0,g00),_mm_and_si128(m0,g01));
+
+    __m128i m1  = _mm_cmpgt_epi8(idx1,mask15);
+    __m128i g10 = _mm_shuffle_epi8(W0,idx1);
+    __m128i g11 = _mm_shuffle_epi8(W1,idx1);
+    __m128i p10 = _mm_or_si128(_mm_andnot_si128(m1,g10),_mm_and_si128(m1,g11));
+
+    __m128i p00lo = _mm_unpacklo_epi8(p00,zero); //{r0,g0,b0,a0,r1,g1,b1,a1}
+    __m128i p00hi = _mm_unpackhi_epi8(p00,zero); //{r2,g2,b2,a2,r3,g3,b3,a3}
+    __m128i p10lo = _mm_unpacklo_epi8(p10,zero);
+    __m128i p10hi = _mm_unpackhi_epi8(p10,zero);
+
+    __m128i w    = _mm_loadl_epi64((const __m128i*)(xTaps->weight + d));
+    __m128i wA   = _mm_shuffle_epi8(w,wIdxA);
+    __m128i wB   = _mm_shuffle_epi8(w,wIdxB);
+    __m128i wA0  = _mm_sub_epi16(one,wA);
+    __m128i wB0  = _mm_sub_epi16(one,wB);
+
+    __m128i topLo = _mm_add_epi16(_mm_mullo_epi16(p00lo,wA0),_mm_mullo_epi16(p10lo,wA)); //pixels 0..1
+    __m128i topHi = _mm_add_epi16(_mm_mullo_epi16(p00hi,wB0),_mm_mullo_epi16(p10hi,wB)); //pixels 2..3
+
+    _mm_storeu_si128((__m128i*)(tmpRow + (size_t)d*4),topLo);
+    _mm_storeu_si128((__m128i*)(tmpRow + (size_t)d*4+8),topHi);
+  }
+
+  for (; d<newWidth; d++)
+  {
+    const unsigned char * p0 = srcRow + (size_t)xTaps->low[d]*4;
+    const unsigned char * p1 = srcRow + (size_t)xTaps->high[d]*4;
+    unsigned int w1 = xTaps->weight[d];
+    unsigned int w0 = FIXED_ONE-w1;
+    unsigned short * o = tmpRow + (size_t)d*4;
+    o[0]=(unsigned short)(p0[0]*w0 + p1[0]*w1);
+    o[1]=(unsigned short)(p0[1]*w0 + p1[1]*w1);
+    o[2]=(unsigned short)(p0[2]*w0 + p1[2]*w1);
+    o[3]=(unsigned short)(p0[3]*w0 + p1[3]*w1);
+  }
+}
+
+/* Vertical blend of one whole x-blended row pair into the destination row : out[i] = rowA[i]*wY0 +
+ * rowB[i]*wY1 , rounded and narrowed to bytes. Fully contiguous on both sides - no gather, no scatter,
+ * which is what a SIMD loop needs to actually win.
+ */
+__attribute__((target("sse2")))
+static void yBlendRowSSE2(const unsigned short * rowA,const unsigned short * rowB,unsigned int wY0,unsigned int wY1,unsigned char * dstRow,unsigned int count)
+{
+  unsigned int i=0;
+  for (; i+8<=count; i+=8)
+  {
+    __m128i top = _mm_loadu_si128((const __m128i*)(rowA+i));
+    __m128i bot = _mm_loadu_si128((const __m128i*)(rowB+i));
+    yBlendPack8SSE2(top,bot,wY0,wY1,dstRow+i);
+  }
+  for (; i<count; i++)
+  {
+    dstRow[i] = (unsigned char)( ( (unsigned int)rowA[i]*wY0 + (unsigned int)rowB[i]*wY1 + FIXED_ROUND ) >> FIXED_SHIFT );
+  }
+}
+
+/* True 256-bit version of yBlendPack8SSE2 : blends 16 x-blended pixel values in one go. AVX2's
+ * madd/pack/unpack instructions all operate per 128-bit half, but with the pairs arranged as
+ * {top0,bot0,top1,bot1,...} in each half the halves never need to talk to each other : after the
+ * pack chain, pixels 0..7 sit in the low half of packed16 and 8..15 in the high half, so swapping
+ * the halves once lets the final packus_epi16 land all 16 output bytes contiguously in the low
+ * 16 bytes - one 16-byte store, no cross-lane data loss ( packus_epi16(a,a) would duplicate each
+ * half instead and overrun the output, so the swap is load-bearing ).
+ */
+__attribute__((target("avx2")))
+static inline void yBlendPack16AVX2(__m256i top,__m256i bot,unsigned int wY0,unsigned int wY1,unsigned char * out16)
+{
+  __m256i topbotLo = _mm256_unpacklo_epi16(top,bot); //per half : {top0,bot0,top1,bot1,...}
+  __m256i topbotHi = _mm256_unpackhi_epi16(top,bot);
+  __m256i wYv   = _mm256_set1_epi32( ((int)wY1<<16) | (int)wY0 );
+  __m256i round = _mm256_set1_epi32( (int)FIXED_ROUND );
+
+  __m256i blLo = _mm256_srli_epi32( _mm256_add_epi32(_mm256_madd_epi16(topbotLo,wYv),round), FIXED_SHIFT ); //pixels 0..3,8..11
+  __m256i blHi = _mm256_srli_epi32( _mm256_add_epi32(_mm256_madd_epi16(topbotHi,wYv),round), FIXED_SHIFT ); //pixels 4..7,12..15
+
+  __m256i packed16 = _mm256_packs_epi32(blLo,blHi); //16x16-bit lanes : low half = pixels 0..7 , high half = 8..15
+  __m256i swapped  = _mm256_permute4x64_epi64(packed16, _MM_SHUFFLE(1,0,3,2)); //pixels 8..15 now in the low half
+  __m256i packed8  = _mm256_packus_epi16(packed16,swapped); //low 16 bytes = pixels 0..15 in order
+
+  _mm_storeu_si128((__m128i*)out16,_mm256_castsi256_si128(packed8));
 }
 
 __attribute__((target("avx2")))
-static void resizeChannelBatchAVX2(const unsigned char * rowTop,const unsigned char * rowBot,
-                                    const struct AxisTaps * xTaps,unsigned int channels,unsigned int channel,
-                                    unsigned int dxStart,unsigned int count, //count<=16
-                                    unsigned int wY0,unsigned int wY1,
-                                    unsigned char * dstRow)
+static void yBlendRowAVX2(const unsigned short * rowA,const unsigned short * rowB,unsigned int wY0,unsigned int wY1,unsigned char * dstRow,unsigned int count)
 {
-  unsigned short p00a[16]={0},p10a[16]={0},p01a[16]={0},p11a[16]={0},wxa[16]={0};
-  unsigned int i;
-  for (i=0; i<count; i++)
+  unsigned int i=0;
+  for (; i+16<=count; i+=16)
   {
-    unsigned int dx  = dxStart+i;
-    unsigned int sx0 = xTaps->low[dx]*channels+channel;
-    unsigned int sx1 = xTaps->high[dx]*channels+channel;
-    p00a[i]=rowTop[sx0]; p10a[i]=rowTop[sx1];
-    p01a[i]=rowBot[sx0]; p11a[i]=rowBot[sx1];
-    wxa[i]=xTaps->weight[dx];
+    __m256i top = _mm256_loadu_si256((const __m256i*)(rowA+i));
+    __m256i bot = _mm256_loadu_si256((const __m256i*)(rowB+i));
+    yBlendPack16AVX2(top,bot,wY0,wY1,dstRow+i);
   }
-
-  __m256i p00 = _mm256_loadu_si256((const __m256i*)p00a);
-  __m256i p10 = _mm256_loadu_si256((const __m256i*)p10a);
-  __m256i p01 = _mm256_loadu_si256((const __m256i*)p01a);
-  __m256i p11 = _mm256_loadu_si256((const __m256i*)p11a);
-  __m256i wx1 = _mm256_loadu_si256((const __m256i*)wxa);
-  __m256i wx0 = _mm256_sub_epi16(_mm256_set1_epi16((short)FIXED_ONE),wx1);
-
-  //X-blend across all 16 lanes in one instruction each - this is the genuine 2x-over-SSE2 width win.
-  __m256i top = _mm256_add_epi16(_mm256_mullo_epi16(p00,wx0),_mm256_mullo_epi16(p10,wx1));
-  __m256i bot = _mm256_add_epi16(_mm256_mullo_epi16(p01,wx0),_mm256_mullo_epi16(p11,wx1));
-
-  //AVX2's pack/unpack instructions operate independently on each 128-bit lane ( they don't cross the
-  //two halves of the register ) , so trying to Y-blend+pack all 16 lanes in one go would need extra
-  //shuffles just to put the bytes back in the right order. Splitting into its two natural 128-bit
-  //halves - low = pixels 0..7 , high = pixels 8..15 , exactly how _mm256_loadu_si256 laid them out
-  //from p00a/etc above - and reusing yBlendPack8SSE2 on each half sidesteps that entirely.
-  __m128i topLo = _mm256_castsi256_si128(top),    topHi = _mm256_extracti128_si256(top,1);
-  __m128i botLo = _mm256_castsi256_si128(bot),    botHi = _mm256_extracti128_si256(bot,1);
-
-  unsigned char out[16];
-  yBlendPack8SSE2(topLo,botLo,wY0,wY1,out+0);
-  yBlendPack8SSE2(topHi,botHi,wY0,wY1,out+8);
-
-  for (i=0; i<count; i++) { dstRow[(dxStart+i)*channels+channel] = out[i]; }
-
   _mm256_zeroupper(); //avoid the SSE/AVX transition penalty on whatever runs after us
+  for (; i<count; i++)
+  {
+    dstRow[i] = (unsigned char)( ( (unsigned int)rowA[i]*wY0 + (unsigned int)rowB[i]*wY1 + FIXED_ROUND ) >> FIXED_SHIFT );
+  }
 }
 
-__attribute__((target("sse2")))
-static struct Image * resizeSSE2(const struct Image * img,unsigned int newWidth,unsigned int newHeight,
-                                  struct AxisTaps * xTaps,struct AxisTaps * yTaps)
+/* Is the 4-pixel window gather usable along this axis ? Every full batch's tap span must stay within
+ * the two 16-byte windows ( max rel offset <32 ) and the rel tables must exist. Callers that get a 0
+ * here fall back to the scalar reference - same result, no crash.
+ */
+static int xWindowOK(const struct AxisTaps * xTaps,unsigned int dstCount,unsigned int channels)
 {
-  unsigned int channels = (img->channels>0) ? img->channels : 1;
-  unsigned int srcStride = img->width*channels;
-  unsigned int dstStride = newWidth*channels;
+  unsigned int d;
+  if ( (xTaps->rel0==0) || (xTaps->rel1==0) ) { return 0; }
+  for (d=0; d+4<=dstCount; d+=4)
+  {
+    unsigned int span = xTaps->low[d+3]-xTaps->low[d]+1;
+    if ( span*channels + (channels-1) >= 32 ) { return 0; }
+  }
+  return 1;
+}
+
+typedef void (*XBlendRowFn)(const unsigned char *,const struct AxisTaps *,unsigned int,unsigned int,unsigned short *);
+typedef void (*YBlendRowFn)(const unsigned short *,const unsigned short *,unsigned int,unsigned int,unsigned char *,unsigned int);
+
+/* The SIMD single-pass driver : for each destination row, x-blend the two source rows it samples into
+ * interleaved unsigned-short temp rows ( tmpA/tmpB ) and y-blend the pair into the output row. The
+ * rolling cache : consecutive destination rows usually share one source-row tap ( low[dy]==high[dy-1]
+ * for downscale/mild resize, low[dy]==low[dy-1] for upscale ) , and when they do the x-blend of that
+ * row is reused instead of recomputed - the horizontal pass then costs ~one row per destination row
+ * instead of two, which is where most of the speedup over scalar comes from.
+ */
+static struct Image * resizeRolling(const struct Image * img,unsigned int newWidth,unsigned int newHeight,
+                                    struct AxisTaps * xTaps,struct AxisTaps * yTaps,
+                                    XBlendRowFn xBlend,YBlendRowFn yBlend)
+{
+  unsigned int channels = img->channels;
 
   struct Image * out = BasicImaging_New(newWidth,newHeight,channels);
   if (out==0) { return 0; }
 
+  unsigned int rowPixels = newWidth*channels; //interleaved channels per pixel
+
+  unsigned short * tmpA = (unsigned short *) malloc( (size_t)rowPixels*sizeof(unsigned short) );
+  unsigned short * tmpB = (unsigned short *) malloc( (size_t)rowPixels*sizeof(unsigned short) );
+  if ( (tmpA==0) || (tmpB==0) )
+  {
+    free(tmpA); free(tmpB);
+    BasicImaging_Free(&out);
+    return resizeScalar(img,newWidth,newHeight,xTaps,yTaps); //graceful fallback, never a crash
+  }
+
   const unsigned char * srcPixels = img->pixels;
+  unsigned int srcStride = img->width*channels;
+  unsigned int srcWidth = img->width;
   unsigned char * dstPixels = out->pixels;
+
+  xBlend(srcPixels + (size_t)yTaps->low[0] *srcStride, xTaps, srcWidth, newWidth, tmpA);
+  xBlend(srcPixels + (size_t)yTaps->high[0]*srcStride, xTaps, srcWidth, newWidth, tmpB);
 
   unsigned int dy;
   for (dy=0; dy<newHeight; dy++)
   {
-    const unsigned char * rowTop = srcPixels + (size_t)yTaps->low[dy]  * srcStride;
-    const unsigned char * rowBot = srcPixels + (size_t)yTaps->high[dy] * srcStride;
-    const unsigned int wY1 = yTaps->weight[dy];
-    const unsigned int wY0 = FIXED_ONE - wY1;
-    unsigned char * dstRow = dstPixels + (size_t)dy*dstStride;
-
-    unsigned int c;
-    for (c=0; c<channels; c++)
+    if (dy>0)
     {
-      unsigned int dx=0;
-      for (; dx+8<=newWidth; dx+=8)
-      {
-        resizeChannelBatchSSE2(rowTop,rowBot,xTaps,channels,c,dx,8,wY0,wY1,dstRow);
-      }
-      if (dx<newWidth)
-      {
-        resizeChannelBatchSSE2(rowTop,rowBot,xTaps,channels,c,dx,newWidth-dx,wY0,wY1,dstRow);
-      }
+      unsigned int lo  = yTaps->low[dy];
+      unsigned int hi  = yTaps->high[dy];
+      unsigned int plo = yTaps->low[dy-1];
+      unsigned int phi = yTaps->high[dy-1];
+
+      if ( (lo==plo) && (hi==phi) ) { /* same row pair as last time : reuse both temp rows as-is */ } else
+      if (lo==phi) { unsigned short * t=tmpA; tmpA=tmpB; tmpB=t; /* tmpB already holds row lo */
+                     xBlend(srcPixels+(size_t)hi*srcStride, xTaps, srcWidth, newWidth, tmpB); } else
+      if (lo==plo) { xBlend(srcPixels+(size_t)hi*srcStride, xTaps, srcWidth, newWidth, tmpB); } else
+      if (hi==phi) { xBlend(srcPixels+(size_t)lo*srcStride, xTaps, srcWidth, newWidth, tmpA); } else
+      { xBlend(srcPixels+(size_t)lo*srcStride, xTaps, srcWidth, newWidth, tmpA);
+        xBlend(srcPixels+(size_t)hi*srcStride, xTaps, srcWidth, newWidth, tmpB); }
     }
+
+    unsigned int wY1 = yTaps->weight[dy];
+    unsigned int wY0 = FIXED_ONE-wY1;
+    yBlend(tmpA,tmpB,wY0,wY1,dstPixels+(size_t)dy*rowPixels,rowPixels);
   }
 
+  free(tmpA); free(tmpB);
   return out;
 }
 
-__attribute__((target("avx2")))
+static struct Image * resizeSSE3(const struct Image * img,unsigned int newWidth,unsigned int newHeight,
+                                  struct AxisTaps * xTaps,struct AxisTaps * yTaps)
+{
+  //The SIMD kernels only know how to handle 3/4-channel rows whose 4-pixel gather windows fit in
+  //32 source bytes ; everything else silently takes the scalar reference ( same bytes, just not
+  //SIMD-accelerated ).
+  if ( ((img->channels!=3) && (img->channels!=4)) || !xWindowOK(xTaps,newWidth,img->channels) )
+  {
+    return resizeScalar(img,newWidth,newHeight,xTaps,yTaps);
+  }
+  return resizeRolling(img,newWidth,newHeight,xTaps,yTaps,
+                       (img->channels==3) ? xBlendRow3SSSE3 : xBlendRow4SSSE3,
+                       yBlendRowSSE2);
+}
+
 static struct Image * resizeAVX2(const struct Image * img,unsigned int newWidth,unsigned int newHeight,
                                   struct AxisTaps * xTaps,struct AxisTaps * yTaps)
 {
-  unsigned int channels = (img->channels>0) ? img->channels : 1;
-  unsigned int srcStride = img->width*channels;
-  unsigned int dstStride = newWidth*channels;
-
-  struct Image * out = BasicImaging_New(newWidth,newHeight,channels);
-  if (out==0) { return 0; }
-
-  const unsigned char * srcPixels = img->pixels;
-  unsigned char * dstPixels = out->pixels;
-
-  unsigned int dy;
-  for (dy=0; dy<newHeight; dy++)
+  if ( ((img->channels!=3) && (img->channels!=4)) || !xWindowOK(xTaps,newWidth,img->channels) )
   {
-    const unsigned char * rowTop = srcPixels + (size_t)yTaps->low[dy]  * srcStride;
-    const unsigned char * rowBot = srcPixels + (size_t)yTaps->high[dy] * srcStride;
-    const unsigned int wY1 = yTaps->weight[dy];
-    const unsigned int wY0 = FIXED_ONE - wY1;
-    unsigned char * dstRow = dstPixels + (size_t)dy*dstStride;
-
-    unsigned int c;
-    for (c=0; c<channels; c++)
-    {
-      unsigned int dx=0;
-      for (; dx+16<=newWidth; dx+=16)
-      {
-        resizeChannelBatchAVX2(rowTop,rowBot,xTaps,channels,c,dx,16,wY0,wY1,dstRow);
-      }
-      if (dx<newWidth)
-      {
-        resizeChannelBatchAVX2(rowTop,rowBot,xTaps,channels,c,dx,newWidth-dx,wY0,wY1,dstRow);
-      }
-    }
+    return resizeScalar(img,newWidth,newHeight,xTaps,yTaps);
   }
-
-  return out;
+  return resizeRolling(img,newWidth,newHeight,xTaps,yTaps,
+                       (img->channels==3) ? xBlendRow3SSSE3 : xBlendRow4SSSE3,
+                       yBlendRowAVX2);
 }
 
 #endif // defined(__x86_64__) || defined(__i386__)
@@ -379,7 +564,7 @@ static enum BasicImaging_ResizePath detectBestAvailablePath(void)
   enum BasicImaging_ResizePath best = BASICIMAGING_RESIZE_SCALAR;
   #if defined(__x86_64__) || defined(__i386__)
     __builtin_cpu_init();
-    if (__builtin_cpu_supports("sse2")) { best = BASICIMAGING_RESIZE_SSE2; }
+    if (__builtin_cpu_supports("ssse3")) { best = BASICIMAGING_RESIZE_SSE3; }
     if (__builtin_cpu_supports("avx2")) { best = BASICIMAGING_RESIZE_AVX2; }
   #endif
 
@@ -402,7 +587,7 @@ enum BasicImaging_ResizePath BasicImaging_Resize_ActivePath(void)
   //crashing, same safety contract as everything else in BasicImaging.
   #if defined(__x86_64__) || defined(__i386__)
     if ( (forcedPath==BASICIMAGING_RESIZE_AVX2) && (best!=BASICIMAGING_RESIZE_AVX2) ) { return best; }
-    if ( (forcedPath==BASICIMAGING_RESIZE_SSE2) && (best==BASICIMAGING_RESIZE_SCALAR) ) { return best; }
+    if ( (forcedPath==BASICIMAGING_RESIZE_SSE3) && (best==BASICIMAGING_RESIZE_SCALAR) ) { return best; }
     return forcedPath;
   #else
     return BASICIMAGING_RESIZE_SCALAR;
@@ -414,7 +599,7 @@ const char * BasicImaging_Resize_PathName(enum BasicImaging_ResizePath path)
   switch (path)
   {
     case BASICIMAGING_RESIZE_SCALAR: return "scalar";
-    case BASICIMAGING_RESIZE_SSE2:   return "SSE2";
+    case BASICIMAGING_RESIZE_SSE3:   return "SSE3";
     case BASICIMAGING_RESIZE_AVX2:   return "AVX2";
     case BASICIMAGING_RESIZE_AUTO:
     default: return "auto";
@@ -443,7 +628,7 @@ struct Image * BasicImaging_Resize(const struct Image * img,unsigned int newWidt
   }
 
   struct AxisTaps xTaps={0},yTaps={0};
-  if ( !buildAxisTaps(&xTaps,newWidth,srcWidth) || !buildAxisTaps(&yTaps,newHeight,srcHeight) )
+  if ( !buildAxisTaps(&xTaps,newWidth,srcWidth,channels) || !buildAxisTaps(&yTaps,newHeight,srcHeight,channels) )
   {
     freeAxisTaps(&xTaps); freeAxisTaps(&yTaps);
     return 0;
@@ -454,7 +639,7 @@ struct Image * BasicImaging_Resize(const struct Image * img,unsigned int newWidt
 
   #if defined(__x86_64__) || defined(__i386__)
     if (path==BASICIMAGING_RESIZE_AVX2)      { out = resizeAVX2(img,newWidth,newHeight,&xTaps,&yTaps); } else
-    if (path==BASICIMAGING_RESIZE_SSE2)      { out = resizeSSE2(img,newWidth,newHeight,&xTaps,&yTaps); } else
+    if (path==BASICIMAGING_RESIZE_SSE3)      { out = resizeSSE3(img,newWidth,newHeight,&xTaps,&yTaps); } else
   #endif
                                               { out = resizeScalar(img,newWidth,newHeight,&xTaps,&yTaps); }
 

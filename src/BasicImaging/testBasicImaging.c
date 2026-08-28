@@ -191,14 +191,15 @@ static struct Image * makeNoisy(unsigned int w,unsigned int h,unsigned int chann
   return img;
 }
 
-//The SSE2/AVX2 resize paths must be BYTE-IDENTICAL to the scalar reference , not just "close" - the
+//The SSE3/AVX2 resize paths must be BYTE-IDENTICAL to the scalar reference , not just "close" - the
 //fixed-point math is fully deterministic, so any discrepancy here means one of the SIMD kernels has an
-//actual bug (wrong lane order, missing tail pixels, an off-by-one in the gather/scatter indices, ...).
+//actual bug (wrong lane order, missing tail pixels, an off-by-one in the gather/window indices, ...).
 static void testSIMDPathsAgreeWithScalar()
 {
-  const enum BasicImaging_ResizePath candidatePaths[] = { BASICIMAGING_RESIZE_SSE2, BASICIMAGING_RESIZE_AVX2 };
+  const enum BasicImaging_ResizePath candidatePaths[] = { BASICIMAGING_RESIZE_SSE3, BASICIMAGING_RESIZE_AVX2 };
   const unsigned int channelsToTry[] = {1,2,3,4};
-  //Sizes deliberately NOT multiples of 8/16 , so every path's batch-tail handling gets exercised too.
+  //Sizes deliberately NOT multiples of the 4-pixel window / 8/16-pixel y-blend batches , so every
+  //path's tail handling gets exercised too.
   const unsigned int sizesToTry[][2] = { {1,1},{3,5},{7,7},{15,9},{17,31},{64,64},{100,37},{257,129} };
 
   unsigned int pi,ci,si;
