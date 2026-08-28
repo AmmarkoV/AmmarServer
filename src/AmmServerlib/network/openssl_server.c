@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <fcntl.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 // --------------------------------------------
@@ -134,8 +136,12 @@ int ASRV_SSL_BindHTTPSSocket(struct AmmServer_Instance * instance)
     }
     fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: socket fd=%d\n", sslsock);
 
+    int sslsock_flags = fcntl(sslsock,F_GETFL,0);
+    fcntl(sslsock,F_SETFL,sslsock_flags|O_NONBLOCK);
+
     int yes = 1;
     setsockopt(sslsock, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+    setsockopt(sslsock, IPPROTO_TCP, TCP_NODELAY, &yes, sizeof(int));
 
     struct sockaddr_in ssl_server;
     memset(&ssl_server, 0, sizeof(ssl_server));

@@ -25,8 +25,8 @@ struct PreSpawnedThread
     unsigned int clientlen;
     int is_ssl_connection;
 
-    //pthread_mutex_t operation_mutex;
-	//pthread_cond_t  condition_var;
+    pthread_mutex_t operation_mutex;
+    pthread_cond_t  condition_var;
 
     char webserver_root[MAX_FILE_PATH];
     char templates_root[MAX_FILE_PATH];

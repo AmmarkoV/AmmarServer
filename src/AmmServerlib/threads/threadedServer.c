@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,11 +28,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/uio.h>
 
 #include <unistd.h>
+#include <fcntl.h>
 #include <pthread.h>
 
 #include "threadedServer.h"
@@ -85,15 +89,67 @@ static int signalChildFinishedWithParentMessageLocal(volatile int * childSwitch)
 #endif // WORKAROUND_REALLOCATION_GCC_ERROR
 
 
+static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener_sock,int is_ssl_connection)
+{
+  while (1)
+  {
+    struct sockaddr_in client;
+    unsigned int clientlen = sizeof(struct sockaddr_in);
+    bzero(&client,clientlen);
+
+    int clientsock = accept4(listener_sock,(struct sockaddr *)&client,&clientlen,SOCK_CLOEXEC);
+    if (clientsock < 0)
+      {
+        if ( (errno==EAGAIN) || (errno==EWOULDBLOCK) ) { break; } // normal drain, backlog is empty
+        if ( errno==ECONNABORTED )                     { continue; }
+        if ( errno==EINTR )                             { break; }
+        errorID(ASV_ERROR_FAILED_TO_ACCEPT);
+        usleep(1000);
+        break;
+      }
+
+      //Successfully accepting..!
+     #if SINGLE_THREAD_MODE
+        if (SingleThreadToServeNewClient(instance,clientsock,client,clientlen,is_ssl_connection))
+        {
+          // This request got served by a freshly spawned thread..!
+          // Nothing to do here , proceeding to the next incoming connection..
+          // if we failed then nothing can be done for this client
+        } else
+        {
+            errorID(ASV_ERROR_OUT_OF_RESOURCES_TO_ACCOMODATE_CLIENT);
+            fprintf(stderr,"Server Thread : Couldn't serve client ( we are on single thread mode ) \n");
+            close(clientsock);
+            usleep(100);
+        }
+     #else
+       fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
+       if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root,is_ssl_connection))
+        {
+          // This request got served by a prespawned thread..!
+        } else
+        if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,is_ssl_connection))
+        {
+          // This request got served by a freshly spawned thread..!
+        } else
+        {
+            errorID(ASV_ERROR_OUT_OF_RESOURCES_TO_ACCOMODATE_CLIENT);
+            close(clientsock);
+            usleep(10000);
+        }
+     #endif // SINGLE_THREAD_MODE
+  } // drain until EAGAIN
+}
+
+
 void * MainThreadedHTTPServerThread (void * ptr)
 {
   struct PassToHTTPThread * context = (struct PassToHTTPThread *) ptr;
   if (context==0) { fprintf(stderr,"Error , HTTPServerThread called without a context\n"); /*We dont have a context , so we cant signal anything :P */ return 0; }
 
 
-  unsigned int serverlen = sizeof(struct sockaddr_in),clientlen = sizeof(struct sockaddr_in);
+  unsigned int serverlen = sizeof(struct sockaddr_in);
   struct sockaddr_in server;
-  struct sockaddr_in client;
 
   struct AmmServer_Instance * instance = context->instance;
   if (instance==0) { errorID(ASV_ERROR_INSTANCE_NOT_ALLOCATED); context->keep_var_on_stack=2;  return 0; }
@@ -113,7 +169,6 @@ void * MainThreadedHTTPServerThread (void * ptr)
     if ( serversock < 0 ) { errorID(ASV_ERROR_FAILED_TO_SOCKET); instance->server_running=0; context->keep_var_on_stack=2;  return 0; }
   instance->serversock = serversock;
 
-  bzero(&client,clientlen);
   bzero(&server,serverlen);
 
   unsigned int bindingPort = context->port;
@@ -157,6 +212,10 @@ void * MainThreadedHTTPServerThread (void * ptr)
           //"Error setting SO_REUSEADDR socket ( does the OS not support it ? ), this might cause problems rebinding.."
           errorID(ASV_ERROR_ERROR_SETTING_SOCKET_OPTIONS);
       }
+  if ( setsockopt(serversock, IPPROTO_TCP, TCP_NODELAY, &yes, sizeof(int)) < 0  )
+      {
+          errorID(ASV_ERROR_ERROR_SETTING_SOCKET_OPTIONS);
+      }
 
   fprintf(stderr,"Binding (%s:%u) / pid %u uid %u.. \n",bindingIP,bindingPort,getpid(),getuid());
   while (
@@ -191,14 +250,15 @@ void * MainThreadedHTTPServerThread (void * ptr)
            return 0;
          }
 
+  int serversock_flags = fcntl(serversock,F_GETFL,0);
+  fcntl(serversock,F_SETFL,serversock_flags|O_NONBLOCK);
+
 
 
   //If we made it this far , it means we got ourselves the port we wanted and we can start serving requests , but before we do that..
   //The next call Pre"forks" a number of threads specified in configuration.h ( MAX_CLIENT_PRESPAWNED_THREADS )
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
-  #if MAX_CLIENT_PRESPAWNED_THREADS
-   PreSpawnThreads(instance);
-  #endif // MAX_CLIENT_PRESPAWNED_THREADS
+  PreSpawnThreads(instance);
 
   /* sslserversock is bound by the main thread in AmmServer_Start/StartWithArgs
      after ASRV_SSL_InitContext completes. We just use it here if it is ready. */
@@ -224,60 +284,16 @@ void * MainThreadedHTTPServerThread (void * ptr)
     if (sel < 0) { perror("select"); continue; }
     if (sel == 0) { continue; } // timeout — recheck stop_server
 
-    int clientsock = -1;
-    int is_ssl_connection = 0;
     #if USE_OPENSSL
     if (instance->sslserversock >= 0 && FD_ISSET(instance->sslserversock,&readfds))
     {
-        fprintf(stderr, "SSL accept loop: incoming connection on HTTPS socket fd=%d\n", instance->sslserversock);
-        clientsock = accept(instance->sslserversock,(struct sockaddr *)&client,&clientlen);
-        is_ssl_connection = 1;
-        fprintf(stderr, "SSL accept loop: accepted HTTPS clientsock=%d\n", clientsock);
-    } else
+        drain_and_dispatch(instance,instance->sslserversock,1);
+    }
     #endif // USE_OPENSSL
     if (FD_ISSET(serversock,&readfds))
     {
-        clientsock = accept(serversock,(struct sockaddr *)&client,&clientlen);
+        drain_and_dispatch(instance,serversock,0);
     }
-
-    if (clientsock < 0)
-      {
-        errorID(ASV_ERROR_FAILED_TO_ACCEPT);
-        usleep(1000);
-      }
-      else
-      {
-          //Successfully accepting..!
-         #if SINGLE_THREAD_MODE
-            if (SingleThreadToServeNewClient(instance,clientsock,client,clientlen,is_ssl_connection))
-            {
-              // This request got served by a freshly spawned thread..!
-              // Nothing to do here , proceeding to the next incoming connection..
-              // if we failed then nothing can be done for this client
-            } else
-            {
-                errorID(ASV_ERROR_OUT_OF_RESOURCES_TO_ACCOMODATE_CLIENT);
-                fprintf(stderr,"Server Thread : Couldn't serve client ( we are on single thread mode ) \n");
-                close(clientsock);
-                usleep(100);
-            }
-         #else
-           fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
-           if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root,is_ssl_connection))
-            {
-              // This request got served by a prespawned thread..!
-            } else
-            if (SpawnThreadToServeNewClient(instance,clientsock,client,clientlen,is_ssl_connection))
-            {
-              // This request got served by a freshly spawned thread..!
-            } else
-            {
-                errorID(ASV_ERROR_OUT_OF_RESOURCES_TO_ACCOMODATE_CLIENT);
-                close(clientsock);
-                usleep(10000);
-            }
-         #endif // SINGLE_THREAD_MODE
-      }
  }
   instance->server_running=0;
   instance->stop_server=2;
@@ -304,7 +320,7 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
                                   {
                                     if (MAX_CLIENT_PRESPAWNED_THREADS>0)
                                      {
-                                      memset(instance->prespawned_pool,0,sizeof(pthread_t)*MAX_CLIENT_PRESPAWNED_THREADS);
+                                      memset(instance->prespawned_pool,0,sizeof(struct PreSpawnedThread)*MAX_CLIENT_PRESPAWNED_THREADS);
                                      }
                                   }
 
@@ -411,6 +427,22 @@ int StopThreadedHTTPServer(struct AmmServer_Instance * instance)
         usleep(10000);
     }
   fprintf(stderr," .. server stopped \n");
+
+  if ( (instance->prespawned_pool!=0) && (MAX_CLIENT_PRESPAWNED_THREADS>0) )
+    {
+      struct PreSpawnedThread * prespawned_pool = (struct PreSpawnedThread *) instance->prespawned_pool;
+      unsigned int i=0;
+      for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
+        {
+          struct PreSpawnedThread * prespawned_data = &prespawned_pool[i];
+          if (prespawned_data->thread_id!=0)
+            {
+              pthread_join(prespawned_data->thread_id,0);
+            }
+          pthread_mutex_destroy(&prespawned_data->operation_mutex);
+          pthread_cond_destroy(&prespawned_data->condition_var);
+        }
+    }
 
   clientList_close(instance->clientList);
   sessionList_close(instance->sessionList);

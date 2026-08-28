@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "prespawnedThreads.h"
 #include "freshThreads.h"
@@ -41,41 +42,44 @@ void * PreSpawnedThread(void * ptr)
 
   while ( (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
    {
-      //fprintf(stderr,"Thread %u is now waiting\n",prespawned_data->threadNum);
-      //pthread_cond_wait(&prespawned_data->condition_var,&prespawned_data->operation_mutex);
-      //fprintf(stderr,"Thread %u is now executing\n",prespawned_data->threadNum);
+      pthread_mutex_lock(&prespawned_data->operation_mutex);
 
-      //fprintf(stderr,"Prespawned Thread %u waiting ( its %u's turn ) \n",i,prespawn_turn_to_serve);
-      //fprintf(stderr,"Prespawned Thread %u busy status %u \n",i,(unsigned int) prespawned_data->busy);
-          /*It is our turn!!*/
-          if (prespawned_data->busy) //Master thread considers us busy again , this means there is work to be done..!
-          {
-            ++instance->prespawn_jobs_started;
-            /*We have something to do , lets fill our context..*/
-             context.instance=instance;
-             context.clientsock=prespawned_data->clientsock;
-             context.client=prespawned_data->client;
-             context.clientlen=prespawned_data->clientlen;
-             context.is_ssl_connection=prespawned_data->is_ssl_connection;
-             context.pre_spawned_thread = 1; // THIS IS A !!!!PRE SPAWNED!!!! THREAD
-             context.keep_var_on_stack=1;
+      if (!prespawned_data->busy)
+       {
+          struct timespec ts;
+          clock_gettime(CLOCK_REALTIME,&ts);
+          ts.tv_nsec += 200000000; // ~200ms deadline
+          if (ts.tv_nsec>=1000000000) { ts.tv_sec++; ts.tv_nsec-=1000000000; }
+          pthread_cond_timedwait(&prespawned_data->condition_var,&prespawned_data->operation_mutex,&ts);
+          // EINTR/ETIMEDOUT/spurious wakeups are all absorbed by re-checking busy below
+       }
 
-              //ServeClient from this thread ( without forking..! )
-              fprintf(stderr,"Prespawned thread %u/%u starting to serve new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
-                ServeClientAfterUnpackingThreadMessage((void *)  &context);
-              fprintf(stderr,"Prespawned thread %u/%u finished serving new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
-              //---------------------------------------------------
+      if (!prespawned_data->busy)
+       {
+          pthread_mutex_unlock(&prespawned_data->operation_mutex);
+          continue;
+       }
 
-             prespawned_data->busy=0; // <- This signals we finished our task ..!
-             ++instance->prespawn_jobs_finished;
+      ++instance->prespawn_jobs_started;
+      /*We have something to do , lets fill our context..*/
+       context.instance=instance;
+       context.clientsock=prespawned_data->clientsock;
+       context.client=prespawned_data->client;
+       context.clientlen=prespawned_data->clientlen;
+       context.is_ssl_connection=prespawned_data->is_ssl_connection;
+       context.pre_spawned_thread = 1; // THIS IS A !!!!PRE SPAWNED!!!! THREAD
+       context.keep_var_on_stack=1;
 
+       prespawned_data->busy=0; // <- This signals we finished our task ..! ( slot is refillable already , we serve from our local copy )
+       pthread_mutex_unlock(&prespawned_data->operation_mutex);
 
-             //pthread_mutex_lock(&prespawned_data->operation_mutex);
-           }
+        //ServeClient from this thread ( without forking..! )
+        fprintf(stderr,"Prespawned thread %u/%u starting to serve new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
+          ServeClientAfterUnpackingThreadMessage((void *)  &context);
+        fprintf(stderr,"Prespawned thread %u/%u finished serving new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
+        //---------------------------------------------------
 
-      if (instance->prespawn_turn_to_serve==i)
-            { usleep(THREAD_SLEEP_TIME_WHEN_OUR_PRESPAWNED_THREAD_IS_NEXT); /*It is our turn next so lets stay vigilant ( But not use a crazy lot of CPU time ) */ }  else
-               { usleep(THREAD_SLEEP_TIME_FOR_PRESPAWNED_THREADS); /*It is not our turn so lets chill for more time..*/ }
+       ++instance->prespawn_jobs_finished;
   } // while the server doesn't stop..
 
   return 0;
@@ -109,10 +113,9 @@ void PreSpawnThreads(struct AmmServer_Instance * instance)
       prespawned_data->busy=0; // We do this here (and not in the PreSpawnedThread ) to make sure a clean state is sure to be initialized , not having race conditions , locks etc...
       prespawned_data->threadNum=i;
 
-      //pthread_mutex_init(&prespawned_data->operation_mutex,0);
-      //pthread_cond_init(&prespawned_data->condition_var,0);
+      pthread_mutex_init(&prespawned_data->operation_mutex,0);
+      pthread_cond_init(&prespawned_data->condition_var,0);
 
-      //pthread_mutex_lock(&prespawned_data->operation_mutex);
       int retres = pthread_create(&prespawned_data->thread_id,0,PreSpawnedThread,(void*) &context );
       if ( retres==0 ) { while (context.i_adapt==i) { usleep(1); } } // <- Keep i value the same for long enough without locks
    }
@@ -147,28 +150,34 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
   // if This doesnt work as it was supposed to : (instance->prespawn_jobs_started-instance->prespawn_jobs_finished<MAX_CLIENT_PRESPAWNED_THREADS)
     {
         if (instance->prespawn_turn_to_serve>=MAX_CLIENT_PRESPAWNED_THREADS) { instance->prespawn_turn_to_serve=0; }
-        prespawned_data = (struct PreSpawnedThread *)  &prespawned_pool[instance->prespawn_turn_to_serve];
+        unsigned int candidate = instance->prespawn_turn_to_serve;
+        prespawned_data = (struct PreSpawnedThread *)  &prespawned_pool[candidate];
 
-        //Attempt to find another prespawned context
+        pthread_mutex_lock(&prespawned_data->operation_mutex);
         if (prespawned_data->busy)
          {
+            pthread_mutex_unlock(&prespawned_data->operation_mutex);
+
+            //Attempt to find another prespawned context
             unsigned int i=0;
+            prespawned_data=0;
             for (i=0; i<MAX_CLIENT_PRESPAWNED_THREADS; i++)
             {
-              prespawned_data = (struct PreSpawnedThread *) &prespawned_pool[i];
-              if (!prespawned_data->busy) { break; }
+              struct PreSpawnedThread * candidate_data = (struct PreSpawnedThread *) &prespawned_pool[i];
+              pthread_mutex_lock(&candidate_data->operation_mutex);
+              if (!candidate_data->busy) { candidate=i; prespawned_data=candidate_data; break; }
+              pthread_mutex_unlock(&candidate_data->operation_mutex);
             }
          }
 
-        if (prespawned_data->busy)
+        if (prespawned_data==0)
          {
             fprintf(stderr,"Seems that the prespawned thread is still busy (  %u/%u ) ..\n",instance->prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
             return 0;
          }
 
-        if (!prespawned_data->busy)
-         {
-             fprintf(stderr,"Decided to use prespawned thread %u/%u to serve new client\n",instance->prespawn_turn_to_serve,MAX_CLIENT_PRESPAWNED_THREADS);
+        {
+             fprintf(stderr,"Decided to use prespawned thread %u/%u to serve new client\n",candidate,MAX_CLIENT_PRESPAWNED_THREADS);
              prespawned_data->clientsock=clientsock;
              prespawned_data->client=client;
              prespawned_data->clientlen=clientlen;
@@ -178,11 +187,10 @@ int UsePreSpawnedThreadToServeNewClient(struct AmmServer_Instance * instance,int
              // The busy byte gets filled in last because it is what causes the client thread to wake up..!
              prespawned_data->busy=1;
 
+             pthread_cond_signal(&prespawned_data->condition_var);
+             pthread_mutex_unlock(&prespawned_data->operation_mutex);
 
-             //pthread_mutex_unlock(&prespawned_data->operation_mutex);
-             fprintf(stderr,"Thread %u is now unlocked\n",prespawned_data->threadNum);
-
-             ++instance->prespawn_turn_to_serve;
+             instance->prespawn_turn_to_serve = candidate+1;
 
               if ( MAX_CLIENT_PRESPAWNED_THREADS > 0 )
                {
