@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+ <meta charset="UTF-8">
+ <title>Availability</title>
+ <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ <div class="topbar"><h1>Availability</h1></div>
+ <div class="container">
+  <div class="card">
+   <h2>Create a scheduling poll</h2>
+   <form method="post" enctype="multipart/form-data" action="createPoll.html">
+    <label>Poll title</label>
+    <input type="text" name="title" placeholder="e.g. Team sync next week" required>
+
+    <label style="margin-top:20px;">Proposed dates/times</label>
+    <div id="optionRows"></div>
+    <button type="button" id="addOptionBtn">+ Add another option</button>
+
+    <br>
+    <button type="submit">Create poll</button>
+   </form>
+  </div>
+ </div>
+
+ <script>
+  var optionCount = 0;
+
+  function addOptionRow() {
+    var idx = optionCount++;
+    var row = document.createElement('div');
+    row.className = 'optionRow';
+    row.innerHTML =
+      '<div><label>Date</label><input type="date" name="optionDate' + idx + '" required></div>' +
+      '<div><label>Start time (optional)</label><input type="time" name="optionStartTime' + idx + '"></div>' +
+      '<div><label>End time (optional)</label><input type="time" name="optionEndTime' + idx + '"></div>' +
+      '<button type="button" class="removeOptionBtn" onclick="this.parentNode.parentNode.removeChild(this.parentNode)">Remove</button>';
+    document.getElementById('optionRows').appendChild(row);
+  }
+
+  document.getElementById('addOptionBtn').addEventListener('click', addOptionRow);
+  addOptionRow();
+  addOptionRow();
+ </script>
+</body>
+</html>

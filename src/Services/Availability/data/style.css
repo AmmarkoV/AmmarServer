@@ -1,0 +1,39 @@
+* { box-sizing: border-box; }
+body { font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #f4f5f7; color: #222; }
+
+.topbar { background: #1f6f4a; color: #fff; padding: 14px 24px; }
+.topbar h1 { margin: 0; font-size: 22px; }
+
+.container { max-width: 800px; margin: 24px auto; padding: 0 16px; }
+.card { background: #fff; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); padding: 20px; margin-bottom: 18px; }
+.card h2 { margin-top: 0; }
+
+label { display: block; margin-top: 12px; font-size: 13px; color: #555; }
+input[type=text], input[type=email], input[type=date], input[type=time] {
+  padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; width: 100%; max-width: 320px;
+}
+button { margin-top: 16px; padding: 10px 18px; background: #1f6f4a; color: #fff; border: 0; border-radius: 4px; cursor: pointer; font-size: 14px; }
+button:hover { background: #17563a; }
+button:disabled { background: #aaa; cursor: not-allowed; }
+
+.optionRow { border: 1px solid #ddd; border-radius: 4px; padding: 10px; margin-top: 10px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.optionRow > div { display: flex; flex-direction: column; }
+.optionRow label { margin-top: 0; }
+.removeOptionBtn { background: #c0392b; padding: 6px 10px; margin-top: 0; font-size: 12px; }
+.removeOptionBtn:hover { background: #992d22; }
+#addOptionBtn { background: #2a66d9; }
+#addOptionBtn:hover { background: #1f4fb0; }
+
+table.voteTable, table.resultsTable { border-collapse: collapse; width: 100%; margin-top: 12px; font-size: 13px; }
+table.voteTable th, table.voteTable td, table.resultsTable th, table.resultsTable td {
+  border: 1px solid #e0e0e0; padding: 6px 10px; text-align: center;
+}
+table.voteTable td:first-child, table.resultsTable td:first-child { text-align: left; font-weight: 600; }
+
+.voteYes { background: #dff5e3; color: #1f6f2a; }
+.voteMaybe { background: #fff4d6; color: #8a6d00; }
+.voteNo { background: #fbdede; color: #a33; }
+.voteBlank { background: #f0f0f0; color: #999; }
+.tallyRow td { background: #fafafa; font-weight: 600; }
+
+code { background: #eef1f5; padding: 2px 6px; border-radius: 3px; }
