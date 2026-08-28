@@ -1094,17 +1094,5 @@ int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , c
  return  1; // <- TODO add IPv4 , IPv6 IP here
 }
 
-clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int clientSock)
-{
-  #if INET6_ADDRSTRLEN>MAX_IP_STRING_SIZE
-   #error "Please readjust MAX_IP_STRING_SIZE to be more than INET6_ADDRSTRLEN"
-  #endif // INET6_ADDRSTRLEN
-  char ipstr[INET6_ADDRSTRLEN]; ipstr[0]=0;
-  unsigned int port=0;
-
-  getSocketIPAddress(instance,clientSock,ipstr,INET6_ADDRSTRLEN,&port);
-
-  return  clientList_GetClientId(instance->clientList,ipstr);
-}
 
 

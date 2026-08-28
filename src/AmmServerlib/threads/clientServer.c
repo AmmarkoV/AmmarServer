@@ -270,8 +270,9 @@ int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * instance,
 
 int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
-  //Remember the IP of this client..
-  getSocketIPAddress(instance,transaction->clientSock,transaction->ipStr,MAX_IP_STRING_SIZE,&transaction->port);
+  //Remember the IP of this client.. ( already resolved once in ServeClientInternal - the peer can't change for the
+  //life of this connection , so skip re-deriving it via getpeername() on every keep-alive request )
+  if (transaction->ipStr[0]==0) { getSocketIPAddress(instance,transaction->clientSock,transaction->ipStr,MAX_IP_STRING_SIZE,&transaction->port); }
 
    //We have our connection / instancing /etc covered if we are here
    //In order to serve our client we must first receive the request header , so we do it now..!
@@ -480,7 +481,10 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
     return 0;
    }
 
-  transaction->clientListID = findOutClientIDOfPeer(instance ,transaction->clientSock);
+  //Resolve the peer address once here and reuse it for the whole connection - ServeClientKeepAliveLoop below
+  //skips its own resolution once transaction->ipStr is already populated ( the peer can't change mid-connection )
+  getSocketIPAddress(instance,transaction->clientSock,transaction->ipStr,MAX_IP_STRING_SIZE,&transaction->port);
+  transaction->clientListID = clientList_GetClientId(instance->clientList,transaction->ipStr);
 
   //----------------------------- ---------------------------- ----------------------------
   // Check if client is banned

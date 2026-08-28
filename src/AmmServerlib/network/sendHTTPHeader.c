@@ -78,7 +78,9 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
-      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      //MSG_MORE : this is only ever the first few lines of a header , more header lines ( and the body ) always follow ,
+      //so let the kernel coalesce this with the caller's next write instead of emitting its own small TCP segment
+      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
 
       return 1;
@@ -95,7 +97,9 @@ unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct 
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
-      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      //MSG_MORE : this is only ever the first few lines of a header , more header lines ( and the body ) always follow ,
+      //so let the kernel coalesce this with the caller's next write instead of emitting its own small TCP segment
+      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
 
       return 1;
@@ -119,7 +123,9 @@ unsigned long SendAuthorizationHeader(struct AmmServer_Instance * instance,struc
 
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength ,"Date",1,0,0,0,0,0,0,0);
-      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+      //MSG_MORE : this is only ever the first few lines of a header , more header lines ( and the body ) always follow ,
+      //so let the kernel coalesce this with the caller's next write instead of emitting its own small TCP segment
+      int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
 
       return 1;

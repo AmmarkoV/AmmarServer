@@ -200,12 +200,4 @@ int setSocketTimeouts(int clientSock);
 * @retval ClientID or ,0=Failure*/
 int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , char * ipstr , unsigned int ipstrLength,unsigned int * port);
 
-/**
-* @brief Tool that resolve a client socket to its IP , then uses it to try to clientList_GetClientId and returns the id number
-* @ingroup tools
-* @param An AmmarServer instance
-* @param client socket
-* @retval ClientID or ,0=Failure*/
-clientID findOutClientIDOfPeer(struct AmmServer_Instance * instance , int clientSock);
-
 #endif // HTTP_TOOLS_H_INCLUDED

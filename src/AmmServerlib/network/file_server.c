@@ -58,10 +58,14 @@ int SendPart(
               struct AmmServer_Instance * instance,
               struct HTTPTransaction * transaction,
               const char * message,
-              unsigned int message_size
+              unsigned int message_size,
+              int more_data_follows /* 1 if another send for this same response follows immediately - lets the
+                                        kernel coalesce this with the next write into fewer TCP segments */
              )
 {
-  int opres=ASRV_Send(instance,transaction,message,message_size,MSG_WAITALL|MSG_NOSIGNAL);
+  int flags = MSG_WAITALL|MSG_NOSIGNAL;
+  if (more_data_follows) { flags |= MSG_MORE; }
+  int opres=ASRV_Send(instance,transaction,message,message_size,flags);
   if (opres<=0)
      {
       fprintf(stderr,"Failed to SendPart `%s`..!\n",message);
@@ -217,7 +221,7 @@ int TransmitFileHeaderToSocket(
                    lSize
                  );
        }
-    if (!SendPart(instance,transaction,reply_header,strlen(reply_header)))
+    if (!SendPart(instance,transaction,reply_header,strlen(reply_header),1)) //the file body always follows this
         {
          fprintf(stderr,"Failed sending Content-Length @  SendFile ..!\n");
          return 0;
@@ -522,7 +526,7 @@ unsigned long SendFile
               //The Etag is mandatory on 304 messages..!
               char ETagSendChunk[MAX_ETAG_SIZE+64]={0};
               snprintf(ETagSendChunk,MAX_ETAG_SIZE+64,"ETag: \"%s\" \n",LocalETag);
-              if (!SendPart(instance,transaction,ETagSendChunk,strlen(ETagSendChunk))) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
+              if (!SendPart(instance,transaction,ETagSendChunk,strlen(ETagSendChunk),1)) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  } //the Connection header always follows
 
               WeWantA200OK=0;
               request->requestType=HEAD;
@@ -559,7 +563,7 @@ unsigned long SendFile
   if (allowOtherOrigins)
   {
     AmmServer_Warning("Allowing other origins ( cross scripting..? )");
-    SendPart(instance,transaction,"Access-Control-Allow-Origin: *\n",strlen("Access-Control-Allow-Origin: *\n"));
+    SendPart(instance,transaction,"Access-Control-Allow-Origin: *\n",strlen("Access-Control-Allow-Origin: *\n"),1); //the Connection header always follows
   }
 
    if (have_last_modified)
@@ -569,7 +573,7 @@ unsigned long SendFile
        //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
        GetDateString(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
        //opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-       opres=ASRV_Send(instance, transaction, reply_header, strlen(reply_header), MSG_WAITALL|MSG_NOSIGNAL );
+       opres=ASRV_Send(instance, transaction, reply_header, strlen(reply_header), MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE ); //the Connection header always follows
 
        if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
@@ -580,8 +584,10 @@ unsigned long SendFile
                      The Keep-Alive header is completely optional; it is defined primarily because the keep-alive connection token implies that such a header exists, not because anyone actually uses it.
                     Some implementations (e.g., Apache) do generate a Keep-Alive header to convey how many requests they're willing to serve on a single connection, what the connection timeout is and other information. However, this isn't usually used by clients.
                     It's safe to remove this header if you wish to save a few bytes in the response.*/
-  if (keepalive) { if (!SendPart(instance,transaction,"Connection: keep-alive\n",strlen("Connection: keep-alive\n")) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
-                 { if (!SendPart(instance,transaction,"Connection: close\n",strlen("Connection: close\n"))) { /*TODO : HANDLE failure to send Connection: Close */}  }
+  //ETag/Content-length/body only follow when we're about to send a body ( i.e. not a HEAD response , including the 304 case above which forces HEAD )
+  int connection_header_more_follows = (request->requestType!=HEAD);
+  if (keepalive) { if (!SendPart(instance,transaction,"Connection: keep-alive\n",strlen("Connection: keep-alive\n"),connection_header_more_follows) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
+                 { if (!SendPart(instance,transaction,"Connection: close\n",strlen("Connection: close\n"),connection_header_more_follows)) { /*TODO : HANDLE failure to send Connection: Close */}  }
 
 
 
@@ -600,7 +606,7 @@ if (request->requestType!=HEAD)
      if (cache_etag!=0)
      {
         snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%u%u%lu%lu\"\n", instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
-        opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
+        opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send E-Tag as soon as we've got it ; Content-length/body always follow
         if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
      }
@@ -611,7 +617,7 @@ if (request->requestType!=HEAD)
      if ( cached_buffer_is_compressed )
      {
         strncpy(reply_header,"Content-Encoding: deflate\n",MAX_HTTP_REQUEST_HEADER_REPLY);
-        opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send E-Tag as soon as we've got it
+        opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Content-length/body always follow
         if (opres<=0) { fprintf(stderr,"Error sending Compression header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
      }
 
@@ -632,10 +638,10 @@ if (request->requestType!=HEAD)
        }
      //TODO : Append Cookie here..
 
-     opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
+     opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send filesize as soon as we've got it ; the body always follows
      if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
-     opres=ASRV_Send(instance,transaction,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it
+     opres=ASRV_Send(instance,transaction,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it ; last part of the response, no MSG_MORE
      freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
 
      if (opres<=0) { fprintf(stderr,"Error sending cached body\n"); return 0; }
@@ -687,10 +693,10 @@ unsigned long SendMemoryBlockAsFile
   snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-Length: %u\nConnection: close\r\n\r\n",(unsigned int) mem_block);
   //TODO : Location : path etc
 
-  if (!SendPart(instance,transaction,reply_header,strlen(reply_header)))
+  if (!SendPart(instance,transaction,reply_header,strlen(reply_header),1)) //the body always follows this
       { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  }
 
-  if (!SendPart(instance,transaction,mem,mem_block))
+  if (!SendPart(instance,transaction,mem,mem_block,0)) //the last part of this response
       { fprintf(stderr,"Failed sending content body @  SendMemoryBlockAsFile ..!\n");  }
 
  return 0;

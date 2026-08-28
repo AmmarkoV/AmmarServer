@@ -23,6 +23,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <signal.h>
 #include <unistd.h>
+#include <time.h>
 // --------------------------------------------
 #include "version.h"
 // --------------------------------------------
@@ -166,6 +167,16 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   return 1;
 }
 
+//Without TZ set, glibc re-stats /etc/localtime on every single localtime() call ( every dynamic-content callback
+//that timestamps its output pays this ) to detect timezone changes without a restart. Pointing TZ at the file
+//directly makes glibc cache its parsed rules once and never touch the filesystem again - this is process-global
+//state, so every thread's localtime() calls benefit for free with no per-thread work or locking needed.
+static void CacheTimezoneData()
+{
+  if (getenv("TZ")==0) { setenv("TZ",":/etc/localtime",1); }
+  tzset();
+}
+
 struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
                                                const char * ip,
                                                unsigned int port,
@@ -178,6 +189,7 @@ struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
   printDisclaimer();
+  CacheTimezoneData();
 
   snprintf(AccessLog,MAX_FILE_PATH,"log/%s_access.log",name);
   snprintf(ErrorLog,MAX_FILE_PATH,"log/%s_error.log",name);
@@ -245,6 +257,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
 
   printDisclaimer();
+  CacheTimezoneData();
 
   //log/ could be a global directory
   snprintf(AccessLog,MAX_FILE_PATH,"log/%s_access.log",name);
