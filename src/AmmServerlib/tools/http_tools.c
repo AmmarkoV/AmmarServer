@@ -119,7 +119,9 @@ char FileExistsAmmServ(const char * filename)
 {
  FILE *fp = fopen(filename,"r");
  if( fp ) { /* exists */ fclose(fp); return 1; }
+ #if DEBUG_MESSAGES
  fprintf(stderr,"FileExists(%s) returns false\n",filename);
+ #endif // DEBUG_MESSAGES
  return 0;
 }
 

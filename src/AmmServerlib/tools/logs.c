@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
 // --------------------------------------------
 #include "logs.h"
 #include "http_tools.h"
@@ -156,7 +157,7 @@ int compressLog(const char * filename,unsigned int accessTimes)
    {
      //The last part ( rm %s.%u ) is not needed with regular gzip since it removes the source file ,
      //however it does not hurt to exist to make sure nothing remains that can screw up things..
-     snprintf(filenameToTest,2048,"mv %s %s.%u &&&& gzip -f %s.%u &&&& rm %s.%u",filename,filename,i,filename,i,filename,i);
+     snprintf(filenameToTest,2048,"mv %s %s.%u && gzip -f %s.%u && rm %s.%u",filename,filename,i,filename,i,filename,i);
      i=system(filenameToTest);
      if (i==0)
      {
@@ -174,14 +175,30 @@ int compressLog(const char * filename,unsigned int accessTimes)
 }
 
 
+static FILE * AccessLogFile = 0;
+static pthread_mutex_t AccessLogMutex = PTHREAD_MUTEX_INITIALIZER;
+
 int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
 {
     if (!AccessLogEnable) { return 0; }
 
-    compressLog(AccessLog,logAccessPolls);
+    pthread_mutex_lock(&AccessLogMutex);
 
-    FILE * pFile = fopen (AccessLog, "a");
-    if (pFile==0) { return 0; }
+    if ( logAccessPolls % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
+    {
+        //compressLog may rename/gzip this file from under us , so release our handle to it before calling it and
+        //let it get lazily reopened ( against the fresh file ) right below
+        if (AccessLogFile!=0) { fclose(AccessLogFile); AccessLogFile=0; }
+        compressLog(AccessLog,logAccessPolls);
+    }
+
+    if (AccessLogFile==0)
+    {
+        AccessLogFile = fopen (AccessLog, "a");
+        if (AccessLogFile==0) { pthread_mutex_unlock(&AccessLogMutex); return 0; }
+        setvbuf(AccessLogFile,0,_IOLBF,0);
+    }
+    FILE * pFile = AccessLogFile;
 
 
     char nullIP[10]={"0.0.0.0"};
@@ -226,18 +243,35 @@ int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,un
              );
 
     ++logAccessPolls;
-    fclose(pFile);
+    pthread_mutex_unlock(&AccessLogMutex);
     return 1;
 }
 
 
+static FILE * ErrorLogFile = 0;
+static pthread_mutex_t ErrorLogMutex = PTHREAD_MUTEX_INITIALIZER;
+
 int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
 {
     if (!ErrorLogEnable) { return 0; }
-    FILE * pFile = fopen (ErrorLog, "a");
-    if (pFile==0) { return 0; }
 
-    compressLog(ErrorLog,logErrorPolls);
+    pthread_mutex_lock(&ErrorLogMutex);
+
+    if ( logErrorPolls % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
+    {
+        //compressLog may rename/gzip this file from under us , so release our handle to it before calling it and
+        //let it get lazily reopened ( against the fresh file ) right below
+        if (ErrorLogFile!=0) { fclose(ErrorLogFile); ErrorLogFile=0; }
+        compressLog(ErrorLog,logErrorPolls);
+    }
+
+    if (ErrorLogFile==0)
+    {
+        ErrorLogFile = fopen (ErrorLog, "a");
+        if (ErrorLogFile==0) { pthread_mutex_unlock(&ErrorLogMutex); return 0; }
+        setvbuf(ErrorLogFile,0,_IOLBF,0);
+    }
+    FILE * pFile = ErrorLogFile;
 
 
     char nullIP[10]={"0.0.0.0"};
@@ -282,6 +316,6 @@ int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,uns
              );
 
     ++logErrorPolls;
-    fclose(pFile);
+    pthread_mutex_unlock(&ErrorLogMutex);
     return 1;
 }

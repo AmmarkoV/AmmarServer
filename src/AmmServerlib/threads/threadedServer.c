@@ -123,7 +123,9 @@ static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener
             usleep(100);
         }
      #else
+       #if DEBUG_MESSAGES
        fprintf(stderr,"Server Thread : Accepted new client , now deciding on prespawned vs freshly spawned.. \n");
+       #endif // DEBUG_MESSAGES
        if (UsePreSpawnedThreadToServeNewClient(instance,clientsock,client,clientlen,instance->webserver_root,instance->templates_root,is_ssl_connection))
         {
           // This request got served by a prespawned thread..!

@@ -74,9 +74,13 @@ void * PreSpawnedThread(void * ptr)
        pthread_mutex_unlock(&prespawned_data->operation_mutex);
 
         //ServeClient from this thread ( without forking..! )
+        #if DEBUG_MESSAGES
         fprintf(stderr,"Prespawned thread %u/%u starting to serve new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
+        #endif // DEBUG_MESSAGES
           ServeClientAfterUnpackingThreadMessage((void *)  &context);
+        #if DEBUG_MESSAGES
         fprintf(stderr,"Prespawned thread %u/%u finished serving new client\n",i,MAX_CLIENT_PRESPAWNED_THREADS);
+        #endif // DEBUG_MESSAGES
         //---------------------------------------------------
 
        ++instance->prespawn_jobs_finished;

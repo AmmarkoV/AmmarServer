@@ -61,7 +61,9 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
   struct AmmServer_RequestOverride_Context local_context = *clientOverride;
   local_context.request = output;
 
+  #if DEBUG_MESSAGES
   fprintf(stderr,"doing callClientRequestHandler \n");
+  #endif // DEBUG_MESSAGES
   void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
   DoCallback = clientOverride->request_override_callback;
 
@@ -73,13 +75,14 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
 
 void printRequestData(struct AmmServer_DynamicRequest * rqst)
 {
- //fprintf(stderr,"Request for a maximum of %lu characters\n",rqst->MAXcontentSize);
+ #if DEBUG_MESSAGES
  if ( rqst->GETItemNumber!=0 )    { fprintf(stderr,"GETItems : %p , %u items\n",rqst->GETItem , rqst->GETItemNumber );          }
  if ( rqst->POSTItemNumber!=0 )   {
                                     fprintf(stderr,"POSTItems : %p , %u items\n",rqst->POSTItem , rqst->POSTItemNumber );
                                     fprintf(stderr,CYAN "Using the new POST system.. may our client have mercy on our POST request..\n" NORMAL);
                                   }
  if ( rqst->COOKIEItemNumber!=0 ) { fprintf(stderr,"COOKIEItems : %p , %u items\n",rqst->COOKIEItem , rqst->COOKIEItemNumber ); }
+ #endif // DEBUG_MESSAGES
 }
 
 int checkRequestFrequency(
@@ -322,8 +325,10 @@ char * dynamicRequest_serveContent
                      *memSize = rqst->contentSize;
 
 
+                     #if DEBUG_MESSAGES
                      fprintf(stderr,GREEN " > " NORMAL );
                      fprintf(stderr,"Callback Summary : %lu microseconds - %lu/%lu bytes @ pointer %p \n",elapsedCallbackTimeMS,rqst->contentSize,rqst->MAXcontentSize,rqst->content);
+                     #endif // DEBUG_MESSAGES
                      safeFree(rqst,sizeof(struct AmmServer_DynamicRequest));
 
                      //This means we can call the callback to prepare the memory content..! END

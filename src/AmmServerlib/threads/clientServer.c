@@ -586,9 +586,13 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
      }
    }
 
+  #if DEBUG_MESSAGES
   fprintf(stderr,"Now signaling we are ready (%u)\n",transaction.threadID);
+  #endif // DEBUG_MESSAGES
   context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
+  #if DEBUG_MESSAGES
   fprintf(stderr,"Passing message to HTTP thread is done (%u)\n",transaction.threadID);
+  #endif // DEBUG_MESSAGES
 
   ASRV_StartSession(instance,&transaction);
 

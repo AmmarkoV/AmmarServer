@@ -62,7 +62,9 @@ int cache_ChangeRequestIfTemplateRequested(struct AmmServer_Instance * instance,
   //If the request was indeed a change request returns 1 else 0
   if ( strlen(request)>strlen(TemplatesInternalURI)+64 )
    {
+       #if DEBUG_MESSAGES
        fprintf(stderr,"\nWARNING : Skipping cache_ChangeRequestIfTemplateRequested due to a very large request ( maxRequest = %u ) \n",maxRequest);
+       #endif // DEBUG_MESSAGES
        return 0;
    }
 
@@ -620,7 +622,9 @@ if (cache_FindResource(instance,verified_filename,index))
 
               /* We can and will serve back a cached version of the page..! */
              *filesize=*cache[*index].compressedContentSize;
+             #if DEBUG_MESSAGES
              fprintf(stderr,"Cache Serving back a compressed buffer sized %lu bytes\n",*filesize);
+             #endif // DEBUG_MESSAGES
 
              return cache[*index].compressedContent;
            }
@@ -630,7 +634,9 @@ if (cache_FindResource(instance,verified_filename,index))
              *compressionSupported=0; // The response is not compressed..!
 
              *filesize=*cache[*index].contentSize;
+             #if DEBUG_MESSAGES
              fprintf(stderr,"Cache Serving back a buffer sized %lu bytes\n",*filesize);
+             #endif // DEBUG_MESSAGES
 
              return cache_memory;
            }

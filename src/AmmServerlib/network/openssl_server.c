@@ -10,6 +10,7 @@
 #include <netinet/tcp.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include "../server_configuration.h"
 // --------------------------------------------
 
 int ASRV_SSL_InitContext(struct AmmServer_Instance * instance)
@@ -70,8 +71,10 @@ int ASRV_SSL_AcceptConnection(struct AmmServer_Instance * instance,
                                struct HTTPTransaction    * transaction,
                                int                        clientsock)
 {
+    #if DEBUG_MESSAGES
     fprintf(stderr, "ASRV_SSL_AcceptConnection: called (fd=%d sslctx=%p)\n",
             clientsock, instance ? (void*)instance->sslctx : NULL);
+    #endif // DEBUG_MESSAGES
 
     if (!instance)          { fprintf(stderr, "ASRV_SSL_AcceptConnection: null instance\n"); return 0; }
     if (!transaction)       { fprintf(stderr, "ASRV_SSL_AcceptConnection: null transaction\n"); return 0; }
@@ -86,7 +89,9 @@ int ASRV_SSL_AcceptConnection(struct AmmServer_Instance * instance,
     }
 
     SSL_set_fd(ssl, clientsock);
+    #if DEBUG_MESSAGES
     fprintf(stderr, "ASRV_SSL_AcceptConnection: starting SSL_accept on fd=%d\n", clientsock);
+    #endif // DEBUG_MESSAGES
 
     int ret = SSL_accept(ssl);
     if (ret <= 0)
@@ -98,8 +103,10 @@ int ASRV_SSL_AcceptConnection(struct AmmServer_Instance * instance,
         return 0;
     }
 
+    #if DEBUG_MESSAGES
     fprintf(stderr, "ASRV_SSL_AcceptConnection: TLS handshake complete (cipher=%s)\n",
             SSL_get_cipher(ssl));
+    #endif // DEBUG_MESSAGES
     transaction->ssl = ssl;
     return 1;
 }
