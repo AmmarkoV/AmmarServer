@@ -78,6 +78,22 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
   int fileIndex = findProjectFileIndex(p,activeFile);
   unsigned int initialVersion = (fileIndex>=0) ? p->files[fileIndex].version : 1;
 
+  //Switching files is a full page reload , so without this the PDF pane would forget the last successful
+  //compile every time you click a different file in the tree , forcing an expensive recompile just to look
+  //at it again. If a compiled PDF already exists on disk for this project , point the iframe straight at it.
+  char pdfSrcAttribute[MAX_STRING_SIZE*2+32]={0};
+  char compileLogInitial[128]="Not compiled yet.";
+  if (p->pdfVersion>0)
+  {
+    char pdfFilePath[MAX_STRING_SIZE*2]={0};
+    snprintf(pdfFilePath,sizeof(pdfFilePath),"data/projects/%s/files/main_v%u.pdf",p->id,p->pdfVersion);
+    if ( AmmServer_FileExists(pdfFilePath) )
+    {
+      snprintf(pdfSrcAttribute,sizeof(pdfSrcAttribute)," src=\"projects/%s/files/main_v%u.pdf\"",p->id,p->pdfVersion);
+      snprintf(compileLogInitial,sizeof(compileLogInitial),"Showing the last successful compile (v%u). Click Compile to refresh it.",p->pdfVersion);
+    }
+  }
+
   char filePath[MAX_STRING_SIZE*2]={0};
   snprintf(filePath,sizeof(filePath),"data/projects/%s/files/%s",p->id,activeFile);
   unsigned int contentLength=0;
@@ -125,9 +141,9 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
       "<pre id=\"editorMirror\"></pre>"
       "<textarea id=\"editorTextarea\" spellcheck=\"false\">%s</textarea>"
       "</div>"
-      "<div class=\"compileLog\" id=\"compileLog\">Not compiled yet.</div>"
+      "<div class=\"compileLog\" id=\"compileLog\">%s</div>"
       "</div>"
-      "<div class=\"pdfPane\"><iframe id=\"pdfFrame\"></iframe></div>"
+      "<div class=\"pdfPane\"><iframe id=\"pdfFrame\"%s></iframe></div>"
       "</div>"
       "<input type=\"hidden\" id=\"sessionID\" value=\"%s\">"
       "<input type=\"hidden\" id=\"projectID\" value=\"%s\">"
@@ -141,6 +157,8 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
       fileTreeHTML,
       escapedActiveFile,
       (escapedContent!=0)?escapedContent:"",
+      compileLogInitial,
+      pdfSrcAttribute,
       sessionID,projectID,escapedActiveFile,initialVersion,username);
     rqst->contentSize=strlen(rqst->content);
   }
