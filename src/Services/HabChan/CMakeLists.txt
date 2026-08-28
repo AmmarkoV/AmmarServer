@@ -35,9 +35,9 @@ add_executable(habchan
  csrf.c
  csrf.h
  )
-target_link_libraries(habchan pthread rt m AmmarServerDynamic AmmCaptcha )
+target_link_libraries(habchan pthread rt m AmmarServerDynamic AmmCaptcha BasicImaging )
 set_target_properties(habchan PROPERTIES DEBUG_POSTFIX "D")
-add_dependencies(habchan AmmarServer AmmCaptcha)
+add_dependencies(habchan AmmarServer AmmCaptcha BasicImaging)
        
 
     set_target_properties(habchan PROPERTIES 

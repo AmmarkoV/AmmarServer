@@ -28,9 +28,9 @@ add_executable(supermarket
  page.c
  page.h
  )
-target_link_libraries(supermarket pthread rt m AmmarServerDynamic )
+target_link_libraries(supermarket pthread rt m AmmarServerDynamic BasicImaging )
 set_target_properties(supermarket PROPERTIES DEBUG_POSTFIX "D")
-add_dependencies(supermarket AmmarServer)
+add_dependencies(supermarket AmmarServer BasicImaging)
 
 
     set_target_properties(supermarket PROPERTIES

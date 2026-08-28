@@ -9,6 +9,7 @@
 #include <string.h>
 #include <jpeglib.h>
 #include <stdlib.h>
+#include <setjmp.h> //jpegErrorGuard below : libjpeg's canonical error-recovery pattern for memory destinations
 #include "codecs.h"
 
 
@@ -32,13 +33,38 @@
 /* setup the buffer but we did that in the main function */
 void init_buffer(struct jpeg_compress_struct* cinfo) { return ; }
 
-/* what to do when the buffer is full; this should almost never
- * happen since we allocated our buffer to be big to start with
+/* what to do when the buffer is full : tell libjpeg we could NOT make room ( return FALSE )
+ * so it raises JERR_CANT_SUSPEND through the error handler instead of silently writing past
+ * the end of the caller's buffer. Returning TRUE here was a bug : it signalled "the buffer was
+ * emptied , keep writing" while the pointers were never advanced , so a too-small target buffer
+ * made libjpeg keep writing past it. The setjmp guard in WriteJPEGInternal turns that error
+ * into a clean return 0 for the memory path.
  */
-int empty_buffer(struct jpeg_compress_struct* cinfo) { return 1; }
+int empty_buffer(struct jpeg_compress_struct* cinfo) { return 0; }
 
 /* finalize the buffer and do any cleanup stuff */
 void term_buffer(struct jpeg_compress_struct* cinfo) { return ; }
+
+
+/* Canonical libjpeg error-recovery guard , from libjpeg's own example.c : libjpeg's error_exit
+ * contract forbids returning ( the default handler would exit() the whole process ) , so the
+ * documented way to survive an encode error is to longjmp out to a setjmp placed around the
+ * encode. Only the caller-buffer ( memory ) destination of WriteJPEGInternal installs this ;
+ * the file path keeps jpeg_std_error / jpeg_stdio_dest untouched.
+ */
+struct jpegErrorGuard
+{
+  struct jpeg_error_mgr pub;  /* public fields ( output_message etc. ) */
+  jmp_buf jump;               /* setjmp/longjmp state , per-call stack data -> thread-safe */
+};
+
+static void jpegGuardErrorExit(j_common_ptr cinfo)
+{
+  /* cinfo->err points at the pub member of our guard struct */
+  struct jpegErrorGuard * guard = (struct jpegErrorGuard *) cinfo->err;
+  (*cinfo->err->output_message)(cinfo); //let the standard handler say what went wrong
+  longjmp(guard->jump,1);
+}
 
 
 
@@ -302,7 +328,10 @@ int WriteJPEGInternal(const char *filename,struct Image * pic,char *mem,unsigned
 {
     //debug where things get loaded using next line..
     //fprintf(stderr,"WriteJPEG(%s,%p,%p,%p); called \n",filename,pic,mem,mem_size);
-    if (filename==0)    { return 0; }
+    //Reject only when BOTH modes are unusable : memory mode ( mem/mem_size set ) never touches
+    //filename , and file mode never passes a null filename. The old filename==0 guard made this
+    //function's own WriteJPEGMemory() wrapper a dead path.
+    if ( (filename==0) && ((mem==0) || (mem_size==0)) ) { return 0; }
     if (pic==0)         { fprintf(stderr,"WriteJPEG called with an incorrect image structure \n "); return 0; }
 	if (pic->pixels==0) { fprintf(stderr,"WriteJPEG called with a problematic raw image..\n ");     return 0; }
 	if ( (pic->channels!=1) && (pic->channels!=3) )
@@ -315,19 +344,39 @@ int WriteJPEGInternal(const char *filename,struct Image * pic,char *mem,unsigned
 	unsigned char * raw_image = (unsigned char * ) pic->pixels;
 	struct jpeg_compress_struct cinfo ={0}; // memset(&cinfo,0,sizeof(struct jpeg_compress_struct));;
 	struct jpeg_error_mgr jerr={0};         // memset(&jerr,0,sizeof(struct jpeg_error_mgr));;
+    struct jpegErrorGuard memguard={0};     // setjmp error guard , only used by the memory destination branch
     struct jpeg_destination_mgr dmgr={0};   // memset(&dmgr,0,sizeof(struct jpeg_destination_mgr));;
     unsigned long initial_mem_size = 0;     //*mem_size; can crash with a zero mem_size because it tries for the value of a zero pointer..
+    int memoryDestination = ( (mem!=0) && (mem_size!=0) );
 
     FILE *outfile =0;
 
 	/* this is a pointer to one row of image data */
 	JSAMPROW row_pointer[1]={0};
 
-	cinfo.err = jpeg_std_error( &jerr );
-	jpeg_create_compress(&cinfo);
+	if (memoryDestination)
+	{
+	  //Memory destination : libjpeg's default error handler would exit() the whole process on an
+	  //encode error ( e.g. the caller's buffer being too small for the image ) , so install the
+	  //canonical setjmp guard from libjpeg's own example.c before creating the compressor. The
+	  //file branch below keeps jpeg_std_error / jpeg_stdio_dest untouched.
+	  cinfo.err = jpeg_std_error( &memguard.pub );
+	  memguard.pub.error_exit = jpegGuardErrorExit;
+	  if ( setjmp(memguard.jump) )
+	  {
+	    //Recoverable libjpeg error ( too-small target buffer is the expected one ) : clean up and fail
+	    jpeg_destroy_compress(&cinfo);
+	    return 0;
+	  }
+	  jpeg_create_compress(&cinfo);
+	} else
+	{
+	  cinfo.err = jpeg_std_error( &jerr );
+	  jpeg_create_compress(&cinfo);
+	}
 
 	/* Setting the parameters of the output file here */
-    if ( (mem!=0) && (mem_size!=0) )
+    if (memoryDestination)
 	 {
 	   //We want destination to be our buffer..!
        dmgr.init_destination    = init_buffer;

@@ -10,31 +10,18 @@
 #define DISPLAY_DEBUG_INFO 0
 
 
-struct Image * createImageUsingExistingBuffer( unsigned int width , unsigned int height , unsigned int channels , unsigned int bitsPerPixel , unsigned char * pixels)
-{
-  struct Image * img = 0;
-  img = (struct Image *) malloc( sizeof(struct Image) );
-  if (img == 0 ) { fprintf(stderr,"Could not allocate a new image %ux%u %u channels %u bitsperpixel\n",width,height,channels,bitsPerPixel); return 0; }
-  memset(img,0,sizeof(struct Image));
-
-  img->width  = width;
-  img->height = height;
-  img->depth  = channels * (bitsPerPixel/8);
-
-  img->pixels = pixels;
-  return  img;
-}
-
-
-
-struct Image * createImage(unsigned int width,unsigned int height,unsigned int depth)
+struct Image * AmmCaptcha_createImage(unsigned int width,unsigned int height,unsigned int depth)
 {
   struct Image * img = (struct Image *) malloc(sizeof(struct Image));
   if (img != 0)
   {
       img->width=width;
       img->height=height;
-      img->depth=depth;
+      //The depth parameter historically held bytes per pixel ( always called with the channel count ) ;
+      //the unified struct Image stores channels and bitsperpixel separately.
+      img->channels=depth;
+      img->bitsperpixel=depth*8;
+      img->image_size=width*height*depth;
 
       img->pixels = (unsigned char *) malloc(sizeof(char) * width * height * depth );
       if (img->pixels!=0)
@@ -47,24 +34,7 @@ struct Image * createImage(unsigned int width,unsigned int height,unsigned int d
 
 
 
-struct Image * copyImage(struct Image * source)
-{
-  struct Image * img = (struct Image *) malloc(sizeof(struct Image));
-  if (img != 0)
-  {
-      memcpy(img , source , sizeof (struct Image));
-      img->pixels = (unsigned char *) malloc(sizeof(char) * source->width * source->height * source->depth );
-      if (img->pixels!=0)
-      {
-          memcpy(img->pixels,source->pixels,sizeof(char) * source->width * source->height * source->depth );
-      }
-  }
-  return img;
-}
-
-
-
-int destroyImage(struct Image * source)
+int AmmCaptcha_destroyImage(struct Image * source)
 {
   if (source==0 ) { return 0; }
   if (source->pixels!=0) { free(source->pixels); source->pixels=0; }
@@ -161,7 +131,7 @@ int bitBltImageRotated(struct Image * target , unsigned int targetCenterX,unsign
 
 
 
-int ReadPPM(struct Image * pic,char * filename,char read_only_header)
+int AmmCaptcha_readPPM(struct Image * pic,char * filename,char read_only_header)
 {
     FILE *pf=0;
     pf = fopen(filename,"rb");
@@ -188,13 +158,14 @@ int ReadPPM(struct Image * pic,char * filename,char read_only_header)
 
         pic->width=w;
         pic->height=h;
-        pic->depth=3;
+        pic->channels=3;
+        pic->bitsperpixel=24;
 
         if (read_only_header) { fclose(pf); return 1; }
 
       #if READ_CREATES_A_NEW_PIXEL_BUFFER
 	    pic->pixels = (unsigned char * ) malloc(pic->height * pic->width * 3 * sizeof(char));
-	    pic->imageSize = pic->height * pic->width * 3 * sizeof(char);
+	    pic->image_size = pic->height * pic->width * 3 * sizeof(char);
 	  #endif
 
 
@@ -213,7 +184,7 @@ int ReadPPM(struct Image * pic,char * filename,char read_only_header)
   return 0;
 }
 
-int WritePPM(struct Image * pic,char * filename)
+int AmmCaptcha_writePPM(struct Image * pic,char * filename)
 {
 
     FILE *fd=0;

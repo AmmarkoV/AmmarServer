@@ -4,7 +4,6 @@
 #include <time.h>
 #include "imaging.h"
 #include "img_warp.h"
-#include "jpgInput.h"
 
 //Difficulty For Crackers ++ , DDOS Problems ++
 #define RANDOMIZE_AFTER_FAILED_ATTEMPT 1
@@ -71,7 +70,7 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
 {
   int success=0;
   //fprintf(stderr,"AmmCaptcha_getCaptchaFrame.. ");
-  struct Image * captcha = createImage(300,70,3);
+  struct Image * captcha = AmmCaptcha_createImage(300,70,3);
   //fprintf(stderr," RenderString");
   if ( RenderString(captcha,&fontRAW, 0 + rand()%200 ,  rand()%40, hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID))) )
   {
@@ -81,15 +80,19 @@ int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long *
 
    //fprintf(stderr,"Writing to JPEG");
    //WriteJPEGFile(captcha,"captcha.jpg");
-   WriteJPEGMemory(captcha,mem,mem_size);
+   unsigned long written=*mem_size;
+   if ( BasicImaging_SaveJPEGToMemory(captcha,(unsigned char*) mem,*mem_size,&written,90) )
+   {
+     *mem_size=written;
+     success=1;
+   }
    //fprintf(stderr,"Survived WriteJPEG");
-   success=1;
   } else
   {
    fprintf(stderr,"Could not render string..\n");
   }
 
- destroyImage(captcha);
+ AmmCaptcha_destroyImage(captcha);
  //fprintf(stderr,"Survived destroyImage");
  return success;
 }
@@ -111,20 +114,25 @@ int AmmCaptcha_getJPEGFileFromPixels(char * pixels , unsigned int width , unsign
 
   //struct Image * outputJPEGFile = createImage(width,height,channels);
   //memcpy(outputJPEGFile->pixels,pixels,width*height*channels);
-  //Zero Copy..!
+  //Zero Copy..! A stack struct borrowing the caller's pixels - nothing is allocated or freed here
   fprintf(stderr,"Zero Copy conversion to JPEG\n");
-  struct Image * outputJPEGFile = createImageUsingExistingBuffer(width,height,channels,8,(unsigned char*) pixels);
+  struct Image outputJPEGFile;
+  memset(&outputJPEGFile,0,sizeof(struct Image));
+  outputJPEGFile.pixels       = (unsigned char*) pixels;
+  outputJPEGFile.width        = width;
+  outputJPEGFile.height       = height;
+  outputJPEGFile.channels     = channels;
+  outputJPEGFile.bitsperpixel = channels*8;
+  outputJPEGFile.image_size   = width*height*channels;
 
-  if (outputJPEGFile!=0)
+  unsigned long written=*mem_size;
+  if ( BasicImaging_SaveJPEGToMemory(&outputJPEGFile,(unsigned char*) mem,*mem_size,&written,90) )
   {
+   *mem_size=written;
    //WritePPM(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.pnm");
    //WriteJPEGFile(outputJPEGFile,"AmmCaptcha_getJPEGFileFromPixels.jpg");
-   WriteJPEGMemory(outputJPEGFile,mem,mem_size);
 
    fprintf(stderr,"Survived WriteJPEG");
-   free(outputJPEGFile);
-
-   fprintf(stderr,"Survived destroyImage");
 
   return 1;
   }
@@ -181,8 +189,8 @@ int AmmCaptcha_loadDictionary(char * dictFilename)
 int AmmCaptcha_initialize(char * font,char * dictFilename)
 {
   int retres=0;
-  if (font==0) { retres=ReadPPM(&fontRAW,"font.ppm",0); } else
-               { retres=ReadPPM(&fontRAW,font,0); }
+  if (font==0) { retres=AmmCaptcha_readPPM(&fontRAW,"font.ppm",0); } else
+               { retres=AmmCaptcha_readPPM(&fontRAW,font,0); }
   if (!retres) { fprintf(stderr,"Could not read font for captcha system\n"); return 0; }
 
   srand (time(NULL));
@@ -205,13 +213,13 @@ int testAmmCaptcha()
 {
     AmmCaptcha_initialize("font.ppm","ourDictionaryCaptcha.txt");
 
-    struct Image * captcha = createImage(300,70,3);
+    struct Image * captcha = AmmCaptcha_createImage(300,70,3);
 
     RenderString(captcha,&fontRAW, 0 ,  20, "AmmarServer FTW");
-    WritePPM(captcha,"captcha.ppm");
+    AmmCaptcha_writePPM(captcha,"captcha.ppm");
 
     coolPHPWave(captcha, 11,12,5,14);
-    WriteJPEGFile(captcha,"captcha.jpg");
+    BasicImaging_SaveJPEG(captcha,"captcha.jpg",75);
 
    /*
     RenderString(captcha,&fontRAW, 0 ,  30, "abcdefghijklmnopqrstuvwxyz");

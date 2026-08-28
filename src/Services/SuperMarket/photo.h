@@ -3,7 +3,8 @@
 
 #include "state.h"
 
-//POST a=img : resize+reencode an uploaded photo via ImageMagick , mirrors go.php's convert pipeline exactly
+//POST a=img : sniff the upload's magic bytes ( jpg/png only ) and resize+reencode it via BasicImaging ,
+//mirroring go.php's convert pipeline ( shrink-only to 1000px , quality 82 , EXIF auto-orient )
 //Writes the resulting cart JSON ( with an "error" field on failure ) straight into rqst->content
 void * photoUpload_callback(struct AmmServer_DynamicRequest * rqst,const char * token);
 

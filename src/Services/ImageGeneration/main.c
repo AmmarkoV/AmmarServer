@@ -25,6 +25,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <sys/stat.h>
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../BasicImaging/basicImaging.h"
 
 int DEFAULT_BINDING_PORT = 8080;  // <--- Change this to 80 if you want to bind to the default http port..!
 #define DYNAMIC_PAGES_MEMORY_COMMITED 4096
@@ -163,11 +164,23 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
 
 
    char fullCommand[MAX_QUERY_SIZE+1024]={0};
+   int i=0;
 
-   snprintf(fullCommand,MAX_QUERY_SIZE+1024,"convert \"%s\" -resize 512x512^ -gravity Center -extent 512x512 /home/user/workspace/upimage.jpg",finalPath);
-   int i=system(fullCommand);
-   fprintf(stderr,"Executed : %s \n",fullCommand);
-   fprintf(stderr,"Response : %u \n",i);
+   //Turn the upload into the 512x512 center-crop-fill the downstream img2img script expects
+   //( ImageMagick's "-resize 512x512^ -gravity Center -extent 512x512" , default quality 92 ) -
+   //no more shelling out to ImageMagick `convert`. On failure we just log and continue exactly
+   //as today : the downstream script still runs.
+   struct Image * img = BasicImaging_Load(finalPath);
+   struct Image * cover = (img!=0) ? BasicImaging_CoverResize(img,512,512) : 0;
+   BasicImaging_Free(&img);
+   if (cover!=0)
+   {
+     BasicImaging_SaveJPEG(cover,"/home/user/workspace/upimage.jpg",92);
+     BasicImaging_Free(&cover);
+   } else
+   {
+     fprintf(stderr,"Failed to resize uploaded image %s to 512x512\n",finalPath);
+   }
 
 
    unsigned int query3Size=0;

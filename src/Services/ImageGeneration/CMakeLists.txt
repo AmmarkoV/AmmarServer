@@ -17,10 +17,10 @@ ENDIF(DO_TEST_COVERAGE)
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(imagegeneration main.c ) 
-target_link_libraries(imagegeneration pthread rt AmmarServerDynamic )
+add_executable(imagegeneration main.c )
+target_link_libraries(imagegeneration pthread rt AmmarServerDynamic BasicImaging )
 #set_target_properties(imagegeneration PROPERTIES DEBUG_POSTFIX "D")
-add_dependencies(imagegeneration AmmarServer)  
+add_dependencies(imagegeneration AmmarServer BasicImaging)
        
 
     set_target_properties(imagegeneration PROPERTIES 

@@ -63,6 +63,9 @@ void * serve_captcha_page(struct AmmServer_DynamicRequest * rqst)
   _GETcpy(rqst,"id",captchaIDStr,sizeof(captchaIDStr));
   unsigned int captchaID = (unsigned int) atoi(captchaIDStr);
 
+  //The encoder needs the REAL capacity of rqst->content : the server hands the callback a contentSize
+  //of 0 ( capacity lives in MAXcontentSize ) , and BasicImaging's strict memory API rightly rejects 0.
+  rqst->contentSize=rqst->MAXcontentSize;
   AmmCaptcha_getCaptchaFrame(captchaID,rqst->content,&rqst->contentSize);
   return 0;
 }

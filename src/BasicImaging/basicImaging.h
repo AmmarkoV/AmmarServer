@@ -48,6 +48,8 @@ int BasicImaging_HasPZP();
 *        extension/header sniffing ) into a freshly allocated struct Image
 * @param Path to the image file to load
 * @retval A newly allocated struct Image the caller owns and must release with BasicImaging_Free() , or 0 on failure ( missing file , unsupported/undetectable format , decode error , disabled codec )
+* @note JPEGs are auto-oriented per their EXIF Orientation tag ( if present ) : the returned pixels
+*       are always upright. The re-encoded output of the Save calls carries no EXIF metadata.
 */
 struct Image * BasicImaging_Load(const char * filename);
 
@@ -72,6 +74,20 @@ void BasicImaging_Free(struct Image ** img);
 * @retval 1=Success,0=Failure ( bad arguments , codec unavailable , write error - never crashes )
 */
 int BasicImaging_SaveJPEG(struct Image * img,const char * filename,int quality);
+
+/**
+* @brief Encode an image as JPEG into a caller-provided buffer ( no file is touched , no extra copy is
+*        made - the bytes land directly in your buffer , e.g. an rqst->content chunk ). Safe no-op
+*        ( returns 0 ) if this build has no JPEG support - see BasicImaging_HasJPEG()
+* @param Image to encode , Target buffer to write into , Its size in bytes , Out : how many bytes were
+*        actually written , JPEG quality 1-100 ( clamped into range )
+* @retval 1=Success,0=Failure ( bad arguments , codec unavailable , or the encoded JPEG would not fit in
+*        targetMaxSize - in that case the buffer may contain a partial prefix of the JPEG so treat it
+*        as unusable ). Never overflows the buffer , never crashes.
+*/
+int BasicImaging_SaveJPEGToMemory(struct Image * img,unsigned char * target,
+                                  unsigned long targetMaxSize,unsigned long * bytesWritten,
+                                  unsigned int quality);
 
 /**
 * @brief Save an image as PNG ( lossless ). Safe no-op ( returns 0 ) if this build has no PNG support - see BasicImaging_HasPNG()
@@ -110,6 +126,15 @@ struct Image * BasicImaging_Resize(const struct Image * img,unsigned int newWidt
 * @retval A newly allocated struct Image the caller owns and must release with BasicImaging_Free() , or 0 on failure ( bad arguments / out of memory )
 */
 struct Image * BasicImaging_Thumbnail(const struct Image * img,unsigned int maxDimension);
+
+/**
+* @brief Center-crop-fill an image to exactly newWidth x newHeight ( the CSS "cover" fit ) : scale
+*        uniformly so the image COVERS the target box ( upscaling too when the source is smaller ) ,
+*        then crop the overflowing edges symmetrically. Never distorts. Does not modify the input.
+* @param Source image ( left untouched ) , target width in pixels , target height in pixels
+* @retval A newly allocated struct Image the caller owns and must release with BasicImaging_Free() , or 0 on failure ( bad arguments / out of memory )
+*/
+struct Image * BasicImaging_CoverResize(const struct Image * img,unsigned int newWidth,unsigned int newHeight);
 
 
 /**

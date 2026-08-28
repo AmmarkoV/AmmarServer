@@ -11,6 +11,7 @@
 #include "../../AmmServerlib/AmmServerlib.h"
 #include "../../Hashmap/hashmap.h"
 #include "../../InputParser/InputParser_C.h"
+#include "../../BasicImaging/basicImaging.h"
 
 
 #include "state.h"
@@ -188,17 +189,14 @@ void deriveThumbnailName( const char * cachedImageName , char * outThumbName , u
 }
 
 
-//Best effort thumbnail generation via ImageMagick's `convert` , which is not a hard dependency : if it is not
-//installed or fails for any reason , rendering simply falls back to serving the full sized image instead.
+//Best effort thumbnail generation ( no more shelling out to ImageMagick `convert` ) . The old
+//best-effort contract is preserved : on ANY failure - unreadable source , undecodable format ( GIFs
+//have no codec here ) , out of memory - BasicImaging_ThumbnailFile() falls back to copying the
+//source verbatim to thumbPath , so thread.c always has a usable thumb_* to serve ( for GIFs that
+//means the full-size file , accepted ). Returns 1 = a real resized thumbnail , 0 = verbatim copy.
 static int generateThumbnail(const char * sourcePath , const char * thumbPath)
 {
-  char command[MAX_STRING_SIZE*4]={0};
-  snprintf(command,sizeof(command),"convert '%s' -resize 200x200 '%s' >/dev/null 2>&1",sourcePath,thumbPath);
-
-  char scratch[16]={0};
-  AmmServer_ExecuteCommandLine(command,scratch,sizeof(scratch));
-
-  return AmmServer_FileExists(thumbPath);
+  return BasicImaging_ThumbnailFile(sourcePath,thumbPath,200,82);
 }
 
 
