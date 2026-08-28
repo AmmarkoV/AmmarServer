@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "basicImaging.h"
+#include "resize_internal.h"
 
 static unsigned int failures=0;
 
@@ -179,12 +181,93 @@ static void testThumbnailFileFallback()
 }
 
 
+static struct Image * makeNoisy(unsigned int w,unsigned int h,unsigned int channels,unsigned int seed)
+{
+  struct Image * img = BasicImaging_New(w,h,channels);
+  if (img==0) { return 0; }
+  srand(seed);
+  size_t i,n=(size_t)w*h*channels;
+  for (i=0;i<n;i++) { img->pixels[i]=(unsigned char)(rand()&0xFF); }
+  return img;
+}
+
+//The SSE2/AVX2 resize paths must be BYTE-IDENTICAL to the scalar reference , not just "close" - the
+//fixed-point math is fully deterministic, so any discrepancy here means one of the SIMD kernels has an
+//actual bug (wrong lane order, missing tail pixels, an off-by-one in the gather/scatter indices, ...).
+static void testSIMDPathsAgreeWithScalar()
+{
+  const enum BasicImaging_ResizePath candidatePaths[] = { BASICIMAGING_RESIZE_SSE2, BASICIMAGING_RESIZE_AVX2 };
+  const unsigned int channelsToTry[] = {1,2,3,4};
+  //Sizes deliberately NOT multiples of 8/16 , so every path's batch-tail handling gets exercised too.
+  const unsigned int sizesToTry[][2] = { {1,1},{3,5},{7,7},{15,9},{17,31},{64,64},{100,37},{257,129} };
+
+  unsigned int pi,ci,si;
+  for (pi=0; pi<sizeof(candidatePaths)/sizeof(candidatePaths[0]); pi++)
+  {
+    enum BasicImaging_ResizePath want = candidatePaths[pi];
+    BasicImaging_Resize_ForcePath(want);
+    enum BasicImaging_ResizePath got = BasicImaging_Resize_ActivePath();
+    if (got!=want)
+    {
+      fprintf(stderr,"SKIP: %s not available on this CPU/build , cannot compare it against scalar\n",BasicImaging_Resize_PathName(want));
+      continue;
+    }
+
+    for (ci=0; ci<sizeof(channelsToTry)/sizeof(channelsToTry[0]); ci++)
+    {
+      unsigned int channels=channelsToTry[ci];
+      for (si=0; si<sizeof(sizesToTry)/sizeof(sizesToTry[0]); si++)
+      {
+        unsigned int srcW=sizesToTry[si][0], srcH=sizesToTry[si][1];
+        unsigned int dstW=sizesToTry[(si+1)%(sizeof(sizesToTry)/sizeof(sizesToTry[0]))][0];
+        unsigned int dstH=sizesToTry[(si+1)%(sizeof(sizesToTry)/sizeof(sizesToTry[0]))][1];
+
+        struct Image * src = makeNoisy(srcW,srcH,channels,srcW*1000u+srcH*10u+channels);
+        if (src==0) { CHECK(0,"makeNoisy allocation"); continue; }
+
+        BasicImaging_Resize_ForcePath(BASICIMAGING_RESIZE_SCALAR);
+        struct Image * refOut = BasicImaging_Resize(src,dstW,dstH);
+
+        BasicImaging_Resize_ForcePath(want);
+        struct Image * simdOut = BasicImaging_Resize(src,dstW,dstH);
+
+        char label[160];
+        snprintf(label,sizeof(label),"%s == scalar for %ux%ux%uch -> %ux%u",
+                 BasicImaging_Resize_PathName(want),srcW,srcH,channels,dstW,dstH);
+
+        int same = (refOut!=0) && (simdOut!=0)
+                 && (refOut->width==simdOut->width) && (refOut->height==simdOut->height)
+                 && (memcmp(refOut->pixels,simdOut->pixels,(size_t)dstW*dstH*channels)==0);
+        CHECK(same,label);
+
+        BasicImaging_Free(&refOut);
+        BasicImaging_Free(&simdOut);
+        BasicImaging_Free(&src);
+      }
+    }
+  }
+
+  BasicImaging_Resize_ForcePath(BASICIMAGING_RESIZE_AUTO); //leave dispatch as every real caller gets it
+}
+
+
+static void testResizeTimingSanity()
+{
+  //Not a hard perf assertion ( CI machines vary too much ) , just prints what's actually available on
+  //this CPU/build so a human glancing at test output can see whether SIMD is even in play here.
+  BasicImaging_Resize_ForcePath(BASICIMAGING_RESIZE_AUTO);
+  fprintf(stderr,"Active resize path on this machine: %s\n",BasicImaging_Resize_PathName(BasicImaging_Resize_ActivePath()));
+}
+
+
 int main()
 {
   testResizeBasics();
   testBadInputsNeverCrash();
   testCodecRoundTrip();
   testThumbnailFileFallback();
+  testSIMDPathsAgreeWithScalar();
+  testResizeTimingSanity();
 
   if (failures==0)
   {

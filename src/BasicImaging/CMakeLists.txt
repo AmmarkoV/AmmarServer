@@ -31,6 +31,7 @@ set(BASICIMAGING_SOURCES
     basicImaging.c
     basicImaging.h
     resize.c
+    resize_internal.h
     codecs/codecs.c
     codecs/codecs.h
     codecs/image.h
@@ -105,6 +106,17 @@ target_link_libraries(testbasicimaging pthread rt m BasicImaging)
 set_target_properties(testbasicimaging PROPERTIES DEBUG_POSTFIX "D")
 
     set_target_properties(testbasicimaging PROPERTIES
+                          DEBUG_POSTFIX "D"
+                          ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                         )
+
+add_executable(benchmarkresize benchmarkResize.c)
+target_link_libraries(benchmarkresize pthread rt m BasicImaging)
+set_target_properties(benchmarkresize PROPERTIES DEBUG_POSTFIX "D")
+
+    set_target_properties(benchmarkresize PROPERTIES
                           DEBUG_POSTFIX "D"
                           ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                           LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
