@@ -901,11 +901,60 @@ int _GETcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char 
 int _GETcpy  (struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize);
 ///-------------------------------------------------------------------------------
 /**
-* @brief Shorthand/Shortcut for AmmServer_CookieArg()
-* @ingroup shortcut */
+* @brief The client can use this call to see how many COOKIE items were submitted in an HTTP Request
+* @ingroup COOKIE
+* @param The Dynamic Request we want to examine
+* @retval Number of COOKIE items,0=Failure/No Items */
+int _COOKIEnum(struct AmmServer_DynamicRequest * rqst);
+
+/**
+* @brief The client can use this call to retrieve a string value of a specific COOKIE item by submitting its name
+  Unlike _GET()/_POST() , the pointer returned here is NOT guaranteed to be null terminated : it points
+  straight into the shared incoming header buffer and , for the last cookie on the Cookie header line ,
+  there is no NUL within it to find (only the header's own CRLF sits right after it, and writing one in
+  would corrupt header parsing) , so always use the returned length rather than assuming a C string.
+  _COOKIEcpy() / _COOKIEcmp() already do this correctly if you just need a copy or a comparison.
+* @ingroup COOKIE
+* @param The Dynamic Request we want to examine
+* @param The name of the COOKIE field we want to receive a string for
+* @param Output size of the COOKIE field we selected using our name
+* @retval Pointer to our requested value, 0=Failure*/
 const char * _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength);
 
-int _COOKIEnum(struct AmmServer_DynamicRequest * rqst);
+/**
+* @brief The client can use this call to retrieve the numeric value ( internally delivered using atoi ) of a specific COOKIE item by submitting its name
+* @ingroup COOKIE
+* @param The Dynamic Request we want to examine
+* @param The name of the COOKIE field we want to receive a number for
+* @retval Integer value of the COOKIE item with a given name , 0=Failure*/
+unsigned int _COOKIEuint(struct AmmServer_DynamicRequest * rqst,const char * name);
+
+/**
+* @brief Quickly check if a COOKIE field has been submitted or not in a request
+* @ingroup COOKIE
+* @param The Dynamic Request we want to examine
+* @param The Name of the COOKIE item we are checking
+* @retval 1=Exists , 0=Does not exist*/
+int _COOKIEexists(struct AmmServer_DynamicRequest * rqst,const char * name);
+
+/**
+* @brief Shortcut to compare a COOKIE field to a value ( internally using strcmp(COOKIEValue,ourValue) )
+* @ingroup COOKIE
+* @param The Dynamic Request we want to examine
+* @param The Name of the COOKIE item we are checking
+* @param The Value that we want to strcmp with our value
+* @retval See strcmp*/
+int _COOKIEcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo);
+
+/**
+* @brief Copy a COOKIE field value to a given buffer
+* @ingroup COOKIE
+* @param The Dynamic Request we want to examine
+* @param The Name of the COOKIE item we want to copy checking
+* @param The Destination pointer of where we want to copy to
+* @param The Destination pointer maximum accommodation size
+* @retval 1=Success , 0=Failure*/
+int _COOKIEcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize);
 ///-------------------------------------------------------------------------------
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()

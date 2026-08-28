@@ -716,14 +716,58 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
 /// -----------------------------------------------------------------------------------------------------------------------
 
 /// --------------------------------------------------------- COOKIE ---------------------------------------------------------
+int _COOKIEnum(struct AmmServer_DynamicRequest * rqst)
+{
+ return getNumberOfCOOKIEItems(rqst);
+}
+
 const char * _COOKIE(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength)
 {
    return getPointerToCOOKIEItemValue(rqst,name,valueLength);
 }
 
-int _COOKIEnum(struct AmmServer_DynamicRequest * rqst)
+unsigned int _COOKIEuint(struct AmmServer_DynamicRequest * rqst,const char * name)
 {
- return getNumberOfCOOKIEItems(rqst);
+  unsigned int valueLength = 0;
+  const char * value = _COOKIE(rqst,name,&valueLength);
+  if (value!=0)
+   { return atoi(value); }
+  return 0;
+}
+
+int _COOKIEexists(struct AmmServer_DynamicRequest * rqst,const char * name)
+{
+  unsigned int valueLength=0;
+  return (_COOKIE(rqst,name,&valueLength) != 0 );
+}
+
+int _COOKIEcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const char * what2CompareTo)
+{
+  unsigned int valueLength=0;
+  const char * value = _COOKIE(rqst,name,&valueLength);
+  if ( (value==0) || (valueLength==0) ) { return -1; }
+  if (what2CompareTo==0)                { return 1; }
+
+  //Bounded on purpose , not strcmp() : the last cookie on a header line is never NUL-terminated in
+  //place ( see the comment on finalizeGenericCookieField() ) , so `value` can't be trusted as a plain
+  //C string here.
+  unsigned int compareLength = strlen(what2CompareTo);
+  if (compareLength != valueLength) { return (valueLength<compareLength) ? -1 : 1; }
+  return memcmp(value,what2CompareTo,valueLength);
+}
+
+int _COOKIEcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
+{
+  unsigned int valueLength=0;
+  const char * value = _COOKIE(rqst,name,&valueLength);
+  if ( (value==0) || (destination==0) )    { return 0; }
+  if (valueLength+1>destinationSize)        { return 0; }
+
+  //Bounded copy on purpose , not _GENERIC_cpy()/"%s" : same reason as _COOKIEcmp() above , `value` isn't
+  //guaranteed to be NUL-terminated for the last cookie on a header line.
+  memcpy(destination,value,valueLength);
+  destination[valueLength]=0;
+  return 1;
 }
 /// -----------------------------------------------------------------------------------------------------------------------
 

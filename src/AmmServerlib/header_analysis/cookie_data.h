@@ -1,7 +1,6 @@
 /** @file cookie_data.h
-* @brief Functions to facilitate GET Cookie data parsing
+* @brief Functions to facilitate HTTP Cookie header parsing
 * @author Ammar Qammaz (AmmarkoV)
-* @bug GET header analysis is not fully implemented yet
 */
 
 #ifndef COOKIEDATA_H_INCLUDED
