@@ -55,17 +55,17 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
   struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
   if ( clientOverride->request_override_callback == 0 ) { return 0; }
 
-  clientOverride->request = output;
+  //clientOverride is a single struct shared by every serving thread ( populated once at registration time in
+  //AmmServer_AddRequestHandler ). Writing the per-call ->request field on it directly would race across threads,
+  //so we hand the callback a thread-local copy instead of mutating the shared instance.
+  struct AmmServer_RequestOverride_Context local_context = *clientOverride;
+  local_context.request = output;
 
   fprintf(stderr,"doing callClientRequestHandler \n");
   void ( *DoCallback) ( struct AmmServer_RequestOverride_Context * ) = 0 ;
   DoCallback = clientOverride->request_override_callback;
 
-  DoCallback(clientOverride);
-
-  //After getting back the override and whatnot , keep the client from using a potentially bad
-  //memory chunk
-  clientOverride->request = 0;
+  DoCallback(&local_context);
 
   return 1;
 }
