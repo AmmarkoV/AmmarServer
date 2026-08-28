@@ -3,7 +3,7 @@
 
 
 int serialport_init(const char* serialport, int baud);
-int serialport_flush(int fd)
+int serialport_flush(int fd);
 int serialport_close( int fd );
 
 
