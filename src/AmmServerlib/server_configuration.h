@@ -53,9 +53,6 @@ extern "C" {
 #define CLIENT_SLEEP_TIME_INTERVAL_NSEC 5000
 
 
-/** @brief Max sleep time while waiting for new thread to kick in and read parameters to unblock main thread.. */
-#define THREAD_MAXIMUM_TIME_TO_WAIT_FOR_A_NEWLY_CREATED_THREAD_MS 250000
-
 /** @brief Sleep time while waiting for new thread to kick in and read parameters to unblock main thread.. */
 #define THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS 20
 

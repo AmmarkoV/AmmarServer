@@ -328,6 +328,10 @@ struct AmmServer_RH_Context
    unsigned int callback_every_x_msec;
    char callback_cooldown;
 
+   //Serializes callback invocation for SAME_PAGE_FOR_ALL_CLIENTS resources , whose requestContext.content buffer
+   //is shared by every concurrent request ; relies on zero-init ( ={0} ) being equivalent to PTHREAD_MUTEX_INITIALIZER
+   pthread_mutex_t content_mutex;
+
    void * dynamicRequestCallbackFunction;
 
    char web_root_path[MAX_FILE_PATH];

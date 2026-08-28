@@ -238,6 +238,11 @@ char * dynamicRequest_serveContent
      unsigned long now=0; //If there is no callback limits the time of the call will always be 0
      //That doesnt bother anything or anyone..
 
+     //SAME_PAGE_FOR_ALL_CLIENTS resources share one requestContext.content buffer ( cacheMemory above ) across every
+     //concurrent request ; serialize the whole check-then-regenerate-then-read sequence so two threads can never
+     //run the user's callback into that buffer at the same time or read it mid-write.
+     unsigned char needs_shared_lock = shared_context->needsSamePageForAllClients;
+     if (needs_shared_lock) { pthread_mutex_lock(&shared_context->content_mutex); }
 
      ///--------------------------------------------------------------------
      int requestFrequencyResult = checkRequestFrequency(
@@ -250,12 +255,14 @@ char * dynamicRequest_serveContent
      {
         case TIME_IS_TOO_SLOW_SERVE_NOTHING :
           //Request requests for a callback that is TOO slow , returning nothing back :( ..\n
+          if (needs_shared_lock) { pthread_mutex_unlock(&shared_context->content_mutex); }
           return 0;
         break;
         case TIME_IS_TOO_FAST_SERVE_CACHED  :
           *compressionSupported=0;
           shared_context->callback_cooldown=1;
           *memSize=shared_context->requestContext.contentSize;
+          if (needs_shared_lock) { pthread_mutex_unlock(&shared_context->content_mutex); }
           return cacheMemory;
         break;
         //case TIME_IS_OK_SERVE_FRESH       :
@@ -348,6 +355,8 @@ char * dynamicRequest_serveContent
                     {
                       errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY);
                     }
+
+     if (needs_shared_lock) { pthread_mutex_unlock(&shared_context->content_mutex); }
    }
  return cacheMemory;
 }

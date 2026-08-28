@@ -16,7 +16,6 @@
 #include "../tools/logs.h"
 #include "threadInitHelper.h"
 
-#define WEIRD_THING_THAT_WORKS 1
 #define MAX_TRIES_TO_FIND_A_THREAD_ID 5
 
 unsigned int FindAProperThreadID(struct AmmServer_Instance * instance,int * success)
@@ -109,20 +108,21 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //We may want to keep a client for opening too many connections or ban him early on , before going through the expense
   //of creating a seperate thread for him..
 
-  unsigned int waitCounter=0,maxWaitCounter=(unsigned int) THREAD_MAXIMUM_TIME_TO_WAIT_FOR_A_NEWLY_CREATED_THREAD_MS/THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS;
+  // Heap-allocated so the new thread's context outlives this function's stack frame -
+  // no handshake with the new thread is needed, and ServeClientAfterUnpackingThreadMessage frees it once read.
+  struct PassToHTTPThread * context = (struct PassToHTTPThread *) malloc(sizeof(struct PassToHTTPThread));
+  if (context==0) { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); return 0; }
+  memset((void*) context,0,sizeof(struct PassToHTTPThread));
 
+  context->keep_var_on_stack=1;
 
-  volatile struct PassToHTTPThread context={0};
-
-  context.keep_var_on_stack=1;
-
-  context.clientsock=clientsock;
-  context.client=client;
-  context.clientlen=clientlen;
-  context.pre_spawned_thread = 0; // THIS IS A !!!NEW!!! THREAD , NOT A PRESPAWNED ONE
-  context.is_ssl_connection = is_ssl_connection;
-  context.thread_id =threadID;
-  context.instance = instance;
+  context->clientsock=clientsock;
+  context->client=client;
+  context->clientlen=clientlen;
+  context->pre_spawned_thread = 0; // THIS IS A !!!NEW!!! THREAD , NOT A PRESPAWNED ONE
+  context->is_ssl_connection = is_ssl_connection;
+  context->thread_id =threadID;
+  context->instance = instance;
 
   //We could only pass pointers here
   //context.webserver_root=webserver_root;
@@ -131,35 +131,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
   //Less Spam
   //fprintf(stderr,"Spawning a new thread %u/%u (id=%u) to serve this client , context pointing @ %p\n",instance->CLIENT_THREADS_STARTED - instance->CLIENT_THREADS_STOPPED,MAX_CLIENT_THREADS,context.thread_id,&context);
 
-  int retres = pthread_create(&instance->threads_pool[threadID],0/*&instance->attr*/,ServeClientAfterUnpackingThreadMessage,(void*) &context);
-  //It appears that in certain high loads pthread_create stops creating new threads ..
-  //A good question is why..!
-  if ( retres==0 )
-  {
-    #if WEIRD_THING_THAT_WORKS
-       while (  (context.keep_var_on_stack==1) && (waitCounter<maxWaitCounter) )
-           {
-             /*TODO : POTENTIAL BUG HERE ? THIS WAS OPTIMIZED OUT?*/
-             fprintf(stderr,"!"); //<- Without this it crashes
-             usleep(THREAD_SLEEP_TIME_WHILE_WAITING_FOR_NEW_CREATED_THREAD_TO_CONSUME_PARAMETERS);
-             ++waitCounter;
-            }
-
-        if (waitCounter>=maxWaitCounter)
-        {
-          retres=1; //Mark this thread creation as failed
-          errorID(ASV_ERROR_TIMED_OUT_WHILE_WAITING_FOR_THREAD_TO_BE_CREATED);
-
-          if ( pthread_cancel(instance->threads_pool[threadID]) !=0 )
-          { // http://man7.org/linux/man-pages/man3/pthread_cancel.3.html
-            errorID(ASV_ERROR_FAILED_TO_CANCEL_THREAD);
-          }
-        }
-    #else
-       parentKeepMessageOnStackUntilReady(&context.keep_var_on_stack); // <- Keep PeerServerContext in stack for long enough :P
-    #endif
-   }
- else //Either code failed
+  int retres = pthread_create(&instance->threads_pool[threadID],0/*&instance->attr*/,ServeClientAfterUnpackingThreadMessage,(void*) context);
+  if ( retres!=0 ) //Either code failed
      {
        errorID(ASV_ERROR_FAILED_TO_CREATE_THREAD);
 
@@ -169,6 +142,8 @@ int SpawnThreadToServeNewClient(struct AmmServer_Instance * instance,int clients
          case EINVAL : warning("Invalid settings in attr."); break ;
          case EPERM  : warning("No permission to set the scheduling policy and parameters"); break ;
        };
+
+       free(context); //No thread was created to consume and free this
      }
 
   if (retres!=0) { retres = 0; } else { retres = 1; }

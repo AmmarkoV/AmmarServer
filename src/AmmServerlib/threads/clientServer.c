@@ -571,7 +571,7 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
   transaction.prespawnedThreadFlag=context->pre_spawned_thread;
   transaction.clientSock=context->clientsock;
   transaction.threadID = context->thread_id;
-
+  int is_ssl_connection = context->is_ssl_connection;
 
   if (!transaction.prespawnedThreadFlag)
    {
@@ -584,20 +584,15 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
          case ESRCH : warning("While trying to detach thread , No thread could be found corresponding to that specified by the given thread ID."); break;
        };
      }
+     //Only the fresh-thread path heap-allocates its context ( see SpawnThreadToServeNewClient ) - the prespawned
+     //pool reuses one persistent stack-declared context per worker thread across every client it ever serves.
+     free(context);
    }
-
-  #if DEBUG_MESSAGES
-  fprintf(stderr,"Now signaling we are ready (%u)\n",transaction.threadID);
-  #endif // DEBUG_MESSAGES
-  context->keep_var_on_stack=2; //This signals that the thread has processed the message it received..!
-  #if DEBUG_MESSAGES
-  fprintf(stderr,"Passing message to HTTP thread is done (%u)\n",transaction.threadID);
-  #endif // DEBUG_MESSAGES
 
   ASRV_StartSession(instance,&transaction);
 
   #if USE_OPENSSL
-  if (context->is_ssl_connection && instance->sslAvailable)
+  if (is_ssl_connection && instance->sslAvailable)
   {
       if (!ASRV_SSL_AcceptConnection(instance,&transaction,transaction.clientSock))
       {
