@@ -363,10 +363,29 @@ installs the apt packages needed to build; `scripts/install.sh` / `uninstall.sh`
 
 ## 11. This session's benchmarking additions (not part of AmmarServer itself)
 
-- `3dparty/nginx`, `3dparty/wrk` — reference source and a benchmarking tool, cloned/built for comparison, not
-  linked into anything.
+- `3dparty/nginx`, `3dparty/wrk` — reference source and a benchmarking tool, cloned for comparison, not linked
+  into anything. `3dparty/wrk` was already built; `3dparty/nginx` is built via `scripts/build_nginx.sh` (see
+  below) — never `make install`ed, stays self-contained under `3dparty/nginx/objs/`.
+- `scripts/build_nginx.sh` — configures (`--without-http_rewrite_module`, to sidestep the PCRE1-vs-PCRE2
+  question entirely since the benchmark config below never uses a regex `location`) and builds the vendored
+  nginx source, producing `3dparty/nginx/objs/nginx`. Idempotent (skips `./configure` if already configured;
+  `--reconfigure` forces it).
 - `scripts/benchmark_ammarserver.sh` — reusable wrk-based matrix benchmark (static + dynamic content, multiple
   concurrency levels), can start a local instance or point at any URL (`--url`), and compare two servers
-  side-by-side (`--compare-url`).
+  side-by-side (`--compare-url`, with a `--compare-label` for the printed header and `--static-only` to skip the
+  dynamic-resource half of the matrix when the comparison target has no equivalent).
+- `scripts/benchmark_vs_nginx.sh` — static-file-only AmmarServer-vs-nginx comparison, built on the two scripts
+  above: builds nginx if needed, starts a throwaway nginx instance (`daemon off`, `worker_processes auto` — one
+  worker per core, nginx's normal production setting, not artificially capped to one — own temp prefix dir under
+  `/tmp`, nothing touching any system nginx) serving the same `public_html/` webroot AmmarServer serves, then
+  delegates to `benchmark_ammarserver.sh --compare-url ... --static-only`. No dynamic-content comparison — nginx
+  has no equivalent to AmmarServer's C-callback `SAME_PAGE` resources without a separate FastCGI/PHP-FPM
+  pipeline (see `scripts/benchmark_primes.php` below for that class of comparison, done against Apache+mod_php
+  instead). Verified live end-to-end, default settings (`c=10,100,200`, `d=8s`, `public_html/logo.png`), both
+  servers cleaned up correctly afterward (no leftover processes or temp files) : AmmarServer ~125-130K req/s
+  flat across all three concurrency levels ; nginx ~140K at c=10 but ~260K at c=100/200 (multi-worker fan-out
+  kicking in on this 16-core machine — capping nginx to `worker_processes 1` for an "easier" comparison was
+  tried first and produced a misleadingly favorable ~48K req/s for nginx ; corrected to `auto` for a fair,
+  representative result before treating either number as meaningful).
 - `scripts/benchmark_primes.php` — a PHP port of the `/primes.html` C callback (Sieve of Eratosthenes), for
   comparing compiled-C vs interpreted-PHP compute performance under a real web server (Apache+mod_php).

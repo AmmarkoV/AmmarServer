@@ -12,6 +12,11 @@
 #   scripts/benchmark_ammarserver.sh --port 18099 --duration 10
 #   scripts/benchmark_ammarserver.sh --url http://127.0.0.1:8080          # benchmark an already-running server instead
 #   scripts/benchmark_ammarserver.sh --compare-url http://127.0.0.1:80    # also benchmark a second server ( e.g. Apache ) for comparison
+#   scripts/benchmark_ammarserver.sh --compare-url http://127.0.0.1:80 --static-only  # skip the dynamic resource
+#                                                                                       ( e.g. comparing against a
+#                                                                                         plain static server like
+#                                                                                         nginx with nothing dynamic
+#                                                                                         registered at that path )
 #
 # Requires wrk. If it isn't already built at 3dparty/wrk/wrk or on PATH, this script builds it there
 # ( git clone + make, same as this repo already does for reference sources under 3dparty/ ).
@@ -32,7 +37,9 @@ STATIC_RESOURCE="/logo.png"
 DYNAMIC_RESOURCE="/stats.html"
 TARGET_URL=""
 COMPARE_URL=""
+COMPARE_LABEL="Comparison target"
 SKIP_BUILD=0
+STATIC_ONLY=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -45,7 +52,9 @@ while [ $# -gt 0 ]; do
     --dynamic-resource) DYNAMIC_RESOURCE="$2"; shift 2 ;;
     --url) TARGET_URL="$2"; shift 2 ;;
     --compare-url) COMPARE_URL="$2"; shift 2 ;;
+    --compare-label) COMPARE_LABEL="$2"; shift 2 ;;
     --skip-build) SKIP_BUILD=1; shift 1 ;;
+    --static-only) STATIC_ONLY=1; shift 1 ;;
     -h|--help)
       grep '^#' "$0" | sed 's/^# \{0,1\}//'
       exit 0
@@ -106,7 +115,11 @@ run_matrix() {
   local label="$1" base_url="$2"
   echo ""
   echo "=== $label ($base_url) ==="
-  for resource_label_pair in "static:$STATIC_RESOURCE" "dynamic:$DYNAMIC_RESOURCE"; do
+  local resource_pairs="static:$STATIC_RESOURCE"
+  if [ "$STATIC_ONLY" -eq 0 ]; then
+    resource_pairs="$resource_pairs dynamic:$DYNAMIC_RESOURCE"
+  fi
+  for resource_label_pair in $resource_pairs; do
     resource_label="${resource_label_pair%%:*}"
     resource="${resource_label_pair#*:}"
     for c in $CONCURRENCY_LEVELS; do
@@ -120,7 +133,7 @@ run_matrix() {
 run_matrix "AmmarServer" "$TARGET_URL"
 
 if [ -n "$COMPARE_URL" ]; then
-  run_matrix "Comparison target" "$COMPARE_URL"
+  run_matrix "$COMPARE_LABEL" "$COMPARE_URL"
 fi
 
 echo ""
