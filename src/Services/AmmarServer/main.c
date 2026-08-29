@@ -88,6 +88,7 @@ struct AmmServer_RH_Context form={0};
 struct AmmServer_RH_Context chatbox={0};
 struct AmmServer_RH_Context fresh={0};
 struct AmmServer_RH_Context gps={0};
+struct AmmServer_RH_Context primes={0};
 struct AmmServer_RH_Context random_chars={0};
 struct AmmServer_RH_Context executeScriptRC={0};
 
@@ -310,6 +311,46 @@ void * prepare_gps_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
 
+//Synthetic non-trivial-compute benchmark : counts primes below N via a Sieve of Eratosthenes and sums them , so
+//each request does real, deterministic CPU work rather than just echoing something back. Meant to be compared
+//against an equivalent PHP script computing the exact same thing ( see scripts/benchmark_primes.php ) - the prime
+//count and sum are printed specifically so the two implementations' outputs can be diffed for correctness.
+#define BENCHMARK_PRIMES_N 100000
+void * prepare_primes_content_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  struct timespec t0,t1;
+  clock_gettime(CLOCK_MONOTONIC,&t0);
+
+  unsigned char * sieve = (unsigned char *) malloc(BENCHMARK_PRIMES_N+1);
+  if (sieve==0) { strncpy(rqst->content,"<html><body>Out of memory</body></html>",rqst->MAXcontentSize); rqst->contentSize=strlen(rqst->content); return 0; }
+  memset(sieve,1,BENCHMARK_PRIMES_N+1);
+  sieve[0]=0; sieve[1]=0;
+
+  unsigned int i,j;
+  for (i=2; (unsigned long)i*i<=BENCHMARK_PRIMES_N; i++)
+   {
+     if (sieve[i])
+      {
+        for (j=i*i; j<=BENCHMARK_PRIMES_N; j+=i) { sieve[j]=0; }
+      }
+   }
+
+  unsigned long count=0,sum=0;
+  for (i=2; i<=BENCHMARK_PRIMES_N; i++) { if (sieve[i]) { ++count; sum+=i; } }
+  free(sieve);
+
+  clock_gettime(CLOCK_MONOTONIC,&t1);
+  double elapsed_ms = (t1.tv_sec-t0.tv_sec)*1000.0 + (t1.tv_nsec-t0.tv_nsec)/1000000.0;
+
+  snprintf(rqst->content,rqst->MAXcontentSize,
+           "<html><body>N=%u primes_below_n=%lu sum_of_primes=%lu elapsed_ms=%.3f</body></html>",
+           (unsigned int) BENCHMARK_PRIMES_N,count,sum,elapsed_ms);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+
+
 //This function prepares the content of  form context , ( content )
 void * executeScriptFunction(struct AmmServer_DynamicRequest  * rqst)
 {
@@ -360,6 +401,7 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&form,"/formtest.html",4096,0,&prepare_form_content_callback,SAME_PAGE_FOR_ALL_CLIENTS);
   AmmServer_AddResourceHandler(default_server,&random_chars,"/random.html",4096,0,&prepare_random_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&gps,"/gps.html",4096,0,&prepare_gps_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&primes,"/primes.html",4096,0,&prepare_primes_content_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
 
   AmmServer_AddResourceHandler(default_server,&hello,"/hello.html",4096,5000,&helloWorld_callback,SAME_PAGE_FOR_ALL_CLIENTS);
@@ -414,6 +456,7 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&form,1);
     AmmServer_RemoveResourceHandler(default_server,&random_chars,1);
     AmmServer_RemoveResourceHandler(default_server,&gps,1);
+    AmmServer_RemoveResourceHandler(default_server,&primes,1);
     if (ENABLE_CHAT_BOX) { AmmServer_RemoveResourceHandler(default_server,&chatbox,1); }
 
     if (executeScript!=0)
