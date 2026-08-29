@@ -23,7 +23,7 @@ and open · — not yet reviewed (default/starting state).
 
 | Module | Path | Security Gaps | Bugs | Common-Module Refactor | Automated Tests | Optimized |
 |---|---|---|---|---|---|---|
-| Public API surface | `main.c` | | | | | |
+| Public API surface | `main.c` | | 🟡 2 bugs fixed (issues.md #1 `AmmServer_DynamicRequestReturnMemoryHandler`, #2 `SIGKILL` registration); rest of file not yet reviewed | | | |
 | Configuration | `server_configuration.c/h` | | | | | |
 | Accept loop + epoll accept layer | `threads/threadedServer.c` | | | | | |
 | Epoll static-content fast path | `threads/epollFastPathServer.c` | | | | | |

@@ -418,9 +418,8 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
     return 0;
   }
 
-  memset(rqst->content,rqst->contentSize,0);
   memcpy(rqst->content,content->content,content->contentSize);
-  rqst->contentSize = content->contentSize+1;
+  rqst->contentSize = content->contentSize;
   rqst->content[rqst->contentSize]=0;//Null termination..
 
   return 0;
@@ -895,11 +894,13 @@ int AmmServer_RegisterTerminationSignal(void * callback)
 {
   TerminationCallback = callback;
 
+  //Note: SIGKILL is deliberately not registered here - POSIX forbids catching, blocking, or ignoring it, so
+  //signal(SIGKILL, ...) can never succeed ; attempting it just produced a confusing "cannot handle SIGKILL"
+  //warning on every startup for something that isn't actually a runtime problem.
   unsigned int failures=0;
   if (signal(SIGINT, AmmServer_GlobalTerminationHandler)  == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGINT!\n");  ++failures; }
   if (signal(SIGHUP, AmmServer_GlobalTerminationHandler)  == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGHUP!\n");  ++failures; }
   if (signal(SIGTERM, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGTERM!\n"); ++failures; }
-  if (signal(SIGKILL, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGKILL!\n"); ++failures; }
   return (failures==0);
 }
 

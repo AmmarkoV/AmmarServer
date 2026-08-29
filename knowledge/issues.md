@@ -6,7 +6,7 @@ roughly most-actionable first. See `knowledge/ammarserver.md` for how the surrou
 
 ## 1. Correctness bugs found by direct reading
 
-**`AmmServer_DynamicRequestReturnMemoryHandler()` — two bugs in the same function** (`src/AmmServerlib/main.c`):
+**✅ FIXED** — **`AmmServer_DynamicRequestReturnMemoryHandler()` — two bugs in the same function** (`src/AmmServerlib/main.c`):
 ```c
 memset(rqst->content,rqst->contentSize,0);       // args swapped: memset(ptr, value, size) — this fills 0 bytes
 memcpy(rqst->content,content->content,content->contentSize);
@@ -22,14 +22,29 @@ rqst->content[rqst->contentSize]=0;               // writes NUL one byte past wh
    *should* hold the NUL uninitialized/garbage, and reports the content size as one byte larger than what was
    actually copied. Should be `rqst->contentSize = content->contentSize;` then `rqst->content[rqst->contentSize]=0;`.
 
-**`AmmServer_RegisterTerminationSignal()` tries to catch `SIGKILL`** (`main.c`):
+**Fix applied**: removed the dead `memset` call and corrected the off-by-one (`rqst->contentSize` now equals the
+actual copied byte count, NUL lands immediately after it). This function is **not dead code** — it's the memory-
+handler response path used by MyTube (JS/CSS/favicon), MyRemoteDesktop (background/index/simple pages),
+APushService, and ImageGeneration (index page, logo, loading images/gif, generated images), all built by
+default. The bug meant every response served through it (mostly binary image/JS/CSS content) carried one extra
+uninitialized garbage byte and reported a `Content-Length` one byte too large. Verified: `AmmServerlib`,
+`apushservice`, `imagegeneration`, and `mytube` all rebuild cleanly after the fix.
+
+**✅ FIXED** — **`AmmServer_RegisterTerminationSignal()` tried to catch `SIGKILL`** (`main.c`):
 ```c
 if (signal(SIGKILL, AmmServer_GlobalTerminationHandler) == SIG_ERR) { AmmServer_Warning("AmmarServer cannot handle SIGKILL!\n"); ++failures; }
 ```
 POSIX forbids catching, blocking, or ignoring `SIGKILL` — this call can never succeed, by design of the OS, not
-a bug in AmmarServer's environment. It always logs "AmmarServer cannot handle SIGKILL!" on every startup (this
-warning is visible in normal server logs). Harmless, but it's confusing log noise for something that isn't
-actually a runtime problem — worth just deleting the `SIGKILL` registration attempt.
+a bug in AmmarServer's environment. It always logged "AmmarServer cannot handle SIGKILL!" on every startup (this
+warning was visible in every server's normal startup log). Beyond the log noise, it also meant this function's
+return value was a lie: `failures` was incremented by the guaranteed SIGKILL failure even when SIGINT/SIGHUP/
+SIGTERM all registered fine, so `AmmServer_RegisterTerminationSignal()` always returned 0 (false) regardless of
+whether anything was actually wrong.
+
+**Fix applied**: removed the `SIGKILL` registration attempt entirely (with a comment explaining why). Verified
+no caller anywhere in the repo (`grep` across all Services + AmmServerlib) checks this function's return value,
+so fixing its return semantics is side-effect-free. Rebuilt and confirmed the "cannot handle SIGKILL" warning no
+longer appears on startup.
 
 **`getGETItemFromName()` / `getCOOKIEItemFromName()` use a prefix match, not exact match**
 (`header_analysis/get_data.c`, `cookie_data.c`): both do `strncmp(p->name, nameToLookFor, sizeOfNameToLookFor)`,
