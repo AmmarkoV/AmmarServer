@@ -485,32 +485,23 @@ void * serve_create_url_page(struct AmmServer_DynamicRequest  * rqst)
   //CSRF protection (issues.md , MyURL CSRF) : embed this session's own unpredictable token as a hidden field ,
   //validated back in serve_goto_url_page() before Add_MyURL() is allowed to run. A cross-site attacker page can
   //cause this form to be submitted , but can never read the token value baked into this response to include it.
-  //
-  //@bug Found while building this fix, NOT fixed here (out of scope - a real bug in the dynamic-request
-  //framework itself, see knowledge/issues.md "MyURL CSRF" for the full trace) : astringInjectDataToMemoryHandler()
-  //(AString.c) can realloc() this buffer if the replacement value is *longer* than the placeholder it replaces.
-  //When that happens under DIFFERENT_PAGE_FOR_EACH_CLIENT, dynamic_requests.c's dynamicRequest_serveContent()
-  //still returns/frees its own separate `cacheMemory` local variable, which is never re-synced from the
-  //( possibly now-relocated ) rqst->content the callback sees - the client ends up served stale/freed memory.
-  //Reproduced live : caused a "double free or corruption" abort the first time this fix used a 12-char
-  //placeholder ($CSRF_TOKEN$) for a ~32-char token. WORKAROUND applied here rather than fixing the framework :
-  //$CSRF_TOKEN_RESERVED_SPACE_FOR_TOKEN_VALUE$ (43 chars) is deliberately padded well past any realistic token
-  //length , so this substitution can only ever shrink the buffer - the same, already-safe path
-  //$NUMBER_OF_LINKS$ above already exercises. The length check below is an explicit fail-safe : if that
-  //invariant is ever violated ( e.g. token generation parameters change later ) , skip the substitution
-  //entirely rather than risk the realloc path.
+  //This replacement is longer than its placeholder, so it can realloc() create_url_page_mh.content - dedicated to
+  //picking that up below, since rqst and create_url_page_mh are two separate objects that don't stay in sync on
+  //their own ( see knowledge/issues.md , "MyURL CSRF" for the full trace of what happens if this is skipped ).
   char csrfToken[64]={0};
-  const char * csrfPlaceholder = "$CSRF_TOKEN_RESERVED_SPACE_FOR_TOKEN_VALUE$";
   if (AmmServer_GenerateCSRFToken(rqst,csrfToken,sizeof(csrfToken)))
    {
-     if (strlen(csrfToken)<=strlen(csrfPlaceholder))
-      {
-        AmmServer_ReplaceVariableInMemoryHandler(&create_url_page_mh,csrfPlaceholder,csrfToken);
-      } else
-      {
-        AmmServer_Error("CSRF token (%u chars) no longer fits its reserved placeholder (%u chars) - skipping substitution to avoid a known memory-safety issue in the template substitution path, see main.c",(unsigned int)strlen(csrfToken),(unsigned int)strlen(csrfPlaceholder));
-      }
+     AmmServer_ReplaceVariableInMemoryHandler(&create_url_page_mh,"$CSRF_TOKEN$",csrfToken);
    }
+
+  //create_url_page_mh.content may now point somewhere different than rqst->content did at the top of this
+  //function ( astringInjectDataToMemoryHandler()/AString.c reallocs on a grow, e.g. the CSRF token above ) -
+  //sync rqst back to match before anything reads rqst->content ( including the framework itself, right after
+  //this callback returns - dynamic_requests.c only re-syncs *its* bookkeeping from rqst->content, it has no way
+  //to know about this function's own local create_url_page_mh ). Matches the pattern
+  //AmmServer_ReplaceAllVarsInDynamicRequest() (main.c) already uses for its own, differently-shaped call site.
+  rqst->content       = create_url_page_mh.content;
+  rqst->MAXcontentSize = create_url_page_mh.contentSize;
 
   //Update the new content size ( our page became a little smaller )..!
   rqst->contentSize=strlen(rqst->content);

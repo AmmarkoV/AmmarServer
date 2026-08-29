@@ -348,6 +348,26 @@ char * dynamicRequest_serveContent
                      unsigned long elapsedCallbackTimeMS=endTimer (&callbackTimer);
                      shared_context->executedNow=0;
 
+                     //Re-sync the framework's own buffer bookkeeping with whatever the callback actually left
+                     //rqst pointing at. A callback can legitimately realloc() its content buffer to a new
+                     //address ( e.g. AmmServer_ReplaceVariableInMemoryHandler()/AString.c growing it when a
+                     //replacement value is longer than the placeholder it replaces ) - before this fix, neither
+                     //`cacheMemory` ( the DIFFERENT_PAGE_FOR_EACH_CLIENT return value below, and what the caller
+                     //is told to free via *freeContentAfterUsingIt ) nor `shared_context->requestContext.content`
+                     //( the SAME_PAGE_FOR_ALL_CLIENTS *persistent* buffer , reused across every future request
+                     //for this resource until it changes again ) ever picked up the new address - both kept
+                     //pointing at the stale, already-`realloc()`-invalidated original block. Reproduced live as
+                     //both a hard "double free or corruption" abort and, on other runs, silently-served garbage/
+                     //heap-adjacent bytes (see knowledge/issues.md , "MyURL CSRF" - this is the framework-level
+                     //bug that fix's workaround flagged instead of touching here). Cheap to always do, not
+                     //conditional on whether a realloc actually happened, since it's a no-op when it didn't.
+                     cacheMemory = rqst->content;
+                     if (needs_shared_lock) //SAME_PAGE_FOR_ALL_CLIENTS : this buffer outlives this single call
+                      {
+                        shared_context->requestContext.content       = rqst->content;
+                        shared_context->requestContext.MAXcontentSize = rqst->MAXcontentSize;
+                      }
+
                      if ( rqst->contentSize>rqst->MAXcontentSize)
                      {
                          errorID(ASV_ERROR_CLIENT_CAUSED_AN_OVERFLOW);

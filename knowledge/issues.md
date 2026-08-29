@@ -327,32 +327,58 @@ the request, only that *someone* solved *some* captcha recently.
   `#if` guard by mistake, which would have silently disabled CSRF protection right along with the captcha in
   that configuration — caught and fixed before shipping, not after).
 
-**🐛 Found and worked around, not fixed** — **a real, previously-latent memory-safety bug in the dynamic-content
-framework itself**, surfaced by this fix and worth flagging clearly for whoever next needs a template
-substitution longer than its placeholder: `astringInjectDataToMemoryHandler()` (`AString.c`) transparently
-`realloc()`s its buffer when a replacement value is longer than the placeholder it replaces. For a resource
-using `DIFFERENT_PAGE_FOR_EACH_CLIENT`, `dynamic_requests.c`'s `dynamicRequest_serveContent()` allocates its own
-separate `cacheMemory` local variable, hands a pointer to it to the callback (as `rqst->content`), and — after
-the callback returns — returns/tracks-for-freeing **`cacheMemory`, not `rqst->content`**. If the callback's
-substitution reallocates `rqst->content` to a new address (as the first version of this fix's ~32-character
-token replacing the 12-character `$CSRF_TOKEN$` placeholder did), `cacheMemory` still points at the *old*,
-now-invalid block — the client is served/receives whatever that memory happens to contain next (reproduced
-live: a hard `double free or corruption (out)` abort on one run, silently-served garbage/heap-adjacent bytes
-framing the real content on another, depending on what the allocator did with the freed block). This is not
-specific to CSRF or to this fix — **any** dynamic-content callback anywhere in the codebase using
+**✅ FIXED (follow-up)** — **a real, previously-latent memory-safety bug in the dynamic-content framework
+itself**, surfaced by this CSRF fix, then fixed at its actual source rather than left as a local workaround:
+`astringInjectDataToMemoryHandler()` (`AString.c`) transparently `realloc()`s its buffer when a replacement
+value is longer than the placeholder it replaces. For a resource using `DIFFERENT_PAGE_FOR_EACH_CLIENT`,
+`dynamic_requests.c`'s `dynamicRequest_serveContent()` allocates its own separate `cacheMemory` local variable,
+hands a pointer to it to the callback (as `rqst->content`), and — after the callback returns — returns/tracks-
+for-freeing **`cacheMemory`, not `rqst->content`**. If the callback's substitution reallocates `rqst->content`
+to a new address (as this fix's ~32-character token replacing the 12-character `$CSRF_TOKEN$` placeholder does),
+`cacheMemory` kept pointing at the *old*, now-invalid block — the client was served whatever that memory
+happened to contain next (reproduced live: a hard `double free or corruption (out)` abort on one run, silently-
+served garbage/heap-adjacent bytes framing the real content on another, depending on what the allocator did
+with the freed block). Not specific to CSRF — **any** dynamic-content callback anywhere in the codebase using
 `AmmServer_ReplaceVariableInMemoryHandler`/`AmmServer_ReplaceAllVarsInMemoryHandler`/
-`AmmServer_ReplaceAllVarsInDynamicRequest` with a replacement value longer than its placeholder is exposed to
-this, under `DIFFERENT_PAGE_FOR_EACH_CLIENT` (and very likely under `SAME_PAGE_FOR_ALL_CLIENTS` too, by the same
-reasoning — `shared_context->requestContext.content` is never re-synced from `rqst->content` after the callback
-returns either — not separately confirmed live, but the code path looks identical). **Not fixed here** — a
-proper fix means `dynamic_requests.c` re-reading `rqst->content`/`rqst->MAXcontentSize` after `DoCallback()`
-returns and correctly carrying that through to whatever eventually frees `cacheMemory`, across both scenarios ;
-real surgery to a core, heavily-shared code path, out of scope for a CSRF fix. **Worked around locally** instead:
-MyURL's CSRF placeholder (`$CSRF_TOKEN_RESERVED_SPACE_FOR_TOKEN_VALUE$`, 43 chars) is deliberately padded well
-past any realistic token length, so its substitution can only ever *shrink* the buffer (the same, already-proven-
-safe path `$NUMBER_OF_LINKS$` on the same page already exercises) — never grow it. A defensive length check
-guards the substitution call itself (skips it rather than risking the realloc path if the invariant is ever
-violated, e.g. by a future change to the token's byte length).
+`AmmServer_ReplaceAllVarsInDynamicRequest` with a replacement value longer than its placeholder was exposed to
+this, under both `DIFFERENT_PAGE_FOR_EACH_CLIENT` and `SAME_PAGE_FOR_ALL_CLIENTS` (the latter has the identical
+gap — `shared_context->requestContext.content`, the buffer reused across every future request for that
+resource, was never re-synced from `rqst->content` either, which additionally meant a dangling pointer would
+persist and get reused/re-served on *every subsequent request* to that resource, not just the one that
+triggered the realloc).
+
+**Fix applied** in `dynamic_requests.c`'s `dynamicRequest_serveContent()`, right after `DoCallback(rqst)`
+returns and before anything downstream reads the old `cacheMemory`/`shared_context` values: `cacheMemory` is
+re-read from `rqst->content` unconditionally (a cheap no-op when no realloc happened), and — only for
+`SAME_PAGE_FOR_ALL_CLIENTS`, since that's the one persistent, reused-across-requests buffer —
+`shared_context->requestContext.content`/`MAXcontentSize` are re-synced from `rqst->content`/`rqst->MAXcontentSize`
+too, so a later request's cache-hit fast path (`TIME_IS_TOO_FAST_SERVE_CACHED`, which returns `cacheMemory`
+without re-invoking the callback) also sees the correct, current pointer. Already covered by the existing
+`shared_context->content_mutex` lock held around this whole section, so no new synchronization was needed.
+
+**A second, distinct sync point was still required *inside* the callback itself**, and is not something the
+framework fix could ever cover: `serve_create_url_page()` builds its replacements through a local
+`struct AmmServer_MemoryHandler create_url_page_mh` (a copy of `rqst->content`, not a live alias of it) — when
+`AmmServer_ReplaceVariableInMemoryHandler()` reallocates `create_url_page_mh.content`, that update lands in the
+*local* handler struct only ; `rqst->content` itself is a completely separate variable that nothing updates
+automatically. First attempt at this fix synced only the framework side and still crashed identically, which is
+what surfaced this second half of the bug — `rqst->content`/`rqst->MAXcontentSize` now get explicitly synced
+from `create_url_page_mh` right after the (possibly buffer-relocating) CSRF substitution, in `main.c`, matching
+the same pattern `AmmServer_ReplaceAllVarsInDynamicRequest()` (`main.c`) already uses for its own call site. Any
+other resource handler that builds a `struct AmmServer_MemoryHandler` by hand this way (rather than going
+through `AmmServer_ReplaceAllVarsInDynamicRequest()`, which already does this correctly) needs the same care —
+not otherwise audited across the codebase this pass.
+
+**Verified live**, escalating through both failure modes this bug actually produced: 10 consecutive fresh
+(no-cookie) requests to `/index.html` before the fix reliably reproduced either a 1-byte truncated response
+followed by a `double free or corruption (out)` abort, or — after only the framework half of the fix — silently
+wrong-sized/garbled output with no crash (the callback-local half was still missing). After both halves: 10
+consecutive fresh requests each return the correct, full 2971-byte page with a properly-embedded, correctly-
+sized (32-char) CSRF token ; a 100-request concurrent burst (`xargs -P 20`) against the same endpoint returned
+uniformly correct output with zero corruption and the server still healthy throughout. The full CSRF test matrix
+from the fix above (forged/garbage/cross-session tokens rejected, legitimate flow's independent captcha check
+still enforced, zero forged URLs written, the read-only redirect path unaffected) was re-run end-to-end against
+this fixed build and passed identically. Full project (every Service) rebuilds with zero errors.
 
 **Verified live** against a real running instance: a forged request with no `csrf` param, a garbage `csrf`
 value, and — the case that actually proves session-binding rather than just "looks like a valid token" — a
