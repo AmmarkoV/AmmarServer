@@ -12,6 +12,15 @@
 extern "C" {
 #endif
 
+//Discriminator tag placed as the first field of every heap struct handed to epoll via event.data.ptr on
+//instance->accept_epoll_fd , so EpollAcceptLayerThread ( threadedServer.c ) knows how to interpret an event
+//before casting the pointer - shared with epollFastPathServer.c , which allocates EPOLL_EVENT_KIND_FASTPATH_WRITE.
+enum EpollEventKind
+{
+   EPOLL_EVENT_KIND_PENDING_ACCEPT = 1 ,
+   EPOLL_EVENT_KIND_FASTPATH_WRITE = 2
+};
+
 /**
 * @brief Start HTTP server
 * @ingroup threads

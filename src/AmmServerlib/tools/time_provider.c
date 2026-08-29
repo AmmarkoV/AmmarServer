@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <time.h>
+#include <pthread.h>
 // --------------------------------------------
 #include "../server_configuration.h"
 #include "time_provider.h"
@@ -11,6 +12,51 @@
 
 const char *days[] = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
 const char *months[] = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+
+//Every response's "Date:" header needs the current time formatted the exact same way ( HTTP only requires 1-second
+//resolution ) , so instead of every request-serving thread paying for its own time()+gmtime()+snprintf ( nginx does
+//this exact same thing via ngx_cached_http_time ) , one background thread refreshes a shared string twice a second
+//and callers just copy it out. This also fixes a latent bug : the un-cached path called plain gmtime() ( not
+//gmtime_r() ) from every serving thread concurrently - gmtime() writes through a process-wide static buffer, so
+//concurrent callers could tear each other's result. Only the single updater thread touches gmtime_r() now.
+static char g_cached_date_value[40]={0}; // "Sat, 29 May 2010 12:31:35 GMT" , no label
+static pthread_mutex_t g_cached_date_mutex = PTHREAD_MUTEX_INITIALIZER;
+static volatile int g_date_cache_thread_started = 0;
+
+static void RefreshCachedDateValue()
+{
+   time_t clock = time(NULL);
+   struct tm tmv;
+   gmtime_r(&clock,&tmv);
+
+   char local[40];
+   snprintf(local,sizeof(local),"%s, %u %s %u %02u:%02u:%02u GMT",
+            days[tmv.tm_wday],tmv.tm_mday,months[tmv.tm_mon],EPOCH_YEAR_IN_TM_YEAR+tmv.tm_year,tmv.tm_hour,tmv.tm_min,tmv.tm_sec);
+
+   pthread_mutex_lock(&g_cached_date_mutex);
+   strncpy(g_cached_date_value,local,sizeof(g_cached_date_value)-1);
+   pthread_mutex_unlock(&g_cached_date_mutex);
+}
+
+static void * DateCacheUpdaterThread(void * ptr)
+{
+   while (GLOBAL_KILL_SERVER_SWITCH==0)
+   {
+      RefreshCachedDateValue();
+      usleep(500000); // refresh twice a second - keeps the header within the 1-second resolution HTTP requires, with margin
+   }
+   return 0;
+}
+
+static void EnsureDateCacheThreadStarted()
+{
+   if (g_date_cache_thread_started) { return; }
+   //A rare double-start race here just means two updater threads briefly exist , both writing the same value - harmless.
+   g_date_cache_thread_started = 1;
+   RefreshCachedDateValue(); // populate before this first caller reads it, don't wait for the thread to tick
+   pthread_t t;
+   if (pthread_create(&t,0,DateCacheUpdaterThread,0)==0) { pthread_detach(t); }
+}
 
 unsigned long GetTickCountAmmServ()
 {
@@ -26,12 +72,15 @@ int GetDateString(char * output,unsigned int maxOutput,char * label,unsigned int
    //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
    if ( now )
       {
-        time_t clock = time(NULL);
-        struct tm * ptm = gmtime ( &clock );
+        EnsureDateCacheThreadStarted();
+        char cached_copy[40];
+        pthread_mutex_lock(&g_cached_date_mutex);
+        strncpy(cached_copy,g_cached_date_value,sizeof(cached_copy));
+        pthread_mutex_unlock(&g_cached_date_mutex);
 
         if (label==0)
-        { snprintf(output,maxOutput,"%s, %u %s %u %02u:%02u:%02u GMT\n",days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec); } else
-        { snprintf(output,maxOutput,"%s: %s, %u %s %u %02u:%02u:%02u GMT\n",label,days[ptm->tm_wday],ptm->tm_mday,months[ptm->tm_mon],EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec); }
+        { snprintf(output,maxOutput,"%s\n",cached_copy); } else
+        { snprintf(output,maxOutput,"%s: %s\n",label,cached_copy); }
       } else
       {
         if (label==0)

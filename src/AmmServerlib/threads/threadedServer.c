@@ -62,6 +62,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../cache/session_list.h"
 #include "../cache/dynamic_requests.h"
 
+#include "epollFastPathServer.h"
+
 int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
   if (instance==0) { return 0; } //We can't be running not even the instance is allocated..
@@ -98,8 +100,15 @@ static int signalChildFinishedWithParentMessageLocal(volatile int * childSwitch)
 #define ACCEPT_EPOLL_LAYER_ENABLED 1
 #define MAX_EPOLL_EVENTS_PER_WAIT 256
 
+//Epoll fast path : once a connection is sitting in the accept epoll layer with a byte ready to read , a simple
+//cached-static GET/HEAD request ( no Range/ETag/compression/auth/query-string , see epollFastPathServer.c ) gets
+//served directly from THIS thread - never touching a worker thread at all. Anything not obviously simple falls
+//back to dispatch_accepted_client exactly as if this were disabled. Set to 0 to disable entirely.
+#define EPOLL_FASTPATH_STATIC_ENABLED 1
+
 struct PendingAccept
 {
+    enum EpollEventKind kind; //Always EPOLL_EVENT_KIND_PENDING_ACCEPT ; must stay the first field , see threadedServer.h
     int clientsock;
     struct sockaddr_in client;
     unsigned int clientlen;
@@ -154,10 +163,33 @@ static void * EpollAcceptLayerThread(void * ptr)
      int i=0;
      for (i=0;i<n;i++)
       {
+        enum EpollEventKind kind = *(enum EpollEventKind *) events[i].data.ptr;
+
+        if (kind==EPOLL_EVENT_KIND_FASTPATH_WRITE)
+         { //A previous EpollFastPath_TryServe() hit EAGAIN partway through a response ; this is it becoming
+           //writable again. Ownership of the pointer moves to EpollFastPath_ResumeWrite , which frees it.
+           EpollFastPath_ResumeWrite(instance,events[i].data.ptr);
+           continue;
+         }
+
         struct PendingAccept * pending = (struct PendingAccept *) events[i].data.ptr;
-        epoll_ctl(instance->accept_epoll_fd,EPOLL_CTL_DEL,pending->clientsock,0); // ownership moves to the worker now
-        dispatch_accepted_client(instance,pending->clientsock,pending->client,pending->clientlen,pending->is_ssl_connection);
+        epoll_ctl(instance->accept_epoll_fd,EPOLL_CTL_DEL,pending->clientsock,0); // ownership moves on from here
+
+        int clientsock=pending->clientsock;
+        struct sockaddr_in client=pending->client;
+        unsigned int clientlen=pending->clientlen;
+        int is_ssl_connection=pending->is_ssl_connection;
         free(pending);
+
+        #if EPOLL_FASTPATH_STATIC_ENABLED
+        //Try to serve simple cached static GET/HEAD requests without ever touching a worker thread. This only
+        //runs for brand new accepts here ; a connection already served once ( fast path or worker ) that has
+        //more work goes straight to a worker thread instead of coming back through this shared epoll thread -
+        //see the comment at the top of epollFastPathServer.c for why.
+        if ( (!is_ssl_connection) && (EpollFastPath_TryServe(instance,clientsock)) ) { continue; }
+        #endif // EPOLL_FASTPATH_STATIC_ENABLED
+
+        dispatch_accepted_client(instance,clientsock,client,clientlen,is_ssl_connection);
       }
    }
 
@@ -190,6 +222,7 @@ static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener
          struct PendingAccept * pending = (struct PendingAccept *) malloc(sizeof(struct PendingAccept));
          if (pending!=0)
           {
+            pending->kind=EPOLL_EVENT_KIND_PENDING_ACCEPT;
             pending->clientsock=clientsock;
             pending->client=client;
             pending->clientlen=clientlen;

@@ -220,6 +220,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="threads/threadedServer.h" />
+		<Unit filename="threads/epollFastPathServer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/epollFastPathServer.h" />
 		<Unit filename="tools/directory_lists.c">
 			<Option compilerVar="CC" />
 		</Unit>
