@@ -23,7 +23,7 @@ and open · — not yet reviewed (default/starting state).
 
 | Module | Path | Security Gaps | Bugs | Common-Module Refactor | Automated Tests | Optimized |
 |---|---|---|---|---|---|---|
-| Public API surface | `main.c` | ✅ `filterStringForShellInjection`/`filterStringForHtmlInjection`/`AmmServer_StringHasSafePath` all implemented properly (were stubs), verified incl. real shell round-trip + symlink-bypass tests ; ✅ `_SESSION*` family + `AmmServer_SetCookie()` implemented from stubs (issues.md) | 🟡 2 bugs fixed (issues.md #1 `AmmServer_DynamicRequestReturnMemoryHandler`, #2 `SIGKILL` registration); rest of file not yet reviewed | | 🟡 ad-hoc tests for the sanitizers/safe-path/sessions only (scratchpad, not in-repo) | |
+| Public API surface | `main.c` | ✅ `filterStringForShellInjection`/`filterStringForHtmlInjection`/`AmmServer_StringHasSafePath` all implemented properly (were stubs), verified incl. real shell round-trip + symlink-bypass tests ; ✅ `_SESSION*` family + `AmmServer_SetCookie()` implemented from stubs ; ✅ `AmmServer_GenerateCSRFToken`/`ValidateCSRFToken` added, session-bound (issues.md, MyURL CSRF) | 🟡 2 bugs fixed (issues.md #1 `AmmServer_DynamicRequestReturnMemoryHandler`, #2 `SIGKILL` registration); rest of file not yet reviewed | 🟡 supersedes `HabChan/csrf.c`'s weaker, non-session-bound (global token pool, unseeded `rand()`) CSRF implementation — HabChan not yet migrated | 🟡 ad-hoc tests for the sanitizers/safe-path/sessions/CSRF only (scratchpad, not in-repo) | |
 | Configuration | `server_configuration.c/h` | | | | | |
 | Accept loop + epoll accept layer | `threads/threadedServer.c` | | | | | |
 | Epoll static-content fast path | `threads/epollFastPathServer.c` | | 🟡 keepalive default logic updated to match http_header_analysis.c's fix (issues.md); rest of file not re-reviewed | | | |
@@ -42,7 +42,7 @@ and open · — not yet reviewed (default/starting state).
 | GET query parsing | `header_analysis/get_data.c` | | 🟡 issues.md #3 prefix-match lookup fixed; possible dropped-trailing-field bug spotted, not yet confirmed/fixed | | | |
 | Cookie parsing | `header_analysis/cookie_data.c` | | 🟡 issues.md #3 prefix-match lookup fixed (length-bounded, not strcmp — see rationale in issues.md) | | | |
 | Static file + dynamic resource cache | `cache/file_caching.c` | ✅ symlink-escape guard added to the one-time (per-unique-file, not per-request) disk-load path in `cache_GetResource()`, covers both `SendFile()` and the epoll fast path (issues.md) | | | | |
-| Dynamic content dispatch (SAME/DIFFERENT_PAGE) | `cache/dynamic_requests.c` | | | | | |
+| Dynamic content dispatch (SAME/DIFFERENT_PAGE) | `cache/dynamic_requests.c` | | 🐛 found (not fixed) — `cacheMemory`/`shared_context->requestContext.content` never re-synced from `rqst->content` after a callback returns, so a callback whose content buffer gets `realloc()`'d (e.g. via `AmmServer_ReplaceVariableInMemoryHandler` growing) can be served stale/freed memory (issues.md, MyURL CSRF) | | | |
 | Client list / ban tracking | `cache/client_list.c` | | | | | |
 | Session storage | `cache/session_list.c` | ✅ implemented from a complete stub: PHP-`$_SESSION`-style cookie-based store, CSPRNG tokens, salted-hash user-account integration (issues.md §5 "Sessions") | | | 🟡 live end-to-end tested (scratchpad, not in-repo) — cookie issuance/reuse/expiry, login/logout, 200-concurrent-request race test, capacity eviction | |
 | Response compression | `cache/file_compression.c` | | | | | |
@@ -80,14 +80,14 @@ and open · — not yet reviewed (default/starting state).
 |---|---|---|---|---|---|---|
 | AmmarServer (reference/demo) | `src/Services/AmmarServer/` | ✅ `/execute.html` audited (issues.md) — only ever runs the server's own `-e` startup CLI argument, operator-controlled not client-controlled, no fix needed | | | | |
 | SimpleTemplate (starter template) | `src/Services/SimpleTemplate/` | | | | | |
-| MyURL | `src/Services/MyURL/` | | | | | |
+| MyURL | `src/Services/MyURL/` | ✅ CSRF on `/go`'s URL-creation branch fixed — session-bound `AmmServer_GenerateCSRFToken`/`ValidateCSRFToken`, verified live (upstream #27, issues.md) | | | | |
 | MyLoader | `src/Services/MyLoader/` | ✅ arbitrary-file-write risk closed — `AmmServer_StringHasSafePath()` (gates both its `/vfile.html` read-by-name and its upload write path) now does real `realpath()`-based canonicalization, not just a character blacklist (issues.md) | | | | |
 | MyBlog | `src/Services/MyBlog/` | | | | | |
 | MyTube | `src/Services/MyTube/` | ✅ command-injection fixed: YouTube video title (attacker-influenceable, reachable by default since `DO_YOUTUBE_DOWNLOADING=1`) whitelist-filtered before it reaches any filename/ffmpeg command (issues.md) | | | | |
 | MySearch | `src/Services/MySearch/` | | | | | |
 | GeoPosShare | `src/Services/GeoPosShare/` | | | | | |
 | Social | `src/Services/Social/` | | | | | |
-| HabChan | `src/Services/HabChan/` | | | | | |
+| HabChan | `src/Services/HabChan/` | 🟡 found (not fixed) `csrf.c`'s CSRF defense is weaker than it looks: tokens come from unseeded `rand()` and validity is checked against a global "was this token issued to *anyone* recently" pool, not bound to the requester's own session — an attacker can obtain a valid token themselves and replay it against a different victim. `main.c`'s new session-bound `AmmServer_GenerateCSRFToken`/`ValidateCSRFToken` is the recommended migration target (issues.md, MyURL CSRF) | | | | |
 | ShareTex | `src/Services/ShareTex/` | | | | | |
 | Availability | `src/Services/Availability/` | | | | | |
 | SuperMarket | `src/Services/SuperMarket/` | | | | | |

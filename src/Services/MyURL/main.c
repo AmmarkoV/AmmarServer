@@ -482,6 +482,36 @@ void * serve_create_url_page(struct AmmServer_DynamicRequest  * rqst)
   //Replace the number of served links..
   AmmServer_ReplaceVariableInMemoryHandler(&create_url_page_mh,"$NUMBER_OF_LINKS$",val);
 
+  //CSRF protection (issues.md , MyURL CSRF) : embed this session's own unpredictable token as a hidden field ,
+  //validated back in serve_goto_url_page() before Add_MyURL() is allowed to run. A cross-site attacker page can
+  //cause this form to be submitted , but can never read the token value baked into this response to include it.
+  //
+  //@bug Found while building this fix, NOT fixed here (out of scope - a real bug in the dynamic-request
+  //framework itself, see knowledge/issues.md "MyURL CSRF" for the full trace) : astringInjectDataToMemoryHandler()
+  //(AString.c) can realloc() this buffer if the replacement value is *longer* than the placeholder it replaces.
+  //When that happens under DIFFERENT_PAGE_FOR_EACH_CLIENT, dynamic_requests.c's dynamicRequest_serveContent()
+  //still returns/frees its own separate `cacheMemory` local variable, which is never re-synced from the
+  //( possibly now-relocated ) rqst->content the callback sees - the client ends up served stale/freed memory.
+  //Reproduced live : caused a "double free or corruption" abort the first time this fix used a 12-char
+  //placeholder ($CSRF_TOKEN$) for a ~32-char token. WORKAROUND applied here rather than fixing the framework :
+  //$CSRF_TOKEN_RESERVED_SPACE_FOR_TOKEN_VALUE$ (43 chars) is deliberately padded well past any realistic token
+  //length , so this substitution can only ever shrink the buffer - the same, already-safe path
+  //$NUMBER_OF_LINKS$ above already exercises. The length check below is an explicit fail-safe : if that
+  //invariant is ever violated ( e.g. token generation parameters change later ) , skip the substitution
+  //entirely rather than risk the realloc path.
+  char csrfToken[64]={0};
+  const char * csrfPlaceholder = "$CSRF_TOKEN_RESERVED_SPACE_FOR_TOKEN_VALUE$";
+  if (AmmServer_GenerateCSRFToken(rqst,csrfToken,sizeof(csrfToken)))
+   {
+     if (strlen(csrfToken)<=strlen(csrfPlaceholder))
+      {
+        AmmServer_ReplaceVariableInMemoryHandler(&create_url_page_mh,csrfPlaceholder,csrfToken);
+      } else
+      {
+        AmmServer_Error("CSRF token (%u chars) no longer fits its reserved placeholder (%u chars) - skipping substitution to avoid a known memory-safety issue in the template substitution path, see main.c",(unsigned int)strlen(csrfToken),(unsigned int)strlen(csrfPlaceholder));
+      }
+   }
+
   //Update the new content size ( our page became a little smaller )..!
   rqst->contentSize=strlen(rqst->content);
 
@@ -507,6 +537,19 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
         //If both URL and NAME is set we want to assign a (short)to to a (long)url
         if ( _GETcpy(rqst,"url",url,MAX_LONG_URL_SIZE) )
              {
+               //CSRF protection (issues.md , MyURL CSRF) : this is the state-changing part of the endpoint
+               //( it calls Add_MyURL() below ) , so it must not be reachable via a forged cross-site request.
+               //The captcha check alone doesn't prevent this : an attacker can solve their *own* captcha once
+               //and bake that valid captchaID/captcha pair into a link that any victim's browser is tricked
+               //into loading , since the captcha answer isn't tied to who is making the request. The CSRF
+               //token is - it's bound to this specific visitor's own session , which a cross-site attacker page
+               //can never read.
+               char csrfToken[64]={0};
+               _GETcpy(rqst,"csrf",csrfToken,sizeof(csrfToken));
+               //Deliberately outside the ENABLE_CAPTCHA_SYSTEM guard below : this check must stay active even
+               //if the captcha system is ever compiled out, since it's a separate, independent defense.
+               int csrfOk = AmmServer_ValidateCSRFToken(rqst,csrfToken);
+
                #if ENABLE_CAPTCHA_SYSTEM
                if ( _GETcpy(rqst,"captchaID",captchaIDStr,MAX_LONG_URL_SIZE) )
                 { fprintf(stderr,"Captcha ID submited %s \n",captchaIDStr); }
@@ -514,9 +557,15 @@ void * serve_goto_url_page(struct AmmServer_DynamicRequest  * rqst)
                 { fprintf(stderr,"Captcha submited %s \n",captchaReply); }
 
                unsigned int captchaID = atoi(captchaIDStr);
-               if ( ! AmmCaptcha_isReplyCorrect(captchaID , captchaReply) )
+               if ( (!csrfOk) || ( ! AmmCaptcha_isReplyCorrect(captchaID , captchaReply) ) )
                 {
                  strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Please solve the captcha and try again</h2></body></html>",rqst->MAXcontentSize);
+                 AmmServer_SignalCountAsBadClientBehaviour(rqst);
+                } else
+               #else
+               if ( !csrfOk )
+                {
+                 strncpy(rqst->content,"<html><head><meta http-equiv=\"refresh\" content=\"2;URL='index.html'\"></head><body><h2>Your session expired, please try again</h2></body></html>",rqst->MAXcontentSize);
                  AmmServer_SignalCountAsBadClientBehaviour(rqst);
                 } else
                #endif
@@ -629,11 +678,16 @@ void init_dynamic_content()
   indexPage=AmmServer_ReadFileToMemory(indexPagePath,&indexPageLength);
   if (indexPage==0) { AmmServer_Error("Could not find Index Page file %s ",indexPagePath); }
 
-  AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",indexPageLength,0,&serve_create_url_page,SAME_PAGE_FOR_ALL_CLIENTS);
+  //Switched from SAME_PAGE_FOR_ALL_CLIENTS to DIFFERENT_PAGE_FOR_EACH_CLIENT : the CSRF token embedded in this
+  //page ( see below ) is per-session, so the rendered page can no longer be one buffer shared/cached across
+  //every visitor - each client needs their own copy of the page with their own token baked in.
+  AmmServer_AddResourceHandler(myurl_server,&create_url,"/index.html",indexPageLength,0,&serve_create_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&create_url);
+  create_url.requestContext.useSessionLifecycle=1; //Needed to issue/read the per-session CSRF token (issues.md, MyURL CSRF)
 
   AmmServer_AddResourceHandler(myurl_server,&goto_url,"/go",DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_goto_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(myurl_server,&goto_url);
+  goto_url.requestContext.useSessionLifecycle=1; //Needed to validate the CSRF token on the state-changing (url=) branch
 
   AmmServer_AddResourceHandler(myurl_server,&error_url,"/error.html",DYNAMIC_PAGES_MEMORY_COMMITED,0,&serve_error_url_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 

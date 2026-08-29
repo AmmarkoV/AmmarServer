@@ -1043,6 +1043,27 @@ int _SESSIONset(struct AmmServer_DynamicRequest * rqst,const char * name,const c
 int _SESSIONunset(struct AmmServer_DynamicRequest * rqst,const char * name);
 
 /**
+* @brief Issues ( or reuses, if this session already has one ) an unpredictable, session-bound CSRF token - the
+*        building block for protecting any state-changing GET/POST endpoint from Cross-Site Request Forgery.
+*        Requires the calling resource to have useSessionLifecycle=1 set, same as the rest of the _SESSION*
+*        family. Embed the returned value in a hidden form field ( or a custom header, for an AJAX/JSON API )
+*        and check it back with AmmServer_ValidateCSRFToken() before performing the state-changing action - a
+*        cross-site attacker page can trigger the request but can never read this session's own token value,
+*        since the browser's same-origin policy blocks it from reading the response containing it, and the
+*        token is never accepted from any *other* session ( unlike a plain "did the client fetch a valid-
+*        looking token from us recently" check, which an attacker can satisfy from their own session/browser
+*        and then replay against a victim ).
+* @ingroup SESSION,security
+* @retval 1=Success ( outToken holds the token ) , 0=Failure ( bad args, or the CSPRNG couldn't be reached )*/
+int AmmServer_GenerateCSRFToken(struct AmmServer_DynamicRequest * rqst,char * outToken,unsigned int outTokenSize);
+
+/**
+* @brief Checks a client-submitted token against the one issued to this session via AmmServer_GenerateCSRFToken().
+* @ingroup SESSION,security
+* @retval 1=Valid , 0=Invalid/missing/no token was ever issued for this session*/
+int AmmServer_ValidateCSRFToken(struct AmmServer_DynamicRequest * rqst,const char * submittedToken);
+
+/**
 * @brief Shorthand/Shortcut for AmmServer_FILES()
 * @ingroup shortcut */
 const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName,enum TypesOfRequestFields POSTType,unsigned int * outputSize);

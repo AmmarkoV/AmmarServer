@@ -301,6 +301,68 @@ adding the early `SendFile()` check: a proper `400 Bad Request` is returned befo
 confirmed consistent across repeated requests, with normal (non-symlink) file serving and caching unaffected
 throughout every iteration of this fix. Full project rebuilds with zero errors at each step.
 
+**✅ FIXED** — **MyURL is susceptible to CSRF** ([upstream GitHub issue #27](https://github.com/AmmarkoV/AmmarServer/issues/27),
+opened 2015): `/go`'s URL-shortening branch (`serve_goto_url_page()`, `src/Services/MyURL/main.c`) is a
+state-changing action (`Add_MyURL()`, permanently written to `db/myurl.db`) reachable via a plain `GET` with no
+CSRF defense — a captcha is required, but that alone doesn't stop CSRF: an attacker can solve their **own**
+captcha once and bake that valid `captchaID`/`captcha` pair into a link (`<img src="…">`, auto-submitting form,
+etc.) that any victim's browser is tricked into loading, since the captcha answer isn't tied to *who* is making
+the request, only that *someone* solved *some* captcha recently.
+
+**Fix applied**, using the session system built earlier this session (`cache/session_list.c`, `_SESSION*` API,
+`AmmServer_SetCookie`) as the foundation:
+- New generic, reusable primitives — `AmmServer_GenerateCSRFToken()`/`AmmServer_ValidateCSRFToken()` (`main.c`/
+  `AmmServerlib.h`) — issue (or reuse) an unpredictable, **session-bound** CSRF token via `AmmServer_GenerateSecureToken()`
+  (the CSPRNG built earlier), stored under a session key and validated against *that specific session's* stored
+  value — not a global "was this token ever issued to anyone" pool. This directly closes the gap a naive
+  captcha-only defense has: an attacker's own token, from their own session, can never validate against a
+  different victim's session.
+- `create_url`'s resource handler switched from `SAME_PAGE_FOR_ALL_CLIENTS` to `DIFFERENT_PAGE_FOR_EACH_CLIENT`
+  and given `useSessionLifecycle=1` — a per-session CSRF token can't be embedded in a single buffer shared/cached
+  across every visitor. `goto_url` also got `useSessionLifecycle=1`, to validate the token.
+- `serve_create_url_page()` embeds the token into a new hidden form field (`myurl.html`) ; `serve_goto_url_page()`
+  validates a submitted `csrf` param against it, **independently of and in addition to** the existing captcha
+  check (`(!csrfOk) || (!AmmCaptcha_isReplyCorrect(...))`) — deliberately written so the CSRF check stays active
+  even if `ENABLE_CAPTCHA_SYSTEM` is ever compiled out (the first version of this fix nested it *inside* that
+  `#if` guard by mistake, which would have silently disabled CSRF protection right along with the captcha in
+  that configuration — caught and fixed before shipping, not after).
+
+**🐛 Found and worked around, not fixed** — **a real, previously-latent memory-safety bug in the dynamic-content
+framework itself**, surfaced by this fix and worth flagging clearly for whoever next needs a template
+substitution longer than its placeholder: `astringInjectDataToMemoryHandler()` (`AString.c`) transparently
+`realloc()`s its buffer when a replacement value is longer than the placeholder it replaces. For a resource
+using `DIFFERENT_PAGE_FOR_EACH_CLIENT`, `dynamic_requests.c`'s `dynamicRequest_serveContent()` allocates its own
+separate `cacheMemory` local variable, hands a pointer to it to the callback (as `rqst->content`), and — after
+the callback returns — returns/tracks-for-freeing **`cacheMemory`, not `rqst->content`**. If the callback's
+substitution reallocates `rqst->content` to a new address (as the first version of this fix's ~32-character
+token replacing the 12-character `$CSRF_TOKEN$` placeholder did), `cacheMemory` still points at the *old*,
+now-invalid block — the client is served/receives whatever that memory happens to contain next (reproduced
+live: a hard `double free or corruption (out)` abort on one run, silently-served garbage/heap-adjacent bytes
+framing the real content on another, depending on what the allocator did with the freed block). This is not
+specific to CSRF or to this fix — **any** dynamic-content callback anywhere in the codebase using
+`AmmServer_ReplaceVariableInMemoryHandler`/`AmmServer_ReplaceAllVarsInMemoryHandler`/
+`AmmServer_ReplaceAllVarsInDynamicRequest` with a replacement value longer than its placeholder is exposed to
+this, under `DIFFERENT_PAGE_FOR_EACH_CLIENT` (and very likely under `SAME_PAGE_FOR_ALL_CLIENTS` too, by the same
+reasoning — `shared_context->requestContext.content` is never re-synced from `rqst->content` after the callback
+returns either — not separately confirmed live, but the code path looks identical). **Not fixed here** — a
+proper fix means `dynamic_requests.c` re-reading `rqst->content`/`rqst->MAXcontentSize` after `DoCallback()`
+returns and correctly carrying that through to whatever eventually frees `cacheMemory`, across both scenarios ;
+real surgery to a core, heavily-shared code path, out of scope for a CSRF fix. **Worked around locally** instead:
+MyURL's CSRF placeholder (`$CSRF_TOKEN_RESERVED_SPACE_FOR_TOKEN_VALUE$`, 43 chars) is deliberately padded well
+past any realistic token length, so its substitution can only ever *shrink* the buffer (the same, already-proven-
+safe path `$NUMBER_OF_LINKS$` on the same page already exercises) — never grow it. A defensive length check
+guards the substitution call itself (skips it rather than risking the realloc path if the invariant is ever
+violated, e.g. by a future change to the token's byte length).
+
+**Verified live** against a real running instance: a forged request with no `csrf` param, a garbage `csrf`
+value, and — the case that actually proves session-binding rather than just "looks like a valid token" — a
+**different visitor's own genuinely-valid token** were all correctly rejected, and confirmed zero of the
+corresponding short URLs were ever written to `db/myurl.db`. A request with the *correct* session's own token
+but a wrong captcha answer was also correctly rejected (proves the two checks are independently enforced, not
+one masking the other). The read-only `/go?to=...` short-link redirect path (which does not call `Add_MyURL()`
+and correctly needs no CSRF protection at all) continued to work unaffected throughout. `myurl` and the full
+project (every Service) rebuild with zero errors.
+
 **`monitor.html` has no visible access control** and exposes live internal server state (active thread count,
 open files, cache memory usage, upload/download counters, and a per-thread listing) to anyone who can reach the
 resource. It also renders a "STOP" link per thread that is **entirely decorative** — the handler reads the

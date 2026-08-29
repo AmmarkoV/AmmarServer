@@ -857,6 +857,35 @@ int _SESSIONunset(struct AmmServer_DynamicRequest * rqst,const char * name)
   if ( (rqst==0) || (rqst->instance==0) ) { return 0; }
   return sessiontList_UnsetInfo(rqst->instance->sessionList,rqst->sessionToken,name);
 }
+
+#define CSRF_SESSION_KEY "_ammserver_csrf"
+#define CSRF_TOKEN_RANDOM_BYTES 24
+
+int AmmServer_GenerateCSRFToken(struct AmmServer_DynamicRequest * rqst,char * outToken,unsigned int outTokenSize)
+{
+  if ( (rqst==0) || (outToken==0) ) { return 0; }
+
+  //Reuse whatever token this session already has, if any - a page reloaded/opened in a second tab shouldn't
+  //invalidate a form still open in the first one.
+  if ( _SESSIONcpy(rqst,CSRF_SESSION_KEY,outToken,outTokenSize) ) { return 1; }
+
+  char token[64]={0};
+  if (!AmmServer_GenerateSecureToken(token,sizeof(token),CSRF_TOKEN_RANDOM_BYTES)) { return 0; }
+  if (!_SESSIONset(rqst,CSRF_SESSION_KEY,token))                                   { return 0; }
+
+  snprintf(outToken,outTokenSize,"%s",token);
+  return 1;
+}
+
+int AmmServer_ValidateCSRFToken(struct AmmServer_DynamicRequest * rqst,const char * submittedToken)
+{
+  if ( (rqst==0) || (submittedToken==0) || (submittedToken[0]==0) ) { return 0; }
+
+  char expected[64]={0};
+  if ( ! _SESSIONcpy(rqst,CSRF_SESSION_KEY,expected,sizeof(expected)) ) { return 0; } //No token was ever issued for this session
+
+  return (strcmp(expected,submittedToken)==0);
+}
 /// -----------------------------------------------------------------------------------------------------------------------
 
 
