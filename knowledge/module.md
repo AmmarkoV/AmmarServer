@@ -59,7 +59,7 @@ and open · — not yet reviewed (default/starting state).
 | IP ban-list execution | `security/banlist.c` | | | | | |
 | Periodic callback scheduler | `scheduler/scheduler.c` | | 📋 deferred — full stub, needs real implementation (design notes in issues.md §5) | | | |
 | Generated method/header/content-type lexers | `stringscanners/*.c` | | | | | |
-| Template-variable substitution / file I/O helper | `AString/AString.c` | | | | | |
+| Template-variable substitution / file I/O helper | `AString/AString.c` | | ✅ realloc-grow path audited + fixed (issues.md), verified under ASan/UBSan | | 🟡 standalone ASan test written for this fix (not a full suite — covers grow/shrink/shrink-then-grow/repeated-grow) | |
 
 ## Supporting libraries — `src/`
 

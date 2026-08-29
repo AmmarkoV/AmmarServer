@@ -84,11 +84,34 @@ unreachable in practice (`sessionList_initialize()` always returns `NULL`, so no
 but fragile: the moment sessions are implemented and `sessionList_initialize` starts returning something real,
 these become live undefined behavior unless fixed at the same time.
 
-**`AString.c`'s realloc-grow path is explicitly flagged untrusted by its own author**:
+**✅ AUDITED + FIXED** — **`AString.c`'s realloc-grow path was explicitly flagged untrusted by its own author**:
 `astringInjectDataToMemoryHandlerOffset()`'s "replacement value is longer than the placeholder" branch (which
-reallocs the buffer and shifts the remainder) carries `#warning "...not 100% this part of the code is sane..!"`
-in the source. This is the code path for template-variable substitution where the injected value is longer than
-the placeholder it replaces — worth a real audit/test before relying on it for untrusted-length values.
+reallocs the buffer and shifts the remainder) carried `#warning "...not 100% this part of the code is sane..!"`
+in the source, and the public API (`AmmServerlib.h`) independently doc-flags the same scenario:
+`@Bug If the length of var is smaller than the length of value there might be problems (?)` on
+`AmmServer_ReplaceAllVarsInMemoryHandler`, and `AString.h` itself says `astringInjectDataToMemoryHandler is not
+implemented correctly , it is be buggy..!`.
+
+**Audit result**: traced the full realloc/reverse-copy path by hand — it does **not** have an out-of-bounds
+read/write. What it actually had was imprecise size bookkeeping: the realloc size was computed from
+`mh->contentSize` (meant to track allocated capacity), but the *shrink* branch (`valueLength<=varLength`) never
+updates `contentSize` when it shrinks `contentCurrentLength` — so after a shrink, `contentSize` is a stale,
+larger-than-necessary leftover from before the shrink. A subsequent grow computed its realloc size from that
+stale figure — always *enough* space (never undersized, so never unsafe), just wastefully more than needed, and
+the "clean the buffer" debug-zeroing loop used the same stale index, so it zeroed already-dead bytes instead of
+the genuinely-new ones (harmless in practice since nothing reads past the NUL terminator, but not what the
+comment claimed it was doing).
+
+**Fix applied**: size the reallocation off `mh->contentCurrentLength` (always exact) instead of `mh->contentSize`
+(can be stale) — removes the wasteful over-allocation and makes the debug-zero loop cover the actually-new
+bytes. Removed the `#warning` now that the path has been genuinely audited and corrected.
+
+**Verification**: wrote a standalone test (`AString.c` compiles independently of the rest of AmmServerlib) with
+4 scenarios — simple grow, simple shrink, a shrink-then-grow-then-shrink sequence specifically constructed to
+exercise the stale-`contentSize` state the fix targets, and `astringReplaceAllInstancesOfVarInMemoryFile()`'s
+repeated-grow path — compiled and run under AddressSanitizer + UBSan. All passed with zero sanitizer findings,
+both before and after the fix (confirming the original code was memory-safe, just imprecise) and correct
+content/length in all cases after the fix. `AmmServerlib` rebuilds clean with the `#warning` gone.
 
 **`post_data.c` has three still-open TODOs in `finalizePOSTData()`** (verbatim from the source): `//TODO : This
 calls inserts garbage in data..!`, two `//TODO : use memmem` markers on `strstr()` calls scanning

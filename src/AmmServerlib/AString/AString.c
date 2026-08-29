@@ -144,12 +144,17 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
       #if DO_NOT_ALLOW_MEMORY_REALLOCATIONS
         fprintf(stderr,"astringInjectDataToMemoryHandlerOffset : Realloc code is disabled in this build\n");
         return 0;
-      #else
-        #warning "astringInjectDataToMemoryHandlerOffset will try reallocations , not 100% this part of the code is sane..!"
       #endif // DO_NOT_ALLOW_MEMORY_REALLOCATIONS
 
       unsigned int extraBufferLength = valueLength - varLength;
-      unsigned int reallocatedBufferSize = mh->contentSize + extraBufferLength;
+      //Size the reallocation off contentCurrentLength ( the true current content length ) , not contentSize.
+      //contentSize is meant to track allocated capacity, but the valueLength<=varLength branch above shrinks
+      //contentCurrentLength without ever updating contentSize to match - so after a shrink followed by a grow,
+      //contentSize can be a stale, larger-than-necessary figure left over from before the shrink. Sizing off it
+      //here still worked ( it's never smaller than what's actually needed, just wastefully larger ) , but it's
+      //the wrong basis: contentCurrentLength is always exact and always sufficient.
+      unsigned int oldContentCurrentLength = mh->contentCurrentLength;
+      unsigned int reallocatedBufferSize = oldContentCurrentLength + extraBufferLength;
 
       char * newBuffer = realloc( mh->content , reallocatedBufferSize + 1 ); //Also making space for null termination
         if (newBuffer==0)
@@ -159,13 +164,16 @@ int astringInjectDataToMemoryHandlerOffset(struct AmmServer_MemoryHandler * mh,u
         }
         else
         {
-            newBuffer[mh->contentSize]=0; // Keep our new buffer clean at all times
+            newBuffer[oldContentCurrentLength]=0; // Keep our new buffer clean at all times
             //We just realloced so we will now have to move all of our pointers to the new memory locations
 
             //==========================================================================
-            //Clean the rest of the buffer ( debug code )
+            //Clean the rest of the buffer ( debug code ) - the genuinely new bytes this realloc added are
+            //[oldContentCurrentLength, oldContentCurrentLength+extraBufferLength) , not [contentSize, ...) :
+            //using contentSize here ( when stale/larger than the true content length ) would zero already-dead
+            //bytes left over from an earlier shrink instead of the actually-new, actually-uninitialized ones.
             unsigned int i=0;
-            for (i=mh->contentSize; i<mh->contentSize+extraBufferLength; i++)
+            for (i=oldContentCurrentLength; i<oldContentCurrentLength+extraBufferLength; i++)
             {
                 newBuffer[i]=0;
             }
