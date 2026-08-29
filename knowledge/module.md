@@ -39,8 +39,8 @@ and open · — not yet reviewed (default/starting state).
 | Header tokenizing/buffer growth | `header_analysis/generic_header_tools.c` | | | | | |
 | POST header parsing | `header_analysis/post_header_analysis.c` | | | | | |
 | POST body/multipart parsing | `header_analysis/post_data.c` | | | | | |
-| GET query parsing | `header_analysis/get_data.c` | | | | | |
-| Cookie parsing | `header_analysis/cookie_data.c` | | | | | |
+| GET query parsing | `header_analysis/get_data.c` | | 🟡 issues.md #3 prefix-match lookup fixed; possible dropped-trailing-field bug spotted, not yet confirmed/fixed | | | |
+| Cookie parsing | `header_analysis/cookie_data.c` | | 🟡 issues.md #3 prefix-match lookup fixed (length-bounded, not strcmp — see rationale in issues.md) | | | |
 | Static file + dynamic resource cache | `cache/file_caching.c` | | | | | |
 | Dynamic content dispatch (SAME/DIFFERENT_PAGE) | `cache/dynamic_requests.c` | | | | | |
 | Client list / ban tracking | `cache/client_list.c` | | | | | |
@@ -57,7 +57,7 @@ and open · — not yet reviewed (default/starting state).
 | Built-in editor UI | `templates/editor.c` | | | | | |
 | Built-in login UI | `templates/login.c` | | | | | |
 | IP ban-list execution | `security/banlist.c` | | | | | |
-| Periodic callback scheduler | `scheduler/scheduler.c` | | | | | |
+| Periodic callback scheduler | `scheduler/scheduler.c` | | 📋 deferred — full stub, needs real implementation (design notes in issues.md §5) | | | |
 | Generated method/header/content-type lexers | `stringscanners/*.c` | | | | | |
 | Template-variable substitution / file I/O helper | `AString/AString.c` | | | | | |
 

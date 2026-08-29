@@ -46,12 +46,37 @@ no caller anywhere in the repo (`grep` across all Services + AmmServerlib) check
 so fixing its return semantics is side-effect-free. Rebuilt and confirmed the "cannot handle SIGKILL" warning no
 longer appears on startup.
 
-**`getGETItemFromName()` / `getCOOKIEItemFromName()` use a prefix match, not exact match**
-(`header_analysis/get_data.c`, `cookie_data.c`): both do `strncmp(p->name, nameToLookFor, sizeOfNameToLookFor)`,
-so looking up `"id"` will also match a field literally named `"identity"`. The equivalent function for POST
+**✅ FIXED** — **`getGETItemFromName()` / `getCOOKIEItemFromName()` used a prefix match, not exact match**
+(`header_analysis/get_data.c`, `cookie_data.c`): both did `strncmp(p->name, nameToLookFor, sizeOfNameToLookFor)`,
+so looking up `"id"` would also match a field literally named `"identity"`. The equivalent function for POST
 fields, `getPOSTItemFromName()` (`post_data.c`), was already fixed to do an exact NUL-bound `strcmp` — with a
-comment documenting the exact bug this caused (`"captcha"` matching `"captchaID"`). The same class of bug is
+comment documenting the exact bug this caused (`"captcha"` matching `"captchaID"`). The same class of bug was
 still present for GET and COOKIE lookups.
+
+**Fix applied, but not identically for both** — the two needed different fixes because the underlying data isn't
+NUL-terminated the same way:
+- `getGETItemFromName()`: every item that makes it into `GETItem[]` has its `name` NUL-terminated by
+  `finalizeGenericGETField()` (traced all its code paths to confirm) — switched to a plain exact `strcmp()`,
+  matching the POST fix exactly.
+- `getCOOKIEItemFromName()`: **not** switched to `strcmp()`. `finalizeGenericCookieField()`'s own doc comment
+  explains that a bare, valueless cookie name at the very end of the header line is deliberately *not*
+  NUL-terminated in place (writing a NUL there would corrupt the shared header buffer's next byte). Used a
+  length-bounded exact comparison instead (`nameSize` equality check, then `memcmp`), matching the pattern
+  `_COOKIEcmp()`/`_COOKIEcpy()` (`main.c`) already use for cookie *values* for the identical reason.
+
+Verified live against a running server: `GET /gps.html?latitude=51.5` (no exact `lat` field) no longer resolves
+a `lat` lookup to `latitude`'s value (previously it would have); `GET /gps.html?lat=51.5&latitude=999` still
+correctly resolves `lat` to `51.5`; a request carrying `Cookie: sessionid=abc123; session=shouldnotmatch`
+continues to work without crashing. `AmmarServer` and `ammarserver` rebuild cleanly.
+
+**Related finding spotted while tracing this (not fixed — separate, out of scope for this issue):**
+`finalizeGenericGETField()` (`get_data.c`)'s main scan loop only handles `state==SEEKING_VALUE` in its
+post-loop "final item" block (`if (state==SEEKING_VALUE) {...}`, no equivalent `SEEKING_NAME` branch) — so a
+GET query string that ends in a bare name with no trailing `=`, `&`, or newline/NUL (i.e. the buffer's counted
+`valueLength` simply ends mid-name) silently drops that last field instead of adding it to `GETItem[]`. Whether
+this is reachable in practice depends on whether `value`/`valueLength` passed in always ends with a
+terminator character by construction elsewhere in the header-parsing pipeline — not confirmed either way this
+pass. Worth a dedicated look before treating it as either a real bug or a non-issue.
 
 **`cache/session_list.c` is fully unimplemented, with undefined-behavior fallthrough**: `sessiontList_GetInfo()`
 and `getSessionFromHeader()` are non-`void` functions with no `return` on some/all code paths — currently
@@ -200,9 +225,16 @@ These were already flagged by comments in the code itself (`AmmServer_Stub(...)`
 listed here for completeness since a "what works vs. what's aspirational" inventory is useful:
 
 - **Sessions** (`_SESSION()`) — `cache/session_list.c` is a complete stub; `instance->sessionList` is always NULL.
-- **Scheduler** (`AmmServer_AddScheduler()`) — both the public API and internal `scheduler/scheduler.c` are
-  stubs; nothing runs periodically. Also has a units mismatch waiting to bite whoever implements it: the public
-  API doc says "seconds," the internal function names its parameter `delayMilliseconds`.
+- **📋 DEFERRED — Scheduler** (`AmmServer_AddScheduler()`) — both the public API and internal
+  `scheduler/scheduler.c` are stubs; nothing runs periodically. Also has a units mismatch waiting to bite
+  whoever implements it: the public API doc says "seconds," the internal function names its parameter
+  `delayMilliseconds`. **Discussed 2026-08-29**: this needs a real implementation (dedicated timer thread,
+  callback registration table, one-shot/repeating support, wiring into instance startup/shutdown) rather than a
+  small bug fix — explicitly deferred to a future session rather than built now. When picked up: a dedicated
+  thread woken by `pthread_cond_timedwait` against a min-heap or sorted list of next-fire-times (matching the
+  style already used for `prespawnedThreads.c`'s cond-wait pattern) is the natural fit; resolve the
+  seconds-vs-milliseconds mismatch as part of that work, not before (the "right" unit depends on the final
+  API's granularity).
 - **IP geolocation** (`tools/geolocation.c`) — `getIPCountry()` is a stub; intended data source (ipdeny.com CIDR
   zone files) is documented in a comment but never implemented against.
 - **Compression** — the zlib-based implementation in `cache/file_compression.c` looks complete and careful

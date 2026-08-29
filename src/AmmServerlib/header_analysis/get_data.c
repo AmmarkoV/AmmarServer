@@ -215,8 +215,6 @@ int finalizeGETData(struct HTTPHeader * output)
 */
 const struct GETRequestContent * getGETItemFromName(struct AmmServer_DynamicRequest * rqst,const char * nameToLookFor)
 {
- unsigned int sizeOfNameToLookFor = strlen(nameToLookFor);
-
  unsigned int i=0;
  unsigned int PNum=rqst->GETItemNumber;
  if (PNum>MAX_HTTP_GET_VARIABLE_COUNT) { PNum=MAX_HTTP_GET_VARIABLE_COUNT; }
@@ -229,9 +227,13 @@ const struct GETRequestContent * getGETItemFromName(struct AmmServer_DynamicRequ
     //AmmServer_Info("POSTItem[%u].name = %s and we have %s \n",i,p->name,nameToLookFor);
     if ( (p!=0) && (p->name!=0) )
     {
-     if (strncmp(p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
+     //This used to be a strncmp bounded by nameToLookFor's length , which means looking up "id" would also
+     //match a field actually named "identity" ( or any field whose name merely starts with "id" ) , silently
+     //returning the wrong GET item - same class of bug already fixed in getPOSTItemFromName(). Every item that
+     //makes it into GETItem[] has its name NUL-terminated by finalizeGenericGETField() , so a plain exact
+     //strcmp is both correct and safe here.
+     if (strcmp(p->name,nameToLookFor) == 0)
      {
-       //p->valueSize=sizeOfNameToLookFor;
        return p;
      }
     }

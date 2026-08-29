@@ -128,9 +128,15 @@ const struct GETRequestContent * getCOOKIEItemFromName(struct AmmServer_DynamicR
     //AmmServer_Info("POSTItem[%u].name = %s and we have %s \n",i,p->name,nameToLookFor);
     if (p->name!=0)
     {
-     if (strncmp(p->name,nameToLookFor,sizeOfNameToLookFor) == 0)
+     //This used to be a strncmp bounded by nameToLookFor's length , which means looking up "id" would also
+     //match a field actually named "identity" - same class of bug already fixed in getPOSTItemFromName().
+     //Deliberately NOT switched to a plain strcmp though ( unlike the GET/POST equivalents ) : per
+     //finalizeGenericCookieField()'s own doc comment , a bare, valueless cookie name at the very end of the
+     //header line is not guaranteed NUL-terminated. nameSize is always correct via pointer arithmetic
+     //regardless , so compare length first, then the exact bytes - matching the bounded-comparison pattern
+     //_COOKIEcmp() already uses for cookie values for the same reason.
+     if ( (p->nameSize==sizeOfNameToLookFor) && (memcmp(p->name,nameToLookFor,sizeOfNameToLookFor) == 0) )
      {
-       //p->valueSize=sizeOfNameToLookFor;
        return p;
      }
     }
