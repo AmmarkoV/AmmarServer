@@ -389,6 +389,67 @@ one masking the other). The read-only `/go?to=...` short-link redirect path (whi
 and correctly needs no CSRF protection at all) continued to work unaffected throughout. `myurl` and the full
 project (every Service) rebuild with zero errors.
 
+**✅ IMPROVED** — **`AccessLogAppend()`/`ErrorLogAppend()`'s single global mutex was costing 55-80% of throughput
+under concurrent load.** Surfaced while comparing AmmarServer against nginx (`scripts/benchmark_vs_nginx.sh`):
+every successful request, fast-path or worker-thread-served, serializes through one `pthread_mutex_t` shared by
+every thread in the process (`tools/logs.c`). Measured directly, live, reproducibly (2 runs each way):
+
+| | c=100 static | c=200 static | c=100 dynamic | c=200 dynamic |
+|---|---|---|---|---|
+| Logging enabled (baseline) | ~127K req/s | ~123K req/s | ~130K req/s | ~128K req/s |
+| Logging disabled entirely | ~205K req/s | ~202K req/s | ~226K req/s | ~229K req/s |
+
+Two fixes were applied, in order, with the buffering one turning out to be necessary-but-not-sufficient on its own:
+
+1. **`LOG_LINE_BUFFERED`** (`server_configuration.h`, default `0`) — switches `setvbuf()` from `_IOLBF`
+   (line-buffered — every log line is its own `write()` syscall, held under the lock) to `_IOFBF`
+   (`LOG_WRITE_BUFFER_SIZE`-byte real buffer — a log write under the lock becomes a `memcpy`, and the actual
+   syscall only happens once the buffer fills). **Measured impact of this alone: none** — re-benchmarking after
+   this change showed no measurable difference from the un-buffered baseline, meaning the syscall wasn't the
+   dominant cost ; the mutex itself (contention/context-switching among threads waiting on it) or the per-request
+   formatting work were. This is why the "disable logging entirely" experiment above was run next, to settle
+   whether pursuing this further was worth it at all before writing more code — it was.
+   - **A real correctness bug found while verifying this**: the doc comment originally (incorrectly) assumed a
+     clean shutdown's `exit()` call reliably flushes buffered stdio streams. Verified live, repeatedly, that it
+     does not fire reliably from `AmmServer_GlobalTerminationHandler()`'s signal-handler context — SIGINT/SIGHUP/
+     SIGTERM all call `exit(0)` *directly from inside the signal handler* and never reach `AmmServer_Stop()` at
+     all. Fixed with a new `FlushAccessAndErrorLogs()` (`tools/logs.h`/`.c`), called explicitly from both
+     `AmmServer_Stop()` and `AmmServer_GlobalTerminationHandler()`. Verified live: 0 buffered lines visible before
+     shutdown, all present immediately after a clean `kill`. (Also burned real time on a **self-inflicted false
+     alarm** while verifying this: a test script ran `rm -f log/....log` *after* the server had already opened
+     that file for its own startup log line, unlinking it out from under an open `FILE*` — every subsequent write,
+     buffered or not, silently went to an orphaned, unreadable inode. Lesson: never delete a log file a live
+     process already has open when testing anything log-related.)
+2. **`LOG_SHARD_COUNT`** (`server_configuration.h`, default `16`) — splits `AccessLogAppend()`/`ErrorLogAppend()`
+   across N independent `{FILE*, mutex, poll-counter}` triples, each with its own on-disk file
+   (`<original>.<shardIndex>`, same "append an index" convention `compressLog()`'s own rotation already uses),
+   selected per-call via a hash of the calling thread so concurrent threads mostly land on different shards and
+   stop contending with each other at all. `LOG_SHARD_COUNT=1` is not an approximation of the old behavior — the
+   sharding logic is skipped entirely and the original single filename (no suffix) is used, verified identical.
+   **Measured impact: recovered nearly all of the gap** — 16 shards brought static from ~123-128K to ~168-188K
+   req/s and dynamic from ~128-130K to ~196-206K req/s (both reproduced across 2 runs), closing in on the
+   "logging fully disabled" ceiling above without actually giving up logging.
+   - **A real bug found and fixed while building this**: the first version hashed `pthread_self() % N`. Verified
+     live that this collapsed *every* thread onto shard 0 — 41/41 requests landed in one file. Root cause: glibc's
+     `pthread_t` is a pointer to the thread's control block, and thread stacks are allocated on aligned
+     boundaries, so its low bits are reliably zero — a small power-of-two modulus of a pointer is not a hash.
+     Fixed by hashing `gettid()` instead (via raw `syscall(SYS_gettid)`, since the glibc wrapper needs
+     `_GNU_SOURCE` visibility this project's build doesn't guarantee) — a small, sequentially-assigned kernel
+     integer with no alignment padding, verified to spread across multiple distinct shard files under concurrent
+     load.
+   - **Tradeoff, not yet automated**: N shard files instead of one means anyone tailing logs by hand, or
+     `scripts/enforceBanlist.sh` scanning for abuse patterns, needs to check all N files (or merge them — trivial
+     in principle, each line already carries its own `[timestamp]`, so a k-way merge by timestamp across N open
+     files reconstitutes one chronological log ; not built here).
+
+**Not pursued further**: fully async logging (request thread enqueues a preformatted line, a dedicated writer
+thread owns all `fprintf`/`write`/`compressLog` work) was the third option discussed and is still the theoretical
+ceiling — no lock held across formatting at all, versus sharding's "a much-less-contended lock, still held
+synchronously." Sharding already closed nearly the whole gap for the concurrency levels tested (c=100/200) at a
+fraction of the complexity (no new thread, no queue, no durability-window change beyond what buffering already
+introduced), so the added complexity of a queue + writer thread wasn't judged worth it without evidence it's
+still needed — would want to re-measure at meaningfully higher concurrency before revisiting.
+
 **`monitor.html` has no visible access control** and exposes live internal server state (active thread count,
 open files, cache memory usage, upload/download counters, and a per-thread listing) to anyone who can reach the
 resource. It also renders a "STOP" link per thread that is **entirely decorative** — the handler reads the

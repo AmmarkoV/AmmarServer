@@ -165,6 +165,8 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
   if (instance!=0)                  { free(instance); }
 
+  FlushAccessAndErrorLogs(); //See LOG_LINE_BUFFERED (server_configuration.h) - guarantees buffered log data isn't lost here
+
   warningID(ASV_WARNING_STOP_COMPLETED);
   return 1;
 }
@@ -979,6 +981,12 @@ void AmmServer_GlobalTerminationHandler(int signum)
 
         usleep(1000);
 
+        //This is the actual shutdown path for SIGINT/SIGHUP/SIGTERM - it calls exit(0) itself below rather than
+        //going through AmmServer_Stop() ( verified live : the running example services register this handler and
+        //call exit(0) directly from inside it, so their own main-loop's eventual AmmServer_Stop() call is never
+        //reached on a signal-driven stop ). Flush explicitly here for the same reason AmmServer_Stop() does -
+        //see LOG_LINE_BUFFERED's doc comment ( server_configuration.h ).
+        FlushAccessAndErrorLogs();
 
         fprintf(stderr,"goodbye ..\n");
         exit(0);

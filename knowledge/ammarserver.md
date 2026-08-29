@@ -372,20 +372,40 @@ installs the apt packages needed to build; `scripts/install.sh` / `uninstall.sh`
   `--reconfigure` forces it).
 - `scripts/benchmark_ammarserver.sh` — reusable wrk-based matrix benchmark (static + dynamic content, multiple
   concurrency levels), can start a local instance or point at any URL (`--url`), and compare two servers
-  side-by-side (`--compare-url`, with a `--compare-label` for the printed header and `--static-only` to skip the
-  dynamic-resource half of the matrix when the comparison target has no equivalent).
+  side-by-side (`--compare-url`, with a `--compare-label` for the printed header, `--static-only` to skip the
+  dynamic-resource half of the matrix when the comparison target has no equivalent, and
+  `--compare-static-resource`/`--compare-dynamic-resource` when the comparison target needs to serve the
+  equivalent content at a *different* path than AmmarServer does — added specifically for `benchmark_vs_apache.sh`
+  below, since staging files into a real Apache docroot under AmmarServer's own `/logo.png`/`/primes.html` names
+  would risk colliding with real content there).
 - `scripts/benchmark_vs_nginx.sh` — static-file-only AmmarServer-vs-nginx comparison, built on the two scripts
   above: builds nginx if needed, starts a throwaway nginx instance (`daemon off`, `worker_processes auto` — one
   worker per core, nginx's normal production setting, not artificially capped to one — own temp prefix dir under
   `/tmp`, nothing touching any system nginx) serving the same `public_html/` webroot AmmarServer serves, then
   delegates to `benchmark_ammarserver.sh --compare-url ... --static-only`. No dynamic-content comparison — nginx
   has no equivalent to AmmarServer's C-callback `SAME_PAGE` resources without a separate FastCGI/PHP-FPM
-  pipeline (see `scripts/benchmark_primes.php` below for that class of comparison, done against Apache+mod_php
-  instead). Verified live end-to-end, default settings (`c=10,100,200`, `d=8s`, `public_html/logo.png`), both
-  servers cleaned up correctly afterward (no leftover processes or temp files) : AmmarServer ~125-130K req/s
-  flat across all three concurrency levels ; nginx ~140K at c=10 but ~260K at c=100/200 (multi-worker fan-out
-  kicking in on this 16-core machine — capping nginx to `worker_processes 1` for an "easier" comparison was
-  tried first and produced a misleadingly favorable ~48K req/s for nginx ; corrected to `auto` for a fair,
-  representative result before treating either number as meaningful).
+  pipeline (see `benchmark_vs_apache.sh` below for that class of comparison). Verified live end-to-end, default
+  settings (`c=10,100,200`, `d=8s`, `public_html/logo.png`), both servers cleaned up correctly afterward (no
+  leftover processes or temp files) : AmmarServer ~125-130K req/s flat across all three concurrency levels ;
+  nginx ~140K at c=10 but ~260K at c=100/200 (multi-worker fan-out kicking in on this 16-core machine — capping
+  nginx to `worker_processes 1` for an "easier" comparison was tried first and produced a misleadingly favorable
+  ~48K req/s for nginx ; corrected to `auto` for a fair, representative result before treating either number as
+  meaningful). **These AmmarServer numbers predate the `LOG_SHARD_COUNT` fix below and are now stale** — a
+  same-methodology re-run afterward (see `benchmark_vs_apache.sh`'s numbers) showed AmmarServer at ~150-180K for
+  the same kind of static request ; re-run `benchmark_vs_nginx.sh` before treating this specific comparison as current.
+- `scripts/benchmark_vs_apache.sh` — AmmarServer vs. a real, already-running Apache instance (unlike the nginx
+  script, this one never starts/stops/reconfigures Apache itself — it's treated as a normal system service that's
+  assumed to already be running, same as any other site it might be hosting). Auto-detects Apache's `DocumentRoot`
+  from `/etc/apache2/sites-enabled/*.conf` (override with `--apache-root`), stages two distinctively-named files
+  there (`ammarserver_bench_logo.png`, `ammarserver_bench_primes.php` — refuses to run at all if either name
+  already exists, so it can never clobber real content), runs both the static-file *and* the C-vs-PHP
+  compute-bound comparison (`scripts/benchmark_primes.php`, staged automatically — see below), and removes the
+  staged files again on exit however the script exits. Verified live end-to-end, twice for reproducibility,
+  default settings (`c=20,100,200`) : static (byte-identical 15.9KB PNG on both sides now, no more "not
+  byte-identical content" caveat) AmmarServer ~150-182K req/s vs Apache ~107-119K ; compute-bound C-vs-PHP
+  AmmarServer ~38-41K req/s vs Apache ~1.9-2.3K req/s (~17-22x), Apache developing socket timeouts at c=200
+  (129ms average / 1.99s worst-case latency) while AmmarServer stays at 0.5-4.9ms average throughout. These are
+  the numbers now published in the top-level README.
 - `scripts/benchmark_primes.php` — a PHP port of the `/primes.html` C callback (Sieve of Eratosthenes), for
-  comparing compiled-C vs interpreted-PHP compute performance under a real web server (Apache+mod_php).
+  comparing compiled-C vs interpreted-PHP compute performance under a real web server (Apache+mod_php) —
+  `scripts/benchmark_vs_apache.sh` stages/removes a copy of this automatically now, no manual deployment needed.

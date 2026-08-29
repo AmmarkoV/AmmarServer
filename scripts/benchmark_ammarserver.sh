@@ -17,6 +17,14 @@
 #                                                                                         plain static server like
 #                                                                                         nginx with nothing dynamic
 #                                                                                         registered at that path )
+#   scripts/benchmark_ammarserver.sh --compare-url http://127.0.0.1:80 \
+#     --compare-static-resource /staged.png --compare-dynamic-resource /staged.php     # compare target serves the
+#                                                                                       # equivalent content at a
+#                                                                                       # different path than
+#                                                                                       # AmmarServer does ( e.g.
+#                                                                                       # a real Apache docroot you
+#                                                                                       # don't want to overwrite
+#                                                                                       # existing files in )
 #
 # Requires wrk. If it isn't already built at 3dparty/wrk/wrk or on PATH, this script builds it there
 # ( git clone + make, same as this repo already does for reference sources under 3dparty/ ).
@@ -35,6 +43,8 @@ BINARY="$REPO_ROOT/src/Services/AmmarServer/ammarserver"
 WEBROOT="$REPO_ROOT/public_html/"
 STATIC_RESOURCE="/logo.png"
 DYNAMIC_RESOURCE="/stats.html"
+COMPARE_STATIC_RESOURCE=""
+COMPARE_DYNAMIC_RESOURCE=""
 TARGET_URL=""
 COMPARE_URL=""
 COMPARE_LABEL="Comparison target"
@@ -50,6 +60,8 @@ while [ $# -gt 0 ]; do
     --root) WEBROOT="$2"; shift 2 ;;
     --static-resource) STATIC_RESOURCE="$2"; shift 2 ;;
     --dynamic-resource) DYNAMIC_RESOURCE="$2"; shift 2 ;;
+    --compare-static-resource) COMPARE_STATIC_RESOURCE="$2"; shift 2 ;;
+    --compare-dynamic-resource) COMPARE_DYNAMIC_RESOURCE="$2"; shift 2 ;;
     --url) TARGET_URL="$2"; shift 2 ;;
     --compare-url) COMPARE_URL="$2"; shift 2 ;;
     --compare-label) COMPARE_LABEL="$2"; shift 2 ;;
@@ -112,12 +124,12 @@ if [ -z "$TARGET_URL" ]; then
 fi
 
 run_matrix() {
-  local label="$1" base_url="$2"
+  local label="$1" base_url="$2" static_resource="$3" dynamic_resource="$4"
   echo ""
   echo "=== $label ($base_url) ==="
-  local resource_pairs="static:$STATIC_RESOURCE"
+  local resource_pairs="static:$static_resource"
   if [ "$STATIC_ONLY" -eq 0 ]; then
-    resource_pairs="$resource_pairs dynamic:$DYNAMIC_RESOURCE"
+    resource_pairs="$resource_pairs dynamic:$dynamic_resource"
   fi
   for resource_label_pair in $resource_pairs; do
     resource_label="${resource_label_pair%%:*}"
@@ -130,10 +142,12 @@ run_matrix() {
   done
 }
 
-run_matrix "AmmarServer" "$TARGET_URL"
+run_matrix "AmmarServer" "$TARGET_URL" "$STATIC_RESOURCE" "$DYNAMIC_RESOURCE"
 
 if [ -n "$COMPARE_URL" ]; then
-  run_matrix "$COMPARE_LABEL" "$COMPARE_URL"
+  compare_static_resource="${COMPARE_STATIC_RESOURCE:-$STATIC_RESOURCE}"
+  compare_dynamic_resource="${COMPARE_DYNAMIC_RESOURCE:-$DYNAMIC_RESOURCE}"
+  run_matrix "$COMPARE_LABEL" "$COMPARE_URL" "$compare_static_resource" "$compare_dynamic_resource"
 fi
 
 echo ""

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 // --------------------------------------------
 #include "logs.h"
 #include "http_tools.h"
@@ -84,8 +86,6 @@ char *warningIDs[] =
 
 
 
-unsigned int logAccessPolls=0;
-unsigned int logErrorPolls=0;
 //This is a sample Apache access.log entry
 //184.82.219.85 - - [05/Feb/2012:07:28:19 +0200] "GET /~ammar/guard_dog_project/blogs/index.php/2010/02/22/video-room-test?blog=1 HTTP/1.0" 301 528 "-" "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0)"
 //99.100.183.119 - - [05/Feb/2012:07:40:22 +0200] "GET /~ammar/guard_dog_project/blogs/skins/evopress/img/kubrickbgcolor.jpg HTTP/1.1" 200 2135 "http://ammar.gr/gddg/" "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"
@@ -175,30 +175,61 @@ int compressLog(const char * filename,unsigned int accessTimes)
 }
 
 
-static FILE * AccessLogFile = 0;
-static pthread_mutex_t AccessLogMutex = PTHREAD_MUTEX_INITIALIZER;
+//See LOG_SHARD_COUNT's doc comment ( server_configuration.h ) for what/why this splits across.
+static void GetShardedLogFilename(const char * baseFilename,unsigned int shardIndex,char * out,unsigned int outSize)
+{
+    if (LOG_SHARD_COUNT<=1) { snprintf(out,outSize,"%s",baseFilename); }
+    else                    { snprintf(out,outSize,"%s.%u",baseFilename,shardIndex); }
+}
+
+//Which shard this calling thread's log line goes to - deliberately gettid() ( a small, sequentially-assigned
+//kernel thread ID ) and not pthread_self() : pthread_t is glibc's pointer to the thread's control block, and
+//thread stacks are allocated on aligned boundaries - found live that its low bits are always 0, so
+//`pthread_self() % LOG_SHARD_COUNT` collapsed every single thread onto shard 0, defeating the entire point.
+//gettid() has no such alignment, and different threads get different, non-power-of-two-aligned small integers.
+static unsigned int GetLogShardForCurrentThread(void)
+{
+    if (LOG_SHARD_COUNT<=1) { return 0; }
+    //syscall(SYS_gettid) directly rather than glibc's gettid() wrapper : the wrapper needs _GNU_SOURCE feature-
+    //test-macro visibility to even be declared, which isn't guaranteed under this project's build flags ( showed
+    //up as an ugly "implicit declaration" warning ) - the raw syscall avoids that dependency entirely.
+    return (unsigned int)( (unsigned long)syscall(SYS_gettid) % LOG_SHARD_COUNT );
+}
+
+static FILE * AccessLogFile[LOG_SHARD_COUNT] = {0};
+static pthread_mutex_t AccessLogMutex[LOG_SHARD_COUNT] = { [0 ... LOG_SHARD_COUNT-1] = PTHREAD_MUTEX_INITIALIZER };
+static unsigned int logAccessPollsShard[LOG_SHARD_COUNT] = {0};
 
 int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
 {
     if (!AccessLogEnable) { return 0; }
 
-    pthread_mutex_lock(&AccessLogMutex);
+    unsigned int shard = GetLogShardForCurrentThread();
+    pthread_mutex_lock(&AccessLogMutex[shard]);
 
-    if ( logAccessPolls % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
+    char shardFilename[MAX_FILE_PATH];
+    GetShardedLogFilename(AccessLog,shard,shardFilename,sizeof(shardFilename));
+
+    if ( logAccessPollsShard[shard] % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
     {
         //compressLog may rename/gzip this file from under us , so release our handle to it before calling it and
         //let it get lazily reopened ( against the fresh file ) right below
-        if (AccessLogFile!=0) { fclose(AccessLogFile); AccessLogFile=0; }
-        compressLog(AccessLog,logAccessPolls);
+        if (AccessLogFile[shard]!=0) { fclose(AccessLogFile[shard]); AccessLogFile[shard]=0; }
+        compressLog(shardFilename,logAccessPollsShard[shard]);
     }
 
-    if (AccessLogFile==0)
+    if (AccessLogFile[shard]==0)
     {
-        AccessLogFile = fopen (AccessLog, "a");
-        if (AccessLogFile==0) { pthread_mutex_unlock(&AccessLogMutex); return 0; }
-        setvbuf(AccessLogFile,0,_IOLBF,0);
+        AccessLogFile[shard] = fopen (shardFilename, "a");
+        if (AccessLogFile[shard]==0) { pthread_mutex_unlock(&AccessLogMutex[shard]); return 0; }
+        //See LOG_LINE_BUFFERED's doc comment ( server_configuration.h ) for the speed-vs-durability tradeoff this switches.
+        #if LOG_LINE_BUFFERED
+         setvbuf(AccessLogFile[shard],0,_IOLBF,0);
+        #else
+         setvbuf(AccessLogFile[shard],0,_IOFBF,LOG_WRITE_BUFFER_SIZE);
+        #endif
     }
-    FILE * pFile = AccessLogFile;
+    FILE * pFile = AccessLogFile[shard];
 
 
     char nullIP[10]={"0.0.0.0"};
@@ -242,36 +273,46 @@ int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,un
                   UseragentPtr
              );
 
-    ++logAccessPolls;
-    pthread_mutex_unlock(&AccessLogMutex);
+    ++logAccessPollsShard[shard];
+    pthread_mutex_unlock(&AccessLogMutex[shard]);
     return 1;
 }
 
 
-static FILE * ErrorLogFile = 0;
-static pthread_mutex_t ErrorLogMutex = PTHREAD_MUTEX_INITIALIZER;
+static FILE * ErrorLogFile[LOG_SHARD_COUNT] = {0};
+static pthread_mutex_t ErrorLogMutex[LOG_SHARD_COUNT] = { [0 ... LOG_SHARD_COUNT-1] = PTHREAD_MUTEX_INITIALIZER };
+static unsigned int logErrorPollsShard[LOG_SHARD_COUNT] = {0};
 
 int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
 {
     if (!ErrorLogEnable) { return 0; }
 
-    pthread_mutex_lock(&ErrorLogMutex);
+    unsigned int shard = GetLogShardForCurrentThread();
+    pthread_mutex_lock(&ErrorLogMutex[shard]);
 
-    if ( logErrorPolls % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
+    char shardFilename[MAX_FILE_PATH];
+    GetShardedLogFilename(ErrorLog,shard,shardFilename,sizeof(shardFilename));
+
+    if ( logErrorPollsShard[shard] % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
     {
         //compressLog may rename/gzip this file from under us , so release our handle to it before calling it and
         //let it get lazily reopened ( against the fresh file ) right below
-        if (ErrorLogFile!=0) { fclose(ErrorLogFile); ErrorLogFile=0; }
-        compressLog(ErrorLog,logErrorPolls);
+        if (ErrorLogFile[shard]!=0) { fclose(ErrorLogFile[shard]); ErrorLogFile[shard]=0; }
+        compressLog(shardFilename,logErrorPollsShard[shard]);
     }
 
-    if (ErrorLogFile==0)
+    if (ErrorLogFile[shard]==0)
     {
-        ErrorLogFile = fopen (ErrorLog, "a");
-        if (ErrorLogFile==0) { pthread_mutex_unlock(&ErrorLogMutex); return 0; }
-        setvbuf(ErrorLogFile,0,_IOLBF,0);
+        ErrorLogFile[shard] = fopen (shardFilename, "a");
+        if (ErrorLogFile[shard]==0) { pthread_mutex_unlock(&ErrorLogMutex[shard]); return 0; }
+        //See LOG_LINE_BUFFERED's doc comment ( server_configuration.h ) for the speed-vs-durability tradeoff this switches.
+        #if LOG_LINE_BUFFERED
+         setvbuf(ErrorLogFile[shard],0,_IOLBF,0);
+        #else
+         setvbuf(ErrorLogFile[shard],0,_IOFBF,LOG_WRITE_BUFFER_SIZE);
+        #endif
     }
-    FILE * pFile = ErrorLogFile;
+    FILE * pFile = ErrorLogFile[shard];
 
 
     char nullIP[10]={"0.0.0.0"};
@@ -315,7 +356,26 @@ int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,uns
                   UseragentPtr
              );
 
-    ++logErrorPolls;
-    pthread_mutex_unlock(&ErrorLogMutex);
+    ++logErrorPollsShard[shard];
+    pthread_mutex_unlock(&ErrorLogMutex[shard]);
     return 1;
+}
+
+
+void FlushAccessAndErrorLogs(void)
+{
+    unsigned int i;
+    for (i=0; i<LOG_SHARD_COUNT; i++)
+    {
+        pthread_mutex_lock(&AccessLogMutex[i]);
+        if (AccessLogFile[i]!=0) { fflush(AccessLogFile[i]); }
+        pthread_mutex_unlock(&AccessLogMutex[i]);
+    }
+
+    for (i=0; i<LOG_SHARD_COUNT; i++)
+    {
+        pthread_mutex_lock(&ErrorLogMutex[i]);
+        if (ErrorLogFile[i]!=0) { fflush(ErrorLogFile[i]); }
+        pthread_mutex_unlock(&ErrorLogMutex[i]);
+    }
 }

@@ -126,4 +126,14 @@ void warning(const char * msg);
 int AccessLogAppend(const char * IP,const  char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent);
 int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent);
 
+/** @brief Explicitly flushes any not-yet-written buffered log data ( see LOG_LINE_BUFFERED , server_configuration.h )
+           to disk. A no-op, harmless to call, when LOG_LINE_BUFFERED=1 ( every line is already written immediately ).
+           Call this on every recognized clean-shutdown path - do NOT rely on the C runtime's exit()-time stdio
+           flush instead : verified live that it does not reliably run from AmmServer_GlobalTerminationHandler()'s
+           signal-handler context ( SIGINT/SIGHUP/SIGTERM all call exit(0) directly from inside the handler,
+           never reaching AmmServer_Stop() at all ), so an explicit call is the only guaranteed way to not lose
+           the last buffer's worth of log lines on an otherwise-clean stop.
+* @ingroup logs */
+void FlushAccessAndErrorLogs(void);
+
 #endif // LOGS_H_INCLUDED

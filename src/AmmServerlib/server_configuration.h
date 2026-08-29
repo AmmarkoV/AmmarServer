@@ -251,6 +251,54 @@ extern int MAX_SESSIONS;
 /**  @brief Number of accesses between log checks..!*/
 #define POLL_LOG_SIZES_EVERY_X_ACCESSES 200
 
+/** @brief Access/error log write buffering mode ( applied via setvbuf() in AccessLogAppend()/ErrorLogAppend(),
+           tools/logs.c ) - a straight speed-vs-durability tradeoff, since every log write happens under a
+           single global mutex ( AccessLogMutex/ErrorLogMutex ) shared by every request-serving thread :
+             1 = _IOLBF ( line-buffered, the historical/safe default ). Every log line ends in '\n', so every
+                 single logged request costs a real write() syscall *while holding that mutex* - under
+                 concurrent load this serializes every thread through a syscall, one at a time, on every
+                 request. Safest option : nothing can ever be lost except the one line ( if any ) that was
+                 actively mid-write at the exact moment of an unrecognized-signal hard kill - everything before
+                 it is already durably on disk the instant each fprintf() returns.
+             0 = _IOFBF ( fully buffered, LOG_WRITE_BUFFER_SIZE bytes ). Log lines accumulate in a real
+                 userspace buffer under the mutex - just a memcpy, no syscall - and only cost an actual write()
+                 once that buffer fills ( or the log file gets reopened, e.g. by compressLog() ). Substantially
+                 less lock-hold time and contention on the request-serving hot path under concurrent load. Cost:
+                 up to one full LOG_WRITE_BUFFER_SIZE buffer's worth of the most recent, not-yet-flushed log
+                 lines per log file can be lost - not just observability history, but also whatever evidence of
+                 a request burst scripts/enforceBanlist.sh would otherwise have mined from those lines to ban an
+                 abusive IP. AmmServer_Stop() and AmmServer_GlobalTerminationHandler() ( main.c ) both call
+                 FlushAccessAndErrorLogs() ( tools/logs.h ) specifically to close this window on every
+                 *recognized* clean-stop path ( including SIGINT/SIGHUP/SIGTERM - do NOT assume the C runtime's
+                 own exit()-time stdio flush covers this on its own : verified live that it does not reliably
+                 fire from AmmServer_GlobalTerminationHandler()'s signal-handler context, which is why the
+                 explicit call exists ). The loss window only actually applies to a genuinely unrecognized kill
+                 ( SIGKILL, a segfault, `kill -9`, power loss ).
+           Benchmark this against your own traffic pattern before flipping it - see scripts/benchmark_ammarserver.sh. */
+#define LOG_LINE_BUFFERED 0
+/** @brief Buffer size used for log writes when LOG_LINE_BUFFERED is 0 ( _IOFBF ) - irrelevant when it's 1. */
+#define LOG_WRITE_BUFFER_SIZE (64*1024)
+
+/** @brief Number of independent access-log ( and, separately, error-log ) shards - each with its own FILE*, own
+           mutex, and own on-disk file - that AccessLogAppend()/ErrorLogAppend() ( tools/logs.c ) split writes
+           across, to cut lock contention under concurrent load : every logging thread hashes to exactly one
+           shard ( currently `pthread_self() % LOG_SHARD_COUNT` ) and only ever contends with the other threads
+           that hash to that *same* shard, not with all of them.
+             1 = the historical, single-file/single-mutex behaviour, byte-for-byte - this is not an approximation,
+                 the sharding logic is skipped entirely and the exact original filename is used with no suffix.
+             >1 = that many files, named `<original>.0`, `<original>.1`, ... `<original>.N-1` ( same "append an
+                 index" convention compressLog() already uses for rotated files, e.g. `access.log.3.gz` ), each
+                 independently written, buffered ( per LOG_LINE_BUFFERED ), rotated ( per COMPRESS_LOG_FILE_AFTER_THIS_SIZE )
+                 and flushed ( FlushAccessAndErrorLogs() covers every shard ). No coordination between shards at
+                 all beyond the hash picking one - that's the entire point.
+           Reconstituting one chronological log from N shards is a trivial k-way merge : open all N files, read
+           the timestamp bracket `[...]` each line already carries, repeatedly take whichever open file's next
+           line has the earliest timestamp. Not automated here - scripts/enforceBanlist.sh and anyone tailing
+           logs by hand need to know to look at all N files (or merge them) once this is set above 1.
+           Benchmark this against your own traffic pattern - see scripts/benchmark_ammarserver.sh - there's no
+           reason to believe any particular N is right without measuring your own concurrency level. */
+#define LOG_SHARD_COUNT 16
+
 
 extern int  AccessLogEnable;
 extern char AccessLog[MAX_FILE_PATH];
