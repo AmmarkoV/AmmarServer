@@ -99,6 +99,18 @@ int hashMap_PrepareForQueries(struct hashMap *hm);
 int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int valLength);
 
 /**
+* @brief Remove a single entry by key ( frees its key always , and its payload unless it was stored as a raw
+*        pointer via valLength=0 with no clearItemCallbackFunction set - matching hashMap_Clear()'s per-entry
+*        cleanup rules exactly ). Compacts by swapping the last live entry into the removed slot ( O(1) ,
+*        matches the existing hashmap_SwapRecords() semantics ) rather than shifting everything down , which
+*        breaks sort order the same way hashMap_Add() already does - marks the map unsorted.
+* @ingroup hashmap
+* @param HashMap
+* @param String with the key to remove
+* @retval 1=Removed,0=Not found / failure */
+int hashMap_RemoveKey(struct hashMap * hm,const char * key);
+
+/**
 * @brief Add a new key ( integer )  to hash map
 * @ingroup hashmap
 * @param HashMap
@@ -158,8 +170,25 @@ unsigned long hashMap_GetHashAtIndex(struct hashMap * hm,unsigned int index);
 * @param HashMap
 * @param Input String of key
 * @param Output Pointer of payload
-* @retval 1=Success,0=Failure */
+* @retval 1=Success,0=Failure
+* @bug `payload` is passed by value , so `payload = hm->entries[i].payload;` inside this function only ever
+*      reassigns the local copy - the caller never receives anything. Currently unreachable ( grep confirms
+*      nothing in the repo calls it ) , but a live bug for whoever calls it next. Not fixed here - use
+*      hashMap_GetPayloadAtIndex() ( together with hashMap_FindIndex() ) instead , which actually works. */
 int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload);
+
+/**
+* @brief Return a borrowed pointer to the payload stored at a given index ( the correct, working equivalent of
+*        the broken hashMap_GetPayload() above - pair with hashMap_FindIndex() to look up by key first ).
+*        Mirrors hashMap_GetKeyAtIndex()'s existing pattern ( same index space, not separately locked - callers
+*        needing thread safety across a find+use sequence must hold their own lock around both calls, same as
+*        hashMap_GetKeyAtIndex() already requires ).
+* @ingroup hashmap
+* @param HashMap
+* @param Index number
+* @param Output : length of the payload ( 0 if it was stored as a raw pointer via valLength=0 ) , may be 0/NULL
+* @retval Pointer to the payload , or 0 for no such index */
+void * hashMap_GetPayloadAtIndex(struct hashMap * hm,unsigned int index,unsigned int * payloadLength);
 
 /**
 * @brief Return numerical payload for specified key

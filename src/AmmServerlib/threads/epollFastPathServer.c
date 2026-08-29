@@ -159,8 +159,15 @@ static enum FastPathOneRequestResult TryServeOneRequest(struct AmmServer_Instanc
        (*cache[index].contentSize==0) || (*cache[index].contentSize>FASTPATH_MAX_BODY_SIZE) )
    { return FASTPATH_INELIGIBLE; } //not a simple in-memory buffer this fast path is willing to handle - all still pre-consume
 
-  int keepalive = (strcasestr(peek,"keep-alive")!=0); //matches AnalyzeHTTPLineRequest's HTTPHEADER_CONNECTION
-                                                        //check : keepalive defaults to false unless explicitly set
+  //keepalive default : matches ProcessFirstHTTPLine()/AnalyzeHTTPLineRequest()'s HTTPHEADER_CONNECTION logic -
+  //HTTP/1.1 defaults to keep-alive unless the client explicitly asks to close ; HTTP/1.0 defaults the other
+  //way , keep-alive there is opt-in only. This is a byte-peeking approximation of that same logic ( no
+  //structured header parsing here ) , close enough given a miscategorization here just costs a connection
+  //being closed/kept a little differently than the real parser would , not a correctness issue.
+  int is_http_1_0 = (strcasestr(peek," HTTP/1.0")!=0);
+  int says_close  = (strcasestr(peek,"\nConnection: close")!=0) || (strcasestr(peek,"\nConnection:close")!=0);
+  int says_keepalive = (strcasestr(peek,"keep-alive")!=0);
+  int keepalive = is_http_1_0 ? says_keepalive : !says_close;
 
   //--- Eligible. Everything past this point actually consumes the request. ---
   char discard[FASTPATH_PEEK_CAP+1];
@@ -185,7 +192,9 @@ static enum FastPathOneRequestResult TryServeOneRequest(struct AmmServer_Instanc
   unsigned char allowOtherOrigins=0;
   char * cached_buffer = cache_GetResource(instance,&dummyRequest,index,verified_filename,sizeof(verified_filename),
                                             &index,&cached_lSize,0,&compressionSupported,&freeContentAfterUsingIt,
-                                            &serveAsRegularFile,&allowOtherOrigins);
+                                            &serveAsRegularFile,&allowOtherOrigins,0,0); //Fast path never serves dynamic
+                                            //content ( see top-of-file design comment ) so it can never have a pending
+                                            //Set-Cookie header to emit - no output buffer needed here.
 
   if ( (cached_buffer==0) || (cached_lSize==0) || (cached_lSize>FASTPATH_MAX_BODY_SIZE) || (compressionSupported) )
    { //Defensive only - the pre-consume check above should already guarantee this doesn't happen

@@ -143,6 +143,33 @@ int checkIfItIsAValidYTID(const char * videoID)
 }
 
 
+//A YouTube video's title is attacker-influenceable ( anyone can title a video anything ) , and this codebase
+//uses it - unescaped - to build both a filename ( videoFilename/videoFilenameFull below ) and , via
+//generateThumbnailOfVideo() in thumbnailer.c , a double-quoted ffmpeg shell argument. Whitelisting it to safe
+//filename/shell characters here , at the point the untrusted title first enters the system , protects every
+//downstream use in one place. Same whitelist-filter pattern already used for exactly this reason in
+//Services/ImageGeneration/main.c's filterQuery() - a good candidate to share as one AmmServerlib function
+//rather than duplicate , if a third place ever needs it.
+void filterVideoTitleToSafeText(char * title)
+{
+  unsigned int len = strlen(title);
+  unsigned int i=0;
+  for (i=0; i<len; i++)
+  {
+     if ( (title[i]==10)  || (title[i]==13) )  { title[i]=0; break; } else //stop at the trailing newline youtube-dl's output includes
+     if ( (title[i]=='.') || (title[i]==',') ) { } else
+     if ( (title[i]=='(') || (title[i]==')') ) { } else
+     if ( (title[i]=='-') || (title[i]=='_') ) { } else
+     if ( (title[i]>='a')  && (title[i]<='z') ) { } else
+     if ( (title[i]>='A')  && (title[i]<='Z') ) { } else
+     if ( (title[i]>='0')  && (title[i]<='9') ) { } else
+     if (   title[i]==' ' )                    { } else
+        {
+          title[i]=' ';
+        }
+  }
+}
+
 int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
 {
   //YOutube code currently disabled..
@@ -164,6 +191,7 @@ int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
       snprintf(addVideoToOurList,1024,"youtube-dl -e -w -o \"%s/%%(title)s.%%(ext)s\" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \"https://www.youtube.com/watch?v=%s\" ",video_root,videoID);
 
       AmmServer_ExecuteCommandLine(addVideoToOurList,videoTitle ,1024);
+      filterVideoTitleToSafeText(videoTitle); //see the comment on this function - the raw title is untrusted
       fprintf(stderr,"Video title is ( %s ) .. \n",videoTitle);
       snprintf(videoFilename,1024,"%s.mp4",videoTitle);
       fprintf(stderr,"Video filename is ( %s ) .. \n",videoFilename);

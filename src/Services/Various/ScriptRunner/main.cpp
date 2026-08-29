@@ -117,6 +117,23 @@ void replaceChar(char * input , char findChar , char replaceWith)
   return ;
 }
 
+//The "say" command's text ( see the "say" branch below ) comes straight from the client's ?say= GET parameter
+//and gets embedded , unescaped , as a "value: '...'" field INSIDE an already double-quoted rostopic shell
+//argument - a '"' in the text breaks out of the shell's own quoting , a "'" breaks the message's own inner
+//quoting. Spoken text can legitimately contain UTF-8 multi-byte characters ( see the hardcoded Greek test
+//string just below ) so this can't be a strict ASCII-only whitelist - it blanks out just the specific bytes
+//that are dangerous in this exact position and leaves everything else , UTF-8 included , untouched.
+void filterSpokenTextForSafety(char * text)
+{
+  unsigned int len = strlen(text);
+  unsigned int i=0;
+  for (i=0; i<len; i++)
+  {
+    unsigned char c = (unsigned char) text[i];
+    if ( (c=='"') || (c=='\'') || (c=='`') || (c=='$') || (c=='\\') || (c==';') || (c<' ') ) { text[i]=' '; }
+  }
+}
+
 
 //This function prepares the content of  stats context , ( stats.content )
 void * prepare_index_content_callback(struct AmmServer_DynamicRequest  * rqst)
@@ -432,6 +449,7 @@ void execute(char * command,char * param)
 
 
      replaceChar(internalString,'+',' ');
+     filterSpokenTextForSafety(internalString); //internalString is client-controlled ( ?say= ) , see the comment on this function
 
      //rostopic pub /ActionSequence HobbitMsgs/Command "{command: 'C_SPEAK' , params: [ name: 'INFO' , value: 'lobbit' ] }" -1
      sprintf(commandToRun,"rostopic pub /ActionSequence hobbit_msgs/Command \"{command: 'C_SPEAK' , params: [ {name: 'INFO' , value: '%s'} ] }\" -1\n",internalString);

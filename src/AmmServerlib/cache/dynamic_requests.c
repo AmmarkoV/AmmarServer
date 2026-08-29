@@ -8,6 +8,7 @@
 #include "../server_configuration.h"
 #include "../tools/logs.h"
 #include "../tools/time_provider.h"
+#include "../header_analysis/cookie_data.h"
 
 
 /**
@@ -169,7 +170,9 @@ char * dynamicRequest_serveContent
             unsigned char * compressionSupported,
             unsigned char * freeContentAfterUsingIt,
             unsigned char * contentContainsPathToFileToBeStreamed,
-            unsigned char * allowOtherOrigins
+            unsigned char * allowOtherOrigins,
+            char * pendingResponseHeadersOut,
+            unsigned int pendingResponseHeadersOutSize
           )
 {
   #if DISABLE_DYNAMIC_REQUESTS
@@ -277,6 +280,8 @@ char * dynamicRequest_serveContent
         if (rqst!=0)
                     {
                      memcpy(rqst , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
+                     rqst->pendingResponseHeaders[0]=0; //Never inherit a stale Set-Cookie from shared_context's template
+                     rqst->sessionToken[0]=0; //Never inherit a stale/unrelated session token either - populated below only if useSessionLifecycle is set
 
                      rqst->POSTItemNumber = request->POSTItemNumber;
                      rqst->POSTItem       = request->POSTItem;       //<- NEVER free this here since it is stack allocated..
@@ -294,12 +299,35 @@ char * dynamicRequest_serveContent
 
                      if (rqst->useSessionLifecycle)
                       {
-                        rqst->sessionID = getSessionFromHeader(
-                                                               instance->sessionList,
-                                                               0,//const char * connectionIP ,
-                                                               0,//const char * cookieValue ,
-                                                               0//const char * BrowserIdentifier
-                                                               );
+                        //Bounded copy on purpose , not the raw pointer getPointerToCOOKIEItemValue() returns :
+                        //the last cookie on a header line isn't guaranteed NUL-terminated ( same reason
+                        //_COOKIEcpy() exists ) , and a session token can never legitimately be longer than this
+                        //buffer anyway - anything that doesn't fit can't be a real token, so truncating it here
+                        //just means it correctly fails to resolve to an existing session below.
+                        char cookieValue[64]={0};
+                        unsigned int cookieValueLength=0;
+                        char * cookiePtr = getPointerToCOOKIEItemValue(rqst,SESSION_COOKIE_NAME,&cookieValueLength);
+                        if ( (cookiePtr!=0) && (cookieValueLength>0) && (cookieValueLength<sizeof(cookieValue)) )
+                         {
+                           memcpy(cookieValue,cookiePtr,cookieValueLength);
+                           cookieValue[cookieValueLength]=0;
+                         }
+
+                        unsigned int isNewSession=0;
+                        if (
+                            getSessionFromHeader(
+                                                 instance->sessionList,
+                                                 0,//const char * connectionIP ,
+                                                 cookieValue,
+                                                 0,//const char * BrowserIdentifier
+                                                 rqst->sessionToken,
+                                                 sizeof(rqst->sessionToken),
+                                                 &isNewSession
+                                                 )
+                           )
+                            {
+                              if (isNewSession) { AmmServer_SetCookie(rqst,SESSION_COOKIE_NAME,rqst->sessionToken,0,1); }
+                            }
                       }
 
                      ///--------------------------------------------
@@ -347,6 +375,12 @@ char * dynamicRequest_serveContent
                      fprintf(stderr,GREEN " > " NORMAL );
                      fprintf(stderr,"Callback Summary : %lu microseconds - %lu/%lu bytes @ pointer %p \n",elapsedCallbackTimeMS,rqst->contentSize,rqst->MAXcontentSize,rqst->content);
                      #endif // DEBUG_MESSAGES
+
+                     if (pendingResponseHeadersOut!=0)
+                      {
+                        snprintf(pendingResponseHeadersOut,pendingResponseHeadersOutSize,"%s",rqst->pendingResponseHeaders);
+                      }
+
                      safeFree(rqst,sizeof(struct AmmServer_DynamicRequest));
 
                      //This means we can call the callback to prepare the memory content..! END

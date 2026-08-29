@@ -69,7 +69,6 @@ int addPOSTDataBoundary(struct HTTPHeader * output,char * ptr)
 
 int finalizePOSTData(struct HTTPHeader * output)
 {
- //TODO : This calls inserts garbage in data..!
  fprintf(stderr,"finalizePOSTData POSTItems : %p , %u items\n",output->POSTItem , output->POSTItemNumber);
 
  unsigned int success=0;
@@ -82,6 +81,11 @@ int finalizePOSTData(struct HTTPHeader * output)
   //fprintf(stderr,"output->POSTrequestSize=%u\n",output->POSTrequestSize);
   //fprintf(stderr,"output->POSTrequestBodySize=%u\n",output->POSTrequestBodySize);
   //AmmServer_Success("finalizePOSTData(%u)=`%s`\n",i,output->POSTItem[i].pointerStart);
+  //Tracks whether THIS item parsed cleanly - cleared on any of the "we had to fall back / this part looks
+  //malformed" paths below , so the function's return value ( success==PNum ) actually reflects whether every
+  //item parsed as expected , instead of unconditionally reporting success whenever PNum>0 regardless of what
+  //happened in the loop.
+  unsigned int itemOk=1;
   unsigned int length=0;
   char * configuration = output->POSTItem[i].pointerStart;
   char * payload = reachNextBlock(
@@ -104,38 +108,50 @@ int finalizePOSTData(struct HTTPHeader * output)
                 0//THIS NEEDS TO BE SET TO 0 OTHERWISE THIS BLEEDS IN THE DATA AND ADDS A NULL
                );
 
+  //When reachNextBlock() can't find the "\r\n\r\n" that ends this part's own header block within bounds ( a
+  //malformed/truncated multipart body ) it returns pointerStart unchanged , so payload==configuration and
+  //configurationLength is correctly 0 here - the memmem() calls below then safely find nothing rather than
+  //scanning unbounded into whatever data happens to follow in the shared header buffer ( which is what the
+  //old strstr()-based version of this code did ).
   unsigned int configurationLength = payload-configuration;
 
   //AmmServer_Warning("configuration(%u)=`%s`\n",i,configuration);
   //AmmServer_Success("payload(%u)=`%s`\n",i,payload);
 
-  char * filename = strstr(configuration,"filename=\""); //TODO : use memmem
+  char * filename = (char*) memmem(configuration,configurationLength,"filename=\"",10);
   if (filename!=0)
   {
     output->POSTItem[i].filename = filename+10; //skip filename="
+    //Bound the scan by what's actually left of the configuration block from filename's own position onward ,
+    //not the whole block's length measured from its start - passing the full configurationLength here used to
+    //let a filename value with no closing quote scan straight past this field's true end and into the
+    //payload/file data that follows it, NUL-terminating ( "inserting garbage" into ) partway through someone
+    //else's file content and reporting a filenameSize that included part of it.
+    unsigned int filenameRemaining = configurationLength - (unsigned int)(output->POSTItem[i].filename-configuration);
     output->POSTItem[i].filenameSize = countStringUntilQuotesOrNewLine(
                                                                         output->POSTItem[i].filename,
-                                                                        configurationLength ,
+                                                                        filenameRemaining ,
                                                                         1 //Null termination
                                                                        );
 
 
-    char * name = strstr(configuration,"name=\""); //TODO : use memmem
+    char * name = (char*) memmem(configuration,configurationLength,"name=\"",6);
     if (name!=0)
      {
        output->POSTItem[i].name = name+6; //skip name="
+       unsigned int nameRemaining = configurationLength - (unsigned int)(output->POSTItem[i].name-configuration);
        output->POSTItem[i].nameSize = countStringUntilQuotesOrNewLine(
                                                                        output->POSTItem[i].name,
-                                                                       configurationLength,
+                                                                       nameRemaining,
                                                                        1 // Null termination
                                                                        );
+     } else
+     {
+       AmmServer_Warning("File upload boundary part %u/%u has no name=\"...\" field, marking it incomplete..\n",i,PNum);
+       itemOk=0;
      }
 
        output->POSTItem[i].value = payload;
-       //TODO : output->boundary value is wrong..
-       //AmmServer_Success("Searching for boundary (%s) in file payload..!",output->boundary);
-       //fprintf(stderr,"Searching for boundary that points to %p \n",output->boundary); //Do not print all the file here..
-
 
        unsigned int payloadSize = _calculateRemainingDataLength
                                               (
@@ -150,8 +166,6 @@ int finalizePOSTData(struct HTTPHeader * output)
                                      payloadSize ,
                                      output->boundary ,
                                      output->boundaryLength);*/
-
-       //TODO : This is not perfect..! output->boundary contains fewer chars
 
        char * payloadEnd  = (char*) memmem(
                                            payload,
@@ -172,23 +186,25 @@ int finalizePOSTData(struct HTTPHeader * output)
         //AmmServer_Success("Found boundary in file payload, size of payload is %u ..!",output->POSTItem[i].valueSize);
        } else
        {
-        AmmServer_Error("Could not detect boundary in file payload, using unsafe length value..!");
-        output->POSTItem[i].valueSize= _calculateRemainingDataLength
-                                              (
-                                               output->headerRAW ,
-                                               output->headerRAWSize ,
-                                               output->boundary
-                                              );
+        //Boundary never showed up before the buffer ran out ( truncated upload ) - fall back to "everything
+        //that's left of the buffer from here" ( payloadSize , already computed above ) rather than the size
+        //of the wrong region : this used to measure from output->boundary ( a pointer back in this part's own
+        //*header*, nowhere near the file data ) to the end of the buffer , which is a meaningless length for
+        //a file payload that actually starts at payload , not at output->boundary.
+        AmmServer_Error("Could not detect boundary in file payload, using remaining buffer length as a fallback..!");
+        output->POSTItem[i].valueSize = payloadSize;
+        itemOk=0;
        }
   } else
   {
-    char * name = strstr(configuration,"name=\""); //TODO : use memmem
+    char * name = (char*) memmem(configuration,configurationLength,"name=\"",6);
     if (name!=0)
      {
        output->POSTItem[i].name = name+6; //skip name="
+       unsigned int nameRemaining = configurationLength - (unsigned int)(output->POSTItem[i].name-configuration);
        output->POSTItem[i].nameSize = countStringUntilQuotesOrNewLine(
                                                                         output->POSTItem[i].name,
-                                                                        configurationLength,
+                                                                        nameRemaining,
                                                                         1 // Null termination
                                                                      );
      }
@@ -239,11 +255,17 @@ int finalizePOSTData(struct HTTPHeader * output)
        AmmServer_Warning("Incorrect name for boundary part %u/%u marking it as empty..\n",i,PNum);
        output->POSTItem[i].value = 0;
        output->POSTItem[i].valueSize=0;
+       itemOk=0;
      }
   }
+
+  if (itemOk) { ++success; }
  }
 
- return (success!=PNum);
+ //True only if every boundary part parsed cleanly ( no missing name= , no "could not detect boundary" fallback
+ //) - PNum==0 ( a POST with no multipart parts at all , e.g. an empty body ) also reports success here since
+ //there was nothing to fail at parsing, not a real error.
+ return (success==PNum);
 }
 
 

@@ -518,9 +518,12 @@ char * cache_GetResource(
                           unsigned char * compressionSupported,
                           unsigned char * freeContentAfterUsingIt,
                           unsigned char * serveAsRegularFile,
-                          unsigned char * allowOtherOrigins
+                          unsigned char * allowOtherOrigins,
+                          char * pendingResponseHeadersOut,
+                          unsigned int pendingResponseHeadersOutSize
                         )
 {
+ if (pendingResponseHeadersOut!=0) { pendingResponseHeadersOut[0]=0; }
  *freeContentAfterUsingIt=0; //By default we dont want to free the memory allocation after use..
  *serveAsRegularFile=0;      //By default we dont want to end up serving this as a regular file..!
 
@@ -580,7 +583,9 @@ if (cache_FindResource(instance,verified_filename,index))
                                                        compressionSupported,
                                                        freeContentAfterUsingIt,
                                                        &contentContainsPathToFileToBeStreamed,
-                                                       allowOtherOrigins
+                                                       allowOtherOrigins,
+                                                       pendingResponseHeadersOut,
+                                                       pendingResponseHeadersOutSize
                                                     );
 
              if ( contentContainsPathToFileToBeStreamed )
@@ -646,7 +651,16 @@ if (cache_FindResource(instance,verified_filename,index))
         } else
         {
            /* A cached copy doesn't seem to exist , lets make one and then claim it exists! */
-           if ( cache_AddFile(instance,verified_filename,index,last_modification) )
+           //This is the one point a freshly-requested file actually gets opened off disk for the first time (
+           //every request after this one is served from the in-memory cache instead , so this check only ever
+           //runs once per unique file - not on the hot per-request path ). verified_filename has already been
+           //through FilenameStripperOk()'s string-level validation , but no character-level check can catch a
+           //symlink placed inside webserver_root pointing somewhere else - that depends on the actual
+           //filesystem structure. PathResolvesWithinDirectory() ( tools/http_tools.c , shared with
+           //AmmServer_StringHasSafePath() ) does the real, canonical, symlink-free containment check to close
+           //that gap here , where the extra realpath()/stat() cost is paid once instead of every request.
+           if ( (PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) &&
+                (cache_AddFile(instance,verified_filename,index,last_modification)) )
             {
               *compressionSupported=0;
               *filesize=*cache[*index].contentSize; //We return the filesize after the operation..

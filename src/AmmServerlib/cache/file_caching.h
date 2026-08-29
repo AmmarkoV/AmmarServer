@@ -226,7 +226,9 @@ char * cache_GetResource(
                           unsigned char * compressionSupported,
                           unsigned char * freeContentAfterUsingIt,
                           unsigned char * serveAsRegularFile,
-                          unsigned char * allowOtherOrigins
+                          unsigned char * allowOtherOrigins,
+                          char * pendingResponseHeadersOut,
+                          unsigned int pendingResponseHeadersOutSize
                         );
 
 

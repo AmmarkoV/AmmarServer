@@ -1,8 +1,104 @@
 #include "userAccounts.h"
+#include "sha256.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/random.h>
+#include <errno.h>
+
+#define PASSWORD_HASH_ITERATIONS 10000
+#define PASSWORD_SALT_BYTES 16
+
+//Reads `len` cryptographically random bytes via getrandom() ( kernel CSPRNG ) , retrying on EINTR , falling back
+//to /dev/urandom only if getrandom() itself is unavailable/fails outright. Deliberately self-contained here
+//rather than reusing AmmServerlib's AmmServer_GenerateSecureToken() ( tools/http_tools.c ) - this library
+//( userAccounts.c specifically, as opposed to userAccountsWeb.c ) has no dependency on AmmServerlib today and
+//this keeps it that way.
+static int getRandomBytes(unsigned char * out,unsigned int len)
+{
+  unsigned int got=0;
+  while (got<len)
+  {
+    ssize_t r = getrandom(out+got,len-got,0);
+    if (r>0)                       { got+=(unsigned int)r; continue; }
+    if ( (r<0) && (errno==EINTR) ) { continue; }
+    break;
+  }
+
+  if (got<len)
+  {
+    FILE * fUrandom = fopen("/dev/urandom","rb");
+    if (fUrandom==0) { return 0; }
+    while (got<len)
+    {
+      size_t r = fread(out+got,1,len-got,fUrandom);
+      if (r==0) { break; }
+      got+=(unsigned int)r;
+    }
+    fclose(fUrandom);
+  }
+
+  return (got==len);
+}
+
+//Stores "<saltHex>:<hashHex>" - salt is random per user, hash is SHA-256 of (salt||password), then re-applied to
+//its own output PASSWORD_HASH_ITERATIONS-1 more times ( simple manual stretching - slows brute force down
+//somewhat without pulling in a bcrypt/Argon2/scrypt dependency ). Deliberately modest - good enough for a
+//personal/hobby deployment, not state-of-the-art - upgrade this if that ever changes.
+static void hashPassword(const char * password,const unsigned char * salt,unsigned int saltLen,char * outStorageString,unsigned int outStorageStringSize)
+{
+  unsigned char digest[SHA256_DIGEST_SIZE];
+  unsigned int passwordLen = strlen(password);
+
+  //salt || password , bounded - a password longer than this is truncated for hashing purposes only ( still
+  //hashed/compared consistently both times, so this doesn't break correctness - it just caps how much of an
+  //extremely long password actually contributes entropy )
+  unsigned char mixed[PASSWORD_SALT_BYTES+256];
+  unsigned int mixedPasswordLen = (passwordLen<256) ? passwordLen : 256;
+  memcpy(mixed,salt,saltLen);
+  memcpy(mixed+saltLen,password,mixedPasswordLen);
+  SHA256_Hash(mixed,saltLen+mixedPasswordLen,digest);
+
+  unsigned int i=0;
+  for (i=1; i<PASSWORD_HASH_ITERATIONS; i++) { SHA256_Hash(digest,SHA256_DIGEST_SIZE,digest); }
+
+  char saltHex[PASSWORD_SALT_BYTES*2+1];
+  char hashHex[SHA256_DIGEST_SIZE*2+1];
+  SHA256_ToHex(salt,saltLen,saltHex,sizeof(saltHex));
+  SHA256_ToHex(digest,SHA256_DIGEST_SIZE,hashHex,sizeof(hashHex));
+  snprintf(outStorageString,outStorageStringSize,"%s:%s",saltHex,hashHex);
+}
+
+//1=matches , 0=doesn't ( including a stored value that isn't in this salt:hash format at all - e.g. leftover
+//plaintext from before this change, which can no longer authenticate and needs the account re-created )
+static int verifyPassword(const char * password,const char * storedValue)
+{
+  const char * colon = strchr(storedValue,':');
+  if (colon==0) { return 0; }
+
+  unsigned int saltHexLen = (unsigned int)(colon-storedValue);
+  if (saltHexLen != PASSWORD_SALT_BYTES*2) { return 0; }
+
+  unsigned char salt[PASSWORD_SALT_BYTES];
+  unsigned int i=0;
+  for (i=0; i<PASSWORD_SALT_BYTES; i++)
+  {
+    unsigned int byteVal=0;
+    if (sscanf(storedValue+i*2,"%2x",&byteVal)!=1) { return 0; }
+    salt[i]=(unsigned char)byteVal;
+  }
+
+  char recomputed[PASSWORD_SALT_BYTES*2+1+SHA256_DIGEST_SIZE*2+1];
+  hashPassword(password,salt,PASSWORD_SALT_BYTES,recomputed,sizeof(recomputed));
+
+  //Constant-time compare on the final hash comparison - cheap, closes a minor timing side-channel
+  unsigned int len1=strlen(recomputed), len2=strlen(storedValue);
+  if (len1!=len2) { return 0; }
+  unsigned char diff=0;
+  for (i=0; i<len1; i++) { diff |= (unsigned char)(recomputed[i]^storedValue[i]); }
+  return (diff==0);
+}
 
 struct UserAccountDatabase * uadb_initializeUserAccountDatabase(const char * filename)
 {
@@ -104,7 +200,7 @@ int uadb_authenticateUser(
  {
    if (strcmp(uadb->userList[i].username,username)==0)
    {
-    if (strcmp(uadb->userList[i].password,password)==0)
+    if (verifyPassword(password,uadb->userList[i].password))
     {
 
        fprintf(stderr,"Found Account %s\n",outputToken->username);
@@ -273,11 +369,24 @@ int uadb_addUser(
 
  unsigned int newID=uadb->userListSize;
  snprintf(uadb->userList[newID].username,32,"%s",username);
- snprintf(uadb->userList[newID].password,32,"%s",password);
- //sessionID is char[32] , so it only has room for 31 characters plus the NUL terminator uadb_getBackRandomFileDigitsInplace()
- //always appends at str[numberOfDigits] : asking for 32 digits here would write that terminator at sessionID[32] , one
- //byte past the array , silently corrupting the first byte of the next struct in uadb->userList[]..!
- uadb_getBackRandomFileDigitsInplace(uadb->userList[newID].sessionID,31);
+
+ unsigned char salt[PASSWORD_SALT_BYTES];
+ if (!getRandomBytes(salt,sizeof(salt)))
+ {
+   fprintf(stderr,"Could not obtain secure randomness for a new account's password salt - refusing to create it\n");
+   return 0;
+ }
+ hashPassword(password,salt,sizeof(salt),uadb->userList[newID].password,sizeof(uadb->userList[newID].password));
+
+ //sessionID is char[32] , so it only has room for 31 characters plus the NUL terminator. Hex-encoded CSPRNG bytes
+ //( 15 bytes -> 30 hex chars ) preferred over the legacy unseeded-rand() uadb_getBackRandomFileDigitsInplace() -
+ //falls back to it only if the CSPRNG is genuinely unavailable, same as the password salt above would refuse
+ //outright, but a session ID isn't worth failing account creation over.
+ unsigned char sessionSeed[15];
+ if (getRandomBytes(sessionSeed,sizeof(sessionSeed)))
+      { SHA256_ToHex(sessionSeed,sizeof(sessionSeed),uadb->userList[newID].sessionID,sizeof(uadb->userList[newID].sessionID)); }
+ else { uadb_getBackRandomFileDigitsInplace(uadb->userList[newID].sessionID,31); }
+
  ++uadb->userListSize;
 
  uadb_saveUserAccountDatabase(uadb); //Persist immediately so a crash right after signup doesn't lose the account

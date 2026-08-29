@@ -488,6 +488,46 @@ int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long *
   return 0;
 }
 
+void * hashMap_GetPayloadAtIndex(struct hashMap * hm,unsigned int index,unsigned int * payloadLength)
+{
+  if (!hashMap_IsOK(hm)) { return 0; }
+  if (index >= hm->curNumberOfEntries) { return 0; }
+  if (payloadLength!=0) { *payloadLength = hm->entries[index].payloadLength; }
+  return hm->entries[index].payload;
+}
+
+int hashMap_RemoveKey(struct hashMap * hm,const char * key)
+{
+  if (!hashMap_IsOK(hm)) { return 0; }
+
+  unsigned long index=0;
+  if (!hashMap_FindIndexSerial(hm,key,&index)) { return 0; } //Serial on purpose - correct even if isSorted is stale
+
+    #if HASHMAP_BE_THREAD_SAFE
+       pthread_mutex_lock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+    #endif // HASHMAP_BE_THREAD_SAFE
+
+  void ( *hashMapClearCallback) ( void * )=0 ;
+  hashMapClearCallback = hm->clearItemCallbackFunction;
+
+  if (hashMapClearCallback != 0)                     { hashMapClearCallback(hm->entries[index].payload); }
+  else if (hm->entries[index].payloadLength != 0)     { free(hm->entries[index].payload); }
+  if (hm->entries[index].key != 0)                    { free(hm->entries[index].key); }
+
+  unsigned int lastIndex = hm->curNumberOfEntries - 1;
+  if ( (unsigned int) index != lastIndex ) { memcpy(&hm->entries[index],&hm->entries[lastIndex],sizeof(struct hashMapEntry)); }
+  memset(&hm->entries[lastIndex],0,sizeof(struct hashMapEntry));
+
+  --hm->curNumberOfEntries;
+  hm->isSorted=0; //Swap-with-last compaction breaks sort order, same as hashMap_Add() already does on insert
+
+    #if HASHMAP_BE_THREAD_SAFE
+       pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
+    #endif // HASHMAP_BE_THREAD_SAFE
+
+  return 1;
+}
+
 int hashMap_ContainsKey(struct hashMap * hm,const char * key)
 {
   unsigned long index=0;

@@ -98,6 +98,20 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
          if (e>=request_length) { fprintf(stderr,"Error #2 with GET/HEAD request\n"); return 0;}
          request[e]=0; //Signal ending
 
+         //The HTTP version token ( "HTTP/1.1" or "HTTP/1.0" ) follows the resource on this same line , and it
+         //decides the keep-alive DEFAULT : HTTP/1.1 defaults to keep-alive unless the client explicitly asks to
+         //close ( handled below in the Connection: header case ) , HTTP/1.0 defaults the other way - keep-alive
+         //there is opt-in only. Seeding the correct default here ( instead of always defaulting to close , which
+         //is what memset(...,0,...) on the transaction left it at before this ) matters : plenty of real
+         //HTTP/1.1 clients rely on that spec default rather than sending an explicit Connection: keep-alive
+         //header , and without this they got a fresh TCP connection - and full handshake - for every request.
+         unsigned int versionStart=e+1;
+         unsigned int versionAvailable = (versionStart<request_length) ? (request_length-versionStart) : 0;
+         if ( (versionAvailable>=8) && (strncmp(request+versionStart,"HTTP/1.0",8)==0) )
+           { output->keepalive=0; }
+         else
+           { output->keepalive=1; }
+
          //We move forward to the GET request , stripped will contain the stripped resource requested
          //after stripping GET Query and Fragment and raw html characters
          char * stripped = &request[s];
@@ -298,7 +312,10 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_CONNECTION :
          payload_start+=strlen("CONNECTION:");
+         //keepalive's default was already seeded from the HTTP version in ProcessFirstHTTPLine() ; an explicit
+         //Connection header , if present , always wins over that default in either direction.
          if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; /*fprintf(stderr,"KeepAlive is set\n");*/ return 1;}
+         if (CheckHTTPHeaderCategory(request,request_length,"CLOSE",&payload_start))      { output->keepalive=0; /*fprintf(stderr,"KeepAlive is unset\n");*/ return 1;}
 
         break;
         //--------------------------------------------------------------

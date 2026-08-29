@@ -113,12 +113,66 @@ repeated-grow path — compiled and run under AddressSanitizer + UBSan. All pass
 both before and after the fix (confirming the original code was memory-safe, just imprecise) and correct
 content/length in all cases after the fix. `AmmServerlib` rebuilds clean with the `#warning` gone.
 
-**`post_data.c` has three still-open TODOs in `finalizePOSTData()`** (verbatim from the source): `//TODO : This
-calls inserts garbage in data..!`, two `//TODO : use memmem` markers on `strstr()` calls scanning
-not-fully-NUL-safe buffer regions, and `//TODO : output->boundary value is wrong..` / `"...contains fewer
-chars"`. There's also an explicit fallback path whose own error message admits the problem: `"Could not detect
-boundary in file payload, using unsafe length value..!"` — a malformed/truncated multipart body can produce a
-bogus large `valueSize` here.
+**✅ FIXED** — **`post_data.c` had four flagged spots in `finalizePOSTData()`**: `//TODO : This calls inserts
+garbage in data..!`, two `//TODO : use memmem` markers on `strstr()` calls scanning not-fully-NUL-safe buffer
+regions, `//TODO : output->boundary value is wrong..` / `"...contains fewer chars"`, and an explicit fallback
+path whose own error message admitted the problem: `"Could not detect boundary in file payload, using unsafe
+length value..!"`.
+
+**Audit result — two were real bugs, two were stale comments already resolved elsewhere in the same function:**
+- **Real (fixed): the "inserts garbage in data" TODO.** `countStringUntilQuotesOrNewLine()` (which NUL-terminates
+  wherever it stops scanning) was called with `configurationLength` — the length of the *whole* configuration
+  block measured from its start — as the bound, even though the scan actually starts partway into that block
+  (at `filename`/`name`, not at `configuration`). For a value with no closing quote, this let the scan run past
+  the field's true end and into the payload/file data that follows, writing a stray NUL into someone else's
+  file content and reporting a size that included part of it. Fixed at all 3 call sites: bound each scan by
+  what's actually left of the configuration block *from that field's own position*
+  (`configurationLength - (fieldPtr - configuration)`), not the whole block's length.
+- **Real (fixed): the two "use memmem" TODOs.** When `reachNextBlock()` can't find the `\r\n\r\n` that ends a
+  part's own header block within bounds (malformed/truncated multipart body), it returns unchanged —
+  `configuration` isn't reliably NUL-terminated in that case, so the old `strstr()` calls could scan past this
+  part's true boundary into unrelated later buffer data. Switched all 3 `strstr()` calls (`filename=\"`,
+  `name=\"` ×2) to `memmem()` bounded by `configurationLength` (which is correctly 0 in the not-found case, so
+  the search safely finds nothing instead of scanning unbounded).
+- **Real (fixed): the "unsafe length value" fallback.** On the boundary-not-found path, it computed the
+  fallback size from `output->boundary` — a pointer back in this part's own *header*, nowhere near the file
+  payload — instead of from `payload` itself. Now reuses `payloadSize` (already computed just above), the
+  actually-correct "remaining buffer from the payload's real start" value.
+- **Stale (removed, not "fixed" — nothing to fix):** `//TODO : output->boundary value is wrong..` and
+  `//TODO : This is not perfect..! output->boundary contains fewer chars`, sitting directly above code that
+  already correctly implements a bounded `memmem()`-based boundary search with proper `--`/CRLF stripping —
+  these described a problem some earlier pass had already solved without deleting the leftover comments.
+
+**Verification**: rebuilt clean. Live end-to-end test against MyLoader's real `/upload.html` — a normal `curl -F`
+multipart file upload was round-tripped (filename parsed correctly, uploaded content fetched back and diffed
+byte-for-byte identical to the source file, only the deliberately-stripped trailing CRLF framing differing).
+Then a deliberately malformed multipart body (bare `\n` line endings throughout, so the `\r\n\r\n` boundary
+`reachNextBlock()` needs never appears — exactly the `configuration==payload`/`configurationLength==0` case the
+fix targets) was sent 5× in a row directly against the running server via a raw socket: no crash, no hang, and
+normal uploads continued to work correctly on the same server instance afterward.
+
+**✅ FIXED** — **`finalizePOSTData()`'s `success` local variable never meant anything**: initialized to 0, never
+incremented anywhere in the loop, so `return (success!=PNum)` was effectively always `1` whenever there was at
+least one POST item, regardless of whether any individual item actually parsed correctly.
+
+**Scan confirmed exactly one caller**: `network/recvHTTPHeader.c:194`, which already consumes the return value
+meaningfully (`if (!finalizePOSTData(output)) { AmmServer_Error("Server failed to parse POST data"); }`) — it
+was just being fed a signal that didn't reflect reality (false "success" whenever ≥1 item existed regardless of
+how it parsed ; false "failure" whenever a POST had 0 multipart parts, e.g. an empty body, which isn't really a
+parse failure at all).
+
+**Fix applied**: added a per-item `itemOk` flag, cleared on every "this part is malformed" path already present
+in the function — a file part with no `name=` field (previously silently allowed through with no warning at
+all, unlike the symmetric non-file-part case which already warned; added the missing warning for consistency),
+a text part with no `name=` field (already warned, now also clears the flag), and the "could not detect
+boundary, using remaining buffer length as a fallback" case. `success` now only counts items where `itemOk`
+stayed set, and the function returns `success==PNum` — true only when every item parsed cleanly, still true for
+the `PNum==0` (nothing to parse) case since that isn't a failure.
+
+**Verified live** against MyLoader's real `/upload.html`: a normal upload no longer triggers the (previously
+silent, now-eliminated) *false* `Server failed to parse POST data` log line ; the same malformed multipart body
+used to verify the earlier post_data.c fixes now correctly triggers exactly one real error log entry, and the
+server stays fully functional (a subsequent normal upload on the same running instance still works) afterward.
 
 ## 2. Security-relevant gaps
 
@@ -129,31 +183,123 @@ logs for bad IPs) exists and presumably feeds *something*, but there's no code p
 request time beyond the always-empty `clientList_isClientBanned()`/`clientList_isClientAllowedToUseResource()`
 stubs.
 
-**Command-execution attack surface across several Services.** `AmmServer_ExecuteCommandLine*()` in
-`AmmServerlib/main.c` runs `popen()`/shells out directly on a caller-supplied string, and its own doc comment
-says *"Executing commands can be dangerous , always check and sanitize input before executing."* The two
-sanitizer functions meant to help with this are themselves stubs that do nothing but log a warning:
-```c
-int filterStringForShellInjection(char * buffer , unsigned int bufferSize)
-{
-  AmmServer_Warning("filterStringForSystemInjection not implemented ( %s , %u ) ",buffer,bufferSize);
-  return 0;
-}
-```
-Several Services actually use this pattern in production-shaped code, not just as a demo: AmmarServer's
-`/execute.html`, MyRemoteDesktop's `/cmd` endpoint, MyTube's `youtube-dl` invocation, ImageGeneration's
-image-generation script calls. None of these are safe to expose to untrusted clients as-is; any deployment that
-does should audit exactly what input reaches the shell command and add its own sanitization — the library
-offers none.
+**✅ FIXED (sanitizers) + AUDITED (call sites)** — **Command-execution attack surface across several Services.**
+`AmmServer_ExecuteCommandLine*()` in `AmmServerlib/main.c` runs `popen()`/shells out directly on a
+caller-supplied string, and its own doc comment says *"Executing commands can be dangerous , always check and
+sanitize input before executing."* The two sanitizer functions meant to help with this were themselves stubs
+that did nothing but log a warning and return 0.
 
-**`AmmServer_StringHasSafePath()` is an explicit, self-admitted stub**: its own body says
+**Sanitizers implemented** (`AmmServerlib/main.c`):
+- `filterStringForShellInjection(buffer, bufferSize)` — wraps the string in single quotes, escaping any
+  embedded `'` as `'\''` (close quote, escaped literal quote, reopen quote) — the standard, complete way to
+  make an arbitrary byte string safe as one POSIX shell argument. In-place via a scratch buffer (escaping only
+  ever grows the string); refuses to truncate and returns 0 if the result wouldn't fit the caller's buffer.
+- `filterStringForHtmlInjection(buffer, bufferSize)` — reuses the already-correctly-implemented
+  `AmmServer_HTMLEscape()` rather than re-implementing entity escaping a second time; same
+  scratch-buffer/refuse-to-truncate approach.
+- **Verified**: a standalone test round-tripped a real shell-injection payload (`foo'; rm -rf /tmp/pwned; echo
+  '`) through `filterStringForShellInjection()` and then through an *actual* `system()` call — the shell
+  printed back the exact original string byte-for-byte with no command executed. HTML escaping verified against
+  a classic `<script>alert('xss')</script>` payload. Buffer-too-small cases verified to fail cleanly (return 0,
+  buffer left untouched) rather than truncate or overflow.
+
+**Full audit of every `system()`/`popen()` call site in the repo** (a fork traced each one's actual data
+provenance; a repo-wide `execl`/`execv`/`execve` grep found zero additional call sites of that family):
+
+| Call site | Runs | Client-controlled input reaches it? | Verdict | Action |
+|---|---|---|---|---|
+| `MyTube/thumbnailer.c` (via `videoFilename`, ultimately a YouTube video's *title*) | `ffmpeg` | **Yes** — a YouTube video's title is attacker-influenceable and was interpolated unescaped into a double-quoted ffmpeg argument. `DO_YOUTUBE_DOWNLOADING` **defaults to 1 (on)** — reachable in a default build, not gated as originally assumed. | Was **HIGH** | **✅ Fixed** — added `filterVideoTitleToSafeText()`, a whitelist filter (alnum + space + `.,()-_`) applied to the title immediately after fetching it, before it's used to build any filename or reach any downstream command |
+| `Various/ScriptRunner/main.cpp`, `say` branch | `rostopic pub ...` (ROS message with an embedded shell string) | **Yes** — `?say=` GET parameter, embedded unescaped as an inner YAML-style single-quoted value *inside* an already double-quoted shell argument (a two-layer quoting problem — single-quote-wrapping the whole value like the shell-injection sanitizer does would nest incorrectly here). Built unconditionally, no auth on the endpoint. | Was **HIGH** | **✅ Fixed** — added `filterSpokenTextForSafety()`, a targeted blacklist of the specific dangerous bytes (`"`,`'`,`` ` ``,`$`,`\`,`;`,control chars) that preserves UTF-8 (spoken text can legitimately be non-ASCII — the code's own hardcoded test string is Greek) |
+| `MyRemoteDesktop/main.c`, `/cmd` keystroke path | `xdotool key '...'` | Thin — a single character (`dokey` cast to `char`), can't build a full multi-token payload alone. Double-gated: `USE_XSERVER` CMake option **off by default**, and a runtime `allowControl` flag defaulting to 0 (only enabled via `--control` CLI flag) | **MEDIUM** (gated) | **✅ Fixed anyway** — reject shell-special bytes (`'`,`"`,`` ` ``,`$`,`\`,`;`,control chars) outright before use, cheap defense-in-depth even though the realistic exploit surface was already thin |
+| `ImageGeneration/main.c`, upload + `/go` query handlers | `img2imgOnlyOnce.sh`/`tex2imgOnlyOnce.sh` | Yes, but already passed through `filterQuery()` (whitelist to `[a-zA-Z0-9.,()]`) before use — this is the same pattern the two new filters above now also follow | **LOW** (already mitigated) | No change needed |
+| `Deprecated/CinemaPilot/main.c` (5 sites) | `xdotool`, `FullScreenViewer`, `mkfifo`, `killall mplayer`, `mplayer` | No — all either fully hardcoded or built from a server-side playlist file, no HTTP path feeds them | **LOW** | No change needed |
+| `AmmServerlib/tools/logs.c` (`compressLog`) | `mv`/`gzip`/`rm` on a log file | No — only ever called with the server's own configured `AccessLog`/`ErrorLog` paths | **LOW** | No change needed |
+| `AmmServerlib/tools/http_tools.c` (`ServerThreads_DropRootUID`) | `id -u <username>` | No — username is a server-config constant (default `www-data`), not client input | **LOW** | No change needed |
+| `AmmServerlib/main.c`, `AmmServer_ExecuteCommandLine*()` (the generic library primitives, 3 `popen()` call sites) | Whatever the caller passes | Contract-only — takes a pre-built command string, applies no sanitization itself (by design, it's a raw primitive) | N/A (not itself a vuln) | AmmarServer's own `/execute.html` confirmed to only run `executeScript`, set solely from the server's own `-e` startup CLI argument — operator-controlled, not client-controlled |
+
+**Not fixed, still open** (unrelated to this pass, tracked separately below): `AmmServer_StringHasSafePath()` —
+already flagged as a self-admitted stub in its own source, see below.
+
+**✅ FIXED** — **`AmmServer_StringHasSafePath()` was an explicit, self-admitted stub**: its own body said
 `AmmServer_Stub("TODO : AmmServer_StringHasSafePath better checking ( also use directory ).. https://www.owasp.org/index.php/Path_Traversal\n");`
-and it doesn't even use its `directory` parameter — it just rejects a handful of "dangerous" characters. The
-*actual* path-safety enforcement used by the live request path (`FilenameStripperOk`,
-`StripHTMLCharacters_Inplace`, `ReducePathSlashes_Inplace` in `tools/http_tools.c`) is a separate, more complete
-mechanism — but it's custom string validation, not canonicalization against a `realpath()`-resolved root, so a
-security audit of that logic specifically (not covered in depth this session) would be worthwhile before
-treating it as bulletproof.
+and it didn't use its `directory` parameter at all — just rejected a handful of "dangerous" characters
+(control bytes, `\`, `%`, `/`).
+
+**Usage scan found 3 real call sites**, all security-critical: `MyLoader/main.c` gates both a file **read** by a
+client-supplied name (`?i=` on `/vfile.html`) and — the more serious one — a file **write**, using the
+client-supplied *upload filename* as part of the path the uploaded bytes get written to
+(`AmmServer_WriteFileFromMemory`); `ImageGeneration/main.c` gates the identical upload-filename-to-write-path
+pattern. If this check were ever bypassable, the write-path cases become an arbitrary-file-write primitive
+(upload a file named to escape the uploads directory, write anywhere the process has permissions — a realistic
+path to remote code execution, e.g. dropping a web-shell where it'd be served).
+
+**Audit of the existing blacklist**: since it already rejected every `/` outright, the classic multi-component
+`../../etc/passwd`-style payload could never reach it in the first place. But a filename that is *literally*
+`..` (two dots, **no slash**) sailed through untouched — neither `.` alone is "dangerous" to a
+character-by-character check — and `directory + "/" + ".."` resolves to the parent of `directory`, handing back
+whatever's stored one level up. And because `directory` was never used, there was no way for the check to catch
+a symlink placed inside the trusted directory pointing somewhere else — a bypass a character blacklist can
+never detect in principle, no matter how thorough, since the filename itself contains nothing "dangerous."
+
+**Fix applied**: kept the entire original character blacklist untouched (so nothing that used to pass or fail
+changes behavior), and added a `realpath()`-based canonical containment check *on top* of it, finally using
+`directory` as the OWASP-recommended fix suggests — resolve both `directory` and the full candidate path to
+their real, canonical, symlink-free absolute form, and require the resolved candidate to be `directory` itself
+or a path underneath it. This is purely additive on top of the existing blacklist (can only reject *more* than
+before, never accept something the blacklist already rejected). Handles the case where the target doesn't exist
+yet (an upload's filename, about to be created) by falling back to resolving just the containing directory and
+manually appending the final path component, rejecting outright if that component is `.`, `..`, or empty.
+
+**Verified against a real filesystem**, not just traced: existing legitimate filenames still pass ; brand-new
+(not-yet-existing) filenames still pass, proving the upload-scenario fallback works ; multi-component `/`
+traversal still rejected (regression check, unchanged blacklist) ; a bare `..` is now correctly rejected (the
+actual gap this fix closes) ; **a symlink planted inside the trusted directory pointing to a file outside it is
+correctly rejected** (the exact class of bypass no character blacklist could ever have caught). `AmmarServer`
+rebuilds clean and the full project (every Service) rebuilds with zero errors.
+
+**✅ FOLLOW-UP DONE** — the item above ("not fixed, still open") was resolved in a follow-up pass: rather than
+leaving `FilenameStripperOk()` (the live request path's own, older, string-only validator) as a separate,
+unaudited mechanism, its one real remaining gap — no canonicalization, so it can't catch a symlink inside
+`webserver_root` pointing elsewhere, the exact class of bug the `AmmServer_StringHasSafePath()` fix above closed
+— was closed too, **by extracting and sharing the same canonicalization logic** instead of writing a second,
+parallel implementation of it (reducing code attack surface : one audited implementation of "is this path
+really inside this directory" instead of two that could drift out of sync or carry different bugs).
+
+**Key design constraint**: `FilenameStripperOk()` itself runs on the ultra-hot per-request path — every single
+request, including inside `epollFastPathServer.c`'s fast path, which this same session built specifically to
+avoid syscalls per request. Adding `realpath()` calls (real `stat()`/`readlink()` filesystem syscalls) there
+would have been a direct, measurable regression against that work. So `FilenameStripperOk()` itself was **left
+completely untouched** — instead, the shared check was placed at the points a file actually gets opened off
+disk, which for a cache-hit ( the common case for every request after the first ) never happens at all:
+
+- **`tools/http_tools.c`** — extracted `AmmServer_StringHasSafePath()`'s realpath-based core into a new shared
+  function, `PathResolvesWithinDirectory(trustedRoot, candidatePath)` (declared in `http_tools.h`, alongside
+  `FilenameStripperOk`). `AmmServer_StringHasSafePath()` (`main.c`) now just builds its joined candidate string
+  and calls this — no more duplicated canonicalization logic between the two.
+- **`cache/file_caching.c`** — `cache_GetResource()`'s cache-population step (the one place a newly-requested
+  file gets read off disk for the first time — every subsequent request for it is served from the in-memory
+  cache instead, so this runs **once per unique file, not once per request**) now calls
+  `PathResolvesWithinDirectory(instance->webserver_root,...)` before caching it. This is the single check that
+  covers *both* callers of `cache_GetResource` — the traditional `SendFile()` path and the epoll fast path.
+- **`network/file_server.c`** — two more guards were needed, found only by testing this live end-to-end (see
+  below), because `SendFile()` has a *second*, separate code path for files that don't get cached (too large,
+  `doNOTCacheRule`, etc.) that bypasses the caching layer entirely: `TransmitFileToSocket()` (the direct
+  disk-streaming fallback) got the same check right before its `fopen()`, and `SendFile()` itself got it added
+  at its existing top-of-function validation point (alongside the pre-existing `FilenameStripperOk` check) so a
+  rejected request gets a clean `400` *before* any header is sent, rather than a `200` header going out followed
+  by a silently-truncated connection ( a real, if minor, HTTP-framing bug caught only by testing the fix
+  end-to-end rather than just tracing the code — the first version of this fix protected the caching layer
+  correctly but missed this second disk-read path entirely, and a symlink request was still served in full ).
+
+**Verified live**, escalating through the exact bug that was found and fixed: set up a real webroot containing
+a legitimate file and a symlink pointing to a file genuinely outside it. First pass: cache layer correctly
+refused to cache the symlink target, but the "serve from disk directly" fallback still leaked the secret
+file's full contents (confirmed via `curl` — this is the real gap `TransmitFileToSocket` closes). After adding
+that guard: the secret content was no longer served, but as a `200 OK` header with a silently-dropped
+connection (malformed HTTP framing, confirmed via `curl -v`) — not a data leak, but not clean either. After
+adding the early `SendFile()` check: a proper `400 Bad Request` is returned before any header goes out,
+confirmed consistent across repeated requests, with normal (non-symlink) file serving and caching unaffected
+throughout every iteration of this fix. Full project rebuilds with zero errors at each step.
 
 **`monitor.html` has no visible access control** and exposes live internal server state (active thread count,
 open files, cache memory usage, upload/download counters, and a per-thread listing) to anyone who can reach the
@@ -181,16 +327,37 @@ single-domain personal deployment; worth revisiting before anything more exposed
 
 ## 3. Spec-compliance / behavioral surprises
 
-**Keep-alive requires an explicit client header, contrary to the HTTP/1.1 default.** Found and measured this
-session: `output->keepalive` in `header_analysis/http_header_analysis.c` starts at 0 and is only set to 1 if the
-request literally contains `Connection: keep-alive`. Per HTTP/1.1, keep-alive should be the *default* unless the
-client sends `Connection: close`. In practice this means any client that doesn't explicitly ask for keep-alive
-(some benchmarking tools, and potentially some real HTTP libraries/proxies that rely on the spec default) gets a
-fresh TCP connection — and a full handshake — per request. Measured impact: ~33K req/s vs ~145K req/s for the
-same request on the same build, purely from adding/removing that one header. This is likely costing real-world
-performance in deployments where clients don't happen to send it explicitly. **Recommended fix**: default
-`keepalive=1` for HTTP/1.1 requests unless `Connection: close` is present; keep the current opt-in behavior only
-for HTTP/1.0.
+**✅ FIXED** — **Keep-alive used to require an explicit client header, contrary to the HTTP/1.1 default.** Found
+and measured earlier this session: `output->keepalive` in `header_analysis/http_header_analysis.c` started at 0
+and was only set to 1 if the request literally contained `Connection: keep-alive`. Per HTTP/1.1, keep-alive
+should be the *default* unless the client sends `Connection: close`. In practice this meant any client that
+didn't explicitly ask for keep-alive (some benchmarking tools, and potentially some real HTTP libraries/proxies
+that rely on the spec default) got a fresh TCP connection — and a full handshake — per request. Measured impact:
+~33K req/s vs ~145K req/s for the same request on the same build, purely from adding/removing that one header.
+
+**Fix applied** in two places that needed to stay consistent with each other:
+- `ProcessFirstHTTPLine()` (`http_header_analysis.c`): now reads the HTTP version token off the request line
+  (`HTTP/1.0` vs anything else, i.e. `HTTP/1.1`) and seeds `output->keepalive` accordingly — `0` (opt-in,
+  unchanged legacy behavior) for HTTP/1.0, `1` (new default) otherwise — *before* any header lines are parsed.
+- The `Connection:` header case in `AnalyzeHTTPLineRequest()` already set `keepalive=1` on `KEEP-ALIVE`; added
+  the missing `CLOSE` check so an explicit `Connection: close` can now override the new HTTP/1.1 default back
+  down to 0 (previously there was no code path that could ever set `keepalive` back to 0 once headers started
+  being parsed).
+- `threads/epollFastPathServer.c`'s fast path does its **own independent** keepalive detection (raw `MSG_PEEK`
+  byte-matching, not a call into the real parser — see `ammarserver.md` §3.3) and had the identical
+  explicit-header-only behavior. Left unfixed, it would now *disagree* with the real parser on identical
+  requests — updated it to the same HTTP-version-based default/override logic, as a byte-peeking approximation
+  (good enough given a rare miscategorization here just means a connection closes/stays open slightly
+  differently than the real parser would, not a correctness issue for the response itself).
+
+**Verified live** with a 4-scenario test matrix over raw sockets (checking actual second-request-on-the-
+same-connection success, not just the response header AmmarServer claims) : HTTP/1.1 with no explicit header now
+correctly stays alive (previously closed) ; HTTP/1.1 with explicit `Connection: close` still closes ; HTTP/1.0
+with no header still closes (unchanged) ; HTTP/1.0 with explicit `Connection: keep-alive` still stays alive
+(unchanged opt-in). Re-ran the original benchmark that surfaced this: `wrk` *without* the explicit keep-alive
+header now gets **147,019 req/s**, up from ~33K and now matching (fractionally exceeding, within noise) the
+145K achieved *with* the header — the gap this issue described is closed. Full project (every Service) rebuilds
+with zero errors.
 
 **`If-Modified-Since` is parsed but explicitly not implemented**: `AnalyzeHTTPLineRequest()`'s
 `HTTPHEADER_IF_MODIFIED_SINCE` case just does `fprintf(stderr,"304 Not Modified headers through dates not
@@ -247,7 +414,101 @@ whichever worker thread picks the connection back up.
 These were already flagged by comments in the code itself (`AmmServer_Stub(...)` calls, `@bug` doc comments) —
 listed here for completeness since a "what works vs. what's aspirational" inventory is useful:
 
-- **Sessions** (`_SESSION()`) — `cache/session_list.c` is a complete stub; `instance->sessionList` is always NULL.
+- **✅ IMPLEMENTED** — **Sessions** (`_SESSION()`) — was a complete stub (`instance->sessionList` always `NULL`); now a
+  real, PHP-`$_SESSION`-style cookie-based session store tied into user-account login. Full design plan at
+  `~/.claude/plans/cheeky-fluttering-valley.md`. Summary:
+  - **Store**: `cache/session_list.c` — one hashmap keyed by an unguessable session token string, each entry
+    holding its own ( also hashmap-backed ) key/value data plus `created`/`lastSeen` timestamps. Reuses
+    `src/Hashmap/` as-is for its existing internal locking, plus one extra per-session `pthread_mutex_t` so
+    unrelated sessions never contend with each other. In-memory only ( not persisted across restarts, by
+    design — matches the ephemeral, per-visitor nature of the data and avoids adding disk I/O to a request-hot
+    path ). Lazy idle-timeout eviction (`SESSION_IDLE_TIMEOUT_SECONDS`, default 1800s) and a capacity cap
+    (`MAX_SESSIONS`, default 10000, oldest-`lastSeen` evicted first) — both new externs in
+    `server_configuration.h`/`.c`, no background thread needed ( the scheduler subsystem stays deferred, see
+    above — not a dependency for this ).
+  - **Hashmap gained two small, generic, reusable primitives it was missing**: `hashMap_GetPayloadAtIndex()`
+    ( the correct, working equivalent of `hashMap_GetPayload()`, which was found to be broken while building
+    this — see below ) and `hashMap_RemoveKey()` ( no per-key removal existed at all before ; needed for session
+    eviction/logout, and for `_SESSIONset()` to not leak duplicate entries on repeated calls, since
+    `hashMap_Add()` is append-only ). Verified standalone under ASan/UBSan ( add/remove/re-add, non-existent-key
+    removal, payload round-trip ).
+  - **🐛 Found in passing, not fixed** — `hashMap_GetPayload(struct hashMap*,const char*,void*)` is dead code
+    with a real bug: `payload` is passed *by value*, so `payload = hm->entries[i].payload;` inside the function
+    only reassigns the local copy — the caller never receives anything. Currently unreachable (grep confirms
+    nothing in the repo calls it), so left as-is with a doc comment pointing callers at the new, correct
+    `hashMap_GetPayloadAtIndex()` instead, rather than fixing a function nothing uses.
+  - **Cookies**: reading already existed (`_COOKIE*`, `main.c`, earlier this session); **writing never did** —
+    added `AmmServer_SetCookie()` as a general-purpose primitive (not session-specific), building a proper
+    `Set-Cookie` line (`Path=/`, optional `Max-Age`, `HttpOnly`, `Secure` when the instance has TLS enabled,
+    `SameSite=Lax`) into a new `pendingResponseHeaders` buffer on `AmmServer_DynamicRequest`. Plumbed out to the
+    actual response via a new `HTTPTransaction::pendingResponseHeaders` field — `cache_GetResource()` and
+    `dynamicRequest_serveContent()` both gained an out-parameter to copy this out of the per-callback `rqst`
+    right before it's freed (they're all synchronous, same-thread, same call stack — traced end to end), and
+    `SendSuccessCodeHeader()` (the single choke point already used for every 200/206 response, static and
+    dynamic alike) appends it and clears it. The epoll fast path never touches this — by design it only ever
+    serves anonymous, cache-hit, non-dynamic GET/HEAD requests, so it can never have a cookie to set.
+  - **CSPRNG**: no cryptographically-random token source existed anywhere in the repo — every "random token"
+    (`UserAccounts`, `HabChan/csrf.c`, etc.) called unseeded `rand()`. Added
+    `AmmServer_GenerateSecureToken()` (`tools/http_tools.c`) — `getrandom()`, retrying on `EINTR`, falling back
+    to `/dev/urandom` only if `getrandom()` itself is unavailable, base64url-encoded. Verified standalone: 1000
+    generated tokens, zero duplicates, correct length, clean refusal (not truncation) on a too-small output buffer.
+  - **Request lifecycle**: reused the *existing* `useSessionLifecycle` opt-in flag on `AmmServer_RH_Context`
+    (already wired into `dynamic_requests.c`, just never functional) rather than adding a new one. On a
+    session-enabled resource, an absent/unknown/expired cookie transparently gets a brand new session + cookie
+    issued (PHP's `session_start()` auto-create behaviour); a valid one gets its `lastSeen` touched.
+  - **Public API** (`main.c`/`AmmServerlib.h`), matching the existing `_GET*`/`_POST*`/`_COOKIE*` naming
+    convention exactly: `_SESSION`, `_SESSIONcpy`, `_SESSIONuint`, `_SESSIONexists`, `_SESSIONset`,
+    `_SESSIONunset`. `_SESSION()`'s doc comment was also stale (copy-pasted from `_FILES()`) — corrected.
+  - **User-account integration** (`src/UserAccounts/`) — this is where the three real, pre-existing security
+    gaps flagged by this session's research got fixed:
+    - **Plaintext passwords → salted, iterated SHA-256.** Added a small, self-contained, from-scratch SHA-256
+      (`src/UserAccounts/sha256.c`/`.h` — deliberately *not* gated behind the optional, off-by-default
+      `USE_OPENSSL` flag, since account security must work in the default build) verified against 4 FIPS test
+      vectors (empty string, `"abc"`, the 448-bit padding-boundary case, and a 1000-byte multi-block input) under
+      ASan/UBSan, all passing. Stores `<16-byte salt hex>:<SHA-256^10000(salt‖password) hex>` instead of the raw
+      password ; final comparison is constant-time. Deliberately modest (not bcrypt/Argon2-grade) — noted as the
+      "upgrade later if this ever needs to be production-grade" line. **Tradeoff**: this changes the on-disk
+      format, so the existing `db/users.db`/`data/db/users.db` test accounts (plaintext, confirmed while
+      researching this) can no longer authenticate — need a one-time reset. Verified standalone under ASan:
+      identical passwords for two different users produce two different stored hashes (different salt), correct/
+      wrong/nonexistent credentials behave correctly, and the hash round-trips correctly through a save-to-disk +
+      reload-from-disk cycle.
+    - **Weak session-ID generation → CSPRNG.** `RegisteredUser.sessionID` (still used as-is by `Social`/
+      `ShareTex` — see below) previously came from `uadb_getBackRandomFileDigitsInplace()`, seeded from
+      unseeded `rand()`. Now hex-encoded CSPRNG bytes are used instead where available (self-contained
+      `getrandom()`/`/dev/urandom` helper local to `userAccounts.c` — deliberately *not* reusing
+      `AmmServer_GenerateSecureToken()`, to keep this library's existing zero-dependency-on-AmmServerlib design
+      intact), falling back to the old generator only if the CSPRNG is genuinely unavailable (a session ID isn't
+      worth failing account creation over, unlike the password salt, which does refuse account creation outright
+      if the CSPRNG can't be reached).
+    - **Session ID in the URL → real HttpOnly cookies.** New `AmmServer_Login()`/`AmmServer_Logout()`/
+      `AmmServer_CurrentUsername()` (`userAccountsWeb.c`) tie the new AmmServerlib session system to
+      `UserAccounts` authentication: `AmmServer_Login()` verifies credentials via the existing
+      `uadb_authenticateUser()`, then **rotates to a brand new session token** (session-fixation defense — a
+      pre-login anonymous session must never become the authenticated one — verified live, see below) and stores
+      `username`/`uid` into the session's own data ; `AmmServer_Logout()` destroys the session server-side and
+      clears the cookie (`Max-Age` in the past) ; `AmmServer_CurrentUsername()` is the one call a resource
+      handler needs for "is this request logged in, and as whom."
+    - **Deliberately left as-is, not rewired**: `Social` and `ShareTex` still use the old `?s=` URL-param idiom
+      (`uadb_getUserTokenFromSessionID()`, `outputToken.sessionID`, `RegisteredUser.sessionID`) across ~7 call
+      sites in `login.c`/`home.c`/`chat.c`/`auth.c`. The original plan for this work called for removing that
+      legacy mechanism entirely ; doing so turned out to break both services' builds, so the legacy path was kept
+      fully intact instead and the new API added purely additively — `Social`/`ShareTex` migrating to
+      `AmmServer_Login`/`AmmServer_CurrentUsername` is a real, currently-unstarted follow-up, not done here.
+  - **Verified live**, end to end, against a real running throwaway test server (not just traced): first request
+    to a session-enabled resource gets a fresh `Set-Cookie` ; replaying that cookie reuses the same session
+    (`_SESSIONset`/`_SESSION` round-trip via a hit counter, confirmed incrementing correctly across requests) ; a
+    garbage/unknown cookie value is silently issued a brand new session, no crash ; after the idle timeout
+    (temporarily set to 2s for the test) the old cookie stops resolving and a fresh session is issued ; a login
+    with the wrong password correctly fails and doesn't authenticate ; a login with the correct password logs in
+    **and** rotates the session cookie to a new value (fixation defense confirmed by diffing the cookie before/
+    after) ; the pre-login cookie no longer resolves to anything after that ; `AmmServer_CurrentUsername()`
+    correctly reflects logged-out → logged-in → logged-out (post-`AmmServer_Logout()`) across the same flow ; 200
+    concurrent requests against one session (`xargs -P 20`) produced no crash and no data corruption (the one
+    "lost increment" observed is an expected non-atomic read-then-write race in the *test callback itself*, the
+    same class of race PHP's own `$_SESSION` has without an explicit lock — not a session-store bug) ; a
+    capacity cap of 3 sessions with 5 created stayed stable, no crash. Full project (every Service, including
+    `Social`/`ShareTex`) rebuilds with zero errors.
 - **📋 DEFERRED — Scheduler** (`AmmServer_AddScheduler()`) — both the public API and internal
   `scheduler/scheduler.c` are stubs; nothing runs periodically. Also has a units mismatch waiting to bite
   whoever implements it: the public API doc says "seconds," the internal function names its parameter

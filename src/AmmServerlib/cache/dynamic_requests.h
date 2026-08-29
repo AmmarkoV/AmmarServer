@@ -46,6 +46,11 @@ int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHea
 * @param Outputs if compression was supported ( and used ) by client
 * @param Outputs if client wants to free buffer on it's own or it should be handled automatically
 * @param Outputs if client wants to allow other origins ( cross-site )
+* @param Output buffer that receives any Set-Cookie ( etc ) header lines the callback queued via
+         AmmServer_SetCookie() ( e.g. a freshly issued session cookie ) - copied out of the per-callback
+         AmmServer_DynamicRequest before it's freed, since that's the only point this data is still reachable ;
+         0/ignored if the caller doesn't need it
+* @param Size of that output buffer
 * @retval Pointer To New Content or ,0=Failed
 * @bug Current implementation waits for new content , should add content double buffering to always have a valid buffer and serve it instantly , https://github.com/AmmarkoV/AmmarServer/issues/28
 */
@@ -60,7 +65,9 @@ char * dynamicRequest_serveContent
             unsigned char * compressionSupported,
             unsigned char * freeContentAfterUsingIt,
             unsigned char * contentContainsPathToFileToBeStreamed,
-            unsigned char * allowOtherOrigins
+            unsigned char * allowOtherOrigins,
+            char * pendingResponseHeadersOut,
+            unsigned int pendingResponseHeadersOutSize
           );
 
 #endif // DYNAMIC_REQUESTS_H_INCLUDED

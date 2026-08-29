@@ -227,6 +227,21 @@ extern int MAX_SEPERATE_CACHE_ITEMS;
 extern int MAX_CACHE_SIZE_IN_MB;
 /** @brief Maximum memory usage ( Megabytes ) for a specific entry of the cache ( per instance of AmmarServer ) */
 extern int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
+// ----------------- SESSION OPTIONS -----------------
+
+/** @brief Number of random bytes a new session token is generated from ( see AmmServer_GenerateSecureToken() )*/
+#define SESSION_TOKEN_RANDOM_BYTES 32
+/** @brief Buffer size needed to hold a session token string ( base64url of SESSION_TOKEN_RANDOM_BYTES + NUL ),
+           rounded up generously so callers don't need to compute the exact base64 expansion themselves */
+#define SESSION_TOKEN_STRING_SIZE 64
+/** @brief Name of the cookie the session token travels in */
+#define SESSION_COOKIE_NAME "AMMSESSID"
+
+/** @brief A session with no activity for this many seconds is treated as expired and lazily evicted on next touch */
+extern int SESSION_IDLE_TIMEOUT_SECONDS;
+/** @brief Maximum number of simultaneous sessions kept in memory ( per instance of AmmarServer ) - past this,
+           the single oldest ( by last activity ) session is evicted to make room for a new one */
+extern int MAX_SESSIONS;
 
 
 

@@ -285,6 +285,15 @@ struct AmmServer_DynamicRequest
    unsigned int clientID;
    unsigned int sessionID;
    unsigned int useSessionLifecycle;
+   char sessionToken[64]; //<- the real, unguessable session identifier ; sessionID above is legacy/unused - see
+                          //   cache/session_list.h. Sized to match SESSION_TOKEN_STRING_SIZE ( server_configuration.h ) ;
+                          //   not using that macro directly here to avoid a circular include with server_configuration.h.
+
+   //Set by AmmServer_SetCookie() ( or internally, e.g. when a brand new session cookie needs to be issued ) -
+   //raw Set-Cookie header line(s), appended verbatim into the response by SendSuccessCodeHeader() and cleared
+   //immediately after. Not a general "add any header" facility ( yet ) - just cookies, since that's the one
+   //thing dynamic content has never had a way to influence in the response header.
+   char pendingResponseHeaders[512];
 
    unsigned int headerResponse;
 
@@ -477,6 +486,13 @@ struct HTTPTransaction
   unsigned int outgoingBodySize;
 
   unsigned int resourceCacheID;
+
+  //Raw Set-Cookie header line(s) a dynamic-content callback queued via AmmServer_SetCookie() ( or that
+  //getSessionFromHeader() queued to issue a brand new session cookie ) - copied here from the request's
+  //AmmServer_DynamicRequest::pendingResponseHeaders by cache_GetResource() right after the callback returns,
+  //since the transaction ( not the per-callback rqst, which is freed shortly after ) is what's still alive when
+  //SendSuccessCodeHeader() actually builds and sends the response header. Emitted verbatim, then cleared.
+  char pendingResponseHeaders[512];
 
   int clientSock;
   int clientDisconnected;
@@ -964,11 +980,67 @@ int _COOKIEcmp(struct AmmServer_DynamicRequest * rqst,const char * name,const ch
 * @param The Destination pointer maximum accommodation size
 * @retval 1=Success , 0=Failure*/
 int _COOKIEcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize);
-///-------------------------------------------------------------------------------
+
 /**
-* @brief Shorthand/Shortcut for AmmServer_FILES()
-* @ingroup shortcut */
+* @brief Queues a Set-Cookie response header - see cache/session_list.h for the session system this exists to
+*        support, but it's a general-purpose primitive any resource handler can call for its own cookies too.
+*        Actually sent by SendSuccessCodeHeader() when the response header goes out ; has no effect on requests
+*        served by the epoll fast path ( see epollFastPathServer.c ), which never invokes a dynamic callback.
+* @ingroup COOKIE
+* @param The Dynamic Request to queue this cookie on
+* @param Cookie name
+* @param Cookie value
+* @param 0=browser-session cookie ( no Max-Age ) , >0=expires after this many seconds , <0=expire immediately ( clears it )
+* @param 1=mark HttpOnly ( not readable from JS ) , 0=don't
+* @retval 1=Success , 0=Failure ( bad args, or wouldn't fit the pending-header buffer )*/
+int AmmServer_SetCookie(struct AmmServer_DynamicRequest * rqst,const char * name,const char * value,int maxAgeSeconds,int httpOnly);
+///-------------------------------------------------------------------------------
+
+/**
+* @brief Get a SESSION field value by name - the PHP $_SESSION['name'] equivalent. Only resolves anything for
+*        resources registered with useSessionLifecycle set ( see AmmServer_RH_Context ) - see cache/session_list.h
+*        for how the underlying session store works.
+* @ingroup SESSION
+* @param The Dynamic Request we want to examine
+* @param The name of the SESSION field we want to receive a string for
+* @param Output size of the SESSION field we selected using our name
+* @retval Pointer to a thread-local scratch copy of the value ( valid until this thread's next _SESSION*() call -
+           copy it out immediately if you need it longer, same caveat _SESSIONcpy() exists to avoid ) , or 0=Not found*/
 const char * _SESSION(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength);
+
+/**
+* @brief Copy a SESSION field value to a given buffer
+* @ingroup SESSION
+* @param The Dynamic Request we want to examine
+* @param The name of the SESSION field we want to copy
+* @param The Destination pointer of where we want to copy to
+* @param The Destination pointer maximum accommodation size
+* @retval 1=Success , 0=Failure*/
+int _SESSIONcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize);
+
+/**
+* @brief Get the numeric value ( internally delivered using atoi ) of a SESSION field by name
+* @ingroup SESSION
+* @retval Integer value of the SESSION item with a given name , 0=Failure*/
+unsigned int _SESSIONuint(struct AmmServer_DynamicRequest * rqst,const char * name);
+
+/**
+* @brief Quickly check if a SESSION field has been set or not
+* @ingroup SESSION
+* @retval 1=Exists,0=Does not Exist*/
+int _SESSIONexists(struct AmmServer_DynamicRequest * rqst,const char * name);
+
+/**
+* @brief Set ( or overwrite ) a SESSION field - the PHP $_SESSION['name']=value; equivalent
+* @ingroup SESSION
+* @retval 1=Success , 0=Failure*/
+int _SESSIONset(struct AmmServer_DynamicRequest * rqst,const char * name,const char * value);
+
+/**
+* @brief Remove a SESSION field - the PHP unset($_SESSION['name']); equivalent
+* @ingroup SESSION
+* @retval 1=Removed , 0=Not found*/
+int _SESSIONunset(struct AmmServer_DynamicRequest * rqst,const char * name);
 
 /**
 * @brief Shorthand/Shortcut for AmmServer_FILES()

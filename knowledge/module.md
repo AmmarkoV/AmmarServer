@@ -23,32 +23,32 @@ and open · — not yet reviewed (default/starting state).
 
 | Module | Path | Security Gaps | Bugs | Common-Module Refactor | Automated Tests | Optimized |
 |---|---|---|---|---|---|---|
-| Public API surface | `main.c` | | 🟡 2 bugs fixed (issues.md #1 `AmmServer_DynamicRequestReturnMemoryHandler`, #2 `SIGKILL` registration); rest of file not yet reviewed | | | |
+| Public API surface | `main.c` | ✅ `filterStringForShellInjection`/`filterStringForHtmlInjection`/`AmmServer_StringHasSafePath` all implemented properly (were stubs), verified incl. real shell round-trip + symlink-bypass tests ; ✅ `_SESSION*` family + `AmmServer_SetCookie()` implemented from stubs (issues.md) | 🟡 2 bugs fixed (issues.md #1 `AmmServer_DynamicRequestReturnMemoryHandler`, #2 `SIGKILL` registration); rest of file not yet reviewed | | 🟡 ad-hoc tests for the sanitizers/safe-path/sessions only (scratchpad, not in-repo) | |
 | Configuration | `server_configuration.c/h` | | | | | |
 | Accept loop + epoll accept layer | `threads/threadedServer.c` | | | | | |
-| Epoll static-content fast path | `threads/epollFastPathServer.c` | | | | | |
+| Epoll static-content fast path | `threads/epollFastPathServer.c` | | 🟡 keepalive default logic updated to match http_header_analysis.c's fix (issues.md); rest of file not re-reviewed | | | |
 | Per-connection serving | `threads/clientServer.c` | | | | | |
 | Fresh worker threads | `threads/freshThreads.c` | | | | | |
 | Prespawned thread pool | `threads/prespawnedThreads.c` | | | | | |
 | Socket abstraction (plain/TLS) | `network/networkAbstraction.c` | | | | | |
 | TLS/SSL wiring | `network/openssl_server.c` | | | | | |
-| File/response transmission | `network/file_server.c` | | | | | |
-| Response header sending | `network/sendHTTPHeader.c` | | | | | |
+| File/response transmission | `network/file_server.c` | ✅ symlink-escape guard added at `SendFile()` (clean early 400) and `TransmitFileToSocket()` (disk-streaming fallback) — found via live testing that the caching-layer fix alone missed this second path entirely (issues.md) | | | | |
+| Response header sending | `network/sendHTTPHeader.c` | | | 🟡 `SendSuccessCodeHeader()` now emits `transaction->pendingResponseHeaders` (Set-Cookie etc — issues.md "Sessions") | | |
 | Request header receiving | `network/recvHTTPHeader.c` | | | | | |
-| Request line + header dispatch | `header_analysis/http_header_analysis.c` | | | | | |
+| Request line + header dispatch | `header_analysis/http_header_analysis.c` | | 🟡 keep-alive default fixed (issues.md) — HTTP/1.1 now defaults to keep-alive per spec, verified +4x throughput impact; rest of file not fully reviewed | | | |
 | Header tokenizing/buffer growth | `header_analysis/generic_header_tools.c` | | | | | |
 | POST header parsing | `header_analysis/post_header_analysis.c` | | | | | |
-| POST body/multipart parsing | `header_analysis/post_data.c` | | | | | |
+| POST body/multipart parsing | `header_analysis/post_data.c` | | ✅ 5 issues fixed (2 real bounds bugs, 2 stale TODOs removed, `success`/return-value semantics fixed — see issues.md); verified live via MyLoader upload + malformed-multipart robustness test | | | |
 | GET query parsing | `header_analysis/get_data.c` | | 🟡 issues.md #3 prefix-match lookup fixed; possible dropped-trailing-field bug spotted, not yet confirmed/fixed | | | |
 | Cookie parsing | `header_analysis/cookie_data.c` | | 🟡 issues.md #3 prefix-match lookup fixed (length-bounded, not strcmp — see rationale in issues.md) | | | |
-| Static file + dynamic resource cache | `cache/file_caching.c` | | | | | |
+| Static file + dynamic resource cache | `cache/file_caching.c` | ✅ symlink-escape guard added to the one-time (per-unique-file, not per-request) disk-load path in `cache_GetResource()`, covers both `SendFile()` and the epoll fast path (issues.md) | | | | |
 | Dynamic content dispatch (SAME/DIFFERENT_PAGE) | `cache/dynamic_requests.c` | | | | | |
 | Client list / ban tracking | `cache/client_list.c` | | | | | |
-| Session storage | `cache/session_list.c` | | | | | |
+| Session storage | `cache/session_list.c` | ✅ implemented from a complete stub: PHP-`$_SESSION`-style cookie-based store, CSPRNG tokens, salted-hash user-account integration (issues.md §5 "Sessions") | | | 🟡 live end-to-end tested (scratchpad, not in-repo) — cookie issuance/reuse/expiry, login/logout, 200-concurrent-request race test, capacity eviction | |
 | Response compression | `cache/file_compression.c` | | | | | |
-| Logging | `tools/logs.c` | | | | | |
+| Logging | `tools/logs.c` | ✅ `system()` call in `compressLog()` audited (issues.md) — only ever called with server-configured log paths, no client input reaches it | | | | |
 | Date/time formatting | `tools/time_provider.c` | | | | | |
-| Path safety / misc HTTP helpers | `tools/http_tools.c` | | | | | |
+| Path safety / misc HTTP helpers | `tools/http_tools.c` | ✅ `popen()` in `ServerThreads_DropRootUID()` audited (issues.md) — username is a server-config constant, not client input, no fix needed ; added shared `PathResolvesWithinDirectory()` (canonicalization core, reused by `AmmServer_StringHasSafePath()` and the file-serving/caching guards) without touching `FilenameStripperOk()` itself — that one stays string-only deliberately, since it runs on the hot per-request/fast-path route where a `realpath()` syscall per request wasn't acceptable | | | | |
 | Directory listing generation | `tools/directory_lists.c` | | | | | |
 | IP geolocation | `tools/geolocation.c` | | | | | |
 | Built-in monitor.html page | `tools/serverMonitor.c` | | | | | |
@@ -65,25 +65,25 @@ and open · — not yet reviewed (default/starting state).
 
 | Module | Path | Security Gaps | Bugs | Common-Module Refactor | Automated Tests | Optimized |
 |---|---|---|---|---|---|---|
-| Hashmap | `src/Hashmap/` | | | | | |
+| Hashmap | `src/Hashmap/` | | 🐛 found (not fixed, unreachable) `hashMap_GetPayload()` is broken — pass-by-value out-param never reaches the caller (issues.md "Sessions") | | 🟡 standalone ASan test for the two new functions only (scratchpad, not in-repo) | |
 | InputParser | `src/InputParser/` | | | | | |
 | BasicImaging | `src/BasicImaging/` | | | | | |
 | AmmCaptcha | `src/AmmCaptcha/` | | | | | |
 | AmmClient | `src/AmmClient/` | | | | | |
 | AmmMessages | `src/AmmMessages/` | | | | | |
-| UserAccounts | `src/UserAccounts/` | | | | | |
+| UserAccounts | `src/UserAccounts/` | ✅ plaintext passwords → salted/iterated SHA-256 (new `sha256.c`/`.h`) ; ✅ weak unseeded-`rand()` session-ID generation → CSPRNG ; ✅ session-ID-in-URL → real cookie-based login added (`AmmServer_Login`/`Logout`/`CurrentUsername`, additive — legacy `?s=` idiom kept intact since `Social`/`ShareTex` still depend on it) (issues.md "Sessions") | | 🟡 `Social`/`ShareTex` not yet migrated to the new cookie-based login API — still on the legacy URL-param idiom | 🟡 standalone ASan test for password hashing only (scratchpad, not in-repo) | |
 | StringRecognizer (generator for stringscanners) | `src/StringRecognizer/` | | | | | |
 
 ## Services — `src/Services/`
 
 | Service | Path | Security Gaps | Bugs | Common-Module Refactor | Automated Tests | Optimized |
 |---|---|---|---|---|---|---|
-| AmmarServer (reference/demo) | `src/Services/AmmarServer/` | | | | | |
+| AmmarServer (reference/demo) | `src/Services/AmmarServer/` | ✅ `/execute.html` audited (issues.md) — only ever runs the server's own `-e` startup CLI argument, operator-controlled not client-controlled, no fix needed | | | | |
 | SimpleTemplate (starter template) | `src/Services/SimpleTemplate/` | | | | | |
 | MyURL | `src/Services/MyURL/` | | | | | |
-| MyLoader | `src/Services/MyLoader/` | | | | | |
+| MyLoader | `src/Services/MyLoader/` | ✅ arbitrary-file-write risk closed — `AmmServer_StringHasSafePath()` (gates both its `/vfile.html` read-by-name and its upload write path) now does real `realpath()`-based canonicalization, not just a character blacklist (issues.md) | | | | |
 | MyBlog | `src/Services/MyBlog/` | | | | | |
-| MyTube | `src/Services/MyTube/` | | | | | |
+| MyTube | `src/Services/MyTube/` | ✅ command-injection fixed: YouTube video title (attacker-influenceable, reachable by default since `DO_YOUTUBE_DOWNLOADING=1`) whitelist-filtered before it reaches any filename/ffmpeg command (issues.md) | | | | |
 | MySearch | `src/Services/MySearch/` | | | | | |
 | GeoPosShare | `src/Services/GeoPosShare/` | | | | | |
 | Social | `src/Services/Social/` | | | | | |
@@ -93,13 +93,13 @@ and open · — not yet reviewed (default/starting state).
 | SuperMarket | `src/Services/SuperMarket/` | | | | | |
 | WebFramebuffer | `src/Services/WebFramebuffer/` | | | | | |
 | V4L2ToHTTP | `src/Services/V4L2ToHTTP/` | | | | | |
-| ImageGeneration | `src/Services/ImageGeneration/` | | | | | |
+| ImageGeneration | `src/Services/ImageGeneration/` | ✅ audited (issues.md) — client input reaches `system()` but is already whitelist-filtered via `filterQuery()`, no fix needed there ; also benefits from the `AmmServer_StringHasSafePath()` fix (same upload-write pattern as MyLoader) | | | | |
 | AmmBus | `src/Services/AmmBus/` | | | | | |
 | APushService | `src/Services/APushService/` | | | | | |
-| MyRemoteDesktop (opt-in, `USE_XSERVER`) | `src/Services/MyRemoteDesktop/` | | | | | |
+| MyRemoteDesktop (opt-in, `USE_XSERVER`) | `src/Services/MyRemoteDesktop/` | ✅ `/cmd` keystroke path hardened against shell metacharacters, defense-in-depth (issues.md) — was already double-gated (compile+runtime flags off by default) | | | | |
 | Various/NaoNetWalk | `src/Services/Various/NaoNetWalk/` | | | | | |
-| Various/ScriptRunner | `src/Services/Various/ScriptRunner/` | | | | | |
-| Deprecated/CinemaPilot | `src/Services/Deprecated/CinemaPilot/` | | | | | |
+| Various/ScriptRunner | `src/Services/Various/ScriptRunner/` | ✅ command-injection fixed: `?say=` text (client-controlled, no auth, built unconditionally) blacklist-filtered before reaching a two-layer-quoted shell command, UTF-8 preserved (issues.md) | | | | |
+| Deprecated/CinemaPilot | `src/Services/Deprecated/CinemaPilot/` | ✅ audited (issues.md) — all `system()` calls hardcoded or fed from a server-side playlist file, no client-controlled input reaches them, no fix needed | | | | |
 | Apolls *(not currently built)* | `src/Services/Apolls/` | | | | | |
 | Deprecated/SQLiteServer *(not currently built)* | `src/Services/Deprecated/SQLiteServer/` | | | | | |
 | Various/libkindrvserver *(not currently built)* | `src/Services/Various/libkindrvserver/` | | | | | |

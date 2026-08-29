@@ -6,8 +6,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
    
 set(CMAKE_C_FLAGS "-fPIC ")
 
-add_library(UserAccountsDynamic SHARED userAccounts.c userAccounts.h userAccountsWeb.c userAccountsWeb.h)
-add_library(UserAccounts STATIC  userAccounts.c userAccounts.h userAccountsWeb.c userAccountsWeb.h)
+add_library(UserAccountsDynamic SHARED userAccounts.c userAccounts.h userAccountsWeb.c userAccountsWeb.h sha256.c sha256.h)
+add_library(UserAccounts STATIC  userAccounts.c userAccounts.h userAccountsWeb.c userAccountsWeb.h sha256.c sha256.h)
  
      set_target_properties(UserAccountsDynamic PROPERTIES 
                           DEBUG_POSTFIX "D"

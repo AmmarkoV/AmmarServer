@@ -164,6 +164,35 @@ int ReducePathSlashes_Inplace(char * filename);
 int FilenameStripperOk(char * filename);
 
 /**
+* @brief Resolves candidatePath to its real , canonical , symlink-free absolute form and confirms it is
+*        trustedRoot itself or a path underneath it ( trustedRoot is resolved too ). This is the
+*        canonicalization-based check FilenameStripperOk()/AmmServer_StringHasSafePath() ( which both only
+*        validate the request/filename *string* ) can't provide on their own - no character-level check , no
+*        matter how thorough , can catch a symlink placed inside the trusted root pointing somewhere else ,
+*        since that depends on the actual filesystem structure , not the string. Deliberately NOT called from
+*        the hot per-request path ( it does real stat()/readlink() syscalls ) - see its callers for where it's
+*        actually used ( once per newly-cached file , and for the handful of upload-path safety checks ).
+*        Handles candidatePath not existing yet ( e.g. an upload's target filename , about to be created ) by
+*        falling back to resolving just its containing directory.
+* @ingroup security
+* @param The trusted root directory candidatePath must stay inside ( must already exist )
+* @param The full path to check - does not need to exist yet
+* @retval 1=candidatePath resolves to trustedRoot itself or somewhere underneath it , 0=escapes it / error*/
+int PathResolvesWithinDirectory(const char * trustedRoot,const char * candidatePath);
+
+/**
+* @brief Generates a cryptographically random, URL-safe token ( base64url , no padding ) - used for session IDs
+*        and anything else that needs an unguessable value ( unlike rand() , used elsewhere in the codebase for
+*        similar purposes , this is seeded from the kernel's CSPRNG on every call via getrandom() , falling back
+*        to reading /dev/urandom directly if getrandom() is ever unavailable ).
+* @ingroup tools,security
+* @param Output buffer for the NUL-terminated token string
+* @param Size of the output buffer - must be at least ((numRandomBytes*4/3)+4) to fit the encoded token + NUL
+* @param Number of raw random bytes to generate before encoding ( 32 is a reasonable default )
+* @retval 1=Success,0=Failure ( output buffer too small , or the kernel CSPRNG couldn't be reached at all )*/
+int AmmServer_GenerateSecureToken(char * out,unsigned int outSize,unsigned int numRandomBytes);
+
+/**
 * @brief A very basic http client for testing connections and maybe in the future make AmmarServers communicate with each other
 * @ingroup tools
 * @param An AmmarServer instance

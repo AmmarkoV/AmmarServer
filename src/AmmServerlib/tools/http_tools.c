@@ -22,6 +22,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <limits.h>
 // --------------------------------------------
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -30,6 +31,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <netdb.h>
 #include <sys/uio.h>
 #include <sys/stat.h>
+#include <sys/random.h>
 #include <unistd.h>
 #include <errno.h>
 // --------------------------------------------
@@ -644,6 +646,46 @@ int FilenameStripperOk(char * filename)
    return 1;
 }
 
+int PathResolvesWithinDirectory(const char * trustedRoot,const char * candidatePath)
+{
+  if ( (trustedRoot==0) || (candidatePath==0) || (strlen(candidatePath)==0) ) { return 0; }
+
+  char resolvedRoot[PATH_MAX];
+  if (realpath(trustedRoot,resolvedRoot)==0)
+   { AmmServer_Error("PathResolvesWithinDirectory : could not resolve trusted root \"%s\"",trustedRoot); return 0; }
+
+  char resolvedCandidate[PATH_MAX];
+  if (realpath(candidatePath,resolvedCandidate)==0)
+   {
+     //realpath() requires the full path to already exist ; that's true for a lookup of a file that's already
+     //on disk but not for an upload's target filename ( the file is about to be CREATED ). Fall back to
+     //resolving just the containing directory the candidate would live in , and manually appending the final
+     //path component - rejecting outright if that component is empty, "." , or ".." , which would otherwise
+     //trivially resolve to somewhere other than intended once combined with the real, already-existing prefix.
+     char candidateDir[PATH_MAX];
+     strncpy(candidateDir,candidatePath,PATH_MAX-1); candidateDir[PATH_MAX-1]=0;
+     char * lastSlash = strrchr(candidateDir,'/');
+     if (lastSlash==0) { return 0; }
+     char * baseName = lastSlash+1;
+     if ( (strcmp(baseName,".")==0) || (strcmp(baseName,"..")==0) || (strlen(baseName)==0) ) { return 0; }
+     *lastSlash=0;
+
+     char resolvedCandidateDir[PATH_MAX];
+     if (realpath(candidateDir,resolvedCandidateDir)==0)
+      { AmmServer_Error("PathResolvesWithinDirectory : could not resolve \"%s\"",candidateDir); return 0; }
+
+     snprintf(resolvedCandidate,PATH_MAX,"%s/%s",resolvedCandidateDir,baseName);
+   }
+
+  //The resolved candidate must equal resolvedRoot itself, or start with resolvedRoot followed by a real '/'
+  //separator ( a bare strncmp prefix match would wrongly let e.g. "/uploads-evil" pass a "/uploads" check ).
+  unsigned int rootLen = strlen(resolvedRoot);
+  if (strncmp(resolvedCandidate,resolvedRoot,rootLen)!=0) { return 0; }
+  if ( (resolvedCandidate[rootLen]!=0) && (resolvedCandidate[rootLen]!='/') ) { return 0; }
+
+  return 1;
+}
+
 int strToUpcase(char * strTarget , char * strSource , unsigned int strLength)
 {
  unsigned int i=0;
@@ -908,6 +950,65 @@ int encodeToBase64(char *src,unsigned s_len,char *dst,unsigned d_len)
   }
 
 return 1;
+}
+
+static char base64url[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+"abcdefghijklmnopqrstuvwxyz"
+"0123456789"
+"-_";
+
+int AmmServer_GenerateSecureToken(char * out,unsigned int outSize,unsigned int numRandomBytes)
+{
+  if ( (out==0) || (numRandomBytes==0) ) { return 0; }
+
+  unsigned int encodedLength = (numRandomBytes*8+5)/6; //ceil(numRandomBytes*8/6) , no padding
+  if (outSize<encodedLength+1) { return 0; }
+
+  unsigned char * raw = (unsigned char *) malloc(numRandomBytes);
+  if (raw==0) { return 0; }
+
+  //Prefer getrandom() ( kernel CSPRNG , no fd to leak/exhaust ) , retrying on EINTR ; fall back to /dev/urandom
+  //directly only if getrandom() itself is unavailable/fails outright - unlike the rand() calls used elsewhere
+  //in the codebase for similar "unique token" purposes, this must not be predictable/brute-forceable.
+  unsigned int gotBytes=0;
+  while (gotBytes<numRandomBytes)
+  {
+    ssize_t r = getrandom(raw+gotBytes,numRandomBytes-gotBytes,0);
+    if (r>0)                              { gotBytes+=(unsigned int)r; continue; }
+    if ( (r<0) && (errno==EINTR) )        { continue; }
+    break;
+  }
+
+  if (gotBytes<numRandomBytes)
+  {
+    FILE * fUrandom = fopen("/dev/urandom","rb");
+    if (fUrandom==0) { free(raw); return 0; }
+    while (gotBytes<numRandomBytes)
+    {
+      size_t r = fread(raw+gotBytes,1,numRandomBytes-gotBytes,fUrandom);
+      if (r==0) { break; }
+      gotBytes+=(unsigned int)r;
+    }
+    fclose(fUrandom);
+    if (gotBytes<numRandomBytes) { free(raw); return 0; }
+  }
+
+  unsigned int bitBuffer=0,bitCount=0,outPos=0,i=0;
+  for (i=0; i<numRandomBytes; i++)
+  {
+    bitBuffer = (bitBuffer<<8) | raw[i];
+    bitCount += 8;
+    while (bitCount>=6)
+    {
+      bitCount-=6;
+      out[outPos++] = base64url[(bitBuffer>>bitCount)&0x3f];
+    }
+  }
+  if (bitCount>0) { out[outPos++] = base64url[(bitBuffer<<(6-bitCount))&0x3f]; }
+  out[outPos]=0;
+
+  free(raw);
+  return 1;
 }
 
 int CheckHTTPHeaderCategoryAllCaps(char * lineCAPS,unsigned int line_length,char * potential_strCAPS,unsigned int * payload_start)

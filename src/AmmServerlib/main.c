@@ -24,6 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <signal.h>
 #include <unistd.h>
 #include <time.h>
+#include <limits.h>
 // --------------------------------------------
 #include "version.h"
 // --------------------------------------------
@@ -158,6 +159,7 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
 
   ASRV_StopHTTPServer(instance);
   cache_Destroy(instance);
+  sessionList_close(instance->sessionList);
 
   if (instance->threads_pool!=0)    { free(instance->threads_pool); instance->threads_pool=0; }
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
@@ -236,6 +238,7 @@ struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
   #endif // USE_OPENSSL
 
   cache_Initialize(instance, MAX_SEPERATE_CACHE_ITEMS, MAX_CACHE_SIZE_IN_MB, MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB);
+  instance->sessionList = sessionList_initialize(name);
 
   if (ASRV_StartHTTPServer(instance,ip,instance->settings.BINDING_PORT,web_root_path,templates_root_path))
   {
@@ -322,6 +325,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
                    MAX_CACHE_SIZE_IN_MB   , /*MB Limit for the WHOLE Cache*/
                    MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB    /*MB Max Size of Individual File*/
                   );
+  instance->sessionList = sessionList_initialize(name);
 
    if (ASRV_StartHTTPServer(instance,ip,instance->settings.BINDING_PORT,web_root_path,templates_root_path))
       {
@@ -783,14 +787,75 @@ int _COOKIEcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * d
   destination[valueLength]=0;
   return 1;
 }
+
+int AmmServer_SetCookie(struct AmmServer_DynamicRequest * rqst,const char * name,const char * value,int maxAgeSeconds,int httpOnly)
+{
+  if ( (rqst==0) || (name==0) || (value==0) ) { return 0; }
+
+  char newLine[256]={0};
+  int written = snprintf(newLine,sizeof(newLine),"Set-Cookie: %s=%s; Path=/;",name,value);
+  if ( (written<0) || ((unsigned int)written>=sizeof(newLine)) ) { return 0; } //Wouldn't fit - refuse rather than truncate a cookie value
+
+  //maxAgeSeconds : 0 = a browser-session cookie ( no Max-Age at all ) , >0 = expires after that many seconds ,
+  //<0 = expire immediately ( used to clear a cookie, e.g. AmmServer_Logout() )
+  if (maxAgeSeconds<0)      { strncat(newLine," Max-Age=0;",sizeof(newLine)-strlen(newLine)-1); }
+  else if (maxAgeSeconds>0) { char part[48]={0}; snprintf(part,sizeof(part)," Max-Age=%d;",maxAgeSeconds); strncat(newLine,part,sizeof(newLine)-strlen(newLine)-1); }
+
+  if (httpOnly) { strncat(newLine," HttpOnly;",sizeof(newLine)-strlen(newLine)-1); }
+  if ( (rqst->instance!=0) && (rqst->instance->sslAvailable) ) { strncat(newLine," Secure;",sizeof(newLine)-strlen(newLine)-1); }
+  strncat(newLine," SameSite=Lax\n",sizeof(newLine)-strlen(newLine)-1);
+
+  unsigned int curLen = strlen(rqst->pendingResponseHeaders);
+  if (curLen+strlen(newLine)+1>sizeof(rqst->pendingResponseHeaders)) { return 0; } //Wouldn't fit - refuse rather than truncate/drop a queued header
+  strcat(rqst->pendingResponseHeaders,newLine);
+  return 1;
+}
 /// -----------------------------------------------------------------------------------------------------------------------
 
 
 /// --------------------------------------------------------- SESSION ---------------------------------------------------------
 const char * _SESSION(struct AmmServer_DynamicRequest * rqst,const char * name,unsigned int * valueLength)
 {
-    struct AmmServer_Instance * instance = rqst->instance;
-    return sessiontList_GetInfo(instance->sessionList,rqst->sessionID,name);
+  if (valueLength!=0) { *valueLength=0; }
+  if ( (rqst==0) || (rqst->instance==0) ) { return 0; }
+  return sessiontList_GetInfo(rqst->instance->sessionList,rqst->sessionToken,name,valueLength);
+}
+
+int _SESSIONcpy(struct AmmServer_DynamicRequest * rqst,const char * name,char * destination,unsigned int destinationSize)
+{
+  unsigned int valueLength=0;
+  const char * value = _SESSION(rqst,name,&valueLength);
+  if ( (value==0) || (destination==0) )    { return 0; }
+  if (valueLength+1>destinationSize)        { return 0; }
+  memcpy(destination,value,valueLength);
+  destination[valueLength]=0;
+  return 1;
+}
+
+unsigned int _SESSIONuint(struct AmmServer_DynamicRequest * rqst,const char * name)
+{
+  unsigned int valueLength = 0;
+  const char * value = _SESSION(rqst,name,&valueLength);
+  if (value!=0) { return atoi(value); }
+  return 0;
+}
+
+int _SESSIONexists(struct AmmServer_DynamicRequest * rqst,const char * name)
+{
+  unsigned int valueLength=0;
+  return (_SESSION(rqst,name,&valueLength) != 0 );
+}
+
+int _SESSIONset(struct AmmServer_DynamicRequest * rqst,const char * name,const char * value)
+{
+  if ( (rqst==0) || (rqst->instance==0) ) { return 0; }
+  return sessiontList_StoreInfo(rqst->instance->sessionList,rqst->sessionToken,name,value);
+}
+
+int _SESSIONunset(struct AmmServer_DynamicRequest * rqst,const char * name)
+{
+  if ( (rqst==0) || (rqst->instance==0) ) { return 0; }
+  return sessiontList_UnsetInfo(rqst->instance->sessionList,rqst->sessionToken,name);
 }
 /// -----------------------------------------------------------------------------------------------------------------------
 
@@ -1134,17 +1199,75 @@ struct AmmServer_MemoryHandler * AmmServer_CopyMemoryHandler(struct AmmServer_Me
 
 int filterStringForShellInjection(char * buffer , unsigned int bufferSize)
 {
-  AmmServer_Warning("filterStringForSystemInjection not implemented ( %s , %u ) ",buffer,bufferSize);
+  if (buffer==0) { return 0; }
 
-  //Replacing all instances of ' with '\'' then enclosing the whole string in single quotes (') is one safe way. This works even with embedded newlines.
-  return 0;
+  //Wrap the whole string in single quotes , escaping any embedded single quote as '\'' ( close the quote ,
+  //append a backslash-escaped literal quote , reopen the quote ). This is the standard , complete way to make
+  //an arbitrary byte string safe as a single POSIX shell argument - single quotes preserve every other
+  //character completely literally ( including whitespace, $, `, \, newlines, etc ) , so unlike a blacklist of
+  //"dangerous" characters , nothing else needs special-casing. In place is done via a scratch buffer since
+  //escaping only ever grows the string, and we refuse to silently truncate a security-relevant transform if it
+  //doesn't fit the caller's buffer - the caller should size buffer generously or check the return value.
+  unsigned int originalLength = strlen(buffer);
+
+  unsigned int i=0;
+  unsigned int requiredLength=2; // opening + closing quote
+  for (i=0; i<originalLength; i++) { requiredLength += (buffer[i]=='\'') ? 4 : 1; }
+
+  if (requiredLength >= bufferSize)
+  {
+    AmmServer_Error("filterStringForShellInjection : escaped string would need %u bytes , buffer is only %u - refusing to truncate a shell argument",requiredLength,bufferSize);
+    return 0;
+  }
+
+  char * scratch = (char*) malloc(requiredLength+1);
+  if (scratch==0) { AmmServer_Error("filterStringForShellInjection : out of memory"); return 0; }
+
+  unsigned int outPos=0;
+  scratch[outPos++]='\'';
+  for (i=0; i<originalLength; i++)
+  {
+    if (buffer[i]=='\'')
+     { scratch[outPos++]='\''; scratch[outPos++]='\\'; scratch[outPos++]='\''; scratch[outPos++]='\''; }
+    else
+     { scratch[outPos++]=buffer[i]; }
+  }
+  scratch[outPos++]='\'';
+  scratch[outPos]=0;
+
+  memcpy(buffer,scratch,outPos+1);
+  free(scratch);
+  return 1;
 }
 
 
 int filterStringForHtmlInjection(char * buffer , unsigned int bufferSize)
 {
-  AmmServer_Warning("filterStringForHtmlInjection not implemented ( %s , %u ) ",buffer,bufferSize);
-  return 0;
+  if (buffer==0) { return 0; }
+
+  //AmmServer_HTMLEscape() already does the real entity-escaping work correctly ( &,<,>,",' -> entities , never
+  //emits a partial entity ) - reuse it instead of re-implementing HTML escaping a second time. It needs a
+  //separate output buffer since escaping only ever grows a string , so escape into a worst-case-sized scratch
+  //buffer ( every byte becomes the longest entity , &quot; / &#39; , 6 bytes ) and copy back only if the result
+  //actually fits the caller's buffer - refusing to silently truncate a security-relevant transform.
+  unsigned int originalLength = strlen(buffer);
+  unsigned int worstCaseLength = originalLength*6+1;
+
+  char * scratch = (char*) malloc(worstCaseLength);
+  if (scratch==0) { AmmServer_Error("filterStringForHtmlInjection : out of memory"); return 0; }
+
+  unsigned int escapedLength = AmmServer_HTMLEscape(buffer,scratch,worstCaseLength);
+
+  if (escapedLength >= bufferSize)
+  {
+    AmmServer_Error("filterStringForHtmlInjection : escaped string needs %u bytes , buffer is only %u - refusing to truncate",escapedLength,bufferSize);
+    free(scratch);
+    return 0;
+  }
+
+  memcpy(buffer,scratch,escapedLength+1);
+  free(scratch);
+  return 1;
 }
 
 int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh)
@@ -1243,10 +1366,23 @@ unsigned int AmmServer_HTMLEscape(const char * input , char * output , unsigned 
 unsigned int AmmServer_StringHasSafePath( const char * directory , const char * filenameUNSANITIZEDString)
 {
   const char * str = filenameUNSANITIZEDString;
-  AmmServer_Stub("TODO : AmmServer_StringHasSafePath better checking ( also use directory ).. https://www.owasp.org/index.php/Path_Traversal\n");
+  if ( (directory==0) || (str==0) || (strlen(str)==0) ) { return 0; }
 
+  //Original character blacklist - kept exactly as-is so nothing that used to pass or fail changes behavior.
+  //Notably this already rejects every '/' , so a filename containing an actual multi-component traversal
+  //sequence ( "../../etc/passwd" ) can never reach the check below in the first place.
   unsigned int i=0;
   while(i<strlen(str)) { if (  ( str[i]<'!' ) || ( str[i]=='\\' ) || ( str[i]=='%' ) || ( str[i]=='/' ) ) { return 0;} ++i; }
 
-  return 1;
+  //What the blacklist above does NOT catch , because neither char is individually "dangerous" : a filename
+  //that is literally ".." ( two dots , no slash ) sails through it untouched , and directory+"/"+".." resolves
+  //to the parent of `directory` - handing back whatever's stored one level up. This is exactly the "also use
+  //directory" half of the original TODO. PathResolvesWithinDirectory() ( tools/http_tools.c ) does the real ,
+  //canonical , symlink-free containment check - shared with the one-time check file_caching.c now also does
+  //when a request causes a new file to be read off disk for the first time, so there's a single implementation
+  //of this logic instead of two , purely additive on top of the blacklist above ( can only reject MORE than
+  //before , never accept something the blacklist would already have rejected ).
+  char candidate[PATH_MAX];
+  snprintf(candidate,PATH_MAX,"%s/%s",directory,str);
+  return PathResolvesWithinDirectory(directory,candidate);
 }

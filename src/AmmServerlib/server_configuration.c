@@ -34,6 +34,10 @@ int MAX_SEPERATE_CACHE_ITEMS = 1024;
 int MAX_CACHE_SIZE_IN_MB = 128;
 int MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB = 3;
 
+//SESSIONS
+int SESSION_IDLE_TIMEOUT_SECONDS = 1800; //30 minutes
+int MAX_SESSIONS = 10000;
+
 
 int AccessLogEnable=1;
 char AccessLog[MAX_FILE_PATH]="access.log";

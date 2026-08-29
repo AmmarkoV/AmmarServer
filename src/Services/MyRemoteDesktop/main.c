@@ -201,7 +201,12 @@ void * prepare_command_content_callback(struct AmmServer_DynamicRequest  * rqst)
  {
   char keypressedFiltered[32]={0};
   char keyPressed = (char) dokey;
-  if (keyPressed<200)
+  //keyPressed reaches xdotool inside a single-quoted shell argument ( xdotool key '%s' below ) - a stray quote
+  //or shell metacharacter here can't build a full injection payload on its own ( it's a single byte ) , but
+  //there's no reason to let anything but an ordinary printable key through , so reject the shell-special bytes
+  //outright rather than let a malformed keystroke reach the shell at all.
+  if ( (keyPressed=='\'') || (keyPressed=='"') || (keyPressed=='`') || (keyPressed=='$') || (keyPressed=='\\') || (keyPressed==';') || (keyPressed<' ') ) { keyPressed=0; }
+  if ( (keyPressed<200) && (keyPressed!=0) )
   {
    fprintf(stderr,"---------------------- Key (%c) \n",keyPressed);
 

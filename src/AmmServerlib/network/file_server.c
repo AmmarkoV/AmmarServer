@@ -238,6 +238,19 @@ int TransmitFileToSocket(
                         )
 {
  int res = 0;
+
+ //This is the "serve straight from disk , not from the in-memory cache" fallback ( doNOTCacheRule , a file too
+ //big to cache , etc ) - cache_GetResource()'s own cache-population path already runs this same containment
+ //check ( see file_caching.c ) before a file is first cached , but a file that lands here specifically SKIPS
+ //that step , so it needs its own check right here. verified_filename has already been through
+ //FilenameStripperOk()'s string-level validation , but no character-level check can catch a symlink placed
+ //inside webserver_root pointing somewhere else - that depends on the actual filesystem structure.
+ if (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename))
+   {
+    AmmServer_Error("TransmitFileToSocket : \"%s\" resolves outside the web root - refusing to serve it",verified_filename);
+    return 0;
+   }
+
  FILE * pFile = fopen (verified_filename, "rb" );
 
  //If we can't open the file we fail to transmit the file
@@ -437,7 +450,15 @@ unsigned long SendFile
 /*! PRELIMINARY HEADER SENDING START ----------------------------------------------*/
   unsigned int WeWantA200OK=0;
 
-  if (!FilenameStripperOk(verified_filename))
+  //FilenameStripperOk() is a string-level check ( always safe/cheap , runs on every request ) ; a symlink
+  //placed inside webserver_root pointing somewhere else passes it with no trouble at all, since nothing about
+  //the request string itself is wrong - that's exactly why PathResolvesWithinDirectory() also gets checked
+  //here, at the same point, before any header goes out : it's what actually catches that case, and doing it
+  //here ( rather than only down in TransmitFileToSocket()/cache_GetResource()'s cache-population path, which
+  //also both carry this same check as defense in depth for callers that reach them some other way ) means a
+  //rejected request gets a clean, proper error response instead of a 200 header already having gone out with
+  //no body to follow.
+  if ( (!FilenameStripperOk(verified_filename)) || (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) )
   {
      //Unsafe filename , bad request :P
      if (! SendErrorCodeHeader(instance,transaction,400,verified_filename,instance->templates_root) ) { fprintf(stderr,"Failed sending error code 400\n"); return 0; }
@@ -472,7 +493,7 @@ unsigned long SendFile
   unsigned char allowOtherOrigins=0;
   unsigned char free_cached_buffer_after_use=0;
   unsigned char serveAsRegularFile=0;
-  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins);
+  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins,transaction->pendingResponseHeaders,sizeof(transaction->pendingResponseHeaders));
 
 
   //We are done with our resource so we no longer need the extra data that needs to be deallocated..

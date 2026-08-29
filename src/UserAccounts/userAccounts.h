@@ -22,7 +22,7 @@ struct UserAccountAuthenticationToken
 struct RegisteredUser
 {
   char username[32];
-  char password[32];
+  char password[128]; //"<32 hex salt>:<64 hex SHA-256>" ( see hashPassword()/verifyPassword() in userAccounts.c ) - not plaintext
   char sessionID[32];
 };
 
