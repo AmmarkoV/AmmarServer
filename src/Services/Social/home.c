@@ -1,6 +1,8 @@
 #include "home.h"
 #include "posts.h"
 #include "media.h"
+#include "follows.h"
+#include "notifications.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +14,7 @@
 
 /*The home feed and a user's wall are the same page with a different set of posts in it , so they share one
   renderer. `profileUser` is 0 for the feed ( every wall ) , or whose wall is being looked at..*/
-static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewer,const char * profileUser)
+static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewer,const char * profileUser,int showEveryone)
 {
   char csrfToken[MAX_CSRF_TOKEN]={0};
   if ( ! AmmServer_GenerateCSRFToken(rqst,csrfToken,sizeof(csrfToken)) )
@@ -25,7 +27,14 @@ static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewe
   char * postsBuffer = (char*) malloc(POSTS_RENDER_BUFFER_SIZE);
   if (postsBuffer==0) { return; }
 
-  renderPosts(postsBuffer,POSTS_RENDER_BUFFER_SIZE,profileUser,viewer,csrfToken,profileUser);
+  //A wall shows everything written on it ; the home feed is limited to the people you follow unless the
+  //visitor explicitly asked for everyone..
+  int followedOnly = ( (profileUser==0) && (!showEveryone) );
+  unsigned int rendered = renderPosts(postsBuffer,POSTS_RENDER_BUFFER_SIZE,profileUser,followedOnly,viewer,csrfToken,profileUser);
+
+  char hint[256]={0};
+  if ( (followedOnly) && (rendered==0) )
+    { snprintf(hint,sizeof(hint),"<div class=\"notice\">Your feed is quiet. <a href=\"people.html\">Find people to follow</a> , or see <a href=\"home.html?all=1\">everyone</a>.</div>"); }
 
   char escapedViewer[MAX_ESCAPED_USERNAME]={0};
   AmmServer_HTMLEscape(viewer,escapedViewer,sizeof(escapedViewer));
@@ -49,13 +58,33 @@ static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewe
     char escapedProfileUser[MAX_ESCAPED_USERNAME]={0};
     AmmServer_HTMLEscape(profileUser,escapedProfileUser,sizeof(escapedProfileUser));
 
-    //Somebody else's wall is where a private conversation with them starts from..
+    //Somebody else's wall is where a private conversation , and a follow , start from..
     char messageLink[256]={0};
     if (strcmp(profileUser,viewer)!=0)
       { snprintf(messageLink,sizeof(messageLink),"<a class=\"messagelink\" href=\"chat.html?u=%s\">Message %s</a>",escapedProfileUser,escapedProfileUser); }
 
+    char followButton[768]={0};
+    if (strcmp(profileUser,viewer)!=0)
+    {
+      int alreadyFollowing=followsIsFollowing(viewer,profileUser);
+      snprintf(followButton,sizeof(followButton),
+               "<form class=\"followform\" method=\"post\" enctype=\"multipart/form-data\" action=\"follow.html\">"
+                "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
+                "<input type=\"hidden\" name=\"user\" value=\"%s\">"
+                "<input type=\"hidden\" name=\"back\" value=\"%s\">"
+                "<button type=\"submit\" class=\"%s\">%s</button>"
+               "</form>",
+               csrfToken,escapedProfileUser,escapedProfileUser,
+               alreadyFollowing ? "follow following" : "follow",
+               alreadyFollowing ? "Following" : "Follow");
+    }
+
+    char counts[192]={0};
+    snprintf(counts,sizeof(counts),"<div class=\"personmeta\">%u followers &middot; following %u</div>",
+             followsCountFollowers(profileUser),followsCountFollowing(profileUser));
+
     snprintf(body,sizeof(body),
-             "<h2 class=\"profiletitle\">%s&apos;s wall%s</h2>"
+             "<h2 class=\"profiletitle\">%s&apos;s wall%s</h2>%s%s"
              "<form class=\"composer\" method=\"post\" enctype=\"multipart/form-data\" action=\"post.html\" onsubmit=\"return trimEmptyFields(this);\">"
               "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
               "<input type=\"hidden\" name=\"wall\" value=\"%s\">"
@@ -64,7 +93,7 @@ static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewe
               "<button type=\"submit\">Post</button>"
               "<input type=\"file\" name=\"media\" accept=\"image/*,audio/*\" title=\"Attach a picture or a sound\">"
              "</form>",
-             escapedProfileUser,messageLink,csrfToken,escapedProfileUser,escapedProfileUser,escapedProfileUser);
+             escapedProfileUser,messageLink,counts,followButton,csrfToken,escapedProfileUser,escapedProfileUser,escapedProfileUser);
   }
 
   char chat[512]={0};
@@ -76,24 +105,17 @@ static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewe
              "</div>");
   }
 
+  char topbar[1024]={0};
+  socialRenderTopbar(topbar,sizeof(topbar),escapedViewer,csrfToken,notificationCountUnseen(viewer));
+
   snprintf(rqst->content,rqst->MAXcontentSize,
            "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>The Social Gate</title>"
            "<link rel='stylesheet' type='text/css' href='social.css'>"
            "<script type=\"text/javascript\" src=\"social.js\"></script></head><body>"
-           "<div class=\"topbar\">"
-            "<img src=\"favicon.ico\" class=\"topbarlogo\"/>"
-            "<div class=\"topbarlinks\">"
-             "<a href=\"home.html\">Home</a>"
-             "<a href=\"profile.html?u=%s\">%s</a>"
-             "<form method=\"post\" enctype=\"multipart/form-data\" action=\"logout.html\">"
-              "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
-              "<button type=\"submit\">Log out</button>"
-             "</form>"
-            "</div>"
-           "</div>"
-           "<div class=\"page\"><div class=\"wall\">%s%s</div>%s</div>"
+           "%s"
+           "<div class=\"page\"><div class=\"wall\">%s%s%s</div>%s</div>"
            "</body></html>",
-           escapedViewer,escapedViewer,csrfToken,body,postsBuffer,chat);
+           topbar,body,hint,postsBuffer,chat);
   rqst->contentSize=strlen(rqst->content);
 
   free(postsBuffer);
@@ -105,7 +127,7 @@ void * home_callback(struct AmmServer_DynamicRequest  * rqst)
   char viewer[MAX_USERNAME]={0};
   if ( ! AmmServer_CurrentUsername(rqst,viewer,sizeof(viewer)) ) { socialServeLoginRequired(rqst); return 0; }
 
-  renderPage(rqst,viewer,0);
+  renderPage(rqst,viewer,0,_GETexists(rqst,"all"));
   return 0;
 }
 
@@ -127,7 +149,7 @@ void * profile_callback(struct AmmServer_DynamicRequest  * rqst)
     return 0;
   }
 
-  renderPage(rqst,viewer,profileUser);
+  renderPage(rqst,viewer,profileUser,0);
   return 0;
 }
 

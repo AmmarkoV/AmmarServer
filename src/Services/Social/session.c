@@ -31,6 +31,31 @@ void socialAppendChunk(char * buffer,unsigned int bufferSize,unsigned int * posi
 }
 
 
+void socialRenderTopbar(char * output,unsigned int outputSize,const char * escapedViewer,const char * csrfToken,unsigned int unseenNotifications)
+{
+  char badge[64]={0};
+  if (unseenNotifications>0) { snprintf(badge,sizeof(badge)," <span class=\"badge\">%u</span>",unseenNotifications); }
+
+  snprintf(output,outputSize,
+           "<div class=\"topbar\">"
+            "<img src=\"favicon.ico\" class=\"topbarlogo\"/>"
+            "<div class=\"topbarlinks\">"
+             "<a href=\"home.html\">Feed</a>"
+             "<a href=\"home.html?all=1\">Everyone</a>"
+             "<a href=\"people.html\">People</a>"
+             "<a href=\"chat.html\">Chats</a>"
+             "<a href=\"notifications.html\">Alerts%s</a>"
+             "<a href=\"profile.html?u=%s\">%s</a>"
+             "<form method=\"post\" enctype=\"multipart/form-data\" action=\"logout.html\">"
+              "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
+              "<button type=\"submit\">Log out</button>"
+             "</form>"
+            "</div>"
+           "</div>",
+           badge,escapedViewer,escapedViewer,csrfToken);
+}
+
+
 void socialServeLoginRequired(struct AmmServer_DynamicRequest * rqst)
 {
   snprintf(rqst->content,rqst->MAXcontentSize,

@@ -31,6 +31,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "home.h"
 #include "posts.h"
 #include "media.h"
+#include "follows.h"
+#include "notifications.h"
 
 
 char webserver_root[MAX_FILE_PATH]="src/Services/Social/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -49,6 +51,9 @@ struct AmmServer_RH_Context profile={0};
 struct AmmServer_RH_Context newPost={0};
 struct AmmServer_RH_Context newComment={0};
 struct AmmServer_RH_Context newLike={0};
+struct AmmServer_RH_Context newFollow={0};
+struct AmmServer_RH_Context people={0};
+struct AmmServer_RH_Context alerts={0};
 struct AmmServer_RH_Context chat={0};
 struct AmmServer_RH_Context chatSpeak={0};
 struct AmmServer_RH_Context chatMedia={0};
@@ -79,6 +84,8 @@ void init_dynamic_content()
   if (!loadPosts("db/social.db"))  { AmmServer_Error("Could not initialize the post database"); }
   if (!initializeChat())           { AmmServer_Error("Could not initialize the chat rooms"); }
   if (!initializeMedia())          { AmmServer_Error("Could not initialize the upload directory"); }
+  if (!loadFollows("db/follows.db")) { AmmServer_Error("Could not initialize the follow table"); }
+  if (!loadNotifications("db/notifications.db")) { AmmServer_Error("Could not initialize notifications"); }
 
   addSessionResourceHandler(&login,"/doLogin.html",4096,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   addSessionResourceHandler(&signup,"/doSignup.html",4096,&signup_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
@@ -90,6 +97,10 @@ void init_dynamic_content()
   addSessionResourceHandler(&newPost,"/post.html",4096,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   addSessionResourceHandler(&newComment,"/comment.html",4096,&comment_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   addSessionResourceHandler(&newLike,"/like.html",4096,&like_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+
+  addSessionResourceHandler(&newFollow,"/follow.html",4096,&follow_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&people,"/people.html",512*1024,&people_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  addSessionResourceHandler(&alerts,"/notifications.html",512*1024,&notifications_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
   addSessionResourceHandler(&chat,"/chat.html",65536,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   addSessionResourceHandler(&chatMessages,"/chatmessages.html",65536,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
@@ -109,6 +120,9 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&newPost,1);
     AmmServer_RemoveResourceHandler(default_server,&newComment,1);
     AmmServer_RemoveResourceHandler(default_server,&newLike,1);
+    AmmServer_RemoveResourceHandler(default_server,&newFollow,1);
+    AmmServer_RemoveResourceHandler(default_server,&people,1);
+    AmmServer_RemoveResourceHandler(default_server,&alerts,1);
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
     AmmServer_RemoveResourceHandler(default_server,&chatSpeak,1);
     AmmServer_RemoveResourceHandler(default_server,&chatMedia,1);
@@ -116,6 +130,8 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&createRoom,1);
 
     unloadPosts();
+    unloadFollows();
+    unloadNotifications();
     stopLoginSystem();
 }
 

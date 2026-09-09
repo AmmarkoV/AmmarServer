@@ -27,6 +27,11 @@ int socialPostedCSRFIsValid(struct AmmServer_DynamicRequest * rqst);
   listing instead of overflowing it. `position` carries the write offset between calls..*/
 void socialAppendChunk(char * buffer,unsigned int bufferSize,unsigned int * position,const char * chunk);
 
+/*Draws the navigation bar every logged-in page carries. Needs the escaped viewer name and this session's CSRF
+  token , since logging out is a state changing POST rather than a link. The unseen count is passed in rather
+  than looked up here , so this stays free of any dependency on the notification store..*/
+void socialRenderTopbar(char * output,unsigned int outputSize,const char * escapedViewer,const char * csrfToken,unsigned int unseenNotifications);
+
 /*Serves a redirect back to the page the visitor was on. `backUser` is the profile they came from , or 0 /
   empty for the wall - it is checked against the username rules rather than used as a URL , so it can never
   become an open redirect..*/

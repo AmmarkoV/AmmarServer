@@ -46,13 +46,16 @@ int addComment(unsigned int postID,const char * author,const char * text);
 int toggleLike(unsigned int postID,const char * username);
 
 /*Renders the newest posts as HTML into buffer , newest first. `onlyOnWall` limits it to the posts written on
-  one user's wall ( their profile ) or is 0 for every wall ( the home feed ). `viewer` is who is looking , so
-  their own likes can be marked , and csrfToken/backUser are what the like/comment forms carry back.
+  one user's wall ( their profile ) or is 0 for every wall. `followedOnly` further limits it to what the viewer
+  actually subscribed to - their own posts plus the people they follow - which is what makes the home feed
+  theirs rather than everybody's. `viewer` is who is looking , so their own likes can be marked , and
+  csrfToken/backUser are what the like/comment forms carry back.
   @retval Number of posts rendered*/
 unsigned int renderPosts(
                           char * buffer,
                           unsigned int bufferSize,
                           const char * onlyOnWall,
+                          int followedOnly,
                           const char * viewer,
                           const char * csrfToken,
                           const char * backUser

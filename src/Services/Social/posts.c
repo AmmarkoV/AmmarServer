@@ -1,4 +1,6 @@
 #include "posts.h"
+#include "follows.h"
+#include "notifications.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -209,6 +211,9 @@ int addPost(const char * author,const char * wall,const char * text,const char *
   snprintf(post->text,MAX_POST_TEXT,"%s",cleanText);
   if (haveMedia) { snprintf(post->media,MAX_MEDIA_NAME,"%s",media); }
 
+  //Writing on somebody else's wall is the one kind of post its owner ought to hear about..
+  notificationAdd(post->wall,post->author,NOTIFICATION_WALLPOST,post->wall);
+
   savePostsUnlocked();
   pthread_mutex_unlock(&postsLock);
   return 1;
@@ -233,6 +238,8 @@ int addComment(unsigned int postID,const char * author,const char * text)
     comment->timestamp=(unsigned long) time(0);
     snprintf(comment->author,MAX_USERNAME,"%s",author);
     snprintf(comment->text,MAX_POST_TEXT,"%s",cleanText);
+
+    notificationAdd(post->author,author,NOTIFICATION_COMMENT,post->wall);
 
     savePostsUnlocked();
     result=1;
@@ -270,6 +277,7 @@ int toggleLike(unsigned int postID,const char * username)
     if (post->numberOfLikes<MAX_LIKES_PER_POST)
     {
       snprintf(post->likedBy[post->numberOfLikes++],MAX_USERNAME,"%s",username);
+      notificationAdd(post->author,username,NOTIFICATION_LIKE,post->wall); //Only a new like is news , not taking one back
       savePostsUnlocked();
       result=1;
     }
@@ -302,6 +310,7 @@ unsigned int renderPosts(
                           char * buffer,
                           unsigned int bufferSize,
                           const char * onlyOnWall,
+                          int followedOnly,
                           const char * viewer,
                           const char * csrfToken,
                           const char * backUser
@@ -332,6 +341,8 @@ unsigned int renderPosts(
   {
     struct socialPost * post=&posts[--i];
     if ( (onlyOnWall!=0) && (strcmp(post->wall,onlyOnWall)!=0) ) { continue; }
+    //Your own posts are always in your feed , otherwise it only carries the people you follow..
+    if ( (followedOnly) && (strcmp(post->author,viewer)!=0) && ( ! followsIsFollowing(viewer,post->author) ) ) { continue; }
     ++rendered;
 
     //A post on somebody else's wall says so in its header , so the home feed shows who wrote to whom..

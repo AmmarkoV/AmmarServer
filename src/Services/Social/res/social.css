@@ -123,6 +123,40 @@ audio.postmedia { width: 100%; }
 .composer input[type=file] { max-width: 190px; color: #888888; font-size: 11px; }
 
 .postactions button.like { background-color: #333333; }
+
+.personrow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #222222;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+}
+.personrow a { font-weight: bold; text-decoration: none; }
+.personmeta { color: #888888; font-size: 11px; margin-top: 3px; }
+.you { color: #888888; font-size: 12px; }
+
+.badge {
+    background-color: #aa2222;
+    border-radius: 8px;
+    padding: 1px 6px;
+    font-size: 11px;
+}
+
+.notification {
+    display: block;
+    background-color: #222222;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    text-decoration: none;
+    border-left: 3px solid #222222;
+}
+.notification.unseen { border-left-color: #aa2222; }
+.notification.seen   { color: #999999; }
+
+.followform { display: inline-block; margin-left: 15px; }
+button.follow { background-color: #333333; }
+button.following { background-color: #225533; }
 .postactions button.liked { background-color: #772222; }
 
 .comments { margin: 10px 0px 10px 20px; }
