@@ -97,7 +97,7 @@ int loadBoardSettings(char * boardName , struct board * ourBoard)
    if (ourBoard==0) { fprintf(stderr,"Cannot load board without an allocated board\n"); return 0; }
 
    char filename[LINE_MAX_LENGTH]={0};
-   snprintf(filename,LINE_MAX_LENGTH,"data/board/%s/boardStatus.ini",boardName);
+   snprintf(filename,LINE_MAX_LENGTH,"%sboard/%s/boardStatus.ini",dataRoot,boardName);
    char line [LINE_MAX_LENGTH]={0};
    //Try and open filename
    FILE * fp = fopen(filename,"r");
@@ -187,9 +187,9 @@ int addBoardToSite( struct site * targetSite , char * boardName )
 
 
    unsigned int numberOfThreads=0;
-   char command[MAX_STRING_SIZE]={0};
+   char command[MAX_FILE_PATH]={0};
 
-   snprintf(command,MAX_STRING_SIZE,"data/board/%s/",boardName);
+   snprintf(command,sizeof(command),"%sboard/%s/",dataRoot,boardName);
 
    DIR *dp;
    struct dirent *ep;

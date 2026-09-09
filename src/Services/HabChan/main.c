@@ -56,6 +56,33 @@ struct AmmServer_RH_Context deletePostView={0};
 struct AmmServer_RH_Context captchaView={0};
 
 
+/* The data directory and the AmmCaptcha assets live at fixed places relative to the
+   executable , resolving them here lets the service be launched from any working
+   directory instead of only its own.. */
+char captchaFontPath[MAX_FILE_PATH]=CAPTCHA_FONT_PATH;
+char captchaDictionaryPath[MAX_FILE_PATH]=CAPTCHA_DICTIONARY_PATH;
+
+void resolveDataRoot()
+{
+  char exePath[MAX_FILE_PATH]={0};
+  ssize_t exePathLength = readlink("/proc/self/exe",exePath,sizeof(exePath)-1);
+  if (exePathLength<=0) { return; } //Keep the working directory relative defaults
+
+  exePath[exePathLength]=0;
+  char * lastSlash = strrchr(exePath,'/');
+  if (lastSlash==0) { return; }
+  *(lastSlash+1)=0;
+
+  if (strlen(exePath)+strlen(CAPTCHA_DICTIONARY_PATH) >= MAX_DATA_ROOT) { return; }
+
+  snprintf(dataRoot,MAX_DATA_ROOT,"%s" WEBSERVERROOT,exePath);
+  snprintf(webserver_root,MAX_FILE_PATH,"%s" WEBSERVERROOT,exePath);
+  snprintf(templates_root,MAX_FILE_PATH,"%s" WEBSERVERROOT "/templates/",exePath);
+  snprintf(captchaFontPath,MAX_FILE_PATH,"%s" CAPTCHA_FONT_PATH,exePath);
+  snprintf(captchaDictionaryPath,MAX_FILE_PATH,"%s" CAPTCHA_DICTIONARY_PATH,exePath);
+}
+
+
 //Serves the JPEG image for a captcha , the same way MyURL's serve_captcha_page does
 void * serve_captcha_page(struct AmmServer_DynamicRequest * rqst)
 {
@@ -83,12 +110,14 @@ void init_dynamic_content()
   AmmServer_AddResourceHandler(default_server,&captchaView,"/captcha.jpg",MAX_CAPTCHA_JPG_SIZE,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(default_server,&captchaView);
 
-  if ( !AmmCaptcha_initialize(CAPTCHA_FONT_PATH,CAPTCHA_DICTIONARY_PATH) )
+  if ( !AmmCaptcha_initialize(captchaFontPath,captchaDictionaryPath) )
   {
     AmmServer_Error("Could not initialize AmmCaptcha , posting will not be spam protected\n");
   }
 
-  loadSite("data/settings.ini");
+  char settingsPath[MAX_FILE_PATH]={0};
+  snprintf(settingsPath,sizeof(settingsPath),"%ssettings.ini",dataRoot);
+  loadSite(settingsPath);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
@@ -117,6 +146,8 @@ int main(int argc, char *argv[])
 
     //Check binary and header spec
     AmmServer_CheckIfHeaderBinaryAreTheSame(AMMAR_SERVER_HTTP_HEADER_SPEC);
+
+    resolveDataRoot();
     //Register termination signal for when we receive SIGKILL etc
     //AmmServer_RegisterTerminationSignal(&close_dynamic_content);
 

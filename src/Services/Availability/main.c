@@ -45,6 +45,27 @@ struct AmmServer_RH_Context closePollView={0};
 struct AmmServer_RH_Context finalizePollView={0};
 
 
+/* The data directory lives next to the executable , resolving it here lets the
+   service be launched from any working directory instead of only its own.. */
+void resolveDataRoot()
+{
+  char exePath[MAX_FILE_PATH]={0};
+  ssize_t exePathLength = readlink("/proc/self/exe",exePath,sizeof(exePath)-1);
+  if (exePathLength<=0) { return; } //Keep the working directory relative defaults
+
+  exePath[exePathLength]=0;
+  char * lastSlash = strrchr(exePath,'/');
+  if (lastSlash==0) { return; }
+  *(lastSlash+1)=0;
+
+  if (strlen(exePath)+strlen(WEBSERVERROOT "/templates/") >= MAX_DATA_ROOT) { return; }
+
+  snprintf(dataRoot,MAX_DATA_ROOT,"%s" WEBSERVERROOT,exePath);
+  snprintf(webserver_root,MAX_FILE_PATH,"%s" WEBSERVERROOT,exePath);
+  snprintf(templates_root,MAX_FILE_PATH,"%s" WEBSERVERROOT "/templates/",exePath);
+}
+
+
 void init_dynamic_content()
 {
   if ( ! loadAllPolls() ) { AmmServer_Error("Could not load polls\n"); }
@@ -79,6 +100,8 @@ int main(int argc, char *argv[])
     printf("\nAmmar Server %s starting up (Availability)..\n",AmmServer_Version());
 
     AmmServer_CheckIfHeaderBinaryAreTheSame(AMMAR_SERVER_HTTP_HEADER_SPEC);
+
+    resolveDataRoot();
 
     char bindIP[MAX_IP_STRING_SIZE];
     strncpy(bindIP,"0.0.0.0",MAX_IP_STRING_SIZE);

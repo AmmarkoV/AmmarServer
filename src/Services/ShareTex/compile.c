@@ -22,16 +22,16 @@ void * compile_callback(struct AmmServer_DynamicRequest * rqst)
     return 0;
   }
 
-  char filesDir[MAX_STRING_SIZE*2]={0};
-  snprintf(filesDir,sizeof(filesDir),"data/projects/%s/files",p->id);
+  char filesDir[MAX_FILE_PATH]={0};
+  snprintf(filesDir,sizeof(filesDir),"%sprojects/%s/files",dataRoot,p->id);
 
-  char logPath[MAX_STRING_SIZE*2]={0};
-  snprintf(logPath,sizeof(logPath),"data/projects/%s/compile.log",p->id);
+  char logPath[MAX_FILE_PATH]={0};
+  snprintf(logPath,sizeof(logPath),"%sprojects/%s/compile.log",dataRoot,p->id);
 
   //Fixed pipeline , fixed filename ( "main.tex" is never taken from user input ) , no -shell-escape : the project
   //content ( arbitrary , multi-tenant , collaboratively edited LaTeX ) can influence what pdflatex DOES , but not
   //what command gets run.
-  char command[MAX_STRING_SIZE*4]={0};
+  char command[MAX_FILE_PATH*2]={0};
   snprintf(command,sizeof(command),
            "cd '%s' && "
            "timeout 60 pdflatex -interaction=nonstopmode -no-shell-escape main.tex > '../compile.log' 2>&1 && "
@@ -43,7 +43,7 @@ void * compile_callback(struct AmmServer_DynamicRequest * rqst)
   char scratch[16]={0};
   AmmServer_ExecuteCommandLine(command,scratch,sizeof(scratch));
 
-  char pdfPath[MAX_STRING_SIZE*2]={0};
+  char pdfPath[MAX_FILE_PATH]={0};
   snprintf(pdfPath,sizeof(pdfPath),"%s/main.pdf",filesDir);
 
   unsigned int logLength=0;
@@ -63,7 +63,7 @@ void * compile_callback(struct AmmServer_DynamicRequest * rqst)
 
     char versionedName[64]={0};
     snprintf(versionedName,sizeof(versionedName),"main_v%u.pdf",p->pdfVersion);
-    char versionedPath[MAX_STRING_SIZE*2]={0};
+    char versionedPath[MAX_FILE_PATH]={0};
     snprintf(versionedPath,sizeof(versionedPath),"%s/%s",filesDir,versionedName);
 
     char copyCommand[MAX_STRING_SIZE*4]={0};

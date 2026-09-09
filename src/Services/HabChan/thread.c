@@ -38,11 +38,11 @@ static void buildImageBlock(char * imageBlock , unsigned int imageBlockSize , co
     return;
   }
 
-  char thumbName[MAX_STRING_SIZE]={0};
+  char thumbName[MAX_STRING_SIZE+8]={0}; //+8 so the "thumb_" prefix cannot truncate a max length cached image name
   deriveThumbnailName(p->fileCachedName,thumbName,sizeof(thumbName));
 
-  char thumbPath[MAX_STRING_SIZE*2]={0};
-  snprintf(thumbPath,sizeof(thumbPath),"data/board/%s/%s/%s",boardName,threadName,thumbName);
+  char thumbPath[MAX_FILE_PATH*2]={0};
+  snprintf(thumbPath,sizeof(thumbPath),"%sboard/%s/%s/%s",dataRoot,boardName,threadName,thumbName);
 
   const char * displaySrc = AmmServer_FileExists(thumbPath) ? thumbName : p->fileCachedName;
 
@@ -434,7 +434,7 @@ int loadThread(const char * threadName , struct board * ourBoard , struct thread
    snprintf(ourThread->name,MAX_STRING_SIZE,"%s",threadName);
 
    char filename[LINE_MAX_LENGTH]={0};
-   snprintf(filename,LINE_MAX_LENGTH,"data/board/%s/%s/status.ini",ourBoard->name,threadName);
+   snprintf(filename,LINE_MAX_LENGTH,"%sboard/%s/%s/status.ini",dataRoot,ourBoard->name,threadName);
    char line [LINE_MAX_LENGTH]={0};
    //Try and open filename
    FILE * fp = fopen(filename,"r");
@@ -510,7 +510,7 @@ int saveThreadStatus(const char * boardName , struct thread * ourThread)
    if ( (boardName==0) || (ourThread==0) ) { return 0; }
 
    char filename[LINE_MAX_LENGTH]={0};
-   snprintf(filename,LINE_MAX_LENGTH,"data/board/%s/%s/status.ini",boardName,ourThread->name);
+   snprintf(filename,LINE_MAX_LENGTH,"%sboard/%s/%s/status.ini",dataRoot,boardName,ourThread->name);
 
    FILE * fp = fopen(filename,"w");
    if (fp == 0 ) { fprintf(stderr,"Cannot open %s for writing\n",filename); return 0; }
@@ -594,8 +594,8 @@ int createThread(
   char threadName[MAX_STRING_SIZE]={0};
   snprintf(threadName,MAX_STRING_SIZE,"%09u",ourBoard->threadUID);
 
-  char dirPath[MAX_STRING_SIZE*2]={0};
-  snprintf(dirPath,sizeof(dirPath),"data/board/%s/%s",boardName,threadName);
+  char dirPath[MAX_FILE_PATH*2]={0};
+  snprintf(dirPath,sizeof(dirPath),"%sboard/%s/%s",dataRoot,boardName,threadName);
   if ( mkdir(dirPath,0755) != 0 )
   {
     fprintf(stderr,"createThread : cannot create directory `%s` (%s)\n",dirPath,strerror(errno));

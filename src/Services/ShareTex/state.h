@@ -10,6 +10,7 @@
 #define MAX_COLLABORATORS 50
 #define MAX_STRING_SIZE 256
 #define LINE_MAX_LENGTH 1024
+#define MAX_DATA_ROOT 256
 
 struct projectFile
 {
@@ -35,6 +36,8 @@ struct project
 extern struct project projects[MAX_PROJECTS];
 extern unsigned int numberOfProjects;
 extern unsigned int nextProjectUID;
+extern char dataRoot[MAX_DATA_ROOT];
+
 extern struct hashMap * projectHashMap; //id string -> slot index in projects[] ( ULong payload , same pattern as HabChan's board/thread hashmaps )
 
 extern struct UserAccountDatabase * uadb;

@@ -124,7 +124,7 @@ int savePostContent(const char * postFilename , struct post * ourPost)
 int loadPosts(struct board * ourBoard , struct thread * ourThread)
 {
   int i=0;
-  char postHeaderFilename[MAX_STRING_SIZE+1]={0};
+  char postHeaderFilename[MAX_FILE_PATH]={0};
 
   ourThread->maxNumberOfReplies = MAX_POSTS_PER_THREAD;
   ourThread->numberOfReplies = 0;
@@ -135,10 +135,10 @@ int loadPosts(struct board * ourBoard , struct thread * ourThread)
   {
    while (i<ourThread->maxNumberOfReplies)
     {
-     snprintf(postHeaderFilename,MAX_STRING_SIZE,"data/board/%s/%s/header_%u" , ourBoard->name ,  ourThread->name , i);
+     snprintf(postHeaderFilename,sizeof(postHeaderFilename),"%sboard/%s/%s/header_%u",dataRoot, ourBoard->name ,  ourThread->name , i);
      if (loadPostHeader(postHeaderFilename,&ourThread->replies[i],i) )
      {
-       snprintf(postHeaderFilename,MAX_STRING_SIZE,"data/board/%s/%s/post_%u" , ourBoard->name ,  ourThread->name , i);
+       snprintf(postHeaderFilename,sizeof(postHeaderFilename),"%sboard/%s/%s/post_%u",dataRoot, ourBoard->name ,  ourThread->name , i);
        loadPostContent(postHeaderFilename,&ourThread->replies[i]);
        ++ourThread->numberOfReplies ;
        if ( strlen(ourThread->replies[i].fileOriginalName) > 0 )

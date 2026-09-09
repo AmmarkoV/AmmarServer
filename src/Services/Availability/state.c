@@ -16,6 +16,7 @@ struct poll polls[MAX_POLLS]={{{0}}};
 unsigned int numberOfPolls=0;
 unsigned int nextPollUID=1;
 struct hashMap * pollHashMap=0;
+char dataRoot[MAX_DATA_ROOT]="data/";
 
 struct AmmServer_Instance * default_server=0;
 
@@ -76,8 +77,8 @@ int loadPoll(const char * id , struct poll * p)
   snprintf(p->id,sizeof(p->id),"%s",id);
   p->finalizedOptionIndex=-1;
 
-  char titlePath[MAX_STRING_SIZE*2]={0};
-  snprintf(titlePath,sizeof(titlePath),"data/polls/%s/title.txt",id);
+  char titlePath[MAX_FILE_PATH]={0};
+  snprintf(titlePath,sizeof(titlePath),"%spolls/%s/title.txt",dataRoot,id);
   unsigned int titleLength=0;
   char * titleContent = AmmServer_ReadFileToMemory(titlePath,&titleLength);
   if (titleContent!=0)
@@ -86,8 +87,8 @@ int loadPoll(const char * id , struct poll * p)
     free(titleContent);
   }
 
-  char metaPath[MAX_STRING_SIZE*2]={0};
-  snprintf(metaPath,sizeof(metaPath),"data/polls/%s/poll.ini",id);
+  char metaPath[MAX_FILE_PATH]={0};
+  snprintf(metaPath,sizeof(metaPath),"%spolls/%s/poll.ini",dataRoot,id);
   FILE * fp = fopen(metaPath,"r");
   if (fp==0) { fprintf(stderr,"Cannot open %s\n",metaPath); return 0; }
 
@@ -147,12 +148,12 @@ int savePollMeta(struct poll * p)
 {
   if (p==0) { return 0; }
 
-  char titlePath[MAX_STRING_SIZE*2]={0};
-  snprintf(titlePath,sizeof(titlePath),"data/polls/%s/title.txt",p->id);
+  char titlePath[MAX_FILE_PATH]={0};
+  snprintf(titlePath,sizeof(titlePath),"%spolls/%s/title.txt",dataRoot,p->id);
   AmmServer_WriteFileFromMemory(titlePath,p->title,strlen(p->title));
 
-  char metaPath[MAX_STRING_SIZE*2]={0};
-  snprintf(metaPath,sizeof(metaPath),"data/polls/%s/poll.ini",p->id);
+  char metaPath[MAX_FILE_PATH]={0};
+  snprintf(metaPath,sizeof(metaPath),"%spolls/%s/poll.ini",dataRoot,p->id);
   FILE * fp = fopen(metaPath,"w");
   if (fp==0) { fprintf(stderr,"Cannot open %s for writing\n",metaPath); return 0; }
 
@@ -180,8 +181,8 @@ int loadResponses(struct poll * p)
   if (p==0) { return 0; }
   p->numberOfResponses=0;
 
-  char responsesDir[MAX_STRING_SIZE*2]={0};
-  snprintf(responsesDir,sizeof(responsesDir),"data/polls/%s/responses",p->id);
+  char responsesDir[MAX_FILE_PATH]={0};
+  snprintf(responsesDir,sizeof(responsesDir),"%spolls/%s/responses",dataRoot,p->id);
 
   DIR * dp = opendir(responsesDir);
   if (dp==0) { return 1; } //No responses yet is not an error
@@ -207,7 +208,7 @@ int loadResponses(struct poll * p)
   {
     if (p->numberOfResponses>=MAX_RESPONSES) { break; }
 
-    char votesPath[MAX_STRING_SIZE*2]={0};
+    char votesPath[MAX_FILE_PATH]={0};
     snprintf(votesPath,sizeof(votesPath),"%s/%u_votes.ini",responsesDir,i);
     FILE * fp = fopen(votesPath,"r");
     if (fp==0) { continue; }
@@ -237,7 +238,7 @@ int loadResponses(struct poll * p)
     InputParser_Destroy(ipc);
     fclose(fp);
 
-    char namePath[MAX_STRING_SIZE*2]={0};
+    char namePath[MAX_FILE_PATH]={0};
     snprintf(namePath,sizeof(namePath),"%s/%u_name.txt",responsesDir,i);
     unsigned int nameLength=0;
     char * nameContent = AmmServer_ReadFileToMemory(namePath,&nameLength);
@@ -250,7 +251,7 @@ int loadResponses(struct poll * p)
       continue; //No name file means this slot was never really written , skip it
     }
 
-    char emailPath[MAX_STRING_SIZE*2]={0};
+    char emailPath[MAX_FILE_PATH]={0};
     snprintf(emailPath,sizeof(emailPath),"%s/%u_email.txt",responsesDir,i);
     unsigned int emailLength=0;
     char * emailContent = AmmServer_ReadFileToMemory(emailPath,&emailLength);
@@ -273,22 +274,22 @@ int saveResponse(struct poll * p , unsigned int responseIndex)
   if ( (p==0) || (responseIndex>=p->numberOfResponses) ) { return 0; }
   struct pollResponse * r = &p->responses[responseIndex];
 
-  char responsesDir[MAX_STRING_SIZE*2]={0};
-  snprintf(responsesDir,sizeof(responsesDir),"data/polls/%s/responses",p->id);
+  char responsesDir[MAX_FILE_PATH]={0};
+  snprintf(responsesDir,sizeof(responsesDir),"%spolls/%s/responses",dataRoot,p->id);
   mkdir(responsesDir,0755); //Fine if it already exists
 
-  char namePath[MAX_STRING_SIZE*2]={0};
+  char namePath[MAX_FILE_PATH]={0};
   snprintf(namePath,sizeof(namePath),"%s/%u_name.txt",responsesDir,responseIndex);
   AmmServer_WriteFileFromMemory(namePath,r->name,strlen(r->name));
 
   if (r->hasEmail)
   {
-    char emailPath[MAX_STRING_SIZE*2]={0};
+    char emailPath[MAX_FILE_PATH]={0};
     snprintf(emailPath,sizeof(emailPath),"%s/%u_email.txt",responsesDir,responseIndex);
     AmmServer_WriteFileFromMemory(emailPath,r->email,strlen(r->email));
   }
 
-  char votesPath[MAX_STRING_SIZE*2]={0};
+  char votesPath[MAX_FILE_PATH]={0};
   snprintf(votesPath,sizeof(votesPath),"%s/%u_votes.ini",responsesDir,responseIndex);
   FILE * fp = fopen(votesPath,"w");
   if (fp==0) { return 0; }
@@ -341,8 +342,8 @@ int createPoll(const char * title , struct pollOption * options , unsigned int n
   char id[32]={0};
   snprintf(id,sizeof(id),"a%06u",nextPollUID);
 
-  char dirPath[MAX_STRING_SIZE*2]={0};
-  snprintf(dirPath,sizeof(dirPath),"data/polls/%s",id);
+  char dirPath[MAX_FILE_PATH]={0};
+  snprintf(dirPath,sizeof(dirPath),"%spolls/%s",dataRoot,id);
   if (mkdir(dirPath,0755)!=0) { fprintf(stderr,"createPoll : cannot create %s\n",dirPath); return 0; }
 
   unsigned int slot = numberOfPolls;
@@ -374,8 +375,11 @@ int loadAllPolls()
 {
   pollHashMap = hashMap_Create(100,100,0,1);
 
-  DIR * dp = opendir("data/polls");
-  if (dp==0) { fprintf(stderr,"Cannot open data/polls directory\n"); return 0; }
+  char pollsDir[MAX_FILE_PATH]={0};
+  snprintf(pollsDir,sizeof(pollsDir),"%spolls",dataRoot);
+
+  DIR * dp = opendir(pollsDir);
+  if (dp==0) { fprintf(stderr,"Cannot open %s directory\n",pollsDir); return 0; }
 
   struct dirent * ep;
   unsigned int highestNumericID=0;

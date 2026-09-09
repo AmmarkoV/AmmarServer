@@ -28,6 +28,7 @@ struct hashMap * boardHashMap =0;
 struct hashMap * threadHashMap =0;
 
 struct site ourSite={0};
+char dataRoot[MAX_DATA_ROOT]="data/";
 
 struct AmmServer_MemoryHandler * threadIndexPage = 0;
 
@@ -41,7 +42,9 @@ int loadSite( char * filename )
 
     unsigned int numberOfElements=0;
     char what2GetBack[1024]={0};
-    AmmServer_ExecuteCommandLine("ls data/board -al | cut -d ' ' -f10 | wc -l ", what2GetBack , 1024 );
+    char countBoardsCommand[MAX_FILE_PATH]={0};
+    snprintf(countBoardsCommand,sizeof(countBoardsCommand),"ls '%sboard' -al | cut -d ' ' -f10 | wc -l ",dataRoot);
+    AmmServer_ExecuteCommandLine(countBoardsCommand, what2GetBack , 1024 );
     numberOfElements = atoi(what2GetBack);
 
     ourSite.boards = (struct board * ) malloc(sizeof(struct board) * MAX_BOARDS);
@@ -52,7 +55,9 @@ int loadSite( char * filename )
     strncpy(ourSite.siteName ,filename  ,MAX_STRING_SIZE  );
 
 
-    threadIndexPage      = AmmServer_ReadFileToMemoryHandler("data/simple.html");
+    char indexTemplate[MAX_FILE_PATH]={0};
+    snprintf(indexTemplate,sizeof(indexTemplate),"%ssimple.html",dataRoot);
+    threadIndexPage      = AmmServer_ReadFileToMemoryHandler(indexTemplate);
 
    //------------------------------------------------------
 
@@ -100,7 +105,10 @@ int loadSite( char * filename )
 
    DIR *dp;
    struct dirent *ep;
-   dp = opendir ("data/board");
+   char boardsDir[MAX_FILE_PATH]={0};
+   snprintf(boardsDir,sizeof(boardsDir),"%sboard",dataRoot);
+
+   dp = opendir (boardsDir);
    if (dp != NULL)
     {
       while (ep = readdir (dp))
@@ -250,8 +258,8 @@ int addPostToThread( const char * boardName ,  struct thread * newThread ,  stru
     snprintf(storedPost->fileOriginalName,MAX_STRING_SIZE,"%s",newPost->fileOriginalName);
     snprintf(storedPost->fileCachedName,MAX_STRING_SIZE,"image_%u.%s",postIndex,ext);
 
-    char imagePath[MAX_STRING_SIZE*2]={0};
-    snprintf(imagePath,sizeof(imagePath),"data/board/%s/%s/%s",boardName,newThread->name,storedPost->fileCachedName);
+    char imagePath[MAX_FILE_PATH*2]={0};
+    snprintf(imagePath,sizeof(imagePath),"%sboard/%s/%s/%s",dataRoot,boardName,newThread->name,storedPost->fileCachedName);
 
     if ( AmmServer_WriteFileFromMemory(imagePath,fileBytes,fileBytesSize) )
     {
@@ -259,10 +267,10 @@ int addPostToThread( const char * boardName ,  struct thread * newThread ,  stru
       storedPost->fileType=FILETYPE_IMAGE;
       ++newThread->numberOfImages;
 
-      char thumbName[MAX_STRING_SIZE]={0};
+      char thumbName[MAX_STRING_SIZE+8]={0}; //+8 so the "thumb_" prefix cannot truncate a max length cached image name
       deriveThumbnailName(storedPost->fileCachedName,thumbName,sizeof(thumbName));
-      char thumbPath[MAX_STRING_SIZE*2]={0};
-      snprintf(thumbPath,sizeof(thumbPath),"data/board/%s/%s/%s",boardName,newThread->name,thumbName);
+      char thumbPath[MAX_FILE_PATH*2]={0};
+      snprintf(thumbPath,sizeof(thumbPath),"%sboard/%s/%s/%s",dataRoot,boardName,newThread->name,thumbName);
       generateThumbnail(imagePath,thumbPath); //Best effort : a full-size image is still shown if this fails
     } else
     {
@@ -278,12 +286,12 @@ int addPostToThread( const char * boardName ,  struct thread * newThread ,  stru
     newPost->hasFile=0; //So the caller can tell the attachment did not make it in and say so
   }
 
-  char postHeaderFilename[MAX_STRING_SIZE*2]={0};
-  snprintf(postHeaderFilename,sizeof(postHeaderFilename),"data/board/%s/%s/header_%u",boardName,newThread->name,postIndex);
+  char postHeaderFilename[MAX_FILE_PATH*2]={0};
+  snprintf(postHeaderFilename,sizeof(postHeaderFilename),"%sboard/%s/%s/header_%u",dataRoot,boardName,newThread->name,postIndex);
   savePostHeader(postHeaderFilename,storedPost);
 
-  char postFilename[MAX_STRING_SIZE*2]={0};
-  snprintf(postFilename,sizeof(postFilename),"data/board/%s/%s/post_%u",boardName,newThread->name,postIndex);
+  char postFilename[MAX_FILE_PATH*2]={0};
+  snprintf(postFilename,sizeof(postFilename),"%sboard/%s/%s/post_%u",dataRoot,boardName,newThread->name,postIndex);
   storedPost->message = (newPost->message!=0) ? strdup(newPost->message) : strdup("");
   storedPost->messageSize = strlen(storedPost->message);
   savePostContent(postFilename,storedPost);

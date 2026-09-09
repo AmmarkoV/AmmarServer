@@ -85,8 +85,8 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
   char compileLogInitial[128]="Not compiled yet.";
   if (p->pdfVersion>0)
   {
-    char pdfFilePath[MAX_STRING_SIZE*2]={0};
-    snprintf(pdfFilePath,sizeof(pdfFilePath),"data/projects/%s/files/main_v%u.pdf",p->id,p->pdfVersion);
+    char pdfFilePath[MAX_FILE_PATH]={0};
+    snprintf(pdfFilePath,sizeof(pdfFilePath),"%sprojects/%s/files/main_v%u.pdf",dataRoot,p->id,p->pdfVersion);
     if ( AmmServer_FileExists(pdfFilePath) )
     {
       snprintf(pdfSrcAttribute,sizeof(pdfSrcAttribute)," src=\"projects/%s/files/main_v%u.pdf\"",p->id,p->pdfVersion);
@@ -94,8 +94,8 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
     }
   }
 
-  char filePath[MAX_STRING_SIZE*2]={0};
-  snprintf(filePath,sizeof(filePath),"data/projects/%s/files/%s",p->id,activeFile);
+  char filePath[MAX_FILE_PATH]={0};
+  snprintf(filePath,sizeof(filePath),"%sprojects/%s/files/%s",dataRoot,p->id,activeFile);
   unsigned int contentLength=0;
   char * fileContent = AmmServer_ReadFileToMemory(filePath,&contentLength);
 
@@ -200,8 +200,8 @@ void * getFileContent_callback(struct AmmServer_DynamicRequest * rqst)
   snprintf(header,sizeof(header),"###VERSION %u###\n",version);
   unsigned int headerLen = strlen(header);
 
-  char filePath[MAX_STRING_SIZE*2]={0};
-  snprintf(filePath,sizeof(filePath),"data/projects/%s/files/%s",p->id,relativePath);
+  char filePath[MAX_FILE_PATH]={0};
+  snprintf(filePath,sizeof(filePath),"%sprojects/%s/files/%s",dataRoot,p->id,relativePath);
   unsigned int contentLength=0;
   char * fileContent = AmmServer_ReadFileToMemory(filePath,&contentLength);
 
@@ -258,8 +258,8 @@ void * saveFileContent_callback(struct AmmServer_DynamicRequest * rqst)
       unsigned int contentLength=0;
       const char * content = _POST(rqst,"content",&contentLength);
 
-      char filePath[MAX_STRING_SIZE*2]={0};
-      snprintf(filePath,sizeof(filePath),"data/projects/%s/files/%s",p->id,relativePath);
+      char filePath[MAX_FILE_PATH]={0};
+      snprintf(filePath,sizeof(filePath),"%sprojects/%s/files/%s",dataRoot,p->id,relativePath);
 
       if ( AmmServer_WriteFileFromMemory(filePath,(content!=0)?content:"",contentLength) )
       {
@@ -291,11 +291,11 @@ void * newFile_callback(struct AmmServer_DynamicRequest * rqst)
 
   if ( (p!=0) && userCanAccessProject(p,username) && isSafeRelativePath(relativePath) && isEditableTextFile(relativePath) )
   {
-    char filePath[MAX_STRING_SIZE*2]={0};
-    snprintf(filePath,sizeof(filePath),"data/projects/%s/files/%s",p->id,relativePath);
+    char filePath[MAX_FILE_PATH]={0};
+    snprintf(filePath,sizeof(filePath),"%sprojects/%s/files/%s",dataRoot,p->id,relativePath);
 
     //mkdir any single subdirectory component the relative path implies ( isSafeRelativePath caps nesting to 3 levels )
-    char dirPath[MAX_STRING_SIZE*2]={0};
+    char dirPath[MAX_FILE_PATH]={0};
     snprintf(dirPath,sizeof(dirPath),"%s",filePath);
     char * lastSlash = strrchr(dirPath,'/');
     if (lastSlash!=0)

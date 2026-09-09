@@ -9,6 +9,7 @@
 #define MAX_RESPONSES 300
 #define MAX_STRING_SIZE 256
 #define LINE_MAX_LENGTH 1024
+#define MAX_DATA_ROOT 256
 
 enum voteValue { VOTE_BLANK=0, VOTE_YES=1, VOTE_MAYBE=2, VOTE_NO=3 };
 
@@ -46,6 +47,7 @@ extern struct poll polls[MAX_POLLS];
 extern unsigned int numberOfPolls;
 extern unsigned int nextPollUID;
 extern struct hashMap * pollHashMap;
+extern char dataRoot[MAX_DATA_ROOT];
 
 extern struct AmmServer_Instance * default_server;
 

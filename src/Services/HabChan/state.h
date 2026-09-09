@@ -21,6 +21,9 @@ extern struct AmmServer_MemoryHandler * threadIndexPage;
 #define MAX_POSTS_PER_THREAD 256
 #define LINE_MAX_LENGTH 1024
 #define MAX_STRING_SIZE 512
+#define MAX_DATA_ROOT 256
+
+extern char dataRoot[MAX_DATA_ROOT];
 
 enum FILETYPES_ENUM
 {

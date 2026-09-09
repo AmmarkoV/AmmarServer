@@ -13,6 +13,7 @@ struct project projects[MAX_PROJECTS]={{{0}}};
 unsigned int numberOfProjects=0;
 unsigned int nextProjectUID=1;
 struct hashMap * projectHashMap=0;
+char dataRoot[MAX_DATA_ROOT]="data/";
 
 struct UserAccountDatabase * uadb=0;
 struct AmmServer_Instance * default_server=0;
@@ -110,7 +111,7 @@ static void scanProjectFilesRecursive(struct project * p , const char * baseDir 
     if (strcmp(ep->d_name,"..")==0) { continue; }
     if (p->numberOfFiles>=MAX_FILES_PER_PROJECT) { break; }
 
-    char fullPath[MAX_STRING_SIZE*2]={0};
+    char fullPath[MAX_FILE_PATH]={0};
     snprintf(fullPath,sizeof(fullPath),"%s/%s",baseDir,ep->d_name);
 
     char relPath[MAX_STRING_SIZE]={0};
@@ -141,8 +142,8 @@ int scanProjectFiles(struct project * p)
   if (p==0) { return 0; }
   p->numberOfFiles=0;
 
-  char dirPath[MAX_STRING_SIZE*2]={0};
-  snprintf(dirPath,sizeof(dirPath),"data/projects/%s/files",p->id);
+  char dirPath[MAX_FILE_PATH]={0};
+  snprintf(dirPath,sizeof(dirPath),"%sprojects/%s/files",dataRoot,p->id);
 
   scanProjectFilesRecursive(p,dirPath,"",0);
   return 1;
@@ -155,8 +156,8 @@ int loadProjectMeta(const char * id , struct project * p)
   memset(p,0,sizeof(struct project));
   snprintf(p->id,sizeof(p->id),"%s",id);
 
-  char filename[MAX_STRING_SIZE*2]={0};
-  snprintf(filename,sizeof(filename),"data/projects/%s/meta.ini",id);
+  char filename[MAX_FILE_PATH]={0};
+  snprintf(filename,sizeof(filename),"%sprojects/%s/meta.ini",dataRoot,id);
 
   FILE * fp = fopen(filename,"r");
   if (fp==0) { fprintf(stderr,"Cannot open %s\n",filename); return 0; }
@@ -212,8 +213,8 @@ int saveProjectMeta(struct project * p)
 {
   if (p==0) { return 0; }
 
-  char filename[MAX_STRING_SIZE*2]={0};
-  snprintf(filename,sizeof(filename),"data/projects/%s/meta.ini",p->id);
+  char filename[MAX_FILE_PATH]={0};
+  snprintf(filename,sizeof(filename),"%sprojects/%s/meta.ini",dataRoot,p->id);
 
   FILE * fp = fopen(filename,"w");
   if (fp==0) { fprintf(stderr,"Cannot open %s for writing\n",filename); return 0; }
@@ -238,8 +239,11 @@ int loadAllProjects()
 {
   projectHashMap = hashMap_Create(100,100,0,1);
 
-  DIR * dp = opendir("data/projects");
-  if (dp==0) { fprintf(stderr,"Cannot open data/projects directory\n"); return 0; }
+  char projectsDir[MAX_FILE_PATH]={0};
+  snprintf(projectsDir,sizeof(projectsDir),"%sprojects",dataRoot);
+
+  DIR * dp = opendir(projectsDir);
+  if (dp==0) { fprintf(stderr,"Cannot open %s directory\n",projectsDir); return 0; }
 
   struct dirent * ep;
   unsigned int highestNumericID=0;
@@ -286,15 +290,15 @@ int createProject(const char * owner , const char * title , char * outID , unsig
   char id[32]={0};
   snprintf(id,sizeof(id),"p%06u",nextProjectUID);
 
-  char dirPath[MAX_STRING_SIZE*2]={0};
-  snprintf(dirPath,sizeof(dirPath),"data/projects/%s",id);
+  char dirPath[MAX_FILE_PATH]={0};
+  snprintf(dirPath,sizeof(dirPath),"%sprojects/%s",dataRoot,id);
   if (mkdir(dirPath,0755)!=0) { fprintf(stderr,"createProject : cannot create %s\n",dirPath); return 0; }
 
-  char filesPath[MAX_STRING_SIZE*2]={0};
-  snprintf(filesPath,sizeof(filesPath),"data/projects/%s/files",id);
+  char filesPath[MAX_FILE_PATH]={0};
+  snprintf(filesPath,sizeof(filesPath),"%sprojects/%s/files",dataRoot,id);
   if (mkdir(filesPath,0755)!=0) { fprintf(stderr,"createProject : cannot create %s\n",filesPath); return 0; }
 
-  char mainTexPath[MAX_STRING_SIZE*2]={0};
+  char mainTexPath[MAX_FILE_PATH]={0};
   snprintf(mainTexPath,sizeof(mainTexPath),"%s/main.tex",filesPath);
   const char * blankTemplate =
     "\\documentclass{article}\n"

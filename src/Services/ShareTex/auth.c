@@ -7,7 +7,10 @@
 
 int initializeLoginSystem()
 {
-  uadb = uadb_initializeUserAccountDatabase("data/db/users.db");
+  char dbPath[MAX_FILE_PATH]={0};
+  snprintf(dbPath,sizeof(dbPath),"%sdb/users.db",dataRoot);
+
+  uadb = uadb_initializeUserAccountDatabase(dbPath);
   return (uadb!=0);
 }
 
