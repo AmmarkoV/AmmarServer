@@ -1,20 +1,41 @@
+body {
+    margin: 0;
+    background-color: #000000;
+    background-image: url('background.png');
+    color: #FFFFFF;
+    font-family: sans-serif;
+}
+
+a { color: #FFFFFF; }
+
 div.topbar {
     height: 60px;
     width: 100%;
     background-color: #222222;
     margin-top: 0px;
-
 }
+
 .topbarlogo {
     height: 60px;
-    display: block;
-    position: absolute; 
-    position:absolute; top: 10px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
+.topbarlinks {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 30px;
+}
+
+.topbarlinks a {
+    margin-right: 20px;
+    text-decoration: none;
+}
+
+.topbarlinks form { display: inline-block; }
 
 .forgot
-{ 
+{
   font-size: 10px;
   margin: 0;
   padding: 0;
@@ -22,8 +43,84 @@ div.topbar {
   color: #444444;
 }
 
+.chatwindow { overflow: hidden; }
 
-chatwindow
-{
- overflow:hidden;
+.page {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px;
 }
+
+.wall { width: 620px; }
+.chatcolumn { margin-left: 30px; }
+
+.notice {
+    background-color: #222222;
+    padding: 20px;
+    margin: 20px;
+    display: inline-block;
+}
+
+/* The gate ( index.html ) */
+.gate { display: flex; }
+.gatecol {
+    background-color: #222222;
+    padding: 20px;
+    margin-right: 20px;
+    width: 240px;
+}
+.gatecol h2 { margin-top: 0px; }
+.gateworld img { max-height: 400px; }
+
+/* The wall */
+.composer, .commentform { display: flex; }
+.composer { margin-bottom: 20px; }
+
+input[type=text], input[type=password] {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #444444;
+    background-color: #111111;
+    color: #FFFFFF;
+}
+
+button {
+    padding: 8px 14px;
+    border: 1px solid #444444;
+    background-color: #333333;
+    color: #FFFFFF;
+    cursor: pointer;
+}
+
+.profiletitle { margin-top: 0px; }
+.messagelink {
+    font-size: 13px;
+    font-weight: normal;
+    margin-left: 15px;
+    text-decoration: none;
+    border: 1px solid #444444;
+    padding: 4px 10px;
+}
+
+.post {
+    background-color: #222222;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.postheader a { font-weight: bold; text-decoration: none; }
+.when { color: #888888; font-size: 11px; margin-left: 10px; }
+.posttext { margin: 10px 0px; white-space: pre-wrap; }
+
+.postactions button.like { background-color: #333333; }
+.postactions button.liked { background-color: #772222; }
+
+.comments { margin: 10px 0px 10px 20px; }
+.comment {
+    border-left: 2px solid #444444;
+    padding: 4px 0px 4px 10px;
+    font-size: 13px;
+}
+.comment a { font-weight: bold; text-decoration: none; }
+
+.commentform input[type=text] { font-size: 12px; }

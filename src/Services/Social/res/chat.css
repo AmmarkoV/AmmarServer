@@ -67,3 +67,42 @@
   border-bottom: 1px solid #ddd;
   padding: 5px;
 }
+
+
+.chatbox > .chatname a
+{
+  color: #AAAAAA;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.chatindex
+{
+  padding: 10px;
+  color: #DDDDDD;
+  height: 440px;
+  overflow-y: auto;
+}
+
+.chatindex h4 { margin: 10px 0px 5px 0px; }
+.chatindex ul { list-style: none; margin: 0; padding: 0; }
+.chatindex li { padding: 3px 0px; border-bottom: 1px solid #444444; }
+.chatindex a  { color: #DDDDDD; text-decoration: none; }
+
+.chatindex input[type='text']
+{
+  padding: 4px;
+  border: 1px solid #444444;
+  background-color: #111111;
+  color: #FFFFFF;
+  width: 60%;
+}
+
+.chatindex button
+{
+  padding: 4px 10px;
+  border: 1px solid #444444;
+  background-color: #333333;
+  color: #FFFFFF;
+  cursor: pointer;
+}

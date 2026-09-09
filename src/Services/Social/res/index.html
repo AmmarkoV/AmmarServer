@@ -1,50 +1,37 @@
+<!DOCTYPE html>
 <html>
 <head>
-<title>The Social Gate </title> 
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">  
-   <link rel='stylesheet' type='text/css' href='social.css'>
+<title>The Social Gate</title>
+<meta charset="UTF-8">
+<link rel='stylesheet' type='text/css' href='social.css'>
 </head>
+<body>
 
-<body bgcolor="#000000"  background="background.png" text="#FFFFFF" link="#FFFFFF" vlink="#FFFFFF" alink="#FFFFFF"> 
+<div class='topbar'>
+ <img src="favicon.ico" class="topbarlogo"/>
+</div>
 
-<!-- Top Bar -->
-    <div class='topbar'>
-      <table>
-        <tr>
-         <td> <img src="favicon.ico" class="topbarlogo"/> </td>
-         <td width=100> </td> 
-        <td>    
-        <form action="login.html" accept-charset="utf-8"  id='chat'>
-          <table>
-           <tr> 
-               <td>Username</td>
-               <td>Password &nbsp;&nbsp;&nbsp;<a href="forgot.html" class="forgot">Forgot Password?</a></td>
-               <td> </td>
-           </tr>
-           <tr> 
-               <td><input type='text' name='name' id='name' value=''></td>
-               <td><input type='text' name='password' id='password' value=''></td>
-               <td><input type='submit' onclick="" onsSubmit="return false;" id='submit' value='Log in'></td>
-           </tr>
-          </table>   
-        </form>  
-       </td>
-    </div>
+<div class="page">
+ <div class="gate">
+  <div class="gatecol">
+   <h2>Log in</h2>
+   <form method="post" enctype="multipart/form-data" action="doLogin.html">
+    <input type="text" name="name" placeholder="Username" autocomplete="username" required>
+    <input type="password" name="password" placeholder="Password" autocomplete="current-password" required>
+    <button type="submit">Log in</button>
+   </form>
+  </div>
+  <div class="gatecol">
+   <h2>Sign up</h2>
+   <form method="post" enctype="multipart/form-data" action="doSignup.html">
+    <input type="text" name="name" placeholder="Username" autocomplete="username" required>
+    <input type="password" name="password" placeholder="Password" autocomplete="new-password" required>
+    <button type="submit">Create account</button>
+   </form>
+  </div>
+ </div>
+ <div class="gateworld"><img src="world.png"></div>
+</div>
 
-
-
- 
-<table height=95% width=85%>
- <tr>
-   <td align="center" valign="center">
-    <img src="world.png">   
-   </td>
-   <td>
-     This is a development snapshot..<br>
-    This social network is currently invite only
-   </td>
- </tr>
- </table> 
 </body>
 </html>
-

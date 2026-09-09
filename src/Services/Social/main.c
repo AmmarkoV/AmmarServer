@@ -25,9 +25,11 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
 
+#include "session.h"
 #include "login.h"
 #include "chat.h"
 #include "home.h"
+#include "posts.h"
 
 
 char webserver_root[MAX_FILE_PATH]="src/Services/Social/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -39,47 +41,79 @@ struct AmmServer_Instance  * default_server=0;
 struct AmmServer_RequestOverride_Context GET_override={{0}};
 
 struct AmmServer_RH_Context login={0};
+struct AmmServer_RH_Context signup={0};
+struct AmmServer_RH_Context logout={0};
 struct AmmServer_RH_Context home={0};
+struct AmmServer_RH_Context profile={0};
+struct AmmServer_RH_Context newPost={0};
+struct AmmServer_RH_Context newComment={0};
+struct AmmServer_RH_Context newLike={0};
 struct AmmServer_RH_Context chat={0};
 struct AmmServer_RH_Context chatSpeak={0};
 struct AmmServer_RH_Context chatPicture={0};
 struct AmmServer_RH_Context chatMessages={0};
+struct AmmServer_RH_Context createRoom={0};
 
 
+//Every resource here is session enabled : that is what makes rqst->sessionToken ( and with it the whole
+//_SESSION* / AmmServer_CurrentUsername() / CSRF token family ) mean anything inside the callbacks..
+static void addSessionResourceHandler(
+                                       struct AmmServer_RH_Context * context,
+                                       const char * resourceName,
+                                       unsigned int allocateMemoryBytes,
+                                       void * callback,
+                                       unsigned int scenario
+                                     )
+{
+  AmmServer_AddResourceHandler(default_server,context,resourceName,allocateMemoryBytes,0,callback,scenario);
+  AmmServer_DoNOTCacheResourceHandler(default_server,context);
+  context->requestContext.useSessionLifecycle=1;
+}
 
-//This function adds a Resource Handler for the pages stats.html and formtest.html and associates stats , form and their callback functions
+
+//This function adds a Resource Handler for each page of the social network and associates it with its callback
 void init_dynamic_content()
 {
-  if (!initializeLoginSystem())
-     { AmmServer_Error("Could not initialize user accounts"); }
+  if (!initializeLoginSystem())    { AmmServer_Error("Could not initialize user accounts"); }
+  if (!loadPosts("db/social.db"))  { AmmServer_Error("Could not initialize the post database"); }
+  if (!initializeChat())           { AmmServer_Error("Could not initialize the chat rooms"); }
 
-  chatPage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/chatroom.html");
-  homePage=AmmServer_ReadFileToMemoryHandler("src/Services/Social/res/home.html");
+  addSessionResourceHandler(&login,"/doLogin.html",4096,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&signup,"/doSignup.html",4096,&signup_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&logout,"/logout.html",4096,&logout_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
 
-  AmmServer_AddResourceHandler(default_server,&chat,"/chat.html",4096,0,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&chatSpeak,"/chatSpeak.html",4096,0,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&chatPicture,"/chatPicture.html",4096,0,&chatPicture_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&chatMessages,"/chatmessages.html",4096,0,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&login,"/login.html",4096,0,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
-  AmmServer_AddResourceHandler(default_server,&home,"/home.html",4096,0,&home_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  addSessionResourceHandler(&home,"/home.html",1024*1024,&home_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  addSessionResourceHandler(&profile,"/profile.html",1024*1024,&profile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
 
+  addSessionResourceHandler(&newPost,"/post.html",4096,&post_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&newComment,"/comment.html",4096,&comment_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&newLike,"/like.html",4096,&like_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+
+  addSessionResourceHandler(&chat,"/chat.html",65536,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  addSessionResourceHandler(&chatMessages,"/chatmessages.html",65536,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  addSessionResourceHandler(&chatSpeak,"/chatSpeak.html",4096,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&chatPicture,"/chatPicture.html",4096,&chatPicture_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&createRoom,"/createRoom.html",4096,&createRoom_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
 }
 
 //This function destroys all Resource Handlers and free's all allocated memory..!
 void close_dynamic_content()
 {
+    AmmServer_RemoveResourceHandler(default_server,&login,1);
+    AmmServer_RemoveResourceHandler(default_server,&signup,1);
+    AmmServer_RemoveResourceHandler(default_server,&logout,1);
+    AmmServer_RemoveResourceHandler(default_server,&home,1);
+    AmmServer_RemoveResourceHandler(default_server,&profile,1);
+    AmmServer_RemoveResourceHandler(default_server,&newPost,1);
+    AmmServer_RemoveResourceHandler(default_server,&newComment,1);
+    AmmServer_RemoveResourceHandler(default_server,&newLike,1);
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
     AmmServer_RemoveResourceHandler(default_server,&chatSpeak,1);
     AmmServer_RemoveResourceHandler(default_server,&chatPicture,1);
     AmmServer_RemoveResourceHandler(default_server,&chatMessages,1);
+    AmmServer_RemoveResourceHandler(default_server,&createRoom,1);
 
-    AmmServer_RemoveResourceHandler(default_server,&login,1);
-    AmmServer_RemoveResourceHandler(default_server,&home,1);
-
-    AmmServer_FreeMemoryHandler(&chatPage);
-    AmmServer_FreeMemoryHandler(&homePage);
-
-
+    unloadPosts();
     stopLoginSystem();
 }
 
