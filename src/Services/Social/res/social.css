@@ -112,6 +112,16 @@ button {
 .when { color: #888888; font-size: 11px; margin-left: 10px; }
 .posttext { margin: 10px 0px; white-space: pre-wrap; }
 
+.postmedia {
+    display: block;
+    max-width: 100%;
+    max-height: 400px;
+    margin: 10px 0px;
+}
+audio.postmedia { width: 100%; }
+
+.composer input[type=file] { max-width: 190px; color: #888888; font-size: 11px; }
+
 .postactions button.like { background-color: #333333; }
 .postactions button.liked { background-color: #772222; }
 

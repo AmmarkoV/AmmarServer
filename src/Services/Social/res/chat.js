@@ -63,6 +63,38 @@
     }
 
 
+   // A picture or a sound goes to its own endpoint , as its own multipart body , and lands in the
+   // conversation as a message whose body is the tag that shows or plays it..
+   function sendNewMedia()
+    {
+        var key   = conversationField('ckey');
+        var value = conversationField('cvalue');
+        if (key == null || value == null) { return; }
+
+        var picker = document.getElementById('media');
+        if (picker == null || picker.files.length == 0) { return; }
+
+        var fd = new FormData();
+        fd.append('csrf', conversationField('csrf'));
+        fd.append(key, value);
+        fd.append('media', picker.files[0]);
+
+        var x = new XMLHttpRequest();
+        x.open("POST","chatMedia.html",true);
+        x.onreadystatechange = function()
+        {
+          if (x.readyState == 4)
+          {
+            if (x.status == 200) { getMessages(); goToEndOfMessages(); }
+            else                 { console.log("Failure sending attachment"); }
+          }
+        }
+        x.send(fd);
+
+        picker.value = "";
+    }
+
+
    function goToEndOfMessages()
    {
     var objDiv = document.getElementById("chatmessages");

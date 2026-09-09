@@ -80,6 +80,7 @@ static int savePostsUnlocked()
   {
     fprintf(fp,"P\t%u\t%lu\t%s\t%s\n",posts[i].id,posts[i].timestamp,posts[i].author,posts[i].text);
     fprintf(fp,"W\t%s\n",posts[i].wall);
+    if (posts[i].media[0]!=0) { fprintf(fp,"M\t%s\n",posts[i].media); }
 
     for (z=0; z<posts[i].numberOfComments; z++)
       { fprintf(fp,"C\t%lu\t%s\t%s\n",posts[i].comments[z].timestamp,posts[i].comments[z].author,posts[i].comments[z].text); }
@@ -153,6 +154,10 @@ int loadPosts(const char * filename)
     {
       snprintf(currentPost->wall,MAX_USERNAME,"%s",cursor);
     } else
+    if ( (strcmp(kind,"M")==0) && (currentPost!=0) )
+    {
+      snprintf(currentPost->media,MAX_MEDIA_NAME,"%s",cursor);
+    } else
     if ( (strcmp(kind,"L")==0) && (currentPost!=0) )
     {
       if (currentPost->numberOfLikes>=MAX_LIKES_PER_POST) { continue; }
@@ -176,12 +181,15 @@ int unloadPosts()
 }
 
 
-int addPost(const char * author,const char * wall,const char * text)
+int addPost(const char * author,const char * wall,const char * text,const char * media)
 {
   if ( (author==0) || (author[0]==0) ) { return 0; }
 
+  int haveMedia = ( (media!=0) && (media[0]!=0) );
+
   char cleanText[MAX_POST_TEXT]={0};
-  if ( ! sanitizeText(text,cleanText,sizeof(cleanText)) ) { return 0; }
+  //A picture or a sound on its own is a post , so empty text only stops one that has nothing else either..
+  if ( ( ! sanitizeText(text,cleanText,sizeof(cleanText)) ) && ( ! haveMedia ) ) { return 0; }
 
   pthread_mutex_lock(&postsLock);
 
@@ -199,6 +207,7 @@ int addPost(const char * author,const char * wall,const char * text)
   snprintf(post->author,MAX_USERNAME,"%s",author);
   snprintf(post->wall,MAX_USERNAME,"%s", ( (wall!=0) && (wall[0]!=0) ) ? wall : author );
   snprintf(post->text,MAX_POST_TEXT,"%s",cleanText);
+  if (haveMedia) { snprintf(post->media,MAX_MEDIA_NAME,"%s",media); }
 
   savePostsUnlocked();
   pthread_mutex_unlock(&postsLock);
@@ -338,10 +347,13 @@ unsigned int renderPosts(
     AmmServer_HTMLEscape(post->text,escapedText,sizeof(escapedText));
     formatTimestamp(post->timestamp,when,sizeof(when));
 
+    char mediaTag[MAX_MEDIA_NAME*4+128]={0};
+    if (post->media[0]!=0) { mediaRenderTag(post->media,mediaTag,sizeof(mediaTag)); }
+
     snprintf(chunk,sizeof(chunk),
              "<div class=\"post\">"
               "<div class=\"postheader\"><a href=\"profile.html?u=%s\">%s</a>%s<span class=\"when\">%s</span></div>"
-              "<div class=\"posttext\">%s</div>"
+              "<div class=\"posttext\">%s</div>%s"
               "<div class=\"postactions\">"
                "<form method=\"post\" enctype=\"multipart/form-data\" action=\"like.html\">"
                 "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
@@ -351,7 +363,7 @@ unsigned int renderPosts(
                "</form>"
               "</div>"
               "<div class=\"comments\">",
-             escapedAuthor,escapedAuthor,wallMarker,when,escapedText,
+             escapedAuthor,escapedAuthor,wallMarker,when,escapedText,mediaTag,
              csrfToken,post->id,backField,
              viewerHasLikedUnlocked(post,viewer) ? "like liked" : "like",
              post->numberOfLikes);
@@ -372,7 +384,7 @@ unsigned int renderPosts(
 
     snprintf(chunk,sizeof(chunk),
               "</div>"
-              "<form class=\"commentform\" method=\"post\" enctype=\"multipart/form-data\" action=\"comment.html\">"
+              "<form class=\"commentform\" method=\"post\" enctype=\"multipart/form-data\" action=\"comment.html\" onsubmit=\"return trimEmptyFields(this);\">"
                "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
                "<input type=\"hidden\" name=\"post\" value=\"%u\">"
                "%s"

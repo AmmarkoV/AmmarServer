@@ -2,6 +2,7 @@
 #define POSTS_H_INCLUDED
 
 #include "session.h"
+#include "media.h"
 
 /*Fixed capacities keep the whole store one flat allocation with no reallocation to get wrong - the wall drops
   its oldest post once it is full , the same way the chat log just keeps growing..*/
@@ -25,6 +26,8 @@ struct socialPost
   char wall[MAX_USERNAME];
   unsigned long timestamp;
   char text[MAX_POST_TEXT];
+  /*The stored name of a picture or sound attached to this post , empty when there isn't one..*/
+  char media[MAX_MEDIA_NAME];
 
   unsigned int numberOfComments;
   struct socialComment comments[MAX_COMMENTS_PER_POST];
@@ -36,7 +39,7 @@ struct socialPost
 int loadPosts(const char * filename);
 int unloadPosts();
 
-int addPost(const char * author,const char * wall,const char * text);
+int addPost(const char * author,const char * wall,const char * text,const char * media);
 int addComment(unsigned int postID,const char * author,const char * text);
 
 /*Likes the post if this user hasn't liked it yet , unlikes it if they have - one endpoint for one button..*/

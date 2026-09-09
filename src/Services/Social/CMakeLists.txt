@@ -11,7 +11,7 @@ ENDIF(DO_TEST_COVERAGE)
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-add_executable(social main.c session.c login.c chat.c home.c posts.c) 
+add_executable(social main.c session.c login.c chat.c home.c posts.c media.c) 
 target_link_libraries(social pthread rt AmmarServerDynamic UserAccounts )
 set_target_properties(social PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(social AmmarServer)  

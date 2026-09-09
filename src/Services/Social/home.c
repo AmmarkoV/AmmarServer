@@ -1,5 +1,6 @@
 #include "home.h"
 #include "posts.h"
+#include "media.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,10 +37,11 @@ static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewe
   if (profileUser==0)
   {
     snprintf(body,sizeof(body),
-             "<form class=\"composer\" method=\"post\" enctype=\"multipart/form-data\" action=\"post.html\">"
+             "<form class=\"composer\" method=\"post\" enctype=\"multipart/form-data\" action=\"post.html\" onsubmit=\"return trimEmptyFields(this);\">"
               "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
               "<input type=\"text\" name=\"text\" maxlength=\"280\" placeholder=\"What is happening , %s ?\">"
               "<button type=\"submit\">Post</button>"
+              "<input type=\"file\" name=\"media\" accept=\"image/*,audio/*\" title=\"Attach a picture or a sound\">"
              "</form>",
              csrfToken,escapedViewer);
   } else
@@ -54,12 +56,13 @@ static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewe
 
     snprintf(body,sizeof(body),
              "<h2 class=\"profiletitle\">%s&apos;s wall%s</h2>"
-             "<form class=\"composer\" method=\"post\" enctype=\"multipart/form-data\" action=\"post.html\">"
+             "<form class=\"composer\" method=\"post\" enctype=\"multipart/form-data\" action=\"post.html\" onsubmit=\"return trimEmptyFields(this);\">"
               "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
               "<input type=\"hidden\" name=\"wall\" value=\"%s\">"
               "<input type=\"hidden\" name=\"back\" value=\"%s\">"
               "<input type=\"text\" name=\"text\" maxlength=\"280\" placeholder=\"Write on %s&apos;s wall..\">"
               "<button type=\"submit\">Post</button>"
+              "<input type=\"file\" name=\"media\" accept=\"image/*,audio/*\" title=\"Attach a picture or a sound\">"
              "</form>",
              escapedProfileUser,messageLink,csrfToken,escapedProfileUser,escapedProfileUser,escapedProfileUser);
   }
@@ -75,7 +78,8 @@ static void renderPage(struct AmmServer_DynamicRequest * rqst,const char * viewe
 
   snprintf(rqst->content,rqst->MAXcontentSize,
            "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>The Social Gate</title>"
-           "<link rel='stylesheet' type='text/css' href='social.css'></head><body>"
+           "<link rel='stylesheet' type='text/css' href='social.css'>"
+           "<script type=\"text/javascript\" src=\"social.js\"></script></head><body>"
            "<div class=\"topbar\">"
             "<img src=\"favicon.ico\" class=\"topbarlogo\"/>"
             "<div class=\"topbarlinks\">"
@@ -143,8 +147,12 @@ void * post_callback(struct AmmServer_DynamicRequest  * rqst)
   _POSTcpy(rqst,"wall",wall,sizeof(wall));
   if ( ( ! uadbWeb_isValidUsername(wall) ) || ( ! uadbWeb_userAccountExists(uadb,wall) ) ) { wall[0]=0; }
 
+  char media[MAX_MEDIA_NAME]={0};
+  mediaStoreFromRequest(rqst,"media",media,sizeof(media));
+
   char text[MAX_POST_TEXT]={0};
-  if ( _POSTcpy(rqst,"text",text,sizeof(text)) ) { addPost(author,wall,text); }
+  _POSTcpy(rqst,"text",text,sizeof(text));
+  addPost(author,wall,text,media); //Refuses on its own if there is neither text nor an attachment
 
   socialRedirectBack(rqst,backUser);
   return 0;

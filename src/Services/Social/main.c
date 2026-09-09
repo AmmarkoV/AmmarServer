@@ -30,6 +30,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "chat.h"
 #include "home.h"
 #include "posts.h"
+#include "media.h"
 
 
 char webserver_root[MAX_FILE_PATH]="src/Services/Social/res/"; // <- change this to the directory that contains your content if you dont want to use the default public_html dir..
@@ -50,7 +51,7 @@ struct AmmServer_RH_Context newComment={0};
 struct AmmServer_RH_Context newLike={0};
 struct AmmServer_RH_Context chat={0};
 struct AmmServer_RH_Context chatSpeak={0};
-struct AmmServer_RH_Context chatPicture={0};
+struct AmmServer_RH_Context chatMedia={0};
 struct AmmServer_RH_Context chatMessages={0};
 struct AmmServer_RH_Context createRoom={0};
 
@@ -77,6 +78,7 @@ void init_dynamic_content()
   if (!initializeLoginSystem())    { AmmServer_Error("Could not initialize user accounts"); }
   if (!loadPosts("db/social.db"))  { AmmServer_Error("Could not initialize the post database"); }
   if (!initializeChat())           { AmmServer_Error("Could not initialize the chat rooms"); }
+  if (!initializeMedia())          { AmmServer_Error("Could not initialize the upload directory"); }
 
   addSessionResourceHandler(&login,"/doLogin.html",4096,&login_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   addSessionResourceHandler(&signup,"/doSignup.html",4096,&signup_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
@@ -92,7 +94,7 @@ void init_dynamic_content()
   addSessionResourceHandler(&chat,"/chat.html",65536,&chatPage_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   addSessionResourceHandler(&chatMessages,"/chatmessages.html",65536,&chatMessages_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   addSessionResourceHandler(&chatSpeak,"/chatSpeak.html",4096,&chatSpeak_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
-  addSessionResourceHandler(&chatPicture,"/chatPicture.html",4096,&chatPicture_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&chatMedia,"/chatMedia.html",4096,&chatMedia_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   addSessionResourceHandler(&createRoom,"/createRoom.html",4096,&createRoom_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
 }
 
@@ -109,7 +111,7 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&newLike,1);
     AmmServer_RemoveResourceHandler(default_server,&chat,1);
     AmmServer_RemoveResourceHandler(default_server,&chatSpeak,1);
-    AmmServer_RemoveResourceHandler(default_server,&chatPicture,1);
+    AmmServer_RemoveResourceHandler(default_server,&chatMedia,1);
     AmmServer_RemoveResourceHandler(default_server,&chatMessages,1);
     AmmServer_RemoveResourceHandler(default_server,&createRoom,1);
 

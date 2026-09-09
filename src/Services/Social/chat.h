@@ -10,6 +10,6 @@ void * chatPage_callback(struct AmmServer_DynamicRequest  * rqst);
 void * chatSpeak_callback(struct AmmServer_DynamicRequest  * rqst);
 void * chatMessages_callback(struct AmmServer_DynamicRequest  * rqst);
 void * createRoom_callback(struct AmmServer_DynamicRequest  * rqst);
-void * chatPicture_callback(struct AmmServer_DynamicRequest  * rqst);
+void * chatMedia_callback(struct AmmServer_DynamicRequest  * rqst);
 
 #endif // CHAT_H_INCLUDED

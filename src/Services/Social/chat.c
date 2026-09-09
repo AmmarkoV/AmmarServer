@@ -1,4 +1,5 @@
 #include "chat.h"
+#include "media.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -238,6 +239,7 @@ static void renderConversationPage(struct AmmServer_DynamicRequest * rqst,struct
               "<input type='hidden' id='cvalue' value='%s'>"
               "<input type='text' id='text' placeholder='Type and push enter!'>"
               "<input type='submit' value='&#9786;'>"
+              "<input type='file' id='media' accept='image/*,audio/*' title='Send a picture or a sound' onchange='sendNewMedia();'>"
              "</form>"
             "</div>"
            "</div>"
@@ -345,10 +347,35 @@ void * createRoom_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
-void * chatPicture_callback(struct AmmServer_DynamicRequest  * rqst)
+/*A picture or a sound sent into a conversation. A log line is already the HTML that gets served back , so an
+  attachment is just a message whose body is the tag that plays or shows it..*/
+void * chatMedia_callback(struct AmmServer_DynamicRequest  * rqst)
 {
-  AmmServer_Success("chatPicture_callback done");
-  snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Ok</body></html>");
+  char username[MAX_USERNAME]={0};
+  if ( ! AmmServer_CurrentUsername(rqst,username,sizeof(username)) )
+    { snprintf(rqst->content,rqst->MAXcontentSize,"Not logged in"); rqst->contentSize=strlen(rqst->content); return 0; }
+
+  struct chatConversation conversation;
+  char storedName[MAX_MEDIA_NAME]={0};
+
+  if ( ( socialPostedCSRFIsValid(rqst) ) &&
+       ( resolveConversation(rqst,username,&conversation) ) &&
+       ( mediaStoreFromRequest(rqst,"media",storedName,sizeof(storedName)) ) )
+  {
+    char mediaTag[MAX_MEDIA_NAME*4+128]={0};
+    mediaRenderTag(storedName,mediaTag,sizeof(mediaTag));
+
+    char escapedUsername[MAX_ESCAPED_USERNAME]={0};
+    AmmServer_HTMLEscape(username,escapedUsername,sizeof(escapedUsername));
+
+    appendMessage(conversation.path,escapedUsername,mediaTag);
+    snprintf(rqst->content,rqst->MAXcontentSize,"Ok");
+  } else
+  {
+    AmmServer_Warning("Discarding chat upload from %s",username);
+    snprintf(rqst->content,rqst->MAXcontentSize,"Failed");
+  }
+
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
