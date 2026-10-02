@@ -51,6 +51,8 @@ struct AmmServer_RH_Context profile={0};
 struct AmmServer_RH_Context newPost={0};
 struct AmmServer_RH_Context newComment={0};
 struct AmmServer_RH_Context newLike={0};
+struct AmmServer_RH_Context removePost={0};
+struct AmmServer_RH_Context removeComment={0};
 struct AmmServer_RH_Context newFollow={0};
 struct AmmServer_RH_Context people={0};
 struct AmmServer_RH_Context alerts={0};
@@ -98,6 +100,9 @@ void init_dynamic_content()
   addSessionResourceHandler(&newComment,"/comment.html",4096,&comment_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   addSessionResourceHandler(&newLike,"/like.html",4096,&like_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
 
+  addSessionResourceHandler(&removePost,"/deletePost.html",4096,&deletePost_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+  addSessionResourceHandler(&removeComment,"/deleteComment.html",4096,&deleteComment_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+
   addSessionResourceHandler(&newFollow,"/follow.html",4096,&follow_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   addSessionResourceHandler(&people,"/people.html",512*1024,&people_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   addSessionResourceHandler(&alerts,"/notifications.html",512*1024,&notifications_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
@@ -120,6 +125,8 @@ void close_dynamic_content()
     AmmServer_RemoveResourceHandler(default_server,&newPost,1);
     AmmServer_RemoveResourceHandler(default_server,&newComment,1);
     AmmServer_RemoveResourceHandler(default_server,&newLike,1);
+    AmmServer_RemoveResourceHandler(default_server,&removePost,1);
+    AmmServer_RemoveResourceHandler(default_server,&removeComment,1);
     AmmServer_RemoveResourceHandler(default_server,&newFollow,1);
     AmmServer_RemoveResourceHandler(default_server,&people,1);
     AmmServer_RemoveResourceHandler(default_server,&alerts,1);

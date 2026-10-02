@@ -42,6 +42,16 @@ int unloadPosts();
 int addPost(const char * author,const char * wall,const char * text,const char * media);
 int addComment(unsigned int postID,const char * author,const char * text);
 
+/*Removes a post , and the file attached to it. Allowed for whoever wrote it , and for the owner of the wall it
+  was written on - with anybody able to post on anybody's wall , the owner needs a way to take it back down.
+  @retval 1=Deleted , 0=No such post / not the requester's to delete*/
+int deletePost(unsigned int postID,const char * requester);
+
+/*Removes one comment from a post , but only for whoever wrote that comment. The index is the position the
+  page was rendered with , and it is only acted on when the comment sitting there is still the requester's.
+  @retval 1=Deleted , 0=No such comment / not the requester's to delete*/
+int deleteComment(unsigned int postID,unsigned int commentIndex,const char * requester);
+
 /*Likes the post if this user hasn't liked it yet , unlikes it if they have - one endpoint for one button..*/
 int toggleLike(unsigned int postID,const char * username);
 

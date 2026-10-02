@@ -82,6 +82,7 @@ ENDIF (USE_AMMMESSAGES)
     add_subdirectory (src/Services/WebFramebuffer)
     add_subdirectory (src/Services/V4L2ToHTTP)
     add_subdirectory (src/Services/ImageGeneration)
+    add_subdirectory (src/Services/QuestTeleop)
 
     #Parts of the AmmBus project..
     add_subdirectory (src/Services/AmmBus)

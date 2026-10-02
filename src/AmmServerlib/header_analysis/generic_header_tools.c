@@ -411,10 +411,8 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
                                               webserver_root
                                             );
 
-                    output->parsingStartOffset+=newLineLength; //Remember where we are
                     newLineLength=0;
 
-                    //BUG HERE ?
                     startOfNewLine = request+(i+1); //+1 gets past current CR or LF
                     r = *startOfNewLine;
                     switch (r)
@@ -425,6 +423,12 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
                              ++i;
                         break;
                       };
+                    //Remember where we are : the start of the next unprocessed line , *including* the CR/LF just skipped.
+                    //This used to add only newLineLength , leaving out the line terminators , so when a request arrived in
+                    //more than one recv ( e.g. a keep-alive POST whose body comes in a later TCP segment ) the next call
+                    //resumed a few bytes too early and re-analyzed already processed ( and in-place tokenized ) lines ,
+                    //registering the multipart boundaries twice and losing every POST field.
+                    output->parsingStartOffset = (unsigned int) (startOfNewLine - output->headerRAW);
                     break;
                   }
         default :

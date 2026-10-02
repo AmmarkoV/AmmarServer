@@ -288,6 +288,63 @@ int toggleLike(unsigned int postID,const char * username)
 }
 
 
+int deletePost(unsigned int postID,const char * requester)
+{
+  if ( (requester==0) || (requester[0]==0) ) { return 0; }
+
+  pthread_mutex_lock(&postsLock);
+
+  int result=0;
+  char mediaToRemove[MAX_MEDIA_NAME]={0};
+  struct socialPost * post=findPostUnlocked(postID);
+
+  //Your own post , or somebody else's sitting on your wall..
+  if ( (post!=0) && ( (strcmp(post->author,requester)==0) || (strcmp(post->wall,requester)==0) ) )
+  {
+    //Remembered before the post goes , so the file can be unlinked once the lock is released..
+    snprintf(mediaToRemove,MAX_MEDIA_NAME,"%s",post->media);
+
+    unsigned int index=(unsigned int)(post-posts);
+    if (index+1<numberOfPosts) { memmove(post,post+1,sizeof(struct socialPost)*(numberOfPosts-index-1)); }
+    --numberOfPosts;
+
+    savePostsUnlocked();
+    result=1;
+  }
+
+  pthread_mutex_unlock(&postsLock);
+
+  if ( (result) && (mediaToRemove[0]!=0) ) { mediaDelete(mediaToRemove); }
+  return result;
+}
+
+
+int deleteComment(unsigned int postID,unsigned int commentIndex,const char * requester)
+{
+  if ( (requester==0) || (requester[0]==0) ) { return 0; }
+
+  pthread_mutex_lock(&postsLock);
+
+  int result=0;
+  struct socialPost * post=findPostUnlocked(postID);
+
+  if ( (post!=0) && (commentIndex<post->numberOfComments) &&
+       (strcmp(post->comments[commentIndex].author,requester)==0) )
+  {
+    if (commentIndex+1<post->numberOfComments)
+      { memmove(&post->comments[commentIndex],&post->comments[commentIndex+1],
+                sizeof(struct socialComment)*(post->numberOfComments-commentIndex-1)); }
+    --post->numberOfComments;
+
+    savePostsUnlocked();
+    result=1;
+  }
+
+  pthread_mutex_unlock(&postsLock);
+  return result;
+}
+
+
 static int viewerHasLikedUnlocked(struct socialPost * post,const char * viewer)
 {
   unsigned int i=0;
@@ -361,6 +418,21 @@ unsigned int renderPosts(
     char mediaTag[MAX_MEDIA_NAME*4+128]={0};
     if (post->media[0]!=0) { mediaRenderTag(post->media,mediaTag,sizeof(mediaTag)); }
 
+    //Offered to whoever wrote it and to the wall's owner ; deletePost() checks again anyway , since a form is
+    //only what the page suggested , never what the server trusts..
+    char deletePostForm[768]={0};
+    if ( (strcmp(post->author,viewer)==0) || (strcmp(post->wall,viewer)==0) )
+    {
+      snprintf(deletePostForm,sizeof(deletePostForm),
+               "<form method=\"post\" enctype=\"multipart/form-data\" action=\"deletePost.html\" onsubmit=\"return confirm('Delete this post?');\">"
+                "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
+                "<input type=\"hidden\" name=\"post\" value=\"%u\">"
+                "%s"
+                "<button type=\"submit\" class=\"delete\">Delete</button>"
+               "</form>",
+               csrfToken,post->id,backField);
+    }
+
     snprintf(chunk,sizeof(chunk),
              "<div class=\"post\">"
               "<div class=\"postheader\"><a href=\"profile.html?u=%s\">%s</a>%s<span class=\"when\">%s</span></div>"
@@ -372,12 +444,13 @@ unsigned int renderPosts(
                 "%s"
                 "<button type=\"submit\" class=\"%s\">&hearts; %u</button>"
                "</form>"
+               "%s"
               "</div>"
               "<div class=\"comments\">",
              escapedAuthor,escapedAuthor,wallMarker,when,escapedText,mediaTag,
              csrfToken,post->id,backField,
              viewerHasLikedUnlocked(post,viewer) ? "like liked" : "like",
-             post->numberOfLikes);
+             post->numberOfLikes,deletePostForm);
     socialAppendChunk(buffer,bufferSize,&position,chunk);
 
     unsigned int z=0;
@@ -387,9 +460,23 @@ unsigned int renderPosts(
       AmmServer_HTMLEscape(post->comments[z].text,escapedText,sizeof(escapedText));
       formatTimestamp(post->comments[z].timestamp,when,sizeof(when));
 
+      char deleteCommentForm[768]={0};
+      if (strcmp(post->comments[z].author,viewer)==0)
+      {
+        snprintf(deleteCommentForm,sizeof(deleteCommentForm),
+                 "<form class=\"deletecomment\" method=\"post\" enctype=\"multipart/form-data\" action=\"deleteComment.html\" onsubmit=\"return confirm('Delete this comment?');\">"
+                  "<input type=\"hidden\" name=\"csrf\" value=\"%s\">"
+                  "<input type=\"hidden\" name=\"post\" value=\"%u\">"
+                  "<input type=\"hidden\" name=\"comment\" value=\"%u\">"
+                  "%s"
+                  "<button type=\"submit\" class=\"delete\">&times;</button>"
+                 "</form>",
+                 csrfToken,post->id,z,backField);
+      }
+
       snprintf(chunk,sizeof(chunk),
-               "<div class=\"comment\"><a href=\"profile.html?u=%s\">%s</a> %s<span class=\"when\">%s</span></div>",
-               escapedAuthor,escapedAuthor,escapedText,when);
+               "<div class=\"comment\"><a href=\"profile.html?u=%s\">%s</a> %s<span class=\"when\">%s</span>%s</div>",
+               escapedAuthor,escapedAuthor,escapedText,when,deleteCommentForm);
       socialAppendChunk(buffer,bufferSize,&position,chunk);
     }
 

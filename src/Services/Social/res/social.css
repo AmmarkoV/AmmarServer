@@ -123,6 +123,9 @@ audio.postmedia { width: 100%; }
 .composer input[type=file] { max-width: 190px; color: #888888; font-size: 11px; }
 
 .postactions button.like { background-color: #333333; }
+.postactions form { display: inline-block; margin-right: 6px; }
+button.delete { background-color: #442222; font-size: 11px; padding: 4px 8px; }
+.deletecomment { display: inline-block; margin-left: 8px; }
 
 .personrow {
     display: flex;

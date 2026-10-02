@@ -10,4 +10,7 @@ void * post_callback(struct AmmServer_DynamicRequest  * rqst);
 void * comment_callback(struct AmmServer_DynamicRequest  * rqst);
 void * like_callback(struct AmmServer_DynamicRequest  * rqst);
 
+void * deletePost_callback(struct AmmServer_DynamicRequest  * rqst);
+void * deleteComment_callback(struct AmmServer_DynamicRequest  * rqst);
+
 #endif // HOME_H_INCLUDED

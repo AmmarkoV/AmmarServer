@@ -200,6 +200,44 @@ void * comment_callback(struct AmmServer_DynamicRequest  * rqst)
 }
 
 
+void * deletePost_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  char requester[MAX_USERNAME]={0};
+  if ( ! AmmServer_CurrentUsername(rqst,requester,sizeof(requester)) ) { socialServeLoginRequired(rqst); return 0; }
+
+  char backUser[MAX_USERNAME]={0};
+  _POSTcpy(rqst,"back",backUser,sizeof(backUser));
+
+  if ( socialPostedCSRFIsValid(rqst) )
+  {
+    unsigned int postID=_POSTuint(rqst,"post");
+    if (postID!=0) { deletePost(postID,requester); } //Refuses on its own unless it is the requester's own post
+  }
+
+  socialRedirectBack(rqst,backUser);
+  return 0;
+}
+
+
+void * deleteComment_callback(struct AmmServer_DynamicRequest  * rqst)
+{
+  char requester[MAX_USERNAME]={0};
+  if ( ! AmmServer_CurrentUsername(rqst,requester,sizeof(requester)) ) { socialServeLoginRequired(rqst); return 0; }
+
+  char backUser[MAX_USERNAME]={0};
+  _POSTcpy(rqst,"back",backUser,sizeof(backUser));
+
+  if ( socialPostedCSRFIsValid(rqst) )
+  {
+    unsigned int postID=_POSTuint(rqst,"post");
+    if (postID!=0) { deleteComment(postID,_POSTuint(rqst,"comment"),requester); }
+  }
+
+  socialRedirectBack(rqst,backUser);
+  return 0;
+}
+
+
 void * like_callback(struct AmmServer_DynamicRequest  * rqst)
 {
   char username[MAX_USERNAME]={0};
