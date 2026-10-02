@@ -10,6 +10,10 @@ both of which are plain HTTP/1.1 keep-alive clients of this server :
 Only the latest pose and the latest frame are kept , there is no queueing : a client that polls
 slower than the other side produces simply skips the in-between ones.
 
+A robot side on the same host can skip HTTP ( built with SharedMemoryVideoBuffers , see shm_link.h ) :
+every pose also goes to the quest_pose shared memory stream , and raw view pixels the robot puts in
+quest_view are JPEG-encoded here when the Quest asks for /frame.jpg.
+
 Written by Ammar Qammaz a.k.a. AmmarkoV
 
 This program is free software; you can redistribute it and/or modify
@@ -24,6 +28,9 @@ the Free Software Foundation; either version 3 of the License, or
 #include <unistd.h>
 #include <pthread.h>
 #include "../../AmmServerlib/AmmServerlib.h"
+#if USE_SHMVB
+ #include "shm_link.h"
+#endif
 
 #define DEFAULT_BINDING_PORT 8080
 
@@ -89,6 +96,9 @@ void * setPose_callback(struct AmmServer_DynamicRequest  * rqst)
   unsigned int size=0;
   const char * value = _POST(rqst,"pose",&size);
   int ok = storeBlob(&pose,value,size);
+  #if USE_SHMVB
+   if (ok) { shmLink_publishPose(value,size); }
+  #endif
   reply(rqst,ok,pose.updates);
   return 0;
 }
@@ -117,6 +127,13 @@ void * setFrame_callback(struct AmmServer_DynamicRequest  * rqst)
 //GET /frame.jpg , the latest frame
 void * getFrame_callback(struct AmmServer_DynamicRequest  * rqst)
 {
+  #if USE_SHMVB
+   //A newer view in shared memory replaces the latest frame ( encoded only when someone asks for it )
+   pthread_mutex_lock(&frame.lock);
+    unsigned long size = shmLink_takeViewJPEG(frame.data,frame.maxSize,80);
+    if (size) { frame.size=size; ++frame.updates; }
+   pthread_mutex_unlock(&frame.lock);
+  #endif
   if (!serveBlob(&frame,rqst))
      {
        //No frame yet : an empty body would make the library fall back to serving a file and close the keep-alive
@@ -133,6 +150,10 @@ void init_dynamic_content()
   pose.data  = (char*) malloc(pose.maxSize);
   frame.data = (char*) malloc(frame.maxSize);
   if ( (pose.data==0) || (frame.data==0) ) { AmmServer_Error("Could not allocate pose/frame buffers\n"); exit(1); }
+  #if USE_SHMVB
+   if (shmLink_start(MAX_POSE_SIZE)) { fprintf(stderr,"QuestTeleop relay : shared memory link on %s\n",QUEST_SHM_CONTEXT); }
+                                else { AmmServer_Warning("QuestTeleop relay : no shared memory link , HTTP only\n"); }
+  #endif
 
   //Every handler gets DIFFERENT_PAGE_FOR_EACH_CLIENT so each response is copied into its own buffer under our lock ,
   //a shared page would be sent after the framework unlocks it and could be torn by the next upload
@@ -151,6 +172,9 @@ void close_dynamic_content()
   AmmServer_RemoveResourceHandler(default_server,&getPoseContext,1);
   AmmServer_RemoveResourceHandler(default_server,&setFrameContext,1);
   AmmServer_RemoveResourceHandler(default_server,&getFrameContext,1);
+  #if USE_SHMVB
+   shmLink_stop();
+  #endif
   free(pose.data);  pose.data=0;
   free(frame.data); frame.data=0;
 }

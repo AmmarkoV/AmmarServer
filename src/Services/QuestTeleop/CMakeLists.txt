@@ -11,6 +11,20 @@ add_executable(questteleop main.c )
 target_link_libraries(questteleop pthread rt AmmarServerDynamic )
 set_target_properties(questteleop PROPERTIES DEBUG_POSTFIX "D")
 add_dependencies(questteleop AmmarServer)  
+
+# Optional same-host link to the robot side through SharedMemoryVideoBuffers ( a checkout next to AmmarServer ,
+# as in HumanoidController/dependencies/ ) ; raw frames from it are JPEG-encoded with BasicImaging
+set(SHMVB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../SharedMemoryVideoBuffers" CACHE PATH "SharedMemoryVideoBuffers checkout")
+if (EXISTS "${SHMVB_DIR}/src/c/sharedMemoryVideoBuffers.h")
+  message(STATUS "questteleop: shared memory link with ${SHMVB_DIR}")
+  target_sources(questteleop PRIVATE shm_link.c "${SHMVB_DIR}/src/c/sharedMemoryVideoBuffers.c")
+  target_include_directories(questteleop PRIVATE "${SHMVB_DIR}/src/c")
+  target_compile_definitions(questteleop PRIVATE USE_SHMVB=1)
+  target_link_libraries(questteleop BasicImaging m)
+  add_dependencies(questteleop BasicImaging)
+else()
+  message(STATUS "questteleop: no SharedMemoryVideoBuffers at ${SHMVB_DIR} , HTTP only")
+endif()
        
     set_target_properties(questteleop PROPERTIES 
                           DEBUG_POSTFIX "D"
