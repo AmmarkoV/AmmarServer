@@ -14,12 +14,15 @@
 char *errorIDs[] =
  {
     //Be careful not to forget a comma beacause the strings will get concatenated and no compilation error will occur
+    //( which is exactly what had happened after /* 5*/ and /*22*/ : C glued each of them onto the next entry ,
+    //  so the array was shorter than this list and every id from 6 upwards printed the message belonging to a
+    //  different one - e.g. an out-of-descriptors error reported itself as "Unable to serve request" )
     /* 0*/  "Failed to resolve GET Request",
     /* 1*/  "Instance not allocated",
     /* 2*/  "Request not allocated",
     /* 3*/  "Error binding master port, Server is already running?",
     /* 4*/  "UNIX does not allow binding a port below 1000 with a non root UID.. \n We tried to do it though.. \n Run with sudo or bind to a port higher than 1000",
-    /* 5*/  "Our CHANGE_TO_UID non-root value is also a super user UID , we are forced to set a bogus non-root value..\n"
+    /* 5*/  "Our CHANGE_TO_UID non-root value is also a super user UID , we are forced to set a bogus non-root value..\n",
     /* 6*/  "Failed to create thread",
     /* 7*/  "Failed to create socket",
     /* 8*/  "Failed to bind socket",
@@ -36,7 +39,7 @@ char *errorIDs[] =
     /*19*/  "Could not set socket timeout",
     /*20*/  "Could not set socket options",
     /*21*/  "Server is running as a root user, this is a security liability",
-    /*22*/  "Call made without enough input"
+    /*22*/  "Call made without enough input",
     /*23*/  "Could not allocate memory",
     /*24*/  "Not enough memory allocated",
     /*25*/  "ASV_ERROR_REALLOCATION_R_X86_64_PC32_GCC_ERROR",

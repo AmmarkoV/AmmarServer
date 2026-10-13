@@ -35,6 +35,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 #include <pthread.h>
 #include <sys/epoll.h>
 
@@ -218,6 +219,26 @@ static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener
         if ( (errno==EAGAIN) || (errno==EWOULDBLOCK) ) { break; } // normal drain, backlog is empty
         if ( errno==ECONNABORTED )                     { continue; }
         if ( errno==EINTR )                             { break; }
+
+        if ( (errno==EMFILE) || (errno==ENFILE) )
+         {
+           //Out of file descriptors : every one we have is already a connection being served. Accepting is
+           //hopeless until one of them closes, and the listening socket stays readable the entire time with
+           //that unacceptable connection sitting in its backlog - so the 1ms retry below would spin this
+           //loop, and one unbuffered stderr line per attempt, against the very connections we still have.
+           //Back off and shed load instead : a client that cannot be accepted times out, which is the only
+           //honest answer once there is no descriptor left to give it.
+           static time_t lastExhaustionReport = 0;
+           time_t rightNow = time(0);
+           if (rightNow != lastExhaustionReport)
+            {
+              lastExhaustionReport = rightNow; //at most one line a second , however long this lasts
+              errorID(ASV_ERROR_OUT_OF_RESOURCES_TO_ACCOMODATE_CLIENT);
+            }
+           usleep(50000);
+           break;
+         }
+
         errorID(ASV_ERROR_FAILED_TO_ACCEPT);
         usleep(1000);
         break;
