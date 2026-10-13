@@ -246,12 +246,17 @@ int receiveAndHandleHTTPHeaderSentByClient(struct AmmServer_Instance * instance,
         {
            //If we have a POST request
            //Expand header to also receive the files uploaded
-           fprintf(stderr,"Header Size  =  %u / %u \n",transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.headerRAWSize);
-
-           fprintf(stderr,CYAN "Redirecting POST Request \n" NORMAL);
            transaction->incomingHeader.POSTrequest=transaction->incomingHeader.headerRAW;
            transaction->incomingHeader.POSTrequestSize=transaction->incomingHeader.headerRAWSize;
+
+           //These used to be unconditional : three writes to an unbuffered stderr on every single POST , one of
+           //them dumping the entire request. That is a syscall ( and a lock ) per POST , on the serving thread ,
+           //and it echoed whatever a client posted straight into the server's log.
+           #if DEBUG_MESSAGES
+           fprintf(stderr,"Header Size  =  %u / %u \n",transaction->incomingHeader.headerRAWSize,transaction->incomingHeader.headerRAWSize);
+           fprintf(stderr,CYAN "Redirecting POST Request \n" NORMAL);
            fprintf(stderr,CYAN " POST Request %s \n" NORMAL , transaction->incomingHeader.headerRAW);
+           #endif // DEBUG_MESSAGES
 /*
            if (!TokenizePOSTFiles(instance,&transaction->incomingHeader,transaction->incomingHeader.headerRAW,transaction->incomingHeader.headerRAWSize))
            {
@@ -314,12 +319,15 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
       if ( ( transaction->incomingHeader.requestType==POST ) && (instance->settings.ENABLE_POST) && (MASTER_ENABLE_POST) )
        {
 
-         fprintf(stderr,GREEN "POST HEADER : %lu length \n %s \n" NORMAL,transaction->incomingHeader.ContentLength,transaction->incomingHeader.headerRAW);
          //TODO ADD Here a possibly rfc1867 , HTTP POST FILE compatible (multipart/form-data) recv handler..
          //TODO TODO TODO
 
+         //Same as above : two more unconditional stderr writes per POST , the second one dumping the whole body.
+         #if DEBUG_MESSAGES
+         fprintf(stderr,GREEN "POST HEADER : %lu length \n %s \n" NORMAL,transaction->incomingHeader.ContentLength,transaction->incomingHeader.headerRAW);
          fprintf(stderr,"Found a POST query %lu bytes long , %s \n",transaction->incomingHeader.POSTrequestSize, transaction->incomingHeader.POSTrequest);
          warningID(ASV_WARNING_PRETENDING_IT_IS_A_GET_REQUEST);
+         #endif // DEBUG_MESSAGES
          //Will now pretend that we are a GET request for the rest of the page to be served nicely
          transaction->incomingHeader.requestType=GET;
        }

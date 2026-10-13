@@ -252,13 +252,19 @@ struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
   }
 }
 
-struct AmmServer_Instance * AmmServer_Start( const char * name ,
-                                             const char * ip,
-                                             unsigned int port,
-                                             const char * conf_file,
-                                             const char * web_root_path,
-                                             const char * templates_root_path
-                                            )
+//The body of AmmServer_Start , plus the two things an API-mode instance has to have set *before* the server
+//thread exists : the accept loop consults instance->apiHandler on every accept , so a handler installed only
+//after AmmServer_Start had returned would leave a window where the first connections to arrive got dispatched
+//into the file-serving pipeline instead. AmmServer_Start passes 0 for both and behaves exactly as it always has.
+static struct AmmServer_Instance * StartInstance( const char * name ,
+                                                  const char * ip,
+                                                  unsigned int port,
+                                                  const char * conf_file,
+                                                  const char * web_root_path,
+                                                  const char * templates_root_path,
+                                                  void * apiHandler,
+                                                  unsigned int apiMaxResponseSize
+                                                )
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
 
@@ -278,6 +284,8 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
   instance->sslserversock          = -1;
   instance->accept_epoll_fd        = -1;
   instance->settings.HTTPS_PORT    = 443;
+  instance->apiHandler             = apiHandler;
+  instance->apiMaxResponseSize     = apiMaxResponseSize;
 
   #if USE_OPENSSL
   signal(SIGPIPE, SIG_IGN); /* SSL_write can trigger SIGPIPE on broken connections */
@@ -341,6 +349,32 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
       }
 
   return 0;
+}
+
+struct AmmServer_Instance * AmmServer_Start( const char * name ,
+                                             const char * ip,
+                                             unsigned int port,
+                                             const char * conf_file,
+                                             const char * web_root_path,
+                                             const char * templates_root_path
+                                            )
+{
+  return StartInstance(name,ip,port,conf_file,web_root_path,templates_root_path,0,0);
+}
+
+struct AmmServer_Instance * AmmServer_StartAPI( const char * name ,
+                                                const char * ip,
+                                                unsigned int port,
+                                                const char * conf_file,
+                                                void * callback,
+                                                unsigned int maxResponseSize
+                                               )
+{
+  if (callback==0) { AmmServer_Error("AmmServer_StartAPI called without a callback , there would be nothing to serve"); return 0; }
+
+  //API mode serves no files , so the web root and the template root are never consulted ; the current
+  //directory keeps the cache's own path handling happy without implying a public_html/ that need not exist.
+  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize);
 }
 
 struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
@@ -444,6 +478,18 @@ int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmS
   RequestOverrideContext->request_override_callback = callback;
 
   AmmServer_Warning("AmmServer_AddRequestHandler could potentially be buggy\n");
+
+  return 1;
+}
+
+//Puts the instance in API mode , where one epoll event loop owns every connection and this callback is the
+//whole server. See AmmServer_SetAPIHandler's documentation ( AmmServerlib.h ) and epollAPIServer.h .
+int AmmServer_SetAPIHandler(struct AmmServer_Instance * instance,void * callback,unsigned int maxResponseSize)
+{
+  if ( (instance==0) || (callback==0) ) { return 0; }
+
+  instance->apiHandler = callback;
+  instance->apiMaxResponseSize = maxResponseSize;
 
   return 1;
 }

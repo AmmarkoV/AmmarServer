@@ -68,6 +68,8 @@ set(AMMARSERVER_INGREDIENTS
                 threads/threadedServer.h
                 threads/epollFastPathServer.c
                 threads/epollFastPathServer.h
+                threads/epollAPIServer.c
+                threads/epollAPIServer.h
                 threads/libeventServer.c
                 threads/libeventServer.h
                 threads/serverAbstraction.c

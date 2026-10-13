@@ -493,7 +493,10 @@ unsigned long SendFile
   unsigned char allowOtherOrigins=0;
   unsigned char free_cached_buffer_after_use=0;
   unsigned char serveAsRegularFile=0;
-  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins,transaction->pendingResponseHeaders,sizeof(transaction->pendingResponseHeaders));
+  //A dynamic-content callback can ask for a status code other than 200 by setting rqst->headerResponse ; this
+  //is where whatever it asked for comes back ( 0 = it didn't ask , serve the ordinary 200 ).
+  unsigned int dynamicResponseCode=0;
+  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins,transaction->pendingResponseHeaders,sizeof(transaction->pendingResponseHeaders),&dynamicResponseCode);
 
 
   //We are done with our resource so we no longer need the extra data that needs to be deallocated..
@@ -568,7 +571,7 @@ unsigned long SendFile
 
    if ( WeWantA200OK )
    {
-       if (! SendSuccessCodeHeader(instance,transaction,200,verified_filename))
+       if (! SendSuccessCodeHeader(instance,transaction,(dynamicResponseCode!=0) ? dynamicResponseCode : 200,verified_filename))
          {
           fprintf(stderr,"Failed sending success code \n");
           freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);

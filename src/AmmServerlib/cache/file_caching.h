@@ -228,7 +228,8 @@ char * cache_GetResource(
                           unsigned char * serveAsRegularFile,
                           unsigned char * allowOtherOrigins,
                           char * pendingResponseHeadersOut,
-                          unsigned int pendingResponseHeadersOutSize
+                          unsigned int pendingResponseHeadersOutSize,
+                          unsigned int * responseCodeOut
                         );
 
 

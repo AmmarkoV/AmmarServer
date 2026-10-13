@@ -63,6 +63,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../cache/dynamic_requests.h"
 
 #include "epollFastPathServer.h"
+#include "epollAPIServer.h"
 
 int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
@@ -172,6 +173,13 @@ static void * EpollAcceptLayerThread(void * ptr)
            continue;
          }
 
+        if (kind==EPOLL_EVENT_KIND_API_CONNECTION)
+         { //API mode ( AmmServer_SetAPIHandler ) : this connection lives in this epoll set from accept to
+           //close and is answered from right here , never by a worker thread. See epollAPIServer.h .
+           EpollAPI_HandleEvent(instance,events[i].data.ptr,(unsigned int) events[i].events);
+           continue;
+         }
+
         struct PendingAccept * pending = (struct PendingAccept *) events[i].data.ptr;
         epoll_ctl(instance->accept_epoll_fd,EPOLL_CTL_DEL,pending->clientsock,0); // ownership moves on from here
 
@@ -214,6 +222,15 @@ static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener
         usleep(1000);
         break;
       }
+
+      //API mode keeps every connection in the epoll layer for its whole life instead of only until its first
+      //byte arrives , so it is adopted here and never reaches a worker thread at all.
+      if ( (instance->apiHandler!=0) && (instance->accept_epoll_fd>=0) && (!is_ssl_connection) )
+       {
+         if (EpollAPI_AdoptConnection(instance,clientsock)) { continue; }
+         close(clientsock); //nothing else can serve it in API mode
+         continue;
+       }
 
       //Successfully accepting..! Hand it to the epoll accept layer if it's running , so it doesn't cost a worker
       //thread until it actually has a byte to read ; falls back to dispatching directly if that's unavailable.

@@ -172,7 +172,8 @@ char * dynamicRequest_serveContent
             unsigned char * contentContainsPathToFileToBeStreamed,
             unsigned char * allowOtherOrigins,
             char * pendingResponseHeadersOut,
-            unsigned int pendingResponseHeadersOutSize
+            unsigned int pendingResponseHeadersOutSize,
+            unsigned int * responseCodeOut
           )
 {
   #if DISABLE_DYNAMIC_REQUESTS
@@ -399,6 +400,15 @@ char * dynamicRequest_serveContent
                      if (pendingResponseHeadersOut!=0)
                       {
                         snprintf(pendingResponseHeadersOut,pendingResponseHeadersOutSize,"%s",rqst->pendingResponseHeaders);
+                      }
+
+                     //The status code the callback asked for , if it asked for one. AmmServer_DynamicRequest
+                     //has carried a headerResponse field for years but nothing ever read it , so a callback
+                     //that set it ( e.g. MyTube asking for a 404 on an unknown video ) still got a 200 - this
+                     //is where it finally reaches the response , via cache_GetResource's caller.
+                     if ( (responseCodeOut!=0) && (rqst->headerResponse!=0) )
+                      {
+                        *responseCodeOut = rqst->headerResponse;
                       }
 
                      safeFree(rqst,sizeof(struct AmmServer_DynamicRequest));

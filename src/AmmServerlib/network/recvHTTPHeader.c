@@ -96,7 +96,10 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
 
       if (!keepAnalyzingHTTPHeader(instance,transaction))
       {
+        //Was unconditional : one more write to an unbuffered stderr on the serving thread , per request.
+        #if DEBUG_MESSAGES
         fprintf(stderr,"We are done receiving and analyzing this HTTPHeader\n");
+        #endif // DEBUG_MESSAGES
         successulHTTPTransaction=1;
         doneReceiving=1;
         break;

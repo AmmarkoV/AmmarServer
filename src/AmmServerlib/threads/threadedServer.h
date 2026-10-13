@@ -18,7 +18,8 @@ extern "C" {
 enum EpollEventKind
 {
    EPOLL_EVENT_KIND_PENDING_ACCEPT = 1 ,
-   EPOLL_EVENT_KIND_FASTPATH_WRITE = 2
+   EPOLL_EVENT_KIND_FASTPATH_WRITE = 2 ,
+   EPOLL_EVENT_KIND_API_CONNECTION = 3    //allocated by epollAPIServer.c , for the whole life of a connection
 };
 
 /**

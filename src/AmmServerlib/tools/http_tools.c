@@ -301,6 +301,43 @@ void convertToUpperCase(char *sPtr)
    }
 }
 
+const char * GetHTTPReasonPhrase(unsigned int statusCode)
+{
+  switch (statusCode)
+   {
+     case 200 : return "OK";
+     case 201 : return "Created";
+     case 202 : return "Accepted";
+     case 204 : return "No Content";
+     case 206 : return "Partial Content";
+     case 301 : return "Moved Permanently";
+     case 302 : return "Found";
+     case 304 : return "Not Modified";
+     case 400 : return "Bad Request";
+     case 401 : return "Unauthorized";
+     case 403 : return "Forbidden";
+     case 404 : return "Not Found";
+     case 405 : return "Method Not Allowed";
+     case 408 : return "Request Timeout";
+     case 409 : return "Conflict";
+     case 413 : return "Content Too Large";
+     case 415 : return "Unsupported Media Type";
+     case 422 : return "Unprocessable Content";
+     case 429 : return "Too Many Requests";
+     case 500 : return "Internal Server Error";
+     case 501 : return "Not Implemented";
+     case 503 : return "Service Unavailable";
+   };
+
+  //An unrecognized code still deserves a syntactically valid status line , and RFC 9110 says a client has to
+  //treat an unknown code as the generic x00 of its class anyway.
+  if (statusCode<200) { return "Informational"; }
+  if (statusCode<300) { return "OK";            }
+  if (statusCode<400) { return "Redirection";   }
+  if (statusCode<500) { return "Bad Request";   }
+  return "Internal Server Error";
+}
+
 int GetContentType(const char * filename,char * contentType,unsigned int contentTypeLength)
 {
    //fprintf(stderr,"GetContentType ( %s , %s , %u )\n",filename,contentType,contentTypeLength);

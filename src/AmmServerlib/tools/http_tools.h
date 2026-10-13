@@ -80,6 +80,15 @@ int GetExtentionType(const char * theextension);
 int GetContentType(const char * filename,char * contentType,unsigned int contentTypeLength);
 
 /**
+* @brief The HTTP reason phrase that belongs with a status code , e.g. 201 -> "Created" , 404 -> "Not Found".
+*        Every response the server emits gets its status line from here , so a 201 doesn't go out labelled
+*        "201 OK" the way it used to.
+* @ingroup tools
+* @param HTTP status code
+* @retval A static string , never 0 ( an unrecognized code comes back with its class's generic phrase ) */
+const char * GetHTTPReasonPhrase(unsigned int statusCode);
+
+/**
 * @brief Return template image for specific content type ( for directory listings etc )
 * @ingroup tools
 * @param Filename of file

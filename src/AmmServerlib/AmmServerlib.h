@@ -472,6 +472,12 @@ struct AmmServer_Instance
     //byte ready to read , only then do they get handed to a prespawned/fresh worker thread like today
     int accept_epoll_fd;      /* -1 if not running */
     pthread_t accept_epoll_thread_id;
+
+    //API mode ( AmmServer_SetAPIHandler ) : when apiHandler is non-zero the accept epoll layer above keeps
+    //every connection for its whole life and answers it from this one callback , instead of handing it to a
+    //worker thread and running the file-serving pipeline. 0 = ordinary file/dynamic-content server.
+    void * apiHandler;
+    unsigned int apiMaxResponseSize;
 };
 
 /** @brief Structure to keep data for an HTTP Transaction */
@@ -683,6 +689,89 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
 * @retval 1=Success,0=Fail
 */
 int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,const char * request_type,void * callback);
+
+/**
+* @brief One HTTP request handed to an API handler ( see AmmServer_SetAPIHandler ). Every pointer in here points
+*        inside the event loop's own receive buffer and is only valid until the callback returns.
+*/
+struct AmmServer_APIRequest
+{
+   int method;                   /**< @brief One of enum TypesOfRequests ( GET , HEAD , POST , ... ) */
+   const char * path;            /**< @brief Request target with any query string stripped , NUL terminated , percent escapes left as-is */
+   unsigned int pathLength;
+   const char * query;           /**< @brief Everything after the first '?' , NUL terminated , or 0 if the request had none */
+   unsigned int queryLength;
+   const char * headers;         /**< @brief The raw header block after the request line , NUL terminated ( use AmmServer_APIRequestHeader to read one ) */
+   unsigned int headersLength;
+   const char * body;            /**< @brief Request body , NOT NUL terminated , or 0 if the request had none */
+   unsigned int bodyLength;
+};
+
+/**
+* @brief The response an API handler fills in. body points at a buffer the server owns ( maxBodyLength bytes ,
+*        fixed at AmmServer_SetAPIHandler time ) ; write into it and set bodyLength.
+*/
+struct AmmServer_APIResponse
+{
+   unsigned int statusCode;      /**< @brief 200 , 201 , 400 , 404 , 503 , ... - emitted with its proper HTTP reason phrase */
+   const char * contentType;     /**< @brief Value for the Content-Type header , e.g. "application/json" ; 0 means text/plain */
+   char * body;
+   unsigned int bodyLength;
+   unsigned int maxBodyLength;
+};
+
+/**
+* @brief Put this instance in API mode and bind the C function that answers every request.
+*
+*        API mode replaces the thread-per-connection pipeline with one non-blocking epoll event loop that owns
+*        every connection for its entire life : an idle keep-alive connection costs an fd and a small struct
+*        instead of a whole worker thread , so a single process can hold tens of thousands of them. File
+*        serving , the file cache , dynamic resource handlers , the client list and access logging are all
+*        bypassed - the callback is the entire server. This is the mode to use for a JSON/REST API , where
+*        every response carries its own status code and content type ; use AmmServer_AddResourceHandler
+*        instead if you want dynamic pages mixed in with served files.
+*
+*        The callback runs on the event loop thread , so it must not block : one slow callback delays every
+*        other connection. It is also only ever called from that one thread , so it needs no locking of its
+*        own state.
+*
+* @ingroup core
+* @param An AmmarServer Instance , before AmmServer_Start has been called on it
+* @param Pointer to a void callback(struct AmmServer_APIRequest *,struct AmmServer_APIResponse *)
+* @param Size in bytes of the response body buffer handed to the callback ( 0 for a sane default )
+* @retval 1=Success,0=Fail
+*/
+int AmmServer_SetAPIHandler(struct AmmServer_Instance * instance,void * callback,unsigned int maxResponseSize);
+
+/**
+* @brief Start an instance that is in API mode from the outset : the same as AmmServer_Start followed by
+*        AmmServer_SetAPIHandler , except that the handler is in place before the server thread exists , so
+*        there is no window in which an early connection is dispatched into the file-serving pipeline. This
+*        is the call to use for an API ; AmmServer_SetAPIHandler is there for switching an already running
+*        instance over.
+*        No files are served in API mode , so there is no web root or template root to pass.
+* @ingroup core
+* @param Name of this instance ( used for its log filenames )
+* @param String with the binding IP , e.g. "0.0.0.0"
+* @param Port to bind , ports under 1000 need privileges or CAP_NET_BIND_SERVICE
+* @param Configuration file to read , or 0 for the usual automatic lookup
+* @param Pointer to a void callback(struct AmmServer_APIRequest *,struct AmmServer_APIResponse *)
+* @param Size in bytes of the response body buffer handed to the callback ( 0 for a sane default )
+* @retval A running instance , or 0 on failure
+*/
+struct AmmServer_Instance * AmmServer_StartAPI(const char * name ,const char * ip,unsigned int port,const char * conf_file,void * callback,unsigned int maxResponseSize);
+
+/**
+* @brief Find one header in an API request , e.g. AmmServer_APIRequestHeader(rqst,"Authorization",&length).
+*        Case insensitive on the header name. The value returned points inside the request and is not NUL
+*        terminated , so always use the length that comes back with it.
+* @ingroup core
+* @param An AmmarServer API request
+* @param Header name , without the ':'
+* @param Output : length of the value found
+* @retval Pointer to the header value with leading whitespace skipped , or 0 if the request didn't carry it
+*/
+const char * AmmServer_APIRequestHeader(const struct AmmServer_APIRequest * rqst,const char * headerName,unsigned int * valueLength);
 
 
 /**

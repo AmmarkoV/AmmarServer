@@ -74,7 +74,9 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
       GetContentType(verified_filename,content_type,MAX_CONTENT_TYPE);
 
       char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0}; //Accept-Ranges: bytes\n
-      snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 %u OK\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\nAccept-Ranges: bytes\n",success_code,FULLVERSION_STRING,content_type);
+      //GetHTTPReasonPhrase , not a hardcoded "OK" : a dynamic-content callback can ask for any status code here
+      //( rqst->headerResponse ) , and "HTTP/1.1 404 OK" is not a status line.
+      snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 %u %s\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\nAccept-Ranges: bytes\n",success_code,GetHTTPReasonPhrase((unsigned int) success_code),FULLVERSION_STRING,content_type);
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);

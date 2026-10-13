@@ -192,9 +192,10 @@ static enum FastPathOneRequestResult TryServeOneRequest(struct AmmServer_Instanc
   unsigned char allowOtherOrigins=0;
   char * cached_buffer = cache_GetResource(instance,&dummyRequest,index,verified_filename,sizeof(verified_filename),
                                             &index,&cached_lSize,0,&compressionSupported,&freeContentAfterUsingIt,
-                                            &serveAsRegularFile,&allowOtherOrigins,0,0); //Fast path never serves dynamic
-                                            //content ( see top-of-file design comment ) so it can never have a pending
-                                            //Set-Cookie header to emit - no output buffer needed here.
+                                            &serveAsRegularFile,&allowOtherOrigins,0,0,0); //Fast path never serves
+                                            //dynamic content ( see top-of-file design comment ) so it can never have a
+                                            //pending Set-Cookie header to emit , nor a callback-chosen status code -
+                                            //no output for either is needed here.
 
   if ( (cached_buffer==0) || (cached_lSize==0) || (cached_lSize>FASTPATH_MAX_BODY_SIZE) || (compressionSupported) )
    { //Defensive only - the pre-consume check above should already guarantee this doesn't happen

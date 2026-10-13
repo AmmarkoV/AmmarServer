@@ -67,7 +67,8 @@ char * dynamicRequest_serveContent
             unsigned char * contentContainsPathToFileToBeStreamed,
             unsigned char * allowOtherOrigins,
             char * pendingResponseHeadersOut,
-            unsigned int pendingResponseHeadersOutSize
+            unsigned int pendingResponseHeadersOutSize,
+            unsigned int * responseCodeOut
           );
 
 #endif // DYNAMIC_REQUESTS_H_INCLUDED
