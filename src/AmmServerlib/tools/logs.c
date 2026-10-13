@@ -182,7 +182,13 @@ int compressLog(const char * filename,unsigned int accessTimes)
 static void GetShardedLogFilename(const char * baseFilename,unsigned int shardIndex,char * out,unsigned int outSize)
 {
     if (LOG_SHARD_COUNT<=1) { snprintf(out,outSize,"%s",baseFilename); }
-    else                    { snprintf(out,outSize,"%s.%u",baseFilename,shardIndex); }
+    else
+    {
+      //The %.*s precision keeps room for the ".%u" suffix , so a very long baseFilename gets its
+      //tail cut instead of silently losing the shard number and collapsing every shard onto one file
+      //( it also lets the compiler prove no truncation happens here , which -Wformat-truncation wants )
+      snprintf(out,outSize,"%.*s.%u",(int) (outSize-12),baseFilename,shardIndex);
+    }
 }
 
 //Which shard this calling thread's log line goes to - deliberately gettid() ( a small, sequentially-assigned
