@@ -9,7 +9,7 @@ int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHa
                 AmmServer_Warning("Replacing Variables for (%s) ..!\n",myTube->video[videoID].filename );
                 AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,3,"++++++++++++++++++++++++++++++++++++++++++++++++++++++TITLE++++++++++++++++++++++++++++++++++++++++++++++++++++++",myTube->video[videoID].title);
 
-                char data[513];
+                char data[1025];
 
 
                 snprintf(data,512,"%u",stillDownloading);
@@ -82,7 +82,7 @@ int renderVideoPage(struct videoCollection *  myTube , struct AmmServer_MemoryHa
                            {
                             randVideoID=rand()%myTube->numberOfLoadedVideos;
                            }
-                  snprintf(data,512,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td class=\"dsc\"><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%lu views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
+                  snprintf(data,1024,"<table><tr><td><a href=\"/watch?v=%u\"><img src=\"dthumb.jpg?v=%u\" width=100></a></td><td class=\"dsc\"><a href=\"/watch?v=%u\"><b>%s</b></a><br>by MyTube<br>%lu views</td></tr></table>",randVideoID,randVideoID,randVideoID,myTube->video[randVideoID].title,myTube->video[randVideoID].views );
                   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,tag, data );
                 }
 

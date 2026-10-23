@@ -61,7 +61,7 @@ int renderVideoList(struct videoCollection *  db ,
          </head>\
          <body>",query);
   dataSize=strlen(data);
-  if (dataSize>remainingSize) { outOfMemory = 1; } else { strncat(rqst->content,data,dataSize); remainingSize-=dataSize; }
+  if (dataSize>remainingSize) { outOfMemory = 1; } else { strcat(rqst->content,data); remainingSize-=dataSize; }
 
 
 
@@ -70,7 +70,7 @@ int renderVideoList(struct videoCollection *  db ,
 
 
   snprintf(data,DATASIZE,"<table>"); dataSize=strlen(data);
-  if (dataSize>remainingSize) { outOfMemory = 1; } else { strncat(rqst->content,data,dataSize); remainingSize-=dataSize; }
+  if (dataSize>remainingSize) { outOfMemory = 1; } else { strcat(rqst->content,data); remainingSize-=dataSize; }
 
 
   for (i=0; i<db->numberOfLoadedVideos; i++)
@@ -90,7 +90,7 @@ int renderVideoList(struct videoCollection *  db ,
                      <a href=\"watch?v=%u\"  >%s</a>\
                     </td>\
                     </tr> ",i,i,i,db->video[i].title); dataSize=strlen(data);
-         if (dataSize>remainingSize) { outOfMemory = 1; } else { strncat(rqst->content,data,dataSize);  remainingSize-=dataSize; }
+         if (dataSize>remainingSize) { outOfMemory = 1; } else { strcat(rqst->content,data);  remainingSize-=dataSize; }
 
           ++foundVideos;
           *doImmediateVideoID=i;
@@ -109,7 +109,7 @@ int renderVideoList(struct videoCollection *  db ,
   AmmServer_Warning("Found %u results",foundVideos);
 
   snprintf(data,DATASIZE,"</table></body></html>"); dataSize=strlen(data);
-  if (dataSize>remainingSize) { outOfMemory = 1; } else { strncat(rqst->content,data,dataSize);  remainingSize-=dataSize;}
+  if (dataSize>remainingSize) { outOfMemory = 1; } else { strcat(rqst->content,data);  remainingSize-=dataSize;}
 
   if (doPickFromList)
     {

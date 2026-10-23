@@ -103,7 +103,7 @@ void * viewAccountDevicesCallback(struct AmmServer_DynamicRequest  * rqst)
     char placeHolder[32];
     char color[32];
     char dateString[512];
-    char deviceSummary[512];
+    char deviceSummary[1024];
 
     unsigned int i=0;
     for (i=0; i<devices.numberOfDevices; i++)
@@ -124,7 +124,7 @@ void * viewAccountDevicesCallback(struct AmmServer_DynamicRequest  * rqst)
 
       snprintf(
              deviceSummary,
-             512,
+             1024,
              "<tr bgcolor=\"%s\">\
                 <td>%s</td>\
                 <td>%s</td>\

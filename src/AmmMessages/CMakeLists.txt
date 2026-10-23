@@ -1,5 +1,5 @@
 project( AmmMessages ) 
-cmake_minimum_required( VERSION 2.8.7 )
+cmake_minimum_required( VERSION 3.10 )
 
 set(CMAKE_CXX_FLAGS "-fPIC -march=native -mtune=native -O3 -fexpensive-optimizations -s -D_FORTIFY_SOURCE=2") 
 # Extend cmake's module path

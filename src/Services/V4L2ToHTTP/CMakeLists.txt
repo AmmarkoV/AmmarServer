@@ -1,5 +1,5 @@
 project( v4l2tohttp ) 
-cmake_minimum_required( VERSION 2.8.7 ) 
+cmake_minimum_required( VERSION 3.10 ) 
 
 add_subdirectory (v4l2_acquisition_shared_library/) 
 

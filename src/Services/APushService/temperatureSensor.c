@@ -32,7 +32,7 @@ int logTemperature(
    return 1;
  }
 
- fprintf(stderr,"Failed to log temperature/humidity %0.2f/%0.2f to %s!!!!\n",filename);
+ fprintf(stderr,"Failed to log temperature/humidity %0.2f/%0.2f to %s!!!!\n",temperature,humidity,filename);
  return 0;
 }
 
@@ -75,8 +75,8 @@ int temperatureSensorTestCallback(
   if ( getTemperatureAndHumidityFromRequest(rqst,&temperature,&humidity) )
    {
 
-     char logFile[64];
-     snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
+     char logFile[128];
+     snprintf(logFile,128,"log/APushService/temperature_%s.log",device->deviceID);
 
      fprintf(stderr,"Test Button Temperature: %0.2f , Humidity: %0.2f\n",temperature,humidity);
      logTemperature(
@@ -139,8 +139,8 @@ int temperatureSensorAlarmCallback(struct deviceObject *device, struct AmmServer
 
      updateDeviceHeartbeat(device,1,temperature,humidity);
 
-     char logFile[64];
-     snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
+     char logFile[128];
+     snprintf(logFile,128,"log/APushService/temperature_%s.log",device->deviceID);
 
      if (!logTemperature(
                            logFile,
@@ -212,8 +212,8 @@ int temperatureSensorHeartBeatCallback(struct deviceObject *device,struct AmmSer
 
      updateDeviceHeartbeat(device,0,temperature,humidity);
 
-     char logFile[64];
-     snprintf(logFile,64,"log/APushService/temperature_%s.log",device->deviceID);
+     char logFile[128];
+     snprintf(logFile,128,"log/APushService/temperature_%s.log",device->deviceID);
 
         if (
             logTemperature(

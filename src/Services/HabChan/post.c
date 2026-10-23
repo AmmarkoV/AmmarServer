@@ -124,7 +124,7 @@ int savePostContent(const char * postFilename , struct post * ourPost)
 int loadPosts(struct board * ourBoard , struct thread * ourThread)
 {
   int i=0;
-  char postHeaderFilename[MAX_FILE_PATH]={0};
+  char postHeaderFilename[MAX_FILE_PATH*2]={0};
 
   ourThread->maxNumberOfReplies = MAX_POSTS_PER_THREAD;
   ourThread->numberOfReplies = 0;

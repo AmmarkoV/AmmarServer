@@ -120,7 +120,7 @@ void * prepare_chatbox_content_callback(struct AmmServer_DynamicRequest  * rqst)
 
 
   char chatlog_path[MAX_FILE_PATH]={0};
-  snprintf(chatlog_path,MAX_FILE_PATH,"%schat.html",webserver_root);
+  if (snprintf(chatlog_path,MAX_FILE_PATH,"%schat.html",webserver_root)>=MAX_FILE_PATH) { return 0; }
   //strcpy(chatlog_path,webserver_root);
   //strcat(chatlog_path,"chat.html");
 

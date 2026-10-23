@@ -1,5 +1,5 @@
 project( AmmCaptcha ) 
-cmake_minimum_required( VERSION 2.8.7 )
+cmake_minimum_required( VERSION 3.10 )
 
 #this is a "heavy task" it needs optimizations 
 set(CMAKE_C_FLAGS "-fPIC -O3 -fexpensive-optimizations -s") 

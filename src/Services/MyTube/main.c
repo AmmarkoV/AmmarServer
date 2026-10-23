@@ -188,18 +188,18 @@ int isVideoYTB(struct AmmServer_DynamicRequest  * rqst,const char * videoID)
       char videoFilenameFull[1024];
 
 
-      snprintf(addVideoToOurList,1024,"youtube-dl -e -w -o \"%s/%%(title)s.%%(ext)s\" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \"https://www.youtube.com/watch?v=%s\" ",video_root,videoID);
+      if (snprintf(addVideoToOurList,1024,"youtube-dl -e -w -o \"%s/%%(title)s.%%(ext)s\" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \"https://www.youtube.com/watch?v=%s\" ",video_root,videoID)>=1024) { return 0; }
 
       AmmServer_ExecuteCommandLine(addVideoToOurList,videoTitle ,1024);
       filterVideoTitleToSafeText(videoTitle); //see the comment on this function - the raw title is untrusted
       fprintf(stderr,"Video title is ( %s ) .. \n",videoTitle);
-      snprintf(videoFilename,1024,"%s.mp4",videoTitle);
+      if (snprintf(videoFilename,1024,"%s.mp4",videoTitle)>=1024) { return 0; }
       fprintf(stderr,"Video filename is ( %s ) .. \n",videoFilename);
-      snprintf(videoFilenameFull,1024,"%s/%s",video_root,videoFilename);
+      if (snprintf(videoFilenameFull,1024,"%s/%s",video_root,videoFilename)>=1024) { return 0; }
       fprintf(stderr,"Video filename full is ( %s ) .. \n",videoFilenameFull);
 
 
-      snprintf(addVideoToOurList,1024,"youtube-dl -w -o \"%s/%%(title)s.%%(ext)s\" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \"https://www.youtube.com/watch?v=%s\" &",video_root,videoID);
+      if (snprintf(addVideoToOurList,1024,"youtube-dl -w -o \"%s/%%(title)s.%%(ext)s\" -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best' \"https://www.youtube.com/watch?v=%s\" &",video_root,videoID)>=1024) { return 0; }
       fprintf(stderr,"Including it to our videos ( %s ) .. \n",addVideoToOurList);
 
       int newVideoID= addSingleVideoFile(myTube,videoTitle,videoFilename,videoFilenameFull);
@@ -567,7 +567,7 @@ void init_dynamic_content()
    if ( AmmServer_DirectoryExists(video_root) )
      {
       fprintf(stderr,"Trying to load from %s \n ",video_root);
-      snprintf(database_root,MAX_FILE_PATH,"%s/db/",video_root);
+      if (snprintf(database_root,MAX_FILE_PATH,"%s/db/",video_root)>=MAX_FILE_PATH) { continue; }
       myTube = indexerLoadVideoDatabaseFromIndexFile(MASTER_INDEX_FILE,video_root,database_root); //loadVideoDatabase(video_root,database_root);
       break;
      }

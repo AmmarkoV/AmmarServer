@@ -81,7 +81,7 @@ int loadVideoStats(struct videoCollection* vc ,  const char * databasePath , uns
 int saveVideoStats(struct videoCollection* vc ,  const char * databasePath , unsigned int videoID)
 {
  char statsFilePath[513]={0};
- snprintf(statsFilePath,512,"%s/%s_stats",databasePath,vc->video[videoID].filename);
+ if (snprintf(statsFilePath,512,"%s/%s_stats",databasePath,vc->video[videoID].filename)>=512) { return 0; }
 
  FILE *fp = fopen(statsFilePath,"w");
  if( fp )

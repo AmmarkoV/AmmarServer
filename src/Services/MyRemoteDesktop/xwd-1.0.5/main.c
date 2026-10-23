@@ -303,7 +303,7 @@ Window_Dump(Window window, FILE *out , unsigned char * data , unsigned int * dat
 
   if ( image->bits_per_pixel/8!=sizeof(int) )
   {
-      fprintf(stderr,"BitsPerPixel != sizeof(int)    -  %u != %u \n",image->bits_per_pixel,sizeof(int));
+      fprintf(stderr,"BitsPerPixel != sizeof(int)    -  %u != %zu \n",image->bits_per_pixel,sizeof(int));
   }
 
   unsigned char * targetPtr = data;

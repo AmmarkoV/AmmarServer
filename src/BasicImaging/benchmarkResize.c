@@ -306,7 +306,7 @@ int main(int argc,char ** argv)
   //fast-path copy, ~90 of them per iteration. Fine when debugging, pure noise for a benchmark -
   //silence stderr and make the report on stdout the whole output. Profile mode keeps stderr so
   //valgrind's own messages stay visible.
-  if (!profileMode) { (void) freopen("/dev/null","w",stderr); }
+  if ( (!profileMode) && (freopen("/dev/null","w",stderr)==0) ) { fprintf(stdout,"Could not silence stderr\n"); }
 
   struct Image * images[MAX_IMAGES] = {0};
   unsigned int loaded=0;

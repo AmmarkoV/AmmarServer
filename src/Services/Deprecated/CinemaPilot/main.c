@@ -157,8 +157,8 @@ int intermission(unsigned int seconds)
 {
  int i=system("xdotool mousemove --sync 1920 1080 click 0");
 
-  char command[512]={0};
-  snprintf(command,512,"%s start.jpg&",fullScreenViewerPath);
+  char command[4096]={0};
+  snprintf(command,4096,"%s start.jpg&",fullScreenViewerPath);
 
    i=system(command);
  //
@@ -171,16 +171,16 @@ int startMplayer( char * movie,char * subtitles,unsigned int startAt,unsigned in
 {
   AmmServer_Success("startMplayer ( %s , %s , %u , %u  ) \n",movie,subtitles,startAt,duration);
 
-  char command[512]={0};
-  snprintf(command,512,"mkfifo %s",mplayerControllerPath);
+  char command[4096]={0};
+  snprintf(command,4096,"mkfifo %s",mplayerControllerPath);
   int i=system(command);
 
-  snprintf(command,512,"killall mplayer");
+  snprintf(command,4096,"killall mplayer");
   i=system(command);
 
   //mplayer -ss 46 -endpos 17 -utf8 -fs -slang gr,en -sub Mad.Max.1979.1080p.BluRay.x264.anoXmous.srt -v Mad.Max.1979.1080p.BluRay.x264.anoXmous_.mp4
 
-  snprintf(command,512,"mplayer -slave -input file=\"%s\" -utf8 -fs -slang gr,en -v \"%s\" -sub %s",mplayerControllerPath,movie,subtitles);
+  snprintf(command,4096,"mplayer -slave -input file=\"%s\" -utf8 -fs -slang gr,en -v \"%s\" -sub %s",mplayerControllerPath,movie,subtitles);
   i=system(command);
 
   if (i==0) {  AmmServer_Success("Success Executing( %s ) \n",command); } else

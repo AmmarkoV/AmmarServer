@@ -74,7 +74,8 @@ unsigned int ServerThreads_DropRootUID()
       }
 
    char command_to_get_uid[MAX_FILE_PATH]={0};
-   snprintf(command_to_get_uid,MAX_FILE_PATH,"id -u %s",USERNAME_UID_FOR_DAEMON);
+   if (snprintf(command_to_get_uid,MAX_FILE_PATH,"id -u %s",USERNAME_UID_FOR_DAEMON)>=MAX_FILE_PATH)
+      { fprintf(stderr,"USERNAME_UID_FOR_DAEMON is too long ( trying to drop root UID ) \n"); return 0; }
 
 
    FILE * fp  = popen(command_to_get_uid, "r");
@@ -711,7 +712,7 @@ int PathResolvesWithinDirectory(const char * trustedRoot,const char * candidateP
      if (realpath(candidateDir,resolvedCandidateDir)==0)
       { AmmServer_Error("PathResolvesWithinDirectory : could not resolve \"%s\"",candidateDir); return 0; }
 
-     snprintf(resolvedCandidate,PATH_MAX,"%s/%s",resolvedCandidateDir,baseName);
+     if (snprintf(resolvedCandidate,PATH_MAX,"%s/%s",resolvedCandidateDir,baseName)>=PATH_MAX) { return 0; }
    }
 
   //The resolved candidate must equal resolvedRoot itself, or start with resolvedRoot followed by a real '/'

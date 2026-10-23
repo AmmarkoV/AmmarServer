@@ -115,7 +115,7 @@ static void scanProjectFilesRecursive(struct project * p , const char * baseDir 
     snprintf(fullPath,sizeof(fullPath),"%s/%s",baseDir,ep->d_name);
 
     char relPath[MAX_STRING_SIZE]={0};
-    if (strlen(relativePrefix)>0) { snprintf(relPath,sizeof(relPath),"%s/%s",relativePrefix,ep->d_name); }
+    if (strlen(relativePrefix)>0) { if (snprintf(relPath,sizeof(relPath),"%s/%s",relativePrefix,ep->d_name)>=(int) sizeof(relPath)) { continue; } }
     else                          { snprintf(relPath,sizeof(relPath),"%s",ep->d_name); }
 
     struct stat st={0};

@@ -66,8 +66,8 @@ unsigned long getUploadsSizeLive()
     char command[2049]={0};
     char sizeOfUploadsString[257]={0};
 
-    snprintf(command,2048,"du -sb %s%s | cut -f1",webserver_root,uploads_root);
-    if ( AmmServer_ExecuteCommandLine(command,sizeOfUploadsString,256) )
+    if ( (snprintf(command,2048,"du -sb %s%s | cut -f1",webserver_root,uploads_root)<2048) &&
+         (AmmServer_ExecuteCommandLine(command,sizeOfUploadsString,256)) )
     {
       uploadsFilesSize = atoi(sizeOfUploadsString);
       fprintf(stderr,"getUploadsSizeLive raw result = %s ( %u ) \n",sizeOfUploadsString,uploadsFilesSize);
@@ -164,33 +164,33 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
 
   //todo: have different embed point if it is video etc..
 
-  char embed[2049];
+  char embed[4097];
   if (AmmServer_FileIsText(fileRequested))
   {
-     snprintf(embed,2048," <iframe src=\"%s\" width=\"70%%\"></iframe><br><a  href=\"%s\">Download the file</a>",filenameToAccess, filenameToAccess);
+     snprintf(embed,4096," <iframe src=\"%s\" width=\"70%%\"></iframe><br><a  href=\"%s\">Download the file</a>",filenameToAccess, filenameToAccess);
   }
    else
   if (AmmServer_FileIsAudio(fileRequested)) // audio
   {
-    snprintf(embed,2048,"<audio autoplay controls><source src=\"%s\" type=\"audio/ogg\" />\
+    snprintf(embed,4096,"<audio autoplay controls><source src=\"%s\" type=\"audio/ogg\" />\
                          <p> Try this page on HTML5 capable browsers</p>);\
                           </audio><br>\
                           <a  href=\"%s\">Download the audio file</a>" ,filenameToAccess, filenameToAccess );
   } else
   if (AmmServer_FileIsImage(fileRequested)) // image
   {
-    snprintf(embed,2048," <a href=\"%s\"><img src=\"%s\" width=\"70%%\" alt=\"Uploaded Image\" ></a><br><br>\
+    snprintf(embed,4096," <a href=\"%s\"><img src=\"%s\" width=\"70%%\" alt=\"Uploaded Image\" ></a><br><br>\
                            <a href=\"%s\">%s</a>" ,filenameToAccess, filenameToAccess , filenameToAccess , fileRequested );
   } else
   if (AmmServer_FileIsVideo(fileRequested)) // video
   {
-     snprintf(embed,2048,"<video poster=\"images/video_logo.png\" autoplay controls>\
+     snprintf(embed,4096,"<video poster=\"images/video_logo.png\" autoplay controls>\
                           <source src=\"%s\" type='video/webm; codecs=\"vp8, vorbis\"'  /></video>\
                            <br><a  href=\"%s\">Download the video file</a>",filenameToAccess, filenameToAccess );
   } else
   if (AmmServer_FileIsFlash(fileRequested))
   {
-      snprintf(embed,2048,"<object classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\"\
+      snprintf(embed,4096,"<object classid=\"clsid:D27CDB6E-AE6D-11cf-96B8-444553540000\"\
                            codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,29,0\" width=\"640\" height=\"480\">\
                            <param name=\"movie\" value=\"%s\">\
                            <param name=\"quality\" value=\"high\">\
@@ -199,11 +199,11 @@ void * render_vfile(struct AmmServer_DynamicRequest  * rqst, const char * fileRe
                      <br><a  href=\"%s\">Download the flash file</a><br><br>",filenameToAccess,filenameToAccess,filenameToAccess);
   } else
   {
-    snprintf(embed,2048,"<a href=\"%s\"><img src=\"images/host_logo.png\"><br><br>Binary file : %s</a>",filenameToAccess,fileRequested);
+    snprintf(embed,4096,"<a href=\"%s\"><img src=\"images/host_logo.png\"><br><br>Binary file : %s</a>",filenameToAccess,fileRequested);
   }
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,1,"$PLACE_TO_EMBED_CONTENT$",embed);
 
-  snprintf(embed,2048,"vfile.html?i=%s",fileRequested);
+  snprintf(embed,4096,"vfile.html?i=%s",fileRequested);
   AmmServer_ReplaceAllVarsInMemoryHandler(videoMH,2,"$PLACE_TO_EMBED_PERMALINK$",embed);
 
 
@@ -316,7 +316,11 @@ void * processUploadCallback(struct AmmServer_DynamicRequest  * rqst)
    {
     char * uploadedFilePath = uploadedFileUNSANITIZEDPath;
     char finalPath[2049]={0};
-    snprintf(finalPath,2048,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath);
+    if (snprintf(finalPath,2048,"%s/%s/%s-%s",webserver_root,uploads_root,storeID,uploadedFilePath)>=2048)
+    {
+      free(storeID);
+      return prepare_index_callback_message(rqst , "<h3>Failed to upload , filename too long </h3>");
+    }
 
    const char * f = _FILES(rqst,"uploadedfile",VALUE,&fSize);
    AmmServer_WriteFileFromMemory(finalPath,f,fSize);
@@ -346,8 +350,8 @@ void * prepare_random_callback(struct AmmServer_DynamicRequest  * rqst)
   char command[2049]={0};
   char fileToServe[2049]={0};
 
-  snprintf(command,2048,"find %s%s -type f | shuf -n 1",webserver_root,uploads_root);
-  if ( AmmServer_ExecuteCommandLine(command,fileToServe,2048) )
+  if ( (snprintf(command,2048,"find %s%s -type f | shuf -n 1",webserver_root,uploads_root)<2048) &&
+       (AmmServer_ExecuteCommandLine(command,fileToServe,2048)) )
   {
      AmmServer_ReplaceCharInString(fileToServe,10,0); //Strip new line
      AmmServer_ReplaceCharInString(fileToServe,13,0); //Strip new line

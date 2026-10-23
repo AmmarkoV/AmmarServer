@@ -26,15 +26,15 @@ static void appendProjectRow(char * buffer , unsigned int bufferCapacity , struc
     snprintf(shareForm,sizeof(shareForm),
              "<form class=\"shareForm\" method=\"post\" enctype=\"multipart/form-data\" action=\"share.html\" style=\"display:inline\">"
              "<input type=\"hidden\" name=\"s\" value=\"%s\">"
-             "<input type=\"hidden\" name=\"project\" value=\"%s\">"
+             "<input type=\"hidden\" name=\"project\" value=\"%.31s\">"
              "<input type=\"text\" name=\"collaborator\" placeholder=\"username to add\" size=\"14\">"
              "<button type=\"submit\">Share</button></form>",
              sessionID,p->id);
   }
 
-  char chunk[2048]={0};
+  char chunk[4096]={0};
   snprintf(chunk,sizeof(chunk),
-           "<div class=\"projectRow\"><div><a class=\"open\" href=\"editor.html?s=%s&project=%s\">%s</a>%s"
+           "<div class=\"projectRow\"><div><a class=\"open\" href=\"editor.html?s=%s&project=%.31s\">%s</a>%s"
            "<div style=\"font-size:12px;color:#888;\">owner: %s</div></div><div>%s</div></div>",
            sessionID,p->id,escapedTitle,badge,escapedOwner,shareForm);
 

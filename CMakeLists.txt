@@ -1,5 +1,5 @@
+cmake_minimum_required( VERSION 3.10 )
 project( AmmarServerProject ) 
-cmake_minimum_required( VERSION 2.8.7 )
 
 #We are a "serious" server application and need all the stack protection we can get..! 
 set(CMAKE_CXX_FLAGS "-fPIC -s -Wl,-z,relro,-z,now -fstack-protector -O2")
