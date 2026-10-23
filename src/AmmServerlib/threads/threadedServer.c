@@ -65,6 +65,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "epollFastPathServer.h"
 #include "epollAPIServer.h"
+#include "uringAPIServer.h"
 
 int ThreadedHTTPServerIsRunning(struct AmmServer_Instance * instance)
 {
@@ -398,7 +399,19 @@ void * MainThreadedHTTPServerThread (void * ptr)
   //They can reduce latency by up tp 10ms on a Raspberry Pi , without any side effects..
   PreSpawnThreads(instance);
 
+  //API mode on a ring owns the listening socket outright : the ring does the accepting and the serving , so
+  //neither the epoll layer below nor the accept loop further down runs at all. A ring that cannot be set up
+  //( too old a kernel , or io_uring unavailable ) leaves everything exactly as it was.
+  int apiRingIsServing = 0;
+  if ( (instance->apiHandler!=0) && (instance->apiRingCount>0) )
+   {
+     apiRingIsServing = UringAPI_Start(instance,serversock,instance->apiRingCount);
+     if (!apiRingIsServing) { fprintf(stderr,"API mode : no io_uring here , serving from the epoll layer instead\n"); }
+   }
+
   #if ACCEPT_EPOLL_LAYER_ENABLED
+  if (!apiRingIsServing)
+  {
   instance->accept_epoll_fd = epoll_create1(EPOLL_CLOEXEC);
   if (instance->accept_epoll_fd<0)
    {
@@ -411,6 +424,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
      close(instance->accept_epoll_fd);
      instance->accept_epoll_fd=-1;
    }
+  }
   #endif // ACCEPT_EPOLL_LAYER_ENABLED
 
   /* sslserversock is bound by the main thread in AmmServer_Start/StartWithArgs
@@ -418,6 +432,12 @@ void * MainThreadedHTTPServerThread (void * ptr)
   fprintf(stderr, "SSL accept loop: serversock=%d sslserversock=%d sslAvailable=%d\n",
           serversock, instance->sslserversock, instance->sslAvailable);
 
+  if (apiRingIsServing)
+   {
+     //The ring thread is the server. Waiting on it keeps this thread at no cost at all , where polling a
+     //stop flag would wake it up forever for nothing.
+     UringAPI_Wait(instance);
+   } else
   while ( (instance->server_running) && (instance->stop_server==0) && (GLOBAL_KILL_SERVER_SWITCH==0) )
   {
     /* Use select() with a 1s timeout so stop_server is checked regularly */

@@ -70,6 +70,13 @@ set(AMMARSERVER_INGREDIENTS
                 threads/epollFastPathServer.h
                 threads/epollAPIServer.c
                 threads/epollAPIServer.h
+                threads/apiProtocol.c
+                threads/apiProtocol.h
+                #JSON for API mode handlers
+                tools/json_tools.c
+                tools/json_tools.h
+                threads/uringAPIServer.c
+                threads/uringAPIServer.h
                 threads/libeventServer.c
                 threads/libeventServer.h
                 threads/serverAbstraction.c

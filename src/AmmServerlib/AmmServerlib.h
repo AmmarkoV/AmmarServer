@@ -478,6 +478,12 @@ struct AmmServer_Instance
     //worker thread and running the file-serving pipeline. 0 = ordinary file/dynamic-content server.
     void * apiHandler;
     unsigned int apiMaxResponseSize;
+    //Set by AmmServer_StartAPIOnRings : how many io_uring rings to serve API mode from ( uringAPIServer.h )
+    //instead of the epoll layer , when the kernel can. 0 = the epoll layer , 1 = one ring , more than one
+    //multiplies the connection ceiling by that many since a ring's file table is a descriptor budget of its
+    //own. It is a request , not a promise - if the rings cannot be set up the epoll layer takes the instance
+    //as usual.
+    unsigned char apiRingCount;
 };
 
 /** @brief Structure to keep data for an HTTP Transaction */
@@ -718,6 +724,7 @@ struct AmmServer_APIResponse
    char * body;
    unsigned int bodyLength;
    unsigned int maxBodyLength;
+   unsigned char overflowed;     /**< @brief Set , and stays set , when a AmmServer_APIResponseWrite* call ran out of body buffer */
 };
 
 /**
@@ -762,6 +769,20 @@ int AmmServer_SetAPIHandler(struct AmmServer_Instance * instance,void * callback
 struct AmmServer_Instance * AmmServer_StartAPI(const char * name ,const char * ip,unsigned int port,const char * conf_file,void * callback,unsigned int maxResponseSize);
 
 /**
+* @brief AmmServer_StartAPI , but serving every connection from io_uring instead of the epoll layer : each
+*        connection lives as a direct descriptor in a ring's own file table , so how many of them one process
+*        can hold stops being bounded by RLIMIT_NOFILE. Needs Linux 5.19 or newer ; where the rings cannot be
+*        set up this falls back to the epoll layer and says so , rather than failing to start.
+*        AmmServer_StartAPI's arguments , plus :
+* @param How many rings , 1 being the ordinary case. A ring's table may be declared no larger than
+*        RLIMIT_NOFILE , but that is checked once per table , so N rings hold N times as many connections -
+*        from the same one thread , with the same one SQLite writer. Rings fill in turn , so a server that
+*        never exceeds one table's worth of connections never touches the second ring.
+* @retval A running instance , or 0 on failure
+*/
+struct AmmServer_Instance * AmmServer_StartAPIOnRings(const char * name ,const char * ip,unsigned int port,const char * conf_file,void * callback,unsigned int maxResponseSize,unsigned int rings);
+
+/**
 * @brief Find one header in an API request , e.g. AmmServer_APIRequestHeader(rqst,"Authorization",&length).
 *        Case insensitive on the header name. The value returned points inside the request and is not NUL
 *        terminated , so always use the length that comes back with it.
@@ -772,6 +793,161 @@ struct AmmServer_Instance * AmmServer_StartAPI(const char * name ,const char * i
 * @retval Pointer to the header value with leading whitespace skipped , or 0 if the request didn't carry it
 */
 const char * AmmServer_APIRequestHeader(const struct AmmServer_APIRequest * rqst,const char * headerName,unsigned int * valueLength);
+
+/**
+* @brief The bearer token out of a request's Authorization header , e.g. for
+*        AmmServer_APIRequestBearer(rqst,&length) on "Authorization: Bearer eyJhbGci...".
+*        The scheme name is matched case insensitively ; the token returned points inside the request , is
+*        not NUL terminated , and stops at the first space , so always use the length that comes back.
+* @ingroup core
+* @param An AmmarServer API request
+* @param Output : length of the token found
+* @retval Pointer to the token , or 0 if the request carried no Authorization header or its scheme was not
+*         Bearer. A Bearer header with nothing after the scheme returns non-zero with length 0 - an empty
+*         credential rather than a missing one , which is usually a different answer
+*/
+const char * AmmServer_APIRequestBearer(const struct AmmServer_APIRequest * rqst,unsigned int * tokenLength);
+
+/**
+* @brief One query string parameter , e.g. AmmServer_APIRequestQueryParam(rqst,"limit",&length) for
+*        GET /feed?limit=20 . The value points inside the request , is not NUL terminated , and percent
+*        escapes and '+' are left exactly as the client sent them , like every other part of the request.
+* @ingroup core
+* @param An AmmarServer API request
+* @param Parameter name , without the '=' , matched exactly
+* @param Output : length of the value , which is 0 for a name that appeared without one
+* @retval Pointer to the value , or 0 if the request had no such parameter. A parameter present without a
+*         value ( "?debug" ) returns a non-zero pointer with length 0 , so it can be told from an absent one
+*/
+const char * AmmServer_APIRequestQueryParam(const struct AmmServer_APIRequest * rqst,const char * name,unsigned int * valueLength);
+
+/**
+* @brief Match a request's path against a template and capture what it holds , in place of hand written
+*        memcmp routing : AmmServer_APIRequestMatch(rqst,"/posts/%lld/like",&postId) .
+*
+*        The template is matched literally except for two conversions , and is anchored at both ends - it
+*        is the whole path or it is not a match. Neither conversion ever crosses a '/' , so each one is a
+*        single path segment :
+*
+*        %lld  takes a long long * . Matches a run of decimal digits that is a positive number and cannot
+*              overflow , and nothing else : "1.5" , "-1" , "0" , "01x" and an empty segment are all simply
+*              not a match , which is what lets a bad id be answered 400 rather than parsed loosely.
+*        %s    takes a const char ** and an unsigned int * , and captures one non-empty segment without
+*              copying it. What comes back points inside the request and is not NUL terminated.
+*
+*        The method is not part of this ; test rqst->method yourself.
+* @ingroup core
+* @param An AmmarServer API request
+* @param Path template , e.g. "/health" , "/posts/%lld" , "/users/%s/posts/%lld"
+* @retval 1 if the path matched , with every capture filled in ; 0 if it did not , with the captures left
+*         untouched
+*/
+int AmmServer_APIRequestMatch(const struct AmmServer_APIRequest * rqst,const char * pathTemplate,...);
+
+/**
+* @brief Start a response's body again from nothing , with a status code and optionally a content type :
+*        for a handler that has written part of an answer and then found it has to send an error instead.
+*        Clears the overflow flag with it.
+* @ingroup core
+* @param An AmmarServer API response
+* @param Status code to answer with
+* @param Content type , or 0 to leave whatever is already set
+*/
+void AmmServer_APIResponseReset(struct AmmServer_APIResponse * res,unsigned int statusCode,const char * contentType);
+
+/**
+* @brief Append bytes to a response body , bounds checked. Once a write has not fitted , the response is
+*        marked overflowed and every later write does nothing - so a handler can write a whole response
+*        without checking each step and still never overrun the buffer it was given. Check the end with
+*        AmmServer_APIResponseOverflowed , or just the return value of the last write.
+* @ingroup core
+* @param An AmmarServer API response
+* @param Bytes to append , which need not be NUL terminated
+* @param How many
+* @retval 1 if it was appended , 0 if this response has overflowed
+*/
+int AmmServer_APIResponseWrite(struct AmmServer_APIResponse * res,const char * text,unsigned int length);
+
+/**
+* @brief AmmServer_APIResponseWrite for a NUL terminated string.
+* @ingroup core
+* @retval 1 if it was appended , 0 if this response has overflowed */
+int AmmServer_APIResponseWriteText(struct AmmServer_APIResponse * res,const char * text);
+
+/**
+* @brief AmmServer_APIResponseWrite for a number , written out in decimal without going through snprintf.
+* @ingroup core
+* @retval 1 if it was appended , 0 if this response has overflowed */
+int AmmServer_APIResponseWriteInteger(struct AmmServer_APIResponse * res,long long value);
+
+/**
+* @brief AmmServer_APIResponseWrite for text that is going inside a JSON string , escaped as JSON requires
+*        ( '"' , '\\' and the C0 controls ) straight into the response buffer , with no scratch copy. The
+*        surrounding quotes are not written , so this is the contents of the string and not the string.
+* @ingroup core
+* @param An AmmarServer API response
+* @param Text to escape and append , which need not be NUL terminated , and may be arbitrary bytes
+* @param How many
+* @retval 1 if it was appended , 0 if this response has overflowed */
+int AmmServer_APIResponseWriteJSONString(struct AmmServer_APIResponse * res,const char * text,unsigned int length);
+
+/**
+* @brief Whether anything written to this response did not fit. A handler that answers through the
+*        AmmServer_APIResponseWrite* calls only has to ask this once , at the end.
+* @ingroup core
+* @retval 1 if a write did not fit ( and the body is therefore incomplete ) , 0 if everything fitted
+*/
+int AmmServer_APIResponseOverflowed(const struct AmmServer_APIResponse * res);
+
+/**
+* @brief What AmmServer_JSONGetStringField found. A request body that is not JSON at all and one that is
+*        JSON without the field wanted are different answers , because they are usually different errors.
+*/
+enum AmmServer_JSONFieldResult
+{
+   AMMSERVER_JSON_FIELD_OK = 0,
+   AMMSERVER_JSON_MALFORMED,          /**< @brief The document is not valid JSON */
+   AMMSERVER_JSON_FIELD_NOT_A_STRING  /**< @brief Valid JSON , but the field is absent or is not a string */
+};
+
+/**
+* @brief Validate a JSON document and copy the unescaped value of one top-level string field out of it ,
+*        e.g. the "body" of a POSTed {"body":"..."} . The whole document is validated , not just scanned
+*        as far as the field , so a malformed body is reported as malformed however it is malformed.
+*        \uXXXX escapes are decoded to UTF-8 , surrogate pairs included.
+* @ingroup core
+* @param The document , which need not be NUL terminated ( a request body is not )
+* @param Its length
+* @param Name of the top-level field wanted , NUL terminated. The first one of that name wins
+* @param Output buffer for the decoded value , which is NUL terminated on return
+* @param Its size
+* @param Output : the length the value needs , which may be larger than the buffer given - so a value too
+*        long to hold can be told apart from an invalid one , which is a different HTTP status
+* @retval AMMSERVER_JSON_FIELD_OK , AMMSERVER_JSON_MALFORMED or AMMSERVER_JSON_FIELD_NOT_A_STRING
+*/
+enum AmmServer_JSONFieldResult AmmServer_JSONGetStringField(
+                                                             const char * doc,
+                                                             unsigned int docLength,
+                                                             const char * field,
+                                                             char * out,
+                                                             unsigned int outSize,
+                                                             unsigned int * outLength
+                                                           );
+
+/**
+* @brief Escape text into JSON string content : '"' , '\\' and the C0 controls , and nothing else.
+*        UTF-8 is passed through , since JSON makes escaping non-ASCII optional and not escaping it is both
+*        fewer bytes and less work. The surrounding quotes are not written.
+*        AmmServer_APIResponseWriteJSONString is this , straight into a response body.
+* @ingroup core
+* @param Text to escape , which need not be NUL terminated
+* @param Its length
+* @param Output buffer
+* @param Its size
+* @retval Bytes written , or 0 if all of it would not fit ( in which case nothing should be assumed about
+*         what was written )
+*/
+unsigned int AmmServer_JSONEscape(const char * in,unsigned int inLength,char * out,unsigned int outSize);
 
 
 /**

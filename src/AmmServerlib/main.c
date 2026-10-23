@@ -263,7 +263,8 @@ static struct AmmServer_Instance * StartInstance( const char * name ,
                                                   const char * web_root_path,
                                                   const char * templates_root_path,
                                                   void * apiHandler,
-                                                  unsigned int apiMaxResponseSize
+                                                  unsigned int apiMaxResponseSize,
+                                                  unsigned int apiRingCount
                                                 )
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
@@ -286,6 +287,7 @@ static struct AmmServer_Instance * StartInstance( const char * name ,
   instance->settings.HTTPS_PORT    = 443;
   instance->apiHandler             = apiHandler;
   instance->apiMaxResponseSize     = apiMaxResponseSize;
+  instance->apiRingCount           = (unsigned char) ( (apiRingCount>255) ? 255 : apiRingCount );
 
   #if USE_OPENSSL
   signal(SIGPIPE, SIG_IGN); /* SSL_write can trigger SIGPIPE on broken connections */
@@ -359,7 +361,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
                                              const char * templates_root_path
                                             )
 {
-  return StartInstance(name,ip,port,conf_file,web_root_path,templates_root_path,0,0);
+  return StartInstance(name,ip,port,conf_file,web_root_path,templates_root_path,0,0,0);
 }
 
 struct AmmServer_Instance * AmmServer_StartAPI( const char * name ,
@@ -374,7 +376,22 @@ struct AmmServer_Instance * AmmServer_StartAPI( const char * name ,
 
   //API mode serves no files , so the web root and the template root are never consulted ; the current
   //directory keeps the cache's own path handling happy without implying a public_html/ that need not exist.
-  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize);
+  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize,0);
+}
+
+struct AmmServer_Instance * AmmServer_StartAPIOnRings( const char * name ,
+                                                       const char * ip,
+                                                       unsigned int port,
+                                                       const char * conf_file,
+                                                       void * callback,
+                                                       unsigned int maxResponseSize,
+                                                       unsigned int rings
+                                                      )
+{
+  if (callback==0) { AmmServer_Error("AmmServer_StartAPIOnRings called without a callback , there would be nothing to serve"); return 0; }
+  if (rings==0) { rings=1; }
+
+  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize,rings);
 }
 
 struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
