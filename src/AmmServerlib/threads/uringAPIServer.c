@@ -142,10 +142,12 @@ struct UringConnection
    struct ApiPartialRequest in;
    unsigned int generation;
    unsigned int nextWaiting;          //queue of connections waiting for a send ticket , URING_NO_SLOT ends it
+   unsigned int nextRearm;            //queue of connections whose receive could not be armed , same ending
    unsigned char inUse;
    unsigned char recvArmed;
    unsigned char sendInFlight;
    unsigned char waitingForTicket;
+   unsigned char waitingForRearm;
 };
 
 //One response on its way out. The buffer is the handler's , so it cannot be reused until the send that is
@@ -208,6 +210,9 @@ struct UringRing
 
    unsigned int waitingHead;   //connections on this ring waiting for a send ticket
    unsigned int waitingTail;
+
+   unsigned int rearmHead;     //connections on this ring whose receive is waiting for a provided buffer
+   unsigned int rearmTail;
 
    unsigned char acceptArmed;
    unsigned int index;
@@ -397,6 +402,48 @@ static struct io_uring_sqe * GetSqe(struct UringRing * r)
 
 /* ------------------------------------------------------------------ provided receive buffers --------- */
 
+//A receive that could not be armed - no provided buffer free , or no submission queue entry - leaves its
+//connection with nothing outstanding on it at all : no completion will ever arrive to notice , so unless
+//it is written down here it is stuck until the client gives up. It is written down here , and armed again
+//from RecycleRecvBuffer as buffers come back , one connection per buffer. That bound is what keeps it
+//from spinning : a connection that finds the buffer already taken simply queues again , and the next
+//attempt waits for the next buffer , which waits for a request to be served.
+static void QueueForRearm(struct UringRing * r,unsigned int slot)
+{
+  struct UringConnection * conn = &r->connections[slot];
+  if (conn->waitingForRearm) { return; }
+
+  conn->waitingForRearm=1;
+  conn->nextRearm=URING_NO_SLOT;
+
+  if (r->rearmTail==URING_NO_SLOT) { r->rearmHead=slot; r->rearmTail=slot; return; }
+
+  r->connections[r->rearmTail].nextRearm = slot;
+  r->rearmTail = slot;
+}
+
+static void ArmRecv(struct UringRing * r,unsigned int slot);
+
+//One buffer has come back , so one connection that stopped for want of one is armed again. Connections that
+//closed while they were queued are skipped here rather than unlinked when they closed , which is what keeps
+//closing a constant time operation however long this queue is.
+static void RearmOneWaiting(struct UringRing * r)
+{
+  while (r->rearmHead!=URING_NO_SLOT)
+   {
+     unsigned int slot = r->rearmHead;
+     struct UringConnection * conn = &r->connections[slot];
+
+     r->rearmHead = conn->nextRearm;
+     if (r->rearmHead==URING_NO_SLOT) { r->rearmTail=URING_NO_SLOT; }
+
+     conn->nextRearm=URING_NO_SLOT;
+     conn->waitingForRearm=0;
+
+     if ( (conn->inUse) && (!conn->recvArmed) && (!conn->sendInFlight) ) { ArmRecv(r,slot); return; }
+   }
+}
+
 //Hand `count` buffers starting at `first` to the kernel the classic way : one submission , which is queued
 //with everything else and goes out on the next enter.
 static void ProvideBuffersClassic(struct UringRing * r,unsigned int first,unsigned int count)
@@ -479,7 +526,7 @@ static int RegisterRecvBuffers(struct UringRing * r,unsigned int count)
 //Hand one buffer back to the kernel , once whatever arrived in it has been consumed.
 static void RecycleRecvBuffer(struct UringRing * r,unsigned int bufferId)
 {
-  if (!r->recvBuffersAreRing) { ProvideBuffersClassic(r,bufferId,1); return; }
+  if (!r->recvBuffersAreRing) { ProvideBuffersClassic(r,bufferId,1); RearmOneWaiting(r); return; }
 
   //We are the only writer of this ring's tail , so adding to it is a store , not a compare and swap.
   unsigned short tail = r->recvBufferRing->tail;
@@ -490,6 +537,8 @@ static void RecycleRecvBuffer(struct UringRing * r,unsigned int bufferId)
   buffer->bid  = (unsigned short) bufferId;
 
   __atomic_store_n(&r->recvBufferRing->tail,(unsigned short)(tail+1),__ATOMIC_RELEASE);
+
+  RearmOneWaiting(r);
 }
 
 /* ------------------------------------------------------------------ send tickets -------------------- */
@@ -657,7 +706,7 @@ static void ArmRecv(struct UringRing * r,unsigned int slot)
   struct UringConnection * conn = &r->connections[slot];
 
   struct io_uring_sqe * sqe = GetSqe(r);
-  if (sqe==0) { return; }
+  if (sqe==0) { QueueForRearm(r,slot); return; }
 
   //Multishot , and reading into whichever provided buffer is free when bytes turn up : the connection is not
   //holding one in the meantime , which is what makes an idle connection cost nothing but its struct.
@@ -838,10 +887,24 @@ static void HandleAcceptCompletion(struct UringRing * r,struct io_uring_cqe * cq
         struct UringConnection * conn = &r->connections[slot];
         unsigned int generation = conn->generation + 1;
 
+        //A slot can come back into use while it is still linked into one of this ring's queues : a connection
+        //that closes while queued is left to be skipped when it comes up rather than unlinked , which is what
+        //keeps closing constant time however long the queue is. Its place in the queue belongs to the queue ,
+        //not to the connection , so it has to survive the reuse - clearing it here would cut the queue in two
+        //and strand every connection behind it , and leave a tail pointing at a link that no longer leads
+        //anywhere. For a slot that is in no queue these are never read , so carrying them over costs nothing.
+        unsigned int  queuedNextWaiting = conn->nextWaiting;
+        unsigned int  queuedNextRearm   = conn->nextRearm;
+        unsigned char queuedForTicket   = conn->waitingForTicket;
+        unsigned char queuedForRearm    = conn->waitingForRearm;
+
         memset(conn,0,sizeof(struct UringConnection));
-        conn->generation  = generation;  //never reset , so a late completion can always be told apart
-        conn->nextWaiting = URING_NO_SLOT;
-        conn->inUse       = 1;
+        conn->generation       = generation;  //never reset , so a late completion can always be told apart
+        conn->nextWaiting      = queuedNextWaiting;
+        conn->nextRearm        = queuedNextRearm;
+        conn->waitingForTicket = queuedForTicket;
+        conn->waitingForRearm  = queuedForRearm;
+        conn->inUse            = 1;
         ++r->connectionsOpen;
 
         ArmRecv(r,slot);
@@ -904,9 +967,11 @@ static void HandleRecvCompletion(struct AmmServer_Instance * instance,struct Uri
 
      if (cqe->res==-ENOBUFS)
       {
-        //Every provided buffer is holding bytes that have not been consumed yet. They are handed back as
-        //they are consumed , below , and the receive is armed again from there.
+        //Every provided buffer is holding bytes that have not been consumed yet. This connection now has
+        //nothing outstanding on it , so nothing would ever come back to notice ; it waits in the queue and
+        //is armed again from RecycleRecvBuffer as the buffers are consumed and handed back.
         conn->recvArmed=0;
+        QueueForRearm(r,slot);
         return;
       }
 
@@ -1191,6 +1256,8 @@ static int RingBringUp(struct UringRing * r,unsigned int recvBuffers)
 
   r->waitingHead = URING_NO_SLOT;
   r->waitingTail = URING_NO_SLOT;
+  r->rearmHead   = URING_NO_SLOT;
+  r->rearmTail   = URING_NO_SLOT;
 
   return 1;
 }
