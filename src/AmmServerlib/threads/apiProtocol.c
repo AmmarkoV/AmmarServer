@@ -249,6 +249,7 @@ void AmmServer_APIResponseReset(struct AmmServer_APIResponse * res,unsigned int 
 
   res->statusCode  = statusCode;
   if (contentType!=0) { res->contentType = contentType; }
+  res->extraHeaders = 0;
   res->bodyLength  = 0;
   res->overflowed  = 0;
 }
@@ -570,16 +571,18 @@ unsigned int ApiProtocol_Serve(
 
   char header[API_RESPONSE_HEADER_RESERVE];
   int headerLength = snprintf(header,sizeof(header),
-                              "HTTP/1.1 %u %s\r\nContent-Type: %s\r\nContent-Length: %u\r\n%s\r\n",
+                              "HTTP/1.1 %u %s\r\nContent-Type: %s\r\nContent-Length: %u\r\n%s%s\r\n",
                               responseToFill.statusCode,
                               GetHTTPReasonPhrase(responseToFill.statusCode),
                               (responseToFill.contentType!=0) ? responseToFill.contentType : "text/plain",
                               responseToFill.bodyLength,
+                              (responseToFill.extraHeaders!=0) ? responseToFill.extraHeaders : "",
                               frame->keepAlive ? "" : "Connection: close\r\n" );
 
-  if ( (headerLength<=0) || (headerLength>API_RESPONSE_HEADER_RESERVE) )
+  //snprintf returns the length it would have written , so a header that did not fit is caught here too.
+  if ( (headerLength<=0) || (headerLength>=API_RESPONSE_HEADER_RESERVE) )
    {
-     //Only reachable if a handler supplied an absurdly long Content-Type , which would truncate the header.
+     //Only reachable if a handler supplied an absurdly long Content-Type or extraHeaders , which would truncate the header.
      *failStatus = 500;
      return 0;
    }

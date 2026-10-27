@@ -252,10 +252,11 @@ struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
   }
 }
 
-//The body of AmmServer_Start , plus the two things an API-mode instance has to have set *before* the server
+//The body of AmmServer_Start , plus the things an API-mode instance has to have set *before* the server
 //thread exists : the accept loop consults instance->apiHandler on every accept , so a handler installed only
 //after AmmServer_Start had returned would leave a window where the first connections to arrive got dispatched
-//into the file-serving pipeline instead. AmmServer_Start passes 0 for both and behaves exactly as it always has.
+//into the file-serving pipeline instead , and SO_REUSEPORT only counts if it is on the socket before the server
+//thread binds it. AmmServer_Start passes 0 for all of them and behaves exactly as it always has.
 static struct AmmServer_Instance * StartInstance( const char * name ,
                                                   const char * ip,
                                                   unsigned int port,
@@ -264,7 +265,8 @@ static struct AmmServer_Instance * StartInstance( const char * name ,
                                                   const char * templates_root_path,
                                                   void * apiHandler,
                                                   unsigned int apiMaxResponseSize,
-                                                  unsigned int apiRingCount
+                                                  unsigned int apiRingCount,
+                                                  unsigned char reusePort
                                                 )
 {
   fprintf(stderr,"Binding AmmarServer v%s to %s:%u\n",FULLVERSION_STRING,ip,port);
@@ -288,6 +290,7 @@ static struct AmmServer_Instance * StartInstance( const char * name ,
   instance->apiHandler             = apiHandler;
   instance->apiMaxResponseSize     = apiMaxResponseSize;
   instance->apiRingCount           = (unsigned char) ( (apiRingCount>255) ? 255 : apiRingCount );
+  instance->reusePort              = reusePort;
 
   #if USE_OPENSSL
   signal(SIGPIPE, SIG_IGN); /* SSL_write can trigger SIGPIPE on broken connections */
@@ -361,7 +364,7 @@ struct AmmServer_Instance * AmmServer_Start( const char * name ,
                                              const char * templates_root_path
                                             )
 {
-  return StartInstance(name,ip,port,conf_file,web_root_path,templates_root_path,0,0,0);
+  return StartInstance(name,ip,port,conf_file,web_root_path,templates_root_path,0,0,0,0);
 }
 
 struct AmmServer_Instance * AmmServer_StartAPI( const char * name ,
@@ -376,7 +379,7 @@ struct AmmServer_Instance * AmmServer_StartAPI( const char * name ,
 
   //API mode serves no files , so the web root and the template root are never consulted ; the current
   //directory keeps the cache's own path handling happy without implying a public_html/ that need not exist.
-  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize,0);
+  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize,0,0);
 }
 
 struct AmmServer_Instance * AmmServer_StartAPIOnRings( const char * name ,
@@ -391,7 +394,22 @@ struct AmmServer_Instance * AmmServer_StartAPIOnRings( const char * name ,
   if (callback==0) { AmmServer_Error("AmmServer_StartAPIOnRings called without a callback , there would be nothing to serve"); return 0; }
   if (rings==0) { rings=1; }
 
-  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize,rings);
+  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize,rings,0);
+}
+
+struct AmmServer_Instance * AmmServer_StartAPIOnRingsReusingPort( const char * name ,
+                                                                  const char * ip,
+                                                                  unsigned int port,
+                                                                  const char * conf_file,
+                                                                  void * callback,
+                                                                  unsigned int maxResponseSize,
+                                                                  unsigned int rings
+                                                                 )
+{
+  if (callback==0) { AmmServer_Error("AmmServer_StartAPIOnRingsReusingPort called without a callback , there would be nothing to serve"); return 0; }
+  if (rings==0) { rings=1; }
+
+  return StartInstance(name,ip,port,conf_file,"./","./",callback,maxResponseSize,rings,1);
 }
 
 struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,

@@ -355,6 +355,12 @@ void * MainThreadedHTTPServerThread (void * ptr)
       {
           errorID(ASV_ERROR_ERROR_SETTING_SOCKET_OPTIONS);
       }
+  //SO_REUSEPORT ( AmmServer_StartAPIOnRingsReusingPort ) lets every process that also sets it bind this same ip:port ,
+  //with the kernel spreading new connections over all of them. It has to be set before bind or it does nothing.
+  if ( (instance->reusePort) && ( setsockopt(serversock, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(int)) < 0 ) )
+      {
+          errorID(ASV_ERROR_ERROR_SETTING_SOCKET_OPTIONS);
+      }
 
   fprintf(stderr,"Binding (%s:%u) / pid %u uid %u.. \n",bindingIP,bindingPort,getpid(),getuid());
   while (

@@ -484,6 +484,10 @@ struct AmmServer_Instance
     //own. It is a request , not a promise - if the rings cannot be set up the epoll layer takes the instance
     //as usual.
     unsigned char apiRingCount;
+    //Set by AmmServer_StartAPIOnRingsReusingPort : the listening socket gets SO_REUSEPORT before it is bound ,
+    //so several processes ( or instances ) can listen on the same ip:port and the kernel spreads new
+    //connections over them. 0 = the usual exclusive bind.
+    unsigned char reusePort;
 };
 
 /** @brief Structure to keep data for an HTTP Transaction */
@@ -721,6 +725,7 @@ struct AmmServer_APIResponse
 {
    unsigned int statusCode;      /**< @brief 200 , 201 , 400 , 404 , 503 , ... - emitted with its proper HTTP reason phrase */
    const char * contentType;     /**< @brief Value for the Content-Type header , e.g. "application/json" ; 0 means text/plain */
+   const char * extraHeaders;    /**< @brief More header lines , each ending in \r\n , e.g. "Content-Encoding: gzip\r\n" ; 0 for none. Sent as given , and the whole header block has to fit in API_RESPONSE_HEADER_RESERVE ( 256 bytes ) or the request is answered 500 */
    char * body;
    unsigned int bodyLength;
    unsigned int maxBodyLength;
@@ -781,6 +786,20 @@ struct AmmServer_Instance * AmmServer_StartAPI(const char * name ,const char * i
 * @retval A running instance , or 0 on failure
 */
 struct AmmServer_Instance * AmmServer_StartAPIOnRings(const char * name ,const char * ip,unsigned int port,const char * conf_file,void * callback,unsigned int maxResponseSize,unsigned int rings);
+
+/**
+* @brief AmmServer_StartAPIOnRings , with SO_REUSEPORT set on the listening socket before it is bound. That
+*        lets several processes ( or instances ) of the same user listen on the same ip:port , each with its
+*        own socket , and the kernel spreads new connections evenly over them by hashing each connection's
+*        addresses. It is how a prefork server gets more than one core onto API mode , since one instance's
+*        rings are served by one thread. It also means a second server started on a port by mistake binds
+*        happily and takes a share of the connections instead of failing , which is why it is not the
+*        default.
+* @ingroup core
+* @param The same arguments as AmmServer_StartAPIOnRings
+* @retval A running instance , or 0 on failure
+*/
+struct AmmServer_Instance * AmmServer_StartAPIOnRingsReusingPort(const char * name ,const char * ip,unsigned int port,const char * conf_file,void * callback,unsigned int maxResponseSize,unsigned int rings);
 
 /**
 * @brief Find one header in an API request , e.g. AmmServer_APIRequestHeader(rqst,"Authorization",&length).
@@ -847,7 +866,8 @@ int AmmServer_APIRequestMatch(const struct AmmServer_APIRequest * rqst,const cha
 /**
 * @brief Start a response's body again from nothing , with a status code and optionally a content type :
 *        for a handler that has written part of an answer and then found it has to send an error instead.
-*        Clears the overflow flag with it.
+*        Clears the overflow flag and any extraHeaders with it , since those describe the body being thrown
+*        away ( a Content-Encoding on an error message that was never compressed would be wrong ).
 * @ingroup core
 * @param An AmmarServer API response
 * @param Status code to answer with
