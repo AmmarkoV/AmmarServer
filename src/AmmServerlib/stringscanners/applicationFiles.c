@@ -1,6 +1,6 @@
 
 /*                  
-This file was automatically generated @ 28-10-2026 22:38:02 using StringRecognizer                  
+This file was automatically generated @ 28-10-2026 22:44:26 using StringRecognizer                  
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/StringRecognizer                 
 Please note that changes you make here may be automatically overwritten                  
 if the String Recognizer generator runs again..!              
@@ -14,7 +14,7 @@ if the String Recognizer generator runs again..!
 int scanFor_applicationFiles(const char * str,unsigned int strLength) 
 {
  if (str==0) { return 0; } 
- if (strLength<3) { return 0; } 
+ if (strLength<2) { return 0; } 
 
  switch (toupper(str[0])) { 
  case 'C' : 
@@ -30,8 +30,18 @@ int scanFor_applicationFiles(const char * str,unsigned int strLength)
      if ( strncasecmp(str,"EXE",3) == 0 ) { return APPLICATIONFILES_EXE; } 
  break; 
  case 'J' : 
-     if (strLength<4) { return 0; } 
-     if ( strncasecmp(str,"JSON",4) == 0 ) { return APPLICATIONFILES_JSON; } 
+     switch (toupper(str[1])) { 
+     case 'S' : 
+         switch (toupper(str[2])) { 
+         case 'O' : 
+             if ( (strLength >= 4 )&& ( strncasecmp(str,"JSON",4) == 0 ) ) { return APPLICATIONFILES_JSON; } 
+         break; 
+         case 0 : /*Null Terminator*/ 
+             if ( (strLength >= 2 )&& ( strncasecmp(str,"JS",2) == 0 ) ) { return APPLICATIONFILES_JS; } 
+         break; 
+        }; 
+     break; 
+    }; 
  break; 
  case 'P' : 
      if (strLength<3) { return 0; } 

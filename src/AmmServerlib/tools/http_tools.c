@@ -240,6 +240,7 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
    case APPLICATIONFILES_SWF  :  strcpy(content_type,"application/x-shockwave-flash");    content_type[29]=0; return 1; break;
    case APPLICATIONFILES_PDF  :  strcpy(content_type,"application/pdf");                  content_type[15]=0; return 1; break;
    case APPLICATIONFILES_JSON :  strcpy(content_type,"application/json");                 content_type[16]=0; return 1; break;
+   case APPLICATIONFILES_JS   :  strcpy(content_type,"application/javascript");           content_type[22]=0; return 1; break;
   };
 
 

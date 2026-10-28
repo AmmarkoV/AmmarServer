@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asvio"
+version = "0.1.0"
+description = "ASVIO ( AmmarSerVer I/O ) : a Gradio-like Python UI library served by AmmarServer"
+requires-python = ">=3.9"
+# Image needs numpy + pillow , imported only when an Image component is used ; asvio.client needs nothing
+optional-dependencies = { image = ["numpy", "pillow"] }
+
+[tool.setuptools]
+packages = ["asvio"]
+
+[tool.setuptools.package-data]
+asvio = ["libasvio.so", "frontend/*"]

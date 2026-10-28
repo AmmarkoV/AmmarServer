@@ -595,10 +595,10 @@ if (cache_FindResource(instance,verified_filename,index))
                   AmmServer_Warning("Returning a file stream from something that started to be a dynamic request , filename is %s , lets hope it works" , verified_filename);
                   *serveAsRegularFile=1;
 
-                  if (*freeContentAfterUsingIt)
-                  {
-                      AmmServer_Error("Please free content here..");
-                  }
+                  //The path to stream is already copied into verified_filename , so a buffer allocated just for this
+                  //request ( DIFFERENT_PAGE_FOR_EACH_CLIENT ) is not needed anymore , and the caller never sees it
+                  //since we return 0 , so it has to be freed here or it leaks on every such request
+                  if (freeMallocIfNeeded(mem,*freeContentAfterUsingIt)) { *freeContentAfterUsingIt=0; }
 
                   return 0;
              }

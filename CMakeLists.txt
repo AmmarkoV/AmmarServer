@@ -56,6 +56,7 @@ ENDIF( COMPILE_FOR_ARM )
     add_subdirectory (src/InputParser)
     add_subdirectory (src/CSVParser)
     add_subdirectory (src/BasicImaging)
+    add_subdirectory (src/ASVIO)
 
 IF (USE_AMMMESSAGES)
     add_subdirectory (src/AmmMessages)
