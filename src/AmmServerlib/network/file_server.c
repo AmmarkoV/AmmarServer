@@ -498,6 +498,23 @@ unsigned long SendFile
   unsigned int dynamicResponseCode=0;
   char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins,transaction->pendingResponseHeaders,sizeof(transaction->pendingResponseHeaders),&dynamicResponseCode);
 
+  //Whatever is not answered from a cached buffer gets streamed from disk by TransmitFileToSocket() , which can only
+  //fail after the 200 header below has already gone out , leaving the client a 200 with an empty body. That is the
+  //normal case for a callback that used AmmServer_DynamicRequestReturnFile() ( cache_GetResource() never caches
+  //those ) on a file that is missing or outside the web root , so answer 404 here instead. A cached file is never
+  //checked against the disk , it is served from the cache exactly as before.
+  unsigned char servedFromCache = ( (cached_buffer!=0) && ( (!cache[index].doNOTCacheRule) || (cache[index].dynamicRequestCallbackFunction!=0) ) );
+  if ( (WeWantA200OK) && (!servedFromCache) )
+  {
+    struct stat fileToStream;
+    if ( (stat(verified_filename,&fileToStream)!=0) || (!S_ISREG(fileToStream.st_mode)) || (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) )
+    {
+      AmmServer_Warning("%s cannot be streamed from disk and is not cached , answering 404",verified_filename);
+      freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+      return SendErrorFile(instance,transaction,404);
+    }
+  }
+
 
   //We are done with our resource so we no longer need the extra data that needs to be deallocated..
   /* We empty this in a deeper level , not here..
