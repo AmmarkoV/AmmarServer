@@ -529,6 +529,16 @@ int AmmServer_SetAPIHandler(struct AmmServer_Instance * instance,void * callback
   return 1;
 }
 
+int AmmServer_SetAPIBatchHandler(struct AmmServer_Instance * instance,void * batchCallback)
+{
+  if (instance==0) { return 0; }
+
+  //The ring thread may already be serving , and reads this once per pass ( see uringAPIServer.c ).
+  __atomic_store_n(&instance->apiBatchHandler,batchCallback,__ATOMIC_RELEASE);
+
+  return 1;
+}
+
 int AmmServer_AddScheduler (
                             struct AmmServer_Instance * instance,
                             const char * resource_name ,

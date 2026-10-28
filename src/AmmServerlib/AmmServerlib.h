@@ -488,7 +488,14 @@ struct AmmServer_Instance
     //so several processes ( or instances ) can listen on the same ip:port and the kernel spreads new
     //connections over them. 0 = the usual exclusive bind.
     unsigned char reusePort;
+    //Set by AmmServer_SetAPIBatchHandler : when non-zero the io_uring transport answers every request that is
+    //ready in one pass over its completion queues with a single call to this , instead of one apiHandler call
+    //each. Written by the caller's thread and read by the ring thread , so it is only ever touched atomically.
+    void * apiBatchHandler;
 };
+
+/** @brief The most requests one call of an API batch handler is given ( see AmmServer_SetAPIBatchHandler ) */
+#define AMMSERVER_API_MAX_BATCH 32
 
 /** @brief Structure to keep data for an HTTP Transaction */
 struct HTTPTransaction
@@ -754,6 +761,28 @@ struct AmmServer_APIResponse
 * @retval 1=Success,0=Fail
 */
 int AmmServer_SetAPIHandler(struct AmmServer_Instance * instance,void * callback,unsigned int maxResponseSize);
+
+/**
+* @brief Answer requests in batches on the io_uring transport : every request that is complete after one pass
+*        over the rings' completion queues ( up to AMMSERVER_API_MAX_BATCH of them ) is handed to one call of
+*        callback(requests,responses,count) , each requests[i] answered by filling responses[i] exactly as
+*        a single handler would. Nothing waits for a batch to fill : at low load a batch is one request , and
+*        it grows by itself with whatever arrived while the previous one was being answered.
+*
+*        It is for a handler whose cost is mostly a round trip it can share , such as a database it can send
+*        every query of the batch to before reading any answer back ( libpq's pipeline mode ). It blocks the
+*        ring thread for the whole batch , exactly as a single handler blocks it for one request.
+*
+*        The single handler given at start stays in use for the epoll transport , and for any request
+*        answered before this is set , so the two have to give the same answers.
+*
+* @ingroup core
+* @param A running API mode instance
+* @param Pointer to a void callback(struct AmmServer_APIRequest * requests,struct AmmServer_APIResponse * responses,unsigned int count) ,
+*        or 0 to go back to one call per request
+* @retval 1=Success,0=Fail
+*/
+int AmmServer_SetAPIBatchHandler(struct AmmServer_Instance * instance,void * batchCallback);
 
 /**
 * @brief Start an instance that is in API mode from the outset : the same as AmmServer_Start followed by

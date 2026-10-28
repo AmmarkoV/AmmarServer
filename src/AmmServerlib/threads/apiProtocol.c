@@ -488,16 +488,15 @@ unsigned int ApiProtocol_StatusOnlyResponse(unsigned int statusCode,char * into,
   return (unsigned int) length;
 }
 
-unsigned int ApiProtocol_Serve(
-                                struct AmmServer_Instance * instance,
-                                struct ApiFrame * frame,
-                                struct ApiResponseBuffer * buffer,
-                                char ** response,
-                                unsigned int * failStatus
-                              )
+int ApiProtocol_Prepare(
+                         struct ApiFrame * frame,
+                         struct ApiResponseBuffer * buffer,
+                         struct AmmServer_APIRequest * rqstOut,
+                         struct AmmServer_APIResponse * responseOut,
+                         unsigned int * failStatus
+                       )
 {
-  *response = 0;
-  *failStatus = 400; //a request line this cannot even split ; the 500 below is the other way out of here
+  *failStatus = 400; //a request line this cannot even split ; the 500 in ApiProtocol_Finish is the other way a request fails
 
   char * request = frame->request;
   unsigned int headerEnd = frame->headerEnd;
@@ -556,27 +555,39 @@ unsigned int ApiProtocol_Serve(
   responseToFill.bodyLength = 0;
   responseToFill.maxBodyLength = buffer->bodySize;
 
-  void ( *DoCallback) (struct AmmServer_APIRequest *,struct AmmServer_APIResponse *) = 0;
-  DoCallback = instance->apiHandler;
-  DoCallback(&rqst,&responseToFill);
+  *rqstOut = rqst;
+  *responseOut = responseToFill;
+  return 1;
+}
 
-  if (responseToFill.bodyLength>buffer->bodySize)
+unsigned int ApiProtocol_Finish(
+                                 struct ApiFrame * frame,
+                                 struct ApiResponseBuffer * buffer,
+                                 const struct AmmServer_APIRequest * rqst,
+                                 struct AmmServer_APIResponse * res,
+                                 char ** response,
+                                 unsigned int * failStatus
+                               )
+{
+  *response = 0;
+
+  if (res->bodyLength>buffer->bodySize)
    {
      //The handler has already overrun the buffer it was given , so the damage is done ; all this can do is
      //refuse to compound it by sending whatever is in the memory past it as if it were a response.
      errorID(ASV_ERROR_CLIENT_CAUSED_AN_OVERFLOW);
-     fprintf(stderr,"API handler wrote %u bytes into a %u byte response buffer , serving %s \n",responseToFill.bodyLength,buffer->bodySize,rqst.path);
-     responseToFill.bodyLength = buffer->bodySize;
+     fprintf(stderr,"API handler wrote %u bytes into a %u byte response buffer , serving %s \n",res->bodyLength,buffer->bodySize,rqst->path);
+     res->bodyLength = buffer->bodySize;
    }
 
   char header[API_RESPONSE_HEADER_RESERVE];
   int headerLength = snprintf(header,sizeof(header),
                               "HTTP/1.1 %u %s\r\nContent-Type: %s\r\nContent-Length: %u\r\n%s%s\r\n",
-                              responseToFill.statusCode,
-                              GetHTTPReasonPhrase(responseToFill.statusCode),
-                              (responseToFill.contentType!=0) ? responseToFill.contentType : "text/plain",
-                              responseToFill.bodyLength,
-                              (responseToFill.extraHeaders!=0) ? responseToFill.extraHeaders : "",
+                              res->statusCode,
+                              GetHTTPReasonPhrase(res->statusCode),
+                              (res->contentType!=0) ? res->contentType : "text/plain",
+                              res->bodyLength,
+                              (res->extraHeaders!=0) ? res->extraHeaders : "",
                               frame->keepAlive ? "" : "Connection: close\r\n" );
 
   //snprintf returns the length it would have written , so a header that did not fit is caught here too.
@@ -595,5 +606,26 @@ unsigned int ApiProtocol_Serve(
   *response = responseStart;
 
   //A HEAD response carries the Content-Length the GET would have , but none of the body.
-  return (unsigned int) headerLength + ( (method==HEAD) ? 0 : responseToFill.bodyLength );
+  return (unsigned int) headerLength + ( (rqst->method==HEAD) ? 0 : res->bodyLength );
+}
+
+unsigned int ApiProtocol_Serve(
+                                struct AmmServer_Instance * instance,
+                                struct ApiFrame * frame,
+                                struct ApiResponseBuffer * buffer,
+                                char ** response,
+                                unsigned int * failStatus
+                              )
+{
+  *response = 0;
+
+  struct AmmServer_APIRequest rqst;
+  struct AmmServer_APIResponse responseToFill;
+  if (!ApiProtocol_Prepare(frame,buffer,&rqst,&responseToFill,failStatus)) { return 0; }
+
+  void ( *DoCallback) (struct AmmServer_APIRequest *,struct AmmServer_APIResponse *) = 0;
+  DoCallback = instance->apiHandler;
+  DoCallback(&rqst,&responseToFill);
+
+  return ApiProtocol_Finish(frame,buffer,&rqst,&responseToFill,response,failStatus);
 }

@@ -98,6 +98,33 @@ int ApiProtocol_AllocateResponseBuffer(struct AmmServer_Instance * instance,stru
 enum ApiFrameResult ApiProtocol_NextFrame(char * buf,unsigned int used,unsigned int offset,struct ApiFrame * frame);
 
 /**
+* @brief The first half of ApiProtocol_Serve : turn one framed request into what a handler is given , with the
+*        response's body pointing into buffer. The request points into the frame's own bytes , so those have to
+*        stay where they are until ApiProtocol_Finish. Split out so that a transport can prepare several
+*        requests , answer them with one batch handler call , and then finish each.
+* @retval 1=ready for a handler , 0=it cannot be served ( answer failStatus and close ) */
+int ApiProtocol_Prepare(
+                         struct ApiFrame * frame,
+                         struct ApiResponseBuffer * buffer,
+                         struct AmmServer_APIRequest * rqst,
+                         struct AmmServer_APIResponse * response,
+                         unsigned int * failStatus
+                       );
+
+/**
+* @brief The second half of ApiProtocol_Serve : once a handler has filled response , write its status line and
+*        headers in front of the body , so the whole response is one contiguous block in buffer.
+* @retval length of the response , or 0 if it could not be built ( answer failStatus and close ) */
+unsigned int ApiProtocol_Finish(
+                                 struct ApiFrame * frame,
+                                 struct ApiResponseBuffer * buffer,
+                                 const struct AmmServer_APIRequest * rqst,
+                                 struct AmmServer_APIResponse * response,
+                                 char ** responseBytes,
+                                 unsigned int * failStatus
+                               );
+
+/**
 * @brief Run one framed request through the instance's API handler and lay out the response bytes in buffer.
 * @retval length of the response , or 0 if it could not be built ( answer failStatus and close ) */
 unsigned int ApiProtocol_Serve(

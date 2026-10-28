@@ -148,6 +148,7 @@ struct UringConnection
    unsigned char sendInFlight;
    unsigned char waitingForTicket;
    unsigned char waitingForRearm;
+   unsigned char batched;             //holding a complete request in `in` , waiting for this pass's FlushBatch
 };
 
 //One response on its way out. The buffer is the handler's , so it cannot be reused until the send that is
@@ -227,6 +228,30 @@ static struct UringSendTicket sendTicket[URING_SEND_TICKETS];
 //Which ring to look at first for a connection waiting on a ticket , moved on each time one is served so that
 //a busy ring cannot starve the others of the shared pool.
 static unsigned int ticketCursor = 0;
+
+//API batch handler mode ( AmmServer_SetAPIBatchHandler ) : the connections whose complete request is waiting in
+//their own partial buffer for the end of this pass over the completion queues , in the order they arrived ,
+//with the generation that says the slot still holds that connection when the pass ends.
+struct UringBatchEntry
+{
+   struct UringRing * r;
+   unsigned int slot;
+   unsigned int generation;
+};
+static struct UringBatchEntry batchPending[AMMSERVER_API_MAX_BATCH];
+static unsigned int batchPendingCount = 0;
+
+//What one batch handler call is given , and what each of its answers still needs to go out.
+struct UringBatchServing
+{
+   struct UringRing * r;
+   unsigned int slot;
+   unsigned int ticket;
+   struct ApiFrame frame;
+};
+static struct AmmServer_APIRequest  batchRequest[AMMSERVER_API_MAX_BATCH];
+static struct AmmServer_APIResponse batchResponse[AMMSERVER_API_MAX_BATCH];
+static struct UringBatchServing     batchServing[AMMSERVER_API_MAX_BATCH];
 
 static int listenSocket = -1;
 //There is one accept in the whole server , on one ring at a time : whichever ring accepts a connection is
@@ -802,9 +827,15 @@ static void SendStatusAndClose(struct UringRing * r,unsigned int slot,unsigned i
 * @brief Answer at most one request out of buf. One , because the send that answers it is asynchronous and
 *        nothing behind it may be answered until it has completed , or two responses would be racing each
 *        other out of the same connection. Whatever is left over is kept for when that send completes. */
+static void FlushBatch(struct AmmServer_Instance * instance);
+
 static void ServeNextRequest(struct AmmServer_Instance * instance,struct UringRing * r,unsigned int slot,char * buf,unsigned int used)
 {
   struct UringConnection * conn = &r->connections[slot];
+
+  //Its request is already waiting for this pass's batch ; anything that arrived behind it stays where the
+  //caller put it , in `in` , and is served after its answer has gone out , as for any pipelined request.
+  if (conn->batched) { return; }
 
   struct ApiFrame frame;
   enum ApiFrameResult framing = ApiProtocol_NextFrame(buf,used,0,&frame);
@@ -823,6 +854,22 @@ static void ServeNextRequest(struct AmmServer_Instance * instance,struct UringRi
      //it can be trusted either.
      ApiProtocol_PartialFree(&conn->in);
      SendStatusAndClose(r,slot,frame.refuseStatus);
+     return;
+   }
+
+  if (__atomic_load_n(&instance->apiBatchHandler,__ATOMIC_ACQUIRE)!=0)
+   {
+     //Answered at the end of this pass over the rings , together with everything else that is ready by then
+     //( FlushBatch ). Until then the request lives in the connection's own buffer , because buf may be a
+     //provided buffer that goes back to the kernel as soon as this returns.
+     if (batchPendingCount>=AMMSERVER_API_MAX_BATCH) { FlushBatch(instance); }
+     if (!ApiProtocol_PartialKeepTail(&conn->in,buf,used,0)) { SendStatusAndClose(r,slot,413); return; }
+
+     conn->batched = 1;
+     batchPending[batchPendingCount].r          = r;
+     batchPending[batchPendingCount].slot       = slot;
+     batchPending[batchPendingCount].generation = conn->generation;
+     ++batchPendingCount;
      return;
    }
 
@@ -866,6 +913,98 @@ static void ServeNextRequest(struct AmmServer_Instance * instance,struct UringRi
   send->closeWhenWritten = (frame.keepAlive==0);
 
   SubmitSend(r,slot,(unsigned int) ticket);
+}
+
+/**
+* @brief Answer every request ServeNextRequest set aside in this pass , with one call of the batch handler.
+*        Each one is prepared into a send ticket's buffer , handed over together , then finished and sent
+*        exactly as ServeNextRequest would have. */
+static void FlushBatch(struct AmmServer_Instance * instance)
+{
+  unsigned int taken = batchPendingCount;
+  batchPendingCount = 0;
+
+  unsigned int count = 0;
+  unsigned int i=0;
+  for (i=0; i<taken; i++)
+   {
+     struct UringRing * r = batchPending[i].r;
+     unsigned int slot = batchPending[i].slot;
+     struct UringConnection * conn = &r->connections[slot];
+
+     //Closed since , and its buffer with it ; the slot may even be somebody else's by now.
+     if ( (!conn->inUse) || (conn->generation!=batchPending[i].generation) ) { continue; }
+     conn->batched = 0;
+
+     //It was a complete request when it was set aside , and bytes have only been appended behind it since.
+     struct ApiFrame frame;
+     if (ApiProtocol_NextFrame(conn->in.data,conn->in.used,0,&frame)!=API_FRAME_READY) { CloseConnection(r,slot); continue; }
+
+     int ticket = AcquireSendTicket();
+     if (ticket<0) { QueueForTicket(r,slot); continue; } //its request is in `in` , and is served when a ticket frees
+
+     unsigned int failStatus=0;
+     if (!ApiProtocol_Prepare(&frame,&sendTicket[ticket].buffer,&batchRequest[count],&batchResponse[count],&failStatus))
+      {
+        ReleaseSendTicket((unsigned int) ticket);
+        ApiProtocol_PartialFree(&conn->in);
+        SendStatusAndClose(r,slot,failStatus);
+        continue;
+      }
+
+     batchServing[count].r      = r;
+     batchServing[count].slot   = slot;
+     batchServing[count].ticket = (unsigned int) ticket;
+     batchServing[count].frame  = frame;
+     ++count;
+   }
+
+  if (count==0) { return; }
+
+  //Read again rather than trusted from when the requests were set aside : it may have been cleared since.
+  void ( *DoBatch) (struct AmmServer_APIRequest *,struct AmmServer_APIResponse *,unsigned int) = 0;
+  DoBatch = __atomic_load_n(&instance->apiBatchHandler,__ATOMIC_ACQUIRE);
+  if (DoBatch!=0) { DoBatch(batchRequest,batchResponse,count); } else
+   {
+     void ( *DoCallback) (struct AmmServer_APIRequest *,struct AmmServer_APIResponse *) = instance->apiHandler;
+     for (i=0; i<count; i++) { DoCallback(&batchRequest[i],&batchResponse[i]); }
+   }
+
+  for (i=0; i<count; i++)
+   {
+     struct UringBatchServing * serving = &batchServing[i];
+     struct UringConnection * conn = &serving->r->connections[serving->slot];
+     struct UringSendTicket * send = &sendTicket[serving->ticket];
+
+     char * response=0;
+     unsigned int failStatus=0;
+     unsigned int responseLength = ApiProtocol_Finish(&serving->frame,&send->buffer,&batchRequest[i],&batchResponse[i],&response,&failStatus);
+
+     if (responseLength==0)
+      {
+        ReleaseSendTicket(serving->ticket);
+        ApiProtocol_PartialFree(&conn->in);
+        SendStatusAndClose(serving->r,serving->slot,failStatus);
+        continue;
+      }
+
+     //What came in behind this request stays for when its answer has gone out ( HandleSendCompletion ).
+     if (!ApiProtocol_PartialKeepTail(&conn->in,conn->in.data,conn->in.used,serving->frame.totalLength))
+      {
+        ReleaseSendTicket(serving->ticket);
+        SendStatusAndClose(serving->r,serving->slot,413);
+        continue;
+      }
+
+     send->data  = response;
+     send->total = responseLength;
+     send->sent  = 0;
+     send->slot  = serving->slot;
+     send->generation = conn->generation;
+     send->closeWhenWritten = (serving->frame.keepAlive==0);
+
+     SubmitSend(serving->r,serving->slot,serving->ticket);
+   }
 }
 
 /* ------------------------------------------------------------------ completions --------------------- */
@@ -1365,6 +1504,10 @@ static void * UringAPIThread(void * ptr)
       }
 
      if (broken) { break; }
+
+     //Everything that became ready in this pass is answered together , and its sends are submitted on the
+     //next turn round the rings.
+     if (batchPendingCount>0) { FlushBatch(instance); ++handled; }
 
      //Serving one ring queues work on others , and more may have arrived while we were at it , so the rings
      //are gone round again before anything blocks.
