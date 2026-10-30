@@ -20,6 +20,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <dirent.h>
 #include <limits.h>
@@ -269,6 +270,10 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
    case   ARCHIVEFILES_TAR_XZ    :
    case   ARCHIVEFILES_XZ        :  strcpy(content_type,"application/octet-stream");      content_type[24]=0; return 1; break;
   };
+
+ //.bin (and .dat) : raw binary , e.g. a dynamic handler's frames
+ if ( (strcasecmp(theextension,"bin")==0) || (strcasecmp(theextension,"dat")==0) )
+   { snprintf(content_type,contentTypeLength,"application/octet-stream"); return 1; }
 
  fprintf(stderr,"Could not find extension type for extension %s \n",theextension);
  return 0;
