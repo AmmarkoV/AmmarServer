@@ -1,5 +1,6 @@
 #include "generic_header_tools.h"
 #include "http_header_analysis.h"
+#include "post_header_analysis.h"
 #include "chunked_transfer.h"
 
 #include "../tools/logs.h"
@@ -434,14 +435,37 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
                     //We've reached keepAnalyzingHTTPHeadera new line! , lets process the previous one
                     ++output->parsingCurrentLine;
 
-                      AnalyzeHTTPLineRequest(
-                                              instance,
-                                              output,
-                                              startOfNewLine,
-                                              newLineLength,
-                                              output->parsingCurrentLine,
-                                              webserver_root
-                                            );
+                    //Bytes after the header's blank line are body data, not request
+                    //headers.  Non-chunked POST bodies still need the POST scanner
+                    //( multipart boundary registration ) , but they must never go
+                    //through AnalyzeHTTPLineRequest : a body line "Host:" / "Range:" /
+                    //"Transfer-Encoding:" used to be able to rewrite the request.
+                    unsigned int lineOffset=(unsigned int)(startOfNewLine-output->headerRAW);
+                    unsigned char lineIsBody=(output->headerRAWHeadSize>0) &&
+                                              (lineOffset>=output->headerRAWHeadSize+1);
+                    if (lineIsBody)
+                     {
+                       if ( (output->requestType==POST) && (MASTER_ENABLE_POST) )
+                        {
+                          AnalyzePOSTLineRequest(
+                                                  instance,
+                                                  output,
+                                                  startOfNewLine,
+                                                  newLineLength,
+                                                  output->parsingCurrentLine
+                                                );
+                        }
+                     } else
+                     {
+                       AnalyzeHTTPLineRequest(
+                                               instance,
+                                               output,
+                                               startOfNewLine,
+                                               newLineLength,
+                                               output->parsingCurrentLine,
+                                               webserver_root
+                                             );
+                     }
 
                     newLineLength=0;
 
@@ -559,6 +583,12 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
                                              &transaction->incomingHeader.headerRAWHeadSize
                                             );
        }
+
+     //Never decide completion before the header's terminating blank line exists.
+     //Without it httpHeaderLength is 0 and a Content-Length equal to the bytes
+     //received so far made an unterminated header look complete ( request desync ).
+     if (transaction->incomingHeader.headerRAWHeadSize==0) { return 0; }
+
      //headerRAWHeadSize is the *index* of the header's final LF (that is why
      //POSTrequestBody is headerRAW+headerRAWHeadSize+1), so the header is one
      //byte longer than it.  Using it as a length made us stop one byte short of

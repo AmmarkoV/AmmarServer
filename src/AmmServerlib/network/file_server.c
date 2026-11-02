@@ -439,6 +439,24 @@ unsigned long SendEmbeddedFile
   return 0;
 }
 
+/*Exact, length-aware If-None-Match comparison.
+  "*" is the RFC 7232 wildcard and matches any existing representation.
+  An empty entity-tag ( "If-None-Match: \"\"" ) is invalid and must not match ;
+  a prefix of the local tag must not match either ( the old strncmp() only
+  compared as many bytes as the client sent ).*/
+static int RequestETagMatches(const struct HTTPHeader * request,const char * localETag)
+{
+  if ( (request==0) || (request->eTag==0) || (request->eTagLength==0) ) { return 0; }
+
+  if ( (request->eTagLength==1) && (request->eTag[0]=='*') ) { return 1; }
+
+  if ( (localETag==0) || (localETag[0]==0) ) { return 0; }
+
+  size_t localLength=strlen(localETag);
+  if (localLength!=request->eTagLength) { return 0; }
+  return (memcmp(request->eTag,localETag,localLength)==0);
+}
+
 /*Resolve a parsed Range: header against the representation size.
   Returns 1=partial content , 0=no range/ignored , -1=unsatisfiable ( 416 ).*/
 static int ResolveByteRange(
@@ -608,9 +626,9 @@ unsigned long SendFile
   {
     //Preserve the historical dynamic-page ETag/cooldown behavior : a callback that is still
     //inside its callback_every_x_msec cooldown can answer 304 when its ETag matches.
-    if ( (request->eTag!=0) && (LocalETag[0]!=0) && (!cache[index].doNOTCacheRule) &&
+    if ( (request->eTag!=0) && (!cache[index].doNOTCacheRule) &&
          (cache[index].dynamicRequest!=0) && (cache[index].dynamicRequest->callback_cooldown) &&
-         (strncmp(request->eTag,LocalETag,request->eTagLength)==0) )
+         (RequestETagMatches(request,LocalETag)) )
      { not_modified=1; }
   } else
   if ( (request->requestType==GET) || (request->requestType==HEAD) )
@@ -625,7 +643,7 @@ unsigned long SendFile
     if (request->eTag!=0)
     {
       //If-None-Match takes precedence : If-Modified-Since is ignored whenever it is present
-      if ( (LocalETag[0]!=0) && (strncmp(request->eTag,LocalETag,request->eTagLength)==0) ) { not_modified=1; }
+      if (RequestETagMatches(request,LocalETag)) { not_modified=1; }
     } else
     if ( request->ifModifiedSinceSet && haveModificationTime &&
          (representationModificationTime <= request->ifModifiedSince) )

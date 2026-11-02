@@ -4,6 +4,13 @@ Compiled from direct code reading of `src/AmmServerlib/` (this session, plus thr
 parts not already touched), and from this session's own architecture/benchmarking work. Organized by category,
 roughly most-actionable first. See `knowledge/ammarserver.md` for how the surrounding code works.
 
+> **2026-11 request-pipeline review:** see [`http-feature-review.md`](http-feature-review.md) for verified
+> parser/desync issues found while implementing and testing Range/Host/chunked/conditional support. The
+> critical findings — a remotely triggerable SIGSEGV in `If-None-Match` parsing, a premature
+> POST-completion desync, and request-header injection through body lines — plus the related ETag and
+> fast-path version issues were fixed, with regression tests in `tests/`. The remaining medium/low findings
+> in that document are still open.
+
 ## 1. Correctness bugs found by direct reading
 
 **✅ FIXED** — **`AmmServer_DynamicRequestReturnMemoryHandler()` — two bugs in the same function** (`src/AmmServerlib/main.c`):

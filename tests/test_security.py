@@ -187,6 +187,69 @@ class TestRequestSmuggling(ServerTestCase):
         self.assertEqual(response.status, 400)
         self.assertEqual(self.request("GET", "/index.html").status, 200)
 
+    def test_08_unterminated_header_with_matching_content_length_waits(self):
+        # If the bytes received so far exactly equal Content-Length, the header
+        # used to be treated as complete even without its terminating blank line,
+        # producing a response before the rest of the request arrived (desync).
+        prefix = b"POST /formtest.html HTTP/1.1\r\nHost: x\r\nContent-Length: "
+        length = len(prefix)
+        for _ in range(5):
+            length = len(prefix) + len(str(length)) + 2
+        header = prefix + str(length).encode("latin-1") + b"\r\n"
+        self.assertEqual(len(header), length)
+
+        connection = self.connect()
+        try:
+            connection.socket.settimeout(0.5)
+            connection.send(header)
+            with self.assertRaises(socket.timeout):
+                connection.socket.recv(1)
+
+            connection.socket.settimeout(5.0)
+            connection.send(b"\r\n" + (b"x" * length))
+            response = connection.read_response("POST")
+            self.assertEqual(response.status, 200)
+        finally:
+            connection.close()
+
+        self.assertEqual(self.request("GET", "/index.html").status, 200)
+
+
+class TestBodyHeaderInjection(ServerTestCase):
+    """Body data must never be parsed as request headers."""
+
+    server_config = {"Caching": "Off", "EnablePost": "On"}
+
+    def test_01_host_header_in_body_is_ignored(self):
+        body = b"Host: injected\r\n"
+        # No real Host header; the body line used to satisfy HTTP/1.1 validation.
+        response = self.request(
+            "GET", "/index.html?x=1",
+            [("Content-Length", str(len(body)))],
+            body, host=None)
+        self.assertEqual(response.status, 400)
+        self.assertEqual(self.request("GET", "/index.html").status, 200)
+
+    def test_02_range_header_in_body_is_ignored(self):
+        body = b"Range: bytes=0-0\r\n"
+        response = self.request(
+            "GET", "/index.html?x=1",
+            [("Content-Length", str(len(body)))],
+            body)
+        self.assertEqual(response.status, 200)
+        self.assertIsNone(response.header("content-range"))
+
+    def test_03_transfer_encoding_in_body_is_ignored(self):
+        body = b"Transfer-Encoding: gzip\r\n"
+        response = self.request(
+            "GET", "/index.html?x=1",
+            [("Content-Length", str(len(body)))],
+            body)
+        self.assertEqual(response.status, 200)
+
+    def test_04_server_survives_and_still_serves(self):
+        self.assertEqual(self.request("GET", "/index.html").status, 200)
+
 
 class TestOversizedBodies(ServerTestCase):
     server_config = {"Caching": "On", "EnablePost": "On", "MaxPostTransactionSize": 512}

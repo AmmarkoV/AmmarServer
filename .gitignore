@@ -5,3 +5,7 @@ db/chat/
 # Python test suite bytecode
 __pycache__/
 *.pyc
+
+# Runtime logs (log/placeholder is intentionally tracked)
+/log/
+/logs/

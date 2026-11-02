@@ -92,5 +92,55 @@ class TestConditionalsDisk(ConditionalAssertions):
     server_config = {"Caching": "Off"}
 
 
+class TestETagEdgeCases(ServerTestCase):
+    """Regression tests for the If-None-Match parser/comparison bugs."""
+
+    server_config = {"Caching": "On"}
+
+    def _warm(self):
+        response = self.request("GET", "/range.bin")
+        self.assertEqual(response.status, 200)
+        return response
+
+    def test_01_empty_etag_does_not_crash_and_does_not_match(self):
+        self._warm()
+        # make_request renders this as the line "If-None-Match: " — the value
+        # that used to underflow eTagLength and crash the server.
+        response = self.request("GET", "/range.bin", [("If-None-Match", "")])
+        self.assertEqual(response.status, 200)
+        self.assertEqual(self.request("GET", "/index.html").status, 200)
+
+    def test_02_quoted_empty_etag_does_not_match(self):
+        self._warm()
+        response = self.request("GET", "/range.bin", [("If-None-Match", '""')])
+        self.assertEqual(response.status, 200)
+
+    def test_03_single_quote_does_not_crash(self):
+        self._warm()
+        response = self.request("GET", "/range.bin", [("If-None-Match", '"')])
+        self.assertIn(response.status, (200, 400))
+        self.assertEqual(self.request("GET", "/index.html").status, 200)
+
+    def test_04_wildcard_matches_existing_representation(self):
+        self._warm()
+        response = self.request("GET", "/range.bin", [("If-None-Match", "*")])
+        self.assertEqual(response.status, 304)
+
+    def test_05_prefix_etag_does_not_match(self):
+        warm = self._warm()
+        etag = warm.header("etag")
+        self.assertIsNotNone(etag)
+        prefix = etag.strip('"')[:1]
+        response = self.request("GET", "/range.bin", [("If-None-Match", prefix)])
+        self.assertEqual(response.status, 200)
+
+    def test_06_exact_etag_still_matches(self):
+        warm = self._warm()
+        etag = warm.header("etag")
+        self.assertIsNotNone(etag)
+        response = self.request("GET", "/range.bin", [("If-None-Match", etag)])
+        self.assertEqual(response.status, 304)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -91,18 +91,43 @@ struct FastPathPendingWrite
    int keepalive;
 };
 
-/*True only when the HTTP version token on the request line itself is HTTP/1.1.
-  Searching the whole header for " HTTP/1.1" could match a header value instead.*/
-static int request_line_is_http_1_1(const char * peek,unsigned int header_len)
+/*Parse the HTTP version token from the request line only ( method SP target SP
+  version ).  Searching the whole header for " HTTP/1.0" or " HTTP/1.1" could
+  match a header value instead , and taking the last token would misparse a
+  request line with trailing whitespace.  Unknown versions make the fast path
+  fall back to the worker rather than guess.*/
+static void parse_request_line_version(
+                                        const char * peek,
+                                        unsigned int header_len,
+                                        int * major,
+                                        int * minor,
+                                        int * known
+                                      )
 {
+  *major=0; *minor=9; *known=0;
+
   const char * lineEnd=(const char *) memchr(peek,'\n',header_len);
   if (lineEnd==0) { lineEnd=peek+header_len; }
-  while ( (lineEnd>peek) && (lineEnd[-1]=='\r') ) { --lineEnd; }
 
-  const char * tokenStart=lineEnd;
-  while ( (tokenStart>peek) && (tokenStart[-1]!=' ') ) { --tokenStart; }
+  const char * cursor=peek;
+  while ( (cursor<lineEnd) && (*cursor!=' ') ) { ++cursor; } //method
+  while ( (cursor<lineEnd) && (*cursor==' ') ) { ++cursor; }
+  while ( (cursor<lineEnd) && (*cursor!=' ') && (*cursor!='\r') ) { ++cursor; } //target
+  while ( (cursor<lineEnd) && (*cursor==' ') ) { ++cursor; }
 
-  return ( (lineEnd-tokenStart==8) && (strncasecmp(tokenStart,"HTTP/1.1",8)==0) );
+  const char * version=cursor;
+  while ( (cursor<lineEnd) && (*cursor!=' ') && (*cursor!='\t') && (*cursor!='\r') ) { ++cursor; }
+
+  if ( (cursor-version>=8) &&
+       (strncasecmp(version,"HTTP/",5)==0) &&
+       (version[5]>='0') && (version[5]<='9') &&
+       (version[6]=='.') &&
+       (version[7]>='0') && (version[7]<='9') )
+   {
+     *major=version[5]-'0';
+     *minor=version[7]-'0';
+     *known=1;
+   }
 }
 
 /*Count "Host:" header lines inside the peeked header block.  The fast path is
@@ -159,7 +184,14 @@ static enum FastPathOneRequestResult TryServeOneRequest(struct AmmServer_Instanc
        strcasestr(peek,"\nAuthorization:")!=0 )
    { return FASTPATH_INELIGIBLE; }
 
-  if ( request_line_is_http_1_1(peek,header_len) && (count_host_headers(peek)!=1) )
+  int versionMajor=0,versionMinor=9,versionKnown=0;
+  parse_request_line_version(peek,header_len,&versionMajor,&versionMinor,&versionKnown);
+  if (!versionKnown) { return FASTPATH_INELIGIBLE; } //Let the worker parse it
+
+  int is_http_1_1=(versionMajor==1)&&(versionMinor>=1);
+  int is_http_1_0=(versionMajor==1)&&(versionMinor==0);
+
+  if ( is_http_1_1 && (count_host_headers(peek)!=1) )
    { return FASTPATH_INELIGIBLE; } //Missing/duplicate Host must reach the validating worker
 
   unsigned int method_len = is_head?5:4;
@@ -204,9 +236,8 @@ static enum FastPathOneRequestResult TryServeOneRequest(struct AmmServer_Instanc
   //way , keep-alive there is opt-in only. This is a byte-peeking approximation of that same logic ( no
   //structured header parsing here ) , close enough given a miscategorization here just costs a connection
   //being closed/kept a little differently than the real parser would , not a correctness issue.
-  int is_http_1_0 = (strcasestr(peek," HTTP/1.0")!=0);
   int says_close  = (strcasestr(peek,"\nConnection: close")!=0) || (strcasestr(peek,"\nConnection:close")!=0);
-  int says_keepalive = (strcasestr(peek,"keep-alive")!=0);
+  int says_keepalive = (strcasestr(peek,"\nConnection: keep-alive")!=0) || (strcasestr(peek,"\nConnection:keep-alive")!=0);
   int keepalive = is_http_1_0 ? says_keepalive : !says_close;
 
   //--- Eligible. Everything past this point actually consumes the request. ---

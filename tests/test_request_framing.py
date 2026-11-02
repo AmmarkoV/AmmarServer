@@ -86,6 +86,23 @@ class TestHostAndAbsoluteForm(ServerTestCase):
         response = self.request("GET", target)
         self.assertIn(response.status, (400, 404))
 
+    def test_14_trailing_space_version_still_requires_host(self):
+        # Warm the static cache so the fast path is eligible.
+        self.assertEqual(self.request("GET", "/range.bin").status, 200)
+        response = self.request("GET", "/range.bin", version="HTTP/1.1 ", host=None)
+        self.assertEqual(response.status, 400)
+
+    def test_15_header_value_does_not_change_keepalive(self):
+        # A User-Agent containing " HTTP/1.0" must not be mistaken for the
+        # request-line version (which used to force Connection: close).
+        self.assertEqual(self.request("GET", "/range.bin").status, 200)
+        response = self.request(
+            "GET", "/range.bin",
+            [("User-Agent", "Mozilla HTTP/1.0")],
+            close=False)
+        self.assertEqual(response.status, 200)
+        self.assertEqual((response.header("connection") or "").lower(), "keep-alive")
+
 
 class TestChunkedAndExpect(ServerTestCase):
     server_config = {"Caching": "On", "EnablePost": "On", "MaxPostTransactionSize": 4 * 1024 * 1024}
@@ -236,6 +253,20 @@ class TestChunkedAndExpect(ServerTestCase):
             [("Transfer-Encoding", "gzip, chunked")],
             b"0\r\n\r\n")
         self.assertEqual(response.status, 501)
+
+    def test_16_part_content_type_with_boundary_does_not_reset_items(self):
+        # A multipart part's own Content-Type/boundary must not call
+        # createPOSTData() and wipe the fields registered before it.
+        body = multipart_body(
+            value="partctype",
+            extra_part_headers=['Content-Type: multipart/mixed; boundary=INNER'],
+        )
+        response = self.request(
+            "POST", "/formtest.html",
+            [("Content-Type", "multipart/form-data; boundary=%s" % MULTIPART_BOUNDARY),
+             ("Content-Length", str(len(body)))],
+            body)
+        self.assert_echo(response, "partctype")
 
     def test_15_multipart_part_content_length_is_ignored(self):
         # A Content-Length line inside a multipart part header must not override

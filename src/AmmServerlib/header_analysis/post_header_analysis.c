@@ -165,6 +165,17 @@ static int ParseContentLengthValue(const char * value,unsigned int length,unsign
   return 1;
 }
 
+/*True when this line starts after the request header's blank line, i.e. it is
+  part of a multipart body rather than a request header.  Such lines may still
+  be needed for boundary registration , but they must not overwrite request
+  fields ( Content-Type boundary , Content-Length , ... ).*/
+static unsigned char POSTLineIsBody(const struct HTTPHeader * output,const char * request)
+{
+  if ( (output==0) || (output->headerRAW==0) || (output->headerRAWHeadSize==0) || (request==0) ) { return 0; }
+  if (request<output->headerRAW) { return 0; }
+  return (request>=output->headerRAW+output->headerRAWHeadSize+1);
+}
+
 int AnalyzePOSTLineRequest(
                             struct AmmServer_Instance * instance,
                             struct HTTPHeader * output,
@@ -179,6 +190,8 @@ int AnalyzePOSTLineRequest(
              fprintf(stderr,"AnalyzePOSTLineRequest lines_gathered = %u \n",lines_gathered);
              return 0;
             }
+
+         unsigned char lineIsBody=POSTLineIsBody(output,request);
 
          //fprintf(stderr,"AnalyzePOSTLineRequest ");
          //printLine(request,request_length);
@@ -208,6 +221,9 @@ int AnalyzePOSTLineRequest(
             //In order to add more POST header items, go to
             //AmmarServer/src/StringRecognizer/postHeader put them there and then run the generateAmmServerScanners.sh which is in the same directory..
             case POSTHEADER_CONTENT_TYPE :
+                 //A Content-Type line inside a multipart part must not replace the
+                 //request's own Content-Type/boundary or reset the POST items.
+                 if (lineIsBody) { return 0; }
                  payload_start+=strlen("CONTENT-TYPE:");
                  //if (output->ContentType!=0) { free(output->ContentType); output->ContentType=0; }
                  //output->contentTypeIndex=payload_start;
@@ -262,6 +278,9 @@ int AnalyzePOSTLineRequest(
               break;
 
             case POSTHEADER_CONTENT_DISPOSITION :
+                //Part-level Content-Disposition is parsed by finalizePOSTData() ;
+                //it must not overwrite the request-level field.
+                if (lineIsBody) { return 0; }
                 payload_start+=strlen("CONTENT-DISPOSITION:");
                 //output->contentDispositionIndex=payload_start;
                 output->contentDisposition=request+payload_start;
@@ -272,11 +291,10 @@ int AnalyzePOSTLineRequest(
             case POSTHEADER_CONTENT_LENGTH :
                 payload_start+=strlen("CONTENT-LENGTH:");
 
-                //Once the header's blank line is behind us , a Content-Length line belongs to a
-                //multipart part , not to the request framing : ignore it instead of letting a file
-                //part overwrite the request body size.
-                if ( (output->headerRAWHeadSize>0) &&
-                     (request >= output->headerRAW+output->headerRAWHeadSize+1) ) { return 0; }
+                //A Content-Length line inside a multipart part belongs to that
+                //part , not to the request framing : ignore it instead of letting
+                //a file part overwrite the request body size.
+                if (lineIsBody) { return 0; }
 
                 {
                   unsigned long parsedLength=0;
