@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include "dynamic_requests.h"
 #include "file_caching.h"
@@ -50,11 +51,41 @@ int saveDynamicRequest(const char * filename , struct AmmServer_Instance * insta
   return 0;
 }
 
+static const char * RequestTypeName(int requestType)
+{
+  switch (requestType)
+  {
+    case GET:     return "GET";
+    case HEAD:    return "HEAD";
+    case POST:    return "POST";
+    case PUT:     return "PUT";
+    case DELETE:  return "DELETE";
+    case TRACE:   return "TRACE";
+    case OPTIONS: return "OPTIONS";
+    case CONNECT: return "CONNECT";
+    case PATCH:   return "PATCH";
+    default:      return 0;
+  }
+}
+
 int callClientRequestHandler(struct AmmServer_Instance * instance,struct HTTPHeader * output)
 {
+  if ( (instance==0) || (output==0) ) { return 0; }
   if ( instance->clientRequestHandlerOverrideContext == 0 )  { return 0; }
   struct AmmServer_RequestOverride_Context * clientOverride = instance->clientRequestHandlerOverrideContext;
   if ( clientOverride->request_override_callback == 0 ) { return 0; }
+
+  //A handler is registered for one method ; honour that instead of calling it for
+  //every request.  HEAD is the header-only form of GET , so a GET handler still
+  //sees HEAD requests.
+  const char * requestMethod=RequestTypeName(output->requestType);
+  if (requestMethod==0) { return 0; }
+
+  int applies=(strcasecmp(clientOverride->requestHeader,requestMethod)==0);
+  if ( (!applies) && (output->requestType==HEAD) &&
+       (strcasecmp(clientOverride->requestHeader,"GET")==0) )
+   { applies=1; }
+  if (!applies) { return 0; }
 
   //clientOverride is a single struct shared by every serving thread ( populated once at registration time in
   //AmmServer_AddRequestHandler ). Writing the per-call ->request field on it directly would race across threads,

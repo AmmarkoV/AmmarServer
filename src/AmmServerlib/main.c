@@ -508,13 +508,18 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
 int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,const char * request_type,void * callback)
 {
   if ( (instance==0)||(RequestOverrideContext==0)||(request_type==0)||(callback==0) ) { return 0; }
-  strncpy( RequestOverrideContext->requestHeader , request_type , 64 /*limit declared on AmmServerlib.h*/) ;
+
+  //strncpy() does not terminate when the source is exactly the destination size ,
+  //so clear the field first and reserve one byte for the NUL.
+  memset(RequestOverrideContext->requestHeader,0,sizeof(RequestOverrideContext->requestHeader));
+  strncpy( RequestOverrideContext->requestHeader , request_type , sizeof(RequestOverrideContext->requestHeader)-1 ) ;
   RequestOverrideContext->request=0;
 
   instance->clientRequestHandlerOverrideContext = RequestOverrideContext;
   RequestOverrideContext->request_override_callback = callback;
 
-  AmmServer_Warning("AmmServer_AddRequestHandler could potentially be buggy\n");
+  //No per-request state is written to this shared context : callClientRequestHandler()
+  //hands the callback a thread-local copy , so serving threads cannot race on it.
 
   return 1;
 }

@@ -736,7 +736,8 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
 
 /**
 * @brief Add a request handler to handle requests , before they get processed internally
-*        Calling this will bind a C function that will be called and produce output when someone asks for any resource using the specified method
+*        Calling this will bind a C function that will be called and produce output when someone asks for any resource using the specified method.
+*        A handler registered for "GET" is also invoked for HEAD requests ( HEAD is the header-only form of GET ).
          TODO : Improve this documenatation
 * @ingroup core
 * @param An AmmarServer Instance
