@@ -492,6 +492,11 @@ struct AmmServer_Instance
     //ready in one pass over its completion queues with a single call to this , instead of one apiHandler call
     //each. Written by the caller's thread and read by the ring thread , so it is only ever touched atomically.
     void * apiBatchHandler;
+    //Set by AmmServer_SetAPINotifyFD : an eventfd the ring thread polls , and a callback it runs from that
+    //same thread when the fd is readable. A handler that answers requests out of band uses this to wake the
+    //ring thread ; the callback is the only place AmmServer_APISendDeferred may be called from.
+    int apiNotifyFd;
+    void (*apiNotifyCallback)(struct AmmServer_Instance * instance);
 };
 
 /** @brief The most requests one call of an API batch handler is given ( see AmmServer_SetAPIBatchHandler ) */
@@ -737,6 +742,8 @@ struct AmmServer_APIResponse
    unsigned int bodyLength;
    unsigned int maxBodyLength;
    unsigned char overflowed;     /**< @brief Set , and stays set , when a AmmServer_APIResponseWrite* call ran out of body buffer */
+   unsigned char deferred;       /**< @brief Set by a batch handler to answer this request later with AmmServer_APISendDeferred */
+   unsigned long long deferToken;/**< @brief The transport's handle for a deferred request ; pass it back unchanged */
 };
 
 /**
@@ -783,6 +790,34 @@ int AmmServer_SetAPIHandler(struct AmmServer_Instance * instance,void * callback
 * @retval 1=Success,0=Fail
 */
 int AmmServer_SetAPIBatchHandler(struct AmmServer_Instance * instance,void * batchCallback);
+
+/**
+* @brief Hand the transport an eventfd to poll and a callback to run on the ring thread when it is readable.
+*
+*        Call this before serving starts. The fd must be an eventfd , or at least non-blocking : the transport
+*        reads it to clear the readiness before running the callback , and the callback must not block. This is
+*        what lets a batch handler mark responses deferred ( AmmServer_APIResponse.deferred ) and answer them
+*        later , from the ring thread , with AmmServer_APISendDeferred.
+*
+* @param instance An AmmarServer Instance in API mode
+* @param fd A non-blocking eventfd , or -1 to disable
+* @param callback Run on the ring thread when fd is readable ; 0 to disable
+* @retval 1=Success,0=Fail
+*/
+int AmmServer_SetAPINotifyFD(struct AmmServer_Instance * instance,int fd,void (*callback)(struct AmmServer_Instance * instance));
+
+/**
+* @brief Answer a request whose batch handler set response->deferred.
+*
+*        Must be called from the ring thread , i.e. from the AmmServer_SetAPINotifyFD callback. The body is
+*        copied before this returns , so the caller keeps ownership of it. If no response buffer is free this
+*        returns 0 and the caller should retry later ; a token whose connection has since closed is accepted
+*        and discarded.
+*
+* @param token response->deferToken , unchanged
+* @retval 1=answered ( or the connection was already gone ) , 0=no buffer , retry later
+*/
+int AmmServer_APISendDeferred(struct AmmServer_Instance * instance,unsigned long long token,unsigned int statusCode,const char * contentType,const char * extraHeaders,const char * body,unsigned int bodyLength);
 
 /**
 * @brief Start an instance that is in API mode from the outset : the same as AmmServer_Start followed by

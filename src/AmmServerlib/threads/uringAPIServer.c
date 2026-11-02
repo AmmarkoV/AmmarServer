@@ -42,6 +42,16 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 int UringAPI_Start(struct AmmServer_Instance * instance,int serverSocket,unsigned int rings) { return 0; }
 void UringAPI_Wait(struct AmmServer_Instance * instance) { }
 void UringAPI_Stop(struct AmmServer_Instance * instance) { }
+int AmmServer_APISendDeferred(
+                               struct AmmServer_Instance * instance,
+                               unsigned long long token,
+                               unsigned int statusCode,
+                               const char * contentType,
+                               const char * extraHeaders,
+                               const char * body,
+                               unsigned int bodyLength
+                             )
+{ (void) instance; (void) token; (void) statusCode; (void) contentType; (void) extraHeaders; (void) body; (void) bodyLength; return 0; }
 
 #else
 
@@ -114,6 +124,7 @@ void UringAPI_Stop(struct AmmServer_Instance * instance) { }
 #define URING_OP_CLOSE   4
 #define URING_OP_PROVIDE 5
 #define URING_OP_CANCEL  6
+#define URING_OP_NOTIFY  7
 
 //user_data carries what completed , for which connection , and which incarnation of it. The generation is
 //what makes a late completion safe : a slot freed by a close can be handed to a new accept before the
@@ -126,6 +137,14 @@ void UringAPI_Stop(struct AmmServer_Instance * instance) { }
 #define URING_USER_DATA_GENERATION(ud) ((unsigned int)(((ud)>>32)&0xFFFFFFULL))
 #define URING_USER_DATA_SLOT(ud)       ((unsigned int)((ud)&0xFFFFFFFFULL))
 #define URING_NO_SLOT 0xFFFFFFFFu
+
+//What a deferred response carries back to the transport. The generation has the same 24 bits the completion
+//tags use , because it is what tells a late answer from a slot that has since been closed and reused.
+#define URING_DEFER_TOKEN(ringIndex,generation,slot) \
+  ( (((unsigned long long)((generation)&0xFFFFFFULL))<<24) | (((unsigned long long)(slot))<<4) | ((unsigned long long)(ringIndex)) )
+#define URING_DEFER_TOKEN_RING(token)       ((unsigned int)((token)&0xFULL))
+#define URING_DEFER_TOKEN_SLOT(token)       ((unsigned int)(((token)>>4)&0xFFFFFULL))
+#define URING_DEFER_TOKEN_GENERATION(token) ((unsigned int)(((token)>>24)&0xFFFFFFULL))
 
 static int uring_setup(unsigned int entries,struct io_uring_params * params)
 { return (int) syscall(__NR_io_uring_setup,entries,params); }
@@ -149,6 +168,9 @@ struct UringConnection
    unsigned char waitingForTicket;
    unsigned char waitingForRearm;
    unsigned char batched;             //holding a complete request in `in` , waiting for this pass's FlushBatch
+   unsigned char deferred;            //answered later by AmmServer_APISendDeferred
+   unsigned char deferredKeepAlive;
+   int deferredMethod;
 };
 
 //One response on its way out. The buffer is the handler's , so it cannot be reused until the send that is
@@ -425,6 +447,26 @@ static struct io_uring_sqe * GetSqe(struct UringRing * r)
   return sqe;
 }
 
+//A deferred-response wakeup. One poll stays armed on the ring thread's behalf ; when it completes the fd is
+//read to clear the readiness and the instance's callback answers whatever has finished. Re-armed from the
+//loop after each completion , and lazily once the callback and fd have been set on a running server.
+static int notifyArmed = 0;
+static void ArmNotify(struct AmmServer_Instance * instance)
+{
+  if (notifyArmed) { return; }
+  int fd = __atomic_load_n(&instance->apiNotifyFd,__ATOMIC_ACQUIRE);
+  if (fd<0) { return; }
+
+  struct io_uring_sqe * sqe = GetSqe(&ringAt[0]);
+  if (sqe==0) { return; }
+
+  sqe->opcode      = IORING_OP_POLL_ADD;
+  sqe->fd          = fd;
+  sqe->poll_events = EPOLLIN;
+  sqe->user_data   = URING_USER_DATA(URING_OP_NOTIFY,0,0);
+  notifyArmed = 1;
+}
+
 /* ------------------------------------------------------------------ provided receive buffers --------- */
 
 //A receive that could not be armed - no provided buffer free , or no submission queue entry - leaves its
@@ -465,7 +507,7 @@ static void RearmOneWaiting(struct UringRing * r)
      conn->nextRearm=URING_NO_SLOT;
      conn->waitingForRearm=0;
 
-     if ( (conn->inUse) && (!conn->recvArmed) && (!conn->sendInFlight) ) { ArmRecv(r,slot); return; }
+     if ( (conn->inUse) && (!conn->recvArmed) && (!conn->sendInFlight) && (!conn->deferred) ) { ArmRecv(r,slot); return; }
    }
 }
 
@@ -730,6 +772,10 @@ static void ArmRecv(struct UringRing * r,unsigned int slot)
 {
   struct UringConnection * conn = &r->connections[slot];
 
+  //Nothing is read from a connection that is waiting for a deferred answer ; its bytes behind the request
+  //stay in conn->in and are served when that answer's send completes.
+  if (conn->deferred) { conn->recvArmed=0; return; }
+
   struct io_uring_sqe * sqe = GetSqe(r);
   if (sqe==0) { QueueForRearm(r,slot); return; }
 
@@ -833,9 +879,10 @@ static void ServeNextRequest(struct AmmServer_Instance * instance,struct UringRi
 {
   struct UringConnection * conn = &r->connections[slot];
 
-  //Its request is already waiting for this pass's batch ; anything that arrived behind it stays where the
-  //caller put it , in `in` , and is served after its answer has gone out , as for any pipelined request.
-  if (conn->batched) { return; }
+  //Its request is already waiting for this pass's batch , or for an answer that will be sent by
+  //AmmServer_APISendDeferred ; anything that arrived behind it stays where the caller put it , in `in` ,
+  //and is served after its answer has gone out , as for any pipelined request.
+  if ( (conn->batched) || (conn->deferred) ) { return; }
 
   struct ApiFrame frame;
   enum ApiFrameResult framing = ApiProtocol_NextFrame(buf,used,0,&frame);
@@ -884,9 +931,47 @@ static void ServeNextRequest(struct AmmServer_Instance * instance,struct UringRi
 
   struct UringSendTicket * send = &sendTicket[ticket];
 
-  char * response=0;
+  struct AmmServer_APIRequest rqst;
+  struct AmmServer_APIResponse res;
   unsigned int failStatus=0;
-  unsigned int responseLength = ApiProtocol_Serve(instance,&frame,&send->buffer,&response,&failStatus);
+  if (!ApiProtocol_Prepare(&frame,&send->buffer,&rqst,&res,&failStatus))
+   {
+     ReleaseSendTicket((unsigned int) ticket);
+     ApiProtocol_PartialFree(&conn->in);
+     SendStatusAndClose(r,slot,failStatus);
+     return;
+   }
+  res.deferToken = URING_DEFER_TOKEN(r->index,conn->generation,slot);
+
+  void * handler = instance->apiHandler;
+  if (handler==0)
+   {
+     ReleaseSendTicket((unsigned int) ticket);
+     ApiProtocol_PartialFree(&conn->in);
+     SendStatusAndClose(r,slot,500);
+     return;
+   }
+  ( (void (*)(struct AmmServer_APIRequest *,struct AmmServer_APIResponse *)) handler)(&rqst,&res);
+
+  if (res.deferred)
+   {
+     //Its answer will be sent by AmmServer_APISendDeferred , from the same thread that would have sent it
+     //here. The request's bytes go , and whatever was pipelined behind them waits in conn->in for the send
+     //completion to serve it.
+     ReleaseSendTicket((unsigned int) ticket);
+     conn->deferred          = 1;
+     conn->deferredKeepAlive = (unsigned char) frame.keepAlive;
+     conn->deferredMethod    = rqst.method;
+     if (!ApiProtocol_PartialKeepTail(&conn->in,buf,used,frame.totalLength))
+      {
+        conn->deferred=0;
+        SendStatusAndClose(r,slot,413);
+      }
+     return;
+   }
+
+  char * response=0;
+  unsigned int responseLength = ApiProtocol_Finish(&frame,&send->buffer,&rqst,&res,&response,&failStatus);
 
   if (responseLength==0)
    {
@@ -951,6 +1036,7 @@ static void FlushBatch(struct AmmServer_Instance * instance)
         SendStatusAndClose(r,slot,failStatus);
         continue;
       }
+     batchResponse[count].deferToken = URING_DEFER_TOKEN(r->index,conn->generation,slot);
 
      batchServing[count].r      = r;
      batchServing[count].slot   = slot;
@@ -975,6 +1061,24 @@ static void FlushBatch(struct AmmServer_Instance * instance)
      struct UringBatchServing * serving = &batchServing[i];
      struct UringConnection * conn = &serving->r->connections[serving->slot];
      struct UringSendTicket * send = &sendTicket[serving->ticket];
+
+     if (batchResponse[i].deferred)
+      {
+        //The handler planned this request and will answer it from the notify callback. The ticket it was
+        //prepared in goes back now ; the answer acquires one when it is ready.
+        ReleaseSendTicket(serving->ticket);
+        conn->deferred          = 1;
+        conn->deferredKeepAlive = (unsigned char) serving->frame.keepAlive;
+        conn->deferredMethod    = batchRequest[i].method;
+
+        //Consume this request and keep whatever arrived behind it for after the deferred answer is sent.
+        if (!ApiProtocol_PartialKeepTail(&conn->in,conn->in.data,conn->in.used,serving->frame.totalLength))
+         {
+           conn->deferred=0;
+           SendStatusAndClose(serving->r,serving->slot,413);
+         }
+        continue;
+      }
 
      char * response=0;
      unsigned int failStatus=0;
@@ -1005,6 +1109,94 @@ static void FlushBatch(struct AmmServer_Instance * instance)
 
      SubmitSend(serving->r,serving->slot,serving->ticket);
    }
+}
+
+//The other half of a response marked deferred by the batch handler. Called on the ring thread only , from
+//the AmmServer_SetAPINotifyFD callback , so it may touch connections and send tickets directly.
+int AmmServer_APISendDeferred(
+                               struct AmmServer_Instance * instance,
+                               unsigned long long token,
+                               unsigned int statusCode,
+                               const char * contentType,
+                               const char * extraHeaders,
+                               const char * body,
+                               unsigned int bodyLength
+                             )
+{
+  if (instance==0) { return 0; }
+
+  unsigned int ringIndex  = URING_DEFER_TOKEN_RING(token);
+  unsigned int slot       = URING_DEFER_TOKEN_SLOT(token);
+  unsigned int generation = URING_DEFER_TOKEN_GENERATION(token);
+
+  if (ringIndex>=ringCount) { return 1; } //its ring exists no more ; there is nobody left to answer
+  struct UringRing * r = &ringAt[ringIndex];
+  if (slot>=r->connectionSlots) { return 1; }
+
+  struct UringConnection * conn = &r->connections[slot];
+
+  //Closed since , or the slot already belongs to somebody else : the response has nowhere to go.
+  if ( (!conn->inUse) || (!conn->deferred) || ((conn->generation&0xFFFFFF)!=generation) ) { return 1; }
+
+  int ticket = AcquireSendTicket();
+  if (ticket<0) { return 0; } //every response buffer is busy ; the caller keeps the completion and retries
+
+  struct UringSendTicket * send = &sendTicket[ticket];
+  struct ApiResponseBuffer * buffer = &send->buffer;
+
+  if (bodyLength>buffer->bodySize)
+   {
+     ReleaseSendTicket((unsigned int) ticket);
+     conn->deferred=0;
+     SendStatusAndClose(r,slot,500);
+     return 1;
+   }
+
+  struct AmmServer_APIResponse res;
+  memset(&res,0,sizeof(res));
+  res.statusCode    = statusCode;
+  res.contentType   = (contentType!=0) ? contentType : "application/json";
+  res.extraHeaders  = extraHeaders;
+  res.body          = buffer->memory + API_RESPONSE_HEADER_RESERVE;
+  res.bodyLength    = bodyLength;
+  res.maxBodyLength = buffer->bodySize;
+  if ( (body!=0) && (bodyLength>0) ) { memcpy(res.body,body,bodyLength); }
+
+  //Only method ( HEAD ) and keep-alive are needed to lay out the response ; the request's own bytes were
+  //consumed when it was deferred.
+  struct AmmServer_APIRequest rqst;
+  memset(&rqst,0,sizeof(rqst));
+  rqst.method = conn->deferredMethod;
+  rqst.path   = "";
+
+  struct ApiFrame frame;
+  memset(&frame,0,sizeof(frame));
+  frame.keepAlive = conn->deferredKeepAlive;
+
+  char * response=0;
+  unsigned int failStatus=0;
+  unsigned int responseLength = ApiProtocol_Finish(&frame,buffer,&rqst,&res,&response,&failStatus);
+
+  if (responseLength==0)
+   {
+     ReleaseSendTicket((unsigned int) ticket);
+     conn->deferred=0;
+     SendStatusAndClose(r,slot,(failStatus!=0)?failStatus:500);
+     return 1;
+   }
+
+  conn->deferred=0;
+
+  send->data  = response;
+  send->total = responseLength;
+  send->sent  = 0;
+  send->slot  = slot;
+  send->generation = conn->generation;
+  send->closeWhenWritten = (conn->deferredKeepAlive==0);
+  conn->sendInFlight = 1;
+
+  SubmitSend(r,slot,(unsigned int) ticket);
+  return 1;
 }
 
 /* ------------------------------------------------------------------ completions --------------------- */
@@ -1146,6 +1338,15 @@ static void HandleRecvCompletion(struct AmmServer_Instance * instance,struct Uri
 
      ServeNextRequest(instance,r,slot,conn->in.data,conn->in.used);
    } else
+  if (conn->deferred)
+   {
+     //A request pipelined behind one whose answer is still being prepared. It has to be kept here : the
+     //deferred request's own bytes were consumed when it was set aside , so without this the usual branch
+     //below would hand the buffer to ServeNextRequest ( which returns at once ) and then recycle it.
+     int appended = ApiProtocol_PartialAppend(&conn->in,data,length);
+     RecycleRecvBuffer(r,bufferId);
+     if (!appended) { SendStatusAndClose(r,slot,413); }
+   } else
    {
      //The usual case : a whole request , in a buffer the kernel chose , served without it being copied
      //anywhere first.
@@ -1154,7 +1355,7 @@ static void HandleRecvCompletion(struct AmmServer_Instance * instance,struct Uri
    }
 
   //A buffer has just gone back , so a receive that stopped for want of one can be armed again.
-  if ( (conn->inUse) && (!conn->recvArmed) ) { ArmRecv(r,slot); }
+  if ( (conn->inUse) && (!conn->recvArmed) && (!conn->deferred) ) { ArmRecv(r,slot); }
 }
 
 static void HandleSendCompletion(struct AmmServer_Instance * instance,struct UringRing * r,struct io_uring_cqe * cqe)
@@ -1198,7 +1399,7 @@ static void HandleSendCompletion(struct AmmServer_Instance * instance,struct Uri
       {
         //Anything that arrived behind this response is in hand already and will not be reported again.
         if (conn->in.used>0) { ServeNextRequest(instance,r,slot,conn->in.data,conn->in.used); }
-        if ( (conn->inUse) && (!conn->recvArmed) && (!conn->sendInFlight) ) { ArmRecv(r,slot); }
+        if ( (conn->inUse) && (!conn->recvArmed) && (!conn->sendInFlight) && (!conn->deferred) ) { ArmRecv(r,slot); }
       }
    }
 
@@ -1257,6 +1458,17 @@ static int DrainRing(struct AmmServer_Instance * instance,struct UringRing * r)
         case URING_OP_SEND   : HandleSendCompletion(instance,r,cqe);     break;
         case URING_OP_CLOSE  : HandleCloseCompletion(r,cqe);             break;
         case URING_OP_PROVIDE: HandleProvideCompletion(cqe);             break;
+        case URING_OP_NOTIFY :
+          {
+            //One eventfd read clears the whole counter. The callback runs on this thread and is where
+            //AmmServer_APISendDeferred may be called ; the poll is armed again from the loop below.
+            unsigned long long counter=0;
+            ssize_t drainResult=read(instance->apiNotifyFd,&counter,sizeof(counter));
+            (void) drainResult;
+            notifyArmed=0;
+            if (instance->apiNotifyCallback!=0) { instance->apiNotifyCallback(instance); }
+          }
+          break;
         //Nothing to do for a cancel : what it cancels reports back on its own , and a cancel that found
         //nothing to cancel ( -ENOENT , -EALREADY ) is a race we have already handled by closing.
         case URING_OP_CANCEL : break;
@@ -1485,6 +1697,9 @@ static void * UringAPIThread(void * ptr)
    {
      int handled = 0;
      int broken  = 0;
+
+     //Cheap and normally a no-op : arms the deferred-response poll once AmmServer_SetAPINotifyFD has run.
+     ArmNotify(instance);
 
      unsigned int i=0;
      for (i=0; i<ringCount; i++)

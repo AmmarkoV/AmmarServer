@@ -205,6 +205,7 @@ struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
 
   instance->sslserversock          = -1;
   instance->accept_epoll_fd        = -1;
+  instance->apiNotifyFd            = -1;
   instance->settings.HTTPS_PORT    = 443;
   #if USE_OPENSSL
   signal(SIGPIPE, SIG_IGN);
@@ -286,6 +287,7 @@ static struct AmmServer_Instance * StartInstance( const char * name ,
 
   instance->sslserversock          = -1;
   instance->accept_epoll_fd        = -1;
+  instance->apiNotifyFd            = -1;
   instance->settings.HTTPS_PORT    = 443;
   instance->apiHandler             = apiHandler;
   instance->apiMaxResponseSize     = apiMaxResponseSize;
@@ -535,6 +537,18 @@ int AmmServer_SetAPIBatchHandler(struct AmmServer_Instance * instance,void * bat
 
   //The ring thread may already be serving , and reads this once per pass ( see uringAPIServer.c ).
   __atomic_store_n(&instance->apiBatchHandler,batchCallback,__ATOMIC_RELEASE);
+
+  return 1;
+}
+
+int AmmServer_SetAPINotifyFD(struct AmmServer_Instance * instance,int fd,void (*callback)(struct AmmServer_Instance * instance))
+{
+  if (instance==0) { return 0; }
+
+  //Read by the ring thread once per pass. Set before serving starts ; there is no ordering to arrange here
+  //because a write to the fd before the poll is armed simply stays readable until it is.
+  instance->apiNotifyCallback = callback;
+  __atomic_store_n(&instance->apiNotifyFd,fd,__ATOMIC_RELEASE);
 
   return 1;
 }
