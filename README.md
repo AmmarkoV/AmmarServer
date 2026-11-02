@@ -50,6 +50,28 @@ After building the server you can use one of the provided scripts in the root di
 -  ./stopAmmarServerSuite.sh will stop them
 
 
+## Testing
+------------------------------------------------------------------
+
+The test suite starts the real `ammarserver` binary on a free loopback port with a temporary web root,
+templates directory, log directory and configuration, then drives it with raw sockets. It covers:
+
+- HTTP features: byte ranges/HEAD, Host enforcement, absolute-form targets, chunked bodies,
+  `Expect: 100-continue`, conditional requests and `ammServ.conf` parsing.
+- General behavior: MIME types, index files, directory listings, methods, keep-alive, ETag stability,
+  compression negotiation, concurrency and access/error logging.
+- Security/pentests: path traversal, symlink escapes, malformed and oversized requests, header floods,
+  request-smuggling framing, oversized bodies and slow-client resilience.
+
+Run everything (builds first):
+
+    bash tests/run_tests.sh
+
+Pass `--no-build` to skip the build step, or run one module with
+`./tests/run_tests.sh tests.test_security`. See `tests/README.md` for the layout, the legacy shell
+pentest fixtures and the manual load-test scripts.
+
+
 ## Performance
 ------------------------------------------------------------------
 

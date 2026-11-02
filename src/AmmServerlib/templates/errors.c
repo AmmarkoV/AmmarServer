@@ -20,6 +20,22 @@ char error408[]= {
 #include "include/408.html"
 };
 
+char error412[]= {
+#include "include/412.html"
+};
+
+char error413[]= {
+#include "include/413.html"
+};
+
+char error416[]= {
+#include "include/416.html"
+};
+
+char error417[]= {
+#include "include/417.html"
+};
+
 char error500[]= {
 #include "include/500.html"
 };

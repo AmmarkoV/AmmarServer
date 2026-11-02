@@ -285,6 +285,11 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
 
    if (!httpHeaderReceivedWithNoProblems)
    {
+     if (transaction->incomingHeader.responseAlreadySent)
+     {
+      //The receive path already sent a final 400/413/417/501 response , do not send a second one
+      return 0;
+     } else
      if (transaction->clientDisconnected)
      {
       warningID(ASV_WARNING_CONNECTION_CLOSED_WHILE_KEEPALIVE);
@@ -471,7 +476,7 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
   //We are done with request!
 
 
-  if (!transaction->incomingHeader.keepalive) { return 0; } // Close_connection controls the receive "keep-alive" loop
+  if ( (!transaction->incomingHeader.keepalive) || (!KEEPALIVE_ENABLED) ) { return 0; } // Close_connection controls the receive "keep-alive" loop
   //If we are on a keepalive streak , then go on !
   return 1;
 }

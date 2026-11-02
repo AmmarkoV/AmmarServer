@@ -1,3 +1,7 @@
 # Runtime data written by the Social service
 src/Services/Social/res/uploads/
 db/chat/
+
+# Python test suite bytecode
+__pycache__/
+*.pyc

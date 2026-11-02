@@ -328,8 +328,11 @@ const char * GetHTTPReasonPhrase(unsigned int statusCode)
      case 405 : return "Method Not Allowed";
      case 408 : return "Request Timeout";
      case 409 : return "Conflict";
+     case 412 : return "Precondition Failed";
      case 413 : return "Content Too Large";
      case 415 : return "Unsupported Media Type";
+     case 416 : return "Range Not Satisfiable";
+     case 417 : return "Expectation Failed";
      case 422 : return "Unprocessable Content";
      case 429 : return "Too Many Requests";
      case 500 : return "Internal Server Error";

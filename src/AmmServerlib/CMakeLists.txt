@@ -34,7 +34,9 @@ set(AMMARSERVER_INGREDIENTS
                 scheduler/scheduler.c  
                 #Header analysis
                 header_analysis/http_header_analysis.c
-                header_analysis/http_header_analysis.h  
+                header_analysis/http_header_analysis.h
+                header_analysis/chunked_transfer.c
+                header_analysis/chunked_transfer.h
                 header_analysis/post_header_analysis.c
                 header_analysis/post_header_analysis.h
                 header_analysis/generic_header_tools.c

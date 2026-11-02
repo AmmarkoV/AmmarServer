@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIRTOUNITTESTS="../src/UnitTests/"
+DIRTOUNITTESTS="../../src/UnitTests/"
 
 if [ -d $DIRTOUNITTESTS ]
 then

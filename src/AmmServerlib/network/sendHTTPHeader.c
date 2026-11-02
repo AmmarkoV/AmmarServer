@@ -38,6 +38,10 @@ unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HT
        case 401 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"401 Password Protected %s401.html",templates_root);     break;
        case 404 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"404 Not Found %s404.html",templates_root);              break;
        case 408 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"408 Timed Out %s408.html",templates_root);              break;
+       case 412 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"412 Precondition Failed %s412.html",templates_root);     break;
+       case 413 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"413 Content Too Large %s413.html",templates_root);      break;
+       case 416 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"416 Range Not Satisfiable %s416.html",templates_root);   break;
+       case 417 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"417 Expectation Failed %s417.html",templates_root);      break;
        case 500 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"500 Internal Server Error %s500.html",templates_root);  break;
        case 501 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"501 Not Implemented %s501.html",templates_root);        break;
        //---------------------------------------------------------------------------------------------------------------------------
@@ -59,6 +63,63 @@ unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HT
         }
 
      return 1;
+}
+
+unsigned long SendErrorResponse(
+                                 struct AmmServer_Instance * instance,
+                                 struct HTTPTransaction * transaction,
+                                 unsigned int error_code,
+                                 const char * body,
+                                 unsigned long bodyLength,
+                                 const char * extraHeaders
+                               )
+{
+  if ( (instance==0) || (transaction==0) ) { return 0; }
+
+  char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
+  snprintf(
+            reply_header,
+            MAX_HTTP_REQUEST_HEADER_REPLY,
+            "HTTP/1.1 %u %s\nServer: Ammarserver/%s\nContent-type: text/html\n",
+            error_code,
+            GetHTTPReasonPhrase(error_code),
+            FULLVERSION_STRING
+          );
+
+  unsigned int replyHeaderLength=(unsigned int) strlen(reply_header);
+  GetDateString(reply_header+replyHeaderLength,MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
+  replyHeaderLength=(unsigned int) strlen(reply_header);
+
+  if ( (extraHeaders!=0) && (extraHeaders[0]!=0) )
+   {
+     strncat(reply_header,extraHeaders,MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength-1);
+     replyHeaderLength=(unsigned int) strlen(reply_header);
+   }
+
+  snprintf(
+            reply_header+replyHeaderLength,
+            MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,
+            "Content-Length: %lu\nConnection: close\n\n",
+            bodyLength
+          );
+
+  int headRequest=(transaction->incomingHeader.requestType==HEAD);
+  int flags=MSG_WAITALL|MSG_NOSIGNAL;
+  if ( (!headRequest) && (body!=0) && (bodyLength>0) ) { flags|=MSG_MORE; }
+
+  int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),flags);
+  if (opres<=0) { fprintf(stderr,"Failed sending error response header (%u)\n",error_code); return 0; }
+
+  if ( (!headRequest) && (body!=0) && (bodyLength>0) )
+   {
+     opres=ASRV_Send(instance,transaction,body,bodyLength,MSG_WAITALL|MSG_NOSIGNAL);
+     if (opres<=0) { fprintf(stderr,"Failed sending error response body (%u)\n",error_code); return 0; }
+   }
+
+  //Error responses are always close-delimited by the caller
+  transaction->incomingHeader.keepalive=0;
+  transaction->incomingHeader.responseAlreadySent=1;
+  return 1;
 }
 
 unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename)

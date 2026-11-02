@@ -21,6 +21,18 @@
 unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int error_code,const char * verified_filename,const char * templates_root);
 
 /**
+* @brief Send a complete , self-framed error response ( Content-Length + Connection: close )
+* @ingroup network
+* @param An AmmarServer instance
+* @param Transaction
+* @param Error code
+* @param Body to send ( can be 0 for no body )
+* @param Body length
+* @param Extra header lines to append ( can be 0 )
+* @retval 1=Success,0=Failure*/
+unsigned long SendErrorResponse(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int error_code,const char * body,unsigned long bodyLength,const char * extraHeaders);
+
+/**
 * @brief Send a Success header , meaning that what was asked for will follow
 * @ingroup network
 * @param An AmmarServer instance

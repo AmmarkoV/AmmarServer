@@ -259,7 +259,7 @@ int cache_LoadResourceFromDisk(struct AmmServer_Instance * instance,const char *
       fprintf(stderr,"Last status change:       %s", ctime(&statBuf.st_ctime));
       fprintf(stderr,"Last file access:         %s", ctime(&statBuf.st_atime));
       fprintf(stderr,"Last file modification:   %s", ctime(&statBuf.st_mtime));
-      #warning " Todo : populate cache[*index].modification with int fstat(pFile, struct stat *buf);"
+      cache[*index].modification_time=statBuf.st_mtime;
 
      //We check if the file size is ok with our configuration limits
      if (!instance_WeCanCommitMoreMemory(instance,lSize)) { fclose(pFile); return 0; }

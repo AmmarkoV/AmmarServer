@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
+#include <limits.h>
 #include "tools/http_tools.h"
 #include "tools/logs.h"
 #include "../InputParser/InputParser_C.h"
@@ -25,6 +27,9 @@ signed int CHANGE_PRIORITY=0;
 
 int varSocketTimeoutREAD_seconds= DEFAULT_SOCKET_READ_TIMEOUT_SECS;
 int varSocketTimeoutWRITE_seconds=DEFAULT_SOCKET_WRITE_TIMEOUT_SECS;
+
+//KeepAlive can be switched off from ammServ.conf , in which case pending connections are closed after each response
+int KEEPALIVE_ENABLED=1;
 
 unsigned int MAX_CLIENT_PRESPAWNED_THREADS = MAX_CLIENT_PRESPAWNED_THREADS_DEFAULT;
 
@@ -96,13 +101,6 @@ int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
 {
   /**
   @bug TOP PRIORITY -> Implement POST !FILE! requests , and couple them to dynamic content
-  @bug Implement download resume capabilities ( range head request ) ..
-  @bug  require the Host: header from HTTP 1.1 clients
-  @bug accept absolute URL's in a request
-  @bug  accept requests with chunked data
-  @bug use the \"100 Continue\" response appropriately
-  @bug handle requests with If-Modified-Since: or If-Unmodified-Since: headers
-  @bug  Add configuration file ammServ.conf parsing..
   @bug  Add detailed input header parsing
   @bug  Improve directory listings ( add filesizes , dates etc )
   @bug  Improve implemented file caching mechanism ( add string comparison to make code hash collision free )
@@ -113,14 +111,6 @@ int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
   {
     warningID(ASV_WARNING_NO_PRESPAWNED_THREADS);
   }
-
-  fprintf(stderr,"TODO: Implement download resume capabilities ( range head request ) ..\n");
-  fprintf(stderr,"TODO: require the Host: header from HTTP 1.1 clients\n");
-  fprintf(stderr,"TODO: accept absolute URL's in a request\n");
-  fprintf(stderr,"TODO: accept requests with chunked data\n");
-  fprintf(stderr,"TODO: use the \"100 Continue\" response appropriately\n");
-  fprintf(stderr,"TODO: handle requests with If-Modified-Since: or If-Unmodified-Since: headers\n");
-  fprintf(stderr,"TODO: Add configuration file ammServ.conf parsing..\n");
 
   if (instance->settings.BINDING_PORT<=1000 )
    {
@@ -141,104 +131,205 @@ int EmmitPossibleConfigurationWarnings(struct AmmServer_Instance * instance)
 
 
 
-/*! MAJOR TODO :P , so that we can parse the configuration file.. !*/
+static int ConfigParseOnOff(struct InputParserC * ipc,unsigned int wordIndex,int * output,const char * key)
+{
+  if (InputParser_WordCompareNoCaseAuto(ipc,wordIndex,(char*)"ON"))  { *output=1; return 1; }
+  if (InputParser_WordCompareNoCaseAuto(ipc,wordIndex,(char*)"OFF")) { *output=0; return 1; }
+  fprintf(stderr,"Configuration : `%s` expects On or Off , ignoring the line\n",key);
+  return 0;
+}
+
+static int ConfigParseInt(
+                           struct InputParserC * ipc,
+                           unsigned int wordIndex,
+                           int minimum,
+                           int maximum,
+                           int * output,
+                           const char * key
+                         )
+{
+  char word[MAX_CONFIGURATION_FILE_LINE_SIZE+1]={0};
+  if (!InputParser_GetWord(ipc,wordIndex,word,sizeof(word)))
+   {
+     fprintf(stderr,"Configuration : `%s` is missing a value , ignoring the line\n",key);
+     return 0;
+   }
+
+  errno=0;
+  char * end=0;
+  long value=strtol(word,&end,10);
+  if ( (errno!=0) || (end==word) || (*end!=0) || (value<minimum) || (value>maximum) )
+   {
+     fprintf(stderr,"Configuration : `%s` has an invalid value `%s` ( expected %d..%d ) , ignoring the line\n",key,word,minimum,maximum);
+     return 0;
+   }
+
+  *output=(int) value;
+  return 1;
+}
+
 static void ParseConfigString(struct AmmServer_Instance * instance,struct InputParserC * ipc,char * inpt)
 {
-  unsigned int words_count = InputParser_SeperateWords(ipc,inpt,0);
-  if ( words_count > 0 )
+  int words_count = InputParser_SeperateWords(ipc,inpt,0);
+  if ( words_count <= 0 ) { return; }
+
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"TIMEOUT"))
     {
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"TIMEOUT"))
-        {
-            int timeout_value = InputParser_GetWordInt(ipc,1);
-            varSocketTimeoutREAD_seconds = timeout_value;
-            varSocketTimeoutWRITE_seconds = timeout_value;
-        } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"KEEPALIVE"))
-        {
-             int keepalive_value = 0;
-             if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON"))
-                {
-                  keepalive_value=1;
-                  fprintf(stderr,"Keep Alive Function is set to %u but is ignored \n",keepalive_value);
-                }
-        } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))      { instance->settings.BINDING_PORT = InputParser_GetWordInt(ipc,1); } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASPRIORITY"))   { CHANGE_PRIORITY  = InputParser_GetWordInt(ipc,1); } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASUSER"))       { InputParser_GetWord(ipc,1,USERNAME_UID_FOR_DAEMON,MAX_FILE_PATH); } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IFUSERDOESNTEXISTRUNASUID")) { CHANGE_TO_UID = InputParser_GetWordInt(ipc,1); } else
-      //CONFIGURE CACHING BEHAVIOUR
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"CACHING"))                 { CACHING_ENABLED=0; if (InputParser_WordCompareNoCaseAuto(ipc,1,(char*)"ON")) { CACHING_ENABLED=1; } } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXCACHESIZE"))            { MAX_CACHE_SIZE_IN_MB = InputParser_GetWordInt(ipc,1); } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXCACHESIZEFOREACHFILE")) {  MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB = InputParser_GetWordInt(ipc,1); } else
-      if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXSEPERATECACHEITEMS"))   { MAX_SEPERATE_CACHE_ITEMS = InputParser_GetWordInt(ipc,1); }
+      int timeout_value=0;
+      if (ConfigParseInt(ipc,1,1,86400*365,&timeout_value,"Timeout"))
+       {
+         varSocketTimeoutREAD_seconds=timeout_value;
+         varSocketTimeoutWRITE_seconds=timeout_value;
+       }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"KEEPALIVE"))
+    {
+      int keepalive_value=KEEPALIVE_ENABLED;
+      if (ConfigParseOnOff(ipc,1,&keepalive_value,"KeepAlive")) { KEEPALIVE_ENABLED=keepalive_value; }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))
+    {
+      int port=0;
+      if (ConfigParseInt(ipc,1,1,65535,&port,"Listen")) { instance->settings.BINDING_PORT=port; }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASPRIORITY"))
+    {
+      int priority=CHANGE_PRIORITY;
+      if (ConfigParseInt(ipc,1,-20,20,&priority,"RunAsPriority")) { CHANGE_PRIORITY=priority; }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASUSER"))
+    {
+      char user[MAX_FILE_PATH]={0};
+      if (InputParser_GetWord(ipc,1,user,sizeof(user)))
+       { strncpy(USERNAME_UID_FOR_DAEMON,user,MAX_FILE_PATH); }
+      else
+       { fprintf(stderr,"Configuration : `RunAsUser` is missing a value , ignoring the line\n"); }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IFUSERDOESNTEXISTRUNASUID"))
+    {
+      int uid=CHANGE_TO_UID;
+      if (ConfigParseInt(ipc,1,0,INT_MAX,&uid,"IfUserDoesntExistRunAsUID")) { CHANGE_TO_UID=uid; }
+    } else
+  //CONFIGURE CACHING BEHAVIOUR
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"CACHING"))
+    {
+      int caching_value=CACHING_ENABLED;
+      if (ConfigParseOnOff(ipc,1,&caching_value,"Caching")) { CACHING_ENABLED=(unsigned char)caching_value; }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXCACHESIZE"))
+    {
+      int value=MAX_CACHE_SIZE_IN_MB;
+      if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxCacheSize")) { MAX_CACHE_SIZE_IN_MB=value; }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXCACHESIZEFOREACHFILE"))
+    {
+      int value=MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
+      if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxCacheSizeForEachFile")) { MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=value; }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXSEPERATECACHEITEMS"))
+    {
+      int value=MAX_SEPERATE_CACHE_ITEMS;
+      if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxSeperateCacheItems")) { MAX_SEPERATE_CACHE_ITEMS=value; }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"ENABLEPOST"))
+    {
+      int value=instance->settings.ENABLE_POST;
+      if (ConfigParseOnOff(ipc,1,&value,"EnablePost")) { instance->settings.ENABLE_POST=value; }
+    } else
+  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXPOSTTRANSACTIONSIZE"))
+    {
+      int value=(int) instance->settings.MAX_POST_TRANSACTION_SIZE;
+      if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxPostTransactionSize"))
+       { instance->settings.MAX_POST_TRANSACTION_SIZE=(unsigned int) value; }
+    } else
+    {
+      char key[MAX_CONFIGURATION_FILE_LINE_SIZE+1]={0};
+      InputParser_GetWord(ipc,0,key,sizeof(key));
+      fprintf(stderr,"Configuration : unknown key `%s` , ignoring the line\n",key);
     }
 }
 
+static FILE * OpenConfigurationFile(const char * conf_file,char * selected,unsigned int selectedSize)
+{
+  if ( (conf_file!=0) && (strlen(conf_file)>1) )
+   {
+     FILE * pFile=fopen(conf_file,"r");
+     if (pFile!=0) { snprintf(selected,selectedSize,"%s",conf_file); }
+     else          { fprintf(stderr,"Cannot open explicitly requested configuration file %s\n",conf_file); }
+     return pFile; //An explicitly requested file never falls back to automatic discovery
+   }
+
+  if (!ENABLE_AUTOMATIC_CONFIGURATION_LOADING) { return 0; }
+
+  const char * candidates[] =
+  {
+    "ammServ.conf",
+    "/etc/ammServ.conf",
+    "ammarServer.conf",
+    "/etc/ammarServer.conf",
+    "default.conf"
+  };
+
+  unsigned int i=0;
+  for (i=0; i<(sizeof(candidates)/sizeof(candidates[0])); i++)
+   {
+     FILE * pFile=fopen(candidates[i],"r");
+     if (pFile!=0)
+      {
+        snprintf(selected,selectedSize,"%s",candidates[i]);
+        return pFile;
+      }
+   }
+
+  return 0;
+}
 
 int LoadConfigurationFile(struct AmmServer_Instance * instance,const char * conf_file)
 {
   char line[MAX_CONFIGURATION_FILE_LINE_SIZE]={0};
-  FILE * pFile;
-  pFile = 0;
-  if ( (conf_file!=0)&&(strlen(conf_file)>1) ) {  pFile = fopen (conf_file ,"r");  } //We may want to open a particluar configuration file
+  char selected[MAX_FILE_PATH]={0};
+  FILE * pFile=OpenConfigurationFile(conf_file,selected,sizeof(selected));
 
   if (pFile==0)
-  {
-   if (ENABLE_AUTOMATIC_CONFIGURATION_LOADING)
-   { //We may want or we may not want automatic configuration loading from the files below ..
-     //A particularly embedded service may not want to use this files for security reasons for example...
-     if (pFile==0) {  pFile = fopen ("ammarServer.conf" ,"r");  } //First lets try for a local ammarServer.conf ( i.e. development directory scenario )
-     if (pFile==0) {  pFile = fopen ("/etc/ammarServer.conf" ,"r");  } //Second try lets try for the real system installation scenario ( /etc/ammarServer.conf )
-     if (pFile==0) {  pFile = fopen ("default.conf" ,"r");  } //If we can't find a regular conf file lets check for a default one
-   }
-  }
-
-  if (pFile!=0 )
-    {
-
-       struct InputParserC * ipc=0;
-       ipc = InputParser_Create(MAX_CONFIGURATION_FILE_LINE_SIZE,1);
-       InputParser_SetDelimeter(ipc,0,' ');
-
-      int line_length=0;
-      int c=0;
-      do
-        {
-          c = getc (pFile);
-
-          if ( MAX_CONFIGURATION_FILE_LINE_SIZE-1 <= line_length )
-             {
-               fprintf(stderr,"Oveflow while loading configuration file \n");
-               line[MAX_CONFIGURATION_FILE_LINE_SIZE-1]=0;
-               ParseConfigString(instance,ipc,line);
-               line_length=0;
-             } else
-          if (c == '\n')
-            {
-              ParseConfigString(instance,ipc,line);
-              line_length=0;
-            }
-          else
-            {
-              line[line_length]=c;
-              ++line_length;
-              line[line_length]=0; // always append null termination ;P
-            }
-        }
-      while (c != EOF);
-      fclose (pFile);
-
-      InputParser_Destroy(ipc);
-
-      return 1;
-    }
-  else
     {
       fprintf(stderr,"Cannot find and open an AmmarServer Configuration file \n");
       if (!ENABLE_AUTOMATIC_CONFIGURATION_LOADING) { fprintf(stderr,"Please note that ENABLE_AUTOMATIC_CONFIGURATION_LOADING=0 in configuration.h \n"); }
+      return 0;
     }
 
-  return 0;
+  fprintf(stderr,"Loading configuration from %s\n",selected);
+
+  struct InputParserC * ipc=0;
+  ipc=InputParser_Create(MAX_CONFIGURATION_FILE_LINE_SIZE,2);
+  InputParser_SetDelimeter(ipc,0,' ');
+  InputParser_SetDelimeter(ipc,1,'\t');
+
+  while (fgets(line,sizeof(line),pFile)!=0)
+   {
+     size_t lineLength=strlen(line);
+
+     //A line longer than the buffer is skipped entirely instead of being parsed in chunks
+     if ( (lineLength==sizeof(line)-1) && (line[lineLength-1]!='\n') )
+      {
+        int c=0;
+        while ( ((c=fgetc(pFile))!='\n') && (c!=EOF) ) { }
+        fprintf(stderr,"Configuration : line too long , ignoring it\n");
+        continue;
+      }
+
+     while ( (lineLength>0) && ( (line[lineLength-1]=='\n') || (line[lineLength-1]=='\r') ) )
+      { line[--lineLength]=0; }
+
+     char * start=line;
+     while ( (*start==' ') || (*start=='\t') ) { ++start; }
+     if ( (*start==0) || (*start=='#') ) { continue; }
+
+     ParseConfigString(instance,ipc,start);
+   }
+
+  fclose(pFile);
+  InputParser_Destroy(ipc);
+  return 1;
 }
 
 /*Kind of twisted function TODO : improve it :P*/

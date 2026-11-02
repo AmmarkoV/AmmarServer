@@ -1,5 +1,6 @@
 #include "generic_header_tools.h"
 #include "http_header_analysis.h"
+#include "chunked_transfer.h"
 
 #include "../tools/logs.h"
 #include "../tools/http_tools.h"
@@ -338,6 +339,29 @@ int growHeader(struct HTTPTransaction * transaction)
 
 
 
+/*Once a chunked request is identified , the bytes after the header's blank
+  line are chunk framing , not HTTP header lines.  Cap the line walker at
+  headerRAWHeadSize+1 so chunk sizes / multipart data are never run through
+  AnalyzeHTTPLineRequest() ( which would let body data overwrite request
+  fields ).  The limit is relative to the parsing start offset captured when
+  the current call began , because output->parsingStartOffset advances while
+  the walk is in progress.*/
+static unsigned int CapRequestLengthToHeaderEnd(
+                                                 struct HTTPHeader * output,
+                                                 unsigned int startOffset,
+                                                 unsigned int requestLength
+                                               )
+{
+  if ( (!output->chunked) || (output->headerRAWHeadSize==0) ) { return requestLength; }
+
+  unsigned int headerEndAbsolute=output->headerRAWHeadSize+1;
+  if (headerEndAbsolute<=startOffset) { return 0; }
+
+  unsigned int headerLimit=headerEndAbsolute-startOffset;
+  if (requestLength>headerLimit) { return headerLimit; }
+  return requestLength;
+}
+
 int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
   //fprintf(stderr,"keepAnalyzingHTTPHeader checks\n");
@@ -368,9 +392,11 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 
 
   char * webserver_root = instance->webserver_root;
-  char * request = output->headerRAW + output->parsingStartOffset;
+  unsigned int startOffset=output->parsingStartOffset;
+  char * request = output->headerRAW + startOffset;
   char * startOfNewLine=request;
-  unsigned int requestLength = transaction->incomingHeader.headerRAWSize - output->parsingStartOffset;
+  unsigned int requestLength = transaction->incomingHeader.headerRAWSize - startOffset;
+  requestLength=CapRequestLengthToHeaderEnd(output,startOffset,requestLength);
 
   //--------------------------------------------------------------------------------
   //--------------------------------------------------------------------------------
@@ -388,6 +414,12 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 
   while  (i<requestLength)
    {
+     //Transfer-Encoding can be discovered partway through this call , so the
+     //limit is re-applied before every byte ( cheap and keeps the loop correct
+     //when header + body arrive in the same recv ).
+     requestLength=CapRequestLengthToHeaderEnd(output,startOffset,requestLength);
+     if (i>=requestLength) { break; }
+
      //fprintf(stderr,"steady\n");
      unsigned char r = request[i];
      //fprintf(stderr,"go\n");
@@ -448,6 +480,71 @@ int keepAnalyzingHTTPHeader(struct AmmServer_Instance * instance,struct HTTPTran
 int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
 {
   unsigned int HeaderEndDetectedByCurrentScan=0;
+
+  if ( (transaction->incomingHeader.requestType == POST) && (transaction->incomingHeader.chunked) )
+  {
+     if (transaction->incomingHeader.headerRAWHeadSize==0)
+       {
+         HTTPHeaderScanForHeaderEndFromStart(
+                                             transaction->incomingHeader.headerRAW ,
+                                             transaction->incomingHeader.headerRAWSize ,
+                                             &transaction->incomingHeader.headerRAWHeadSize
+                                            );
+       }
+
+     if (transaction->incomingHeader.headerRAWHeadSize==0) { return 0; } //Header is still arriving
+
+     unsigned int headerLength=transaction->incomingHeader.headerRAWHeadSize+1;
+     if (transaction->incomingHeader.headerRAWSize<=headerLength) { return 0; } //No chunk data yet
+
+     char * body=transaction->incomingHeader.headerRAW+headerLength;
+     unsigned int bodyLength=transaction->incomingHeader.headerRAWSize-headerLength;
+     unsigned int decodedSize=0;
+
+     enum HTTPChunkedScanResult scanResult=HTTPChunkedBodyScan(
+                                                                body,
+                                                                bodyLength,
+                                                                instance->settings.MAX_POST_TRANSACTION_SIZE,
+                                                                &decodedSize
+                                                              );
+
+     if (scanResult==HTTP_CHUNKED_COMPLETE) { return 1; }
+
+     if (scanResult==HTTP_CHUNKED_ERROR_BAD)
+      {
+        AmmServer_Warning("Malformed chunked request body\n");
+        transaction->incomingHeader.failed=1;
+        transaction->incomingHeader.errorResponseCode=400;
+        transaction->incomingHeader.keepalive=0;
+        return 1;
+      }
+
+     if (scanResult==HTTP_CHUNKED_ERROR_TOO_BIG)
+      {
+        AmmServer_Warning("Chunked request body exceeds the configured maximum transaction size\n");
+        transaction->incomingHeader.failed=1;
+        transaction->incomingHeader.errorResponseCode=413;
+        transaction->incomingHeader.keepalive=0;
+        return 1;
+      }
+
+     //Incomplete : if the buffer is full and cannot grow any further we have to give up
+     if (transaction->incomingHeader.headerRAWSize>=transaction->incomingHeader.MAXheaderRAWSize)
+      {
+        if ( (!instance->settings.ENABLE_POST) || (!MASTER_ENABLE_POST) ||
+             (transaction->incomingHeader.MAXheaderRAWSize>=instance->settings.MAX_POST_TRANSACTION_SIZE) )
+         {
+           AmmServer_Warning("Chunked request body does not fit in the maximum transaction size\n");
+           transaction->incomingHeader.failed=1;
+           transaction->incomingHeader.errorResponseCode=413;
+           transaction->incomingHeader.keepalive=0;
+           return 1;
+         }
+      }
+
+     return 0;
+  }
+
   if (transaction->incomingHeader.requestType == POST)
   {
      //POST Requests have a Content-Length , and we detect their end using that..
@@ -477,6 +574,8 @@ int HTTPRequestIsComplete(struct AmmServer_Instance * instance,struct HTTPTransa
      {
        fprintf(stderr,"Requested POST Size is too big calling it a day if we got the initial..!");
        transaction->incomingHeader.failed=1;
+       transaction->incomingHeader.errorResponseCode=413;
+       transaction->incomingHeader.keepalive=0;
        return 1;
      } else
      if (totalHTTPRecvSize >  transaction->incomingHeader.headerRAWSize )

@@ -24,6 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "../network/file_server.h"
 #include "../tools/http_tools.h"
 #include "../tools/logs.h"
+#include "../tools/time_provider.h"
 #include "../server_configuration.h"
 #include "../stringscanners/httpHeader.h"
 #include "../stringscanners/firstLines.h"
@@ -106,15 +107,60 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
          //HTTP/1.1 clients rely on that spec default rather than sending an explicit Connection: keep-alive
          //header , and without this they got a fresh TCP connection - and full handshake - for every request.
          unsigned int versionStart=e+1;
+         while ( (versionStart<request_length) && (request[versionStart]==' ') ) { ++versionStart; }
          unsigned int versionAvailable = (versionStart<request_length) ? (request_length-versionStart) : 0;
-         if ( (versionAvailable>=8) && (strncmp(request+versionStart,"HTTP/1.0",8)==0) )
-           { output->keepalive=0; }
-         else
-           { output->keepalive=1; }
+
+         output->httpVersionMajor=0;
+         output->httpVersionMinor=9;
+         int versionKnown=0;
+         if ( (versionAvailable>=8) && (strncasecmp(request+versionStart,"HTTP/",5)==0) )
+           {
+             char * versionDigits=request+versionStart+5;
+             if ( (versionStart+7<request_length) &&
+                  (versionDigits[0]>='0') && (versionDigits[0]<='9') &&
+                  (versionDigits[1]=='.') &&
+                  (versionDigits[2]>='0') && (versionDigits[2]<='9') )
+              {
+                output->httpVersionMajor=(unsigned char)(versionDigits[0]-'0');
+                output->httpVersionMinor=(unsigned char)(versionDigits[2]-'0');
+                versionKnown=1;
+              }
+           }
+
+         //HTTP/1.1 defaults to keep-alive , HTTP/1.0 defaults to close. Requests without a
+         //recognisable version token keep the historical "keep-alive" default.
+         if (versionKnown) { output->keepalive=(output->httpVersionMajor>1) || ((output->httpVersionMajor==1)&&(output->httpVersionMinor>=1)); }
+                          else           { output->keepalive=1; }
+         if (!KEEPALIVE_ENABLED) { output->keepalive=0; }
 
          //We move forward to the GET request , stripped will contain the stripped resource requested
          //after stripping GET Query and Fragment and raw html characters
          char * stripped = &request[s];
+
+         //Absolute-form request target : GET http://host/path HTTP/1.1 ( RFC 7230 5.3.2 ) .
+         //Strip scheme+authority so the rest of the pipeline only ever sees an origin-form path.
+         if ( (strncasecmp(stripped,"http://",7)==0) || (strncasecmp(stripped,"https://",8)==0) )
+           {
+             unsigned int schemeLength=(strncasecmp(stripped,"https://",8)==0)?8:7;
+             char * authority=stripped+schemeLength;
+             char * split=authority;
+             while ( (*split!=0) && (*split!='/') && (*split!='?') && (*split!='#') ) { ++split; }
+             output->requestTargetWasAbsolute=1;
+             if (*split=='/')
+              {
+                stripped=split;
+              } else
+             if ( (*split=='?') || (*split=='#') )
+              { //No path component , only a query/fragment : synthesise "/<rest>" in the writable buffer
+                size_t remaining=strlen(split);
+                memmove(stripped+1,split,remaining+1);
+                stripped[0]='/';
+              } else
+              {
+                stripped[0]='/';
+                stripped[1]=0;
+              }
+           }
 
          if (strlen(stripped)>=MAX_RESOURCE-2)
            {
@@ -208,52 +254,84 @@ int ProcessAuthorizationHTTPLine(struct AmmServer_Instance * instance,struct HTT
 }
 
 
-int ProcessRangeHTTPLine(char * request,unsigned int requestLength,unsigned long * rangeStart,unsigned long * rangeEnd)
+static int ParseRangeNumber(const char * value,unsigned int length,unsigned long * output)
 {
- //What we have initially is like
- //Range: bytes=0-1024
- //But what we get here is only the last part i.e.
- // bytes=0- etc
+  if (length==0) { return 0; }
+  unsigned long result=0;
+  unsigned int i=0;
+  for (i=0; i<length; i++)
+   {
+     if ( (value[i]<'0') || (value[i]>'9') ) { return 0; }
+     unsigned long digit=(unsigned long)(value[i]-'0');
+     if (result > ((((unsigned long)-1)-digit)/10)) { return 0; } //Overflow
+     result=result*10+digit;
+   }
+  *output=result;
+  return 1;
+}
 
- if (requestLength==9)
- {
-  if (strncmp(request," bytes=0-",9)==0)
-  {
-     fprintf(stderr,"ProcessRangeHTTPLine got a full range starting from zero\n");
-     *rangeStart=0; *rangeEnd=0;
+/*Parse `bytes=start-end` , `bytes=start-` or `bytes=-suffix`.
+  Malformed specs and multiple ranges are ignored ( the request is served as a
+  plain 200 ) , which RFC 7233 explicitly permits.  The value is only read ,
+  never modified , so the header buffer stays intact.*/
+static int ParseRangeHTTPLine(struct HTTPHeader * output,const char * value,unsigned int length)
+{
+  output->rangeRequested=0;
+  output->rangeKind=HTTP_RANGE_NONE;
+  output->range_start=0;
+  output->range_end=0;
+
+  unsigned int i=0;
+  while ( (i<length) && ( (value[i]==' ') || (value[i]=='\t') ) ) { ++i; }
+  if ( (length-i)<6 ) { return 0; }
+  if (strncasecmp(value+i,"bytes=",6)!=0) { return 0; }
+  i+=6;
+  while ( (i<length) && ( (value[i]==' ') || (value[i]=='\t') ) ) { ++i; }
+
+  unsigned int specStart=i;
+  while ( (i<length) && (value[i]!=',') ) { ++i; }
+  if ( (i<length) && (value[i]==',') ) { return 0; } //Multiple ranges are not supported , ignore the header
+  unsigned int specEnd=i;
+  while ( (specEnd>specStart) && ( (value[specEnd-1]==' ') || (value[specEnd-1]=='\t') ) ) { --specEnd; }
+  if (specEnd<=specStart) { return 0; }
+
+  unsigned int dash=specStart;
+  while ( (dash<specEnd) && (value[dash]!='-') ) { ++dash; }
+  if (dash>=specEnd) { return 0; }
+
+  unsigned int startLength=dash-specStart;
+  unsigned int endLength=specEnd-dash-1;
+
+  if (startLength==0)
+   {
+     //Suffix range : bytes=-N
+     unsigned long suffix=0;
+     if (!ParseRangeNumber(value+dash+1,endLength,&suffix)) { return 0; }
+     output->rangeRequested=1;
+     output->rangeKind=HTTP_RANGE_SUFFIX;
+     output->range_start=suffix;
      return 1;
-  }
- }
+   }
 
-  fprintf(stderr,"Got ProcessRangeHTTPLine  %u \n", requestLength);
+  unsigned long start=0,end=0;
+  if (!ParseRangeNumber(value+specStart,startLength,&start)) { return 0; }
 
-  //TODO : Fix this ,
-  /** @bug : ProcessRangeHTTPLine , can be improved , it is not thoroughly tested*/
+  if (endLength==0)
+   {
+     output->rangeRequested=1;
+     output->rangeKind=HTTP_RANGE_OPEN_ENDED;
+     output->range_start=start;
+     return 1;
+   }
 
- int startOfStart=0;
- int startOfEnd=0;
- int dashPos=0;
+  if (!ParseRangeNumber(value+dash+1,endLength,&end)) { return 0; }
+  if (start>end) { return 0; } //Invalid range , ignore it
 
- int i=requestLength;
- while (i>0)
- {
-   if (request[i]=='-') {  startOfEnd=i+1; dashPos=i; } else
-   if (request[i]=='=') {  startOfStart=i+1; }
-   --i;
- }
-
- if ( (startOfStart==0) && (startOfEnd==0) ) { errorID(ASV_ERROR_WRONG_RANGE_REQUEST); return 0; }
-
- int requestLengthMinus1 = requestLength-1;
- if (startOfEnd >= requestLengthMinus1 ) { /*This means we have a range like `Range: bytes=144687104-` i.e. Unknown ending*/ } else
-                                         { *rangeEnd = atoi(request+startOfEnd); }
-
- request[dashPos]=0;
- *rangeStart = atoi(request+startOfStart);
- request[dashPos]='-';
-
- fprintf(stderr,"Resolved Range is %lu to %lu\n",*rangeStart,*rangeEnd);
- return 1;
+  output->rangeRequested=1;
+  output->rangeKind=HTTP_RANGE_CLOSED;
+  output->range_start=start;
+  output->range_end=end;
+  return 1;
 }
 
 
@@ -314,13 +392,14 @@ int AnalyzeHTTPLineRequest(
          payload_start+=strlen("CONNECTION:");
          //keepalive's default was already seeded from the HTTP version in ProcessFirstHTTPLine() ; an explicit
          //Connection header , if present , always wins over that default in either direction.
-         if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=1; /*fprintf(stderr,"KeepAlive is set\n");*/ return 1;}
+         if (CheckHTTPHeaderCategory(request,request_length,"KEEP-ALIVE",&payload_start)) { output->keepalive=KEEPALIVE_ENABLED?1:0; /*fprintf(stderr,"KeepAlive is set\n");*/ return 1;}
          if (CheckHTTPHeaderCategory(request,request_length,"CLOSE",&payload_start))      { output->keepalive=0; /*fprintf(stderr,"KeepAlive is unset\n");*/ return 1;}
 
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_HOST :
           payload_start+=strlen("HOST:");
+          ++output->hostHeaderCount;
           //output->hostIndex=payload_start;
           output->host=request+payload_start;
           output->hostLength=request_length-payload_start;
@@ -342,16 +421,65 @@ int AnalyzeHTTPLineRequest(
         //--------------------------------------------------------------
         case HTTPHEADER_IF_MODIFIED_SINCE :
             payload_start+=strlen("IF-MODIFIED-SINCE:");
-            fprintf(stderr,"304 Not Modified headers through dates not supported yet\n"); return 0;
+            if (ParseHTTPDate(request+payload_start,request_length-payload_start,&output->ifModifiedSince))
+             { output->ifModifiedSinceSet=1; return 1; }
+            return 0;
+        break;
+        //--------------------------------------------------------------
+        case HTTPHEADER_IF_UNMODIFIED_SINCE :
+            payload_start+=strlen("IF-UNMODIFIED-SINCE:");
+            if (ParseHTTPDate(request+payload_start,request_length-payload_start,&output->ifUnmodifiedSince))
+             { output->ifUnmodifiedSinceSet=1; return 1; }
+            return 0;
+        break;
+        //--------------------------------------------------------------
+        case HTTPHEADER_EXPECT :
+            payload_start+=strlen("EXPECT:");
+            {
+              unsigned int start=payload_start;
+              unsigned int end=request_length;
+              while ( (start<end) && ( (request[start]==' ') || (request[start]=='\t') ) ) { ++start; }
+              while ( (end>start) && ( (request[end-1]==' ') || (request[end-1]=='\t') ) ) { --end; }
+              if ( (end-start==12) && (strncasecmp(request+start,"100-continue",12)==0) )
+               { output->expectContinue=1; }
+              else
+               { output->expectUnsupported=1; }
+            }
+            return 1;
+        break;
+        //--------------------------------------------------------------
+        case HTTPHEADER_TRANSFER_ENCODING :
+            payload_start+=strlen("TRANSFER-ENCODING:");
+            {
+              unsigned int i=payload_start;
+              unsigned int sawCoding=0;
+              while (i<request_length)
+               {
+                 while ( (i<request_length) && ( (request[i]==' ') || (request[i]=='\t') || (request[i]==',') ) ) { ++i; }
+                 unsigned int start=i;
+                 while ( (i<request_length) && (request[i]!=',') ) { ++i; }
+                 unsigned int end=i;
+                 while ( (end>start) && ( (request[end-1]==' ') || (request[end-1]=='\t') ) ) { --end; }
+                 if (end>start)
+                  {
+                    sawCoding=1;
+                    if ( (end-start==7) && (strncasecmp(request+start,"chunked",7)==0) )        { output->chunked=1; } else
+                    if ( (end-start==8) && (strncasecmp(request+start,"identity",8)==0) )      { /*No-op*/ } else
+                                                                                               { output->transferEncodingUnsupported=1; }
+                  }
+               }
+              if (!sawCoding) { output->transferEncodingUnsupported=1; } //An empty TE header is malformed
+            }
+            return 1;
         break;
         //--------------------------------------------------------------
         case HTTPHEADER_RANGE :
-             //Todo here : Fill in range_start and range_end
              payload_start+=strlen("RANGE:");
-             //fprintf(stderr,"Ranges not implemented correctly yet! %s \n",request);
-             if (!ProcessRangeHTTPLine(request+payload_start,request_length-payload_start,&output->range_start,&output->range_end))
+             if (!ParseRangeHTTPLine(output,request+payload_start,request_length-payload_start))
              {
-               fprintf(stderr,"Failed to process ranges will use %lu , %lu \n",output->range_start,output->range_end);
+               //Invalid/unsupported range : ignore it and serve the full representation
+               output->rangeRequested=0;
+               output->rangeKind=HTTP_RANGE_NONE;
                output->range_start=0;
                output->range_end=0;
                return 0;

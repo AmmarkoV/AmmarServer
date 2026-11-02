@@ -18,6 +18,7 @@ extern "C" {
 
 #include <pthread.h>
 #include <libgen.h>
+#include <time.h>
 
 #if USE_OPENSSL
  #include <openssl/ssl.h>
@@ -28,7 +29,7 @@ extern "C" {
 * @brief An ID that is used to distinguish between different versions..
 * @bug   A potential bug might arise if the specs of the header file are changed and someone is linking with an older version libAmmServer.a thats why this value exists
 */
-#define AMMAR_SERVER_HTTP_HEADER_SPEC 136
+#define AMMAR_SERVER_HTTP_HEADER_SPEC 137
 
 
 
@@ -145,6 +146,15 @@ struct GETRequestContent
 };
 
 
+/** @brief How a Range: header was expressed , so it can be resolved once the representation size is known */
+enum HTTPRangeKind
+{
+   HTTP_RANGE_NONE=0,
+   HTTP_RANGE_CLOSED,     // bytes=start-end
+   HTTP_RANGE_OPEN_ENDED, // bytes=start-
+   HTTP_RANGE_SUFFIX      // bytes=-suffix
+};
+
 /**
 * @brief Each HTTP Request has a header , this is the internal structure that carries the information about the header of an HTTP request parsed and ready for easy
 *        for consumption by the various consumers of HTTP requests
@@ -185,10 +195,35 @@ struct HTTPHeader
    unsigned char keepalive;
    unsigned char supports_compression;
 
+   //Request line / framing
+   unsigned char httpVersionMajor;      //1 for HTTP/1.x
+   unsigned char httpVersionMinor;      //0 or 1
+   unsigned char requestTargetWasAbsolute; //The request target was in absolute-form ( http://host/path )
+   unsigned int  hostHeaderCount;       //RFC 7230 : more than one Host is a 400
+
+   //Expect / transfer coding
+   unsigned char expectContinue;          //Expect: 100-continue
+   unsigned char expectUnsupported;       //Expect: something else
+   unsigned char expectContinueSent;      //The interim 100 response has gone out
+   unsigned char chunked;                 //Transfer-Encoding ends in chunked
+   unsigned char transferEncodingUnsupported;
+   unsigned char hasContentLength;
+   unsigned char contentLengthInvalid;    //Duplicate or non-numeric Content-Length ( smuggling defense )
+   unsigned char headerValidated;
+   unsigned char responseAlreadySent;     //A final error response was sent from the receive path
+   unsigned int  errorResponseCode;       //400/413/417 etc , 0 = none
+
+   //Conditional requests
+   unsigned char ifModifiedSinceSet;
+   unsigned char ifUnmodifiedSinceSet;
+   time_t        ifModifiedSince;
+   time_t        ifUnmodifiedSince;
 
    //RANGE DATA
-   unsigned long range_start;
-   unsigned long range_end;
+   unsigned char rangeRequested;
+   unsigned char rangeKind;   //See enum HTTPRangeKind
+   unsigned long range_start; //first byte position , or suffix length
+   unsigned long range_end;   //last byte position for closed ranges
 
 
    unsigned long ContentLength; //<- for POST requests

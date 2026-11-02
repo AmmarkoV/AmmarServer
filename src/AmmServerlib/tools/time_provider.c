@@ -90,6 +90,91 @@ int GetDateString(char * output,unsigned int maxOutput,char * label,unsigned int
     return 1;
 }
 
+/*Days since 1970-01-01 for a proleptic Gregorian date ( Howard Hinnant's days_from_civil ) .
+  Implemented here so HTTP date parsing does not depend on the GNU timegm() extension.*/
+static long DaysFromCivil(int y,unsigned int m,unsigned int d)
+{
+  y -= (m <= 2);
+  const int era = (y >= 0 ? y : y - 399) / 400;
+  const unsigned int yoe = (unsigned int) (y - era * 400);
+  const unsigned int doy = (153 * ( (m > 2) ? (m - 3) : (m + 9) ) + 2) / 5 + d - 1;
+  const unsigned int doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+  return (long) era * 146097 + (long) doe - 719468;
+}
+
+static int ParseMonthName(const char * threeChars)
+{
+  unsigned int i=0;
+  for (i=0; i<12; i++)
+   {
+      if ( (toupper((unsigned char) threeChars[0])==toupper((unsigned char) months[i][0])) &&
+           (toupper((unsigned char) threeChars[1])==toupper((unsigned char) months[i][1])) &&
+           (toupper((unsigned char) threeChars[2])==toupper((unsigned char) months[i][2])) )
+        { return (int) i; }
+   }
+  return -1;
+}
+
+int ParseHTTPDate(const char * value,unsigned int valueLength,time_t * output)
+{
+  if ( (value==0) || (output==0) ) { return 0; }
+
+  char date[64]={0};
+  if (valueLength>=sizeof(date)) { return 0; }
+  memcpy(date,value,valueLength);
+  date[valueLength]=0;
+
+  //Trim leading/trailing spaces without touching the caller's buffer
+  char * text=date;
+  while ( (*text==' ') || (*text=='\t') ) { ++text; }
+  unsigned int textLen=(unsigned int) strlen(text);
+  while ( (textLen>0) && ( (text[textLen-1]==' ') || (text[textLen-1]=='\t') || (text[textLen-1]=='\r') || (text[textLen-1]=='\n') ) )
+   { text[--textLen]=0; }
+
+  //IMF-fixdate has a leading "Sun, " weekday which is irrelevant to the comparison
+  char * comma=(char*) strchr(text,',');
+  if (comma!=0) { text=comma+1; while (*text==' ') { ++text; } }
+
+  unsigned int day=0,year=0,hour=0,minute=0,second=0;
+  char monthName[4]={0};
+
+  int fields=sscanf(text,"%u %3s %u %u:%u:%u",&day,monthName,&year,&hour,&minute,&second);
+  if (fields!=6)
+   {
+      //Obsolete RFC 850 form : Sunday, 06-Nov-94 08:49:37 GMT
+      fields=sscanf(text,"%u-%3s-%u %u:%u:%u",&day,monthName,&year,&hour,&minute,&second);
+      if (fields!=6) { return 0; }
+      if (year<100) { year += (year<70) ? 2000 : 1900; }
+   }
+
+  int month=ParseMonthName(monthName);
+  if ( (month<0) || (day<1) || (day>31) || (year<1900) || (year>9999) ||
+       (hour>23) || (minute>59) || (second>60) ) { return 0; }
+
+  long days=DaysFromCivil((int) year,(unsigned int) month+1,day);
+  *output=(time_t) ( days*86400L + (long)hour*3600L + (long)minute*60L + (long)second );
+  return 1;
+}
+
+int GetDateStringFromTimeT(char * output,unsigned int maxOutput,const char * label,time_t when)
+{
+  struct tm tmv;
+  if (gmtime_r(&when,&tmv)==0) { return 0; }
+  return GetDateString(
+                        output,
+                        maxOutput,
+                        (char*) label,
+                        0,
+                        (unsigned int) tmv.tm_wday,
+                        (unsigned int) tmv.tm_mday,
+                        (unsigned int) tmv.tm_mon,
+                        (unsigned int) (EPOCH_YEAR_IN_TM_YEAR+tmv.tm_year),
+                        (unsigned int) tmv.tm_hour,
+                        (unsigned int) tmv.tm_min,
+                        (unsigned int) tmv.tm_sec
+                      );
+}
+
 int startTimer (  struct time_snap * val )
 {
    return gettimeofday(&val->starttime,0x0);

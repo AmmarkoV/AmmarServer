@@ -31,6 +31,23 @@ int AnalyzePOSTLineRequest(
                             unsigned int lines_gathered
                           );
 
+/**
+* @brief Re-analyze an already decoded POST body line by line ( used after dechunking )
+* @ingroup POSTanalysis
+* @param An AmmarServer Instance
+* @param Output HTTPHeader with information
+* @param Body , must be NUL terminated at body[bodyLength]
+* @param Length of the decoded body
+* @param First line number to report
+* @retval 1=Success,0=Failure */
+int AnalyzePOSTBodyLines(
+                          struct AmmServer_Instance * instance,
+                          struct HTTPHeader * output,
+                          char * body,
+                          unsigned int bodyLength,
+                          unsigned int firstLineNumber
+                        );
+
 
 
 

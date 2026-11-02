@@ -1,6 +1,6 @@
 
 /*                  
-This file was automatically generated @ 11-02-2018 19:58:27 using StringRecognizer                  
+This file was automatically generated @ 02-11-2026 21:01:26 using StringRecognizer                  
 https://github.com/AmmarkoV/AmmarServer/tree/master/src/StringRecognizer                 
 Please note that changes you make here may be automatically overwritten                  
 if the String Recognizer generator runs again..!              
@@ -43,6 +43,10 @@ int scanFor_httpHeader(const char * str,unsigned int strLength)
      break; 
     }; 
  break; 
+ case 'E' : 
+     if (strLength<7) { return 0; } 
+     if ( strncasecmp(str,"EXPECT:",7) == 0 ) { return HTTPHEADER_EXPECT; } 
+ break; 
  case 'H' : 
      if (strLength<5) { return 0; } 
      if ( strncasecmp(str,"HOST:",5) == 0 ) { return HTTPHEADER_HOST; } 
@@ -54,6 +58,7 @@ int scanFor_httpHeader(const char * str,unsigned int strLength)
          case '-' : 
              if ( (strLength >= 14 )&& ( strncasecmp(str,"IF-NONE-MATCH:",14) == 0 ) ) { return HTTPHEADER_IF_NONE_MATCH; } 
              else  if ( (strLength >= 18 )&& ( strncasecmp(str,"IF-MODIFIED-SINCE:",18) == 0 ) ) { return HTTPHEADER_IF_MODIFIED_SINCE; } 
+             else  if ( (strLength >= 20 )&& ( strncasecmp(str,"IF-UNMODIFIED-SINCE:",20) == 0 ) ) { return HTTPHEADER_IF_UNMODIFIED_SINCE; } 
          break; 
         }; 
      break; 
@@ -74,6 +79,10 @@ int scanFor_httpHeader(const char * str,unsigned int strLength)
         }; 
      break; 
     }; 
+ break; 
+ case 'T' : 
+     if (strLength<18) { return 0; } 
+     if ( strncasecmp(str,"TRANSFER-ENCODING:",18) == 0 ) { return HTTPHEADER_TRANSFER_ENCODING; } 
  break; 
  case 'U' : 
      if (strLength<11) { return 0; } 

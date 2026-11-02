@@ -213,6 +213,9 @@ extern int varSocketTimeoutREAD_seconds;
 #define DEFAULT_SOCKET_WRITE_TIMEOUT_SECS 8
 extern int varSocketTimeoutWRITE_seconds;
 
+/**  @brief Global keep-alive switch , can be disabled with `KeepAlive Off` in the configuration file */
+extern int KEEPALIVE_ENABLED;
+
 /**  @brief Max Send requests that return without transmitting anything */
 #define MAX_TRANSMISSION_STALL 1
 // ----------------- CACHE OPTIONS -----------------

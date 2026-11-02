@@ -95,6 +95,7 @@ int SendPart(
     //We dont want the server to allocate a big enough space to reduce disk reading overheads
     //but we dont want to allocate huge portions of memory so we set a soft limit here
     unsigned long bytesToSend = bytesToSendStart;
+    if (bytesToSend==0) { return 1; } //Nothing to transmit ( e.g. a zero length range slice )
     unsigned long malloc_size  = MAX_FILE_READ_BLOCK_KB*1024; // 17-09-15 <- I had forgotten the *1024 This was very small and caused weird high CPU loads that took me 2 days to debug
     //Of course in case that the size to send is smaller than our limit we will commit a smaller amount of memory
     if (bytesToSend < malloc_size) { malloc_size=bytesToSend; }
@@ -122,6 +123,14 @@ int SendPart(
       {
         // copy the file into the buffer:
         chunkToSend = fread (buffer,1,malloc_size,pFile);
+
+        if (chunkToSend == 0)
+          { //The file ended earlier than its advertised size ( it was truncated while serving ) ,
+            //return instead of spinning forever in this outer loop.
+            AmmServer_Warning("File ended before the expected number of bytes was transmitted\n");
+            free (buffer);
+            return 0;
+          }
 
         if (chunkToSend != malloc_size)
         {
@@ -306,6 +315,47 @@ int TransmitFileToSocket(
   return res;
 }
 
+int TransmitFileBodyToSocket(
+                              struct AmmServer_Instance * instance,
+                              struct HTTPTransaction * transaction,
+                              const char * verified_filename,
+                              unsigned long offset,
+                              unsigned long byteCount
+                            )
+{
+  if (byteCount==0) { return 1; }
+
+  //Same containment check TransmitFileToSocket() performs : strings can be validated cheaply ,
+  //but only realpath() catches a symlink inside the web root pointing somewhere else.
+  if (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename))
+   {
+     AmmServer_Error("TransmitFileBodyToSocket : \"%s\" resolves outside the web root - refusing to serve it",verified_filename);
+     return 0;
+   }
+
+  FILE * pFile = fopen(verified_filename,"rb");
+  if (pFile==0)
+   {
+     fprintf(stderr,"Could not open file %s for a range transmission\n",verified_filename);
+     return 0;
+   }
+
+  ++instance->statistics.filesCurrentlyOpen;
+
+  int res=0;
+  if (fseek(pFile,(long) offset,SEEK_SET)==0)
+   {
+     res=TransmitFileToSocketInternal(instance,pFile,transaction,byteCount);
+   } else
+   {
+     fprintf(stderr,"Could not seek to byte %lu of %s\n",offset,verified_filename);
+   }
+
+  fclose(pFile);
+  if (instance->statistics.filesCurrentlyOpen>0) { --instance->statistics.filesCurrentlyOpen; }
+  return res;
+}
+
 unsigned long SendErrorFile
   (
     struct AmmServer_Instance * instance,
@@ -313,23 +363,7 @@ unsigned long SendErrorFile
     unsigned int errorCode
   )
 {
-  unsigned long dataTransmitted=0;
-  char simulatedFilename[32]={0};
-
   AmmServer_Warning("Serving back new embedded error code ( for error %u ) ",errorCode);
-  snprintf(simulatedFilename,32,"%u.html",errorCode);
-
-  SendErrorCodeHeader(
-                       instance,
-                       transaction,
-                       errorCode,
-                       simulatedFilename,
-                       instance->templates_root
-                     );
-
-  //send(transaction->clientSock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
-  ASRV_Send(instance,transaction,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
-
 
   char * what2RespondWith=0;
   switch (errorCode)
@@ -339,23 +373,20 @@ unsigned long SendErrorFile
       case 403 : what2RespondWith=error403; break;
       case 404 : what2RespondWith=error404; break;
       case 408 : what2RespondWith=error408; break;
+      case 412 : what2RespondWith=error412; break;
+      case 413 : what2RespondWith=error413; break;
+      case 416 : what2RespondWith=error416; break;
+      case 417 : what2RespondWith=error417; break;
       case 500 : what2RespondWith=error500; break;
   };
 
-  if (what2RespondWith!=0)
-  {
-  int opres=ASRV_Send( instance, transaction, what2RespondWith, strlen(what2RespondWith), MSG_WAITALL|MSG_NOSIGNAL );  //Send E-Tag as soon as we've got it
-   if (opres<=0) { fprintf(stderr,"Error sending Error Response\n"); return 0; } else
-                 { dataTransmitted+=opres; }
-  } else
-  {
-     //TODO : generic error here..
-  }
+  unsigned long bodyLength=0;
+  if (what2RespondWith!=0) { bodyLength=(unsigned long) strlen(what2RespondWith); }
 
-   return dataTransmitted;
+  if (!SendErrorResponse(instance,transaction,errorCode,what2RespondWith,bodyLength,0))
+   { fprintf(stderr,"Error sending Error Response\n"); return 0; }
 
-   //Old code that sent error responses..
-   //return SendFile(instance,transaction,0,errorCode);
+  return bodyLength;
 }
 
 unsigned long SendEmbeddedFile
@@ -408,6 +439,70 @@ unsigned long SendEmbeddedFile
   return 0;
 }
 
+/*Resolve a parsed Range: header against the representation size.
+  Returns 1=partial content , 0=no range/ignored , -1=unsatisfiable ( 416 ).*/
+static int ResolveByteRange(
+                             const struct HTTPHeader * request,
+                             unsigned long representationSize,
+                             unsigned long * rangeStart,
+                             unsigned long * rangeEnd,
+                             unsigned long * rangeLength
+                           )
+{
+  *rangeStart=0;
+  *rangeEnd=0;
+  *rangeLength=representationSize;
+
+  if ( (!request->rangeRequested) || (request->rangeKind==HTTP_RANGE_NONE) ) { return 0; }
+  if (representationSize==0) { return -1; } //Any range on an empty representation is unsatisfiable
+
+  switch (request->rangeKind)
+  {
+    case HTTP_RANGE_SUFFIX :
+      if (request->range_start==0) { return -1; }
+      if (request->range_start>=representationSize) { *rangeStart=0; }
+                                                else { *rangeStart=representationSize-request->range_start; }
+      *rangeEnd=representationSize-1;
+    break;
+
+    case HTTP_RANGE_OPEN_ENDED :
+      *rangeStart=request->range_start;
+      if (*rangeStart>=representationSize) { return -1; }
+      *rangeEnd=representationSize-1;
+    break;
+
+    case HTTP_RANGE_CLOSED :
+      *rangeStart=request->range_start;
+      if (*rangeStart>=representationSize) { return -1; }
+      *rangeEnd=request->range_end;
+      if (*rangeEnd>=representationSize) { *rangeEnd=representationSize-1; }
+    break;
+
+    default : return 0; break;
+  }
+
+  *rangeLength=(*rangeEnd-*rangeStart)+1;
+  return 1;
+}
+
+static unsigned long SendRangeNotSatisfiable(
+                                              struct AmmServer_Instance * instance,
+                                              struct HTTPTransaction * transaction,
+                                              unsigned long representationSize
+                                            )
+{
+  char extraHeaders[128]={0};
+  snprintf(extraHeaders,sizeof(extraHeaders),"Content-Range: bytes */%lu\n",representationSize);
+  return SendErrorResponse(
+                            instance,
+                            transaction,
+                            416,
+                            error416,
+                            (unsigned long) strlen(error416),
+                            extraHeaders
+                          );
+}
+
 unsigned long SendFile
   (
     struct AmmServer_Instance * instance,
@@ -422,14 +517,8 @@ unsigned long SendFile
   return SendErrorFile(instance,transaction,force_error_code);
  }
 
- //TODO: clean up rest of old force_error_code mechanism..!
-
  unsigned int resourceCacheID=transaction->resourceCacheID;
- unsigned long start_at_byte = transaction->incomingHeader.range_start;
- unsigned long end_at_byte = transaction->incomingHeader.range_end;
  unsigned char keepalive = transaction->incomingHeader.keepalive;
- unsigned char compression_supported = transaction->incomingHeader.supports_compression ;
-
 
   struct HTTPHeader * request = &transaction->incomingHeader;
 
@@ -441,55 +530,23 @@ unsigned long SendFile
      strncpy(verified_filename,verified_filename_pending_copy,MAX_FILE_PATH);
   }
 
-
-
-/*!   Start sending the header first..!
-      Due to error messages also having body payloads they are also handled here , creating
-      clutter in the code but this way there is no need to write the same thing twice..! !*/
-
-/*! PRELIMINARY HEADER SENDING START ----------------------------------------------*/
-  unsigned int WeWantA200OK=0;
-
   //FilenameStripperOk() is a string-level check ( always safe/cheap , runs on every request ) ; a symlink
   //placed inside webserver_root pointing somewhere else passes it with no trouble at all, since nothing about
   //the request string itself is wrong - that's exactly why PathResolvesWithinDirectory() also gets checked
-  //here, at the same point, before any header goes out : it's what actually catches that case, and doing it
-  //here ( rather than only down in TransmitFileToSocket()/cache_GetResource()'s cache-population path, which
-  //also both carry this same check as defense in depth for callers that reach them some other way ) means a
-  //rejected request gets a clean, proper error response instead of a 200 header already having gone out with
-  //no body to follow.
+  //here, before any header goes out , so a rejected request gets a proper error instead of a 200 header
+  //already having gone out with no body to follow.
   if ( (!FilenameStripperOk(verified_filename)) || (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) )
   {
-     //Unsafe filename , bad request :P
-     if (! SendErrorCodeHeader(instance,transaction,400,verified_filename,instance->templates_root) ) { fprintf(stderr,"Failed sending error code 400\n"); return 0; }
-     //verified_filename should now point to the template file for 400 messages
-  } else
-   {
-      //We have a legitimate file to send , if we want to send it all , we must emmit a 200 OK header
-      //if we are serving it with an offset , we must emmit a 206 OK header!
-      if ( (start_at_byte!=0) || (end_at_byte!=0) )
-       {
-         #warning "No checking on Range Provided is done , the underlying mechanisms are safe , but the header could potentially display wrong things "
-         //We dont know the filesize yet so can't fix it here..
-
-         //Range Accepted 206 OK header
-         if (! SendSuccessCodeHeader(instance,transaction,206,verified_filename)) { fprintf(stderr,"Failed sending Range Acknowledged success code \n"); return 0; }
-       } else
-       {
-         //Normal 200 OK header
-         /*! TODO Reorganize this : THIS SHOULD NOT BE SENT YET , SINCE WE MAY WANT TO EMMIT A 304 Not Modified Header if content is unmodified..!*/
-         WeWantA200OK=1;
-       }
-   }
-/*! PRELIMINARY HEADER SEND END ----------------------------------------------*/
-
+     SendErrorFile(instance,transaction,400);
+     return 1;
+  }
 
   struct cache_item * cache = (struct cache_item *) instance->cache;
 
   int opres=0;
   unsigned int index=0;
   unsigned long cached_lSize=0;
-  unsigned char cached_buffer_is_compressed = compression_supported;
+  unsigned char cached_buffer_is_compressed = request->supports_compression;
   unsigned char allowOtherOrigins=0;
   unsigned char free_cached_buffer_after_use=0;
   unsigned char serveAsRegularFile=0;
@@ -498,223 +555,232 @@ unsigned long SendFile
   unsigned int dynamicResponseCode=0;
   char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins,transaction->pendingResponseHeaders,sizeof(transaction->pendingResponseHeaders),&dynamicResponseCode);
 
-  //Whatever is not answered from a cached buffer gets streamed from disk by TransmitFileToSocket() , which can only
-  //fail after the 200 header below has already gone out , leaving the client a 200 with an empty body. That is the
-  //normal case for a callback that used AmmServer_DynamicRequestReturnFile() ( cache_GetResource() never caches
-  //those ) on a file that is missing or outside the web root , so answer 404 here instead. A cached file is never
-  //checked against the disk , it is served from the cache exactly as before.
-  unsigned char servedFromCache = ( (cached_buffer!=0) && ( (!cache[index].doNOTCacheRule) || (cache[index].dynamicRequestCallbackFunction!=0) ) );
-  if ( (WeWantA200OK) && (!servedFromCache) )
+  //serveAsRegularFile leaves compressionSupported untouched ; a plain file is never deflated
+  if (cached_buffer==0) { cached_buffer_is_compressed=0; }
+
+  unsigned char isDynamicMemory = ( (cached_buffer!=0) && (cache[index].dynamicRequestCallbackFunction!=0) && (!serveAsRegularFile) );
+
+  unsigned long representationSize=0;
+  time_t representationModificationTime=0;
+  unsigned char haveModificationTime=0;
+
+  if (isDynamicMemory)
   {
+    //Callback-generated memory : its size is whatever the callback produced , and it has no
+    //filesystem modification time. Range/conditional handling is intentionally skipped for this.
+    representationSize=cached_lSize;
+  } else
+  if ( (cached_buffer!=0) && (!serveAsRegularFile) )
+  {
+    //Served from the static cache : size and mtime must describe the cached bytes , not whatever
+    //the file happens to look like on disk now (the cache may be stale by design).
+    representationSize=cached_lSize;
+    representationModificationTime=cache[index].modification_time;
+    haveModificationTime=(representationModificationTime!=0);
+  } else
+  {
+    //Streamed from disk - this includes a dynamic callback that returned a filename to stream.
     struct stat fileToStream;
-    if ( (stat(verified_filename,&fileToStream)!=0) || (!S_ISREG(fileToStream.st_mode)) || (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) )
+    if ( (stat(verified_filename,&fileToStream)!=0) || (!S_ISREG(fileToStream.st_mode)) ||
+         (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) )
     {
       AmmServer_Warning("%s cannot be streamed from disk and is not cached , answering 404",verified_filename);
       freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
       return SendErrorFile(instance,transaction,404);
     }
+    representationSize=(unsigned long) fileToStream.st_size;
+    representationModificationTime=fileToStream.st_mtime;
+    haveModificationTime=1;
   }
 
+  //Local ETag , only cached resources have a hash
+  char LocalETag[MAX_ETAG_SIZE]={0};
+  if (cached_buffer!=0)
+  {
+    unsigned int cache_etag = cache_GetHashOfResource(instance,index);
+    if (cache_etag!=0)
+     { snprintf(LocalETag,MAX_ETAG_SIZE,"%u%u%lu%lu",instance->cacheVersionETag,cache_etag,request->range_start,request->range_end); }
+  }
 
-  //We are done with our resource so we no longer need the extra data that needs to be deallocated..
-  /* We empty this in a deeper level , not here..
-  if (request->extraDataThatWillNeedToBeDeallocated!=0)
-                     {
-                       free(request->extraDataThatWillNeedToBeDeallocated);
-                       request->sizeOfExtraDataThatWillNeedToBeDeallocated=0;
-                       request->extraDataThatWillNeedToBeDeallocated=0;
-                     }*/
+  //Preconditions for static GET/HEAD
+  unsigned char not_modified=0;
+  if (isDynamicMemory)
+  {
+    //Preserve the historical dynamic-page ETag/cooldown behavior : a callback that is still
+    //inside its callback_every_x_msec cooldown can answer 304 when its ETag matches.
+    if ( (request->eTag!=0) && (LocalETag[0]!=0) && (!cache[index].doNOTCacheRule) &&
+         (cache[index].dynamicRequest!=0) && (cache[index].dynamicRequest->callback_cooldown) &&
+         (strncmp(request->eTag,LocalETag,request->eTagLength)==0) )
+     { not_modified=1; }
+  } else
+  if ( (request->requestType==GET) || (request->requestType==HEAD) )
+  {
+    if ( request->ifUnmodifiedSinceSet && haveModificationTime &&
+         (representationModificationTime > request->ifUnmodifiedSince) )
+    {
+      freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+      return SendErrorFile(instance,transaction,412);
+    }
 
-  if  (cached_buffer!=0) //If we have already a cached version of the file there is a change we might send a 304 Not Modified response
-   {
-      unsigned char ok_to_serve_not_modified = 1;
+    if (request->eTag!=0)
+    {
+      //If-None-Match takes precedence : If-Modified-Since is ignored whenever it is present
+      if ( (LocalETag[0]!=0) && (strncmp(request->eTag,LocalETag,request->eTagLength)==0) ) { not_modified=1; }
+    } else
+    if ( request->ifModifiedSinceSet && haveModificationTime &&
+         (representationModificationTime <= request->ifModifiedSince) )
+    {
+      not_modified=1;
+    }
+  }
 
-      /*OK We have a cached buffer on this page BUT a good question to ask is the following..
-        Is it a regular file we are talking about , or a dynamic page ? */
+  if (not_modified)
+  {
+    if (!SendNotModifiedHeader(instance,transaction))
+     { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
-      if (cache[index].dynamicRequestCallbackFunction!=0)
-              {
-                /*It seems we have ourselves a dynamic page..! Are we on a callback cooldown ? */
-                /*The only built in way to serve a not modified response is if the request is too soon ( callback_every_x_msec callback cooldown ) ! */
-                struct AmmServer_RH_Context * shared_context = cache[index].dynamicRequest;
-                if ( shared_context->callback_cooldown ) { ok_to_serve_not_modified=1; } else // <- the dynamic page is still fresh.. so lets serve not modified..!
-                                                         { ok_to_serve_not_modified=0; } // <- the dynamic page has expired is dynamic so it can't be cached
-              } else
-              {
-                  //It seems we have ourselves a regular page
-                  //ok_to_serve_not_modified already should equal 1 so leave this here as documentation.. :P
-              }
-
-      //The application might want the file to always be served as a fresh one..
-      if ( cache[index].doNOTCacheRule ) { ok_to_serve_not_modified = 0; } /*We have written orders that we want this file to NEVER get cached.. EVER :P */
-      //if (force_error_code!=0) { ok_to_serve_not_modified = 0; } /*We want 404 etc messages to remain 404 :P , no point in serving 404 and then 304 ( that the 404 didn't change )*/
-
-      if (ok_to_serve_not_modified)
-      {
-       //Check E-Tag here..!
-       unsigned int cache_etag = cache_GetHashOfResource(instance,index);
-       if ((request->eTag!=0)&&(cache_etag!=0))
-        {
-          char LocalETag[MAX_ETAG_SIZE]={0};
-          snprintf(LocalETag,MAX_ETAG_SIZE,"%u%u%lu%lu",instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
-
-          //fprintf(stderr,"E-Tag is `%s` , local hash is `%s` \n",request->eTag,LocalETag);
-          if ( strncmp(request->eTag,LocalETag,request->eTagLength)==0 )
-           {
-              fprintf(stderr,"The content matches our ETag , we will reply with 304 NOT MODIFIED! :) \n");
-              SendNotModifiedHeader(instance,transaction);
-
-              //The Etag is mandatory on 304 messages..!
-              char ETagSendChunk[MAX_ETAG_SIZE+64]={0};
-              snprintf(ETagSendChunk,MAX_ETAG_SIZE+64,"ETag: \"%s\" \n",LocalETag);
-              if (!SendPart(instance,transaction,ETagSendChunk,strlen(ETagSendChunk),1)) { fprintf(stderr,"Failed sending content length @  SendMemoryBlockAsFile ..!\n");  } //the Connection header always follows
-
-              WeWantA200OK=0;
-              request->requestType=HEAD;
-           }
-            /* else
-          {
-            warning("eTag Mismatch\n"); // <- mismatches may be bugs?
-          }*/
-        }
+    if (haveModificationTime)
+     {
+       if (GetDateStringFromTimeT(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Last-Modified",representationModificationTime))
+        { if (!SendPart(instance,transaction,reply_header,strlen(reply_header),1)) { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; } }
      }
-   }
 
+    if (LocalETag[0]!=0)
+     {
+       char etagChunk[MAX_ETAG_SIZE+64]={0};
+       snprintf(etagChunk,sizeof(etagChunk),"ETag: \"%s\" \n",LocalETag);
+       if (!SendPart(instance,transaction,etagChunk,strlen(etagChunk),1)) { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
+     }
 
+    if (keepalive) { SendPart(instance,transaction,"Connection: keep-alive\n",strlen("Connection: keep-alive\n"),0); }
+              else { SendPart(instance,transaction,"Connection: close\n",strlen("Connection: close\n"),0); }
+    SendPart(instance,transaction,"\n",strlen("\n"),0);
 
+    freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+    return 1;
+  }
 
-   unsigned int have_last_modified=0;
-   struct stat last_modified;
+  //Range resolution ( static , identity representation , GET/HEAD only )
+  unsigned long rangeStart=0,rangeEnd=0,rangeLength=representationSize;
+  unsigned char partialContent=0;
+  if ( (!isDynamicMemory) && (!cached_buffer_is_compressed) &&
+       ( (request->requestType==GET) || (request->requestType==HEAD) ) &&
+       (request->rangeRequested) && (request->rangeKind!=HTTP_RANGE_NONE) )
+  {
+    int rangeResult=ResolveByteRange(request,representationSize,&rangeStart,&rangeEnd,&rangeLength);
+    if (rangeResult<0)
+     {
+       freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+       return SendRangeNotSatisfiable(instance,transaction,representationSize);
+     }
+    partialContent=(rangeResult>0);
+  }
 
-   if ( WeWantA200OK )
-   {
-       if (! SendSuccessCodeHeader(instance,transaction,(dynamicResponseCode!=0) ? dynamicResponseCode : 200,verified_filename))
-         {
-          fprintf(stderr,"Failed sending success code \n");
-          freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
-          return 0;
-         }
+  //Send the status line only after size , preconditions and range are resolved
+  unsigned int responseCode=partialContent ? 206 : ( (dynamicResponseCode!=0) ? dynamicResponseCode : 200 );
+  if (!SendSuccessCodeHeader(instance,transaction,responseCode,verified_filename))
+  {
+    fprintf(stderr,"Failed sending success code \n");
+    freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+    return 0;
+  }
 
-       /* TODO : TEMPORARILY DISABLED LAST-MODIFIED :P
-       if (stat(verified_filename, &last_modified))  { fprintf(stderr,"Could not stat modification time for file %s\n",verified_filename); } else
-                                                     {  have_last_modified=1; }*/
-
-       //TODO -> Check with last modified -> char * cached_buffer = CheckForCachedVersionOfThePage(request,verified_filename,&index,&cached_lSize,0,gzip_supported);
-   }
   if (allowOtherOrigins)
   {
     AmmServer_Warning("Allowing other origins ( cross scripting..? )");
-    SendPart(instance,transaction,"Access-Control-Allow-Origin: *\n",strlen("Access-Control-Allow-Origin: *\n"),1); //the Connection header always follows
+    if (!SendPart(instance,transaction,"Access-Control-Allow-Origin: *\n",strlen("Access-Control-Allow-Origin: *\n"),1))
+     { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
   }
 
-   if (have_last_modified)
-     {
-
-       struct tm * ptm = gmtime ( &last_modified.st_mtime ); //This is not a particularly thread safe call , must add a mutex or something here..!
-       //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
-       GetDateString(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Last-Modified",0,ptm->tm_wday,ptm->tm_mday,ptm->tm_mon,EPOCH_YEAR_IN_TM_YEAR+ptm->tm_year,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
-       //opres=send(clientsock,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-       opres=ASRV_Send(instance, transaction, reply_header, strlen(reply_header), MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE ); //the Connection header always follows
-
-       if (opres<=0) { fprintf(stderr,"Error sending Last-Modified header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
-     }
-
-
-                 //This used to also emmit --> Keep-Alive: timeout=5, max=100\n <--
-                 /* RedBot says ( http://redbot.org/?uri=http%3A%2F%2Fammar.gr%3A8080%2F ) ..!
-                     The Keep-Alive header is completely optional; it is defined primarily because the keep-alive connection token implies that such a header exists, not because anyone actually uses it.
-                    Some implementations (e.g., Apache) do generate a Keep-Alive header to convey how many requests they're willing to serve on a single connection, what the connection timeout is and other information. However, this isn't usually used by clients.
-                    It's safe to remove this header if you wish to save a few bytes in the response.*/
-  //ETag/Content-length/body only follow when we're about to send a body ( i.e. not a HEAD response , including the 304 case above which forces HEAD )
-  int connection_header_more_follows = (request->requestType!=HEAD);
-  if (keepalive) { if (!SendPart(instance,transaction,"Connection: keep-alive\n",strlen("Connection: keep-alive\n"),connection_header_more_follows) ) { /*TODO : HANDLE failure to send Connection: Keep-Alive */}  } else
-                 { if (!SendPart(instance,transaction,"Connection: close\n",strlen("Connection: close\n"),connection_header_more_follows)) { /*TODO : HANDLE failure to send Connection: Close */}  }
-
-
-
-if (request->requestType!=HEAD)
- {
-  if ( (cached_buffer!=0) && //If we haven't got a buffer cached.. AND
-        ( (!cache[index].doNOTCacheRule) /*If we dont forbid caching */ || ( (cache[index].doNOTCacheRule)&&(cache[index].dynamicRequestCallbackFunction!=0) ) /*Or we forbid caching but we are talking about a dynamic page*/)
-     ) // its ok to serve a cached file..
-   { /*!Serve cached file !*/
-     //if (gzip_supported) { strcat(reply_header,"Content-encoding: gzip\n"); } // Cache can serve gzipped files
-     //Last-Modified: Sat, 29 May 2010 12:31:35 GMT
-     //GetDateString(reply_header,"Date",1,0,0,0,0,0,0,0);
-
-
-     unsigned int  cache_etag = cache_GetHashOfResource(instance,index);
-     if (cache_etag!=0)
-     {
-        snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%u%u%lu%lu\"\n", instance->cacheVersionETag,cache_etag,start_at_byte,end_at_byte);
-        opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send E-Tag as soon as we've got it ; Content-length/body always follow
-        if (opres<=0) { fprintf(stderr,"Error sending ETag header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
-
-     }
-
-     if (cached_lSize==0) { errorID(ASV_ERROR_CACHE_HAS_NO_PAYLOAD); }
-
-
-     if ( cached_buffer_is_compressed )
-     {
-        strncpy(reply_header,"Content-Encoding: deflate\n",MAX_HTTP_REQUEST_HEADER_REPLY);
-        opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Content-length/body always follow
-        if (opres<=0) { fprintf(stderr,"Error sending Compression header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
-     }
-
-    //THIS ALSO EXISTS IN THE TransmitFileToSocket  CODE
-    //Send Content Length , as a range , or as the whole file!
-      if ( (start_at_byte!=0) || (end_at_byte!=0) )
-       {
-         //error("Resource Content-Range response");
-         //Content-Range: bytes 1000-3979/3980
-         int endAtBytePrinted = end_at_byte;
-         if (endAtBytePrinted == 0 ) { endAtBytePrinted = cached_lSize; }
-          snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-Range: bytes %lu-%u/%lu\nContent-Length: %lu\n\n",start_at_byte,endAtBytePrinted,cached_lSize,cached_lSize-start_at_byte);
-       } else
-       {
-         //error("Resource Plain Content-Length ");
-         //This is the last header part , so we are appending an extra \n to mark the end of the header
-         snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-length: %u\r\n\r\n",(unsigned int) cached_lSize);
-       }
-     //TODO : Append Cookie here..
-
-     opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send filesize as soon as we've got it ; the body always follows
-     if (opres<=0) { fprintf(stderr,"Error sending cached header \n"); freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
-
-     opres=ASRV_Send(instance,transaction,cached_buffer,cached_lSize,MSG_WAITALL|MSG_NOSIGNAL);  //Send file as soon as we've got it ; last part of the response, no MSG_MORE
-     freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
-
-     if (opres<=0) { fprintf(stderr,"Error sending cached body\n"); return 0; }
-     return 1;
-   }
-     else
+  if ( (!isDynamicMemory) && (haveModificationTime) )
   {
-    /*!Serve file by reading it from disk !*/
-
-    if ((cached_buffer==0)&&(cached_lSize==1)) { /*TODO : Cache indicates that file doesn't exist */ } else
-    if ((cached_buffer==0)&&(cached_lSize==0)) { /*TODO : Cache indicates that file is not in cache :P */ }
-
-
-     if ( !TransmitFileToSocket(instance,transaction,verified_filename,start_at_byte,end_at_byte) )
-      {
-         fprintf(stderr,"Could not transmit file %s \n",verified_filename);
-         return 0;
-      }
-      return 1;
+    if (GetDateStringFromTimeT(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Last-Modified",representationModificationTime))
+     {
+       if (!SendPart(instance,transaction,reply_header,strlen(reply_header),1))
+        { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
+     }
   }
-  //
-} //we also want a body with that header END
- else
-{
-  //We only served a header so lets append the last new line char..!
-  //send(clientsock,"\n",strlen("\n"),MSG_WAITALL|MSG_NOSIGNAL);
-  ASRV_Send( instance, transaction, "\n", strlen("\n"), MSG_WAITALL|MSG_NOSIGNAL );
-  return 1; //This does not mean we failed..! 2016-04-03
-}
 
+  if (LocalETag[0]!=0)
+  {
+    snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"ETag: \"%s\"\n",LocalETag);
+    if (!SendPart(instance,transaction,reply_header,strlen(reply_header),1))
+     { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
+  }
 
- return 0;
+  if (cached_buffer_is_compressed)
+  {
+    if (!SendPart(instance,transaction,"Content-Encoding: deflate\n",strlen("Content-Encoding: deflate\n"),1))
+     { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
+  }
+
+  //Content-length/body only follow when we're about to send a body ( not a HEAD response )
+  int headRequest=(request->requestType==HEAD);
+  int connection_header_more_follows = (!headRequest);
+  if (keepalive) { if (!SendPart(instance,transaction,"Connection: keep-alive\n",strlen("Connection: keep-alive\n"),connection_header_more_follows) ) { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }  } else
+                 { if (!SendPart(instance,transaction,"Connection: close\n",strlen("Connection: close\n"),connection_header_more_follows)) { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }  }
+
+  if (partialContent)
+  {
+    snprintf(
+              reply_header,
+              MAX_HTTP_REQUEST_HEADER_REPLY,
+              "Content-Range: bytes %lu-%lu/%lu\r\nContent-Length: %lu\r\n\r\n",
+              rangeStart,
+              rangeEnd,
+              representationSize,
+              rangeLength
+            );
+  } else
+  {
+    snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"Content-Length: %lu\r\n\r\n",representationSize);
+  }
+
+  if (!SendPart(instance,transaction,reply_header,strlen(reply_header),!headRequest))
+   { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
+
+  if (headRequest)
+  {
+    freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+    return 1;
+  }
+
+  if (cached_buffer!=0)
+  {
+    unsigned long bodyOffset=(partialContent?rangeStart:0);
+    unsigned long bodyLength=(partialContent?rangeLength:representationSize);
+
+    if (cached_lSize==0) { errorID(ASV_ERROR_CACHE_HAS_NO_PAYLOAD); }
+
+    if (bodyLength>0)
+     {
+       opres=ASRV_Send(
+                        instance,
+                        transaction,
+                        cached_buffer+bodyOffset,
+                        bodyLength,
+                        MSG_WAITALL|MSG_NOSIGNAL
+                      );  //Last part of the response , no MSG_MORE
+       freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+
+       if (opres<=0) { fprintf(stderr,"Error sending cached body\n"); return 0; }
+     } else
+     {
+       freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
+     }
+    return 1;
+  }
+
+  //Stream the requested slice straight from disk
+  unsigned long bodyOffset=(partialContent?rangeStart:0);
+  unsigned long bodyLength=(partialContent?rangeLength:representationSize);
+  if (!TransmitFileBodyToSocket(instance,transaction,verified_filename,bodyOffset,bodyLength))
+   {
+     fprintf(stderr,"Could not transmit file %s \n",verified_filename);
+     return 0;
+   }
+
+  return 1;
 }
 
 unsigned long SendMemoryBlockAsFile

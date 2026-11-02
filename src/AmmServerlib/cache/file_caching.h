@@ -51,6 +51,7 @@ struct cache_item
 
    //Modification time..!
    struct timestamp modification;
+   time_t modification_time; //Epoch seconds , used for Last-Modified / conditional requests
 };
 
 

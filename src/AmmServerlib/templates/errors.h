@@ -11,6 +11,10 @@ extern char error401[];
 extern char error403[];
 extern char error404[];
 extern char error408[];
+extern char error412[];
+extern char error413[];
+extern char error416[];
+extern char error417[];
 extern char error500[];
 
 

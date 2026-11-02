@@ -137,6 +137,34 @@ unsigned int countStringUntilNewLine(char * request,unsigned int requestLength)
 
 
 
+/*Strict Content-Length value parser : only decimal digits ( with surrounding
+  spaces/tabs ) are accepted.  Rejecting non-numeric/overflowing values closes
+  the request-smuggling gap where a bogus value used to silently become 0.*/
+static int ParseContentLengthValue(const char * value,unsigned int length,unsigned long * output)
+{
+  unsigned int i=0;
+  while ( (i<length) && ( (value[i]==' ') || (value[i]=='\t') ) ) { ++i; }
+  if (i>=length) { return 0; }
+
+  unsigned long result=0;
+  unsigned int digits=0;
+  while ( (i<length) && (value[i]!=' ') && (value[i]!='\t') )
+   {
+     if ( (value[i]<'0') || (value[i]>'9') ) { return 0; }
+     unsigned long digit=(unsigned long)(value[i]-'0');
+     if (result > ((((unsigned long)-1)-digit)/10)) { return 0; }
+     result=result*10+digit;
+     ++digits;
+     ++i;
+   }
+
+  while ( (i<length) && ( (value[i]==' ') || (value[i]=='\t') ) ) { ++i; }
+  if ( (i!=length) || (digits==0) ) { return 0; }
+
+  *output=result;
+  return 1;
+}
+
 int AnalyzePOSTLineRequest(
                             struct AmmServer_Instance * instance,
                             struct HTTPHeader * output,
@@ -243,8 +271,26 @@ int AnalyzePOSTLineRequest(
 
             case POSTHEADER_CONTENT_LENGTH :
                 payload_start+=strlen("CONTENT-LENGTH:");
-                output->ContentLength = GetIntFromHTTPHeaderFieldPayload(request+payload_start,request_length-payload_start);
-               return (output->ContentLength!=0);
+
+                //Once the header's blank line is behind us , a Content-Length line belongs to a
+                //multipart part , not to the request framing : ignore it instead of letting a file
+                //part overwrite the request body size.
+                if ( (output->headerRAWHeadSize>0) &&
+                     (request >= output->headerRAW+output->headerRAWHeadSize+1) ) { return 0; }
+
+                {
+                  unsigned long parsedLength=0;
+                  if ( (!ParseContentLengthValue(request+payload_start,request_length-payload_start,&parsedLength)) ||
+                       (output->hasContentLength) )
+                   {
+                     output->contentLengthInvalid=1;
+                     output->ContentLength=0;
+                     return 0;
+                   }
+                  output->ContentLength=parsedLength;
+                  output->hasContentLength=1;
+                  return (output->ContentLength!=0);
+                }
             break;
 
           };
@@ -269,3 +315,53 @@ int AnalyzePOSTLineRequest(
    return 0;
 }
 
+/*Re-run POST line analysis over a decoded (dechunked) body.
+  This exists because chunked framing invalidates every pointer the incremental
+  parser registered while the request was still arriving : dechunking compacts
+  the body over the framing , so the multipart boundaries must be discovered
+  again from the final contiguous buffer.  Only AnalyzePOSTLineRequest() is
+  called here - never AnalyzeHTTPLineRequest() , which would let arbitrary body
+  data ( e.g. a value containing "Range:") overwrite request-header fields.
+  The caller must make sure body[bodyLength] is NUL terminated , since the
+  POST scanner uses strstr() internally.*/
+int AnalyzePOSTBodyLines(
+                          struct AmmServer_Instance * instance,
+                          struct HTTPHeader * output,
+                          char * body,
+                          unsigned int bodyLength,
+                          unsigned int firstLineNumber
+                        )
+{
+  if ( (instance==0) || (output==0) || (body==0) ) { return 0; }
+
+  unsigned int lineNumber=firstLineNumber;
+  unsigned int lineStart=0;
+  unsigned int i=0;
+
+  while (i<bodyLength)
+   {
+     if ( (body[i]==13) || (body[i]==10) )
+      {
+        if (i>lineStart)
+         {
+           AnalyzePOSTLineRequest(instance,output,body+lineStart,i-lineStart,lineNumber);
+         }
+        ++lineNumber;
+
+        unsigned int next=i+1;
+        if ( (next<bodyLength) && ( (body[next]==13) || (body[next]==10) ) && (body[next]!=body[i]) ) { ++next; }
+        i=next;
+        lineStart=i;
+      } else
+      {
+        ++i;
+      }
+   }
+
+  if (lineStart<bodyLength)
+   {
+     AnalyzePOSTLineRequest(instance,output,body+lineStart,bodyLength-lineStart,lineNumber);
+   }
+
+  return 1;
+}

@@ -91,6 +91,35 @@ struct FastPathPendingWrite
    int keepalive;
 };
 
+/*True only when the HTTP version token on the request line itself is HTTP/1.1.
+  Searching the whole header for " HTTP/1.1" could match a header value instead.*/
+static int request_line_is_http_1_1(const char * peek,unsigned int header_len)
+{
+  const char * lineEnd=(const char *) memchr(peek,'\n',header_len);
+  if (lineEnd==0) { lineEnd=peek+header_len; }
+  while ( (lineEnd>peek) && (lineEnd[-1]=='\r') ) { --lineEnd; }
+
+  const char * tokenStart=lineEnd;
+  while ( (tokenStart>peek) && (tokenStart[-1]!=' ') ) { --tokenStart; }
+
+  return ( (lineEnd-tokenStart==8) && (strncasecmp(tokenStart,"HTTP/1.1",8)==0) );
+}
+
+/*Count "Host:" header lines inside the peeked header block.  The fast path is
+  only willing to serve HTTP/1.1 requests that carry exactly one Host header ;
+  anything else falls back to the worker , which validates and answers 400.*/
+static unsigned int count_host_headers(const char * peek)
+{
+  unsigned int count=0;
+  const char * cursor=peek;
+  while ( (cursor=strcasestr(cursor,"\nHost:"))!=0 )
+   {
+     ++count;
+     cursor+=6;
+   }
+  return count;
+}
+
 static int find_header_terminator(const char * buf,unsigned int len,unsigned int * header_len)
 {
   unsigned int i;
@@ -120,15 +149,26 @@ static enum FastPathOneRequestResult TryServeOneRequest(struct AmmServer_Instanc
   //Conservative disqualifiers - a false positive here just costs an unnecessary fallback , never a wrong response.
   //Every one of these is already handled correctly by SendFile()'s existing pipeline , so we simply don't try to
   //duplicate that logic here.
-  if ( strcasestr(peek,"\nRange:")!=0            ||
-       strcasestr(peek,"\nIf-None-Match:")!=0    ||
-       strcasestr(peek,"\nIf-Modified-Since:")!=0||
-       strcasestr(peek,"\nAccept-Encoding:")!=0  ||
+  if ( strcasestr(peek,"\nRange:")!=0               ||
+       strcasestr(peek,"\nIf-None-Match:")!=0       ||
+       strcasestr(peek,"\nIf-Modified-Since:")!=0   ||
+       strcasestr(peek,"\nIf-Unmodified-Since:")!=0 ||
+       strcasestr(peek,"\nExpect:")!=0              ||
+       strcasestr(peek,"\nTransfer-Encoding:")!=0   ||
+       strcasestr(peek,"\nAccept-Encoding:")!=0     ||
        strcasestr(peek,"\nAuthorization:")!=0 )
    { return FASTPATH_INELIGIBLE; }
 
+  if ( request_line_is_http_1_1(peek,header_len) && (count_host_headers(peek)!=1) )
+   { return FASTPATH_INELIGIBLE; } //Missing/duplicate Host must reach the validating worker
+
   unsigned int method_len = is_head?5:4;
   char * path_start = peek+method_len;
+
+  //Absolute-form targets are handled by the worker's request-line parser
+  if ( (strncasecmp(path_start,"http://",7)==0) || (strncasecmp(path_start,"https://",8)==0) )
+   { return FASTPATH_INELIGIBLE; }
+
   char * sp = (char *) memchr(path_start,' ',(size_t)(peeked-method_len));
   if (sp==0) { return FASTPATH_INELIGIBLE; }
   unsigned int path_len = (unsigned int)(sp-path_start);
@@ -319,6 +359,7 @@ static void DispatchContinuationToWorker(struct AmmServer_Instance * instance,in
 int EpollFastPath_TryServe(struct AmmServer_Instance * instance,int clientsock)
 {
   if (instance==0) { return 0; }
+  if (!KEEPALIVE_ENABLED) { return 0; } //The fast path always emits keep-alive headers
   if (instance->settings.PASSWORD_PROTECTION) { return 0; }
   if (instance->cache==0) { return 0; }
 

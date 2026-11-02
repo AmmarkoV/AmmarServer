@@ -35,6 +35,24 @@ unsigned long SendFile
   );
 
 /**
+* @brief Send a byte range of a file from disk to a client ( body only , headers already sent )
+* @ingroup network
+* @param An AmmarServer Instance
+* @param HTTPTransaction this send file is part of
+* @param Verified filename
+* @param Byte offset to start at
+* @param Number of bytes to transmit
+* @retval 1=Success,0=Failure*/
+int TransmitFileBodyToSocket
+  (
+    struct AmmServer_Instance * instance,
+    struct HTTPTransaction * transaction,
+    const char * verified_filename,
+    unsigned long offset,
+    unsigned long byteCount
+  );
+
+/**
 * @brief Send an Error "file" response to a client , this is just a wrapper for a SendFile call with a force_error_code set
 * @ingroup network
 * @param An AmmarServer Instance

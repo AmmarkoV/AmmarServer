@@ -55,6 +55,20 @@ int GetDateString(
                 );
 
 /**
+* @brief Parse an HTTP date ( IMF-fixdate , with RFC 850 tolerance ) into epoch seconds
+* @ingroup timers
+* @param   Value string , length of the value , output time_t
+* @retval 1=Success,0=Failure*/
+int ParseHTTPDate(const char * value,unsigned int valueLength,time_t * output);
+
+/**
+* @brief Format a time_t as an HTTP date line ( Date: ... / Last-Modified: ... )
+* @ingroup timers
+* @param   Output string , maximum output size , label ( can be 0 ) , time_t
+* @retval 1=Success,0=Failure*/
+int GetDateStringFromTimeT(char * output,unsigned int maxOutput,const char * label,time_t when);
+
+/**
 * @brief Start a timer using a time_snap structure
 * @ingroup timers
 * @param   time_snap structure that holds the timer data

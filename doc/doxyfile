@@ -742,7 +742,7 @@ EXCLUDE_SYMLINKS       = NO
 
 #EXCLUDE_PATTERNS       = 
 EXCLUDE_PATTERNS = */build/* \
-                   */pentest_suite/*  \
+                   */tests/*  \
                    */ammar.gr/*  \
                    */scripts/*  \
                    */public_html/* \

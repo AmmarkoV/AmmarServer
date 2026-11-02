@@ -27,7 +27,7 @@ AmmarServer/
 │   ├── AmmMessages/         Small pub/sub-style messaging helper
 │   └── UserAccounts/        User account/auth helper library (if present in this checkout)
 ├── scripts/                 Install/deploy/benchmark/security-audit shell scripts (see §10)
-├── pentest_suite/           Load-testing / stress-testing scripts against a running instance
+├── tests/                   Automated functional/security suite, plus legacy pentest and load scripts
 ├── public_html/             Default static-file webroot for the AmmarServer demo service
 ├── doc/                     Misc docs, banner image
 ├── 3dparty/                 NOT part of AmmarServer - reference sources (nginx) and the wrk benchmarking
