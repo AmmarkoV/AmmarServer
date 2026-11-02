@@ -34,6 +34,7 @@ python3 -m unittest discover -s tests -t . -p 'test_*.py' -v
 
 - `AMMARSERVER_BINARY` – use a different server binary (used by the harness).
 - `AMMARSERVER_LIBRARY_DIR` – directory containing `libAmmarServer.so`.
+- `INPUTPARSER_TEST_BINARY` – use a different `testinputparser` binary.
 
 ## Layout
 
@@ -49,6 +50,7 @@ tests/
 │                             keep-alive, ETag stability, concurrency and logging
 ├── test_security.py          traversal, symlink escape, malformed/oversized input,
 │                             request smuggling and slow-client resilience
+├── test_inputparser.py       InputParser keepcopy ownership and NUL-termination regressions
 ├── legacy/                   original shell pentest scripts and raw request fixtures
 └── load/                     manual siege/wget load and DoS trials
 ```
@@ -63,6 +65,9 @@ tests/
   methods, keep-alive semantics (HTTP/1.0 and 1.1), ETag stability, compression
   negotiation when compression is compiled out, concurrent requests, and
   access/error logging.
+- **InputParser regressions**: zero-copy parsing of read-only strings, correct
+  float conversion of the last token, and switching between `keepcopy=1` and
+  `keepcopy=0` without writing into or freeing caller memory.
 - **Security / pentests**: path traversal in several encodings, CRLF injection
   attempts, symlink escapes outside the web root, malformed and oversized
   requests, header floods, duplicate/invalid `Content-Length`, mixed

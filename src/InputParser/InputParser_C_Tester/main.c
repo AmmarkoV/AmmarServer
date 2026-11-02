@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "../InputParser_C.h"
 #include <time.h>
 
@@ -19,10 +20,95 @@
 void ParseString(struct InputParserC * ipc,char * thestr);
 int IntermediateTests();
 
-
-
-int main()
+static int FloatMatches(float a,float b)
 {
+  float difference=a-b;
+  if (difference<0) { difference=-difference; }
+  return difference<0.0001f;
+}
+
+//Non-interactive regression tests : run with --self-test
+static int SelfTests()
+{
+  int errors=0;
+  int words=0;
+
+  #define SELFTEST_CHECK(condition,message) \
+    do { if (!(condition)) { printf("FAIL: %s\n",message); ++errors; } \
+         else { printf("ok: %s\n",message); } } while (0)
+
+  printf("InputParser self tests\n");
+
+  /* Zero-copy parse of a read-only string literal , including the last token as a float */
+  {
+    struct InputParserC * ipc=InputParser_Create(16,5);
+    words=InputParser_SeperateWords(ipc,(char *)"7.5,8.5",0);
+    SELFTEST_CHECK(words==2,"zero-copy literal tokenizes two words");
+    SELFTEST_CHECK(FloatMatches(InputParser_GetWordFloat(ipc,0),7.5f),"zero-copy first float");
+    SELFTEST_CHECK(FloatMatches(InputParser_GetWordFloat(ipc,1),8.5f),"zero-copy last float");
+    InputParser_Destroy(ipc);
+  }
+
+  /* keepcopy=1 must leave the parser's copy NUL terminated for the last token */
+  {
+    char buffer[]="1.25,2.5";
+    struct InputParserC * ipc=InputParser_Create(16,5);
+    words=InputParser_SeperateWords(ipc,buffer,1);
+    SELFTEST_CHECK(words==2,"keepcopy tokenizes two words");
+    SELFTEST_CHECK(FloatMatches(InputParser_GetWordFloat(ipc,1),2.5f),"keepcopy last float");
+    InputParser_Destroy(ipc);
+  }
+
+  /* keepcopy=0 after keepcopy=1 must not keep ownership of the caller's string */
+  {
+    char buffer[]="1.25,2.5";
+    const char * read_only="3.75,4.5";
+    struct InputParserC * ipc=InputParser_Create(16,5);
+    InputParser_SeperateWords(ipc,buffer,1);
+    words=InputParser_SeperateWords(ipc,(char *)read_only,0);
+    SELFTEST_CHECK(ipc->local_allocation==0,"keepcopy=0 clears parser ownership");
+    SELFTEST_CHECK(words==2,"keepcopy=0 after keepcopy=1 tokenizes");
+    SELFTEST_CHECK(FloatMatches(InputParser_GetWordFloat(ipc,1),4.5f),"read-only input float after keepcopy");
+    InputParser_Destroy(ipc);
+  }
+
+  /* Switching modes repeatedly must never free caller memory */
+  {
+    char first[]="1,2";
+    char second[]="3,4";
+    char third[]="5,6";
+    struct InputParserC * ipc=InputParser_Create(16,5);
+    InputParser_SeperateWords(ipc,first,1);
+    InputParser_SeperateWords(ipc,second,0);
+    words=InputParser_SeperateWords(ipc,third,1);
+    SELFTEST_CHECK(words==2,"mixed keepcopy modes tokenize");
+    SELFTEST_CHECK(ipc->local_allocation==1,"keepcopy=1 restores parser ownership");
+    InputParser_Destroy(ipc);
+  }
+
+  /* More tokens than the parser was created for must not overflow tokenlist */
+  {
+    char buffer[]="a,b,c,d,e";
+    struct InputParserC * ipc=InputParser_Create(2,5);
+    words=InputParser_SeperateWords(ipc,buffer,0);
+    SELFTEST_CHECK(words==2,"token count is capped at the configured maximum");
+    SELFTEST_CHECK(ipc->tokens_count<=ipc->tokens_max,"token count stays within capacity");
+    InputParser_Destroy(ipc);
+  }
+
+  #undef SELFTEST_CHECK
+
+  if (errors) { printf("InputParser self tests FAILED (%d)\n",errors); return 1; }
+  printf("InputParser self tests passed\n");
+  return 0;
+}
+
+
+
+int main(int argc,char ** argv)
+{
+  if ( (argc>1) && (strcmp(argv[1],"--self-test")==0) ) { return SelfTests(); }
+
     //InputParserC is a library to tokenize words from a string "zero,one,two,three(four)" -> "zero" "one" "two" "three" "four"..!
     printf("Hello World , InputParserC linked version is %s \n",InputParserC_Version());
 
@@ -42,8 +128,8 @@ int main()
       printf("%u ascii or   %c  ",InputParser_GetDelimeter(ipc,i),InputParser_GetDelimeter(ipc,i));
     }
 
-     //We will now tokenize the string "zero,one,two,three(four)" , we set the last parameter to zero to indicate that
-     //input parser should keep a copy of the string , because after the call is done it will be disposed of..!
+     //We will now tokenize the string "zero,one,two,three(four)" , we set the last parameter to 1 to indicate that
+     //input parser should keep its own copy of the string..!
      //The return value ( res ) is the number of tokens extracted!
      int res = InputParser_SeperateWords(ipc,"zero,one,2,three(four)",1);
      printf("\nInput Parser tokenized a total of %u tokens \n",res);
@@ -243,7 +329,7 @@ int IntermediateTests()
     char parsemessage9[] = "POS(hand,1000,   2.0,1.0,-3.0 , 0.0,0.0,0.0,-0.0314169\0";
     ParseString(ipc,parsemessage9);
 
-    fprintf(stderr,"This line should crash to remind us of the correct way to declare a string..\n");
+    fprintf(stderr,"This string literal is safe : zero-copy parsing never writes into its input..\n");
     char * parsemessage10 = "POS(hand,1000,   -2.0,1.0,3.0 , 0.0,0.0,0.0,-0.0314169\0";
     ParseString(ipc,parsemessage10);
 

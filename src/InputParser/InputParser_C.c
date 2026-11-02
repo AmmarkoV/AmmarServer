@@ -20,10 +20,6 @@
  along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define WARN_ABOUT_INCORRECTLY_ALLOCATED_STACK_STRINGS 1
-int warningsAboutIncorrectlyAllocatedStackIssued = 0;
-
-
 char _ipc_ver[]=" 0.359\0";  //26/4/2017
 
 
@@ -608,8 +604,9 @@ float InputParser_GetWordFloat(struct InputParserC * ipc,unsigned int num)
         return NAN;
       }
 
-     strncpy(string_segment,ipc->str+tokenStart,tokenLength);
-     last_char_of_string_segment = string_segment + ipc->tokenlist[num].length;
+     memcpy(string_segment,ipc->str+tokenStart,tokenLength);
+     string_segment[tokenLength]=0; //Terminate : the token has no delimiter after it when it is the last one
+     last_char_of_string_segment = string_segment + tokenLength;
     } else
     {
      string_segment = ipc->str+tokenStart;
@@ -669,33 +666,13 @@ unsigned int InputParser_GetWordLength(struct InputParserC * ipc,unsigned int nu
 /*
    InputParser_SeperateWords..
    Seperates words in c string (inpt) to tokens using delimiters set-up at structure ipc and keeps result at structure ipc
-   if the c string will be erased before getting back the tokens you can set the keepcopy byte to 1 , this will allocate memory to
-   keep a copy of the string..!
+   keepcopy=1 allocates its own copy , so tokens stay valid even if the caller's string changes or is erased.
+   keepcopy=0 only keeps a pointer : the caller's string must stay alive while tokens are read.
+   The parser never writes into the caller's string , so read-only input is safe with either mode.
    the number returned is the total of tokens extracted!
 */
 int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcopy)
 {
-   if (keepcopy==0)
-    {
-      #if WARN_ABOUT_INCORRECTLY_ALLOCATED_STACK_STRINGS
-       if (warningsAboutIncorrectlyAllocatedStackIssued==0)
-        {
-         fprintf(stderr,"Please note that feeding input parser with strings allocated on the stack it is generally a good idea to enable keepcopy\n");
-         fprintf(stderr,"For example passing here a string allocated as  char* hello = \"hello!\"; might lead to a segFault ( i.e. when calling InputParser_GetWordFloat ) \n");
-         fprintf(stderr,"The correct way for allocating a string with in place processing is char hello[] = \"hello!\"; \n");
-         fprintf(stderr,"Valgrind classifies these errors as \"Bad permissions for mapped region at address\" \n");
-         fprintf(stderr,"\n\nThis warning will only appear once \n\n");
-
-         ++warningsAboutIncorrectlyAllocatedStackIssued ;
-        }
-       #endif
-
-
-    }
-
-
-
-
 
   if (CheckIPCOk(ipc)==0) { return 0; }
   if  ( inpt == 0 ) return 0; /* NULL INPUT -> NULL OUTPUT*/
@@ -707,29 +684,41 @@ int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcop
 
   /* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
    COPY STRING ( OR POINTER ) TO IPC STRUCTURE*/
-  if ( keepcopy == 1 ) {  /* IF WE HAVE ALREADY ALLOCATED A STRING TO ipc->str , we should free it to prevent memory leaks!*/
-                          if (ipc->local_allocation == 1)
-                          {
-                            if (ipc->str!=0)
-                            { /* ipc->str contains a previous value!*/
-                              free(ipc->str);
-                              ipc->local_allocation = 0;
-                            }
-                          }
-                          ipc->str = (char * ) malloc( sizeof(char) * (STRING_END+1) );
-                          ipc->local_allocation = 1;
-                          strncpy( ipc->str , inpt , STRING_END ) ;
-                       } else
-                       { ipc->str = inpt; }
+  if ( ipc->local_allocation == 1 )
+   { /*Unconditionally drop the previous copy : a keepcopy=0 call must not
+      inherit ownership of a string it does not own ( it would later try to
+      free() the caller's input , and GetWordFloat would write into it )*/
+     if (ipc->str!=0) { free(ipc->str); }
+     ipc->str = 0;
+     ipc->local_allocation = 0;
+   }
+
+  if ( keepcopy == 1 )
+   {
+     ipc->str = (char * ) malloc( sizeof(char) * (STRING_END+1) );
+     if (ipc->str==0)
+      {
+        fprintf(stderr,"InputParser_SeperateWords could not allocate memory to keep a copy of the input\n");
+        ipc->str_length=0;
+        ipc->tokens_count=0;
+        return 0;
+      }
+     memcpy( ipc->str , inpt , STRING_END ) ;
+     ipc->str[STRING_END]=0;
+     ipc->local_allocation = 1;
+   } else
+   {
+     ipc->str = inpt;
+   }
 
   ipc->str_length = STRING_END;
   /* COPY STRING ( OR POINTER ) TO IPC STRUCTURE
    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>*/
 
 
-  register unsigned int i,z;
+  register unsigned int i=0,z;
   ipc->tokens_count = 0 , ipc->tokenlist[0].token_start=0;
-  for (i=0; i<STRING_END; i++)
+  for (i=0; (i<STRING_END)&&(ipc->tokens_count<ipc->tokens_max); i++)
   {
     FOUND_DELIMETER = 0;
     for (z=0; z<ipc->cur_delimeter_count; z++)
@@ -757,7 +746,7 @@ int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcop
 
   }
 
-   if (NEXT_SHOULD_NOT_BE_A_DELIMITER==0)
+   if ( (NEXT_SHOULD_NOT_BE_A_DELIMITER==0)&&(ipc->tokens_count<ipc->tokens_max) )
         {
          ipc->tokenlist[ipc->tokens_count].length = i - ipc->tokenlist[ipc->tokens_count].token_start;
          ipc->tokens_count+=1;

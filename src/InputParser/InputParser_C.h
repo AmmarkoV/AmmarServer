@@ -346,7 +346,7 @@ unsigned int InputParser_GetWordLength(struct InputParserC * ipc,unsigned int nu
  * @ingroup InputParser
  * @param InputParser Context to be used ( needs to be created using InputParser_Create )
  * @param Word that we want to split to tokens
- * @param 1=Keep a copy of the input string, this is safer in case the input string changes from another thread etc. , 0=Zero copy splitting that has more chances of going wrong
+ * @param 1=Copy the input into the parser (tokens stay valid until the next parse or Destroy) , 0=Zero-copy split of the caller's string (it must stay alive and unchanged while tokens are read ; the parser never writes into it)
  * @retval The number of tokens split,0=Failure
  */
 int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcopy);
@@ -356,7 +356,7 @@ int InputParser_SeperateWords(struct InputParserC * ipc,char * inpt,char keepcop
  * @ingroup InputParser
  * @param InputParser Context to be used ( needs to be created using InputParser_Create )
  * @param Word that we want to split to tokens
- * @param 1=Keep a copy of the input string, this is safer in case the input string changes from another thread etc. , 0=Zero copy splitting that has more chances of going wrong
+ * @param 1=Copy the input into the parser (tokens stay valid until the next parse or Destroy) , 0=Zero-copy split of the caller's string (it must stay alive and unchanged while tokens are read ; the parser never writes into it)
  * @retval The number of tokens split,0=Failure
  */
 int InputParser_SeperateWordsCC(struct InputParserC * ipc,const char * inpt,char keepcopy);
@@ -366,7 +366,7 @@ int InputParser_SeperateWordsCC(struct InputParserC * ipc,const char * inpt,char
  * @ingroup InputParser
  * @param InputParser Context to be used ( needs to be created using InputParser_Create )
  * @param Word that we want to split to tokens
- * @param 1=Keep a copy of the input string, this is safer in case the input string changes from another thread etc. , 0=Zero copy splitting that has more chances of going wrong
+ * @param 1=Copy the input into the parser (tokens stay valid until the next parse or Destroy) , 0=Zero-copy split of the caller's string (it must stay alive and unchanged while tokens are read ; the parser never writes into it)
  * @retval The number of tokens split,0=Failure
  */
 int InputParser_SeperateWordsUC(struct InputParserC * ipc,unsigned char * inpt,char keepcopy);

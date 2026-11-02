@@ -27,8 +27,8 @@ if [ "$BUILD" = "1" ]; then
     echo "build/ is not configured, running cmake first"
     cmake -S "$REPO_ROOT" -B "$BUILD_DIR" || exit 1
   fi
-  echo "Building ammarserver..."
-  cmake --build "$BUILD_DIR" --target ammarserver -j"$(nproc)" || exit 1
+  echo "Building ammarserver and InputParser tests..."
+  cmake --build "$BUILD_DIR" --target ammarserver testinputparser -j"$(nproc)" || exit 1
 fi
 
 if [ ! -x "$BINARY" ]; then
