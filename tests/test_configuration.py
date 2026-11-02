@@ -20,6 +20,11 @@ class TestConfiguration(unittest.TestCase):
         return server
 
     @staticmethod
+    def _startup_log(server):
+        with open(server.log_path, "rb") as log:
+            return log.read().decode("utf-8", "replace")
+
+    @staticmethod
     def _chunked_echo(server, value):
         connection = RawConnection(server.port)
         try:
@@ -126,6 +131,42 @@ class TestConfiguration(unittest.TestCase):
             self.assertEqual(connection.read_response("GET").status, 200)
         finally:
             connection.close()
+
+    def test_10_documented_options_do_not_warn_but_typos_do(self):
+        documented = {
+            "KeepAliveTimeout": 15,
+            "MaxKeepAliveRequests": 100,
+            "StartServers": 2,
+            "MinSpareThreads": 25,
+            "MaxSpareThreads": 75,
+            "ThreadLimit": 64,
+            "MaxClients": 150,
+            "FileCompression": "On",
+            "DynamicContentCompression": "On",
+            "ReallocToSaveMoreThanThisNumberOfBytesWithCompression": 4096,
+            "DefaultType": "text/plain",
+            "ServerAdmin": "webmaster@localhost",
+            "DocumentRoot": "public_html/",
+            "ServerTokens": "OS",
+            "ServerSignature": "On",
+            "DirectoryListing": "On",
+        }
+        settings = dict(DEFAULT_CONFIG)
+        settings.update(documented)
+
+        server = self._start(config_files={"default.conf": settings}, explicit_conf=False)
+        startup_log = self._startup_log(server)
+        self.assertNotIn("unknown key", startup_log)
+
+        connection = RawConnection(server.port)
+        try:
+            connection.send(make_request("GET", "/index.html", [("Connection", "close")], port=server.port))
+            self.assertEqual(connection.read_response("GET").status, 200)
+        finally:
+            connection.close()
+
+        typo_server = self._start({"SomeUnknownFutureOption": "whatever"})
+        self.assertIn("unknown key `SomeUnknownFutureOption`", self._startup_log(typo_server))
 
 
 if __name__ == "__main__":

@@ -86,6 +86,8 @@ set(AMMARSERVER_INGREDIENTS
                 #String Scanners , these get  automatically generated
                 stringscanners/applicationFiles.c
                 stringscanners/applicationFiles.h
+                stringscanners/configKeys.c
+                stringscanners/configKeys.h
                 stringscanners/archiveFiles.c
                 stringscanners/archiveFiles.h
                 stringscanners/audioFiles.c

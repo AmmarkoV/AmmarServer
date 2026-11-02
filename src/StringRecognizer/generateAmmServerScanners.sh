@@ -5,7 +5,7 @@ cd "$DIR"
 
 mkdir binaries
 
-for item in httpHeader postHeader firstLines imageFiles textFiles audioFiles videoFiles applicationFiles archiveFiles; do
+for item in httpHeader postHeader firstLines configKeys imageFiles textFiles audioFiles videoFiles applicationFiles archiveFiles; do
     echo "Generating $item header"
     ./StringRecognizer $item
     gcc -S "$item.c" -o "binaries/$item-Scanner"

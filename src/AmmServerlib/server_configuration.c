@@ -7,6 +7,7 @@
 #include <limits.h>
 #include "tools/http_tools.h"
 #include "tools/logs.h"
+#include "stringscanners/configKeys.h"
 #include "../InputParser/InputParser_C.h"
 
 
@@ -173,80 +174,134 @@ static void ParseConfigString(struct AmmServer_Instance * instance,struct InputP
   int words_count = InputParser_SeperateWords(ipc,inpt,0);
   if ( words_count <= 0 ) { return; }
 
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"TIMEOUT"))
-    {
-      int timeout_value=0;
-      if (ConfigParseInt(ipc,1,1,86400*365,&timeout_value,"Timeout"))
-       {
-         varSocketTimeoutREAD_seconds=timeout_value;
-         varSocketTimeoutWRITE_seconds=timeout_value;
-       }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"KEEPALIVE"))
-    {
-      int keepalive_value=KEEPALIVE_ENABLED;
-      if (ConfigParseOnOff(ipc,1,&keepalive_value,"KeepAlive")) { KEEPALIVE_ENABLED=keepalive_value; }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"LISTEN"))
-    {
-      int port=0;
-      if (ConfigParseInt(ipc,1,1,65535,&port,"Listen")) { instance->settings.BINDING_PORT=port; }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASPRIORITY"))
-    {
-      int priority=CHANGE_PRIORITY;
-      if (ConfigParseInt(ipc,1,-20,20,&priority,"RunAsPriority")) { CHANGE_PRIORITY=priority; }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"RUNASUSER"))
-    {
-      char user[MAX_FILE_PATH]={0};
-      if (InputParser_GetWord(ipc,1,user,sizeof(user)))
-       { strncpy(USERNAME_UID_FOR_DAEMON,user,MAX_FILE_PATH); }
-      else
-       { fprintf(stderr,"Configuration : `RunAsUser` is missing a value , ignoring the line\n"); }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"IFUSERDOESNTEXISTRUNASUID"))
-    {
-      int uid=CHANGE_TO_UID;
-      if (ConfigParseInt(ipc,1,0,INT_MAX,&uid,"IfUserDoesntExistRunAsUID")) { CHANGE_TO_UID=uid; }
-    } else
-  //CONFIGURE CACHING BEHAVIOUR
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"CACHING"))
-    {
-      int caching_value=CACHING_ENABLED;
-      if (ConfigParseOnOff(ipc,1,&caching_value,"Caching")) { CACHING_ENABLED=(unsigned char)caching_value; }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXCACHESIZE"))
-    {
-      int value=MAX_CACHE_SIZE_IN_MB;
-      if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxCacheSize")) { MAX_CACHE_SIZE_IN_MB=value; }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXCACHESIZEFOREACHFILE"))
-    {
-      int value=MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
-      if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxCacheSizeForEachFile")) { MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=value; }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXSEPERATECACHEITEMS"))
-    {
-      int value=MAX_SEPERATE_CACHE_ITEMS;
-      if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxSeperateCacheItems")) { MAX_SEPERATE_CACHE_ITEMS=value; }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"ENABLEPOST"))
-    {
-      int value=instance->settings.ENABLE_POST;
-      if (ConfigParseOnOff(ipc,1,&value,"EnablePost")) { instance->settings.ENABLE_POST=value; }
-    } else
-  if (InputParser_WordCompareNoCaseAuto(ipc,0,(char*)"MAXPOSTTRANSACTIONSIZE"))
-    {
-      int value=(int) instance->settings.MAX_POST_TRANSACTION_SIZE;
-      if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxPostTransactionSize"))
-       { instance->settings.MAX_POST_TRANSACTION_SIZE=(unsigned int) value; }
-    } else
-    {
-      char key[MAX_CONFIGURATION_FILE_LINE_SIZE+1]={0};
-      InputParser_GetWord(ipc,0,key,sizeof(key));
-      fprintf(stderr,"Configuration : unknown key `%s` , ignoring the line\n",key);
-    }
+  char keyWord[MAX_CONFIGURATION_FILE_LINE_SIZE+1]={0};
+  unsigned int keyLength=InputParser_GetWord(ipc,0,keyWord,sizeof(keyWord));
+  if (keyLength==0) { return; }
+
+  //The generated scanner's tokens carry a trailing ':' sentinel ( the same way
+  //the HTTP header scanner uses "HOST:" ) so only an exact key can match.
+  char lookup[MAX_CONFIGURATION_FILE_LINE_SIZE+2]={0};
+  memcpy(lookup,keyWord,keyLength);
+  lookup[keyLength]=':';
+  lookup[keyLength+1]=0;
+
+  switch (scanFor_configKeys(lookup,keyLength+1))
+  {
+    case CONFIGKEYS_TIMEOUT:
+      {
+        int timeout_value=0;
+        if (ConfigParseInt(ipc,1,1,86400*365,&timeout_value,"Timeout"))
+         {
+           varSocketTimeoutREAD_seconds=timeout_value;
+           varSocketTimeoutWRITE_seconds=timeout_value;
+         }
+      }
+    break;
+
+    case CONFIGKEYS_KEEPALIVE:
+      {
+        int keepalive_value=KEEPALIVE_ENABLED;
+        if (ConfigParseOnOff(ipc,1,&keepalive_value,"KeepAlive")) { KEEPALIVE_ENABLED=keepalive_value; }
+      }
+    break;
+
+    case CONFIGKEYS_LISTEN:
+      {
+        int port=0;
+        if (ConfigParseInt(ipc,1,1,65535,&port,"Listen")) { instance->settings.BINDING_PORT=port; }
+      }
+    break;
+
+    case CONFIGKEYS_RUNASPRIORITY:
+      {
+        int priority=CHANGE_PRIORITY;
+        if (ConfigParseInt(ipc,1,-20,20,&priority,"RunAsPriority")) { CHANGE_PRIORITY=priority; }
+      }
+    break;
+
+    case CONFIGKEYS_RUNASUSER:
+      {
+        char user[MAX_FILE_PATH]={0};
+        if (InputParser_GetWord(ipc,1,user,sizeof(user)))
+         { strncpy(USERNAME_UID_FOR_DAEMON,user,MAX_FILE_PATH); }
+        else
+         { fprintf(stderr,"Configuration : `RunAsUser` is missing a value , ignoring the line\n"); }
+      }
+    break;
+
+    case CONFIGKEYS_IFUSERDOESNTEXISTRUNASUID:
+      {
+        int uid=CHANGE_TO_UID;
+        if (ConfigParseInt(ipc,1,0,INT_MAX,&uid,"IfUserDoesntExistRunAsUID")) { CHANGE_TO_UID=uid; }
+      }
+    break;
+
+    case CONFIGKEYS_CACHING:
+      {
+        int caching_value=CACHING_ENABLED;
+        if (ConfigParseOnOff(ipc,1,&caching_value,"Caching")) { CACHING_ENABLED=(unsigned char)caching_value; }
+      }
+    break;
+
+    case CONFIGKEYS_MAXCACHESIZE:
+      {
+        int value=MAX_CACHE_SIZE_IN_MB;
+        if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxCacheSize")) { MAX_CACHE_SIZE_IN_MB=value; }
+      }
+    break;
+
+    case CONFIGKEYS_MAXCACHESIZEFOREACHFILE:
+      {
+        int value=MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB;
+        if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxCacheSizeForEachFile")) { MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB=value; }
+      }
+    break;
+
+    case CONFIGKEYS_MAXSEPERATECACHEITEMS:
+      {
+        int value=MAX_SEPERATE_CACHE_ITEMS;
+        if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxSeperateCacheItems")) { MAX_SEPERATE_CACHE_ITEMS=value; }
+      }
+    break;
+
+    case CONFIGKEYS_ENABLEPOST:
+      {
+        int value=instance->settings.ENABLE_POST;
+        if (ConfigParseOnOff(ipc,1,&value,"EnablePost")) { instance->settings.ENABLE_POST=value; }
+      }
+    break;
+
+    case CONFIGKEYS_MAXPOSTTRANSACTIONSIZE:
+      {
+        int value=(int) instance->settings.MAX_POST_TRANSACTION_SIZE;
+        if (ConfigParseInt(ipc,1,1,INT_MAX,&value,"MaxPostTransactionSize"))
+         { instance->settings.MAX_POST_TRANSACTION_SIZE=(unsigned int) value; }
+      }
+    break;
+
+    //Documented in default.conf but not wired to a setting yet : ignore silently.
+    case CONFIGKEYS_KEEPALIVETIMEOUT:
+    case CONFIGKEYS_MAXKEEPALIVEREQUESTS:
+    case CONFIGKEYS_STARTSERVERS:
+    case CONFIGKEYS_MINSPARETHREADS:
+    case CONFIGKEYS_MAXSPARETHREADS:
+    case CONFIGKEYS_THREADLIMIT:
+    case CONFIGKEYS_MAXCLIENTS:
+    case CONFIGKEYS_FILECOMPRESSION:
+    case CONFIGKEYS_DYNAMICCONTENTCOMPRESSION:
+    case CONFIGKEYS_REALLOCTOSAVEMORETHANTHISNUMBEROFBYTESWITHCOMPRESSION:
+    case CONFIGKEYS_DEFAULTTYPE:
+    case CONFIGKEYS_SERVERADMIN:
+    case CONFIGKEYS_DOCUMENTROOT:
+    case CONFIGKEYS_SERVERTOKENS:
+    case CONFIGKEYS_SERVERSIGNATURE:
+    case CONFIGKEYS_DIRECTORYLISTING:
+    break;
+
+    default:
+      fprintf(stderr,"Configuration : unknown key `%s` , ignoring the line\n",keyWord);
+    break;
+  }
 }
 
 static FILE * OpenConfigurationFile(const char * conf_file,char * selected,unsigned int selectedSize)
