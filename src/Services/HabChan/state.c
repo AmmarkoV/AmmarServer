@@ -9,6 +9,7 @@
 #include <dirent.h>
 
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../AmmServerlib/stringscanners/imageFiles.h"
 #include "../../Hashmap/hashmap.h"
 #include "../../InputParser/InputParser_C.h"
 #include "../../BasicImaging/basicImaging.h"
@@ -225,8 +226,16 @@ void deriveCachedImageName( const char * originalFilename , unsigned int postInd
       for (i=0; (dot[1+i]!=0) && (i<sizeof(candidate)-1); i++) { candidate[i]=tolower((unsigned char) dot[1+i]); }
       candidate[i]=0;
 
-      if ( (strcmp(candidate,"jpg")==0)  || (strcmp(candidate,"jpeg")==0) ||
-           (strcmp(candidate,"png")==0)  || (strcmp(candidate,"gif")==0) )
+      //Reuse the generated image-extension scanner.  Its matches are prefix
+      //based, so the length checks below keep exactly the set the old strcmp()s
+      //accepted ("jpgx" must not be treated as "jpg").  candidate is already
+      //lowercased, matching the scanner's case-insensitive behaviour.
+      unsigned int candidateLength=(unsigned int) strlen(candidate);
+      unsigned int candidateType=scanFor_imageFiles(candidate,candidateLength);
+      if ( ((candidateType==IMAGEFILES_JPG)&&(candidateLength==3)) ||
+           ((candidateType==IMAGEFILES_JPEG)&&(candidateLength==4)) ||
+           ((candidateType==IMAGEFILES_PNG)&&(candidateLength==3)) ||
+           ((candidateType==IMAGEFILES_GIF)&&(candidateLength==3)) )
       {
         snprintf(ext,sizeof(ext),"%s",candidate);
       }

@@ -1,5 +1,6 @@
 #include "media.h"
 #include "../../AmmServerlib/tools/http_tools.h"
+#include "../../AmmServerlib/stringscanners/audioFiles.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -135,8 +136,21 @@ void mediaRenderTag(const char * storedName,char * output,unsigned int outputSiz
   if ( ! mediaIsValidName(storedName) ) { return; }
 
   const char * extension=strchr(storedName,'.')+1;
+  unsigned int extensionLength=(unsigned int) strlen(extension);
 
-  if ( (strcmp(extension,"mp3")==0) || (strcmp(extension,"wav")==0) || (strcmp(extension,"ogg")==0) )
+  //Reuse the generated audio-extension scanner.  The scanner is prefix based
+  //and case insensitive, while the old strcmp()s accepted only the exact
+  //lowercase three-character extension, so keep those guards.
+  unsigned int extensionIsLowercase=1;
+  unsigned int i=0;
+  for (i=0; i<extensionLength; i++)
+   {
+     if ( (extension[i]>='A') && (extension[i]<='Z') ) { extensionIsLowercase=0; break; }
+   }
+
+  unsigned int audioType=scanFor_audioFiles(extension,extensionLength);
+  if ( (extensionIsLowercase) && (extensionLength==3) &&
+       ( (audioType==AUDIOFILES_MP3)||(audioType==AUDIOFILES_WAV)||(audioType==AUDIOFILES_OGG) ) )
     { snprintf(output,outputSize,"<audio class=\"postmedia\" controls preload=\"none\" src=\"uploads/%s\"></audio>",storedName); }
   else
     { snprintf(output,outputSize,"<a href=\"uploads/%s\"><img class=\"postmedia\" src=\"uploads/%s\"></a>",storedName,storedName); }
