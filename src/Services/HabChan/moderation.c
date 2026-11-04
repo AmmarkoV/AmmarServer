@@ -107,13 +107,22 @@ void * processDeletePost(struct AmmServer_DynamicRequest * rqst)
     }
   }
 
-  char redirectURL[MAX_FILE_PATH*2]={0};
+  //boardName and threadName came in from a POST request and are reflected into the page below , so they
+  //must be HTML-escaped first ( as everywhere else in HabChan ) - otherwise a crafted board/thread value
+  //breaks out of the attribute and injects markup/script ( reflected XSS , reachable even on the failure
+  //path since both are reflected regardless of success ).
+  char escapedBoard[MAX_STRING_SIZE*6]={0};
+  AmmServer_HTMLEscape(boardName,escapedBoard,sizeof(escapedBoard));
+  char escapedThread[MAX_STRING_SIZE*6]={0};
+  AmmServer_HTMLEscape(threadName,escapedThread,sizeof(escapedThread));
+
+  char redirectURL[MAX_STRING_SIZE*13]={0};
   if ( success && (postIndex==0) )
   {
-    snprintf(redirectURL,sizeof(redirectURL),"threadIndexView.html?board=%s",boardName);
+    snprintf(redirectURL,sizeof(redirectURL),"threadIndexView.html?board=%s",escapedBoard);
   } else
   {
-    snprintf(redirectURL,sizeof(redirectURL),"threadView.html?board=%s&thread=%s",boardName,threadName);
+    snprintf(redirectURL,sizeof(redirectURL),"threadView.html?board=%s&thread=%s",escapedBoard,escapedThread);
   }
 
   snprintf(rqst->content,rqst->MAXcontentSize,
