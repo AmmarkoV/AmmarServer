@@ -69,6 +69,18 @@ class TestPathTraversal(ServerTestCase):
         self.assertNotIn(secret, response.body)
         self.assert_server_alive()
 
+    def test_04_oversized_target_does_not_overflow(self):
+        # A URL path long enough to overflow verified_local_resource (char[MAX_FILE_PATH+1],
+        # 1025 bytes) once joined to the web root used to crash the server: the length guard
+        # rejected only on MAX_RESOURCE (2048) and strncat was bounded by MAX_FILE_PATH (the
+        # source-copy count, not the destination capacity). Such a path must be rejected cleanly
+        # and leave the server alive.
+        for length in (1100, 2000):
+            with self.subTest(length=length):
+                response = self.request("GET", "/" + ("A" * length))
+                self.assertIn(response.status, (400, 404))
+        self.assert_server_alive()
+
     def assert_server_alive(self):
         self.assertEqual(self.request("GET", "/index.html").status, 200)
 

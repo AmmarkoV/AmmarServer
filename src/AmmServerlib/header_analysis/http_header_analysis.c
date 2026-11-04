@@ -200,9 +200,24 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
 
              if (FilenameStripperOk(stripped))
               {
+                //verified_local_resource is only MAX_FILE_PATH+1 bytes , but the length guard above
+                //rejects on MAX_RESOURCE ( a larger , different limit ) , so webserver_root+stripped can
+                //be far longer than this buffer. strncat's third argument is the number of bytes copied
+                //FROM stripped , not the destination capacity , so passing MAX_FILE_PATH overflowed
+                //verified_local_resource for any sufficiently long URL path ( remotely triggerable ,
+                //pre-auth ). Reject anything that would not fit instead of overflowing.
+                unsigned int rootLength=strlen(webserver_root);
+                if ( (rootLength>=MAX_FILE_PATH) || (strlen(stripped)>=MAX_FILE_PATH-rootLength) )
+                 {
+                   fprintf(stderr,"Warning : resolved local path is too long , dropping request..! \n");
+                   output->requestType=BAD;
+                   return 0;
+                 }
                 strncpy(output->resource,stripped,MAX_RESOURCE);
+                output->resource[MAX_RESOURCE]=0;
                 strncpy(output->verified_local_resource,webserver_root,MAX_FILE_PATH);
-                strncat(output->verified_local_resource,stripped,MAX_FILE_PATH);
+                output->verified_local_resource[MAX_FILE_PATH]=0;
+                strncat(output->verified_local_resource,stripped,MAX_FILE_PATH-rootLength-1);
                 ReducePathSlashes_Inplace(output->verified_local_resource);
                 return 1;
               } else
