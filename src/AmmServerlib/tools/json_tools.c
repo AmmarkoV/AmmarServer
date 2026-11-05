@@ -23,6 +23,10 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
  * is one object with one string field coming in and fixed-shape objects going out. See AmmServerlib.h for
  * what these two do ; everything else in here is private to them. */
 #include <string.h>
+#include <stdint.h>
+#if defined(__SSE2__)
+ #include <emmintrin.h>
+#endif
 
 #include "json_tools.h"
 
@@ -342,23 +346,71 @@ enum AmmServer_JSONFieldResult AmmServer_JSONGetStringField(
   return AMMSERVER_JSON_FIELD_OK;
 }
 
+/* Does any of these eight bytes need escaping : a quote , a backslash , or a control character below 0x20 ?
+ * Each test is the usual "has a byte below n" / "has a zero byte" word trick , exact as a yes or no for the
+ * word ( it may not say which byte ) , and bytes of 0x80 and over ( UTF-8 ) never match. */
+static int JSONEscapeNeededIn8(const char * at)
+{
+  uint64_t v;
+  memcpy(&v,at,sizeof(v));
+  const uint64_t ones = 0x0101010101010101ULL;
+  const uint64_t high = 0x8080808080808080ULL;
+  uint64_t control = (v - 0x20*ones) & ~v;
+  uint64_t quote   = v ^ (0x22*ones);  quote     = (quote - ones) & ~quote;
+  uint64_t slash   = v ^ (0x5C*ones);  slash     = (slash - ones) & ~slash;
+  return ( (control|quote|slash) & high ) != 0;
+}
+
 unsigned int AmmServer_JSONEscape(const char * in,unsigned int inLength,char * out,unsigned int outSize)
 {
   static const char hex[]="0123456789abcdef";
   unsigned int written=0;
   unsigned int i=0;
 
-  for (i=0; i<inLength; i++)
+  while (i<inLength)
    {
-     unsigned char c = (unsigned char) in[i];
-
-     if ( (c!='"') && (c!='\\') && (c>=0x20) )
+     /* Almost all text needs no escaping : find where the next byte that does is , eight bytes at a time and
+      * then byte by byte , and copy everything before it in one go. */
+     unsigned int run=i;
+#if defined(__SSE2__)
+     /* Sixteen at a time where there is SSE2 ( every x86-64 ) : a byte needs escaping when it is at most
+      * 0x1F ( unsigned , so UTF-8 bytes never match ) , a quote or a backslash ; the mask says exactly which. */
+     {
+       const __m128i quote = _mm_set1_epi8('"');
+       const __m128i slash = _mm_set1_epi8('\\');
+       const __m128i below = _mm_set1_epi8(0x1F);
+       while (run+16<=inLength)
+        {
+          __m128i v = _mm_loadu_si128((const __m128i *)(const void *)(in+run));
+          __m128i hit = _mm_or_si128( _mm_or_si128(_mm_cmpeq_epi8(v,quote),_mm_cmpeq_epi8(v,slash)) ,
+                                      _mm_cmpeq_epi8(_mm_max_epu8(v,below),below) );
+          int mask = _mm_movemask_epi8(hit);
+          if (mask!=0) { run+=(unsigned int) __builtin_ctz((unsigned int) mask); goto found; }
+          run+=16;
+        }
+     }
+#endif
+     while ( (run+8<=inLength) && (!JSONEscapeNeededIn8(in+run)) ) { run+=8; }
+     while (run<inLength)
       {
-        if (written+1>outSize) { return 0; }
-        out[written++]=(char) c;
-        continue;
+        unsigned char c = (unsigned char) in[run];
+        if ( (c=='"') || (c=='\\') || (c<0x20) ) { break; }
+        ++run;
+      }
+#if defined(__SSE2__)
+     found:
+#endif
+
+     if (run>i)
+      {
+        if (written+(run-i)>outSize) { return 0; }
+        memcpy(out+written,in+i,run-i);
+        written+=run-i;
+        i=run;
+        if (i==inLength) { break; }
       }
 
+     unsigned char c = (unsigned char) in[i++];
      switch (c)
       {
         case '"'  : if (written+2>outSize) { return 0; } out[written++]='\\'; out[written++]='"';  break;

@@ -67,7 +67,7 @@ extern unsigned int MAX_CLIENT_PRESPAWNED_THREADS;
 #define MAX_CLIENT_PRESPAWNED_THREADS_DEFAULT 0 //<- Disabled for now This is the number of prespawned threads that run to reduce overall latency
 
 /** @brief Maximum Target of concurrent clients being listened at the same time C10K tests require this to be 10000 ( http://en.wikipedia.org/wiki/C10k_problem ) */
-#define MAX_CLIENTS_LISTENING_FOR 10000 //C10K :P
+#define MAX_CLIENTS_LISTENING_FOR 65535 //C10K :P , and then some : listen() caps it at net.core.somaxconn anyway
 
 /** @brief Maximum Number of concurrent threads being created at the same time , depending on the size of the listen pool this can be smaller than the MAX_CLIENTS_LISTENING_FOR and connections will
            be queued and served sequentially */

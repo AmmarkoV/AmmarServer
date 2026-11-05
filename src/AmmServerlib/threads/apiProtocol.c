@@ -560,6 +560,27 @@ int ApiProtocol_Prepare(
   return 1;
 }
 
+//Appends n bytes to a response header being built in a API_RESPONSE_HEADER_RESERVE buffer. 0 , and nothing
+//written , if they would not leave room for the terminating byte snprintf used to need.
+static int ApiHeaderPut(char * header,unsigned int * length,const char * piece,unsigned int n)
+{
+  if ( (*length)+n >= API_RESPONSE_HEADER_RESERVE ) { *length=API_RESPONSE_HEADER_RESERVE; return 0; }
+  memcpy(header+(*length),piece,n);
+  (*length)+=n;
+  return 1;
+}
+
+//%u , into out ( at least 10 bytes ) ; returns how many digits.
+static unsigned int ApiHeaderUnsigned(char * out,unsigned int value)
+{
+  char digits[10];
+  unsigned int n=0;
+  do { digits[n++]=(char)('0'+value%10); value/=10; } while (value>0);
+  unsigned int i=0;
+  for (i=0; i<n; i++) { out[i]=digits[n-1-i]; }
+  return n;
+}
+
 unsigned int ApiProtocol_Finish(
                                  struct ApiFrame * frame,
                                  struct ApiResponseBuffer * buffer,
@@ -580,18 +601,32 @@ unsigned int ApiProtocol_Finish(
      res->bodyLength = buffer->bodySize;
    }
 
+  //"HTTP/1.1 <code> <reason>\r\nContent-Type: <type>\r\nContent-Length: <n>\r\n<extra><close?>\r\n" , put
+  //together piece by piece : it is written for every response , and snprintf's format parsing was most of
+  //what it cost. Any piece that would not fit fails the whole header , as a truncated snprintf did.
   char header[API_RESPONSE_HEADER_RESERVE];
-  int headerLength = snprintf(header,sizeof(header),
-                              "HTTP/1.1 %u %s\r\nContent-Type: %s\r\nContent-Length: %u\r\n%s%s\r\n",
-                              res->statusCode,
-                              GetHTTPReasonPhrase(res->statusCode),
-                              (res->contentType!=0) ? res->contentType : "text/plain",
-                              res->bodyLength,
-                              (res->extraHeaders!=0) ? res->extraHeaders : "",
-                              frame->keepAlive ? "" : "Connection: close\r\n" );
+  unsigned int headerLength = 0;
+  char number[16];
+  const char * contentType  = (res->contentType!=0) ? res->contentType : "text/plain";
+  const char * extraHeaders = (res->extraHeaders!=0) ? res->extraHeaders : "";
+  int fits = 1;
 
-  //snprintf returns the length it would have written , so a header that did not fit is caught here too.
-  if ( (headerLength<=0) || (headerLength>=API_RESPONSE_HEADER_RESERVE) )
+  fits &= ApiHeaderPut(header,&headerLength,"HTTP/1.1 ",9);
+  fits &= ApiHeaderPut(header,&headerLength,number,ApiHeaderUnsigned(number,res->statusCode));
+  fits &= ApiHeaderPut(header,&headerLength," ",1);
+  const char * reason = GetHTTPReasonPhrase(res->statusCode);
+  fits &= ApiHeaderPut(header,&headerLength,reason,(unsigned int) strlen(reason));
+  fits &= ApiHeaderPut(header,&headerLength,"\r\nContent-Type: ",16);
+  fits &= ApiHeaderPut(header,&headerLength,contentType,(unsigned int) strlen(contentType));
+  fits &= ApiHeaderPut(header,&headerLength,"\r\nContent-Length: ",18);
+  fits &= ApiHeaderPut(header,&headerLength,number,ApiHeaderUnsigned(number,res->bodyLength));
+  fits &= ApiHeaderPut(header,&headerLength,"\r\n",2);
+  fits &= ApiHeaderPut(header,&headerLength,extraHeaders,(unsigned int) strlen(extraHeaders));
+  if (!frame->keepAlive) { fits &= ApiHeaderPut(header,&headerLength,"Connection: close\r\n",19); }
+  fits &= ApiHeaderPut(header,&headerLength,"\r\n",2);
+
+  //A header that would not fit , and one that would leave no room before the body , are refused as before.
+  if ( (!fits) || (headerLength==0) || (headerLength>=API_RESPONSE_HEADER_RESERVE) )
    {
      //Only reachable if a handler supplied an absurdly long Content-Type or extraHeaders , which would truncate the header.
      *failStatus = 500;

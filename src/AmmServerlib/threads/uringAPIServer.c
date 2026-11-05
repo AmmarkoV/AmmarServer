@@ -104,9 +104,11 @@ int AmmServer_APISendDeferred(
 //with room in its send buffer complete immediately , so this is a queue depth , not a connection count ,
 //and one pool serves every ring because one thread serves every ring.
 #define URING_SEND_TICKETS 32
-//Beyond this a table costs more memory than the connections could ever be worth ; RLIMIT_NOFILE normally
-//says less anyway , and the smaller of the two wins.
-#define URING_MAX_SLOTS (256*1024)
+//The kernel's own ceiling on a registered file table ( IORING_MAX_FIXED_FILES , 1<<20 ). Past it , or past
+//RLIMIT_NOFILE , registering fails with EMFILE and RegisterConnectionTable halves the request. The table is
+//sparse : the kernel keeps 8 bytes a slot and the slots here are calloc'ed , so unused ones cost nothing but
+//address space - and one ring per worker can then hold every connection a box like this gets.
+#define URING_MAX_SLOTS (1024*1024)
 //Rings. Each one is a file table of its own , so this is the multiplier on the connection ceiling , and
 //16 of them is 1,048,576 connections against the usual LimitNOFILE=65535 - past anything one vCPU could
 //answer. Each costs two real descriptors ( the ring and its eventfd ) and its share of the receive buffers.
@@ -1484,12 +1486,43 @@ static int DrainRing(struct AmmServer_Instance * instance,struct UringRing * r)
   return handled;
 }
 
+//While the ring is busy , a wait asks for URING_BATCH_COMPLETIONS completions or URING_BATCH_WAIT_US ,
+//whichever comes first , rather than returning on the first one : under load a pass then handles a few
+//dozen events instead of one or two , which means fewer enters and wake-ups per request and bigger batches
+//for the handler. An idle ring ( the last short wait found nothing ) blocks as before , so it costs nothing.
+#ifndef URING_BATCH_WAIT_US
+ #define URING_BATCH_WAIT_US 1000
+#endif
+#ifndef URING_BATCH_COMPLETIONS
+ #define URING_BATCH_COMPLETIONS 32
+#endif
+static int ringRecentlyBusy = 0;
+
+static int RingHasCompletions(struct UringRing * r)
+{
+  return ( *r->cqHead != __atomic_load_n(r->cqTail,__ATOMIC_ACQUIRE) );
+}
+
 //Block until some ring has something , or a second has gone by so that being told to stop is noticed. With
 //one ring that is the ring itself , the cheapest possible wait ; with several it is their eventfds , because
 //io_uring_enter can only ever wait on one ring.
 static int WaitForAnyRing(struct __kernel_timespec * oneSecond)
 {
-  if (ringCount==1) { return SubmitPending(&ringAt[0],1,oneSecond); }
+  if (ringCount==1)
+   {
+     if ( (URING_BATCH_WAIT_US>0) && (ringRecentlyBusy) )
+      {
+        struct __kernel_timespec shortWait;
+        shortWait.tv_sec  = 0;
+        shortWait.tv_nsec = (long long) URING_BATCH_WAIT_US*1000LL;
+        int ok = SubmitPending(&ringAt[0],URING_BATCH_COMPLETIONS,&shortWait);
+        ringRecentlyBusy = RingHasCompletions(&ringAt[0]);
+        return ok;
+      }
+     int ok = SubmitPending(&ringAt[0],1,oneSecond);
+     ringRecentlyBusy = 1;
+     return ok;
+   }
 
   struct epoll_event woken[URING_MAX_RINGS];
   int count = epoll_wait(waitEpollFd,woken,(int)ringCount,1000);
