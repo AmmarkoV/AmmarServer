@@ -29,7 +29,9 @@ int userAccountExists(const char * username)
 
 int getAuthenticatedUser(struct AmmServer_DynamicRequest * rqst , char * outUsername , unsigned int outUsernameSize)
 {
-  return uadbWeb_getAuthenticatedUser(uadb,rqst,outUsername,outUsernameSize);
+  //Cookie-based session ( AMMSESSID ) instead of the old ?s=<sessionID> URL param : the session ID no longer
+  //travels in URLs/links/redirects where it leaks through browser history , the Referer header and access logs.
+  return AmmServer_CurrentUsername(rqst,outUsername,outUsernameSize);
 }
 
 
@@ -68,13 +70,11 @@ void * signup_callback(struct AmmServer_DynamicRequest * rqst)
     return 0;
   }
 
-  struct UserAccountAuthenticationToken outputToken={0};
-  if ( uadb_loginUser(uadb,&outputToken,username,password,ENCODING_PLAINTEXT,"0.0.0.0","no fingerprint") )
+  if ( AmmServer_Login(rqst,uadb,username,password) )
   {
     snprintf(rqst->content,rqst->MAXcontentSize,
-             "<html><head><meta http-equiv=\"refresh\" content=\"0; url=dashboard.html?s=%s\"></head>"
-             "<body>Account created , redirecting..</body></html>",
-             outputToken.sessionID);
+             "<html><head><meta http-equiv=\"refresh\" content=\"0; url=dashboard.html\"></head>"
+             "<body>Account created , redirecting..</body></html>");
   } else
   {
     snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Account created , please <a href=\"index.html\">log in</a></body></html>");
@@ -91,14 +91,12 @@ void * login_callback(struct AmmServer_DynamicRequest * rqst)
   _POSTcpy(rqst,"username",username,sizeof(username));
   _POSTcpy(rqst,"password",password,sizeof(password));
 
-  struct UserAccountAuthenticationToken outputToken={0};
   if ( (strlen(username)>0) && (strlen(password)>0) &&
-       uadb_loginUser(uadb,&outputToken,username,password,ENCODING_PLAINTEXT,"0.0.0.0","no fingerprint") )
+       AmmServer_Login(rqst,uadb,username,password) )
   {
     snprintf(rqst->content,rqst->MAXcontentSize,
-             "<html><head><meta http-equiv=\"refresh\" content=\"0; url=dashboard.html?s=%s\"></head>"
-             "<body>Logging in , redirecting..</body></html>",
-             outputToken.sessionID);
+             "<html><head><meta http-equiv=\"refresh\" content=\"0; url=dashboard.html\"></head>"
+             "<body>Logging in , redirecting..</body></html>");
   } else
   {
     snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Wrong username/password combination. <a href=\"index.html\">Back</a></body></html>");

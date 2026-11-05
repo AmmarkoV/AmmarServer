@@ -8,7 +8,7 @@
 
 #define FILETREE_BUFFER_CAPACITY 16384
 
-static void appendFileTreeEntry(char * buffer , unsigned int bufferCapacity , const char * sessionID , const char * projectID , const char * relativePath , const char * activeFile)
+static void appendFileTreeEntry(char * buffer , unsigned int bufferCapacity , const char * projectID , const char * relativePath , const char * activeFile)
 {
   char escapedPath[MAX_STRING_SIZE*6]={0};
   AmmServer_HTMLEscape(relativePath,escapedPath,sizeof(escapedPath));
@@ -18,8 +18,8 @@ static void appendFileTreeEntry(char * buffer , unsigned int bufferCapacity , co
   char chunk[MAX_STRING_SIZE*8]={0};
   if (isEditableTextFile(relativePath))
   {
-    snprintf(chunk,sizeof(chunk),"<a%s href=\"editor.html?s=%s&project=%s&file=%s\">%s</a>",
-             activeClass,sessionID,projectID,escapedPath,escapedPath);
+    snprintf(chunk,sizeof(chunk),"<a%s href=\"editor.html?project=%s&file=%s\">%s</a>",
+             activeClass,projectID,escapedPath,escapedPath);
   } else
   {
     snprintf(chunk,sizeof(chunk),"<span style=\"display:block;padding:6px 8px;opacity:0.5;font-size:12px;\">%s</span>",escapedPath);
@@ -31,9 +31,6 @@ static void appendFileTreeEntry(char * buffer , unsigned int bufferCapacity , co
 void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
 {
   char username[64]={0};
-  char sessionID[64]={0};
-  _GETcpy(rqst,"s",sessionID,sizeof(sessionID));
-
   if ( ! getAuthenticatedUser(rqst,username,sizeof(username)) )
   {
     snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Session expired. <a href=\"index.html\">Log in</a></body></html>");
@@ -47,7 +44,7 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
   struct project * p = findProject(projectID);
   if ( (p==0) || (! userCanAccessProject(p,username)) )
   {
-    snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Project not found or access denied. <a href=\"dashboard.html?s=%s\">Back</a></body></html>",sessionID);
+    snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Project not found or access denied. <a href=\"dashboard.html\">Back</a></body></html>");
     rqst->contentSize=strlen(rqst->content);
     return 0;
   }
@@ -63,16 +60,16 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
   unsigned int i=0;
   for (i=0; i<p->numberOfFiles; i++)
   {
-    appendFileTreeEntry(fileTreeHTML,FILETREE_BUFFER_CAPACITY,sessionID,projectID,p->files[i].relativePath,activeFile);
+    appendFileTreeEntry(fileTreeHTML,FILETREE_BUFFER_CAPACITY,projectID,p->files[i].relativePath,activeFile);
   }
 
   char newFileForm[700]={0};
   snprintf(newFileForm,sizeof(newFileForm),
            "<form id=\"newFileForm\" method=\"post\" enctype=\"multipart/form-data\" action=\"newFile.html\" style=\"margin-top:10px;\">"
-           "<input type=\"hidden\" name=\"s\" value=\"%s\"><input type=\"hidden\" name=\"project\" value=\"%s\">"
+           "<input type=\"hidden\" name=\"project\" value=\"%s\">"
            "<input type=\"text\" name=\"relativePath\" placeholder=\"sec/new.tex\" style=\"width:120px;font-size:11px;\">"
            "<button type=\"submit\" style=\"font-size:11px;\">+ file</button></form>",
-           sessionID,projectID);
+           projectID);
   strncat(fileTreeHTML,newFileForm,FILETREE_BUFFER_CAPACITY - strlen(fileTreeHTML) - 1);
 
   int fileIndex = findProjectFileIndex(p,activeFile);
@@ -127,7 +124,7 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
     snprintf(rqst->content,rqst->MAXcontentSize,
       "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><title>%s - ShareTex</title>"
       "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"></head><body>"
-      "<div class=\"topbar\"><h1>ShareTex</h1><div class=\"right\">%s &nbsp; <a href=\"dashboard.html?s=%s\">Projects</a></div></div>"
+      "<div class=\"topbar\"><h1>ShareTex</h1><div class=\"right\">%s &nbsp; <a href=\"dashboard.html\">Projects</a></div></div>"
       "<div class=\"editorWrap\">"
       "<div class=\"fileTree\">%s</div>"
       "<div class=\"editorPane\">"
@@ -145,7 +142,6 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
       "</div>"
       "<div class=\"pdfPane\"><iframe id=\"pdfFrame\"%s></iframe></div>"
       "</div>"
-      "<input type=\"hidden\" id=\"sessionID\" value=\"%s\">"
       "<input type=\"hidden\" id=\"projectID\" value=\"%s\">"
       "<input type=\"hidden\" id=\"activeFile\" value=\"%s\">"
       "<input type=\"hidden\" id=\"initialVersion\" value=\"%u\">"
@@ -153,13 +149,13 @@ void * editorPage_callback(struct AmmServer_DynamicRequest * rqst)
       "<script src=\"editor.js\"></script>"
       "</body></html>",
       escapedTitle,
-      username,sessionID,
+      username,
       fileTreeHTML,
       escapedActiveFile,
       (escapedContent!=0)?escapedContent:"",
       compileLogInitial,
       pdfSrcAttribute,
-      sessionID,projectID,escapedActiveFile,initialVersion,username);
+      projectID,escapedActiveFile,initialVersion,username);
     rqst->contentSize=strlen(rqst->content);
   }
 
@@ -280,8 +276,6 @@ void * newFile_callback(struct AmmServer_DynamicRequest * rqst)
   char username[64]={0};
   unsigned int authenticated = getAuthenticatedUser(rqst,username,sizeof(username));
 
-  char sessionID[64]={0};
-  _POSTcpy(rqst,"s",sessionID,sizeof(sessionID));
   char projectID[32]={0};
   _POSTcpy(rqst,"project",projectID,sizeof(projectID));
   char relativePath[MAX_STRING_SIZE]={0};
@@ -315,8 +309,8 @@ void * newFile_callback(struct AmmServer_DynamicRequest * rqst)
   }
 
   snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><head><meta http-equiv=\"refresh\" content=\"0; url=editor.html?s=%s&project=%s&file=%s\"></head><body></body></html>",
-           sessionID,projectID,relativePath);
+           "<html><head><meta http-equiv=\"refresh\" content=\"0; url=editor.html?project=%s&file=%s\"></head><body></body></html>",
+           projectID,relativePath);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }

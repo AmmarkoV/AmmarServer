@@ -11,7 +11,6 @@
 #include "thread.h"
 #include "post.h"
 #include "board.h"
-#include "csrf.h"
 
 
 #include "../../AmmServerlib/AmmServerlib.h"
@@ -293,8 +292,8 @@ void * prepareThreadIndexView(struct AmmServer_DynamicRequest  * rqst)
                   AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"!BOARDNAME!",boardID);
                   AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"!THREADID!","new");
 
-                  char csrfToken[33]={0};
-                  generateCSRFToken(csrfToken,sizeof(csrfToken));
+                  char csrfToken[64]={0};
+                  AmmServer_GenerateCSRFToken(rqst,csrfToken,sizeof(csrfToken));
                   AmmServer_ReplaceAllVarsInMemoryHandler(threadIndexPageWithContents,1,"!CSRFTOKEN!",csrfToken);
 
                   char captchaID[16]={0};
@@ -366,8 +365,8 @@ void * prepareThreadView(struct AmmServer_DynamicRequest  * rqst)
            AmmServer_ReplaceAllVarsInMemoryHandler(threadViewPageWithContents,1,"!BOARDNAME!",boardID);
            AmmServer_ReplaceAllVarsInMemoryHandler(threadViewPageWithContents,1,"!THREADID!",threadID);
 
-           char csrfToken[33]={0};
-           generateCSRFToken(csrfToken,sizeof(csrfToken));
+           char csrfToken[64]={0};
+           AmmServer_GenerateCSRFToken(rqst,csrfToken,sizeof(csrfToken));
            AmmServer_ReplaceAllVarsInMemoryHandler(threadViewPageWithContents,1,"!CSRFTOKEN!",csrfToken);
 
            char captchaID[16]={0};

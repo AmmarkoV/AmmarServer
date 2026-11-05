@@ -32,8 +32,6 @@ add_executable(habchan
  postReceiver.h
  moderation.c
  moderation.h
- csrf.c
- csrf.h
  )
 target_link_libraries(habchan pthread rt m AmmarServerDynamic AmmCaptcha BasicImaging )
 set_target_properties(habchan PROPERTIES DEBUG_POSTFIX "D")

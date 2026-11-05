@@ -8,7 +8,6 @@
 #include "state.h"
 #include "board.h"
 #include "thread.h"
-#include "csrf.h"
 
 #include "../../AmmServerlib/AmmServerlib.h"
 #include "../../AmmCaptcha/AmmCaptcha.h"
@@ -72,7 +71,7 @@ void * processPostReceiver(struct AmmServer_DynamicRequest  * rqst)
    struct thread * targetThread = 0;
    unsigned int isNewThread = ( (strlen(replyThread)==0) || (strcmp(replyThread,"new")==0) );
 
-   if ( !isCSRFTokenValid(csrfToken) )
+   if ( !AmmServer_ValidateCSRFToken(rqst,csrfToken) )
    {
      failureReason = "This form has expired , please reload the page and try again";
    } else

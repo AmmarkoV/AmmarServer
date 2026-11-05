@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  var sessionID   = document.getElementById('sessionID').value;
   var projectID   = document.getElementById('projectID').value;
   var activeFile  = document.getElementById('activeFile').value;
   var currentVersion = parseInt(document.getElementById('initialVersion').value, 10) || 0;
@@ -62,7 +61,7 @@
   function doSave() {
     dirty = false;
     saveStatus.textContent = 'Saving...';
-    httpPost('saveFileContent.html', { s: sessionID, project: projectID, file: activeFile, content: textarea.value, baseVersion: currentVersion }, function (resp) {
+    httpPost('saveFileContent.html', { project: projectID, file: activeFile, content: textarea.value, baseVersion: currentVersion }, function (resp) {
       if (resp == null) { saveStatus.textContent = 'Save failed'; return; }
       var parts = resp.split(' ');
       var newVersion = parseInt(parts[0], 10);
@@ -85,7 +84,7 @@
   // ------------------------------------------------------------ poll content
   function pollContent() {
     if (document.activeElement === textarea) { return; } // never clobber active typing
-    httpGet('getFileContent.html?' + urlEncode({ s: sessionID, project: projectID, file: activeFile, _: Date.now() }), function (resp) {
+    httpGet('getFileContent.html?' + urlEncode({ project: projectID, file: activeFile, _: Date.now() }), function (resp) {
       if (resp == null) { return; }
       var idx = resp.indexOf('\n');
       if (idx < 0) { return; }
@@ -101,7 +100,7 @@
 
   // ------------------------------------------------------------- cursors
   function postCursorPosition() {
-    httpPost('postCursor.html', { s: sessionID, project: projectID, file: activeFile, offset: textarea.selectionStart }, function () {});
+    httpPost('postCursor.html', { project: projectID, file: activeFile, offset: textarea.selectionStart }, function () {});
   }
 
   function measureOffset(offset) {
@@ -119,7 +118,7 @@
   }
 
   function pollCursors() {
-    httpGet('pollCursors.html?' + urlEncode({ s: sessionID, project: projectID, file: activeFile, _: Date.now() }), function (resp) {
+    httpGet('pollCursors.html?' + urlEncode({ project: projectID, file: activeFile, _: Date.now() }), function (resp) {
       clearRemoteCarets();
       if (resp == null) { return; }
       var lines = resp.split('\n').filter(function (l) { return l.length > 0; });
@@ -163,7 +162,7 @@
 
     if (dirty) { clearTimeout(saveTimer); doSave(); }
 
-    httpPost('compile.html', { s: sessionID, project: projectID }, function (resp) {
+    httpPost('compile.html', { project: projectID }, function (resp) {
       compileBtn.disabled = false;
       compileBtn.textContent = 'Compile';
       if (resp == null) { compileLog.textContent = 'Compile request failed.'; return; }

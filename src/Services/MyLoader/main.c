@@ -24,6 +24,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <unistd.h>
 #include "../../AmmServerlib/AmmServerlib.h"
+#include "../../AmmServerlib/tools/http_tools.h" //for AmmServer_GenerateSecureToken()
 
 #define DEFAULT_BINDING_PORT 8085
 
@@ -276,15 +277,21 @@ void * prepare_vfile_callback(struct AmmServer_DynamicRequest  * rqst)
 
 char * getBackRandomFileDigits(unsigned int numberOfDigits)
 {
- char * response= (char *) malloc(sizeof(char)* (numberOfDigits+1));
+ //This ID is the unguessable part of an uploaded file's URL/path ( storeID-filename ) , so it must come from
+ //the CSPRNG , not rand() : a predictable value would let someone enumerate or guess other users' uploads.
+ if (numberOfDigits==0) { numberOfDigits=1; }
+ unsigned int numRandomBytes = (numberOfDigits*6+7)/8;        //enough random bytes to yield >= numberOfDigits base64url chars
+ if (numRandomBytes==0) { numRandomBytes=1; }
+ unsigned int encodedLength = (numRandomBytes*8+5)/6;         //chars AmmServer_GenerateSecureToken() will produce ( no padding )
 
- unsigned int i=0,range='z'-'a';
- for (i=0; i<numberOfDigits; i++)
- {
-   response[i]='a'+rand()%range;
- }
-response[numberOfDigits]=0;
-return response;
+ char * response = (char *) malloc(sizeof(char)*(encodedLength+1));
+ if (response==0) { return 0; }
+
+ if (!AmmServer_GenerateSecureToken(response,encodedLength+1,numRandomBytes))
+  { free(response); return 0; }
+
+ if (strlen(response)>numberOfDigits) { response[numberOfDigits]=0; } //keep the caller's requested length
+ return response;
 }
 
 

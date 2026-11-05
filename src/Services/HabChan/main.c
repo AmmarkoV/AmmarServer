@@ -102,10 +102,17 @@ void * serve_captcha_page(struct AmmServer_DynamicRequest * rqst)
 void init_dynamic_content()
 {
   AmmServer_AddResourceHandler(default_server,&boardIndexView,"/index.html",4096,0,&prepareBoardIndexView,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&threadIndexView,"/threadIndexView.html",46096,0,&prepareThreadIndexView,SAME_PAGE_FOR_ALL_CLIENTS);
-  AmmServer_AddResourceHandler(default_server,&threadView,"/threadView.html",46096,0,&prepareThreadView,SAME_PAGE_FOR_ALL_CLIENTS);
+  //threadIndexView/threadView embed a per-session CSRF token ( AmmServer_GenerateCSRFToken ) , so they can no
+  //longer be one buffer shared/cached across every visitor - each client needs its own copy with its own token
+  //baked in ( same switch MyURL's create_url made ). useSessionLifecycle issues/reads the session cookie that
+  //the token is bound to ; postReceiver needs it too so AmmServer_ValidateCSRFToken can read that same session.
+  AmmServer_AddResourceHandler(default_server,&threadIndexView,"/threadIndexView.html",46096,0,&prepareThreadIndexView,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  AmmServer_AddResourceHandler(default_server,&threadView,"/threadView.html",46096,0,&prepareThreadView,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_AddResourceHandler(default_server,&postReceiver,"/postReceiver.html",4096,0,&processPostReceiver,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
   AmmServer_AddResourceHandler(default_server,&deletePostView,"/deletePost.html",4096,0,&processDeletePost,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+  threadIndexView.requestContext.useSessionLifecycle=1;
+  threadView.requestContext.useSessionLifecycle=1;
+  postReceiver.requestContext.useSessionLifecycle=1;
 
   AmmServer_AddResourceHandler(default_server,&captchaView,"/captcha.jpg",MAX_CAPTCHA_JPG_SIZE,0,&serve_captcha_page,DIFFERENT_PAGE_FOR_EACH_CLIENT);
   AmmServer_DoNOTCacheResourceHandler(default_server,&captchaView);

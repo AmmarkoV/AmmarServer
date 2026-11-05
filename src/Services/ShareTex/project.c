@@ -7,7 +7,7 @@
 
 #define DASHBOARD_BUFFER_CAPACITY 65536
 
-static void appendProjectRow(char * buffer , unsigned int bufferCapacity , struct project * p , const char * username , const char * sessionID)
+static void appendProjectRow(char * buffer , unsigned int bufferCapacity , struct project * p , const char * username)
 {
   char escapedTitle[MAX_STRING_SIZE*6]={0};
   AmmServer_HTMLEscape(p->title,escapedTitle,sizeof(escapedTitle));
@@ -25,18 +25,17 @@ static void appendProjectRow(char * buffer , unsigned int bufferCapacity , struc
   {
     snprintf(shareForm,sizeof(shareForm),
              "<form class=\"shareForm\" method=\"post\" enctype=\"multipart/form-data\" action=\"share.html\" style=\"display:inline\">"
-             "<input type=\"hidden\" name=\"s\" value=\"%s\">"
              "<input type=\"hidden\" name=\"project\" value=\"%.31s\">"
              "<input type=\"text\" name=\"collaborator\" placeholder=\"username to add\" size=\"14\">"
              "<button type=\"submit\">Share</button></form>",
-             sessionID,p->id);
+             p->id);
   }
 
   char chunk[4096]={0};
   snprintf(chunk,sizeof(chunk),
-           "<div class=\"projectRow\"><div><a class=\"open\" href=\"editor.html?s=%s&project=%.31s\">%s</a>%s"
+           "<div class=\"projectRow\"><div><a class=\"open\" href=\"editor.html?project=%.31s\">%s</a>%s"
            "<div style=\"font-size:12px;color:#888;\">owner: %s</div></div><div>%s</div></div>",
-           sessionID,p->id,escapedTitle,badge,escapedOwner,shareForm);
+           p->id,escapedTitle,badge,escapedOwner,shareForm);
 
   strncat(buffer,chunk,bufferCapacity - strlen(buffer) - 1);
 }
@@ -52,9 +51,6 @@ void * dashboard_callback(struct AmmServer_DynamicRequest * rqst)
     return 0;
   }
 
-  char sessionID[64]={0};
-  _GETcpy(rqst,"s",sessionID,sizeof(sessionID));
-
   char * buffer = (char*) malloc(DASHBOARD_BUFFER_CAPACITY);
   if (buffer==0) { return 0; }
   buffer[0]=0;
@@ -64,7 +60,7 @@ void * dashboard_callback(struct AmmServer_DynamicRequest * rqst)
   {
     if ( userCanAccessProject(&projects[i],username) )
     {
-      appendProjectRow(buffer,DASHBOARD_BUFFER_CAPACITY,&projects[i],username,sessionID);
+      appendProjectRow(buffer,DASHBOARD_BUFFER_CAPACITY,&projects[i],username);
     }
   }
 
@@ -78,12 +74,11 @@ void * dashboard_callback(struct AmmServer_DynamicRequest * rqst)
     "<div class=\"container\">"
     "<div class=\"card\"><h3>New project</h3>"
     "<form class=\"newProjectForm\" method=\"post\" enctype=\"multipart/form-data\" action=\"createProject.html\">"
-    "<input type=\"hidden\" name=\"s\" value=\"%s\">"
     "<input type=\"text\" name=\"title\" placeholder=\"Project title\" required>"
     "<button type=\"submit\">Create</button></form></div>"
     "<div class=\"card\"><h3>Your projects</h3>%s</div>"
     "</div></body></html>",
-    escapedUsername,sessionID,buffer);
+    escapedUsername,buffer);
   rqst->contentSize=strlen(rqst->content);
 
   free(buffer);
@@ -101,9 +96,6 @@ void * createProject_callback(struct AmmServer_DynamicRequest * rqst)
     return 0;
   }
 
-  char sessionID[64]={0};
-  _POSTcpy(rqst,"s",sessionID,sizeof(sessionID));
-
   char title[MAX_STRING_SIZE]={0};
   _POSTcpy(rqst,"title",title,sizeof(title));
   if (strlen(title)==0) { snprintf(title,sizeof(title),"Untitled Document"); }
@@ -112,12 +104,12 @@ void * createProject_callback(struct AmmServer_DynamicRequest * rqst)
   if ( createProject(username,title,newID,sizeof(newID)) )
   {
     snprintf(rqst->content,rqst->MAXcontentSize,
-             "<html><head><meta http-equiv=\"refresh\" content=\"0; url=editor.html?s=%s&project=%s\"></head>"
+             "<html><head><meta http-equiv=\"refresh\" content=\"0; url=editor.html?project=%s\"></head>"
              "<body>Creating project , redirecting..</body></html>",
-             sessionID,newID);
+             newID);
   } else
   {
-    snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Could not create project. <a href=\"dashboard.html?s=%s\">Back</a></body></html>",sessionID);
+    snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Could not create project. <a href=\"dashboard.html\">Back</a></body></html>");
   }
   rqst->contentSize=strlen(rqst->content);
   return 0;
@@ -127,9 +119,6 @@ void * createProject_callback(struct AmmServer_DynamicRequest * rqst)
 void * share_callback(struct AmmServer_DynamicRequest * rqst)
 {
   char username[64]={0};
-  char sessionID[64]={0};
-  _POSTcpy(rqst,"s",sessionID,sizeof(sessionID));
-
   if ( ! getAuthenticatedUser(rqst,username,sizeof(username)) )
   {
     snprintf(rqst->content,rqst->MAXcontentSize,"<html><body>Session expired. <a href=\"index.html\">Log in</a></body></html>");
@@ -170,8 +159,8 @@ void * share_callback(struct AmmServer_DynamicRequest * rqst)
   }
 
   snprintf(rqst->content,rqst->MAXcontentSize,
-           "<html><head><meta http-equiv=\"refresh\" content=\"1; url=dashboard.html?s=%s\"></head>"
-           "<body>%s</body></html>",sessionID,message);
+           "<html><head><meta http-equiv=\"refresh\" content=\"1; url=dashboard.html\"></head>"
+           "<body>%s</body></html>",message);
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }

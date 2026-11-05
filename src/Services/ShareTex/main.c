@@ -97,6 +97,22 @@ void init_dynamic_content()
   AmmServer_DoNOTCacheResourceHandler(default_server,&getFileContentView);
 
   AmmServer_AddResourceHandler(default_server,&compileView,"/compile.html",16384,0,&compile_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT|ENABLE_RECEIVING_FILES);
+
+  //Cookie-based sessions ( replacing the old ?s=<sessionID> URL idiom ) : every resource that logs a user in
+  //( doLogin/doSignup , via AmmServer_Login ) or reads who is logged in ( everything else , via
+  //AmmServer_CurrentUsername ) needs the session lifecycle so the framework issues/reads the AMMSESSID cookie.
+  doSignupView.requestContext.useSessionLifecycle=1;
+  doLoginView.requestContext.useSessionLifecycle=1;
+  dashboardView.requestContext.useSessionLifecycle=1;
+  createProjectView.requestContext.useSessionLifecycle=1;
+  shareView.requestContext.useSessionLifecycle=1;
+  editorView.requestContext.useSessionLifecycle=1;
+  getFileContentView.requestContext.useSessionLifecycle=1;
+  saveFileContentView.requestContext.useSessionLifecycle=1;
+  newFileView.requestContext.useSessionLifecycle=1;
+  postCursorView.requestContext.useSessionLifecycle=1;
+  pollCursorsView.requestContext.useSessionLifecycle=1;
+  compileView.requestContext.useSessionLifecycle=1;
 }
 
 void close_dynamic_content()
