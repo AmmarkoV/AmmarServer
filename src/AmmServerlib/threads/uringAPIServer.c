@@ -129,6 +129,20 @@ int AmmServer_APISendDeferred(
 #define URING_OP_PROVIDE 5
 #define URING_OP_CANCEL  6
 #define URING_OP_NOTIFY  7
+#define URING_OP_SOCKOPT 8
+
+//Delayed-ACK mode. A request's ACK can ride on its response only while the socket is in the kernel's
+//delayed-ACK ( "pingpong" ) mode. The kernel leaves that mode when its delayed-ACK timer ( 40 ms at least )
+//fires before a response has gone out , and then acks the connection's next request - which comes after the
+//user's think time - in a packet of its own. So the listener is put in the mode ( accepted sockets inherit
+//it ) and a response sent more than URING_LATE_ACK_MS after its request puts its connection back in it.
+#ifndef URING_DELAYED_ACKS
+ #define URING_DELAYED_ACKS 1
+#endif
+#define URING_LATE_ACK_MS 25
+//The io_uring socket command that sets an option on a direct descriptor ( kernel 6.7 ). An ABI value : it is
+//an enum in newer headers , which no #if can see , and absent from older ones.
+#define URING_SOCKET_OP_SETSOCKOPT 3
 
 //user_data carries what completed , for which connection , and which incarnation of it. The generation is
 //what makes a late completion safe : a slot freed by a close can be handed to a new accept before the
@@ -149,6 +163,11 @@ int AmmServer_APISendDeferred(
 #define URING_DEFER_TOKEN_RING(token)       ((unsigned int)((token)&0xFULL))
 #define URING_DEFER_TOKEN_SLOT(token)       ((unsigned int)(((token)>>4)&0xFFFFFULL))
 #define URING_DEFER_TOKEN_GENERATION(token) ((unsigned int)(((token)>>24)&0xFFFFFFULL))
+
+//Milliseconds , modulo 65,536 , as of the start of this pass of the ring loop. Differences of these wrap
+//correctly , and a coarse clock is plenty for telling 25 ms from 40.
+static unsigned short loopNowMs = 0;
+static int delayAcksRefused = 0;   //the kernel cannot set options through the ring ; stop asking
 
 static int uring_setup(unsigned int entries,struct io_uring_params * params)
 { return (int) syscall(__NR_io_uring_setup,entries,params); }
@@ -174,6 +193,7 @@ struct UringConnection
    unsigned char batched;             //holding a complete request in `in` , waiting for this pass's FlushBatch
    unsigned char deferred;            //answered later by AmmServer_APISendDeferred
    unsigned char deferredKeepAlive;
+   unsigned short requestAtMs;        //when the request being answered was taken up ( loopNowMs ) , for URING_LATE_ACK_MS
    int deferredMethod;
 };
 
@@ -814,6 +834,32 @@ static void SubmitSend(struct UringRing * r,unsigned int slot,unsigned int ticke
   conn->sendInFlight = 1;
 }
 
+//Clears TCP_QUICKACK on a connection , which puts it back in delayed-ACK mode ( see URING_DELAYED_ACKS ). The
+//connection is a direct descriptor , so this goes through the ring as a socket command. The command's fields
+//share the SQE with older ones ( cmd_op with off , level and optname with addr , optlen with splice_fd_in ,
+//optval with addr3 ) and are written through those , so this builds against headers that predate them.
+static void QueueDelayAcks(struct UringRing * r,unsigned int slot)
+{
+  if ( (!URING_DELAYED_ACKS) || (delayAcksRefused) ) { return; }
+
+  static const int zero = 0;
+  struct io_uring_sqe * sqe = GetSqe(r);
+  if (sqe==0) { return; }
+
+  unsigned int command = URING_SOCKET_OP_SETSOCKOPT;
+  unsigned int level   = IPPROTO_TCP;
+  unsigned int option  = TCP_QUICKACK;
+  sqe->opcode = IORING_OP_URING_CMD;
+  sqe->fd     = (int) slot;
+  sqe->flags  = IOSQE_FIXED_FILE;
+  memcpy((char *) &sqe->off,&command,sizeof(command));
+  memcpy((char *) &sqe->addr,&level,sizeof(level));
+  memcpy(((char *) &sqe->addr)+sizeof(level),&option,sizeof(option));
+  sqe->splice_fd_in = (int) sizeof(zero);
+  sqe->addr3  = (unsigned long long)(uintptr_t) &zero;
+  sqe->user_data = URING_USER_DATA(URING_OP_SOCKOPT,0,slot);
+}
+
 static void CloseConnection(struct UringRing * r,unsigned int slot)
 {
   struct UringConnection * conn = &r->connections[slot];
@@ -907,6 +953,8 @@ static void ServeNextRequest(struct AmmServer_Instance * instance,struct UringRi
      SendStatusAndClose(r,slot,frame.refuseStatus);
      return;
    }
+
+  conn->requestAtMs = loopNowMs;
 
   if (__atomic_load_n(&instance->apiBatchHandler,__ATOMIC_ACQUIRE)!=0)
    {
@@ -1200,6 +1248,10 @@ int AmmServer_APISendDeferred(
   conn->sendInFlight = 1;
 
   SubmitSend(r,slot,(unsigned int) ticket);
+
+  //Late enough that the kernel has acked the request on its own and left delayed-ACK mode : put it back , so
+  //that the connection's next request is acked by its response.
+  if ( (unsigned short)( loopNowMs - conn->requestAtMs ) > URING_LATE_ACK_MS ) { QueueDelayAcks(r,slot); }
   return 1;
 }
 
@@ -1476,6 +1528,15 @@ static int DrainRing(struct AmmServer_Instance * instance,struct UringRing * r)
         //Nothing to do for a cancel : what it cancels reports back on its own , and a cancel that found
         //nothing to cancel ( -ENOENT , -EALREADY ) is a race we have already handled by closing.
         case URING_OP_CANCEL : break;
+        //A kernel without socket commands , or one that refuses this option , says so once : delayed ACKs
+        //only save packets , so the server goes on without them.
+        case URING_OP_SOCKOPT :
+          if ( (cqe->res<0) && (cqe->res!=-EBADF) && (cqe->res!=-ENOTCONN) && (!delayAcksRefused) )
+           {
+             delayAcksRefused=1;
+             fprintf(stderr,"AmmarServer : TCP_QUICKACK through io_uring refused ( %d ) , delayed ACKs off\n",cqe->res);
+           }
+          break;
       };
 
      ++head;
@@ -1717,6 +1778,9 @@ static int RingStartup(struct AmmServer_Instance * instance)
   //An HTTP client speaks first , so a connection is only handed to accept once its request is here : the
   //first receive finds it , rather than the ring waking once for the connection and again for the request.
   setsockopt(listenSocket,IPPROTO_TCP,TCP_DEFER_ACCEPT,&yes,sizeof(yes));
+  //Delayed-ACK mode ( URING_DELAYED_ACKS ) , so that even a connection's first request is acked by its
+  //response. It only holds once the socket listens , which it does by the time it gets here.
+  if (URING_DELAYED_ACKS) { int zero=0; setsockopt(listenSocket,IPPROTO_TCP,TCP_QUICKACK,&zero,sizeof(zero)); }
 
   unsigned long long totalSlots = 0;
   for (i=0; i<ringCount; i++) { totalSlots += ringAt[i].connectionSlots; }
@@ -1746,6 +1810,10 @@ static void * UringAPIThread(void * ptr)
    {
      int handled = 0;
      int broken  = 0;
+
+     struct timespec now;
+     clock_gettime(CLOCK_MONOTONIC_COARSE,&now);
+     loopNowMs = (unsigned short)( (unsigned long long) now.tv_sec*1000ULL + (unsigned long long) now.tv_nsec/1000000ULL );
 
      //Cheap and normally a no-op : arms the deferred-response poll once AmmServer_SetAPINotifyFD has run.
      ArmNotify(instance);
