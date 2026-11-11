@@ -122,6 +122,7 @@ int EpollAPI_AdoptConnection(struct AmmServer_Instance * instance,int clientsock
   //Responses are small and already one send() each , so Nagle would only add delay waiting for more.
   int yes=1;
   setsockopt(clientsock,IPPROTO_TCP,TCP_NODELAY,&yes,sizeof(yes));
+  setsockopt(clientsock,IPPROTO_TCP,TCP_THIN_LINEAR_TIMEOUTS,&yes,sizeof(yes));
   //A client that vanishes without a FIN would otherwise hold its fd and its struct forever , and with tens of
   //thousands of connections open that is the leak that eventually runs the process out of descriptors.
   setsockopt(clientsock,SOL_SOCKET,SO_KEEPALIVE,&yes,sizeof(yes));

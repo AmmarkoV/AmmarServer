@@ -103,7 +103,9 @@ int AmmServer_APISendDeferred(
 //arrives , which means one buffer per outstanding send rather than one for the server. Sends to a socket
 //with room in its send buffer complete immediately , so this is a queue depth , not a connection count ,
 //and one pool serves every ring because one thread serves every ring.
-#define URING_SEND_TICKETS 32
+#ifndef URING_SEND_TICKETS
+ #define URING_SEND_TICKETS 32
+#endif
 //The kernel's own ceiling on a registered file table ( IORING_MAX_FIXED_FILES , 1<<20 ). Past it , or past
 //RLIMIT_NOFILE , registering fails with EMFILE and RegisterConnectionTable halves the request. The table is
 //sparse : the kernel keeps 8 bytes a slot and the slots here are calloc'ed , so unused ones cost nothing but
@@ -1496,6 +1498,14 @@ static int DrainRing(struct AmmServer_Instance * instance,struct UringRing * r)
 #ifndef URING_BATCH_COMPLETIONS
  #define URING_BATCH_COMPLETIONS 32
 #endif
+//With URING_BATCH_PACED a busy single ring also goes to that wait straight after every pass , instead of
+//first going round again for as long as a pass finds anything. Going round again answers what trickled in
+//while the pass was being served as small passes of their own ; paced , a pass lasts at least
+//URING_BATCH_WAIT_US unless URING_BATCH_COMPLETIONS are already waiting , so each wake-up - and each batch a
+//batch handler is given - covers everything that arrived in that time. It costs up to that much latency.
+#ifndef URING_BATCH_PACED
+ #define URING_BATCH_PACED 0
+#endif
 static int ringRecentlyBusy = 0;
 
 static int RingHasCompletions(struct UringRing * r)
@@ -1701,6 +1711,12 @@ static int RingStartup(struct AmmServer_Instance * instance)
   int yes=1;
   setsockopt(listenSocket,IPPROTO_TCP,TCP_NODELAY,&yes,sizeof(yes));
   setsockopt(listenSocket,SOL_SOCKET,SO_KEEPALIVE,&yes,sizeof(yes));
+  //A request or a response is a packet or two , never a stream that fast retransmit could repair , so a lost
+  //one waits for the retransmission timer : linear timeouts retry it every RTO instead of doubling each time.
+  setsockopt(listenSocket,IPPROTO_TCP,TCP_THIN_LINEAR_TIMEOUTS,&yes,sizeof(yes));
+  //An HTTP client speaks first , so a connection is only handed to accept once its request is here : the
+  //first receive finds it , rather than the ring waking once for the connection and again for the request.
+  setsockopt(listenSocket,IPPROTO_TCP,TCP_DEFER_ACCEPT,&yes,sizeof(yes));
 
   unsigned long long totalSlots = 0;
   for (i=0; i<ringCount; i++) { totalSlots += ringAt[i].connectionSlots; }
@@ -1759,7 +1775,7 @@ static void * UringAPIThread(void * ptr)
 
      //Serving one ring queues work on others , and more may have arrived while we were at it , so the rings
      //are gone round again before anything blocks.
-     if (handled>0) { continue; }
+     if ( (handled>0) && !( (URING_BATCH_PACED) && (URING_BATCH_WAIT_US>0) && (ringCount==1) && (ringRecentlyBusy) ) ) { continue; }
 
      if (!WaitForAnyRing(&oneSecond)) { break; }
    }
