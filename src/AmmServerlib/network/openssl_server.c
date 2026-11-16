@@ -124,7 +124,7 @@ void ASRV_SSL_ShutdownConnection(struct HTTPTransaction * transaction)
 
 int ASRV_SSL_BindHTTPSSocket(struct AmmServer_Instance * instance)
 {
-    fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: called (instance=%p sslAvailable=%d sslserversock=%d HTTPS_PORT=%u)\n",
+    fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: called (instance=%p sslAvailable=%d sslserversock=%d HTTPS_PORT=%d)\n",
             (void*)instance,
             instance ? instance->sslAvailable : -1,
             instance ? instance->sslserversock : -1,
@@ -159,11 +159,11 @@ int ASRV_SSL_BindHTTPSSocket(struct AmmServer_Instance * instance)
     if (bind(sslsock, (struct sockaddr *)&ssl_server, sizeof(ssl_server)) < 0)
     {
         perror("ASRV_SSL_BindHTTPSSocket: bind()");
-        fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: bind() failed on port %u\n", instance->settings.HTTPS_PORT);
+        fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: bind() failed on port %d\n", instance->settings.HTTPS_PORT);
         close(sslsock);
         return 0;
     }
-    fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: bind() ok on port %u\n", instance->settings.HTTPS_PORT);
+    fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: bind() ok on port %d\n", instance->settings.HTTPS_PORT);
 
     if (listen(sslsock, 128) < 0)
     {
@@ -173,7 +173,7 @@ int ASRV_SSL_BindHTTPSSocket(struct AmmServer_Instance * instance)
     }
 
     instance->sslserversock = sslsock;
-    fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: HTTPS socket ready fd=%d port=%u\n", sslsock, instance->settings.HTTPS_PORT);
+    fprintf(stderr, "ASRV_SSL_BindHTTPSSocket: HTTPS socket ready fd=%d port=%d\n", sslsock, instance->settings.HTTPS_PORT);
     return 1;
 }
 

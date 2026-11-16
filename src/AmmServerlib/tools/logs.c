@@ -388,3 +388,22 @@ void FlushAccessAndErrorLogs(void)
         pthread_mutex_unlock(&ErrorLogMutex[i]);
     }
 }
+
+//Flushes and closes every log shard. A later append ( another instance still running ) lazily reopens its shard.
+void CloseAccessAndErrorLogs(void)
+{
+    unsigned int i;
+    for (i=0; i<LOG_SHARD_COUNT; i++)
+    {
+        pthread_mutex_lock(&AccessLogMutex[i]);
+        if (AccessLogFile[i]!=0) { fclose(AccessLogFile[i]); AccessLogFile[i]=0; }
+        pthread_mutex_unlock(&AccessLogMutex[i]);
+    }
+
+    for (i=0; i<LOG_SHARD_COUNT; i++)
+    {
+        pthread_mutex_lock(&ErrorLogMutex[i]);
+        if (ErrorLogFile[i]!=0) { fclose(ErrorLogFile[i]); ErrorLogFile[i]=0; }
+        pthread_mutex_unlock(&ErrorLogMutex[i]);
+    }
+}

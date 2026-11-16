@@ -217,5 +217,33 @@ class TestLogging(unittest.TestCase):
             server.cleanup()
 
 
+class TestShutdown(unittest.TestCase):
+    def test_01_sigterm_stops_cleanly(self):
+        # SIGTERM only raises a flag: the main loop must notice it, tear the
+        # server down through AmmServer_Stop() and return from main() with 0.
+        server = Server()
+        try:
+            connection = RawConnection(server.port)
+            connection.send(make_request("GET", "/text.txt", [("Connection", "close")], port=server.port))
+            self.assertEqual(connection.read_response("GET").status, 200)
+            connection.close()
+            server.stop(cleanup=False)
+            self.assertEqual(server.process.returncode, 0, server.log_tail())
+            self.assertIn("Ammar Server stopped", server.log_tail())
+        finally:
+            server.cleanup()
+
+    def test_02_sigterm_right_after_startup(self):
+        # Used to segfault: the signal handler ran the service teardown while
+        # the server instance pointer was still NULL.
+        for _ in range(5):
+            server = Server()
+            try:
+                server.stop(cleanup=False)
+                self.assertEqual(server.process.returncode, 0, server.log_tail())
+            finally:
+                server.cleanup()
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

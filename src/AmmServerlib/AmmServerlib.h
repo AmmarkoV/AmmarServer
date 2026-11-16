@@ -466,9 +466,10 @@ struct AmmServer_Instance
 
     //Server state
     int serversock;
-    int server_running;
-    int pause_server;
-    int stop_server;
+    //Written by one thread and polled by others
+    volatile int server_running;
+    volatile int pause_server;
+    volatile int stop_server;
 
     //Cache Items..
     unsigned int cacheVersionETag; //This should be set to a number ( typically 0 ) and gets prepended to the e-tag , in order to make clients refresh on different launches of AmmarServer
@@ -1629,10 +1630,12 @@ int AmmServer_FreeMemoryHandler(struct AmmServer_MemoryHandler ** mh);
 
 
 /**
-* @brief Register a function to call a function that gracefully terminates a client when a SIGKILL or the time to stop the server comes
+* @brief Install the SIGINT/SIGHUP/SIGTERM handler. The handler only raises a flag : every server thread winds
+*        down , AmmServer_Running() starts returning 0 , and the application is expected to leave its main loop ,
+*        do its own cleanup and call AmmServer_Stop(). A second signal exits the process immediately.
 * @ingroup tools
-* @param Pointer to function
-* @retval 1=Exists,0=Does not Exist
+* @param Unused , kept for source compatibility ( it used to be called from inside the signal handler )
+* @retval 1=All handlers installed,0=At least one could not be installed
 */
 int AmmServer_RegisterTerminationSignal(void * callback);
 

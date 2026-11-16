@@ -565,6 +565,8 @@ int ApiProtocol_Prepare(
 static int ApiHeaderPut(char * header,unsigned int * length,const char * piece,unsigned int n)
 {
   if ( (*length)+n >= API_RESPONSE_HEADER_RESERVE ) { *length=API_RESPONSE_HEADER_RESERVE; return 0; }
+  //Every caller passes a literal or a buffer ApiHeaderUnsigned just filled
+  // cppcheck-suppress uninitvar
   memcpy(header+(*length),piece,n);
   (*length)+=n;
   return 1;

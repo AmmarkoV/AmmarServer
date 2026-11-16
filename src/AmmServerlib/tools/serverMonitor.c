@@ -64,7 +64,7 @@ void * serveMonitorPage(struct AmmServer_DynamicRequest  * rqst)
    char command[1024]={0};
   if ( _GETcpy(rqst,(char*) "stop",command,1024) )
       {
-         fprintf(stderr,"stop %u requested\n",atoi(command));
+         fprintf(stderr,"stop %d requested\n",atoi(command));
       }
 
 

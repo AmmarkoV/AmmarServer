@@ -542,7 +542,7 @@ int StripGETRequestQueryAndFragment(char * request, unsigned int maxQueryLength)
    //fprintf(stderr,"Searching for Query : Request has a %u size , fragment at pos %u/%u \n",length,fragment_pos,length);
    if (fragment_pos<length) { request[fragment_pos]=0; /*Disregard any fragments , they are for the client only.. */ }
    if (i==length)   { return 0; } //<- could not find a ..
-   if (i+1>=length) { return 0; } //<- found the question mark at i BUT it is the last character so no extension is possible..!
+   if (i+1>=length) { request[i]=0; return 0; } //<- found the question mark at i BUT it is the last character : an empty query , the resource is what precedes it
 
    //char * start_of_query = &request[i+1]; // do not include ? ( question mark )
 
@@ -987,8 +987,10 @@ int encodeToBase64(char *src,unsigned s_len,char *dst,unsigned d_len)
         {
            case 3: *(dst+3) = base64[sr&0x3f];
                     sr >>= 6;
+                    /* fall through */
            case 2: *(dst+2) = base64[sr&0x3f];
                     sr >>= 6;
+                    /* fall through */
            case 1: *(dst+1) = base64[sr&0x3f];
                     sr >>= 6;
 
@@ -1114,7 +1116,7 @@ char * RequestHTTPWebPage(struct AmmServer_Instance * instance,char * hostname,u
     // zero the rest of the struct
     memset(&(their_addr.sin_zero), 0 , 8); // '\0'
 
-   if(connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1) { errorID(ASV_ERROR_FAILED_TO_CONNECT);  return 0; } else
+   if(connect(sockfd, (struct sockaddr *)&their_addr, sizeof(struct sockaddr)) == -1) { errorID(ASV_ERROR_FAILED_TO_CONNECT); close(sockfd); return 0; } else
                                                                                       { printf("Starting Request for filename %s \n",filename); }
 
 #if USE_TIMEOUTS
@@ -1224,7 +1226,7 @@ int getSocketIPAddress(struct AmmServer_Instance * instance , int clientSock , c
     }
   }
 
-  fprintf(stderr,"%s: Peer IP address: %s , port %d \n", instance->instanceName , ipstr,*port);
+  fprintf(stderr,"%s: Peer IP address: %s , port %u \n", instance->instanceName , ipstr,*port);
  } else
  {
    warning("Could not get peer name..!"); //This could be a reason to drop this connection!

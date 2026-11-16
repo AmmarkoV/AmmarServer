@@ -24,6 +24,7 @@ size_t str1_len = strlen(str1);
 size_t str2_len = strlen(str2);
 char *result;
 result = malloc((str1_len+str2_len+1)*sizeof *result);
+if (result==0) { return 0; }
 strcpy (result,str1);
 unsigned int i,j;
 for(i=str1_len, j=0; ((i<(str1_len+str2_len)) && (j<str2_len));i++, j++) {
@@ -41,7 +42,7 @@ fprintf(stderr,GREEN "Generating directory list page for directory %s \n" NORMAL
 *memoryUsed=INITIAL_DIRECTORY_LIST_RESPONSE_BODY+1;
 unsigned long memoryAllocationSize = sizeof(char) * ( *memoryUsed );
 char * memory=(char*) malloc( memoryAllocationSize+1 );
-if (memory==0) { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); }
+if (memory==0) { errorID(ASV_ERROR_COULD_NOT_ALLOCATE_MEMORY); return 0; }
 
 unsigned int mem_remaining=*memoryUsed;
 
@@ -86,7 +87,7 @@ while ((dp=readdir(dir)) != 0)
     //TODO: remove // from requests.. of dp->d_name is like /filename.ext
     char *tmp = path_cat(client_path, dp->d_name);
 
-    if (dp->d_name==0) { fprintf(stderr,"Got garbage out of readdir\n"); }
+    if (tmp==0) { fprintf(stderr,"Could not allocate a path for a directory entry\n"); }
      else
     if ( (strcmp(dp->d_name,".")!=0) && (strcmp(dp->d_name,"..")!=0) )
     {

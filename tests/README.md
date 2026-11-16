@@ -30,10 +30,31 @@ You can also run the package directly from the repository root:
 python3 -m unittest discover -s tests -t . -p 'test_*.py' -v
 ```
 
+### Static analysis, valgrind and sanitizers
+
+```bash
+./tests/run_cppcheck.sh                      # cppcheck report -> build/cppcheck/report.txt
+./tests/run_valgrind.sh                      # every server-backed module, server under valgrind memcheck
+./tests/run_valgrind.sh tests.test_security  # only some modules
+./tests/run_valgrind.sh --helgrind           # data races / lock order instead of memory errors
+./tests/run_sanitizers.sh                    # the suite against an ASan + LSan + UBSan build
+```
+
+`run_valgrind.sh` and `run_sanitizers.sh` build their own unstripped binaries
+(`build_static.sh`) into `build/valgrind/` and `build/sanitizers/`, and write
+one report per server process into the `logs/` directory next to them. All
+three scripts exit non-zero on findings; known-benign valgrind reports are
+listed in `valgrind.supp`. Findings are triaged in `knowledge/PLAN.md`.
+
 ### Environment variables
 
 - `AMMARSERVER_BINARY` – use a different server binary (used by the harness).
 - `AMMARSERVER_LIBRARY_DIR` – directory containing `libAmmarServer.so`.
+- `AMMARSERVER_TESTSERVICE_BINARY` – the `testservice` binary (default
+  `build/tests/testservice`, built by `run_tests.sh`).
+- `AMMARSERVER_VALGRIND_LOG_DIR` – run every server under valgrind and write
+  the reports here (set by `run_valgrind.sh`); `AMMARSERVER_VALGRIND_TOOL`
+  selects `memcheck` or `helgrind`.
 - `INPUTPARSER_TEST_BINARY` – use a different `testinputparser` binary.
 
 ## Layout
@@ -41,6 +62,12 @@ python3 -m unittest discover -s tests -t . -p 'test_*.py' -v
 ```
 tests/
 ├── run_tests.sh              unified runner (build + unittest)
+├── run_cppcheck.sh           cppcheck static analysis
+├── run_valgrind.sh           the same suite with the server under valgrind
+├── run_sanitizers.sh         the same suite against an ASan/UBSan build
+├── build_static.sh           self-contained ammarserver + testservice builds
+├── valgrind.supp             valgrind suppressions
+├── fixtures/testservice.c    small application: cookies, sessions, API mode
 ├── harness.py                Server, RawConnection, fixtures and assertion helpers
 ├── test_ranges.py            byte ranges, 206/416, HEAD+Range, cached and disk profiles
 ├── test_conditionals.py      Last-Modified, If-Modified-Since, If-Unmodified-Since, ETag
@@ -50,6 +77,7 @@ tests/
 │                             keep-alive, ETag stability, concurrency and logging
 ├── test_security.py          traversal, symlink escape, malformed/oversized input,
 │                             request smuggling and slow-client resilience
+├── test_application.py       cookies, sessions, GET/POST fields, API mode (epoll and io_uring)
 ├── test_inputparser.py       InputParser keepcopy ownership and NUL-termination regressions
 ├── legacy/                   original shell pentest scripts and raw request fixtures
 └── load/                     manual siege/wget load and DoS trials

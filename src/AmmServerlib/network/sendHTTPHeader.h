@@ -9,18 +9,6 @@
 #include "../AmmServerlib.h"
 
 /**
-* @brief Send an Error Code header
-* @ingroup network
-* @param An AmmarServer instance
-* @param Socket to send to
-* @param ErrorCode to be transmitted to client
-* @param Verified Filename of file to transmit ( appended with error code )
-* @param Filename to directory when error template files are stored
-* @bug   This call seems to fail ?
-* @retval 1=Success,0=Failure*/
-unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int error_code,const char * verified_filename,const char * templates_root);
-
-/**
 * @brief Send a complete , self-framed error response ( Content-Length + Connection: close )
 * @ingroup network
 * @param An AmmarServer instance

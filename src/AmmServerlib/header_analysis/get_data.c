@@ -62,8 +62,13 @@ int finalizeGenericGETField(
 
 
   unsigned int state = FOUND_NOTHING;
+  //A field without a value ( "?a&b=1" , "?a" ) gets an empty string for one , never a null pointer : value
+  //is pointed at the terminator that ends its name. Empty names ( "?&&" ) are skipped altogether.
   while (GETPtr<GETPtrEnd)
   {
+    //target has room for MAX_HTTP_GET_VARIABLE_COUNT items , anything past that is dropped
+    if (*targetNumber>=MAX_HTTP_GET_VARIABLE_COUNT) { state=FOUND_NOTHING; break; }
+
     if ( (*GETPtr==10) || (*GETPtr==13) || (*GETPtr==0) )
     {
       if (state==FOUND_NOTHING)
@@ -74,10 +79,14 @@ int finalizeGenericGETField(
       if (state==SEEKING_NAME)
         {
           //Last Item was a name with no value
-          target[*targetNumber].name=startOfPTR;
-          target[*targetNumber].value=0;
           *GETPtr=0; //Null Terminate
-          *targetNumber+=1;
+          if (GETPtr>startOfPTR)
+           {
+            target[*targetNumber].name=startOfPTR;
+            target[*targetNumber].value=GETPtr;
+            *targetNumber+=1;
+           }
+          state=FOUND_NOTHING; //consumed
           break;
         } else
       if (state==SEEKING_VALUE)
@@ -88,6 +97,7 @@ int finalizeGenericGETField(
 
           //fprintf(stderr,"We finished string searching for a value so it is found value %s\n",startOfPTR);
           *targetNumber+=1;
+          state=FOUND_NOTHING; //consumed , the block after the loop must not add it a second time
           break;
         }
     } else
@@ -115,11 +125,13 @@ int finalizeGenericGETField(
        //We found a value
        if (state==SEEKING_NAME)
         {
-          target[*targetNumber].name=startOfPTR;
-          target[*targetNumber].value=0;
-          *targetNumber+=1;
-
           *GETPtr=0; //Null Terminate
+          if (GETPtr>startOfPTR)
+           {
+            target[*targetNumber].name=startOfPTR;
+            target[*targetNumber].value=GETPtr;
+            *targetNumber+=1;
+           }
           startOfPTR=GETPtr+1;
         } else
        if (state==SEEKING_VALUE)
@@ -147,6 +159,14 @@ int finalizeGenericGETField(
           *GETPtr=0; //Null Terminate
 
           //fprintf(stderr,"We finished string searching for a value so it is found value %s\n",startOfPTR);
+          *targetNumber+=1;
+        } else
+  if ( (state==SEEKING_NAME) && (GETPtr>startOfPTR) )
+        {
+          //The query ended in a name with no value and no terminator inside the counted length
+          *GETPtr=0; //Null Terminate
+          target[*targetNumber].name=startOfPTR;
+          target[*targetNumber].value=GETPtr;
           *targetNumber+=1;
         }
 

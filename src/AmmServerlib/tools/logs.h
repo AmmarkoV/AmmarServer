@@ -136,4 +136,10 @@ int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,uns
 * @ingroup logs */
 void FlushAccessAndErrorLogs(void);
 
+/**
+* @brief Flush and close every access/error log shard , called by AmmServer_Stop() . Shards are reopened lazily
+*        by the next append , so this is safe while another instance is still serving.
+* @ingroup logs */
+void CloseAccessAndErrorLogs(void);
+
 #endif // LOGS_H_INCLUDED

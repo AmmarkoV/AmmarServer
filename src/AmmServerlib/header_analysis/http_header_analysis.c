@@ -182,10 +182,6 @@ int ProcessFirstHTTPLine(struct HTTPHeader * output,char * request,unsigned int 
              output->GETrequestSize = 0;
 
              //fprintf(stderr,CYAN "Processing query now \n" NORMAL);
-             if (stripped==0)
-               {
-                 errorID(ASV_ERROR_FAILED_TO_RESOLVE_GET_QUERY);
-               } else
              if ( StripGETRequestQueryAndFragment(stripped/*,output->GETquery*/,MAX_QUERY) )
                {
                  //Now we should be pointing to the correct place of headerRAW
@@ -298,6 +294,7 @@ static int ParseRangeHTTPLine(struct HTTPHeader * output,const char * value,unsi
 
   unsigned int i=0;
   while ( (i<length) && ( (value[i]==' ') || (value[i]=='\t') ) ) { ++i; }
+  // cppcheck-suppress knownConditionTrueFalse ; false positive , tests/test_ranges.py gets past this
   if ( (length-i)<6 ) { return 0; }
   if (strncasecmp(value+i,"bytes=",6)!=0) { return 0; }
   i+=6;
@@ -458,6 +455,7 @@ int AnalyzeHTTPLineRequest(
               unsigned int end=request_length;
               while ( (start<end) && ( (request[start]==' ') || (request[start]=='\t') ) ) { ++start; }
               while ( (end>start) && ( (request[end-1]==' ') || (request[end-1]=='\t') ) ) { --end; }
+              // cppcheck-suppress knownConditionTrueFalse ; false positive , tests/test_request_framing.py takes this branch
               if ( (end-start==12) && (strncasecmp(request+start,"100-continue",12)==0) )
                { output->expectContinue=1; }
               else

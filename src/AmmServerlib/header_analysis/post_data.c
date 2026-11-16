@@ -209,8 +209,7 @@ int finalizePOSTData(struct HTTPHeader * output)
                                                                      );
      }
 
-    if (payload!=0)
-     {
+     { //payload is never 0 here , reachNextBlock() returns its starting point when it finds nothing
        output->POSTItem[i].value = payload;
 
        //A plain ( non file ) part's value is not delimited by a single line , it can be empty , span multiple

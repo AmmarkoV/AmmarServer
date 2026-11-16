@@ -29,6 +29,8 @@ if [ "$BUILD" = "1" ]; then
   fi
   echo "Building ammarserver and InputParser tests..."
   cmake --build "$BUILD_DIR" --target ammarserver testinputparser -j"$(nproc)" || exit 1
+  # testservice ( cookies , sessions , API mode ) is not a cmake target , see build_static.sh
+  "$SCRIPT_DIR/build_static.sh" "$BUILD_DIR/tests" -O2 || exit 1
 fi
 
 if [ ! -x "$BINARY" ]; then

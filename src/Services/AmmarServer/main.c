@@ -427,7 +427,7 @@ void init_dynamic_content()
      if (! AmmServer_AddResourceHandler(default_server,&gps,"/execute.html",16000,0,&executeScriptFunction,DIFFERENT_PAGE_FOR_EACH_CLIENT) )
          { AmmServer_Warning("Failed adding execute page\n"); } else
          {
-           fprintf(stderr,"Call http://YOURIP:%u/execute.html to execute %s \n",default_server->settings.BINDING_PORT,executeScript);
+           fprintf(stderr,"Call http://YOURIP:%d/execute.html to execute %s \n",default_server->settings.BINDING_PORT,executeScript);
          }
   }
 

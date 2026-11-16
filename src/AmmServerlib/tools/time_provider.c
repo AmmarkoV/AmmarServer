@@ -75,7 +75,7 @@ int GetDateString(char * output,unsigned int maxOutput,char * label,unsigned int
         EnsureDateCacheThreadStarted();
         char cached_copy[40];
         pthread_mutex_lock(&g_cached_date_mutex);
-        strncpy(cached_copy,g_cached_date_value,sizeof(cached_copy));
+        snprintf(cached_copy,sizeof(cached_copy),"%s",g_cached_date_value);
         pthread_mutex_unlock(&g_cached_date_mutex);
 
         if (label==0)

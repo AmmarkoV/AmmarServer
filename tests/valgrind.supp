@@ -1,0 +1,11 @@
+# The date cache thread ( tools/time_provider.c ) is process-global and detached : it wakes up once a second
+# and exits on its own , so it can still be alive ( and own its thread-local block ) when main() returns.
+{
+   date_cache_thread_tls
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:pthread_create*
+   fun:EnsureDateCacheThreadStarted
+}

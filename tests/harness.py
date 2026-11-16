@@ -19,9 +19,20 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERVER_BINARY = os.environ.get("AMMARSERVER_BINARY") or os.path.join(
     REPO_ROOT, "src", "Services", "AmmarServer", "ammarserver"
 )
+TESTSERVICE_BINARY = os.environ.get("AMMARSERVER_TESTSERVICE_BINARY") or os.path.join(
+    REPO_ROOT, "build", "tests", "testservice"
+)
 LIBRARY_DIR = os.environ.get("AMMARSERVER_LIBRARY_DIR") or os.path.join(
     REPO_ROOT, "src", "AmmServerlib"
 )
+
+# When set, every server instance runs under valgrind (memcheck) and writes one
+# report per process into this directory. See tests/run_valgrind.sh.
+VALGRIND_LOG_DIR = os.environ.get("AMMARSERVER_VALGRIND_LOG_DIR")
+# "memcheck" (default) or "helgrind" (data races and lock order instead of memory errors)
+VALGRIND_TOOL = os.environ.get("AMMARSERVER_VALGRIND_TOOL") or "memcheck"
+# valgrind slows the server down a lot, so startup/shutdown get more time.
+PROCESS_TIMEOUT = 120.0 if VALGRIND_LOG_DIR else 10.0
 
 FIXED_MTIME = 1700000000  # Tue, 14 Nov 2023 22:13:20 GMT
 RANGE_BYTES = bytes(range(36))
@@ -59,7 +70,7 @@ def write_config(path, settings):
 class Server:
     """One isolated server instance."""
 
-    def __init__(self, config=None, config_files=None, explicit_conf=True):
+    def __init__(self, config=None, config_files=None, explicit_conf=True, binary=SERVER_BINARY, first_args=()):
         self.temp_dir = tempfile.mkdtemp(prefix="ammarserver-test-")
         self.web_root = os.path.join(self.temp_dir, "www")
         self.templates_root = os.path.join(self.temp_dir, "templates")
@@ -78,9 +89,21 @@ class Server:
         self.log_path = os.path.join(self.temp_dir, "server.log")
         self.log_file = open(self.log_path, "wb")
 
+        # The applications register their dynamic pages right after the port
+        # starts listening , so "connectable" is not "ready" yet : wait for one
+        # of those pages to stop answering 404. API mode has no such window ,
+        # and with "Caching Off" dynamic pages are never served at all.
+        self.ready_path = None
+        used_settings = list(config_files.values()) if config_files is not None else [settings]
+        if any(used.get("Caching") == "Off" for used in used_settings):
+            pass
+        elif binary == SERVER_BINARY:
+            self.ready_path = "/formtest.html"
+        elif not first_args:
+            self.ready_path = "/echo.html"
+
         self.port = free_port()
-        command = [
-            SERVER_BINARY,
+        command = [binary] + list(first_args) + [
             "-p", str(self.port),
             "-bind", "127.0.0.1",
             "-rootdir", self.web_root,
@@ -101,15 +124,34 @@ class Server:
                     write_config(config_path, settings)
                 command += ["-conf", config_path]
 
+        if VALGRIND_LOG_DIR:
+            if VALGRIND_TOOL == "memcheck":
+                tool_options = [
+                    "--leak-check=full",
+                    "--show-leak-kinds=definite,indirect,possible",
+                    "--track-origins=yes",
+                    "--track-fds=yes",
+                ]
+            else:
+                tool_options = []
+            command = [
+                "valgrind",
+                "--tool=" + VALGRIND_TOOL,
+            ] + tool_options + [
+                "--num-callers=30",
+                "--suppressions=" + os.path.join(REPO_ROOT, "tests", "valgrind.supp"),
+                "--log-file=" + os.path.join(VALGRIND_LOG_DIR, "valgrind.%p.log"),
+            ] + command
+
         environment = dict(os.environ)
         environment["LD_LIBRARY_PATH"] = (
             LIBRARY_DIR
             + (":" + environment["LD_LIBRARY_PATH"] if environment.get("LD_LIBRARY_PATH") else "")
         )
 
-        if not os.path.isfile(SERVER_BINARY):
+        if not os.path.isfile(binary):
             raise RuntimeError(
-                "server binary not found: %s (build it first, or set AMMARSERVER_BINARY)" % SERVER_BINARY
+                "server binary not found: %s (build it first, see tests/README.md)" % binary
             )
 
         self.process = subprocess.Popen(
@@ -141,16 +183,30 @@ class Server:
                 fixture.write(content)
 
     def _wait_until_ready(self):
-        deadline = time.time() + 10.0
+        deadline = time.time() + PROCESS_TIMEOUT
         while time.time() < deadline:
             if self.process.poll() is not None:
                 raise RuntimeError("server exited during startup:\n%s" % self.log_tail())
             try:
                 connection = socket.create_connection(("127.0.0.1", self.port), timeout=0.25)
                 connection.close()
-                return
+                break
             except OSError:
                 time.sleep(0.05)
+        else:
+            raise RuntimeError("server did not start listening in time:\n%s" % self.log_tail())
+
+        while self.ready_path and time.time() < deadline:
+            probe = "GET %s HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n" % self.ready_path
+            try:
+                reply = raw_exchange(self.port, probe.encode("ascii"))
+                if reply.startswith(b"HTTP/") and b" 404 " not in reply[:16]:
+                    return
+            except OSError:
+                pass
+            time.sleep(0.05)
+        if not self.ready_path:
+            return
         raise RuntimeError("server did not start listening in time:\n%s" % self.log_tail())
 
     def log_tail(self, lines=60):
@@ -186,7 +242,7 @@ class Server:
         if getattr(self, "process", None) is not None and self.process.poll() is None:
             self.process.terminate()
             try:
-                self.process.wait(timeout=5)
+                self.process.wait(timeout=PROCESS_TIMEOUT / 2)
             except subprocess.TimeoutExpired:
                 self.process.kill()
                 self.process.wait(timeout=5)
@@ -406,10 +462,13 @@ class ServerTestCase(unittest.TestCase):
     server_config = None
     server_config_files = None
     explicit_conf = True
+    server_binary = SERVER_BINARY
+    server_first_args = ()
 
     @classmethod
     def setUpClass(cls):
-        kwargs = {"explicit_conf": cls.explicit_conf}
+        kwargs = {"explicit_conf": cls.explicit_conf, "binary": cls.server_binary,
+                  "first_args": cls.server_first_args}
         if cls.server_config_files is not None:
             kwargs["config_files"] = cls.server_config_files
         else:

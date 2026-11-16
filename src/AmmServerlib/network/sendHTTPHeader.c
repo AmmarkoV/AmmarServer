@@ -24,47 +24,6 @@
 
 #include "networkAbstraction.h"
 
-unsigned long SendErrorCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned int error_code,const char * verified_filename,const char * templates_root)
-{
-/*
-    This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
-    it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
-*/
-     char response[MAX_HTTP_REQUEST_HEADER_REPLY]={0};
-     switch (error_code)
-     {
-       //TODO switch this to templated.. :
-       case 400 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"400 Bad Request %s400.html",templates_root);            break;
-       case 401 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"401 Password Protected %s401.html",templates_root);     break;
-       case 404 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"404 Not Found %s404.html",templates_root);              break;
-       case 408 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"408 Timed Out %s408.html",templates_root);              break;
-       case 412 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"412 Precondition Failed %s412.html",templates_root);     break;
-       case 413 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"413 Content Too Large %s413.html",templates_root);      break;
-       case 416 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"416 Range Not Satisfiable %s416.html",templates_root);   break;
-       case 417 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"417 Expectation Failed %s417.html",templates_root);      break;
-       case 500 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"500 Internal Server Error %s500.html",templates_root);  break;
-       case 501 : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"501 Not Implemented %s501.html",templates_root);        break;
-       //---------------------------------------------------------------------------------------------------------------------------
-       default : snprintf(response,MAX_HTTP_REQUEST_HEADER_REPLY,"500 Internal Server Error %s500.html",templates_root);   break;
-     };
-
-     char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};
-     snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 %s\nServer: Ammarserver/%s\nContent-type: text/html\n",response,FULLVERSION_STRING);
-     unsigned int replyHeaderLength = strlen(reply_header);
-
-     GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
-     int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL);  //Send filesize as soon as we've got it
-     if (opres<=0)
-        {
-          warningID(ASV_WARNING_COULD_NOT_TRANSMIT_ERROR_TO_CLIENT);
-          if (verified_filename!=0) { fprintf(stderr,"file we wanted to send was %s ",verified_filename); }
-
-          return 0;
-        }
-
-     return 1;
-}
-
 unsigned long SendErrorResponse(
                                  struct AmmServer_Instance * instance,
                                  struct HTTPTransaction * transaction,
@@ -137,7 +96,7 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
       char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0}; //Accept-Ranges: bytes\n
       //GetHTTPReasonPhrase , not a hardcoded "OK" : a dynamic-content callback can ask for any status code here
       //( rqst->headerResponse ) , and "HTTP/1.1 404 OK" is not a status line.
-      snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 %u %s\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\nAccept-Ranges: bytes\n",success_code,GetHTTPReasonPhrase((unsigned int) success_code),FULLVERSION_STRING,content_type);
+      snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 %d %s\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\nAccept-Ranges: bytes\n",success_code,GetHTTPReasonPhrase((unsigned int) success_code),FULLVERSION_STRING,content_type);
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);

@@ -187,6 +187,7 @@ int cache_Destroy(struct AmmServer_Instance * instance)
 /*This is the Search Index Function , It is basically fully inefficient O(n) , it will be replaced by some binary search implementation*/
 unsigned int cache_FindResource(struct AmmServer_Instance * instance,const char * resource,unsigned int * index)
 {
+  if (instance==0) { return 0; }
   struct cache_item * cache = (struct cache_item *) instance->cache;
   if (cache==0) { errorID(ASV_ERROR_CACHE_NOT_ALLOCATED); return 0; }
 
@@ -456,6 +457,7 @@ int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index
 
 int cache_RemoveContextAndResource(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
+       if (context==0) { return 0; }
        context->requestContext.MAXcontentSize=0;
        if ((free_mem)&&(context->requestContext.content!=0)) { free(context->requestContext.content); context->requestContext.content=0; }
 

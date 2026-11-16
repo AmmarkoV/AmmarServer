@@ -199,6 +199,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="threads/clientServer.h" />
+		<Unit filename="threads/epollFastPathServer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="threads/epollFastPathServer.h" />
 		<Unit filename="threads/freshThreads.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -220,10 +224,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="threads/threadedServer.h" />
-		<Unit filename="threads/epollFastPathServer.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="threads/epollFastPathServer.h" />
 		<Unit filename="tools/directory_lists.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -236,6 +236,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/http_tools.h" />
+		<Unit filename="tools/json_tools.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/json_tools.h" />
 		<Unit filename="tools/logs.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -250,16 +254,13 @@
 		<Unit filename="tools/time_provider.h" />
 		<Unit filename="version.h" />
 		<Extensions>
-			<envvars />
-			<code_completion />
-			<lib_finder disable_auto="1" />
-			<debugger />
 			<AutoVersioning>
 				<Scheme minor_max="1000" build_max="0" rev_max="0" rev_rand_max="10" build_times_to_increment_minor="100" />
 				<Settings autoincrement="1" date_declarations="1" use_define="0" update_manifest="0" do_auto_increment="1" ask_to_increment="0" language="C" svn="0" svn_directory="" header_path="version.h" />
 				<Changes_Log show_changes_editor="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
 				<Code header_guard="VERSION_H" namespace="" prefix="" />
 			</AutoVersioning>
+			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

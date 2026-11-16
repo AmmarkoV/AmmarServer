@@ -308,7 +308,7 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
      //Doesnt have access to the specific file , etc..!
      warningID(ASV_WARNING_CLIENT_DENIED_ACCESS);
-     SendErrorCodeHeader(instance,transaction,403 ,"403.html",instance->templates_root);
+     SendErrorFile(instance,transaction,403);
      logError(instance,transaction,403,"403.html");
      return 0;
    } else
@@ -516,7 +516,7 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
       if (clientIsBanned)
       {
        warningID(ASV_WARNING_CLIENT_DENIED_ACCESS);
-       SendErrorCodeHeader(instance,transaction,403 /*Forbidden*/,"403.html",instance->templates_root);
+       SendErrorFile(instance,transaction,403);
        break;
       }
     }

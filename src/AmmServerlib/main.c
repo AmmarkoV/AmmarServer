@@ -57,7 +57,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 //This is for calling back a client function after receiving
 //a sigkill or other signal , after using AmmServer_RegisterTerminationSignal
-void ( *TerminationCallback) (  )=0 ;
 
 char * AmmServer_Version()
 {
@@ -165,7 +164,7 @@ int AmmServer_Stop(struct AmmServer_Instance * instance)
   if (instance->prespawned_pool!=0) { free(instance->prespawned_pool); instance->prespawned_pool=0; }
   if (instance!=0)                  { free(instance); }
 
-  FlushAccessAndErrorLogs(); //See LOG_LINE_BUFFERED (server_configuration.h) - guarantees buffered log data isn't lost here
+  CloseAccessAndErrorLogs(); //See LOG_LINE_BUFFERED (server_configuration.h) - guarantees buffered log data isn't lost here
 
   warningID(ASV_WARNING_STOP_COMPLETED);
   return 1;
@@ -215,7 +214,7 @@ struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
   if (!instance->threads_pool) { fprintf(stderr,"AmmServer_StartSSL failed to allocate thread pool\n"); free(instance); return 0; }
   memset(instance->threads_pool,0,sizeof(pthread_t)*MAX_CLIENT_THREADS);
 
-  strncpy(instance->instanceName, name, MAX_INSTANCE_NAME_STRING);
+  snprintf(instance->instanceName,MAX_INSTANCE_NAME_STRING,"%s",name);
   instance->settings.MAX_POST_TRANSACTION_SIZE = DEFAULT_MAX_HTTP_POST_REQUEST_HEADER;
 
   LoadConfigurationFile(instance,conf_file);
@@ -235,7 +234,7 @@ struct AmmServer_Instance * AmmServer_StartSSL( const char * name ,
     {
       fprintf(stderr,"SSL: InitContext FAILED — HTTPS disabled\n");
     } else {
-      fprintf(stderr,"SSL: context ready, will bind HTTPS port %u in server thread\n", instance->settings.HTTPS_PORT);
+      fprintf(stderr,"SSL: context ready, will bind HTTPS port %d in server thread\n", instance->settings.HTTPS_PORT);
     }
   }
   #endif // USE_OPENSSL
@@ -282,8 +281,8 @@ static struct AmmServer_Instance * StartInstance( const char * name ,
 
   //Allocate and Clear instance..
   struct AmmServer_Instance * instance = (struct AmmServer_Instance *) malloc(sizeof(struct AmmServer_Instance));
-  if (!instance) { fprintf(stderr,"AmmServer_Start failed to allocate a new instance \n"); } else
-                 { memset(instance,0,sizeof(struct AmmServer_Instance)); }
+  if (!instance) { fprintf(stderr,"AmmServer_Start failed to allocate a new instance \n"); return 0; }
+  memset(instance,0,sizeof(struct AmmServer_Instance));
 
   instance->sslserversock          = -1;
   instance->accept_epoll_fd        = -1;
@@ -300,11 +299,11 @@ static struct AmmServer_Instance * StartInstance( const char * name ,
   //fprintf(stderr,"Initial AmmServer_Start instance pointing @ %p \n",instance);//Clear instance..!
 
   instance->threads_pool = (pthread_t *) malloc( sizeof(pthread_t) * MAX_CLIENT_THREADS);
-  if (!instance->threads_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %u records for a thread pool\n",MAX_CLIENT_THREADS);  } else
-                               {  memset(instance->threads_pool,0,sizeof(pthread_t)*MAX_CLIENT_THREADS); }
+  if (!instance->threads_pool) { fprintf(stderr,"AmmServer_Start failed to allocate %d records for a thread pool\n",MAX_CLIENT_THREADS); free(instance); return 0; }
+  memset(instance->threads_pool,0,sizeof(pthread_t)*MAX_CLIENT_THREADS);
 
 
-  strncpy(instance->instanceName , name , MAX_INSTANCE_NAME_STRING); // TODO: check for MAX_INSTANCE_NAME_STRING
+  snprintf(instance->instanceName,MAX_INSTANCE_NAME_STRING,"%s",name); // TODO: check for MAX_INSTANCE_NAME_STRING
 
 
 
@@ -434,11 +433,11 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
    char sslKey[MAX_FILE_PATH]={0};
 
    //If we have arguments we change our buffers
-   if (name!=0)              {  strncpy(serverName,name,MAX_FILE_PATH); }
-   if (web_root_path!=0)     {  strncpy(webserver_root,web_root_path,MAX_FILE_PATH); }
-   if (templates_root_path!=0) {  strncpy(templates_root,templates_root_path,MAX_FILE_PATH); }
-   if (conf_file!=0)         {  strncpy(configuration_file,conf_file,MAX_FILE_PATH); }
-   if (ip!=0)                {  strncpy(bindIP,ip,MAX_IP_STRING_SIZE); }
+   if (name!=0)              {  snprintf(serverName,MAX_FILE_PATH,"%s",name); }
+   if (web_root_path!=0)     {  snprintf(webserver_root,MAX_FILE_PATH,"%s",web_root_path); }
+   if (templates_root_path!=0) {  snprintf(templates_root,MAX_FILE_PATH,"%s",templates_root_path); }
+   if (conf_file!=0)         {  snprintf(configuration_file,MAX_FILE_PATH,"%s",conf_file); }
+   if (ip!=0)                {  snprintf(bindIP,MAX_IP_STRING_SIZE,"%s",ip); }
    if (port!=0)              {  bindPort=port; }
 
    //If we have a command line arguments we overwrite our buffers
@@ -449,14 +448,14 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
    for (i=0; i<argcUI; i++)
    {
     if ((strcmp(argv[i],"-prefork")==0)&&(argcUI>i+1))     { MAX_CLIENT_PRESPAWNED_THREADS = atoi(argv[i+1]);     fprintf(stderr,"Prespawned threads set to %u \n",MAX_CLIENT_PRESPAWNED_THREADS); } else
-    if ((strcmp(argv[i],"-bind")==0)&&(argcUI>i+1))        { strncpy(bindIP,argv[i+1],MAX_IP_STRING_SIZE);        fprintf(stderr,"Binding to %s \n",bindIP); } else
+    if ((strcmp(argv[i],"-bind")==0)&&(argcUI>i+1))        { snprintf(bindIP,MAX_IP_STRING_SIZE,"%s",argv[i+1]);        fprintf(stderr,"Binding to %s \n",bindIP); } else
     if ((strcmp(argv[i],"-p")==0)&&(argcUI>i+1))           { bindPort = atoi(argv[i+1]);                          fprintf(stderr,"Binding to Port %u \n",bindPort); } else
     if ((strcmp(argv[i],"-port")==0)&&(argcUI>i+1))        { bindPort = atoi(argv[i+1]);                          fprintf(stderr,"Binding to Port %u \n",bindPort); } else
-    if ((strcmp(argv[i],"-rootdir")==0)&&(argcUI>i+1))     { strncpy(webserver_root,argv[i+1],MAX_FILE_PATH);     fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
-    if ((strcmp(argv[i],"-templatedir")==0)&&(argcUI>i+1)) { strncpy(templates_root,argv[i+1],MAX_FILE_PATH);     fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
-    if ((strcmp(argv[i],"-conf")==0)&&(argcUI>i+1))        { strncpy(configuration_file,argv[i+1],MAX_FILE_PATH); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); } else
-    if ((strcmp(argv[i],"-sslcert")==0)&&(argcUI>i+1))     { strncpy(sslCert,argv[i+1],MAX_FILE_PATH);            fprintf(stderr,"SSL certificate set to %s \n",sslCert); } else
-    if ((strcmp(argv[i],"-sslkey")==0)&&(argcUI>i+1))      { strncpy(sslKey,argv[i+1],MAX_FILE_PATH);             fprintf(stderr,"SSL private key set to %s \n",sslKey); }
+    if ((strcmp(argv[i],"-rootdir")==0)&&(argcUI>i+1))     { snprintf(webserver_root,MAX_FILE_PATH,"%s",argv[i+1]);     fprintf(stderr,"Setting web server root directory to %s \n",webserver_root); } else
+    if ((strcmp(argv[i],"-templatedir")==0)&&(argcUI>i+1)) { snprintf(templates_root,MAX_FILE_PATH,"%s",argv[i+1]);     fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
+    if ((strcmp(argv[i],"-conf")==0)&&(argcUI>i+1))        { snprintf(configuration_file,MAX_FILE_PATH,"%s",argv[i+1]); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); } else
+    if ((strcmp(argv[i],"-sslcert")==0)&&(argcUI>i+1))     { snprintf(sslCert,MAX_FILE_PATH,"%s",argv[i+1]);            fprintf(stderr,"SSL certificate set to %s \n",sslCert); } else
+    if ((strcmp(argv[i],"-sslkey")==0)&&(argcUI>i+1))      { snprintf(sslKey,MAX_FILE_PATH,"%s",argv[i+1]);             fprintf(stderr,"SSL private key set to %s \n",sslKey); }
    }
   }
 
@@ -472,6 +471,7 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
 
 int AmmServer_Running(struct AmmServer_Instance * instance)
 {
+  if (GLOBAL_KILL_SERVER_SWITCH) { return 0; } //A termination signal arrived , see AmmServer_GlobalTerminationHandler
   return ASRV_HTTPServerIsRunning(instance);
 }
 
@@ -592,11 +592,11 @@ int AmmServer_AddResourceHandler
       AmmServer_Warning("Make sure that you are using a seperate context for each AmmServer_AddResourceHandler call you make..\n");
     }
    memset(context,0,sizeof(struct AmmServer_RH_Context));
-   strncpy(context->resource_name,resource_name,MAX_RESOURCE);
+   snprintf(context->resource_name,MAX_RESOURCE,"%s",resource_name);
 
    //Each New Resource Handler inherits the central webserver root, if we really know what we are doing  we can set up a different root dir per context
    //But this is almost never needed..
-   strncpy(context->web_root_path,instance->webserver_root,MAX_FILE_PATH);
+   snprintf(context->web_root_path,MAX_FILE_PATH,"%s",instance->webserver_root);
    context->requestContext.instance=instance; // Remember the instance that created this..
    context->requestContext.MAXcontentSize=allocate_mem_bytes;
    context->callback_every_x_msec=callback_every_x_msec;
@@ -1080,31 +1080,22 @@ int AmmServer_SelfCheck(struct AmmServer_Instance * instance)
   return 0;
 }
 
+//Runs in signal context , so it only does what is async-signal-safe : it raises GLOBAL_KILL_SERVER_SWITCH.
+//Every server thread polls that flag and winds down , AmmServer_Running() starts returning 0 , and the
+//application's main loop then does its own teardown and calls AmmServer_Stop() from a normal thread.
+//A second signal means that did not work out , so we leave immediately.
 void AmmServer_GlobalTerminationHandler(int signum)
 {
-        fprintf(stderr,"Terminating AmmarServer Instance after receiving signum %i :  \n",signum);
+        (void) signum;
+        if (GLOBAL_KILL_SERVER_SWITCH) { _exit(1); }
         GLOBAL_KILL_SERVER_SWITCH=1;
-        //&
-        if (TerminationCallback!=0) { TerminationCallback(); }
-
-        fprintf(stderr,"AmmServer_GlobalTerminationHandler called .. \n");
-
-        usleep(1000);
-
-        //This is the actual shutdown path for SIGINT/SIGHUP/SIGTERM - it calls exit(0) itself below rather than
-        //going through AmmServer_Stop() ( verified live : the running example services register this handler and
-        //call exit(0) directly from inside it, so their own main-loop's eventual AmmServer_Stop() call is never
-        //reached on a signal-driven stop ). Flush explicitly here for the same reason AmmServer_Stop() does -
-        //see LOG_LINE_BUFFERED's doc comment ( server_configuration.h ).
-        FlushAccessAndErrorLogs();
-
-        fprintf(stderr,"goodbye ..\n");
-        exit(0);
 }
 
 int AmmServer_RegisterTerminationSignal(void * callback)
 {
-  TerminationCallback = callback;
+  //The callback is not called from the signal handler any more ( it never was safe to ) : after a signal
+  //AmmServer_Running() returns 0 and the application tears down from its own main loop.
+  (void) callback;
 
   //Note: SIGKILL is deliberately not registered here - POSIX forbids catching, blocking, or ignoring it, so
   //signal(SIGKILL, ...) can never succeed ; attempting it just produced a confusing "cannot handle SIGKILL"

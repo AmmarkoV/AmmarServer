@@ -11,6 +11,7 @@
 #ifndef CONFIGURATION_H_INCLUDED
 #define CONFIGURATION_H_INCLUDED
 
+#include <signal.h>
 #include "AmmServerlib.h"
 
 #ifdef __cplusplus
@@ -58,7 +59,7 @@ extern "C" {
 
 
 /** @brief Setting this to 1 will signal that all instances of AmmarServer need to die at once */
-extern unsigned int GLOBAL_KILL_SERVER_SWITCH;
+extern volatile sig_atomic_t GLOBAL_KILL_SERVER_SWITCH; //written from a signal handler
 
 /** @brief Prespawned theads reduce overall latency but they increase CPU load  , 0 disables them */
 extern unsigned int MAX_CLIENT_PRESPAWNED_THREADS;

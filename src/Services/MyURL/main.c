@@ -406,9 +406,9 @@ int LoadMyURLDBFile(char * filename)
            memset(longURL,0,MAX_LONG_URL_SIZE);
            memset(shortURL,0,MAX_TO_SIZE);
 
-           int res = fscanf (pFile, "%s\n", longURL);
+           int res = fscanf (pFile, "%2047s\n", longURL);  //MAX_LONG_URL_SIZE-1
            if (res!=1) { AmmServer_Warning("error (?) reading longURL (%s) item line %u of file %s ",longURL,i,filename); }
-               res = fscanf (pFile, "%s\n", shortURL);
+               res = fscanf (pFile, "%31s\n", shortURL); //MAX_TO_SIZE-1
            if (res!=1) { AmmServer_Warning("error (?) reading shortURL (%s) item line %u of file %s ",shortURL,i,filename); }
 
            Add_MyURL(longURL,shortURL,0 /*We dont want to reappend it :P*/);

@@ -291,6 +291,7 @@ char * dynamicRequest_serveContent
         case TIME_IS_TOO_SLOW_SERVE_NOTHING :
           //Request requests for a callback that is TOO slow , returning nothing back :( ..\n
           if (needs_shared_lock) { pthread_mutex_unlock(&shared_context->content_mutex); }
+          if (*freeContentAfterUsingIt) { free(cacheMemory); *freeContentAfterUsingIt=0; } //our caller only frees what we return
           return 0;
         break;
         case TIME_IS_TOO_FAST_SERVE_CACHED  :

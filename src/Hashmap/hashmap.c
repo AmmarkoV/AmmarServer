@@ -201,8 +201,7 @@ int cmpHashTableItems (const void * a, const void * b)
   struct hashMapEntry *ib = (struct hashMapEntry *)b;
   if ( ia->keyHash <  ib->keyHash ) return -1;
   if ( ia->keyHash == ib->keyHash ) return 0;
-  if ( ia->keyHash >  ib->keyHash ) return 1;
- return 0;
+ return 1;
 }
 
 int hashMap_Sort(struct hashMap * hm)

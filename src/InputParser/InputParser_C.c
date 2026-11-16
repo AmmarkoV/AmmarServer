@@ -173,7 +173,7 @@ static inline signed int Str2Int_internal(char * inpt,unsigned int start_from,un
         if ( i < 0 ) { /*fprintf("Gone negative! %u \n",i);*/ break; }
 
         curnum=(char) (inpt[i])-'0';
-        if ((curnum>=0)&(curnum<=9))
+        if ((curnum>=0)&&(curnum<=9))
         {
             intresult=intresult+(multiplier*curnum);
             multiplier=multiplier*10;

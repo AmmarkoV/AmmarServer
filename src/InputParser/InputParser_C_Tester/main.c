@@ -125,14 +125,14 @@ int main(int argc,char ** argv)
     int i=0;
     for ( i = 0; i< ipc->max_delimeter_count; i++ )
     {
-      printf("%u ascii or   %c  ",InputParser_GetDelimeter(ipc,i),InputParser_GetDelimeter(ipc,i));
+      printf("%d ascii or   %c  ",InputParser_GetDelimeter(ipc,i),InputParser_GetDelimeter(ipc,i));
     }
 
      //We will now tokenize the string "zero,one,two,three(four)" , we set the last parameter to 1 to indicate that
      //input parser should keep its own copy of the string..!
      //The return value ( res ) is the number of tokens extracted!
      int res = InputParser_SeperateWords(ipc,"zero,one,2,three(four)",1);
-     printf("\nInput Parser tokenized a total of %u tokens \n",res);
+     printf("\nInput Parser tokenized a total of %d tokens \n",res);
 
      //To retrieve the tokens as a string you will need some memory to store the strings in!
      //The following word_space has space for a string with up to 128 characters
@@ -156,7 +156,7 @@ int main(int argc,char ** argv)
 
      //If the token is a number you can return an integer! :)
      i = InputParser_GetWordInt(ipc,2);
-     printf("InputParser_GetWordInt(ipc,2) should return 2 , our build returns %u\n",i);
+     printf("InputParser_GetWordInt(ipc,2) should return 2 , our build returns %d\n",i);
 
      // After you are finished with the InputParser , you should deallocate it to free memory..!
      InputParser_Destroy(ipc);
@@ -187,53 +187,53 @@ void ParseString(struct InputParserC * ipc,char * thestr)
     time_t msec = time(NULL) * 1000;
     int res = InputParser_SeperateWords(ipc,thestr,0);
     time_t msec2 = time(NULL) * 1000;
-    printf("Words Seperated ( %u ) at %u msec.. ",res,(unsigned int) (msec2-msec));
+    printf("Words Seperated ( %d ) at %u msec.. ",res,(unsigned int) (msec2-msec));
 
     printf("Int Check ");
-    for (i=0; i<res; i++) {  z=InputParser_GetWordInt(ipc,i); printf(" %u = %u ",i,z); } printf("\n\n");
+    for (i=0; i<res; i++) {  z=InputParser_GetWordInt(ipc,i); printf(" %d = %d ",i,z); } printf("\n\n");
 
 
     printf("Float Check ");
-    for (i=0; i<res; i++) {  fl=InputParser_GetWordFloat(ipc,i); printf(" %u = %05f ",i,fl); } printf("\n\n");
+    for (i=0; i<res; i++) {  fl=InputParser_GetWordFloat(ipc,i); printf(" %d = %05f ",i,fl); } printf("\n\n");
 
     printf("Length Check ");
-    for (i=0; i<res; i++) { printf(" %u = %u ",i,InputParser_GetWordLength(ipc,i)); } printf("\n\n");
+    for (i=0; i<res; i++) { printf(" %d = %u ",i,InputParser_GetWordLength(ipc,i)); } printf("\n\n");
 
 
     printf("String Check ");
     for (i=0; i<res; i++) { InputParser_GetWord(ipc,i,word_space,max_ret_word);
-                           printf(" %u = %s ",i,word_space); } printf("\n\n");
+                           printf(" %d = %s ",i,word_space); } printf("\n\n");
 
     printf("Upcase String Check ");
     for (i=0; i<res; i++) { InputParser_GetUpcaseWord(ipc,i,word_space,max_ret_word);
-                           printf(" %u = %s ",i,word_space); } printf("\n\n");
+                           printf(" %d = %s ",i,word_space); } printf("\n\n");
 
     printf("Lowercase String Check ");
     for (i=0; i<res; i++) { InputParser_GetLowercaseWord(ipc,i,word_space,max_ret_word);
-                           printf(" %u = %s ",i,word_space); } printf("\n\n");
+                           printf(" %d = %s ",i,word_space); } printf("\n\n");
 
 
     printf("First Erroneous String Check ");
     strcpy(word_space,"");
     for (i=res; i<res+2; i++) { InputParser_GetWord(ipc,i,word_space,max_ret_word);
-                                printf(" %u = %s ",i,word_space); } printf("\n\n");
+                                printf(" %d = %s ",i,word_space); } printf("\n\n");
 
     printf("Second Erroneous String Check ");
     char * empty_place_to_pass_string = 0;
     for (i=res; i<res+2; i++) { InputParser_GetWord(ipc,i,empty_place_to_pass_string,0);
-                                printf(" %u = %s ",i,word_space); } printf("\n\n");
+                                printf(" %d = %s ",i,word_space); } printf("\n\n");
 
     printf("Third Erroneous String Check ");
     strcpy(word_space,"");
     for (i=res; i<res+2; i++) { InputParser_GetWord(ipc,i,word_space,max_ret_word);
-                                printf(" %u = %s ",i,word_space); } printf("\n\n");
+                                printf(" %d = %s ",i,word_space); } printf("\n\n");
 
     char check_test[max_ret_word]={0};
     printf("Make a bogus WordCompare check ");
     for (i=0; i<res; i++) { InputParser_GetLowercaseWord(ipc,i,check_test,max_ret_word);
-                            if ( InputParser_WordCompareNoCase(ipc,i,check_test,strlen(check_test)) ) { printf(" (%u) success " , i ); } else
+                            if ( InputParser_WordCompareNoCase(ipc,i,check_test,strlen(check_test)) ) { printf(" (%d) success " , i ); } else
                                                                                                 {
-                                                                                                  printf(" Error at string with number %u and content %s \n" , i ,  check_test);
+                                                                                                  printf(" Error at string with number %d and content %s \n" , i ,  check_test);
                                                                                                 }
 
                           } printf("\n\n");

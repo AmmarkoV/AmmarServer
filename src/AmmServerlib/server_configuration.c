@@ -12,7 +12,7 @@
 
 
 
-unsigned int GLOBAL_KILL_SERVER_SWITCH = 0;
+volatile sig_atomic_t GLOBAL_KILL_SERVER_SWITCH = 0;
 
 /*
    THERE ARE THREE KIND OF CONFIGURATION OPTIONS ,
@@ -62,7 +62,7 @@ char TemplatesInternalURI[MAX_RESOURCE] = TEMPLATE_INTERNAL_URI;
 int instance_WeCanCommitMoreMemory(struct AmmServer_Instance * instance,unsigned long additional_mem_to_malloc_in_bytes)
 {
   if ((unsigned int) MAX_CACHE_SIZE_FOR_EACH_FILE_IN_MB*1024*1024<additional_mem_to_malloc_in_bytes) { fprintf(stderr,"This file exceedes the maximum cache size for individual files , it will not be cached\n");  return 0;  }
-  if ((unsigned int) MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %u MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
+  if ((unsigned int) MAX_CACHE_SIZE_IN_MB*1024<instance->loaded_cache_items_Kbytes+additional_mem_to_malloc_in_bytes/1024)  { fprintf(stderr,"We have reached the soft cache limit of %d MB\n",MAX_CACHE_SIZE_IN_MB);  return 0; }
   return 1;
 }
 
@@ -223,7 +223,7 @@ static void ParseConfigString(struct AmmServer_Instance * instance,struct InputP
       {
         char user[MAX_FILE_PATH]={0};
         if (InputParser_GetWord(ipc,1,user,sizeof(user)))
-         { strncpy(USERNAME_UID_FOR_DAEMON,user,MAX_FILE_PATH); }
+         { snprintf(USERNAME_UID_FOR_DAEMON,MAX_FILE_PATH,"%s",user); }
         else
          { fprintf(stderr,"Configuration : `RunAsUser` is missing a value , ignoring the line\n"); }
       }

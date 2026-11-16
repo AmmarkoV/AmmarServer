@@ -119,8 +119,8 @@ unsigned int ApiProtocol_Finish(
                                  struct ApiFrame * frame,
                                  struct ApiResponseBuffer * buffer,
                                  const struct AmmServer_APIRequest * rqst,
-                                 struct AmmServer_APIResponse * response,
-                                 char ** responseBytes,
+                                 struct AmmServer_APIResponse * res,
+                                 char ** response,
                                  unsigned int * failStatus
                                );
 

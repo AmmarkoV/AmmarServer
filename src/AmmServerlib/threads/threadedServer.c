@@ -116,7 +116,54 @@ struct PendingAccept
     struct sockaddr_in client;
     unsigned int clientlen;
     int is_ssl_connection;
+    //Every connection parked in the epoll set is also on this list , the only way to find the ones that never
+    //sent a byte when the server stops ( an epoll set cannot be enumerated ).
+    struct AmmServer_Instance * instance;
+    struct PendingAccept * previous;
+    struct PendingAccept * next;
 };
+
+static pthread_mutex_t pendingAcceptsMutex = PTHREAD_MUTEX_INITIALIZER;
+static struct PendingAccept * pendingAccepts = 0;
+
+static void pendingAccept_Link(struct PendingAccept * pending)
+{
+  pthread_mutex_lock(&pendingAcceptsMutex);
+  pending->previous=0;
+  pending->next=pendingAccepts;
+  if (pendingAccepts!=0) { pendingAccepts->previous=pending; }
+  pendingAccepts=pending;
+  pthread_mutex_unlock(&pendingAcceptsMutex);
+}
+
+static void pendingAccept_Unlink(struct PendingAccept * pending)
+{
+  pthread_mutex_lock(&pendingAcceptsMutex);
+  if (pending->previous!=0) { pending->previous->next=pending->next; } else { pendingAccepts=pending->next; }
+  if (pending->next!=0)     { pending->next->previous=pending->previous; }
+  pthread_mutex_unlock(&pendingAcceptsMutex);
+}
+
+//Closes the connections of an instance that were still waiting for their first byte , called once its accept
+//and epoll threads are gone.
+static void pendingAccept_CloseAll(struct AmmServer_Instance * instance)
+{
+  pthread_mutex_lock(&pendingAcceptsMutex);
+  struct PendingAccept * pending = pendingAccepts;
+  while (pending!=0)
+   {
+     struct PendingAccept * next = pending->next;
+     if (pending->instance==instance)
+      {
+        if (pending->previous!=0) { pending->previous->next=pending->next; } else { pendingAccepts=pending->next; }
+        if (pending->next!=0)     { pending->next->previous=pending->previous; }
+        close(pending->clientsock);
+        free(pending);
+      }
+     pending=next;
+   }
+  pthread_mutex_unlock(&pendingAcceptsMutex);
+}
 
 static void dispatch_accepted_client(struct AmmServer_Instance * instance,int clientsock,struct sockaddr_in client,unsigned int clientlen,int is_ssl_connection)
 {
@@ -189,6 +236,7 @@ static void * EpollAcceptLayerThread(void * ptr)
         struct sockaddr_in client=pending->client;
         unsigned int clientlen=pending->clientlen;
         int is_ssl_connection=pending->is_ssl_connection;
+        pendingAccept_Unlink(pending);
         free(pending);
 
         #if EPOLL_FASTPATH_STATIC_ENABLED
@@ -266,12 +314,15 @@ static void drain_and_dispatch(struct AmmServer_Instance * instance,int listener
             pending->client=client;
             pending->clientlen=clientlen;
             pending->is_ssl_connection=is_ssl_connection;
+            pending->instance=instance;
+            pendingAccept_Link(pending); //before epoll can hand it to the other thread
 
             struct epoll_event ev={0};
             ev.events = EPOLLIN|EPOLLONESHOT;
             ev.data.ptr = pending;
             if (epoll_ctl(instance->accept_epoll_fd,EPOLL_CTL_ADD,clientsock,&ev)==0) { continue; } // handed off
 
+            pendingAccept_Unlink(pending);
             free(pending); // epoll_ctl failed - fall through to dispatching it directly below
           }
        }
@@ -312,7 +363,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
 
   unsigned int bindingPort = context->port;
   char bindingIP[MAX_IP_STRING_SIZE]={0};
-  strncpy(bindingIP,context->ip,MAX_IP_STRING_SIZE);
+  snprintf(bindingIP,MAX_IP_STRING_SIZE,"%s",context->ip);
 
   server.sin_family = AF_INET;/* set the type of connection to TCP/IP */
   server.sin_port = htons(context->port);     /* set the server port number */
@@ -378,6 +429,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
        if ( (getuid()!=0) && (bindingPort<1000) )
               { errorID(ASV_ERROR_BINDING_ROOTUID_MASTER_PORT);                  } else
               { errorID(ASV_ERROR_BINDING_MASTER_PORT);                          }
+      close(serversock);
       instance->server_running=0;
       return 0;
     }
@@ -391,6 +443,7 @@ void * MainThreadedHTTPServerThread (void * ptr)
   if ( listen(serversock,MAX_CLIENTS_LISTENING_FOR /*MAX_CLIENT_THREADS*/) < 0 )  //Note that we are listening for a max number of clients as big as our maximum thread number..!
          {
            errorID(ASV_ERROR_FAILED_TO_LISTEN);
+           close(serversock);
            instance->server_running=0;
            return 0;
          }
@@ -478,11 +531,10 @@ void * MainThreadedHTTPServerThread (void * ptr)
   instance->stop_server=2;
 
   warningID(ASV_WARNING_SERVER_STOPPED);
-  //It should already be closed so skipping this : close(serversock);
+  close(serversock);
   //pthread_exit(0);
 
-  //This should make the thread release all of its resources (?)
-  pthread_detach(pthread_self());
+  //StopThreadedHTTPServer joins this thread
   return 0;
 }
 
@@ -510,7 +562,7 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
   //-------------------------------------------------------------------------------------------------------------
 
   instance->clientList  = clientList_initialize(instance->instanceName);
-  instance->sessionList = sessionList_initialize(instance->instanceName);
+  //instance->sessionList is owned by main.c ( created before this call , closed in AmmServer_Stop )
 
   int retres=0;
   volatile struct PassToHTTPThread context={ 0 };
@@ -521,14 +573,14 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
    context.keep_var_on_stack=1;
 
    context.ip[0]=0;
-   if (ip!=0) { strncpy((char*) context.ip , ip , MAX_IP_STRING_SIZE); }
+   if (ip!=0) { snprintf((char*) context.ip,MAX_IP_STRING_SIZE,"%s",ip); }
 
    instance->server_running=1;
    instance->pause_server=0;
    instance->stop_server=0;
 
-   strncpy((char*) instance->webserver_root,root_path,MAX_FILE_PATH);
-   strncpy((char*) instance->templates_root,templates_path,MAX_FILE_PATH);
+   snprintf((char*) instance->webserver_root,MAX_FILE_PATH,"%s",root_path);
+   snprintf((char*) instance->templates_root,MAX_FILE_PATH,"%s",templates_path);
 
 
    //fprintf(stderr,"StartHTTPServer instance pointing @ %p \n",instance);
@@ -570,7 +622,7 @@ int StartThreadedHTTPServer(struct AmmServer_Instance * instance,const char * ip
        fprintf(stderr,"SSL: binding HTTPS socket while still root (uid=%u)\n", getuid());
        ASRV_SSL_BindHTTPSSocket(instance);
    } else {
-       fprintf(stderr,"SSL: skipping HTTPS bind (sslAvailable=%d HTTPS_PORT=%u)\n",
+       fprintf(stderr,"SSL: skipping HTTPS bind (sslAvailable=%d HTTPS_PORT=%d)\n",
                instance->sslAvailable, instance->settings.HTTPS_PORT);
    }
    #endif // USE_OPENSSL
@@ -588,23 +640,27 @@ int StopThreadedHTTPServer(struct AmmServer_Instance * instance)
      The problem is that it will keep waiting for one more job since the server is blocked in an accept call..!
      Thats why we force the socket close which in turn terminates the server thread..
   */
-  if ( (instance->stop_server==2)||(instance->stop_server==0)) { fprintf(stderr,"Server has stopped working on its own..\n"); return 1;}
-  fprintf(stderr,"Force closing bind socket... ");
-  //close(instance->serversock);
-  shutdown(instance->serversock,SHUT_RDWR);
-  #if USE_OPENSSL
-  if (instance->sslserversock >= 0) { shutdown(instance->sslserversock,SHUT_RDWR); }
-  #endif // USE_OPENSSL
+  //The server thread may already be gone ( it failed to bind , or it saw GLOBAL_KILL_SERVER_SWITCH ) , either
+  //way it is joined below so that nothing is torn down while it can still be running.
+  if (instance->stop_server!=2)
+  {
+   fprintf(stderr,"Force closing bind socket... ");
+   //close(instance->serversock);
+   shutdown(instance->serversock,SHUT_RDWR);
+   #if USE_OPENSSL
+   if (instance->sslserversock >= 0) { shutdown(instance->sslserversock,SHUT_RDWR); }
+   #endif // USE_OPENSSL
+   instance->stop_server=1;
+  }
 
-  instance->stop_server=1;
   fprintf(stderr,"Waiting for Server to stop : ");
   fflush(stderr);
-
-  while (instance->stop_server!=2)
+  if (instance->server_thread_id!=0)
     {
-        fprintf(stderr,".");
-        usleep(10000);
+      pthread_join(instance->server_thread_id,0);
+      instance->server_thread_id=0;
     }
+  instance->stop_server=2;
   fprintf(stderr," .. server stopped \n");
 
   if ( (instance->prespawned_pool!=0) && (MAX_CLIENT_PRESPAWNED_THREADS>0) )
@@ -629,12 +685,19 @@ int StopThreadedHTTPServer(struct AmmServer_Instance * instance)
       close(instance->accept_epoll_fd);
       instance->accept_epoll_fd=-1;
     }
+  pendingAccept_CloseAll(instance);
+
+  //Client threads are detached and still hold the instance , give the ones in the middle of a request a
+  //moment to finish before the caller frees it.
+  unsigned int waited=0;
+  while ( (instance->CLIENT_THREADS_STARTED!=instance->CLIENT_THREADS_STOPPED) && (waited<200) )
+    {
+      usleep(10000);
+      ++waited;
+    }
 
   clientList_close(instance->clientList);
-  sessionList_close(instance->sessionList);
-
-  //pthread_attr_destroy(&instance->attr);
-  pthread_cancel(instance->server_thread_id); //This should try to kill the main thread
+  instance->clientList=0;
 
   return (instance->stop_server==2);
 }
