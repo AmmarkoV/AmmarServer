@@ -14,7 +14,8 @@ scripts/run_myblog&
 scripts/run_geoposshare&
 scripts/run_mysearch&
 scripts/run_pushservice&
- 
+scripts/run_frisk&
+
 exit 0
 
 

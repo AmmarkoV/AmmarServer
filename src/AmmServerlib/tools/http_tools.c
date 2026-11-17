@@ -228,6 +228,9 @@ int GetContentTypeForExtension(const char * theextension,char * content_type,uns
    case AUDIOFILES_OGG   :  strcpy(content_type,"audio/ogg");   content_type[9]=0; return 1; break;
    case AUDIOFILES_VOC   :  strcpy(content_type,"audio/voc");   content_type[9]=0; return 1; break;
    case AUDIOFILES_AU    :  strcpy(content_type,"audio/au");    content_type[8]=0; return 1; break;
+   case AUDIOFILES_WEBM  :  strcpy(content_type,"audio/webm");  content_type[10]=0; return 1; break;
+   case AUDIOFILES_M4A   :  strcpy(content_type,"audio/mp4");   content_type[9]=0; return 1; break;
+   case AUDIOFILES_AMR   :  strcpy(content_type,"audio/amr");   content_type[9]=0; return 1; break;
   };
 
 //http://www.iana.org/assignments/media-types/application/index.html

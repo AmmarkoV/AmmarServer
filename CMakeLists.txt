@@ -105,10 +105,27 @@ ENDIF (USE_AMMMESSAGES)
     add_subdirectory (src/Services/Deprecated/CinemaPilot) 
     
     #These are unit tests for the core library
-    IF( DO_TEST_COVERAGE )   
+    IF( DO_TEST_COVERAGE )
      add_subdirectory (src/UnitTests/UserAccountsTester)
      add_subdirectory (src/UnitTests/HashMapTester)
     ENDIF( DO_TEST_COVERAGE )
+
+    #AmmarServerGames is a separate git repository.  Compile it when this
+    #checkout contains it and ignore it otherwise, so the server still builds
+    #without the games tree.
+    IF( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/AmmarServerGames/CMakeLists.txt" )
+      add_subdirectory (src/AmmarServerGames)
+    ELSEIF( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/AmmarServerGames/frisk/CMakeLists.txt" )
+      add_subdirectory (src/AmmarServerGames/frisk)
+    ENDIF()
+
+    #The games repository owns its test suites.  CTest only dispatches to its
+    #central script; the frisk tests stay in src/AmmarServerGames/frisk/tests.
+    IF( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/AmmarServerGames/run_tests.sh" )
+      enable_testing()
+      add_test( NAME AmmarServerGames_tests
+                COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/src/AmmarServerGames/run_tests.sh" )
+    ENDIF()
 
 
 # TODO FIX INSTALLATION DIRECTORIES 

@@ -10,6 +10,16 @@
 
 #define SHA256_DIGEST_SIZE 32
 
+/* OpenSSL 3 still exports the deprecated SHA256_Init/Update/Final names from
+ * <openssl/sha.h>, which AmmServerlib pulls in when USE_OPENSSL is on.  Keep
+ * this self-contained implementation's symbols private to UserAccounts so a
+ * TLS build can include both headers in the same translation unit. */
+#define SHA256_Init UserAccounts_SHA256_Init
+#define SHA256_Update UserAccounts_SHA256_Update
+#define SHA256_Final UserAccounts_SHA256_Final
+#define SHA256_Hash UserAccounts_SHA256_Hash
+#define SHA256_ToHex UserAccounts_SHA256_ToHex
+
 struct SHA256_Context
 {
   unsigned char data[64];
