@@ -750,6 +750,19 @@ void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicReques
 int AmmServer_AddRequestHandler(struct AmmServer_Instance * instance,struct AmmServer_RequestOverride_Context * RequestOverrideContext,const char * request_type,void * callback);
 
 /**
+* @brief The headers the server itself reads while framing a request , already found. AmmServer_APIRequestHeader
+*        answers these out of here ; a handler never has to look at this struct.
+*/
+struct AmmServer_APICachedHeaders
+{
+   const char * authorization;    unsigned int authorizationLength;
+   const char * acceptEncoding;   unsigned int acceptEncodingLength;
+   const char * connection;       unsigned int connectionLength;
+   const char * transferEncoding; unsigned int transferEncodingLength;
+   const char * contentLength;    unsigned int contentLengthLength;
+};
+
+/**
 * @brief One HTTP request handed to an API handler ( see AmmServer_SetAPIHandler ). Every pointer in here points
 *        inside the event loop's own receive buffer and is only valid until the callback returns.
 */
@@ -764,6 +777,8 @@ struct AmmServer_APIRequest
    unsigned int headersLength;
    const char * body;            /**< @brief Request body , NOT NUL terminated , or 0 if the request had none */
    unsigned int bodyLength;
+   struct AmmServer_APICachedHeaders cachedHeaders; /**< @brief The headers above , already found ; read them with AmmServer_APIRequestHeader */
+   unsigned char cachedHeadersValid;                /**< @brief 1 when cachedHeaders was filled by the server */
 };
 
 /**

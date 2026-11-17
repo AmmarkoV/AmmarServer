@@ -29,6 +29,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "apiProtocol.h"
 
 #include "../server_configuration.h"
+#include "../stringscanners/httpHeader.h"
 #include "../tools/http_tools.h"
 #include "../tools/logs.h"
 
@@ -49,6 +50,22 @@ const char * AmmServer_APIRequestHeader(const struct AmmServer_APIRequest * rqst
   if ( (rqst==0) || (rqst->headers==0) || (headerName==0) ) { return 0; }
 
   unsigned int nameLength = strlen(headerName);
+
+  //The headers the protocol reads while framing ( and authentication's Authorization ) were found in one pass
+  //over the block then , so asking for one of them again does not walk it. Anything else scans below , as before.
+  if (rqst->cachedHeadersValid)
+   {
+     const struct AmmServer_APICachedHeaders * cached = &rqst->cachedHeaders;
+     switch (nameLength)
+      {
+        case 10 : if (strncasecmp(headerName,"Connection",10)==0)        { *valueLength=cached->connectionLength;       return cached->connection; } break;
+        case 13 : if (strncasecmp(headerName,"Authorization",13)==0)     { *valueLength=cached->authorizationLength;    return cached->authorization; } break;
+        case 14 : if (strncasecmp(headerName,"Content-Length",14)==0)    { *valueLength=cached->contentLengthLength;    return cached->contentLength; } break;
+        case 15 : if (strncasecmp(headerName,"Accept-Encoding",15)==0)   { *valueLength=cached->acceptEncodingLength;   return cached->acceptEncoding; } break;
+        case 17 : if (strncasecmp(headerName,"Transfer-Encoding",17)==0) { *valueLength=cached->transferEncodingLength; return cached->transferEncoding; } break;
+      };
+   }
+
   const char * line = rqst->headers;
   const char * end  = rqst->headers + rqst->headersLength;
 
@@ -345,6 +362,71 @@ static int FindRequestHeaderEnd(const char * buf,unsigned int length,unsigned in
   return 0;
 }
 
+//One walk over a request's header block , keeping the values the protocol reads for itself. Each line start
+//goes to the generated httpHeader scanner , which recognizes a known header ( name and colon ) with a couple
+//of word-at-a-time comparisons ; the block is walked once here instead of once per later lookup. Values stay
+//where they are , pointers into the block with lengths , and the first occurrence wins , exactly as
+//AmmServer_APIRequestHeader reads a block one header at a time.
+static void FindKnownHeaders(const char * headers,unsigned int headersLength,struct AmmServer_APICachedHeaders * out)
+{
+  memset(out,0,sizeof(*out));
+
+  const char * line = headers;
+  const char * end  = headers + headersLength;
+  while (line<end)
+   {
+     const char * lineEnd = (const char *) memchr(line,'\n',(size_t)(end-line));
+     if (lineEnd==0) { lineEnd=end; }
+
+     unsigned int lineLength = (unsigned int)(lineEnd-line);
+     const char ** valueOut  = 0;
+     unsigned int * lengthOut = 0;
+     unsigned int nameLength  = 0;
+
+     int id = scanFor_httpHeader(line,lineLength);
+     switch (id)
+      {
+        case HTTPHEADER_AUTHORIZATION :
+             if (out->authorization==0)    { valueOut=&out->authorization;    lengthOut=&out->authorizationLength;    nameLength=13; }
+        break;
+        case HTTPHEADER_ACCEPT_ENCODING :
+             if (out->acceptEncoding==0)   { valueOut=&out->acceptEncoding;   lengthOut=&out->acceptEncodingLength;   nameLength=15; }
+        break;
+        case HTTPHEADER_CONNECTION :
+             if (out->connection==0)       { valueOut=&out->connection;       lengthOut=&out->connectionLength;       nameLength=10; }
+        break;
+        case HTTPHEADER_TRANSFER_ENCODING :
+             if (out->transferEncoding==0) { valueOut=&out->transferEncoding; lengthOut=&out->transferEncodingLength; nameLength=17; }
+        break;
+      };
+
+     //Content-Length is in the scanner's post-header word set , not its header one , so it is the one name
+     //checked here by hand - and only on a line that starts with something the scanner did not recognize.
+     if ( (id==0) && (out->contentLength==0) && (lineLength>14) && (line[14]==':') &&
+          (strncasecmp(line,"Content-Length",14)==0) )
+      {
+        valueOut  = &out->contentLength;
+        lengthOut = &out->contentLengthLength;
+        nameLength = 14;
+      }
+
+     if (valueOut!=0)
+      {
+        const char * value = line+nameLength+1;
+        while ( (value<lineEnd) && ((*value==' ')||(*value=='\t')) ) { ++value; }
+
+        const char * valueEnd = lineEnd;
+        while ( (valueEnd>value) && ((valueEnd[-1]=='\r')||(valueEnd[-1]==' ')||(valueEnd[-1]=='\t')) ) { --valueEnd; }
+
+        *valueOut  = value;
+        *lengthOut = (unsigned int)(valueEnd-value);
+      }
+
+     if (lineEnd==end) { break; }
+     line = lineEnd+1;
+   }
+}
+
 enum ApiFrameResult ApiProtocol_NextFrame(char * buf,unsigned int used,unsigned int offset,struct ApiFrame * frame)
 {
   memset(frame,0,sizeof(struct ApiFrame));
@@ -360,25 +442,23 @@ enum ApiFrameResult ApiProtocol_NextFrame(char * buf,unsigned int used,unsigned 
   frame->request   = request;
   frame->headerEnd = headerEnd;
 
-  struct AmmServer_APIRequest probe={0};
-  probe.headers = request;
-  probe.headersLength = headerEnd;
-  unsigned int valueLength=0;
+  FindKnownHeaders(request,headerEnd,&frame->known);
 
   //Content-Length is what says where this request ends and the next one begins. Guessing wrong about that
   //would desynchronize every request behind it on this connection , so a framing this cannot work out
   //exactly is refused instead ( and a REST API has no use for a chunked request body ).
-  const char * transferEncoding = AmmServer_APIRequestHeader(&probe,"Transfer-Encoding",&valueLength);
-  if ( (transferEncoding!=0) && (valueLength>0) && (strncasecmp(transferEncoding,"identity",8)!=0) )
+  if ( (frame->known.transferEncoding!=0) && (frame->known.transferEncodingLength>0) &&
+       (strncasecmp(frame->known.transferEncoding,"identity",8)!=0) )
    {
      frame->refuseStatus = 501;
      return API_FRAME_REFUSED;
    }
 
   unsigned long bodyLength=0;
-  const char * contentLength = AmmServer_APIRequestHeader(&probe,"Content-Length",&valueLength);
-  if ( (contentLength!=0) && (valueLength>0) )
+  if ( (frame->known.contentLength!=0) && (frame->known.contentLengthLength>0) )
    {
+     const char * contentLength = frame->known.contentLength;
+     unsigned int valueLength = frame->known.contentLengthLength;
      unsigned int i=0;
      for (i=0; i<valueLength; i++)
       {
@@ -405,9 +485,9 @@ enum ApiFrameResult ApiProtocol_NextFrame(char * buf,unsigned int used,unsigned 
   frame->keepAlive = 1;
   if (memmem(request,headerEnd,"HTTP/1.0",8)!=0) { frame->keepAlive=0; }
 
-  const char * connectionHeader = AmmServer_APIRequestHeader(&probe,"Connection",&valueLength);
-  if ( (connectionHeader!=0) && (valueLength>0) )
+  if ( (frame->known.connection!=0) && (frame->known.connectionLength>0) )
    {
+     const char * connectionHeader = frame->known.connection;
      if (strncasecmp(connectionHeader,"close",5)==0)       { frame->keepAlive=0; } else
      if (strncasecmp(connectionHeader,"keep-alive",10)==0) { frame->keepAlive=1; }
    }
@@ -547,6 +627,10 @@ int ApiProtocol_Prepare(
 
   rqst.body = (frame->bodyLength>0) ? request+headerEnd : 0;
   rqst.bodyLength = frame->bodyLength;
+
+  //Found once , when the frame was , and handed on so the handler's lookups do not walk the block again.
+  rqst.cachedHeaders = frame->known;
+  rqst.cachedHeadersValid = 1;
 
   struct AmmServer_APIResponse responseToFill={0};
   responseToFill.statusCode = 200;

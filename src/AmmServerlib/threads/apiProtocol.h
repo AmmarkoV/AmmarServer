@@ -85,6 +85,7 @@ struct ApiFrame
    unsigned int totalLength;  //headerEnd+bodyLength : what the caller consumes for this request
    int keepAlive;
    unsigned int refuseStatus; //only set for API_FRAME_REFUSED
+   struct AmmServer_APICachedHeaders known; //the headers framing read , handed to the request in Prepare
 };
 
 /**
