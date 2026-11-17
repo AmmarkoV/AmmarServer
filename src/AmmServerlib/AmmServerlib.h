@@ -1066,7 +1066,8 @@ enum AmmServer_JSONFieldResult AmmServer_JSONGetStringField(
 * @param Output buffer
 * @param Its size
 * @retval Bytes written , or 0 if all of it would not fit ( in which case nothing should be assumed about
-*         what was written )
+*         what was written ). Bytes past the ones written , up to the output size , may be written over too :
+*         text is copied in blocks of 16.
 */
 unsigned int AmmServer_JSONEscape(const char * in,unsigned int inLength,char * out,unsigned int outSize);
 

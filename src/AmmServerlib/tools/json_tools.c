@@ -311,6 +311,9 @@ static int ParseValue(struct JsonParser * p)
    };
 }
 
+static int GetStringFieldCanonical(const char * doc,unsigned int docLength,const char * field,
+                                   char * out,unsigned int outSize,unsigned int * outLength);
+
 enum AmmServer_JSONFieldResult AmmServer_JSONGetStringField(
                                          const char * doc,
                                          unsigned int docLength,
@@ -331,6 +334,8 @@ enum AmmServer_JSONFieldResult AmmServer_JSONGetStringField(
   out[0]=0;
 
   if ( (doc==0) || (docLength==0) ) { return AMMSERVER_JSON_MALFORMED; }
+
+  if (GetStringFieldCanonical(doc,docLength,field,out,outSize,outLength)) { return AMMSERVER_JSON_FIELD_OK; }
 
   if (!ParseValue(&p)) { return AMMSERVER_JSON_MALFORMED; }
 
@@ -361,35 +366,125 @@ static int JSONEscapeNeededIn8(const char * at)
   return ( (control|quote|slash) & high ) != 0;
 }
 
+#if defined(__SSE2__)
+/* Which of these sixteen bytes need escaping , one bit each , the first byte lowest : at most 0x1F ( unsigned ,
+ * so UTF-8 bytes never match ) , a quote or a backslash. */
+static inline unsigned int JSONEscapeMask16(__m128i v)
+{
+  const __m128i quote = _mm_set1_epi8('"');
+  const __m128i slash = _mm_set1_epi8('\\');
+  const __m128i below = _mm_set1_epi8(0x1F);
+  __m128i hit = _mm_or_si128( _mm_or_si128(_mm_cmpeq_epi8(v,quote),_mm_cmpeq_epi8(v,slash)) ,
+                              _mm_cmpeq_epi8(_mm_max_epu8(v,below),below) );
+  return (unsigned int) _mm_movemask_epi8(hit);
+}
+#endif
+
+/* Whether any byte of the text is one JSONEscapeMask16 / JSONEscapeNeededIn8 look for. Blocks overlap at the end
+ * rather than reading past it. */
+static int JSONTextNeedsEscaping(const char * text,unsigned int length)
+{
+  unsigned int i=0;
+#if defined(__SSE2__)
+  if (length>=16)
+  {
+    for (i=0; i+16<=length; i+=16) { if (JSONEscapeMask16(_mm_loadu_si128((const __m128i *) (text+i)))) { return 1; } }
+    return ( (i<length) && (JSONEscapeMask16(_mm_loadu_si128((const __m128i *) (text+length-16)))!=0) );
+  }
+#endif
+  for (i=0; i+8<=length; i+=8) { if (JSONEscapeNeededIn8(text+i)) { return 1; } }
+  if ( (i<length) && (length>=8) ) { return JSONEscapeNeededIn8(text+length-8); }
+  for (; i<length; i++)
+  {
+    unsigned char c = (unsigned char) text[i];
+    if ( (c<0x20) || (c=='"') || (c=='\\') ) { return 1; }
+  }
+  return 0;
+}
+
+/* The shape a client almost always sends : exactly {"<field>":"<text>"} , compact , with nothing in the text to
+ * unescape ( no backslash , quote or control character ). Such a document is valid and the field's value is the
+ * text as it stands , so one scan of it does the parser's whole job , with the same output. Anything else
+ * returns 0 , and the full parser decides. */
+static int GetStringFieldCanonical(const char * doc,unsigned int docLength,const char * field,
+                                   char * out,unsigned int outSize,unsigned int * outLength)
+{
+  unsigned int fieldLength=0;
+  while (field[fieldLength]!=0)
+  {
+    unsigned char c = (unsigned char) field[fieldLength];
+    if ( (c<0x20) || (c=='"') || (c=='\\') ) { return 0; } /* a name only the parser can judge */
+    ++fieldLength;
+  }
+
+  /* {"  field  ":"  text  "} */
+  if (docLength<fieldLength+7) { return 0; }
+  if ( (doc[0]!='{') || (doc[1]!='"') || (memcmp(doc+2,field,fieldLength)!=0) ) { return 0; }
+  if ( (doc[fieldLength+2]!='"') || (doc[fieldLength+3]!=':') || (doc[fieldLength+4]!='"') ) { return 0; }
+  if ( (doc[docLength-2]!='"') || (doc[docLength-1]!='}') ) { return 0; }
+
+  const char * text = doc+fieldLength+5;
+  unsigned int textLength = docLength-fieldLength-7;
+  if (JSONTextNeedsEscaping(text,textLength)) { return 0; }
+
+  memcpy(out,text,(textLength<outSize) ? textLength : outSize);
+  *outLength = textLength;
+  if (textLength<outSize) { out[textLength]=0; } else { out[outSize-1]=0; }
+  return 1;
+}
+
 unsigned int AmmServer_JSONEscape(const char * in,unsigned int inLength,char * out,unsigned int outSize)
 {
   static const char hex[]="0123456789abcdef";
   unsigned int written=0;
   unsigned int i=0;
+#if defined(__SSE2__)
+  unsigned int runStart=0; //in[runStart..i) went out unchanged , ending at out+written
+#endif
 
   while (i<inLength)
    {
-     /* Almost all text needs no escaping : find where the next byte that does is , eight bytes at a time and
-      * then byte by byte , and copy everything before it in one go. */
-     unsigned int run=i;
+     /* Almost all text needs no escaping. Where the output has room to spare , the text is copied while it is
+      * scanned , in whole blocks , and a block that holds a byte to escape only counts up to it ( the rest of
+      * what was stored is written over next ). Otherwise , find the next byte to escape and copy everything
+      * before it in one go. */
 #if defined(__SSE2__)
-     /* Sixteen at a time where there is SSE2 ( every x86-64 ) : a byte needs escaping when it is at most
-      * 0x1F ( unsigned , so UTF-8 bytes never match ) , a quote or a backslash ; the mask says exactly which. */
-     {
-       const __m128i quote = _mm_set1_epi8('"');
-       const __m128i slash = _mm_set1_epi8('\\');
-       const __m128i below = _mm_set1_epi8(0x1F);
-       while (run+16<=inLength)
-        {
-          __m128i v = _mm_loadu_si128((const __m128i *)(const void *)(in+run));
-          __m128i hit = _mm_or_si128( _mm_or_si128(_mm_cmpeq_epi8(v,quote),_mm_cmpeq_epi8(v,slash)) ,
-                                      _mm_cmpeq_epi8(_mm_max_epu8(v,below),below) );
-          int mask = _mm_movemask_epi8(hit);
-          if (mask!=0) { run+=(unsigned int) __builtin_ctz((unsigned int) mask); goto found; }
-          run+=16;
-        }
-     }
+     while ( (i+16<=inLength) && (written+16<=outSize) )
+      {
+        __m128i v = _mm_loadu_si128((const __m128i *)(const void *)(in+i));
+        _mm_storeu_si128((__m128i *)(void *)(out+written),v);
+        unsigned int mask = JSONEscapeMask16(v);
+        if (mask!=0) { unsigned int k=(unsigned int) __builtin_ctz(mask); i+=k; written+=k; goto escapeOne; }
+        i+=16; written+=16;
+      }
+     if (i==inLength) { break; }
+
+     /* Fewer than 16 left : when the last 16 bytes of the text all went out unchanged up to here , they are
+      * loaded again and stored over their own copy , so the tail is one load and one store as well. */
+     if ( (i<inLength) && (inLength>=16) && (inLength-16>=runStart) && (inLength-i<16) && (written+(inLength-i)<=outSize) )
+      {
+        unsigned int rest = inLength-i;
+        __m128i v = _mm_loadu_si128((const __m128i *)(const void *)(in+inLength-16));
+        _mm_storeu_si128((__m128i *)(void *)(out+written+rest-16),v);
+        unsigned int mask = JSONEscapeMask16(v) >> (16-rest);
+        if (mask==0) { written+=rest; break; }
+        unsigned int k=(unsigned int) __builtin_ctz(mask); i+=k; written+=k; goto escapeOne;
+      }
 #endif
+
+     /* 8 to 15 bytes left that need no escaping ( a short name , say ) : two eight byte copies that overlap. */
+     if ( (inLength-i>=8) && (inLength-i<16) && (written+(inLength-i)<=outSize) &&
+          (!JSONEscapeNeededIn8(in+i)) && (!JSONEscapeNeededIn8(in+inLength-8)) )
+      {
+        unsigned int rest = inLength-i;
+        uint64_t head,tail;
+        memcpy(&head,in+i,8); memcpy(&tail,in+inLength-8,8);
+        memcpy(out+written,&head,8); memcpy(out+written+rest-8,&tail,8);
+        written+=rest;
+        break;
+      }
+
+     unsigned int run=i;
      while ( (run+8<=inLength) && (!JSONEscapeNeededIn8(in+run)) ) { run+=8; }
      while (run<inLength)
       {
@@ -397,9 +492,6 @@ unsigned int AmmServer_JSONEscape(const char * in,unsigned int inLength,char * o
         if ( (c=='"') || (c=='\\') || (c<0x20) ) { break; }
         ++run;
       }
-#if defined(__SSE2__)
-     found:
-#endif
 
      if (run>i)
       {
@@ -410,7 +502,14 @@ unsigned int AmmServer_JSONEscape(const char * in,unsigned int inLength,char * o
         if (i==inLength) { break; }
       }
 
+#if defined(__SSE2__)
+     escapeOne:
+#endif
+     ;
      unsigned char c = (unsigned char) in[i++];
+#if defined(__SSE2__)
+     runStart=i;
+#endif
      switch (c)
       {
         case '"'  : if (written+2>outSize) { return 0; } out[written++]='\\'; out[written++]='"';  break;

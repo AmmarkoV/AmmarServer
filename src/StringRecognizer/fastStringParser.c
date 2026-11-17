@@ -168,6 +168,65 @@ void addLevelSpaces(FILE * fp , unsigned int level)
 
 
 
+/* The generated scanners compare without toupper() or strncasecmp() : an input byte ORed with 0x20 where the word
+ * has a letter has to equal the word's lowercase byte , which is exact ( only 'A' and 'a' turn into 'a' ) , and
+ * every other byte has to match as it is. The bytes are compared 8 , 4 , 2 or 1 at a time. */
+static void emitByteLiteral(FILE * fp,const char * word,unsigned int offset,unsigned int n,int mask)
+{
+  unsigned int i=0;
+  fprintf(fp,"\"");
+  for (i=0; i<n; i++)
+  {
+    unsigned char c = (unsigned char) word[offset+i];
+    unsigned char b = (mask) ? ( isalpha(c) ? 0x20 : 0x00 ) : (unsigned char) tolower(c);
+    if ( (mask) || (!isprint(b)) || (b=='"') || (b=='\\') || (b=='?') ) { fprintf(fp,"\\%03o",b); } else
+                                                                       { fputc(b,fp); }
+  }
+  fprintf(fp,"\"");
+}
+
+static void emitPiece(FILE * fp,const char * word,unsigned int offset,unsigned int n)
+{
+  fprintf(fp," && sr_match%u(str+%u,",n,offset);
+  emitByteLiteral(fp,word,offset,n,1);
+  fprintf(fp,",");
+  emitByteLiteral(fp,word,offset,n,0);
+  fprintf(fp,")");
+}
+
+/* The test for one word : long enough , every byte matching in pieces that may overlap but never go past the
+ * word , and , for a word shorter than the bytes the switches above it looked at , the terminator the
+ * "case 0" dispatch asks for. */
+static void emitWordMatch(FILE * fp,struct fastStringParser * fsp,unsigned int i,unsigned int dispatchedLevels)
+{
+  const char * w = fsp->contents[i].str;
+  unsigned int L = fsp->contents[i].strLength;
+  unsigned int at = 0;
+
+  fprintf(fp,"( (strLength>=%u)",L);
+  if (L>=8)
+  {
+    for (at=0; at+8<=L; at+=8) { emitPiece(fp,w,at,8); }
+    if (at<L)                  { emitPiece(fp,w,L-8,8); }
+  } else
+  if (L>=4) { emitPiece(fp,w,0,4); if (L>4) { emitPiece(fp,w,L-4,4); } } else
+  if (L>=2) { emitPiece(fp,w,0,2); if (L>2) { emitPiece(fp,w,L-2,2); } } else
+  if (L==1) { emitPiece(fp,w,0,1); }
+
+  if (L<dispatchedLevels) { fprintf(fp," && (str[%u]==0)",L); }
+  fprintf(fp," )");
+}
+
+/* What a switch compares a dispatched character against : the byte ORed with 0x20 , the same fold the switch
+ * applies to the input. Within acceptedChars and the terminator no two characters fold to the same value , and
+ * whatever else folds onto one of them is turned away by the exact test at the leaf. */
+static unsigned int foldedChar(char c) { return ((unsigned int)(unsigned char) c) | 0x20; }
+
+static void emitCaseComment(FILE * fp,char c)
+{
+  if (c==0) { fprintf(fp," /*Null Terminator*/"); } else { fprintf(fp," /* '%c' */",c); }
+}
+
 int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char * Sequence,unsigned int seqLength)
 {
   unsigned int i=0,count=0 , correct = 0 , results =0 ;
@@ -186,12 +245,12 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
     if ( correct == seqLength ) {
                                   addLevelSpaces(fp , seqLength);
                                   if (results>0) { fprintf(fp," else "); }
-                                  fprintf(fp," if ( (strLength >= %u )&& ( strncasecmp(str,\"%s\",%u) == 0 ) ) { return %s_%s; } \n",
-                                          (unsigned int) strlen(fsp->contents[i].str),
-                                          fsp->contents[i].str ,
-                                          (unsigned int) strlen(fsp->contents[i].str) ,
+                                  fprintf(fp," if ");
+                                  emitWordMatch(fp,fsp,i,seqLength);
+                                  fprintf(fp," { return %s_%s; } /* %s */ \n",
                                           fsp->functionName,
-                                          fsp->contents[i].strIDFriendly );
+                                          fsp->contents[i].strIDFriendly,
+                                          fsp->contents[i].str );
 
                                   ++results;
                                 }
@@ -228,11 +287,49 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
   unsigned int resStringResultIndex=0;
   unsigned int nextLevelStrings=fastStringParser_countStringsForNextChar(fsp,&resStringResultIndex,cArray,level);
 
+  if ( (nextLevelStrings>1) && (level==0) && (ACTIVATED_LEVELS>=2) && (fsp->shortestStringLength>=2) )
+     {
+      /* Levels 0 and 1 in one switch on the first two bytes , both folded , instead of a switch per byte. Every
+       * word is at least two bytes long , so both bytes are within strLength. */
+      unsigned int curCh0=0,curCh1=0;
+      fprintf(fp," switch ( ( ( ((unsigned int)(unsigned char) str[0]) << 8 ) | ((unsigned char) str[1]) ) | 0x2020 ) { \n");
+      for (curCh0=0; curCh0<=strlen(acceptedChars); curCh0++)
+       {
+        cArray[0]=acceptedChars[curCh0]; cArray[1]=0;
+        if (!fastStringParser_hasStringsWithNConsecutiveChars(fsp,&resStringResultIndex,cArray,1)) { continue; }
+
+        unsigned int level1Strings=fastStringParser_countStringsForNextChar(fsp,&resStringResultIndex,cArray,1);
+        if (level1Strings==1)
+        {
+          //One word starts with this byte : its own second byte is all the switch needs
+          char c1 = fsp->contents[resStringResultIndex].str[1];
+          fprintf(fp," case 0x%04x :",(foldedChar(cArray[0])<<8)|foldedChar(c1));
+          emitCaseComment(fp,cArray[0]); emitCaseComment(fp,c1); fprintf(fp," \n");
+          addLevelSpaces(fp,1);
+          fprintf(fp," if ");
+          emitWordMatch(fp,fsp,resStringResultIndex,2);
+          fprintf(fp," { return %s_%s; } /* %s */ \n",fsp->functionName,fsp->contents[resStringResultIndex].strIDFriendly,fsp->contents[resStringResultIndex].str);
+          fprintf(fp," break; \n");
+        } else
+        for (curCh1=0; curCh1<=strlen(acceptedChars); curCh1++)
+        {
+          cArray[1]=acceptedChars[curCh1]; cArray[2]=0;
+          if (!fastStringParser_hasStringsWithNConsecutiveChars(fsp,&resStringResultIndex,cArray,2)) { continue; }
+          fprintf(fp," case 0x%04x :",(foldedChar(cArray[0])<<8)|foldedChar(cArray[1]));
+          emitCaseComment(fp,cArray[0]); emitCaseComment(fp,cArray[1]); fprintf(fp," \n");
+          if (ACTIVATED_LEVELS>2) { recursiveTraverser(fp,fsp,functionName,cArray,2); } else
+                                  { printIfAllPossibleStrings(fp,fsp,cArray,2); }
+          fprintf(fp," break; \n");
+        }
+       }
+      cArray[0]=0; cArray[1]=0;
+      fprintf(fp,"}; \n");
+     } else
   if ( nextLevelStrings>1 )
      {
       unsigned int cases=0;
       addLevelSpaces(fp , level);
-      fprintf(fp," switch (toupper(str[%u])) { \n",level);
+      fprintf(fp," switch ( ((unsigned char) str[%u]) | 0x20 ) { \n",level);
 
       cArray[level]='A';
       cArray[level+1]=0;
@@ -245,9 +342,8 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
         {
           addLevelSpaces(fp , level);
 
-          if (cArray[level]==0)
-              { fprintf(fp," case 0 : /*Null Terminator*/ \n"); } else
-              { fprintf(fp," case \'%c\' : \n",cArray[level]);  }
+          fprintf(fp," case 0x%02x :",foldedChar(cArray[level]));
+          emitCaseComment(fp,cArray[level]); fprintf(fp," \n");
            if ( level < ACTIVATED_LEVELS-1 ) { recursiveTraverser(fp,fsp,functionName,cArray,level+1); } else
                                              { printIfAllPossibleStrings(fp , fsp , cArray, level+1); }
           addLevelSpaces(fp , level);
@@ -268,13 +364,12 @@ int recursiveTraverser(FILE * fp,struct fastStringParser * fsp,char * functionNa
      if ( nextLevelStrings==1 )
      {
        addLevelSpaces(fp , level);
-       fprintf(fp," if (strLength<%u) { return 0; } \n", (unsigned int ) strlen(fsp->contents[resStringResultIndex].str));
-       addLevelSpaces(fp , level);
-       fprintf(fp," if ( strncasecmp(str,\"%s\",%u) == 0 ) { return %s_%s; } \n",
-                   fsp->contents[resStringResultIndex].str ,
-                   (unsigned int) strlen(fsp->contents[resStringResultIndex].str),
+       fprintf(fp," if ");
+       emitWordMatch(fp,fsp,resStringResultIndex,level);
+       fprintf(fp," { return %s_%s; } /* %s */ \n",
                    fsp->functionName,
-                   fsp->contents[resStringResultIndex].strIDFriendly );
+                   fsp->contents[resStringResultIndex].strIDFriendly,
+                   fsp->contents[resStringResultIndex].str );
      }
      else
      {
@@ -362,10 +457,16 @@ int export_C_Scanner(struct fastStringParser * fsp,char * functionName)
           tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900,   tm.tm_hour, tm.tm_min, tm.tm_sec);
 
 
-  fprintf(fp,"#include <stdio.h>\n");
+  fprintf(fp,"#include <stdint.h>\n");
   fprintf(fp,"#include <string.h>\n");
-  fprintf(fp,"#include <ctype.h>\n");
   fprintf(fp,"#include \"%s.h\"\n\n",functionName);
+
+  fprintf(fp,"/* Case-insensitive compare of 8 , 4 , 2 or 1 bytes : mask has 0x20 where the word has a letter , so an\n");
+  fprintf(fp,"   input byte ORed with it has to equal the word's lowercase byte , and every other byte has to match exactly. */\n");
+  fprintf(fp,"static inline int sr_match8(const char * s,const char * mask,const char * want) { uint64_t a,m,w; memcpy(&a,s,8); memcpy(&m,mask,8); memcpy(&w,want,8); return (a|m)==w; }\n");
+  fprintf(fp,"static inline int sr_match4(const char * s,const char * mask,const char * want) { uint32_t a,m,w; memcpy(&a,s,4); memcpy(&m,mask,4); memcpy(&w,want,4); return (a|m)==w; }\n");
+  fprintf(fp,"static inline int sr_match2(const char * s,const char * mask,const char * want) { uint16_t a,m,w; memcpy(&a,s,2); memcpy(&m,mask,2); memcpy(&w,want,2); return (a|m)==w; }\n");
+  fprintf(fp,"static inline int sr_match1(const char * s,const char * mask,const char * want) { return (unsigned char)(*s|*mask)==(unsigned char)*want; }\n\n");
 
   fprintf(fp,"int scanFor_%s(const char * str,unsigned int strLength) \n{\n",functionName);
 
