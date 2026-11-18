@@ -50,6 +50,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // --------------------------------------------
 #include "../cache/client_list.h"
 #include "../cache/dynamic_requests.h"
+#include "../security/banlist.h"
 // --------------------------------------------
 #include "../header_analysis/post_header_analysis.h"
 // --------------------------------------------
@@ -303,6 +304,12 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
       return 0;
    }
       else
+   if ( (banlist_isScannerProbe(transaction->incomingHeader.resource)) && (banlist_signalMalicious(transaction->ipStr)) )
+   {
+     //Only vulnerability scanners ask for these ( /wp-login.php , /.env .. ) , the IP is now banned so just hang up
+     logError(instance,transaction,403,"403.html");
+     return 0;
+   } else
    if (!clientList_isClientAllowedToUseResource(instance->clientList,transaction->clientListID,transaction->incomingHeader.resource))
    {
      //Client is forbidden but he is not IP banned to use resource ( already opened too many connections or w/e other reason )
@@ -496,13 +503,13 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
 
   //Resolve the peer address once here and reuse it for the whole connection - ServeClientKeepAliveLoop below
   //skips its own resolution once transaction->ipStr is already populated ( the peer can't change mid-connection )
-  getSocketIPAddress(instance,transaction->clientSock,transaction->ipStr,MAX_IP_STRING_SIZE,&transaction->port);
+  if (transaction->ipStr[0]==0) { getSocketIPAddress(instance,transaction->clientSock,transaction->ipStr,MAX_IP_STRING_SIZE,&transaction->port); } //HTTPS already resolved it
   transaction->clientListID = clientList_GetClientId(instance->clientList,transaction->ipStr);
 
   //----------------------------- ---------------------------- ----------------------------
   // Check if client is banned
   //----------------------------- ---------------------------- ----------------------------
-  int clientIsBanned = clientList_isClientBanned(instance->clientList,transaction->clientListID);
+  int clientIsBanned = banlist_isIPBanned(transaction->ipStr);
   //----------------------------- ---------------------------- ----------------------------
   if (!clientIsBanned)
   {
@@ -512,7 +519,7 @@ int ServeClientInternal(struct AmmServer_Instance * instance , struct HTTPTransa
     {
       //fprintf(stderr,"Another KeepAlive Loop Served ( %u ) \n",keepAliveShots);
       ++keepAliveShots;
-      clientIsBanned = clientList_isClientBanned(instance->clientList,transaction->clientListID);
+      clientIsBanned = banlist_isIPBanned(transaction->ipStr);
       if (clientIsBanned)
       {
        warningID(ASV_WARNING_CLIENT_DENIED_ACCESS);
@@ -611,7 +618,10 @@ void * ServeClientAfterUnpackingThreadMessage(void * ptr)
   #if USE_OPENSSL
   if (is_ssl_connection && instance->sslAvailable)
   {
-      if (!ASRV_SSL_AcceptConnection(instance,&transaction,transaction.clientSock))
+      //Banned IPs are dropped before any ( expensive ) TLS handshake , and failed handshakes need the IP for strikes
+      getSocketIPAddress(instance,transaction.clientSock,transaction.ipStr,MAX_IP_STRING_SIZE,&transaction.port);
+      if ( (banlist_isIPBanned(transaction.ipStr)) ||
+           (!ASRV_SSL_AcceptConnection(instance,&transaction,transaction.clientSock)) )
       {
           close(transaction.clientSock);
           ASRV_StopSession(instance,&transaction);

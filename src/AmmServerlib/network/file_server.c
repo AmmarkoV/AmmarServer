@@ -54,6 +54,37 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
    and starts reading and sending the file indicated by the function arguments..!
 */
 
+//Directories ( besides the web root ) that a dynamic callback may stream files out of via
+//AmmServer_DynamicRequestReturnFile. Process-wide , filled in during startup before any request arrives.
+#define MAX_TRUSTED_STREAM_DIRECTORIES 32
+static char trustedStreamDirectories[MAX_TRUSTED_STREAM_DIRECTORIES][MAX_FILE_PATH+1];
+static unsigned int trustedStreamDirectoryCount=0;
+
+int AddTrustedStreamDirectory(const char * directory)
+{
+  if ( (directory==0) || (directory[0]==0) ) { return 0; }
+  if (trustedStreamDirectoryCount>=MAX_TRUSTED_STREAM_DIRECTORIES) { AmmServer_Error("Too many trusted stream directories"); return 0; }
+  if (strlen(directory)>MAX_FILE_PATH) { AmmServer_Error("Trusted stream directory path too long"); return 0; }
+  if (!DirectoryExistsAmmServ(directory)) { AmmServer_Error("Trusted stream directory %s does not exist",directory); return 0; }
+
+  snprintf(trustedStreamDirectories[trustedStreamDirectoryCount],MAX_FILE_PATH+1,"%s",directory);
+  ++trustedStreamDirectoryCount;
+  return 1;
+}
+
+//Only a file a dynamic callback picked ( pickedByDynamicCallback , i.e. serveAsRegularFile ) may come from a
+//trusted stream directory , a plain URL request always has to resolve inside the web root.
+static int PathIsServable(struct AmmServer_Instance * instance,const char * candidatePath,unsigned char pickedByDynamicCallback)
+{
+  if (PathResolvesWithinDirectory(instance->webserver_root,candidatePath)) { return 1; }
+  if (!pickedByDynamicCallback) { return 0; }
+
+  unsigned int i=0;
+  for (i=0; i<trustedStreamDirectoryCount; i++)
+   { if (PathResolvesWithinDirectory(trustedStreamDirectories[i],candidatePath)) { return 1; } }
+  return 0;
+}
+
 int SendPart(
               struct AmmServer_Instance * instance,
               struct HTTPTransaction * transaction,
@@ -320,14 +351,15 @@ int TransmitFileBodyToSocket(
                               struct HTTPTransaction * transaction,
                               const char * verified_filename,
                               unsigned long offset,
-                              unsigned long byteCount
+                              unsigned long byteCount,
+                              unsigned char pickedByDynamicCallback
                             )
 {
   if (byteCount==0) { return 1; }
 
   //Same containment check TransmitFileToSocket() performs : strings can be validated cheaply ,
   //but only realpath() catches a symlink inside the web root pointing somewhere else.
-  if (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename))
+  if (!PathIsServable(instance,verified_filename,pickedByDynamicCallback))
    {
      AmmServer_Error("TransmitFileBodyToSocket : \"%s\" resolves outside the web root - refusing to serve it",verified_filename);
      return 0;
@@ -403,7 +435,8 @@ unsigned long SendEmbeddedFile
                        instance,
                        transaction,
                        200,
-                       verified_filename_pending_copy
+                       verified_filename_pending_copy,
+                       0
                      );
 
   unsigned char * what2RespondWith=0;
@@ -571,12 +604,21 @@ unsigned long SendFile
   //A dynamic-content callback can ask for a status code other than 200 by setting rqst->headerResponse ; this
   //is where whatever it asked for comes back ( 0 = it didn't ask , serve the ordinary 200 ).
   unsigned int dynamicResponseCode=0;
-  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins,transaction->pendingResponseHeaders,sizeof(transaction->pendingResponseHeaders),&dynamicResponseCode);
+  char * cached_buffer = cache_GetResource(instance,request,resourceCacheID,verified_filename,MAX_FILE_PATH,&index,&cached_lSize,0,&cached_buffer_is_compressed,&free_cached_buffer_after_use,&serveAsRegularFile,&allowOtherOrigins,transaction->pendingResponseHeaders,sizeof(transaction->pendingResponseHeaders),&dynamicResponseCode,transaction->ipStr);
 
   //serveAsRegularFile leaves compressionSupported untouched ; a plain file is never deflated
   if (cached_buffer==0) { cached_buffer_is_compressed=0; }
 
   unsigned char isDynamicMemory = ( (cached_buffer!=0) && (cache[index].dynamicRequestCallbackFunction!=0) && (!serveAsRegularFile) );
+
+  //AmmServer_DoNOTCacheResource(Handler) promises a fresh response every time , so browsers must not reuse one either.
+  //index is only meaningful when cache_GetResource found the resource , otherwise look the rule up by name.
+  unsigned char alwaysFresh=0;
+  if ( (cached_buffer!=0) || (serveAsRegularFile) ) { alwaysFresh=cache[index].doNOTCacheRule; } else
+  {
+    unsigned int ruleIndex=0;
+    if (cache_FindResource(instance,verified_filename,&ruleIndex)) { alwaysFresh=cache[ruleIndex].doNOTCacheRule; }
+  }
 
   unsigned long representationSize=0;
   time_t representationModificationTime=0;
@@ -600,7 +642,7 @@ unsigned long SendFile
     //Streamed from disk - this includes a dynamic callback that returned a filename to stream.
     struct stat fileToStream;
     if ( (stat(verified_filename,&fileToStream)!=0) || (!S_ISREG(fileToStream.st_mode)) ||
-         (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) )
+         (!PathIsServable(instance,verified_filename,serveAsRegularFile)) )
     {
       AmmServer_Warning("%s cannot be streamed from disk and is not cached , answering 404",verified_filename);
       freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
@@ -654,7 +696,7 @@ unsigned long SendFile
 
   if (not_modified)
   {
-    if (!SendNotModifiedHeader(instance,transaction))
+    if (!SendNotModifiedHeader(instance,transaction,alwaysFresh))
      { freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use); return 0; }
 
     if (haveModificationTime)
@@ -696,7 +738,7 @@ unsigned long SendFile
 
   //Send the status line only after size , preconditions and range are resolved
   unsigned int responseCode=partialContent ? 206 : ( (dynamicResponseCode!=0) ? dynamicResponseCode : 200 );
-  if (!SendSuccessCodeHeader(instance,transaction,responseCode,verified_filename))
+  if (!SendSuccessCodeHeader(instance,transaction,responseCode,verified_filename,alwaysFresh))
   {
     fprintf(stderr,"Failed sending success code \n");
     freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
@@ -792,7 +834,7 @@ unsigned long SendFile
   //Stream the requested slice straight from disk
   unsigned long bodyOffset=(partialContent?rangeStart:0);
   unsigned long bodyLength=(partialContent?rangeLength:representationSize);
-  if (!TransmitFileBodyToSocket(instance,transaction,verified_filename,bodyOffset,bodyLength))
+  if (!TransmitFileBodyToSocket(instance,transaction,verified_filename,bodyOffset,bodyLength,serveAsRegularFile))
    {
      fprintf(stderr,"Could not transmit file %s \n",verified_filename);
      return 0;
@@ -811,7 +853,7 @@ unsigned long SendMemoryBlockAsFile
     unsigned long mem_block // The size of the memory block to be sent
   )
 {
-  if (! SendSuccessCodeHeader(instance,transaction,200,filename)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+  if (! SendSuccessCodeHeader(instance,transaction,200,filename,0)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
 
 
   char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};

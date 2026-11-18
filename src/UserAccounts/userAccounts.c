@@ -393,3 +393,30 @@ int uadb_addUser(
 
  return 1;
 }
+
+
+int uadb_setPassword(
+                     struct UserAccountDatabase *  uadb,
+                     const char * username,
+                     const char * password
+                    )
+{
+ if ( (uadb==0) || (username==0) || (password==0) ) { return 0; }
+
+ unsigned int i=0;
+ for (i=0; i<uadb->userListSize; i++)
+ {
+   if (strcmp(uadb->userList[i].username,username)==0)
+   {
+     unsigned char salt[PASSWORD_SALT_BYTES];
+     if (!getRandomBytes(salt,sizeof(salt)))
+     {
+       fprintf(stderr,"Could not obtain secure randomness for a new password salt - leaving the password unchanged\n");
+       return 0;
+     }
+     hashPassword(password,salt,sizeof(salt),uadb->userList[i].password,sizeof(uadb->userList[i].password));
+     return uadb_saveUserAccountDatabase(uadb);
+   }
+ }
+ return 0;
+}

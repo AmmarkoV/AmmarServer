@@ -11,6 +11,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include "../server_configuration.h"
+#include "../security/banlist.h"
 // --------------------------------------------
 
 int ASRV_SSL_InitContext(struct AmmServer_Instance * instance)
@@ -97,8 +98,13 @@ int ASRV_SSL_AcceptConnection(struct AmmServer_Instance * instance,
     if (ret <= 0)
     {
         int err = SSL_get_error(ssl, ret);
-        fprintf(stderr, "ASRV_SSL_AcceptConnection: SSL_accept failed (SSL_get_error=%d)\n", err);
+        //A client that sent us a TLS alert chose to hang up , e.g. a browser refusing a self-signed certificate ,
+        //that is never held against it. Any other failure ( no shared cipher , unsupported protocol , plain HTTP on
+        //the HTTPS port , hanging up mid handshake .. ) is what scanners do , so it counts as a strike for the IP
+        int peerSentAlert = ( ERR_GET_REASON(ERR_peek_error()) >= SSL_AD_REASON_OFFSET );
+        fprintf(stderr, "ASRV_SSL_AcceptConnection: SSL_accept failed (SSL_get_error=%d) from %s\n", err, transaction->ipStr);
         ERR_print_errors_fp(stderr);
+        if (!peerSentAlert) { banlist_signalBadBehaviour(transaction->ipStr); }
         SSL_free(ssl);
         return 0;
     }

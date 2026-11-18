@@ -29,7 +29,7 @@ extern "C" {
 * @brief An ID that is used to distinguish between different versions..
 * @bug   A potential bug might arise if the specs of the header file are changed and someone is linking with an older version libAmmServer.a thats why this value exists
 */
-#define AMMAR_SERVER_HTTP_HEADER_SPEC 137
+#define AMMAR_SERVER_HTTP_HEADER_SPEC 138
 
 
 
@@ -352,6 +352,8 @@ struct AmmServer_DynamicRequest
 
    unsigned int COOKIEItemNumber;
    struct GETRequestContent * COOKIEItem; //<-    *THIS POINTS SOMEWHERE INSIDE headerRAW , or is 0 *
+
+   char clientIP[MAX_IP_STRING_SIZE]; //<- Peer address of the connection this request came from , "" when unknown
 };
 
 
@@ -729,6 +731,15 @@ int AmmServer_Running(struct AmmServer_Instance * instance);
 * @retval 1=Running,0=Stopped
 */
 int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,const char * filename);
+
+/**
+* @brief Let AmmServer_DynamicRequestReturnFile stream files from a directory outside the web root ( e.g. a media
+*        library ). Only files a dynamic callback hands to AmmServer_DynamicRequestReturnFile are affected , plain
+*        URL requests still have to resolve inside the web root. Process-wide , call it during startup.
+* @ingroup core
+* @param Directory whose files ( after resolving symlinks ) may be streamed
+* @retval 1=Success,0=Failure*/
+int AmmServer_AddTrustedStreamDirectory(const char * directory);
 
 
 
@@ -1472,10 +1483,19 @@ const char * _FILES(struct AmmServer_DynamicRequest * rqst,const char * POSTName
 ///-------------------------------------------------------------------------------
 
 /**
-* @brief Staged way to easily handle bad clients etc from the clients , currently a stub..!
+* @brief Count one strike against the client IP of this request ( e.g. a failed login or a bad captcha ) ,
+*        enough strikes within a few minutes get the IP temporarily banned by every AmmarServer process
+*        started from the same directory ( see security/banlist.h for the policy , loopback is never banned )
 * @ingroup shortcut
-* @bug Client behaviours etc are not implemented yet */
+* @retval 1=The IP is now banned , 0=Not banned */
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_DynamicRequest * rqst);
+
+/**
+* @brief Ban the client IP of this request straight away ( for requests that can only be malicious ) ,
+*        shared with every AmmarServer process started from the same directory , loopback is never banned
+* @ingroup shortcut
+* @retval 1=The IP is now banned , 0=Exempt/Failure */
+int AmmServer_SignalMaliciousIP(struct AmmServer_DynamicRequest * rqst);
 
 /**
 * @brief Save Dynamic Request to file
@@ -1490,6 +1510,7 @@ int AmmServer_SaveDynamicRequest(const char* filename  , struct AmmServer_Dynami
 
 /**
 * @brief Set resource handler to no-cache mode , this means whoever asks for it will never get a cached response
+*        ( neither from the server cache nor from the browser's , responses carry Cache-Control: no-cache instead of max-age=3600 )
 * @ingroup tools
 * @param Instance of an AmmarServer
 * @param Resource context that should always be served fresh ( AmmServer_RH_Context )
@@ -1499,6 +1520,7 @@ int AmmServer_DoNOTCacheResourceHandler(struct AmmServer_Instance * instance,str
 
 /**
 * @brief Set resource to no-cache mode , this means whoever asks for it will never get a cached response
+*        ( neither from the server cache nor from the browser's , responses carry Cache-Control: no-cache instead of max-age=3600 )
 * @ingroup tools
 * @param Instance of an AmmarServer
 * @param Resource name that we want to always serve fresh

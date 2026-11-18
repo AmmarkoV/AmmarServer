@@ -204,7 +204,8 @@ char * dynamicRequest_serveContent
             unsigned char * allowOtherOrigins,
             char * pendingResponseHeadersOut,
             unsigned int pendingResponseHeadersOutSize,
-            unsigned int * responseCodeOut
+            unsigned int * responseCodeOut,
+            const char * clientIP
           )
 {
   #if DISABLE_DYNAMIC_REQUESTS
@@ -315,6 +316,7 @@ char * dynamicRequest_serveContent
                      memcpy(rqst , &shared_context->requestContext , sizeof( struct AmmServer_DynamicRequest ));
                      rqst->pendingResponseHeaders[0]=0; //Never inherit a stale Set-Cookie from shared_context's template
                      rqst->sessionToken[0]=0; //Never inherit a stale/unrelated session token either - populated below only if useSessionLifecycle is set
+                     snprintf(rqst->clientIP,sizeof(rqst->clientIP),"%s",(clientIP!=0) ? clientIP : "");
 
                      rqst->POSTItemNumber = request->POSTItemNumber;
                      rqst->POSTItem       = request->POSTItem;       //<- NEVER free this here since it is stack allocated..

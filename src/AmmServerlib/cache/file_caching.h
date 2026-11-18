@@ -230,7 +230,8 @@ char * cache_GetResource(
                           unsigned char * allowOtherOrigins,
                           char * pendingResponseHeadersOut,
                           unsigned int pendingResponseHeadersOutSize,
-                          unsigned int * responseCodeOut
+                          unsigned int * responseCodeOut,
+                          const char * clientIP
                         );
 
 

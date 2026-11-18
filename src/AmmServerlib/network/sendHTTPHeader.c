@@ -81,7 +81,7 @@ unsigned long SendErrorResponse(
   return 1;
 }
 
-unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename)
+unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename,unsigned char alwaysFresh)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -96,7 +96,7 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
       char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0}; //Accept-Ranges: bytes\n
       //GetHTTPReasonPhrase , not a hardcoded "OK" : a dynamic-content callback can ask for any status code here
       //( rqst->headerResponse ) , and "HTTP/1.1 404 OK" is not a status line.
-      snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 %d %s\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: max-age=3600\nAccept-Ranges: bytes\n",success_code,GetHTTPReasonPhrase((unsigned int) success_code),FULLVERSION_STRING,content_type);
+      snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 %d %s\nServer: Ammarserver/%s\nContent-type: %s\nCache-Control: %s\nAccept-Ranges: bytes\n",success_code,GetHTTPReasonPhrase((unsigned int) success_code),FULLVERSION_STRING,content_type,(alwaysFresh) ? "no-cache" : "max-age=3600");
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);
@@ -120,14 +120,14 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
       return 1;
 }
 
-unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction)
+unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned char alwaysFresh)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
     it also changes verified_filename to the appropriate template path for user defined pages for each error code..!
 */
       char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0}; //Accept-Ranges: bytes\n
-      snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 304 Not Modified\nServer: Ammarserver/%s\nCache-Control: max-age=3600\n",FULLVERSION_STRING);
+      snprintf(reply_header,MAX_HTTP_REQUEST_HEADER_REPLY,"HTTP/1.1 304 Not Modified\nServer: Ammarserver/%s\nCache-Control: %s\n",FULLVERSION_STRING,(alwaysFresh) ? "no-cache" : "max-age=3600");
       unsigned int replyHeaderLength = strlen(reply_header);
 
       GetDateString(reply_header+replyHeaderLength, MAX_HTTP_REQUEST_HEADER_REPLY-replyHeaderLength,"Date",1,0,0,0,0,0,0,0);

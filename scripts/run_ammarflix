@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#Usage : scripts/run_ammarflix [-media /extra/dir ..]
+#Uses key/cert.pem + key/key.pem and the media directories listed below , extra -media arguments are added to them
+#Add users first with : src/Services/Ammarflix/ammarflix -adduser NAME
+#Ammarflix only serves HTTPS on port 443 , either run this as root or once do :
+#  sudo setcap cap_net_bind_service=+ep src/Services/Ammarflix/ammarflix
+
+STARTDIR=`pwd`
+#Switch to this directory
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR"
+cd ..
+
+until false; do
+    src/Services/Ammarflix/ammarflix \
+        -sslcert key/cert.pem \
+        -sslkey key/key.pem \
+        "$@"
+    echo "Server 'ammarflix' stopped with exit code $?.  Respawning.." >&2
+    sleep 1
+done
+
+cd "$STARTDIR"
+
+exit 0

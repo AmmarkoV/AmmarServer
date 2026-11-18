@@ -34,6 +34,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // --------------------------------------------
 #include "threads/serverAbstraction.h"
 #include "network/openssl_server.h"
+#include "network/file_server.h"
+#include "security/banlist.h"
 // --------------------------------------------
 #include "cache/file_caching.h"
 #include "cache/dynamic_requests.h"
@@ -481,6 +483,11 @@ int AmmServer_DynamicRequestReturnFile(struct AmmServer_DynamicRequest  * rqst,c
   rqst->contentContainsPathToFileToBeStreamed=1;
   snprintf(rqst->content,rqst->MAXcontentSize,"%s",filename);
   return 1;
+}
+
+int AmmServer_AddTrustedStreamDirectory(const char * directory)
+{
+  return AddTrustedStreamDirectory(directory);
 }
 
 void* AmmServer_DynamicRequestReturnMemoryHandler(struct AmmServer_DynamicRequest  * rqst,struct AmmServer_MemoryHandler * content)
@@ -1012,8 +1019,14 @@ int AmmServer_ValidateCSRFToken(struct AmmServer_DynamicRequest * rqst,const cha
 
 int AmmServer_SignalCountAsBadClientBehaviour(struct AmmServer_DynamicRequest * rqst)
 {
-   AmmServer_Stub("AmmServer_SignalCountAsBadClientBehaviour is a stub ..\n");
-   return 0;
+   if (rqst==0) { return 0; }
+   return banlist_signalBadBehaviour(rqst->clientIP);
+}
+
+int AmmServer_SignalMaliciousIP(struct AmmServer_DynamicRequest * rqst)
+{
+   if (rqst==0) { return 0; }
+   return banlist_signalMalicious(rqst->clientIP);
 }
 
 int AmmServer_SaveDynamicRequest(const char* filename , struct AmmServer_DynamicRequest * rqst)

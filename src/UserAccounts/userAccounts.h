@@ -87,5 +87,12 @@ int uadb_addUser(
                    const char * browserFingerprint
                  );
 
+//Replaces the password of an existing user ( with a fresh salt ) and saves the database , 1=Success , 0=No such user/Failure
+int uadb_setPassword(
+                     struct UserAccountDatabase *  uadb,
+                     const char * username,
+                     const char * password
+                    );
+
 
 #endif // USERACCOUNTS_H_INCLUDED

@@ -27,8 +27,9 @@ unsigned long SendErrorResponse(struct AmmServer_Instance * instance,struct HTTP
 * @param Socket to send to
 * @param Success code ( typically 200 ok )
 * @param Verified Filename of file to transmit
+* @param 1 for a resource marked with AmmServer_DoNOTCacheResource(Handler) , browsers then get Cache-Control: no-cache instead of max-age=3600
 * @retval 1=Success,0=Failure*/
-unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename);
+unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename,unsigned char alwaysFresh);
 
 /**
 * @brief Send a 304 Not Modified response
@@ -36,7 +37,7 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
 * @param An AmmarServer instance
 * @param Socket to send to
 * @retval 1=Success,0=Failure*/
-unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction);
+unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,unsigned char alwaysFresh);
 
 /**
 * @brief Send a 401 Not Authorized response

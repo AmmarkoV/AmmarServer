@@ -42,6 +42,7 @@ unsigned long SendFile
 * @param Verified filename
 * @param Byte offset to start at
 * @param Number of bytes to transmit
+* @param 1 if a dynamic callback picked this file ( it may then also come from a trusted stream directory )
 * @retval 1=Success,0=Failure*/
 int TransmitFileBodyToSocket
   (
@@ -49,7 +50,8 @@ int TransmitFileBodyToSocket
     struct HTTPTransaction * transaction,
     const char * verified_filename,
     unsigned long offset,
-    unsigned long byteCount
+    unsigned long byteCount,
+    unsigned char pickedByDynamicCallback
   );
 
 /**
@@ -85,5 +87,7 @@ unsigned long SendMemoryBlockAsFile
     unsigned long mem_block
   );
 
+/** @brief Backs AmmServer_AddTrustedStreamDirectory , see AmmServerlib.h */
+int AddTrustedStreamDirectory(const char * directory);
 
 #endif // FILE_SERVER_H_INCLUDED

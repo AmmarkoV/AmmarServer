@@ -523,7 +523,8 @@ char * cache_GetResource(
                           unsigned char * allowOtherOrigins,
                           char * pendingResponseHeadersOut,
                           unsigned int pendingResponseHeadersOutSize,
-                          unsigned int * responseCodeOut
+                          unsigned int * responseCodeOut,
+                          const char * clientIP
                         )
 {
  if (pendingResponseHeadersOut!=0) { pendingResponseHeadersOut[0]=0; }
@@ -589,7 +590,8 @@ if (cache_FindResource(instance,verified_filename,index))
                                                        allowOtherOrigins,
                                                        pendingResponseHeadersOut,
                                                        pendingResponseHeadersOutSize,
-                                                       responseCodeOut
+                                                       responseCodeOut,
+                                                       clientIP
                                                     );
 
              if ( contentContainsPathToFileToBeStreamed )
