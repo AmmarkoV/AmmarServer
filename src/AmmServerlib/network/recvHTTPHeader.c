@@ -157,6 +157,15 @@ int receiveAndParseIncomingHTTPRequest(struct AmmServer_Instance * instance,stru
    if (opres>0) { transaction->incomingHeader.headerRAW[transaction->incomingHeader.headerRAWSize + opres]=0; }
   ++instance->statistics.recvOperationsFinished;
 
+  //Nothing of a new request arrived and the connection ended ( closed , reset , or over TLS without close_notify ) ,
+  //that is just a client dropping its idle keep-alive connection , every browser does it , not a bad request to answer with a 400
+  if ( (opres<=0) && (transaction->incomingHeader.headerRAWSize==0) && (!( (opres<0) && (errno==EWOULDBLOCK) )) )
+   {
+     transaction->clientDisconnected=1;
+     successulHTTPTransaction=0;
+     break;
+   }
+
   //Error Receiving..
   if (opres<0)
    {

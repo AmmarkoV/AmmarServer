@@ -596,7 +596,8 @@ if (cache_FindResource(instance,verified_filename,index))
 
              if ( contentContainsPathToFileToBeStreamed )
              {
-                  AmmServer_Warning("Returning a file stream from something that started to be a dynamic request , filename is %s , lets hope it works" , verified_filename);
+                  //AmmServer_DynamicRequestReturnFile is a normal path now ( Range , containment checks , 404 when missing ) , no need to warn on every request
+                  //AmmServer_Warning("Returning a file stream from something that started to be a dynamic request , filename is %s , lets hope it works" , verified_filename);
                   *serveAsRegularFile=1;
 
                   //The path to stream is already copied into verified_filename , so a buffer allocated just for this
