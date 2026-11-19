@@ -1,12 +1,12 @@
 #!/bin/bash
 
-DIRTOUNITTESTS="../../src/UnitTests/"
+DIRTOUNITTESTS="../unit/HashMapTester/"
 
 if [ -d $DIRTOUNITTESTS ]
 then
  echo "UnitTest dir is $DIRTOUNITTESTS"
 else
- DIRTOUNITTESTS="src/UnitTests/" 
+ DIRTOUNITTESTS="tests/unit/HashMapTester/"
  if [ -d $DIRTOUNITTESTS ]
   then
    echo "UnitTest dir is $DIRTOUNITTESTS"

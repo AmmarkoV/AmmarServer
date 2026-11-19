@@ -23,8 +23,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include "../../AmmServerlib/AmmServerlib.h"
-#include "../../UserAccounts/userAccounts.h"
+#include "../../../src/AmmServerlib/AmmServerlib.h"
+#include "../../../src/UserAccounts/userAccounts.h"
 
 #define DEFAULT_BINDING_PORT 8080  // <--- Change this to 80 if you want to bind to the default http port..!
 

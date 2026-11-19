@@ -16,7 +16,8 @@ server to already be running, and needs no third-party Python packages.
 bash tests/run_tests.sh
 ```
 
-The runner builds `ammarserver` first. Pass `--no-build` to skip that step.
+The runner builds `ammarserver` and the C unit tests first, runs the C unit
+tests, then the Python suite. Pass `--no-build` to skip the build step.
 To run a single module (from the repository root):
 
 ```bash
@@ -61,7 +62,7 @@ listed in `valgrind.supp`. Findings are triaged in `knowledge/PLAN.md`.
 
 ```
 tests/
-├── run_tests.sh              unified runner (build + unittest)
+├── run_tests.sh              unified runner (build + C unit tests + unittest)
 ├── run_cppcheck.sh           cppcheck static analysis
 ├── run_valgrind.sh           the same suite with the server under valgrind
 ├── run_sanitizers.sh         the same suite against an ASan/UBSan build
@@ -80,7 +81,8 @@ tests/
 ├── test_application.py       cookies, sessions, GET/POST fields, API mode (epoll and io_uring)
 ├── test_inputparser.py       InputParser keepcopy ownership and NUL-termination regressions
 ├── legacy/                   original shell pentest scripts and raw request fixtures
-└── load/                     manual siege/wget load and DoS trials
+├── load/                     manual siege/wget load and DoS trials
+└── unit/                     C unit tests against the core libraries ( formerly src/UnitTests )
 ```
 
 ## What the tests cover
@@ -108,6 +110,22 @@ tests/
 its raw request fixtures (`testfile1` … `testfile11`) and `unitTest.sh`. They
 are kept for reference; their useful cases have been folded into
 `tests/test_security.py` and `tests/test_server_behavior.py`.
+
+`unit/` holds the C unit tests that used to live in `src/UnitTests`:
+`HashMapTester/` (`testHashMap`, 10000-key hashmap with and without sorting plus
+memory-handler variable replacement), `UserAccountsTester/` (a small server
+exercising the UserAccounts library) and `libevent/` (a standalone libevent
+HTTP comparison program with only a Code::Blocks project). The first two are
+built by the top-level CMake only with `-DDO_TEST_COVERAGE=ON`, and their
+binaries land next to their sources. Run `testHashMap` from the repository
+root, since its injection test reads `src/Services/MyURL/myurl.html`.
+
+`run_tests.sh` builds and runs `testHashMap` ( into `build/tests/` ) together
+with the Hashmap and CSVParser regression suites ( `src/Hashmap/testhashmap`,
+`src/CSVParser/testcsv` ) before the Python modules, on a full run only. Each
+logs to `build/tests/logs/<name>.log`, and any failure makes the runner exit
+non-zero. `UserAccountsTester` ( a long-running server ) and `libevent/` are
+not pass/fail tests and are not run.
 
 `load/` contains the manual stress/DoS scripts (`siege_trial.sh`,
 `multiSiege.sh`, `dos_trial.sh`). They expect a server on `127.0.0.1:8080` and

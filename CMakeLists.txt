@@ -107,8 +107,8 @@ ENDIF (USE_AMMMESSAGES)
     
     #These are unit tests for the core library
     IF( DO_TEST_COVERAGE )
-     add_subdirectory (src/UnitTests/UserAccountsTester)
-     add_subdirectory (src/UnitTests/HashMapTester)
+     add_subdirectory (tests/unit/UserAccountsTester)
+     add_subdirectory (tests/unit/HashMapTester)
     ENDIF( DO_TEST_COVERAGE )
 
     #AmmarServerGames is a separate git repository.  Compile it when this

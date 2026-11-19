@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "../../AmmServerlib/AmmServerlib.h"
-#include "../../Hashmap/hashmap.h"
+#include "../../../src/AmmServerlib/AmmServerlib.h"
+#include "../../../src/Hashmap/hashmap.h"
 
 
 #define NORMAL   "\033[0m"
@@ -91,13 +91,14 @@ int doInjectTest()
 
 int main(int argc, char *argv[])
 {
-  if (!doInjectTest())   { fprintf(stderr,GREEN "Injection Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Injection Test .. Failed\n" NORMAL); }
+  unsigned int failures=0;
+  if (!doInjectTest())   { fprintf(stderr,GREEN "Injection Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Injection Test .. Failed\n" NORMAL); ++failures; }
 
-  if (doHashMapTest(0))   { fprintf(stderr,GREEN "Hash Map Without Sorting Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test Without Sorting.. Failed\n" NORMAL); }
-  if (doHashMapTest(1))   { fprintf(stderr,GREEN "Hash Map With Sorting Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test With Sorting.. Failed\n" NORMAL); }
+  if (doHashMapTest(0))   { fprintf(stderr,GREEN "Hash Map Without Sorting Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test Without Sorting.. Failed\n" NORMAL); ++failures; }
+  if (doHashMapTest(1))   { fprintf(stderr,GREEN "Hash Map With Sorting Test .. Sucess\n" NORMAL); }  else { fprintf(stderr,RED "Hash Map Test With Sorting.. Failed\n" NORMAL); ++failures; }
 
 
 
-  return 0;
+  return (failures!=0); //Non-zero so tests/run_tests.sh can tell a failure apart
 }
 

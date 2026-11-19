@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
-		<Project filename="../../AmmServerlib/AmmServerlib.cbp" />
-		<Project filename="../../UserAccounts/UserAccounts.cbp" />
+		<Project filename="../../../src/AmmServerlib/AmmServerlib.cbp" />
+		<Project filename="../../../src/UserAccounts/UserAccounts.cbp" />
 		<Project filename="UserAccountsTester.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

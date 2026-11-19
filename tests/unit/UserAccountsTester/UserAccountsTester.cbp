@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="UnitTests" />
+		<Option title="UserAccountsTester" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="testHashMap" prefix_auto="1" extension_auto="1" />
+				<Option output="useraccountstester" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -16,7 +16,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="testHashMap" prefix_auto="1" extension_auto="1" />
+				<Option output="useraccountstester" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -32,21 +32,19 @@
 			<Add option="-Wall" />
 		</Compiler>
 		<Linker>
-			<Add option="../AmmServerlib/libAmmarServer.a" />
+			<Add option="../../../src/AmmServerlib/libAmmarServer.a" />
+			<Add option="../../../src/UserAccounts/libUserAccounts.a" />
 			<Add option="-pthread" />
 			<Add option="-lrt" />
 			<Add option="-lz" />
-			<Add library="../Hashmap/libHashmap.a" />
-			<Add library="../InputParser/libInputParser_C.a" />
 		</Linker>
-		<Unit filename="testHashMap.c">
+		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>
 			<envvars />
 			<code_completion />
 			<debugger />
-			<lib_finder disable_auto="1" />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
