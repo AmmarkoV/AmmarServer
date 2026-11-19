@@ -30,7 +30,6 @@ unsigned long hashFunction(const char *str);
 /** @brief An entry on the hash map flattened out for ease of use  */
 struct hashMapEntry
 {
-  unsigned int index;
   unsigned long keyHash;
   unsigned int keyLength;
   char * key;
@@ -61,7 +60,7 @@ struct hashMap
 * @brief Create and allocate a hash map
 * @ingroup hashmap
 * @param Number of initial entry space
-* @param Allocation step for new allocations
+* @param Allocation step for new allocations ( 0 is treated as 1 )
 * @param Pointer to a function that clears an item
 * @retval Hashmap Structure or , 0=Failure */
 struct hashMap * hashMap_Create(unsigned int initialEntries , unsigned int entryAllocationStep,void * clearItemFunction, unsigned int useSorting);
@@ -89,13 +88,13 @@ int hashMap_Sort(struct hashMap * hm);
 int hashMap_PrepareForQueries(struct hashMap *hm);
 
 /**
-* @brief Add a new key to hash map
+* @brief Add a new key to hash map ( append-only , adding an existing key again creates a second entry )
 * @ingroup hashmap
 * @param HashMap
-* @param String with the key index
+* @param String with the key index ( must not be 0 )
 * @param String with the value of this record
-* @param Length of the value
-* @retval 1=Success,0=Failure */
+* @param Length of the value ( 0 = store the val pointer itself , otherwise valLength bytes are copied )
+* @retval 1=Success,0=Failure ( nothing was added ) */
 int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int valLength);
 
 /**
@@ -131,11 +130,14 @@ int hashMap_AddULong(struct hashMap * hm,const char * key,unsigned long val);
 int hashMap_FindIndexSerial(struct hashMap * hm,const char * key,unsigned long * index);
 
 /**
-* @brief Find index of a key
+* @brief Find index of a key. The lookup itself is locked , but the returned index can go stale as soon as
+*        another thread calls hashMap_Add()/hashMap_RemoveKey()/hashMap_Sort() , callers needing a find+use
+*        sequence to be atomic must hold their own lock around both calls.
 * @ingroup hashmap
 * @param HashMap
 * @param Input String with the key index to find
-* @param Output index of the record that holds the data we were searching for
+* @param Input/Output : on input a hint of where the key might be ( any value is safe ) , on output the index
+*        of the record that holds the data we were searching for
 * @retval 1=Success,0=Failure */
 int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index);
 
@@ -169,17 +171,13 @@ unsigned long hashMap_GetHashAtIndex(struct hashMap * hm,unsigned int index);
 * @ingroup hashmap
 * @param HashMap
 * @param Input String of key
-* @param Output Pointer of payload
-* @retval 1=Success,0=Failure
-* @bug `payload` is passed by value , so `payload = hm->entries[i].payload;` inside this function only ever
-*      reassigns the local copy - the caller never receives anything. Currently unreachable ( grep confirms
-*      nothing in the repo calls it ) , but a live bug for whoever calls it next. Not fixed here - use
-*      hashMap_GetPayloadAtIndex() ( together with hashMap_FindIndex() ) instead , which actually works. */
-int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload);
+* @param Output : receives the ( borrowed ) payload pointer , left untouched if the key is not found
+* @retval 1=Success,0=Failure */
+int hashMap_GetPayload(struct hashMap * hm,const char * key,void ** payload);
 
 /**
-* @brief Return a borrowed pointer to the payload stored at a given index ( the correct, working equivalent of
-*        the broken hashMap_GetPayload() above - pair with hashMap_FindIndex() to look up by key first ).
+* @brief Return a borrowed pointer to the payload stored at a given index ( pair with hashMap_FindIndex() to
+*        look up by key first , or use hashMap_GetPayload() which does both under one lock ).
 *        Mirrors hashMap_GetKeyAtIndex()'s existing pattern ( same index space, not separately locked - callers
 *        needing thread safety across a find+use sequence must hold their own lock around both calls, same as
 *        hashMap_GetKeyAtIndex() already requires ).
@@ -195,7 +193,7 @@ void * hashMap_GetPayloadAtIndex(struct hashMap * hm,unsigned int index,unsigned
 * @ingroup hashmap
 * @param HashMap
 * @param Input String of key
-* @param Output Pointer of payload
+* @param Input/Output : on input an index hint ( see hashMap_FindIndex() ) , on output the payload
 * @retval 1=Success,0=Failure */
 int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long * payload);
 

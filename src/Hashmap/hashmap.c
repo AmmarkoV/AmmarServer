@@ -22,6 +22,14 @@
 #define CYAN    "\033[36m"      /* Cyan */
 #define WHITE   "\033[37m"      /* White */
 
+#if HASHMAP_BE_THREAD_SAFE
+ #define HM_LOCK(hm)   pthread_mutex_lock(&(hm)->hm_addLock)
+ #define HM_UNLOCK(hm) pthread_mutex_unlock(&(hm)->hm_addLock)
+#else
+ #define HM_LOCK(hm)
+ #define HM_UNLOCK(hm)
+#endif // HASHMAP_BE_THREAD_SAFE
+
 
 
 
@@ -49,6 +57,7 @@ unsigned long hashFunction(const char *str)
 
 int hashMap_Grow(struct hashMap * hm,unsigned int growthSize)
 {
+  if (growthSize==0) { fprintf(stderr,RED "HashMap: Refusing to grow hashMap by 0 entries\n" NORMAL); return 0; }
   struct hashMapEntry * newentries = realloc(hm->entries , sizeof(struct hashMapEntry) * ( hm->maxNumberOfEntries + growthSize ) );
   if (newentries!=0)
      {
@@ -69,6 +78,7 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
   if (hm==0)  { fprintf(stderr,RED "HashMap: Could not allocate a new hashmap" NORMAL); return 0; }
 
   memset(hm,0,sizeof(struct hashMap));
+  if (entryAllocationStep==0) { entryAllocationStep=1; } //Growing by 0 would let hashMap_Add() write past the end
 
   hm->entries=0;
   hm->entryAllocationStep=entryAllocationStep;
@@ -87,6 +97,7 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
 
     #if HASHMAP_BE_THREAD_SAFE
       pthread_mutex_init(&hm->hm_addLock,0);
+      pthread_mutex_init(&hm->hm_fileLock,0);
     #endif // HASHMAP_BE_THREAD_SAFE
 
   return hm;
@@ -95,9 +106,10 @@ struct hashMap * hashMap_Create(unsigned int initialEntries,unsigned int entryAl
 int hashMap_IsOK(struct hashMap * hm)
 {
     if (hm == 0)  { return 0; }
-    if (hm->entries == 0)  { return 0; }
-    if (hm->maxNumberOfEntries == 0)  { return 0; }
-    return 1;
+    HM_LOCK(hm); //entries/maxNumberOfEntries change when hashMap_Add() grows the map , must not be called with the lock held
+    int ok = ( (hm->entries != 0) && (hm->maxNumberOfEntries != 0) );
+    HM_UNLOCK(hm);
+    return ok;
 }
 
 int hashMap_GetCurrentNumberOfEntries(struct hashMap * hm)
@@ -130,6 +142,7 @@ int hashMap_IsSorted(struct hashMap * hm)
 void hashMap_Clear(struct hashMap * hm)
 {
   if (!hashMap_IsOK(hm)) { return; }
+  HM_LOCK(hm);
   void ( *hashMapClearCallback) ( void * )=0 ;
   hashMapClearCallback = hm->clearItemCallbackFunction;
   unsigned int i=0;
@@ -137,7 +150,6 @@ void hashMap_Clear(struct hashMap * hm)
 
   hm->isSorted=0;
   hm->curNumberOfEntries = 0;
-  fprintf(stderr,YELLOW "hashMap_Clear with %u , %u ( %u max ) entries \n" NORMAL, i , entryNumber ,  hm->maxNumberOfEntries );
 
   while (i < entryNumber)
   {
@@ -160,13 +172,12 @@ void hashMap_Clear(struct hashMap * hm)
       hm->entries[i].key=0;
     }
 
-    hm->entries[i].keyHash=0;
-    hm->entries[i].keyLength=0;
-
+    memset(&hm->entries[i],0,sizeof(struct hashMapEntry));
 
     ++i;
   }
 
+  HM_UNLOCK(hm);
   return;
 }
 
@@ -174,18 +185,19 @@ void hashMap_Destroy(struct hashMap * hm)
 {
   if (hm==0) { return ; }
 
-  //This needs to be done before clearing
-    #if HASHMAP_BE_THREAD_SAFE
-      pthread_mutex_destroy(&hm->hm_addLock);
-    #endif // HASHMAP_BE_THREAD_SAFE
-
   if ( hm->entries != 0)
   {
-   hashMap_Clear(hm);
+   hashMap_Clear(hm); //Takes the lock , so it must run before the mutexes are destroyed
    hm->maxNumberOfEntries=0;
    free(hm->entries);
    hm->entries=0;
   }
+
+    #if HASHMAP_BE_THREAD_SAFE
+      pthread_mutex_destroy(&hm->hm_addLock);
+      pthread_mutex_destroy(&hm->hm_fileLock);
+    #endif // HASHMAP_BE_THREAD_SAFE
+
   hm->clearItemCallbackFunction=0;
   free(hm);
 
@@ -204,10 +216,9 @@ int cmpHashTableItems (const void * a, const void * b)
  return 1;
 }
 
-int hashMap_Sort(struct hashMap * hm)
+//Caller must hold hm_addLock
+static void hashMap_SortUnlocked(struct hashMap * hm)
 {
-  if (!hm->useSorting) { fprintf(stderr,YELLOW "HashMap: Sorting is disabled for this hashmap\n" NORMAL); return 0; }
-  if (!hashMap_IsOK(hm)) { return 0; }
   qsort(
          hm->entries ,
          hm->curNumberOfEntries ,
@@ -215,10 +226,20 @@ int hashMap_Sort(struct hashMap * hm)
          cmpHashTableItems
         );
   hm->isSorted=1;
+}
+
+int hashMap_Sort(struct hashMap * hm)
+{
+  if (!hashMap_IsOK(hm)) { return 0; }
+  if (!hm->useSorting) { fprintf(stderr,YELLOW "HashMap: Sorting is disabled for this hashmap\n" NORMAL); return 0; }
+  HM_LOCK(hm);
+  hashMap_SortUnlocked(hm);
+  HM_UNLOCK(hm);
   return 1;
 }
 
 
+//Caller must hold hm_addLock
 int hashMap_FindIndexSerialWithPrecomputedHash(struct hashMap * hm,const char * key , unsigned long keyHash,unsigned long * index)
 {
   unsigned long i=0;
@@ -228,7 +249,7 @@ int hashMap_FindIndexSerialWithPrecomputedHash(struct hashMap * hm,const char * 
     //fprintf(stderr,"Comparing %s to %s .. ",key,hm->entries[i].key);
     if ( hm->entries[i].keyHash == keyHash )
          {
-          if (strcmp(key,hm->entries[i].key)==0)
+          if ( (hm->entries[i].key!=0) && (strcmp(key,hm->entries[i].key)==0) )
           {
            ++hm->entries[i].hits;
            *index = i;
@@ -244,10 +265,16 @@ int hashMap_FindIndexSerialWithPrecomputedHash(struct hashMap * hm,const char * 
 
 int hashMap_FindIndexSerial(struct hashMap * hm,const char * key,unsigned long * index)
 {
+  if (!hashMap_IsOK(hm)) { return 0; }
+  if (key==0) { return 0; }
   unsigned long keyHash = hashFunction(key);
-  return hashMap_FindIndexSerialWithPrecomputedHash(hm,key,keyHash,index);
+  HM_LOCK(hm);
+  int result = hashMap_FindIndexSerialWithPrecomputedHash(hm,key,keyHash,index);
+  HM_UNLOCK(hm);
+  return result;
 }
 
+//Caller must hold hm_addLock
 int hashMap_BSearch(struct hashMap* hm,const char *  key , unsigned long keyHash,unsigned long * index)
 {
   if (!hm->useSorting) { fprintf(stderr,YELLOW "HashMap: Sorting is disabled for this hashmap\n" NORMAL); return 0; }
@@ -263,16 +290,11 @@ int hashMap_BSearch(struct hashMap* hm,const char *  key , unsigned long keyHash
                                                                   cmpHashTableItems
                                                                 );
   if (pItem!=0) {
-                  *index = pItem->index;
+                  //The position comes from the pointer itself , qsort() moves entries around so any stored index goes stale
+                  *index = (unsigned long) (pItem - haystack);
                   //printf ("%ul is in the array[%u] (%s vs %s) .\n",keyHash,*index , pItem->key , key);
 
-                  if (*index>=hm->curNumberOfEntries)
-                  {
-                    fprintf(stderr,RED "HashMap: Binary search bug , it lead us outside of bounds.. :( \n" NORMAL);
-                    return 0;
-                  }
-
-                  if (strcmp(key, hm->entries[*index].key)!=0)
+                  if ( (pItem->key==0) || (strcmp(key, pItem->key)!=0) )
                   {
                     fprintf(stderr,YELLOW "HashMap: Hash collision on binary search.. reverting to slow serial search..\n" NORMAL);
                     return hashMap_FindIndexSerialWithPrecomputedHash(hm,key,keyHash,index);
@@ -288,89 +310,53 @@ int hashMap_BSearch(struct hashMap* hm,const char *  key , unsigned long keyHash
 int hashMap_Add(struct hashMap * hm,const char * key,void * val,unsigned int valLength)
 {
   if (!hashMap_IsOK(hm)) { fprintf(stderr,YELLOW "HashMap: Cannot add something to an uninitialized hashmap..\n" NORMAL);  return 0; }
-  int clearToAdd=1;
+  if (key==0) { fprintf(stderr,YELLOW "HashMap: Cannot add an entry without a key..\n" NORMAL);  return 0; }
+  if ( (valLength!=0) && (val==0) ) { fprintf(stderr,YELLOW "HashMap: Cannot copy %u bytes from a null payload..\n" NORMAL,valLength);  return 0; }
 
-    #if HASHMAP_BE_THREAD_SAFE
-       pthread_mutex_lock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
-    #endif // HASHMAP_BE_THREAD_SAFE
+  //Allocate everything before taking the lock , so failures need no unwinding of the hashmap
+  unsigned int keyLength = strlen(key);
+  char * newKey = (char *) malloc(sizeof(char) * (keyLength+1) );
+  if (newKey==0) { fprintf(stderr,"HashMap: While Adding a new key to hashmap , could not allocate key\n"); return 0; }
+  memcpy(newKey,key,keyLength+1);
 
+  void * newPayload = val; //valLength==0 : We store and serve direct pointers! :)
+  if (valLength!=0)
+  {
+    newPayload = malloc(sizeof(char) * valLength);
+    if (newPayload==0)
+    {
+      fprintf(stderr,"HashMap: While Adding a new key to hashmap , couldn't allocate payload\n");
+      free(newKey);
+      return 0;
+    }
+    memcpy(newPayload,val,valLength);
+  }
+
+  HM_LOCK(hm); // LOCK PROTECTED OPERATION -------------------------------------------
 
   if (hm->curNumberOfEntries >= hm->maxNumberOfEntries)
   {
     if  (!hashMap_Grow(hm,hm->entryAllocationStep))
     {
-      fprintf(stderr,YELLOW "HashMap: Could not grow new hashmap for adding new values" NORMAL);
-      clearToAdd = 0;
+      HM_UNLOCK(hm);
+      fprintf(stderr,YELLOW "HashMap: Could not grow new hashmap for adding new values\n" NORMAL);
+      free(newKey);
+      if (valLength!=0) { free(newPayload); }
+      return 0;
     }
   }
 
-  if (clearToAdd)
-  {
-    if (hm->entries==0) { fprintf(stderr,"HashMap: While Adding a new key to hashmap , entries not allocated"); return 0; }
-
-    unsigned int our_index=hm->curNumberOfEntries++;
-    if (hm->entries[our_index].key!=0)
-    {
-     fprintf(stderr,"HashMap: While Adding a new key to hashmap , entry was not clean");
-     free(hm->entries[our_index].key);
-     hm->entries[our_index].key=0;
-    }
-
-    hm->entries[our_index].index=our_index;
-
-    if (key!=0)
-    {
-     hm->entries[our_index].key = (char *) malloc(sizeof(char) * (strlen(key)+1) );
-     if (hm->entries[our_index].key == 0)
-         {
-           --hm->curNumberOfEntries;
-
-             #if HASHMAP_BE_THREAD_SAFE
-              pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
-             #endif // HASHMAP_BE_THREAD_SAFE
-
-             fprintf(stderr,"HashMap: While Adding a new key to hashmap , could not allocate key");
-           return 0;
-         }
-     hm->entries[our_index].keyLength = strlen(key);
-     hm->entries[our_index].keyHash = hashFunction(key);
-     strncpy(hm->entries[our_index].key , key , hm->entries[our_index].keyLength);
-     hm->entries[our_index].key[strlen(key)]=0; //Force null termination
-    }
-
-    if (valLength==0)
-    {
-      //We store and serve direct pointers! :)
-      hm->entries[our_index].payload = val;
-      hm->entries[our_index].payloadLength = 0;
-    } else
-    {
-      hm->entries[our_index].payload = (void *) malloc(sizeof(char) * (valLength) );
-      if (hm->entries[our_index].payload == 0)
-      {
-        if (hm->entries[our_index].key!=0 ) { free(hm->entries[our_index].key); }
-        hm->entries[our_index].key=0;
-        --hm->curNumberOfEntries;
-        fprintf(stderr,"HashMap: While Adding a new key to hashmap , couldn't allocate payload");
-
-          #if HASHMAP_BE_THREAD_SAFE
-           pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
-          #endif // HASHMAP_BE_THREAD_SAFE
-      }
-      memcpy(hm->entries[our_index].payload,val,valLength);
-      hm->entries[our_index].payloadLength = valLength;
-    }
-
-    //fprintf(stderr,"Added %s => %p ( %u ) \n",hm->entries[our_index].key,hm->entries[our_index].payload,hm->entries[our_index].payload);
-
-  }
+  struct hashMapEntry * entry = &hm->entries[hm->curNumberOfEntries++];
+  entry->keyHash       = hashFunction(key);
+  entry->keyLength     = keyLength;
+  entry->key           = newKey;
+  entry->payloadLength = valLength;
+  entry->payload       = newPayload;
+  entry->hits          = 0;
 
   hm->isSorted=0;
 
-
-  #if HASHMAP_BE_THREAD_SAFE
-   pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
-  #endif // HASHMAP_BE_THREAD_SAFE
+  HM_UNLOCK(hm); // LOCK PROTECTED OPERATION -------------------------------------------
 
   return 1;
 }
@@ -386,29 +372,31 @@ int hashMap_AddULong(struct hashMap * hm,const char * key,unsigned long val)
 int hashMap_PrepareForQueries(struct hashMap *hm)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
+  if (!hm->useSorting)   { return 1;} //Nothing to prepare
 
+  HM_LOCK(hm);
   if (!hm->isSorted)
   {
-     hashMap_Sort(hm);
+     hashMap_SortUnlocked(hm);
   }
+  HM_UNLOCK(hm);
 
 return 1;
 }
 
 
 
-
-int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index)
+//Caller must hold hm_addLock , *index is used as a hint and receives the result
+static int hashMap_FindIndexUnlocked(struct hashMap * hm,const char * key,unsigned long * index)
 {
-  if (!hashMap_IsOK(hm)) { return 0;}
-  if ( (!hm->isSorted) && (hm->useSorting) ) { hashMap_PrepareForQueries(hm); }
+  if ( (!hm->isSorted) && (hm->useSorting) ) { hashMap_SortUnlocked(hm); }
 
   unsigned long keyHash = hashFunction(key);
 
-  //Maybe the index was the answer all along
+  //Maybe the index was the answer all along ( the hash alone is not enough , different keys can share a hash )
   if (*index< hm->curNumberOfEntries)
   {
-    if ( hm->entries[*index].keyHash == keyHash )
+    if ( (hm->entries[*index].keyHash == keyHash) && (hm->entries[*index].key!=0) && (strcmp(key,hm->entries[*index].key)==0) )
     {
      ++hm->entries[*index].hits;
      return 1;
@@ -427,6 +415,16 @@ int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index
   return 0;
 }
 
+int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index)
+{
+  if (!hashMap_IsOK(hm)) { return 0;}
+  if ( (key==0) || (index==0) ) { return 0;}
+  HM_LOCK(hm);
+  int result = hashMap_FindIndexUnlocked(hm,key,index);
+  HM_UNLOCK(hm);
+  return result;
+}
+
 
 
 
@@ -435,15 +433,14 @@ int hashMap_FindIndex(struct hashMap * hm,const char * key,unsigned long * index
 int hashmap_SwapRecords(struct hashMap * hm , unsigned int index1,unsigned int index2)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
-  if (index1 >= hm->curNumberOfEntries ) { return 0; }
-  if (index2 >= hm->curNumberOfEntries ) { return 0; }
+  HM_LOCK(hm);
+  if ( (index1 >= hm->curNumberOfEntries ) || (index2 >= hm->curNumberOfEntries ) ) { HM_UNLOCK(hm); return 0; }
 
-  struct hashMapEntry * buf= (struct hashMapEntry *) malloc(sizeof(struct hashMapEntry));
-  if (buf==0) { return 0; }
-  memcpy(buf,                   &hm->entries[index1] , sizeof(struct hashMapEntry));
-  memcpy(&hm->entries[index1] , &hm->entries[index2] , sizeof(struct hashMapEntry));
-  memcpy(&hm->entries[index2] , buf                 , sizeof(struct hashMapEntry));
-  free(buf);
+  struct hashMapEntry buf  = hm->entries[index1];
+  hm->entries[index1]      = hm->entries[index2];
+  hm->entries[index2]      = buf;
+  if (index1!=index2) { hm->isSorted=0; }
+  HM_UNLOCK(hm);
   return 1;
 }
 
@@ -463,28 +460,36 @@ unsigned long hashMap_GetHashAtIndex(struct hashMap * hm,unsigned int index)
   return hm->entries[index].keyHash;
 }
 
-int hashMap_GetPayload(struct hashMap * hm,const char * key,void * payload)
+int hashMap_GetPayload(struct hashMap * hm,const char * key,void ** payload)
 {
+  if (!hashMap_IsOK(hm)) { return 0;}
+  if ( (key==0) || (payload==0) ) { return 0;}
+  int result=0;
   unsigned long i=0;
-  if (hashMap_FindIndex(hm,key,&i))
+  HM_LOCK(hm);
+  if (hashMap_FindIndexUnlocked(hm,key,&i))
     {
-        fprintf(stderr,"HashMap: Payload was pointing to %p and now it is pointing to ",payload);
-        payload = hm->entries[i].payload;
-        fprintf(stderr,"%p \n",payload);
-       return 1;
+       *payload = hm->entries[i].payload;
+       result=1;
     }
-  return 0;
+  HM_UNLOCK(hm);
+  return result;
 }
 
 int hashMap_GetULongPayload(struct hashMap * hm,const char * key,unsigned long * payload)
 {
+  if (!hashMap_IsOK(hm)) { return 0;}
+  if ( (key==0) || (payload==0) ) { return 0;}
+  int result=0;
   unsigned long i=*payload;
-  if (hashMap_FindIndex(hm,key,&i))
+  HM_LOCK(hm);
+  if (hashMap_FindIndexUnlocked(hm,key,&i))
      {
        *payload = (unsigned long) hm->entries[i].payload;
-      return 1;
+       result=1;
      }
-  return 0;
+  HM_UNLOCK(hm);
+  return result;
 }
 
 void * hashMap_GetPayloadAtIndex(struct hashMap * hm,unsigned int index,unsigned int * payloadLength)
@@ -498,13 +503,13 @@ void * hashMap_GetPayloadAtIndex(struct hashMap * hm,unsigned int index,unsigned
 int hashMap_RemoveKey(struct hashMap * hm,const char * key)
 {
   if (!hashMap_IsOK(hm)) { return 0; }
+  if (key==0) { return 0; }
 
+  unsigned long keyHash = hashFunction(key);
   unsigned long index=0;
-  if (!hashMap_FindIndexSerial(hm,key,&index)) { return 0; } //Serial on purpose - correct even if isSorted is stale
 
-    #if HASHMAP_BE_THREAD_SAFE
-       pthread_mutex_lock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
-    #endif // HASHMAP_BE_THREAD_SAFE
+  HM_LOCK(hm); // LOCK PROTECTED OPERATION - the lookup must be inside the lock or the index can go stale before we use it
+  if (!hashMap_FindIndexSerialWithPrecomputedHash(hm,key,keyHash,&index)) { HM_UNLOCK(hm); return 0; } //Serial on purpose - correct even if isSorted is stale
 
   void ( *hashMapClearCallback) ( void * )=0 ;
   hashMapClearCallback = hm->clearItemCallbackFunction;
@@ -520,9 +525,7 @@ int hashMap_RemoveKey(struct hashMap * hm,const char * key)
   --hm->curNumberOfEntries;
   hm->isSorted=0; //Swap-with-last compaction breaks sort order, same as hashMap_Add() already does on insert
 
-    #if HASHMAP_BE_THREAD_SAFE
-       pthread_mutex_unlock (&hm->hm_addLock); // LOCK PROTECTED OPERATION -------------------------------------------
-    #endif // HASHMAP_BE_THREAD_SAFE
+  HM_UNLOCK(hm); // LOCK PROTECTED OPERATION -------------------------------------------
 
   return 1;
 }
@@ -536,17 +539,22 @@ int hashMap_ContainsKey(struct hashMap * hm,const char * key)
 int hashMap_ContainsValue(struct hashMap * hm,void * val)
 {
   if (!hashMap_IsOK(hm)) { return 0;}
+  int result=0;
   unsigned int i=0;
+  HM_LOCK(hm);
   while ( i < hm->curNumberOfEntries )
   {
-    if ( hm->entries[i].payload == val ) { return 1; }
+    if ( hm->entries[i].payload == val ) { result=1; break; }
     ++i;
   }
-  return 0;
+  HM_UNLOCK(hm);
+  return result;
 }
 
 int hashMap_Print(struct hashMap * hm,const char * title)
 {
+  if (!hashMap_IsOK(hm)) { return 0;}
+  HM_LOCK(hm);
   fprintf(stderr,"Hash map %s Printout -----------------------------------\n",title);
   unsigned int i=0;
   for (i=0; i<hm->curNumberOfEntries; i++)
@@ -554,6 +562,7 @@ int hashMap_Print(struct hashMap * hm,const char * title)
    fprintf(stderr,"#%u - %s => %lu \n",i,hm->entries[i].key , (unsigned long) hm->entries[i].payload);
   }
   fprintf(stderr,"---------------------------------------------------------\n");
+  HM_UNLOCK(hm);
   return 1;
 }
 
@@ -571,6 +580,7 @@ int hashMap_SaveToFile(struct hashMap * hm,const char * filename)
   unsigned int zero=0;
   if (pFile!=0)
    {
+    HM_LOCK(hm); //Entries must not be reallocated/removed while we are writing them out
     unsigned int i=0;
 
     char uintsize=sizeof(hm->entries[0].keyLength);
@@ -595,9 +605,9 @@ int hashMap_SaveToFile(struct hashMap * hm,const char * filename)
 
          ++i;
        }
+     HM_UNLOCK(hm);
 
-     fclose (pFile);
-     result=1;
+     if (fclose(pFile)==0) { result=1; }
     }
 
   #if HASHMAP_BE_THREAD_SAFE
@@ -658,6 +668,7 @@ int hashMap_Test(int useSorting)
 
  hashMap_PrepareForQueries(hm);
 
+ unsigned int errors=0;
  unsigned long payload=0;
  for (i=0; i<20; i++)
  {
@@ -666,12 +677,11 @@ int hashMap_Test(int useSorting)
      testName[1]='a'+i;
      testName[2]='a'+i;
      testName[3]=0;
-     hashMap_GetULongPayload(hm,testName,&payload);
-     if (payload!=20-i)
-     { fprintf(stderr,"Error with %s value %lu instead of %u\n",testName,payload,20-i); }
+     if ( (!hashMap_GetULongPayload(hm,testName,&payload)) || (payload!=20-i) )
+     { fprintf(stderr,"Error with %s value %lu instead of %u\n",testName,payload,20-i); ++errors; }
  }
 
  hashMap_Destroy(hm);
- return 1;
+ return (errors==0);
 }
 

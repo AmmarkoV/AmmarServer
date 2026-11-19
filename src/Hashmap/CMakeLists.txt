@@ -4,7 +4,7 @@ cmake_minimum_required( VERSION 3.10 )
 # Extend cmake's module path
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODULE_PATH})
    
-set(CMAKE_C_FLAGS "-fPIC ")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 
 add_library(HashmapDynamic SHARED hashmap.c hashmap.h)
 add_library(Hashmap STATIC  hashmap.c hashmap.h)  
