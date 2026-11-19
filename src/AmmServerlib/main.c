@@ -457,7 +457,8 @@ struct AmmServer_Instance * AmmServer_StartWithArgs(const char * name ,
     if ((strcmp(argv[i],"-templatedir")==0)&&(argcUI>i+1)) { snprintf(templates_root,MAX_FILE_PATH,"%s",argv[i+1]);     fprintf(stderr,"Setting web template directory to %s \n",templates_root); } else
     if ((strcmp(argv[i],"-conf")==0)&&(argcUI>i+1))        { snprintf(configuration_file,MAX_FILE_PATH,"%s",argv[i+1]); fprintf(stderr,"Reading Configuration file %s \n",configuration_file); } else
     if ((strcmp(argv[i],"-sslcert")==0)&&(argcUI>i+1))     { snprintf(sslCert,MAX_FILE_PATH,"%s",argv[i+1]);            fprintf(stderr,"SSL certificate set to %s \n",sslCert); } else
-    if ((strcmp(argv[i],"-sslkey")==0)&&(argcUI>i+1))      { snprintf(sslKey,MAX_FILE_PATH,"%s",argv[i+1]);             fprintf(stderr,"SSL private key set to %s \n",sslKey); }
+    if ((strcmp(argv[i],"-sslkey")==0)&&(argcUI>i+1))      { snprintf(sslKey,MAX_FILE_PATH,"%s",argv[i+1]);             fprintf(stderr,"SSL private key set to %s \n",sslKey); } else
+    if (strcmp(argv[i],"--nobanlist")==0)                  { banlist_disable(); AmmServer_Warning("--nobanlist : IP bans are DISABLED for this process ( nothing enforced , no strikes , db/autoban untouched ) - for testing only\n"); }
    }
   }
 

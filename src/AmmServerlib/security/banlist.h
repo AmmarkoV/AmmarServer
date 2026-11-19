@@ -21,4 +21,8 @@ int banlist_signalMalicious(const char * ip);
 /** @brief 1 if resource is something only a vulnerability scanner asks for ( e.g. /wp-login.php , /.env ) , in any directory */
 int banlist_isScannerProbe(const char * resource);
 
+/** @brief --nobanlist : treat every IP as exempt for the rest of this process ( no bans enforced , no strikes counted ,
+*         BANLIST_SHARED_FILE is neither read nor written ). Meant for multi-IP tests , call before clients are served. */
+void banlist_disable();
+
 #endif // BANLIST_H_INCLUDED

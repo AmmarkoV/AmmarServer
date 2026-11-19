@@ -1,5 +1,6 @@
 #include "account.h"
 #include <stdio.h>
+#include <string.h>
 
 #include "../../CSVParser/csvparse.h"
 #include "../../InputParser/InputParser_C.h"
@@ -46,10 +47,14 @@ int readAccountList(struct accountList * acc,const char * filename)
          {
            //Labels..
          } else
-         if (i<MAXIMUM_NUMBER_OF_ACCOUNTS)
+         if (accNumber>=MAXIMUM_NUMBER_OF_ACCOUNTS)
          {
-          accNumber = lineCounter;
-          account = &acc->account[accNumber];
+           fprintf(stderr,"Ignoring account on line %u , only %u accounts fit ( MAXIMUM_NUMBER_OF_ACCOUNTS )\n",lineCounter,MAXIMUM_NUMBER_OF_ACCOUNTS);
+         } else
+         {
+          //Accounts are packed from index 0 ( line 0 is the labels ) so numberOfAccounts below counts exactly the filled ones
+          account = &acc->account[accNumber++];
+          memset(account,0,sizeof(struct accountObject));
 
           for (i=0; i<csvParser_GetNumberOfFields(csvParser); i++)
           {

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <strings.h> /* strcasecmp */
 #include "device.h"
 
 #include "utilities.h"
@@ -79,8 +80,10 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
   //---------------------------------------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------
+  //Columns : serial|class|privatekey|publickey|friendlyname|accounts ( see db/pushService.devices.default )
   unsigned int lineCounter=0;
-  unsigned int i;
+  unsigned int i,c;
+  dl->numberOfDevices=0;
 
   struct CSVParser *  csvParser = csvParserCreate("|",1);
   if (csvParser!=0)
@@ -96,40 +99,50 @@ int readDeviceAuthorizationList(struct deviceList * dl,const char * filename)
          {
            //Labels..
          } else
-         if (i<MAXIMUM_NUMBER_OF_ACCOUNTS)
+         if (dev>=MAXIMUM_NUMBER_OF_DEVICES)
          {
-          accNumber = lineCounter;
-          account = &acc->account[accNumber];
+           fprintf(stderr,"Ignoring device on line %u , only %u devices fit ( MAXIMUM_NUMBER_OF_DEVICES )\n",lineCounter,MAXIMUM_NUMBER_OF_DEVICES);
+         } else
+         {
+          //Devices are packed from index 0 , zeroed = never contacted ( lastContact==0 ) until the first heartbeat
+          struct deviceObject * device = &dl->device[dev++];
+          memset(device,0,sizeof(struct deviceObject));
+          device->deviceClass=DEVICE_THERMOMETER; //Every real device in the static list is a thermometer
+          snprintf(device->email,512,EMAIL_LIST_BIO);
 
           for (i=0; i<csvParser_GetNumberOfFields(csvParser); i++)
           {
-           if (csvParser_GetField(csvParser,i))
+           const char * field = csvParser_GetField(csvParser,i);
+           if (field)
            {
              switch (i)
              {
-               case 0: snprintf(account->accountUsername,32,"%s",csvParser_GetField(csvParser,i)); break;
-               case 1: snprintf(account->accountPassword,32,"%s",csvParser_GetField(csvParser,i)); break;
-               case 2: snprintf(account->email,512,"%s",csvParser_GetField(csvParser,i));          break;
-               case 3: fprintf(stderr,"NoSerial %u/%u : %s\n",lineCounter,i,csvParser_GetField(csvParser,i));   break;
+               case 0: snprintf(device->deviceID,32,"%s",field);          break;
+               case 1: //Known class names ( deviceClassName[] ) map directly , board names like animalNano stay a thermometer
+                       for (c=0; c<NUMBER_OF_DEVICE_CLASSES; c++)
+                         { if (strcasecmp(field,deviceClassName[c])==0) { device->deviceClass=(char) c; } }
+                       break;
+               case 2: snprintf(device->devicePrivateKey,32,"%s",field);  break;
+               case 3: snprintf(device->devicePublicKey,32,"%s",field);   break;
+               case 4: snprintf(device->deviceLabel,32,"%s",field);       break;
+               case 5: /*accounts : no per-device field for it yet*/       break;
              }
-             fprintf(stderr,"!!LINE %u/FIELD %u : %s\n",lineCounter,i,csvParser_GetField(csvParser,i));
            }
           }
-
          }
 
          ++lineCounter;
        }
       csvParser_StopParsingFile(csvParser);
-      fprintf(stderr,"Successfully finished reading accounts ..\n");
-      acc->numberOfAccounts=accNumber;
+      fprintf(stderr,"Successfully finished reading devices ..\n");
+      dl->numberOfDevices=dev;
       csvParserDestroy(csvParser);
       return 1;
     } else
-    { fprintf(stderr,"Could not open accounts csv file..\n"); }
+    { fprintf(stderr,"Could not open devices csv file..\n"); }
     csvParserDestroy(csvParser);
   } else
-  { fprintf(stderr,"Could not allocate accounts csvParser object..\n"); }
+  { fprintf(stderr,"Could not allocate devices csvParser object..\n"); }
   //---------------------------------------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------
   //---------------------------------------------------------------------------------------------------

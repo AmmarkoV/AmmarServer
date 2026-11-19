@@ -33,6 +33,12 @@ static pthread_mutex_t banMutex = PTHREAD_MUTEX_INITIALIZER;
 static struct stat loadedFileState;
 static int loadedFileStateValid=0;
 static time_t lastReload=0;
+static int banlistDisabled=0; //--nobanlist , set once at startup before any client thread exists
+
+void banlist_disable()
+{
+  banlistDisabled=1;
+}
 
 int executeBanlist(const char * filename)
 {
@@ -42,6 +48,7 @@ int executeBanlist(const char * filename)
 
 static int isExempt(const char * ip)
 {
+  if (banlistDisabled) { return 1; } //Every IP is exempt : nothing is checked , counted , or read from/written to BANLIST_SHARED_FILE
   if ( (ip==0) || (ip[0]==0) ) { return 1; }
   if (strcmp(ip,"0.0.0.0")==0) { return 1; } //getSocketIPAddress() result when getpeername() fails
   if (strncmp(ip,"127.",4)==0) { return 1; }
