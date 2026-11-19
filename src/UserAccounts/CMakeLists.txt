@@ -13,6 +13,11 @@ add_library(UserAccounts STATIC  userAccounts.c userAccounts.h userAccountsWeb.c
 add_executable(ammarserver_passwd ammarserver_passwd.c)
 target_link_libraries(ammarserver_passwd UserAccounts)
 set_target_properties(ammarserver_passwd PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
+#Command line tool to add a new user
+add_executable(ammarserver_adduser ammarserver_adduser.c)
+target_link_libraries(ammarserver_adduser UserAccounts)
+set_target_properties(ammarserver_adduser PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
  
      set_target_properties(UserAccountsDynamic PROPERTIES 
                           DEBUG_POSTFIX "D"
