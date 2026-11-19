@@ -121,10 +121,12 @@ binaries land next to their sources. Run `testHashMap` from the repository
 root, since its injection test reads `src/Services/MyURL/myurl.html`.
 
 `run_tests.sh` builds and runs `testHashMap` ( into `build/tests/` ) together
-with the Hashmap and CSVParser regression suites ( `src/Hashmap/testhashmap`,
-`src/CSVParser/testcsv` ) before the Python modules, on a full run only. Each
-logs to `build/tests/logs/<name>.log`, and any failure makes the runner exit
-non-zero. `UserAccountsTester` ( a long-running server ) and `libevent/` are
+with each library's regression suite before the Python modules, on a full run
+only : Hashmap , CSVParser , AmmCaptcha , UserAccounts , AmmClient and
+BasicImaging ( C programs next to their sources ) , and FileToString ,
+StringEscapeFile , StringRecognizer and AmmMessages ( `test*.sh` scripts next
+to their sources ) - the list is `C_UNIT_TESTS` in `run_tests.sh`. Each logs to
+`build/tests/logs/<name>.log`, and any failure makes the runner exit non-zero. `UserAccountsTester` ( a long-running server ) and `libevent/` are
 not pass/fail tests and are not run.
 
 `load/` contains the manual stress/DoS scripts (`siege_trial.sh`,

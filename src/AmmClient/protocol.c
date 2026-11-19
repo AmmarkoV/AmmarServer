@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <string.h>
+#include <strings.h> /* strncasecmp */
 
 #include <poll.h>
 
@@ -106,6 +107,9 @@ int AmmClient_SendFileInternal(
   bufferAfterSize = snprintf(bufferAfterFile,BUFFERSIZE,"Content-Disposition: form-data; name=\"submit\"\r\n\r\n1");
 
 
+  //snprintf returns what it would have written , sending that many bytes from a truncated buffer read past it
+  if ( (bufferBeforeSize>=BUFFERSIZE) || (bufferAfterSize>=BUFFERSIZE) ) { fprintf(stderr,"AmmClient_SendFile : form or file name too long\n"); return 0; }
+
   unsigned int contentLength = bufferBeforeSize + boundarySize + 4 + filecontentSize + boundarySize + 6 + bufferAfterSize + boundarySize + 8;
 
 
@@ -115,6 +119,7 @@ int AmmClient_SendFileInternal(
   //the caller wants keepAlive we have to say so or the reply is followed by a
   //close and our next send() gets an ECONNRESET.
   int headerSize = snprintf(header,BUFFERSIZE,"POST %s HTTP/1.1\r\nHost: %s\r\nUser-Agent: AmmClient/%s\r\nAccept: */*\r\nContent-Length: %u\r\nContent-Type: multipart/form-data; boundary=%s\r\nConnection: %s\r\n\r\n",URI,instance->ip,AmmClientVersion,contentLength,boundary,(keepAlive)?"keep-alive":"close");
+  if ( (headerSize<0) || (headerSize>=BUFFERSIZE) ) { fprintf(stderr,"AmmClient_SendFile : URI too long\n"); return 0; }
 
   //Send everything..
   ++steps; success+=AmmClient_SendInternal(instance,header,headerSize,keepAlive);
@@ -133,27 +138,30 @@ int AmmClient_SendFileInternal(
 
 
 
+//content must be terminated at contentSize ( the receive loops below keep it so ). A response is complete once its
+//headers have ended and Content-Length body bytes followed them. This used to measure the header only up to the
+//Content-Length value ( so any header after it made a download stop early , truncated ) , matched the header name
+//case-sensitively , and never finished a Content-Length: 0 response.
 int isFileDownloadComplete(const char * content,unsigned int contentSize)
 {
- //fprintf(stderr," Content (%u bytes) : %s \n" ,contentSize , content);
-  char * contentLengthStr=strstr(content,"Content-Length:");
-  if (contentLengthStr!=0)
-  {
-      contentLengthStr+=16;
-      unsigned int contentLength = atoi(contentLengthStr);
-      //fprintf(stderr,YELLOW " Content Length = %u  \n" NORMAL , contentLength );
-      if (contentLength!=0)
-      {
-        unsigned int headerSize = contentLengthStr - content;
+  const char * endOfHeaders = strstr(content,"\r\n\r\n");
+  if (endOfHeaders==0) { return 0; }
+  unsigned int headerSize = (unsigned int) (endOfHeaders - content) + 4;
 
-        if (headerSize+contentLength <= contentSize)
-              {
-                //fprintf(stderr,GREEN " File fully downloaded ( %u header + %u content = %u we have )\n" NORMAL , headerSize , contentLength , contentSize);
-                return 1;
-              }
-      }
+  const char * line = strstr(content,"\r\n"); //Skip the status line
+  while ( (line!=0) && (line<endOfHeaders) )
+  {
+    line+=2;
+    if (strncasecmp(line,"Content-Length:",15)==0)
+    {
+      char * end=0;
+      unsigned long contentLength = strtoul(line+15,&end,10);
+      if (end==line+15) { return 0; } //No number
+      return ( (unsigned long) headerSize + contentLength <= contentSize );
+    }
+    line = strstr(line,"\r\n");
   }
-  //fprintf(stderr,RED " File not fully downloaded\n" NORMAL );
+  //No Content-Length : the response ends when the server closes the connection
  return 0;
 }
 
@@ -170,7 +178,7 @@ int AmmClient_RecvFileInternalClean(
                                    )
 {
      unsigned int bytesReceived=0;
-     memset(filecontent,0,strlen(filecontent));
+     filecontent[0]=0; //Kept terminated at bytesReceived from here on , isFileDownloadComplete() relies on it
      unsigned int doneReceiving=0;
 
      usleep(MICROSECONDS_TO_WAIT_FOR_RESPONSE);
@@ -180,7 +188,7 @@ int AmmClient_RecvFileInternalClean(
        /* Upon successful completion, recv() shall return the length of the message in bytes.
         If no messages are available to be received and the peer has performed an orderly shutdown,
         recv() shall return 0.*/
-       int result = recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-bytesReceived, 0);
+       int result = recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-1-bytesReceived, 0);
        if (result == 0 ) {
                             fprintf(stderr,".");
                             doneReceiving=1;
@@ -191,11 +199,11 @@ int AmmClient_RecvFileInternalClean(
                            return 0;
                          } else
                          {
-                           bytesReceived+=result;
+                           bytesReceived+=result; filecontent[bytesReceived]=0;
                            //fprintf(stderr,GREEN" Received %u more bytes ( total %u ) \n" NORMAL , result , bytesReceived);
                          }
 
-       if (bytesReceived>=*filecontentSize) { doneReceiving=1;}
+       if (bytesReceived+1>=*filecontentSize) { doneReceiving=1;} //Full , the last byte is the terminator
        if (isFileDownloadComplete(filecontent,bytesReceived)) {  *filecontentSize = bytesReceived; return 1; }
 
      }
@@ -220,7 +228,7 @@ int AmmClient_RecvFileInternalFast(
                       )
 {
      unsigned int bytesReceived=0;
-     memset(filecontent,0,strlen(filecontent));
+     filecontent[0]=0; //Kept terminated at bytesReceived from here on , isFileDownloadComplete() relies on it
      unsigned int doneReceiving=0;
      unsigned int connectionHalted=0;
      int result =0;
@@ -251,7 +259,7 @@ int AmmClient_RecvFileInternalFast(
                         doneReceiving=1;
                      break;
                      default:
-                       result=recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-bytesReceived, 0);
+                       result=recv(instance->clientSocket, filecontent+bytesReceived, *filecontentSize-1-bytesReceived, 0);
                        recvCalled=1;
                      break;
                    }
@@ -271,11 +279,11 @@ int AmmClient_RecvFileInternalFast(
                            return 0;
                           } else
                           {
-                           bytesReceived+=result;
+                           bytesReceived+=result; filecontent[bytesReceived]=0;
                            //fprintf(stderr,GREEN" Received %u more bytes ( total %u ) \n" NORMAL , result , bytesReceived);
                           }
 
-        if (bytesReceived>=*filecontentSize) { doneReceiving=1;}
+        if (bytesReceived+1>=*filecontentSize) { doneReceiving=1;} //Full , the last byte is the terminator
 
         if (isFileDownloadComplete(filecontent,bytesReceived))
           {
@@ -305,23 +313,18 @@ int AmmClient_RecvFileInternal(
                        int reallyFastImplementation
                       )
 {
- int requestSize = snprintf(filecontent,*filecontentSize,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept: */*\r\n",URI,instance->ip);
- int remainingSize = *filecontentSize - requestSize;
- if (remainingSize<4)
+ if ( (instance==0) || (URI==0) || (filecontent==0) || (filecontentSize==0) ) { return 0; }
+ //HTTP/1.1 keeps connections open unless told otherwise , so a request that does not want keep-alive has to say
+ //Connection: close ( it used to say nothing , and also ended its headers with one blank line too many )
+ int requestSize = snprintf(filecontent,*filecontentSize,"GET %s HTTP/1.1\r\nHost: %s\r\nAccept: */*\r\nConnection: %s\r\n\r\n",
+                            URI,instance->ip,(keepAlive) ? "keep-alive" : "close");
+ if ( (requestSize<0) || ((unsigned int) requestSize+2 > *filecontentSize) )
   {
       fprintf(stderr,"AmmClient_RecvFileInternal not enough memory for performing a request..");
       return 0;
   }
 
- if ( (keepAlive) && (remainingSize>27) )
- {
-   strncat(filecontent,"Connection: keep-alive\r\n\r\n",remainingSize);
- } else
- {
-   strncat(filecontent,"\r\n\r\n",remainingSize);
- }
-
- if (AmmClient_Send(instance,filecontent,strlen(filecontent),keepAlive))
+ if (AmmClient_Send(instance,filecontent,(unsigned int) requestSize,keepAlive))
  {
    if (reallyFastImplementation)
     {

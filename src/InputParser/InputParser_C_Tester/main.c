@@ -96,6 +96,76 @@ static int SelfTests()
     InputParser_Destroy(ipc);
   }
 
+  /* GetWordChar checked pos against token_start+length , so it read past the token ( and the string ) */
+  {
+    struct InputParserC * ipc=InputParser_Create(8,1);
+    InputParser_SetDelimeter(ipc,0,' ');
+    char * heapCopy=strdup("aaaa bbbb");
+    InputParser_SeperateWords(ipc,heapCopy,1);
+    free(heapCopy);
+    SELFTEST_CHECK(InputParser_GetWordChar(ipc,1,3)=='b',"GetWordChar inside the token");
+    SELFTEST_CHECK(InputParser_GetWordChar(ipc,1,4)==0,"GetWordChar just past the token returns 0");
+    SELFTEST_CHECK(InputParser_GetWordChar(ipc,1,7)==0,"GetWordChar far past the token returns 0");
+    InputParser_Destroy(ipc);
+  }
+
+  /* GetWordInt overflowed int ( undefined ) on more than 10 digits , it now saturates , in-range values are unchanged */
+  {
+    struct InputParserC * ipc=InputParser_Create(8,1);
+    InputParser_SetDelimeter(ipc,0,' ');
+    InputParser_SeperateWords(ipc,"99999999999999999999 -99999999999999999999 2147483647 -2147483648 12-34 000000000000042",1);
+    SELFTEST_CHECK(InputParser_GetWordInt(ipc,0)==2147483647,"GetWordInt saturates huge positives");
+    SELFTEST_CHECK(InputParser_GetWordInt(ipc,1)==(-2147483647-1),"GetWordInt saturates huge negatives");
+    SELFTEST_CHECK(InputParser_GetWordInt(ipc,2)==2147483647,"GetWordInt INT_MAX");
+    SELFTEST_CHECK(InputParser_GetWordInt(ipc,3)==(-2147483647-1),"GetWordInt INT_MIN");
+    SELFTEST_CHECK(InputParser_GetWordInt(ipc,4)==-1234,"GetWordInt keeps its lenient parsing");
+    SELFTEST_CHECK(InputParser_GetWordInt(ipc,5)==42,"GetWordInt long run of leading zeros");
+    InputParser_Destroy(ipc);
+  }
+
+  /* ClearNonCharacters tested the wrong byte while compacting , keeping control bytes and dropping real ones */
+  {
+    char text[]="a\x01\x02" "bc\x7f\xce\xb1\t";
+    InputParser_ClearNonCharacters(text,sizeof(text)-1);
+    SELFTEST_CHECK(strcmp(text,"abc\x7f\xce\xb1")==0,"ClearNonCharacters removes only bytes below space");
+    char allControl[]="\x01\x02\x03";
+    InputParser_ClearNonCharacters(allControl,3);
+    SELFTEST_CHECK(allControl[0]==0,"ClearNonCharacters on only control bytes leaves an empty string");
+  }
+
+  /* A null parser used to segfault , and "" used to match a token that doesn't exist */
+  {
+    char word[8];
+    SELFTEST_CHECK(InputParser_GetWordLength(0,0)==0,"null parser GetWordLength");
+    SELFTEST_CHECK(InputParser_GetWord(0,0,word,sizeof(word))==0,"null parser GetWord");
+    SELFTEST_CHECK(InputParser_SeperateWords(0,"a b",1)==0,"null parser SeperateWords");
+    SELFTEST_CHECK(InputParser_GetDelimeter(0,0)==0,"null parser GetDelimeter");
+    InputParser_SetDelimeter(0,0,' ');
+    InputParser_Destroy(0);
+
+    struct InputParserC * ipc=InputParser_Create(8,1);
+    InputParser_SetDelimeter(ipc,0,' ');
+    InputParser_SeperateWords(ipc,"Hello world",1);
+    SELFTEST_CHECK(InputParser_WordCompareAuto(ipc,5,"")==0,"empty word does not match a missing token");
+    SELFTEST_CHECK(InputParser_WordCompareNoCaseAuto(ipc,5,"")==0,"empty word does not match a missing token ( no case )");
+    SELFTEST_CHECK(InputParser_WordCompareNoCaseAuto(ipc,1,"WORLD")==1,"case-insensitive compare still works");
+    SELFTEST_CHECK(InputParser_GetDelimeter(ipc,-1)==0,"negative delimiter index is rejected");
+    InputParser_Destroy(ipc);
+  }
+
+  /* toupper/tolower got plain ( possibly negative ) chars , which is undefined for bytes >= 0x80 */
+  {
+    struct InputParserC * ipc=InputParser_Create(8,1);
+    InputParser_SetDelimeter(ipc,0,' ');
+    InputParser_SeperateWords(ipc,"\xce\xb1" "Bc",1);
+    char word[8];
+    SELFTEST_CHECK(InputParser_GetUpcaseWord(ipc,0,word,sizeof(word))==4,"GetUpcaseWord with high bytes");
+    SELFTEST_CHECK(strcmp(word,"\xce\xb1" "BC")==0,"GetUpcaseWord leaves high bytes alone");
+    SELFTEST_CHECK(InputParser_GetLowercaseWord(ipc,0,word,sizeof(word))==4,"GetLowercaseWord with high bytes");
+    SELFTEST_CHECK(strcmp(word,"\xce\xb1" "bc")==0,"GetLowercaseWord leaves high bytes alone");
+    InputParser_Destroy(ipc);
+  }
+
   #undef SELFTEST_CHECK
 
   if (errors) { printf("InputParser self tests FAILED (%d)\n",errors); return 1; }

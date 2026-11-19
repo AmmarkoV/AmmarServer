@@ -1,5 +1,6 @@
 #include "InputParser_C.h"
 #include <math.h>
+#include <limits.h>
 /* InputParser..
    A small generic library for parsing a string and tokenizing it!
    GITHUB Repo : http://github.com/AmmarkoV/InputParser
@@ -73,27 +74,16 @@ char * InputParserC_Version()
 
 int InputParser_ClearNonCharacters(char * inpt , unsigned int length)
 {
-   unsigned int skip_chars=0;
-   unsigned int i=0;
-   while  (i<length)
+   if (inpt==0) { return 0; }
+   /*Compact in place , keeping every character from space up. The old shifting loop tested the character at
+     the write position instead of the one being moved in , so it kept some control bytes and dropped real ones ,
+     and treated bytes >= 0x80 ( negative as char ) as control characters*/
+   unsigned int readPos=0,writePos=0;
+   for (readPos=0; (readPos<length) && (inpt[readPos]!=0); readPos++)
     {
-       if (inpt[i]<' ') /*The characters before space should be filtered*/
-        {
-          ++skip_chars;
-        }
-
-        if (skip_chars>0)
-        {
-           if (i+skip_chars>=length)
-             {
-                inpt[i]=0;
-             } else
-             {
-                inpt[i]=inpt[i+skip_chars];
-             }
-        }
-      ++i;
+      if ( (unsigned char) inpt[readPos] >= ' ' ) { inpt[writePos++]=inpt[readPos]; }
     }
+   while (writePos<readPos) { inpt[writePos++]=0; }
    return 1;
 }
 
@@ -158,14 +148,17 @@ int InputParser_TrimCharacters(char * inpt , unsigned int length,char what2trim)
 static inline signed int Str2Int_internal(char * inpt,unsigned int start_from,unsigned int length)
 {
     if ( inpt == 0 ) { fprintf(stderr,"Null string to Str2IntInternal!\n"); return 0;}
-    int intresult;
-    int multiplier;
+    //Accumulated in long long and saturated at INT_MAX/INT_MIN : with int , more than 10 digits overflowed ( undefined )
+    const long long limit = (long long) INT_MAX + 1; //Magnitude of INT_MIN
+    long long intresult;
+    long long multiplier;
     int curnum;
+    unsigned char saturated;
     unsigned char trailing_sign_seek;
     unsigned char positive_number;
     signed int i;
 
-    intresult=0,multiplier=1,curnum=0;
+    intresult=0,multiplier=1,curnum=0,saturated=0;
     trailing_sign_seek=1 , positive_number=1;
     /*fprintf(stderr,"Converting to int string (%p) begining from %u and ending at %u ",inpt,start_from,start_from+length);*/
     for (i=(signed int) start_from+length-1; i>=(signed int) start_from; i--)
@@ -175,8 +168,12 @@ static inline signed int Str2Int_internal(char * inpt,unsigned int start_from,un
         curnum=(char) (inpt[i])-'0';
         if ((curnum>=0)&&(curnum<=9))
         {
-            intresult=intresult+(multiplier*curnum);
-            multiplier=multiplier*10;
+            if (multiplier>=limit) { if (curnum!=0) { saturated=1; } } else //A non-zero digit past int range
+            {
+              intresult=intresult+(multiplier*curnum);
+              if (intresult>limit) { saturated=1; }
+              multiplier=multiplier*10; //Stops growing once it reaches limit , so it never overflows
+            }
         }
 
       if (trailing_sign_seek)
@@ -187,14 +184,20 @@ static inline signed int Str2Int_internal(char * inpt,unsigned int start_from,un
        }
     }
 
-    if (!positive_number) { intresult = intresult * (-1); }
-    return intresult;
+    if (positive_number)
+    {
+      if ( (saturated) || (intresult>INT_MAX) ) { return INT_MAX; }
+      return (signed int) intresult;
+    }
+    if ( (saturated) || (intresult>limit) ) { return INT_MIN; }
+    return (signed int) (-intresult);
 }
 
 
 
 static inline unsigned char CheckIPCOk(struct InputParserC * ipc)
 {
+    if ( ipc == 0 ) { return 0; } //Every public call goes through here , a null parser used to segfault
     if ( ipc->guardbyte1.checksum != ipc->guardbyte2.checksum ) { fprintf(stderr,"Input Parser - Wrong GuardChecksums #1\n"); return 0; }
     if ( ipc->guardbyte3.checksum != ipc->guardbyte4.checksum ) { fprintf(stderr,"Input Parser - Wrong GuardChecksums #2\n"); return 0; }
     if ( ipc->guardbyte1.checksum != ipc->guardbyte4.checksum ) { fprintf(stderr,"Input Parser - Wrong GuardChecksums #3\n"); return 0; }
@@ -347,7 +350,8 @@ void InputParser_Destroy(struct InputParserC * ipc)
 */
 static inline unsigned char CheckDelimeterNumOk(struct InputParserC * ipc,int num)
 {
-    if ( ipc->max_delimeter_count <= num ) return 0;
+    if ( CheckIPCOk(ipc) == 0 ) return 0;
+    if ( (num<0) || ( ipc->max_delimeter_count <= num ) ) return 0;
     return 1;
 }
 
@@ -455,13 +459,14 @@ unsigned int InputParser_GetWord(struct InputParserC * ipc,unsigned int num,char
 unsigned char InputParser_WordCompareNoCase(struct InputParserC * ipc,unsigned int num,const char * word,unsigned int wordsize)
 {
     /*fprintf(stderr,"InputParser_WordCompareNoCase( %u , %s , %u )",num,word,wordsize);*/
+    if ( CheckWordNumOk(ipc,num) == 0 ) { return 0; } //A missing token is length 0 , so "" used to match it
     if ( wordsize != InputParser_GetWordLength(ipc,num) ) { return 0; }
     /*if (  ipc->str_length <= ipc->tokenlist[num].token_start+wordsize ) { fprintf(stderr,"Erroneous input on InputParser_WordCompareNoCase leads out of array \n"); return 0; }*/
 
     unsigned int i=0;
     for ( i=0; i<wordsize; i++ )
     {
-      if (toupper(ipc->str[ipc->tokenlist[num].token_start+i])!=toupper(word[i])) { /*fprintf(stderr," returning fail ");*/  return 0; }
+      if (toupper((unsigned char) ipc->str[ipc->tokenlist[num].token_start+i])!=toupper((unsigned char) word[i])) { /*fprintf(stderr," returning fail ");*/  return 0; }
     }
 
     /*fprintf(stderr," returning success ");*/
@@ -487,6 +492,7 @@ unsigned char InputParser_WordCompareNoCaseAuto(struct InputParserC * ipc,unsign
 */
 unsigned char InputParser_WordCompare(struct InputParserC * ipc,unsigned int num,const char * word,unsigned int wordsize)
 {
+    if ( CheckWordNumOk(ipc,num) == 0 ) { return 0; } //A missing token is length 0 , so "" used to match it
     if ( wordsize != InputParser_GetWordLength(ipc,num) ) { return 0; }
     /*if (  ipc->str_length <= ipc->tokenlist[num].token_start+wordsize ) { fprintf(stderr,"Erroneous input on InputParser_WordCompareNoCase leads out of array \n"); return 0; }*/
 
@@ -521,7 +527,7 @@ unsigned int InputParser_GetUpcaseWord(struct InputParserC * ipc,unsigned int nu
 
     unsigned int i=0;
     for ( i = ipc->tokenlist[num].token_start; i<ipc->tokenlist[num].token_start+ipc->tokenlist[num].length; i++ )
-    wheretostore[i-ipc->tokenlist[num].token_start] = toupper(ipc->str[i]);
+    wheretostore[i-ipc->tokenlist[num].token_start] = toupper((unsigned char) ipc->str[i]);
 
     wheretostore[ipc->tokenlist[num].length] = 0;
 
@@ -539,7 +545,7 @@ unsigned int InputParser_GetLowercaseWord(struct InputParserC * ipc,unsigned int
 
     unsigned int i=0;
     for ( i = ipc->tokenlist[num].token_start; i<ipc->tokenlist[num].token_start+ipc->tokenlist[num].length; i++ )
-    wheretostore[i-ipc->tokenlist[num].token_start] = tolower(ipc->str[i]);
+    wheretostore[i-ipc->tokenlist[num].token_start] = tolower((unsigned char) ipc->str[i]);
 
     wheretostore[ipc->tokenlist[num].length] = 0;
 
@@ -555,7 +561,7 @@ char InputParser_GetWordChar(struct InputParserC * ipc,unsigned int num,unsigned
 {
     if ( CheckWordNumOk(ipc,num) == 0 ) { return 0; }
 
-    if ( pos>=ipc->tokenlist[num].token_start+ipc->tokenlist[num].length ) { return 0; }
+    if ( pos>=ipc->tokenlist[num].length ) { return 0; } //pos is inside the token , comparing it with token_start+length read past it
 
     return ipc->str[ipc->tokenlist[num].token_start + pos ];
 }

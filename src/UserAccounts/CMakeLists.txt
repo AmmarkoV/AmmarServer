@@ -18,6 +18,10 @@ set_target_properties(ammarserver_passwd PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${
 add_executable(ammarserver_adduser ammarserver_adduser.c)
 target_link_libraries(ammarserver_adduser UserAccounts)
 set_target_properties(ammarserver_adduser PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
+#Regression tests , work in a temporary directory only
+add_executable(testuseraccounts testUserAccounts.c userAccounts.c sha256.c)
+set_target_properties(testuseraccounts PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
  
      set_target_properties(UserAccountsDynamic PROPERTIES 
                           DEBUG_POSTFIX "D"

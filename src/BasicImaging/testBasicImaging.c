@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "basicImaging.h"
 #include "resize_internal.h"
@@ -155,6 +156,8 @@ static void testCodecRoundTrip()
     if (back!=0)
     {
       CHECK( (back->width==32) && (back->height==20) , "reloaded PZP has the right dimensions" );
+      //PZP is lossless : WritePZP pre-filtering on top of pzp.h's own USE_RLE predictor would come back wrong
+      CHECK( (back->channels==3) && (back->width==32) && (back->height==20) && (memcmp(back->pixels,src->pixels,32*20*3)==0) , "reloaded PZP has exactly the saved pixels" );
       BasicImaging_Free(&back);
     }
 
@@ -469,10 +472,97 @@ static void testResizeTimingSanity()
 }
 
 
+static void writeTempPPM(char * path,const char * header,const unsigned char * payload,size_t payloadSize,size_t padTo,unsigned char pad)
+{
+  strcpy(path,"/tmp/basicimagingppmXXXXXX.ppm"); //The decoder is chosen by extension
+  int fd = mkstemps(path,4);
+  FILE * fp = fdopen(fd,"wb");
+  fputs(header,fp);
+  if (payloadSize) { fwrite(payload,1,payloadSize,fp); }
+  for (size_t i=payloadSize; i<padTo; i++) { fputc(pad,fp); }
+  fclose(fp);
+}
+
+//PNM headers come straight from the ( possibly uploaded ) file
+static void testMaliciousPPM()
+{
+  char path[64];
+
+  //65536x21846 RGB is 4295098368 bytes : the 32 bit product wrapped to 131072 and fread() then overflowed the heap
+  writeTempPPM(path,"P6\n65536 21846\n255\n",0,0,200000,7);
+  CHECK( BasicImaging_Load(path)==0 , "PPM whose byte size does not fit is refused , no heap overflow" );
+  unlink(path);
+
+  //Truncated pixel data used to load as a full image with uninitialised memory in it
+  writeTempPPM(path,"P6\n100 100\n255\n",0,0,30,9);
+  CHECK( BasicImaging_Load(path)==0 , "truncated PPM is refused instead of returning uninitialised pixels" );
+  unlink(path);
+
+  writeTempPPM(path,"P6\n0 0\n255\n",0,0,0,0);
+  CHECK( BasicImaging_Load(path)==0 , "0x0 PPM is refused" );
+  unlink(path);
+
+  //"%u\n" after the maxval swallowed pixel bytes that look like whitespace
+  const unsigned char pixels[6] = { ' ','\n',7, 8,9,10 };
+  writeTempPPM(path,"P6\n2 1\n255\n",pixels,sizeof(pixels),0,0);
+  struct Image * img = BasicImaging_Load(path);
+  CHECK( (img!=0) && (img->width==2) && (img->height==1) , "PPM starting with whitespace-valued pixels loads" );
+  CHECK( (img!=0) && (img->pixels[0]==' ') && (img->pixels[1]=='\n') && (img->pixels[2]==7) && (img->pixels[5]==10) , "whitespace-valued pixels are read as pixels" );
+  BasicImaging_Free(&img);
+  unlink(path);
+
+  unsigned char gray[12]; for (unsigned int i=0; i<12; i++) { gray[i]=(unsigned char)(i*20); }
+  writeTempPPM(path,"P5\n# comment\n4 3\n255\n",gray,sizeof(gray),0,0);
+  img = BasicImaging_Load(path);
+  CHECK( (img!=0) && (img->channels==1) && (img->pixels[11]==220) , "ordinary P5 with a comment still loads" );
+  BasicImaging_Free(&img);
+  unlink(path);
+
+  CHECK( BasicImaging_New(70000,70000,3)==0 , "New() refuses a size that does not fit instead of wrapping" );
+}
+
+
+#if defined(USE_PZP_FILES) && USE_PZP_FILES
+#include "codecs/pzp.h"
+//A PZP whose header claims more external bytes per pixel than it decodes to : pzp.h validates only the internal
+//layout , and the image used to be sized from the external one ( 4x past the decoded buffer here )
+static void testMismatchedPZPLayout()
+{
+  char path[64];
+  strcpy(path,"/tmp/basicimagingpzpXXXXXX.pzp");
+  int fd = mkstemps(path,4);
+  if (fd<0) { CHECK(0,"could not create a temporary .pzp"); return; }
+  close(fd);
+
+  unsigned int w=16,h=8;
+  unsigned char plane[16*8];
+  for (unsigned int i=0; i<w*h; i++) { plane[i]=(unsigned char) i; }
+  unsigned char * buffers[1] = { plane };
+  //External : 4 channels @ 8 bit ( 4 bytes/pixel ) , internal : 1 channel @ 8 bit ( 1 byte/pixel )
+  CHECK( pzp_compress_combined(buffers,w,h,8,4,8,1,USE_COMPRESSION,NULL,0,path) , "wrote a .pzp with mismatched layouts" );
+  CHECK( BasicImaging_Load(path)==0 , "PZP whose external layout is bigger than its decoded data is refused" );
+  unlink(path);
+
+  //The same data with a consistent header still loads
+  strcpy(path,"/tmp/basicimagingpzpXXXXXX.pzp");
+  fd = mkstemps(path,4); close(fd);
+  CHECK( pzp_compress_combined(buffers,w,h,8,1,8,1,USE_COMPRESSION,NULL,0,path) , "wrote a consistent 1 channel .pzp" );
+  struct Image * img = BasicImaging_Load(path);
+  CHECK( (img!=0) && (img->channels==1) && (img->width==w) && (img->pixels[w*h-1]==(unsigned char)(w*h-1)) , "consistent 1 channel PZP loads" );
+  BasicImaging_Free(&img);
+  unlink(path);
+}
+#endif
+
+
 int main()
 {
   testResizeBasics();
   testBadInputsNeverCrash();
+  testMaliciousPPM();
+  #if defined(USE_PZP_FILES) && USE_PZP_FILES
+  testMismatchedPZPLayout();
+  #endif
   testCodecRoundTrip();
   testThumbnailFileFallback();
   testSaveJPEGToMemory();

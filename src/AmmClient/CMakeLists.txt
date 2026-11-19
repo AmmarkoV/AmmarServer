@@ -28,6 +28,11 @@ ENDIF(USE_OPENSSL)
     add_library(AmmClient STATIC ${AmmClient_INGREDIENTS} )
     target_link_libraries(AmmClient pthread rt ${AmmClient_LIBRARIES} ${OpenSSLParts})
 
+    #Regression tests , against a forked server on a free loopback port
+    add_executable(testammclient testAmmClient.c)
+    target_link_libraries(testammclient AmmClient)
+    set_target_properties(testammclient PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
 
 
     set_target_properties(AmmClient PROPERTIES 

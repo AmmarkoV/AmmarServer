@@ -45,6 +45,10 @@ int AmmClient_ReconnectInternal(
 {
     struct AmmClient_Internals * ctx = (struct AmmClient_Internals *) instance->internals;
 
+   //Every reconnection attempt used to create a new socket without closing the previous one ( one leaked
+   //descriptor per failed attempt , until the process ran out of them )
+   if (instance->socketOK) { close(instance->clientSocket); instance->socketOK=0; instance->connectionOK=0; }
+
    /*---- Create the socket. The three arguments are: ----*/
    /* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
    instance->clientSocket = socket(PF_INET, SOCK_STREAM, 0);
@@ -95,10 +99,9 @@ int AmmClient_CheckConnectionInternal(struct AmmClient_Instance * instance)
 
   if (ctx!=0)
   {
-   if ( (instance->failedReconnections>0) || (instance->socketOK) )
-     {
-       AmmClient_ReconnectInternal( instance , 0 );
-     }
+   //Always start from a fresh socket : one whose connect() failed can't be reused , and after a dead connection
+   //was closed ( socketOK=0 ) this used to call connect() on the closed descriptor
+   if (!AmmClient_ReconnectInternal( instance , 0 )) { ++instance->failedReconnections; return 0; }
 
 
    if ( connect(instance->clientSocket, (struct sockaddr *) &ctx->serverAddr, ctx->addr_size) < 0 )
@@ -120,7 +123,7 @@ int AmmClient_CheckConnectionInternal(struct AmmClient_Instance * instance)
 
 int AmmClient_CloseDeadConnectionIfNeeded(struct AmmClient_Instance * instance)
 {
- if (instance->connectionOK)
+ if ( (instance->connectionOK) || (instance->socketOK) ) //A socket that never connected has to be closed too
                      {
                        fprintf(stderr,RED "Closing previous dead connection\n" NORMAL);
                        close(instance->clientSocket);
@@ -154,6 +157,12 @@ int AmmClient_RecvInternal(struct AmmClient_Instance * instance,
                      AmmClient_CloseDeadConnectionIfNeeded(instance);
                      return 0;
                     } else
+   if ( (result == 0) && (*bufferSize>0) ) //The server closed the connection , it used to be reported as success
+                    {
+                      *bufferSize = 0;
+                      AmmClient_CloseDeadConnectionIfNeeded(instance);
+                      return 0;
+                    } else
                     {
                       //fprintf(stderr,GREEN "Recvd %u/%u bytes\n" NORMAL,result,*bufferSize);
                       *bufferSize = result;
@@ -178,29 +187,35 @@ int AmmClient_SendInternal(struct AmmClient_Instance * instance,
   {
    unsigned int tries=0;
    int result = 0;
+   unsigned int sent = 0;
 
    while (tries<5)
    {
-   result = send(instance->clientSocket,request,requestSize,MSG_WAITALL|MSG_NOSIGNAL);
+   //send() may take only part of the request ( e.g. when SO_SNDTIMEO expires ) , that used to count as success.
+   //MSG_WAITALL is a recv() flag and was dropped.
+   result = send(instance->clientSocket,request+sent,requestSize-sent,MSG_NOSIGNAL);
    ++tries;
 
    if (result < 0 ) {
                       fprintf(stderr,RED "Failed to Send error : %u\n" NORMAL,errno);
                       AmmClient_CloseDeadConnectionIfNeeded(instance);
                       AmmClient_CheckConnectionInternal(instance);
+                      sent=0; //A new connection gets the whole request again
                     } else
                     {
+                      sent+=(unsigned int) result;
                       if (tries>1)
                       {
                        fprintf(stderr,YELLOW "Try %u : "NORMAL,tries);
-                       fprintf(stderr,YELLOW "Sent %u/%u bytes\n" NORMAL,result,requestSize);
+                       fprintf(stderr,YELLOW "Sent %u/%u bytes\n" NORMAL,sent,requestSize);
                       }
 
-                      break;
+                      if (sent>=requestSize) { break; }
+                      if (result>0) { tries=0; } //Progress was made , keep going
                     }
    }
 
-   if (result < 0 ) { return 0; }
+   if (sent<requestSize) { return 0; }
 
    return 1;
   }
@@ -250,11 +265,13 @@ struct AmmClient_Instance * AmmClient_InitializeInternal(
 
 int AmmClient_CloseInternal(struct AmmClient_Instance * instance)
 {
- if (instance->clientSocket!=0)
+ if (instance==0) { return 0; }
+ if (instance->socketOK) //Was shutdown() only , the descriptor itself was never closed
    {
      shutdown(instance->clientSocket,SHUT_RDWR);
-     free(instance->internals);
+     close(instance->clientSocket);
    }
+ free(instance->internals); //Was only freed when the socket number happened to be non-zero
 
  free(instance);
 

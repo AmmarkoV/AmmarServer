@@ -28,8 +28,8 @@ if [ "$BUILD" = "1" ]; then
     echo "build/ is not configured, running cmake first"
     cmake -S "$REPO_ROOT" -B "$BUILD_DIR" || exit 1
   fi
-  echo "Building ammarserver, InputParser, Hashmap and CSVParser tests..."
-  cmake --build "$BUILD_DIR" --target ammarserver testinputparser testhashmap testcsv -j"$(nproc)" || exit 1
+  echo "Building ammarserver and the library tests..."
+  cmake --build "$BUILD_DIR" --target ammarserver testinputparser testhashmap testcsv FileToString StringEscapeFile testammcaptcha StringRecognizer testuseraccounts testammclient testbasicimaging -j"$(nproc)" || exit 1
   # testservice ( cookies , sessions , API mode ) is not a cmake target , see build_static.sh
   "$SCRIPT_DIR/build_static.sh" "$BUILD_DIR/tests" -O2 || exit 1
   # tests/unit/HashMapTester is only a cmake target with DO_TEST_COVERAGE , so build it here against the library
@@ -41,6 +41,14 @@ C_UNIT_TESTS=(
   "hashmap-regressions:$REPO_ROOT/src/Hashmap/testhashmap"
   "csvparser-regressions:$REPO_ROOT/src/CSVParser/testcsv"
   "unit-hashmap:$BUILD_DIR/tests/testHashMap"
+  "filetostring:$REPO_ROOT/src/FileToString/testFileToString.sh"
+  "stringescapefile:$REPO_ROOT/src/StringEscapeFile/testStringEscapeFile.sh"
+  "ammcaptcha:$REPO_ROOT/src/AmmCaptcha/testammcaptcha"
+  "stringrecognizer:$REPO_ROOT/src/StringRecognizer/testStringRecognizer.sh"
+  "useraccounts:$REPO_ROOT/src/UserAccounts/testuseraccounts"
+  "ammclient:$REPO_ROOT/src/AmmClient/testammclient"
+  "ammmessages:$REPO_ROOT/src/AmmMessages/testAmmMessages.sh"
+  "basicimaging:$REPO_ROOT/src/BasicImaging/testbasicimaging"
 )
 
 run_c_unit_tests() {

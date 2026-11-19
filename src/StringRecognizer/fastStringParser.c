@@ -17,34 +17,18 @@ char acceptedChars[]="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
 
 
 
+//Upper-cases letters , turns '-' and '.' into '_' , keeps digits and '_' , and drops everything else ( e.g. ':' ).
+//The old in-place loop only got a trailing ':' right , a character in the middle mangled the name ( "A:B" -> "ABB" )
 void convertTo_ENUM_ID(char *sPtr)
 {
-  unsigned int source=0 , target=0 , holdIt=0;
-
-  while ( (sPtr[source] != 0 ) && (sPtr[target] != 0 ) )
+  unsigned int source=0 , target=0;
+  for (source=0; sPtr[source]!=0; source++)
    {
-     sPtr[target] = toupper((unsigned char) sPtr[source]);
-
-     if  (sPtr[source]=='_')  {  } else
-     if  (sPtr[source]=='-')  { sPtr[target]='_'; } else
-     if  (sPtr[source]=='.')  { sPtr[target]='_'; } else
-     if  (
-              ( (sPtr[source]>='A') && (sPtr[source]<='Z' ) )  ||
-              ( (sPtr[source]>='0') && (sPtr[source]<='9' ) )
-         )
-     {
-       //Will just copy those chars as they are
-     } else
-     {
-       holdIt=1;
-      ++target;
-      sPtr[source]=sPtr[target];
-      ++target;
-     }
-
-    if (!holdIt) { ++source; ++target; }
-     holdIt=0;
+     unsigned char c = (unsigned char) toupper((unsigned char) sPtr[source]);
+     if ( (c=='-') || (c=='.') )                                    { sPtr[target++]='_'; } else
+     if ( (c=='_') || ( (c>='A')&&(c<='Z') ) || ( (c>='0')&&(c<='9') ) ) { sPtr[target++]=(char) c; }
    }
+  sPtr[target]=0;
 }
 
 
@@ -54,6 +38,12 @@ int fastStringParser_addString(struct fastStringParser * fsp, char * str)
   //TODO : Check here if there are smaller strings with the same prefix as us declared before
   //here if found then swap them with current word
 
+  if ( (fsp==0) || (str==0) ) { return 0; }
+  if (fsp->stringsLoaded >= fsp->MAXstringsLoaded) //contents[] has room for MAXstringsLoaded , more used to overflow it
+  {
+    fprintf(stderr,"Too many strings , only %u fit , cannot add `%s`\n",fsp->MAXstringsLoaded,str);
+    return 0;
+  }
 
   unsigned int ourNum = fsp->stringsLoaded++;
   fsp->contents[ourNum].strLength=strlen(str);
@@ -87,23 +77,30 @@ int fastStringParser_addString(struct fastStringParser * fsp, char * str)
     return 0;
   }
 
-  return 0;
+  return 1;
 }
 
 struct fastStringParser *  fastStringParser_initialize(unsigned int totalStrings)
 {
    fspHTTPHeader = (struct fastStringParser * ) malloc(sizeof( struct fastStringParser ));
    if (fspHTTPHeader== 0 ) { return 0; }
+   memset(fspHTTPHeader,0,sizeof(struct fastStringParser));
 
    fspHTTPHeader->stringsLoaded = 0;
    fspHTTPHeader->MAXstringsLoaded = totalStrings;
-   fspHTTPHeader->contents = (struct fspString * ) malloc(sizeof( struct fspString )*fspHTTPHeader->MAXstringsLoaded);
+   fspHTTPHeader->contents = (struct fspString * ) calloc(fspHTTPHeader->MAXstringsLoaded+1,sizeof( struct fspString ));
    fspHTTPHeader->shortestStringLength = 0;
    fspHTTPHeader->longestStringLength = 0;
 
-   if (fspHTTPHeader->contents== 0 ) { return 0; }
+   if (fspHTTPHeader->contents== 0 ) { free(fspHTTPHeader); fspHTTPHeader=0; return 0; }
 
   return fspHTTPHeader;
+}
+
+//Byte count of word i , and 0 past its terminator : comparing a prefix longer than a word used to read past its buffer
+static inline char wordCharAt(struct fastStringParser * fsp,unsigned int i,unsigned int position)
+{
+  return (position<=fsp->contents[i].strLength) ? fsp->contents[i].str[position] : 0;
 }
 
 
@@ -113,14 +110,10 @@ int fastStringParser_hasStringsWithNConsecutiveChars(struct fastStringParser * f
   unsigned int i=0,count = 0,correct=0;
   for (i=0; i<fsp->stringsLoaded; i++)
   {
-    char * str1 = fsp->contents[i].str;
-    char * str2 = Sequence;
     correct=0;
     for ( count=0; count<seqLength; count++ )
     {
-      if (*str1==*str2) { ++correct; }
-      ++str1;
-      ++str2;
+      if (wordCharAt(fsp,i,count)==Sequence[count]) { ++correct; }
     }
 
 
@@ -232,14 +225,10 @@ int printIfAllPossibleStrings(FILE * fp , struct fastStringParser * fsp , char *
   unsigned int i=0,count=0 , correct = 0 , results =0 ;
   for (i=0; i<fsp->stringsLoaded; i++)
   {
-    char * str1 = fsp->contents[i].str;
-    char * str2 = Sequence;
     correct=0;
     for ( count=0; count<seqLength; count++ )
     {
-      if (*str1==*str2) { ++correct; }
-      ++str1;
-      ++str2;
+      if (wordCharAt(fsp,i,count)==Sequence[count]) { ++correct; }
     }
 
     if ( correct == seqLength ) {
@@ -518,10 +507,12 @@ struct fastStringParser * fastSTringParser_createRulesFromFile(const char* filen
         }
 
     //fprintf(stderr,"LINE : `%s`\n",line);
-    fastStringParser_addString(fsp,line);
+    if (lineLength==0) { continue; } //A blank line would become an empty word with an empty enum name
+    if (!fastStringParser_addString(fsp,line)) { fclose(fp); fastStringParser_close(fsp); return 0; }
   }
   fclose(fp);
 
+  if (fsp->stringsLoaded==0) { fprintf(stderr,"No strings in %s\n",filename); fastStringParser_close(fsp); return 0; }
 
   return fsp;
 }
@@ -532,8 +523,20 @@ struct fastStringParser * fastSTringParser_createRulesFromFile(const char* filen
 
 int fastStringParser_close(struct fastStringParser * fsp)
 {
-
-    fprintf(stderr,"TODO: Deallocate here\nClosing Fast String Parser\n");
+    if (fsp==0) { return 0; }
+    unsigned int i=0;
+    if (fsp->contents!=0)
+    {
+      for (i=0; i<fsp->stringsLoaded; i++)
+      {
+        free(fsp->contents[i].str);
+        free(fsp->contents[i].strIDFriendly);
+      }
+      free(fsp->contents);
+    }
+    free(fsp->functionName);
+    if (fsp==fspHTTPHeader) { fspHTTPHeader=0; }
+    free(fsp);
     return 1;
 }
 

@@ -72,7 +72,10 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
   sinPart = (float) (k+i);
   sinPart = (float) sinPart/xp;
   res = (float) sin(sinPart)  * (float) scale * (float) amplitudeX;
-  bitBltImage(target, i-1 , (unsigned int) res ,
+  //Casting a negative float to unsigned is undefined. On x86 values in (-1,0) truncated to 0 and values <= -1
+  //became a huge offset that bitBltImage rejected , so doing exactly that keeps the same picture without the UB
+  if (res<=-1.0f) { continue; }
+  bitBltImage(target, i-1 , (res>0) ? (unsigned int) res : 0 ,
               target , i, 0 , 1  , (unsigned int) target->height * scale);
  }
 
@@ -85,7 +88,8 @@ int coolPHPWave(struct Image * target , unsigned int periodX,unsigned int period
   sinPart = (float) (k+i);
   sinPart = (float) sinPart/yp;
   res = (float) sin(sinPart) * scale * amplitudeY;
-  bitBltImage(target, (unsigned int) res , i-1 ,
+  if (res<=-1.0f) { continue; } //See above
+  bitBltImage(target, (res>0) ? (unsigned int) res : 0 , i-1 ,
               target , 0 , i , (unsigned int) target->width * scale , 1 );
  }
 

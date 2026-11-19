@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "ppmInput.h"
 
 #define PRINT_COMMENTS 1
@@ -92,43 +93,39 @@ unsigned char * ReadPNM(unsigned char * buffer ,const char * filename,unsigned i
         } while ( strncmp(buf, "#", 1) == 0 );
         z = sscanf(buf, "%u %u", &w, &h);
         if ( z < 2 ) { fclose(pf); fprintf(stderr,"Incoherent dimensions received %ux%u \n",w,h); return buffer; }
-        // The program fails if the first byte of the image is equal to 32. because
-        // the fscanf eats the space and the image is read with some bit less
-        r = fscanf(pf, "%u\n", &d);
+        // Exactly one whitespace byte separates maxval from the pixels. A "%u\n" format swallowed every following
+        // byte that looked like whitespace ( pixel values 9-13 , 32 ) , which the old "border case" fseek hack only
+        // half undid
+        r = fscanf(pf, "%u", &d);
         if (r < 1) { fprintf(stderr,"Could not understand how many bytesPerPixel there are on this image\n"); fclose(pf); return buffer; }
+        fgetc(pf);
         if (d==255) { *bytesPerPixel=1; }  else
         if (d==65535) { *bytesPerPixel=2; } else
                        { fprintf(stderr,"Incoherent payload received %u bits per pixel \n",d); fclose(pf); return buffer; }
 
-
-        //This is a super ninja hackish patch that fixes the case where fscanf eats one character more on the stream
-        //It could be done better  ( no need to fseek ) but this will have to do for now
-        //Scan for border case
-           unsigned long startOfBinaryPart = ftell(pf);
-           if ( fseek (pf , 0 , SEEK_END)!=0 ) { fprintf(stderr,"Could not find file size to cache client..!\nUnable to serve client\n"); fclose(pf); return 0; }
-           unsigned long totalFileSize = ftell (pf); //lSize now holds the size of the file..
-
-           //fprintf(stderr,"totalFileSize-startOfBinaryPart = %u \n",totalFileSize-startOfBinaryPart);
-           //fprintf(stderr,"bytesPerPixel*channels*w*h = %u \n",bytesPerPixel*channels*w*h);
-           if (totalFileSize-startOfBinaryPart < *bytesPerPixel*(*channels)*w*h )
-           {
-              fprintf(stderr," Detected Border Case\n\n\n");
-              startOfBinaryPart-=1;
-           }
-           if ( fseek (pf , startOfBinaryPart , SEEK_SET)!=0 ) { fprintf(stderr,"Could not find file size to cache client..!\nUnable to serve client\n"); fclose(pf); return 0; }
-         //-----------------------
-         //----------------------
+        //The size comes from the file , so compute it in size_t and refuse what struct Image ( unsigned int image_size )
+        //can't hold. It used to be an unsigned int product : 65536x21846 RGB wrapped to 128KB while fread() still
+        //asked for every pixel , a heap overflow from a small crafted file
+        size_t pixelCount = (size_t) w * (size_t) h;
+        size_t pixelBytes = (size_t) (*bytesPerPixel) * (*channels);
+        if ( (w==0) || (h==0) || (pixelCount > (size_t) UINT_MAX / pixelBytes) )
+           { fprintf(stderr,"Refusing PNM dimensions %ux%u\n",w,h); *bytesPerPixel=0; *channels=0; fclose(pf); return buffer; }
 
         *width=w; *height=h;
-        if (pixels==0) {  pixels= (unsigned char*) malloc(w*h*(*bytesPerPixel)*(*channels)*sizeof(char)); }
+        int allocatedHere = (pixels==0);
+        if (pixels==0) {  pixels= (unsigned char*) malloc(pixelCount*pixelBytes); }
 
         if ( pixels != 0 )
         {
-          size_t rd = fread(pixels,*bytesPerPixel*(*channels), w*h, pf);
-          if (rd < w*h )
+          size_t rd = fread(pixels,pixelBytes, pixelCount, pf);
+          if (rd < pixelCount )
              {
-               fprintf(stderr,"Note : Incomplete read while reading file %s (%u instead of %u)\n",filename,(unsigned int) rd, w*h);
-               fprintf(stderr,"Dimensions ( %u x %u ) , Depth %u bytes , Channels %u \n",w,h,*bytesPerPixel,*channels);
+               //A truncated file used to come back as a whole image with the rest of the buffer uninitialised
+               fprintf(stderr,"Incomplete read while reading file %s (%zu instead of %zu pixels)\n",filename,rd,pixelCount);
+               fclose(pf);
+               if (allocatedHere) { free(pixels); }
+               *width=0; *height=0;
+               return (allocatedHere) ? 0 : buffer;
              }
 
           fclose(pf);

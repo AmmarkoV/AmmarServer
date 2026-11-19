@@ -906,12 +906,22 @@ struct Image * createImageUsingExistingBuffer( unsigned int width , unsigned int
 
 
 struct Image * createImage( unsigned int width , unsigned int height , unsigned int channels , unsigned int bitsPerPixel)
-{                                                                   //channels *
-  unsigned char * pixels = ( unsigned char * ) malloc(width * height * channels * ((int) bitsPerPixel/8) * sizeof(unsigned char) );
+{
+  //size_t and checked : the unsigned int product used to wrap for large dimensions , giving a small buffer that every
+  //caller then filled as width*height*channels . struct Image keeps the size in an unsigned int , so that is the cap
+  size_t bytesPerPixel = (size_t) channels * (bitsPerPixel/8);
+  size_t pixelCount    = (size_t) width * height;
+  if ( (bytesPerPixel==0) || (pixelCount==0) || (pixelCount > (size_t) UINT_MAX / bytesPerPixel) )
+  {
+    fprintf(stderr,"Refusing to create a %ux%u image with %u channels of %u bits\n",width,height,channels,bitsPerPixel);
+    return 0;
+  }
+  size_t size = pixelCount * bytesPerPixel;
+  unsigned char * pixels = ( unsigned char * ) malloc(size);
   if (pixels!=0)
   {
    //We are very clean and we clear memory.. channels *
-   memset(pixels,0,width * height * channels * ((int) bitsPerPixel/8) * sizeof(unsigned char));
+   memset(pixels,0,size);
 
    struct Image * img = createImageUsingExistingBuffer(width , height , channels , bitsPerPixel , pixels);
    if (img!=0) { return img; }

@@ -80,7 +80,7 @@ int main(int argc,char ** argv)
   if (argc==3) { snprintf(database,sizeof(database),"%s",argv[2]); } else
   if (!defaultDatabasePath(database,sizeof(database))) { fprintf(stderr,"Could not find the user database , give its path\n"); return 1; }
 
-  //uadb_addUser does not report a failed save , so make sure the file ( or the directory it will be created in ) is writable first
+  //Check the file ( or the directory it will be created in ) is writable up front , for a clearer message than uadb_addUser's failed save
   int creating = (access(database,F_OK)!=0);
   if (creating)
   {

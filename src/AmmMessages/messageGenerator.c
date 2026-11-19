@@ -18,13 +18,14 @@
 
                          //    0                 1                    2                         3           4                5
                          // .MSG TYPE       REAL C TYPE         CONVERT TO STRING            printf type comparison         cast from string for comparison
-char * varTypesList[] = {   "int64"   , "unsigned long %s;\n" , "%s=atoi(%s);"               , "%lu"  ,  "%s==%s"          ,  "%s==atoi(%s)" ,
-                            "int32"   , "unsigned int %s;\n"  , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
-                            "int"     , "unsigned int %s;\n"  , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
+                         //The int types are signed , like in ROS ( they used to become unsigned , so -5 travelled as 4294967291 )
+char * varTypesList[] = {   "int64"   , "long %s;\n"          , "%s=atol(%s);"               , "%ld"  ,  "%s==%s"          ,  "%s==atol(%s)" ,
+                            "int32"   , "int %s;\n"           , "%s=atoi(%s);"               , "%d"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
+                            "int"     , "int %s;\n"           , "%s=atoi(%s);"               , "%d"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
                             "float"   , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",  "%s==%s"          ,  "%s==atof(%s)" ,
                             "float32" , "float %s;\n"         , "%s=atof(%s);"               , "%0.5f",  "%s==%s"          ,  "%s==atof(%s)" ,
                             "float64" , "double %s;\n"        , "%s=atof(%s);"               , "%f"   ,  "%s==%s"          ,  "%s==atof(%s)" ,
-                            "bool"    , "int %s;\n"           , "%s=atoi(%s);"               , "%u"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
+                            "bool"    , "int %s;\n"           , "%s=atoi(%s);"               , "%d"   ,  "%s==%s"          ,  "%s==atoi(%s)" ,
                             "string"  , "char %s[512];\n"     , "snprintf(%s,512,\"%%s\",%s);", "%s"  ,  "strcmp(%s,%s)==0",  "strcmp(%s,%s)==0" ,
                             //DONT FORGET TO UPDATE  varTypesListNumber
                             "fail"    , "fail"                , "fail"                        ,"fail" ,  "fail"            , "fail"
@@ -179,7 +180,8 @@ void writeGETScanf(
         if (typeExists(variableType))
         {
           char destination[256]={0};
-          snprintf(destination,256,"%sStatic.%s",functionName,variableID);
+          //Into the msg the caller passed : this used to write %sStatic , so readStateFromServer_X(instance,msg) never filled msg
+          snprintf(destination,256,"msg->%s",variableID);
 
           fprintf(fp," if ( strcmp(\"%s\",variableID)==0 )",variableID);
           fprintf(fp,"   {  \n");
@@ -250,12 +252,13 @@ void writeGETPrintf(
     {
      InputParser_GetWord(ipc,0,variableType,256);
      InputParser_GetWord(ipc,1,variableID,256);
-     fprintf(fp,"%s=",variableID);
      for (z=0; z<varTypesListNumber; z++)
      {
        if (strcasecmp(variableType,varTypesList[z*numberOfFields+0])==0)
          {
-              fprintf(fp,"%s&",varTypesList[z*numberOfFields+3]);
+              //Only fields with a known type go into the URL , unknown ones used to leave a bare "name=" that ran into
+              //the next field ( "joints2D=joints3D=timestamp=..." )
+              fprintf(fp,"%s=%s&",variableID,varTypesList[z*numberOfFields+3]);
               ++numberOfArguments;
          }
      }
@@ -484,9 +487,23 @@ char * strLastchr(char * input , char delim)
 }
 
 
+//The label ( after any directory part ) names C structs and functions , so it has to be a C identifier
+static int isCIdentifier(const char * name)
+{
+  if ( (name==0) || (name[0]==0) || ( (name[0]>='0') && (name[0]<='9') ) ) { return 0; }
+  const char * c;
+  for (c=name; *c; c++)
+  {
+    if ( !( ((*c>='a')&&(*c<='z')) || ((*c>='A')&&(*c<='Z')) || ((*c>='0')&&(*c<='9')) || (*c=='_') ) ) { return 0; }
+  }
+  return 1;
+}
+
 int compileMessage(const char * filename,char * label,const char * pathToMMap)
 {
+  if ( (filename==0) || (label==0) || (pathToMMap==0) ) { return 0; }
   struct fastStringParser * fsp = fastSTringParser_createRulesFromFile(filename,64);
+  if (fsp==0) { fprintf(stderr,"Could not read message definition %s\n",filename); return 0; } //Was dereferenced unchecked
 
   char *  functionName = label;
   char filenameWithExtension[MAXIMUM_FILENAME_WITH_EXTENSION+1]={0};
@@ -504,10 +521,12 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   //replaceChar(functionName,'/','_');
   //replaceChar(functionName,'\\','_');
   //replaceChar(functionName,'!','_');
+  if (!isCIdentifier(functionName))
+    { fprintf(stderr,"Message name `%s` has to be a C identifier ( letters , digits , _ )\n",functionName); fastStringParser_close(fsp); return 0; }
 
   unsigned int functionNameLength = strlen(functionName);
   fsp->functionName  = (char* ) malloc(sizeof(char) * (1+functionNameLength));
-  if (fsp->functionName==0) { fprintf(stderr,"Could not allocate memory for function name\n"); return 0; }
+  if (fsp->functionName==0) { fprintf(stderr,"Could not allocate memory for function name\n"); fastStringParser_close(fsp); return 0; }
   strncpy(fsp->functionName,functionName,functionNameLength);
   fsp->functionName[functionNameLength]=0;
 
@@ -522,7 +541,7 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(stderr,"File Output %s\n",filenameWithExtension);
 
   FILE * fp = fopen(filenameWithExtension,"wb");
-  if (fp == 0) { fprintf(stderr,"Could not open output file %s\n",functionName); return 0; }
+  if (fp == 0) { fprintf(stderr,"Could not open output file %s\n",functionName); fastStringParser_close(fsp); return 0; }
   fflush(fp);
   fprintf(fp,"/*\n *  @file %s.h\n",functionName);
   fprintf(fp," *  @brief A tool that generates code that can span messages across computers\n");
@@ -752,6 +771,7 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"empty_%s();\n",functionName);
   fprintf(fp,"snprintf(rqst->content,rqst->MAXcontentSize,\"<html><body>SUCCESS</body></html>\");\n");
   fprintf(fp,"rqst->contentSize=strlen(rqst->content);\n");
+  fprintf(fp,"return 0;\n"); //Was missing , the callback returns void* so falling off the end is undefined
   fprintf(fp,"}\n");
 
    writeServerWriterCallback(
@@ -905,8 +925,9 @@ int compileMessage(const char * filename,char * label,const char * pathToMMap)
   fprintf(fp,"#endif\n");
 
   fprintf(fp,"\n//AUTOGENERATEDAMMMESSAGEFILE\n");
-  fclose(fp);
-  return 1;
+  int written = (fclose(fp)==0);
+  fastStringParser_close(fsp);
+  return written;
 }
 
 

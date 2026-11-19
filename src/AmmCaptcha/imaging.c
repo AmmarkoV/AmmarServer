@@ -151,10 +151,12 @@ int AmmCaptcha_readPPM(struct Image * pic,char * filename,char read_only_header)
         } while ( strncmp(buf, "#", 1) == 0 );
         r = sscanf(buf, "%u %u", &w, &h);
         if ( r < 2 ) { fclose(pf); return 0; }
-        // The program fails if the first byte of the image is equal to 32. because
-        // the fscanf eats the space and the image is read with some bit less
-        r = fscanf(pf, "%u\n", &d);
+        // Exactly one whitespace byte separates the maxval from the pixels. A "%u\n" format used to swallow
+        // every following whitespace-looking byte ( 9-13 , 32 ) , so pixel data starting with one was misread
+        r = fscanf(pf, "%u", &d);
         if ( (r < 1) || ( d != 255 ) ) { fclose(pf); return 0; }
+        fgetc(pf);
+        if ( (w==0) || (h==0) || ( (size_t) w * h > ((size_t)-1) / 3 / 2 ) ) { fclose(pf); return 0; } //size_t below can't overflow
 
         pic->width=w;
         pic->height=h;
@@ -164,17 +166,20 @@ int AmmCaptcha_readPPM(struct Image * pic,char * filename,char read_only_header)
         if (read_only_header) { fclose(pf); return 1; }
 
       #if READ_CREATES_A_NEW_PIXEL_BUFFER
-	    pic->pixels = (unsigned char * ) malloc(pic->height * pic->width * 3 * sizeof(char));
-	    pic->image_size = pic->height * pic->width * 3 * sizeof(char);
+	    pic->pixels = (unsigned char * ) malloc((size_t) pic->height * pic->width * 3 * sizeof(char));
+	    pic->image_size = (size_t) pic->height * pic->width * 3 * sizeof(char);
 	  #endif
 
 
         if ( pic->pixels != 0 )
         {
-            size_t rd = fread(pic->pixels,3, w*h, pf);
+            size_t rd = fread(pic->pixels,3, (size_t) w*h, pf);
             fclose(pf);
-            if ( rd < w*h )
+            if ( rd < (size_t) w*h )
             {
+               #if READ_CREATES_A_NEW_PIXEL_BUFFER
+                free(pic->pixels); pic->pixels=0; //A truncated file would otherwise leak the buffer
+               #endif
                return 0;
             }
             return 1;

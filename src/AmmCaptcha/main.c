@@ -42,6 +42,12 @@ int RenderString(struct Image * frame ,struct Image * font, unsigned int x,  uns
   return 1;
 }
 
+//Without a loaded dictionary there is nothing to ask , and the % below would divide by zero ( SIGFPE kills the server )
+static int captchaReady()
+{
+    return ( (captchaStrings!=0) && (hashMap_GetCurrentNumberOfEntries(captchaStrings)>0) );
+}
+
 unsigned int convertExternalIDToInternal(unsigned int captchaID)
 {
     return captchaID % hashMap_GetCurrentNumberOfEntries(captchaStrings);
@@ -50,6 +56,7 @@ unsigned int convertExternalIDToInternal(unsigned int captchaID)
 
 int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 {
+   if ( (!captchaReady()) || (reply==0) ) { return 0; } //Fail closed , an uninitialized captcha accepts no replies
    if ( strcmp(reply,hashMap_GetKeyAtIndex(captchaStrings,convertExternalIDToInternal(captchaID))) == 0 )
    {
      //We have a winner!! , Lets make this captchaID invalid!
@@ -69,6 +76,7 @@ int AmmCaptcha_isReplyCorrect(unsigned int captchaID, char * reply)
 int AmmCaptcha_getCaptchaFrame(unsigned int captchaID, char *mem,unsigned long * mem_size)
 {
   int success=0;
+  if ( (!captchaReady()) || (mem==0) || (mem_size==0) ) { return 0; }
   //fprintf(stderr,"AmmCaptcha_getCaptchaFrame.. ");
   struct Image * captcha = AmmCaptcha_createImage(300,70,3);
   //fprintf(stderr," RenderString");
@@ -148,7 +156,8 @@ int AmmCaptcha_copyCaptchaJPEGImageWithCopy(unsigned int captchaID, char *mem,un
   char * captchaFrame = (char *) malloc(sizeof(char) * frameLength);
   if (captchaFrame!=0)
   {
-   AmmCaptcha_getCaptchaFrame(captchaID,captchaFrame,&frameLength);
+   //On failure frameLength is untouched , we used to copy that many uninitialized bytes back and report success
+   if (!AmmCaptcha_getCaptchaFrame(captchaID,captchaFrame,&frameLength)) { free(captchaFrame); return 0; }
    fprintf(stderr,"Copying back %lu bytes of captcha.jpg\n",frameLength);
    memcpy(mem,captchaFrame,sizeof(char) * frameLength);
    fprintf(stderr,"Survived , marking frameLength as %lu \n",frameLength);
@@ -165,23 +174,24 @@ int AmmCaptcha_copyCaptchaJPEGImageWithCopy(unsigned int captchaID, char *mem,un
 
 int AmmCaptcha_loadDictionary(char * dictFilename)
 {
- captchaStrings = hashMap_Create(32889,1000,0,0 /*does not require sorting..!*/);
- if (captchaStrings==0) { fprintf(stderr,"Could not loadDictionary %s \n",dictFilename); return 0; }
+ if (captchaStrings!=0) { hashMap_Destroy(captchaStrings); captchaStrings=0; } //Reloading must not leak the old one
+ if (dictFilename==0) { return 0; }
  FILE *fd=0;
  fd = fopen(dictFilename,"r");
- if (fd!=0)
- {
+ if (fd==0) { fprintf(stderr,"Could not loadDictionary %s \n",dictFilename); return 0; }
+
+ captchaStrings = hashMap_Create(32889,1000,0,0 /*does not require sorting..!*/);
+ if (captchaStrings==0) { fprintf(stderr,"Could not loadDictionary %s \n",dictFilename); fclose(fd); return 0; }
+
   char str[256]={0};
-  while (!feof(fd))
+  //Width-limited ( %s overflowed str on long words ) , and looping on fscanf's result instead of feof() stops the
+  //last word from being added twice when the file ends with a newline
+  while (fscanf(fd, "%255s", str)==1)
   {
-    int scanres=fscanf(fd, "%s", str);
-    if (scanres!=1) { fprintf(stderr,"Failed to read dictionary item..\n"); }
     hashMap_Add(captchaStrings,str,0,0);
   }
   fclose(fd);
   return 1;
- }
- return 0;
 }
 
 
@@ -189,6 +199,7 @@ int AmmCaptcha_loadDictionary(char * dictFilename)
 int AmmCaptcha_initialize(char * font,char * dictFilename)
 {
   int retres=0;
+  if (fontRAW.pixels!=0) { free(fontRAW.pixels); memset(&fontRAW,0,sizeof(fontRAW)); } //Re-initializing must not leak the old font
   if (font==0) { retres=AmmCaptcha_readPPM(&fontRAW,"font.ppm",0); } else
                { retres=AmmCaptcha_readPPM(&fontRAW,font,0); }
   if (!retres) { fprintf(stderr,"Could not read font for captcha system\n"); return 0; }
@@ -201,10 +212,12 @@ int AmmCaptcha_initialize(char * font,char * dictFilename)
 int AmmCaptcha_destroy()
 {
   hashMap_Destroy(captchaStrings);
+  captchaStrings=0; //Later calls see "not initialized" instead of a freed hashmap
 
   //Font RAW is a stack variable , do not destroy it!
   //destroyImage(&fontRAW);
-  if(fontRAW.pixels!=0) { free(fontRAW.pixels); fontRAW.pixels=0; }
+  if(fontRAW.pixels!=0) { free(fontRAW.pixels); }
+  memset(&fontRAW,0,sizeof(fontRAW));
   return 1;
 }
 

@@ -219,7 +219,7 @@ struct Image * BasicImaging_New(unsigned int width,unsigned int height,unsigned 
   if ( (width==0) || (height==0) || (channels==0) ) { return 0; }
 
   struct Image * img = createImage(width,height,channels,8);
-  if (img!=0) { img->image_size = width*height*channels; } //createImage()/populateImage() never set this themselves
+  if (img!=0) { img->image_size = (unsigned int) ((size_t) width*height*channels); } //createImage() refuses sizes past UINT_MAX , so this fits
   return img;
 }
 

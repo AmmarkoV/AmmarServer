@@ -38,6 +38,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/modules ${CMAKE_MODUL
                           RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                          )
 
+    #Regression tests , run from the repository root ( tests/run_tests.sh does )
+    add_executable(testammcaptcha testRegressions.c)
+    target_link_libraries(testammcaptcha AmmCaptcha Hashmap BasicImaging m pthread)
+    set_target_properties(testammcaptcha PROPERTIES
+                          RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                         )
+
 #    install(TARGETS AmmarServer
 #                    LIBRARY DESTINATION lib
 #                    ARCHIVE DESTINATION lib

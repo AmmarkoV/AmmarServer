@@ -17,26 +17,21 @@ char * strstrDoubleNewline(char * request,unsigned int requestLength,unsigned in
   if (requestLength==0)       { return request; }
   if (endOfLine==0)           { return request; }
 
-  char * ptrA=request;
-  char * ptrB=request+1;
-
-  char * ptrEnd = request + requestLength;
-
-  //fprintf(stderr,"\strstrDoubleNewline for 13 10 13 10 on a buffer with %u bytes of data : ",requestLength);
-   while (ptrB<ptrEnd)
+  //HTTP ends its headers with \r\n\r\n , this used to look for \n\n only ( which never occurs in an HTTP response , so
+  //the body was never found and whole responses were parsed ) , and returned the byte past any 0 it met as the "body"
+  unsigned int i=0;
+  for (i=0; i+1<requestLength; i++)
     {
-      if ( ( (*ptrA==10) && (*ptrB==10) ) || (*ptrA==0) )
+      if (request[i]==0) { break; } //End of data
+      unsigned int separator = 0;
+      if ( (request[i]==10) && (request[i+1]==10) ) { separator=2; } else
+      if ( (i+3<requestLength) && (request[i]==13) && (request[i+1]==10) && (request[i+2]==13) && (request[i+3]==10) ) { separator=4; }
+      if (separator)
         {
-         ++ptrB;
-
-         *ptrA=0; //Also make null terminated string..
-         *endOfLine = ptrA-request;
-
-         //fprintf(stderr,"done\n");
-         return ptrB;
+         request[i]=0; //Also make null terminated string..
+         *endOfLine = i;
+         return request+i+separator;
         }
-       //fprintf(stderr,"%c(%u) ",*ptrA,*ptrA);
-      ++ptrA;   ++ptrB;
     }
 
   //fprintf(stderr,"not found\n");
@@ -103,6 +98,7 @@ int initializeWritingBridge(struct bridgeContext * nbc ,const char * fileDescrip
     if (nbc->map == MAP_FAILED)
     {
         close(nbc->fd);
+        nbc->fd=-1; nbc->map=0; //A later close*Bridge() must not close or unmap these again
         perror("Error mmapping the file");
         return 0;
     }
@@ -124,6 +120,7 @@ int writeBridge(struct bridgeContext * nbc ,void * data , unsigned int dataSize 
     fprintf(stderr,"Cannot write to bridge , not properly initialized ..\n");
     return 0;
   }
+  if (dataSize>nbc->dataSize) { fprintf(stderr,"Cannot write %u bytes to a %zu byte bridge\n",dataSize,nbc->dataSize); return 0; } //Was unchecked
 
   //unsigned int offset = 0;
   void * mmapPtr = nbc->map;
@@ -163,24 +160,32 @@ if (nbc->mode==0)
 }
 
 
-int closeWritingBridge(struct bridgeContext * nbc)
+//Shared by both close calls : a bridge that was never ( successfully ) initialized has nothing to unmap , and its fd
+//is 0 after the memset in initialize*Bridge() , which used to close stdin
+static int closeBridge(struct bridgeContext * nbc)
 {
     if (nbc==0) { return 0; }
-
+    if (nbc->mode==0) { return 0; }
     nbc->mode=0;
 
+    int result=1;
     // Don't forget to free the mmapped memory
     if (munmap(nbc->map, nbc->dataSize) == -1)
     {
-        close(nbc->fd);
         perror("Error un-mmapping the file");
-        return 0;
+        result=0;
     }
 
     // Un-mmaping doesn't close the file, so we still need to do that.
     close(nbc->fd);
+    nbc->fd=-1;
+    nbc->map=0;
+   return result;
+}
 
-   return 1;
+int closeWritingBridge(struct bridgeContext * nbc)
+{
+   return closeBridge(nbc);
 }
 
 
@@ -215,10 +220,21 @@ int initializeReadingBridge(struct bridgeContext * nbc ,const char * fileDescrip
     nbc->dataSize = sizeOfBridgeMsg;
     printf("mmaping size is %ji\n", (intmax_t) nbc->dataSize);
 
+    //Touching a mapping past the end of the file is SIGBUS , and a smaller file ( an older message layout , or a
+    //writer that has not stretched it yet ) used to be mapped at the full size and read right away
+    struct stat fileState;
+    if ( (fstat(nbc->fd,&fileState)!=0) || ((uintmax_t) fileState.st_size < (uintmax_t) sizeOfBridgeMsg) )
+    {
+        fprintf(stderr,"Bridge file %s is smaller than the %u byte message , not mapping it\n",fileDescriptor,sizeOfBridgeMsg);
+        close(nbc->fd); nbc->fd=-1;
+        return 0;
+    }
+
     nbc->map = mmap(0, nbc->dataSize , PROT_READ, MAP_SHARED, nbc->fd, 0);
     if (nbc->map == MAP_FAILED)
     {
         close(nbc->fd);
+        nbc->fd=-1; nbc->map=0;
         perror("Error mmapping the file");
         return 0;
     }
@@ -257,6 +273,7 @@ int readBridge(struct bridgeContext * nbc,void * data , unsigned int dataSize )
     fprintf(stderr,"Cannot read from bridge , not properly initialized ..\n");
     return 0;
   }
+  if (dataSize>nbc->dataSize) { fprintf(stderr,"Cannot read %u bytes from a %zu byte bridge\n",dataSize,nbc->dataSize); return 0; } //Was unchecked
 
   if (nbc->map!=0)
   {
@@ -274,18 +291,7 @@ int readBridge(struct bridgeContext * nbc,void * data , unsigned int dataSize )
 
 int closeReadingBridge(struct bridgeContext * nbc)
 {
- if (nbc==0)             { return 0; }
-
- // Don't forget to free the mmapped memory
- if (munmap(nbc->map, nbc->dataSize) == -1)
-    {
-        close(nbc->fd);
-        perror("Error un-mmapping the file");
-        return 0;
-    }
-    // Un-mmaping doesn't close the file, so we still need to do that.
-    close(nbc->fd);
-    return 1;
+   return closeBridge(nbc);
 }
 
 
