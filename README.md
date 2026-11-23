@@ -11,43 +11,117 @@ https://www.openhub.net/p/AmmarServer
 
 One of the most basic philosophies behind this is to try to add as much functionality possible in a reusable way *WITHOUT* overly increasing loc and dependencies.. The biggest recent improvements have been actually trying to merge common functionality and reducing loc. 
 
+AmmarServer is a C library : a web service is a small C program that registers C callbacks as dynamic resources
+and lets the library handle sockets , HTTP parsing , caching , compression , sessions , logging and banning of
+misbehaving clients. A number of ready made [services](#services) are included.
+
+Videos of AmmarServer in action :
+-  [AmmarServer demo](https://youtu.be/vlwd5Ojf7Q0)
+-  [Hobbit EU Project](https://www.youtube.com/watch?v=41_8ktacxt8)
+-  [MyRemoteDesktop](https://www.youtube.com/watch?v=aqH25ocm-Tc)
+
+
+## Repository layout
+------------------------------------------------------------------
+
+| Path | What it contains |
+|---|---|
+| [src/AmmServerlib](src/AmmServerlib) | The AmmarServer library itself ( `libAmmarServer.a` / `libAmmarServer.so` ) , configured through [server_configuration.h](src/AmmServerlib/server_configuration.h) |
+| [src/AmmClient](src/AmmClient) | A small HTTP client library |
+| [src/Hashmap](src/Hashmap) , [src/InputParser](src/InputParser) , [src/CSVParser](src/CSVParser) | Support libraries used by the server and the services |
+| [src/UserAccounts](src/UserAccounts) | User accounts / logins ( plus the `ammarserver_adduser` and `ammarserver_passwd` tools ) |
+| [src/AmmCaptcha](src/AmmCaptcha) , [src/BasicImaging](src/BasicImaging) | Captcha generation and JPEG / PNG / thumbnail handling |
+| [src/ASVIO](src/ASVIO) | A Gradio like Python front end built on AmmarServer |
+| [src/StringRecognizer](src/StringRecognizer) , [src/StringEscapeFile](src/StringEscapeFile) , [src/FileToString](src/FileToString) , [src/AmmMessages](src/AmmMessages) | Code generation tools |
+| [src/Services](src/Services) | The web services , see [src/Services/README.md](src/Services/README.md) |
+| [tests](tests) | The test suite , see [tests/README.md](tests/README.md) |
+| [scripts](scripts) | Run scripts for every service , benchmarks , install / deployment helpers |
+| [public_html](public_html) | Default web root of the vanilla server |
+
 
 ## Building
 ------------------------------------------------------------------ 
 
 The projects build dependencies are the gcc compiler , pthreads , cmake and pretty basic things 
-so if you issue sudo apt-get install cmake build-essential  ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
+so if you issue `sudo apt-get install cmake build-essential` ( assuming a Debian/Ubuntu based system ) you should be able to compile it without problems..
 
-Compression is supported , so you might want to also apt-get install liblzma-dev if you [ENABLE_COMPRESSION at server_configuration.h](https://github.com/AmmarkoV/AmmarServer/blob/master/src/AmmServerlib/server_configuration.h#L163)
-MyURL Service needs libjpeg in order to [serve captchas](https://github.com/AmmarkoV/AmmarServer/tree/master/src/AmmCaptcha) , so to add it sudo apt-get install libjpeg-dev
+Optional dependencies :
+-  Compression is supported , so you might want to also `apt-get install liblzma-dev` if you [ENABLE_COMPRESSION at server_configuration.h](src/AmmServerlib/server_configuration.h)
+-  MyURL and V4L2ToHTTP need libjpeg in order to [serve captchas](src/AmmCaptcha) / images , so to add it `sudo apt-get install libjpeg-dev`
+-  HTTPS needs OpenSSL ( `sudo apt-get install libssl-dev` ) , MyRemoteDesktop needs X11 ( `sudo apt-get install libxt-dev` )
+-  `scripts/get_dependencies.sh` installs the usual set in one go
 
-To perform a compilation you just need to issue 
-"mkdir build && cd build &&  cmake .. && make" from the root directory
+To perform a compilation you just need to issue from the root directory
 
-This should try to compile all of the project files which you can then run using the scripts listed in the list below 
+    mkdir build && cd build && cmake .. && make
+
+This should compile the library , the support libraries and all of the services. The service binaries end up next to
+their sources ( e.g. `src/Services/AmmarServer/ammarserver` ) and are started with the scripts in `scripts/`.
+
+The build is hardened by default ( `-fstack-protector` , full RELRO , `-O2` ). Optional features are switched on
+with cmake options , e.g. `cmake -DUSE_OPENSSL=ON ..` :
+
+| Option | Default | What it does |
+|---|---|---|
+| `USE_OPENSSL` | OFF | HTTPS support ( required by Ammarflix ) |
+| `USE_LIBEVENT` | OFF | Use libevent as a threading mechanism |
+| `USE_XSERVER` | OFF | Build MyRemoteDesktop ( needs X11 ) |
+| `COMPILE_FOR_ARM` | OFF | Build for ARM / Raspberry Pi ( `-march=armv8-a` ) |
+| `USE_AMMMESSAGES` | OFF | Build AmmMessages for generating custom messages through http |
+| `DO_TEST_COVERAGE` | OFF | Build with [gcov](https://en.wikipedia.org/wiki/Gcov) coverage and the C unit testers |
 
 To update your version of the project you can use the provided script that updates directly from github
 It will remove any changes you have made to any of the files in the repository   
-./update_from_git from the root directory 
+`scripts/update_from_git.sh`
+
+### Writing your own service
+
+The best way to start is copying [src/Services/SimpleTemplate](src/Services/SimpleTemplate/main.c) , a very well
+documented template , into a new directory under `src/Services/` and adding it to the top level `CMakeLists.txt`.
+See [src/Services/README.md](src/Services/README.md) for how the existing services are organized.
+
 
 ## Running
 ------------------------------------------------------------------
 
-After building the server you can use one of the provided scripts in the root directory
+After building the server
 
--  ./run_ammarserver will start a basic file server ( serving public_html/ files ) on [localhost:8080](http://localhost:8080)
--  ./run_myblog will start a small Wordpress like blog service on [localhost:8086](http://localhost:8086)
--  ./run_social will start a small Social chat service on [localhost:8087](http://localhost:8087)
--  ./run_myloader will start a file upload service on [localhost:8085](http://localhost:8085)
--  ./run_mytube will start a youtube like service on [localhost:8084](http://localhost:8084) , you will need to change the [VIDEO_FILES_PATHS](https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/MyTube/main.c#L40) paths and recompile 
--  ./run_myurl will start a url shortner service (like tinyurl/goo.gl etc ) on [localhost:8082](http://localhost:8082)
--  ./run_habchan will start a small 4chan clone on [localhost:8083](http://localhost:8083)
--  ./run_geoposshare will start a GPS location server on [localhost:8081](http://localhost:8081) to track mobile phones ( see this [Android Application](https://github.com/AmmarkoV/GPSTransmitter)  ) 
--  ./run_myremotedesktop will start a remote desktop session viewable by a browser on [localhost:8080](http://localhost:8080) ( see [video](https://www.youtube.com/watch?v=aqH25ocm-Tc) )
--  ./run_mysearch will start a server that serves a google like front page ( that does no searching though and is only cosmetic ;P ) on [localhost:8080](http://localhost:8080)
+-  `scripts/run_ammarserver` will start a basic file server ( serving public_html/ files ) on [localhost:8080](http://localhost:8080)
+-  `./startAmmarServerSuite.sh` will start most of the services simultaneously so you can try them out..
+-  `./stopAmmarServerSuite.sh` will stop them
 
--  ./startAmmarServerSuite.sh will start most of these simultaneously ( except remote desktop ) so you can try them out..
--  ./stopAmmarServerSuite.sh will stop them
+Every service has command line arguments ( e.g. `-p PORT` ) , and the vanilla server can also be configured through
+`ammServ.conf` / [default.conf](default.conf).
+
+
+## Services
+------------------------------------------------------------------
+
+Details , ports and requirements for each service are in **[src/Services/README.md](src/Services/README.md)**.
+
+| Service | Description | Run script |
+|---|---|---|
+| [AmmarServer](src/Services/README.md#ammarserver) | The "vanilla" static file server + dynamic page demos | `scripts/run_ammarserver` |
+| [SimpleTemplate](src/Services/README.md#simpletemplate) | Documented template for your own service | `scripts/run_simpleTemplate` |
+| [MyURL](src/Services/README.md#myurl) | URL shortener like tinyurl , bitly , goo.gl etc.. | `scripts/run_myurl` |
+| [MyLoader](src/Services/README.md#myloader) | File upload service | `scripts/run_myloader` |
+| [MyBlog](src/Services/README.md#myblog) | Blog engine that can use Wordpress skins | `scripts/run_myblog` |
+| [MyTube](src/Services/README.md#mytube) | Youtube like video site | `scripts/run_mytube` |
+| [MySearch](src/Services/README.md#mysearch) | Google like front page ( cosmetic only ;P ) | `scripts/run_mysearch` |
+| [GeoPosShare](src/Services/README.md#geoposshare) | GPS location sharing for mobile phones | `scripts/run_geoposshare` |
+| [Social](src/Services/README.md#social) | Small social network / chat | `scripts/run_social` |
+| [HabChan](src/Services/README.md#habchan) | 4chan like image board | `scripts/run_habchan` |
+| [ShareTex](src/Services/README.md#sharetex) | Multiuser LaTeX collaboration | - |
+| [Availability](src/Services/README.md#availability) | Group scheduling polls | - |
+| [SuperMarket](src/Services/README.md#supermarket) | Shared shopping list | - |
+| [Ammarflix](src/Services/README.md#ammarflix) | Private HTTPS-only video library | `scripts/run_ammarflix` |
+| [APushService](src/Services/README.md#apushservice) | Push / alarm / monitoring endpoint for devices | `scripts/run_pushservice` |
+| [AmmBus](src/Services/README.md#ammbus) | Web front end for a serial ( Arduino / ESP32 ) device | - |
+| [V4L2ToHTTP](src/Services/README.md#v4l2tohttp) | Serves a V4L2 camera over HTTP | `scripts/run_v4l2tohttp` |
+| [WebFramebuffer](src/Services/README.md#webframebuffer) | Framebuffer image updated over HTTP | - |
+| [ImageGeneration](src/Services/README.md#imagegeneration) | Web front end for AI image generation | `scripts/run_imagegeneration` |
+| [MyRemoteDesktop](src/Services/README.md#myremotedesktop) | Control your linux desktop through a browser | `scripts/run_myremotedesktop` |
+| [Various](src/Services/README.md#various) / [Deprecated](src/Services/README.md#deprecated) | Robot specific utilities and discontinued services | - |
 
 
 ## Testing
@@ -68,8 +142,16 @@ Run everything (builds first):
     bash tests/run_tests.sh
 
 Pass `--no-build` to skip the build step, or run one module with
-`./tests/run_tests.sh tests.test_security`. See `tests/README.md` for the layout, the legacy shell
-pentest fixtures and the manual load-test scripts.
+`./tests/run_tests.sh tests.test_security`.
+
+The same suite can also be run under analysis tools , each building its own unstripped binaries into `build/` :
+
+    ./tests/run_cppcheck.sh          # cppcheck static analysis -> build/cppcheck/report.txt
+    ./tests/run_valgrind.sh          # server under valgrind memcheck ( --helgrind for data races )
+    ./tests/run_sanitizers.sh        # ASan + LSan + UBSan build
+
+See `tests/README.md` for the layout, environment variables, the legacy shell pentest fixtures and the manual
+load-test scripts.
 
 
 ## Performance
@@ -128,55 +210,16 @@ Measured standalone with the CLI ( no web server in the loop ), the same algorit
 C than in PHP ( 0.4ms vs 3.7ms ) - the rest of the gap comes from PHP's per-request interpreter/process overhead on
 top of that.
 
+`scripts/benchmark_ammarserver.sh` and `scripts/benchmark_vs_nginx.sh` are also provided for benchmarking
+AmmarServer on its own and against nginx.
+
 ## Installing
 ------------------------------------------------------------------
 
 Install scripts are provided ( ./install.sh and ./uninstall.sh ) but at the moment they only provide the "vanilla" file static server. Until sufficient testing has been done it is not advisable to use this in a production enviornment.. 
 
-
-## Features
-------------------------------------------------------------------
-
-This Repository contains :
-
--  The AmmarServer library with which you can build your own highly optimized 
-and fully customizable web service..
-
--  A template for starting to build your own webserver which is very well documented
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/SimpleTemplate/main.c
-   You can run it by issuing ./run_simpleTemplate from root directory 
-
--  A simple (but extensible) webserver demo showcasing some dynamic pages
-   https://github.com/AmmarkoV/AmmarServer/blob/master/src/Services/main.c
-   You can run it by issuing ./run_ammarserver from root directory 
-
--  A URL Shortner service like tinyurl , bitly , goo.gl etc..
-   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyURL/
-   You can run it by issuing ./run_myurl from root directory 
-
--  A File Uploader service based on MyLoader
-   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyLoader/
-   You can run it by issuing ./run_myloader from root directory 
-
--  A Web Service that allows location sharing ..
-   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/GeoPosShare/
-   You can run it by issuing ./run_geoposshare from root directory 
-
--  A Remote Desktop Sharing Web Service that allows controlling your linux desktop through a web browser  ..
-   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyRemoteDesktop/
-   You can run it by issuing ./run_myremotedesktop from root directory 
-
--  A Youtube like clone ..
-   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyTube/
-   You can run it by issuing ./run_mytube from root directory 
-
--  A Blog engine that can use Wordpress skins..
-   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/MyBlog/
-   You can run it by issuing ./run_myblog from root directory 
-
--  A 4chan like  engine for hosting a small image board , currently under construction..
-   https://github.com/AmmarkoV/AmmarServer/tree/master/src/Services/HabChan/
-   You can run it by issuing ./run_habchan from root directory 
+`scripts/init.d` , `scripts/systemd` and `scripts/upstart` contain service definitions , and
+`scripts/configureApacheAsProxy.sh` sets up Apache as a reverse proxy in front of AmmarServer services.
 
 ------------------------------------------------------------------
 
@@ -191,4 +234,3 @@ This project has also been successfully deployed as a means to control embedded 
 -  For [Hobbit EU Project](https://www.youtube.com/watch?v=41_8ktacxt8) , http://hobbit.acin.tuwien.ac.at/
 -  For [GuarddoG Robot](https://www.youtube.com/watch?v=61GGKFbzG7I) , https://github.com/AmmarkoV/RoboVision/blob/master/Documentation/GuarDDoG_RoboVision.pdf
 -  For [Softbank NAO Robot Realtime Bridge](https://www.youtube.com/watch?v=axfKwyVTRuA)
-
