@@ -157,7 +157,7 @@ char * getPointerToCOOKIEItemValue(struct AmmServer_DynamicRequest * rqst,const 
        return p->value;
  }
 
- AmmServer_Warning("getPointerToPOSTItemValue called but could not find name=`%s` \n",nameToLookFor);
+ AmmServer_Warning("getPointerToCOOKIEItemValue called but could not find name=`%s` \n",nameToLookFor);
  *pointerLength=0;
  return 0;
 }

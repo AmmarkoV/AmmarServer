@@ -321,6 +321,9 @@ int AnalyzePOSTLineRequest(
              {
                if (!foundNewLineBeforePosition(request,foundBoundary))
                {
+                //The closing delimiter "--boundary--" ends the body , it does not start a part
+                //( registering it produced a nameless extra part on every multipart POST )
+                if ( (foundBoundary[output->boundaryLength]=='-') && (foundBoundary[output->boundaryLength+1]=='-') ) { return 0; }
                 //AmmServer_Success("CHECKED BOUNDARY AND FOUND IT");
                 return addPOSTDataBoundary(output,foundBoundary+output->boundaryLength);
                }

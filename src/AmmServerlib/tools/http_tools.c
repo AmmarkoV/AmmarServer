@@ -508,6 +508,10 @@ int ReducePathSlashes_Inplace(char * filename)
         ++i;
      }
 
+     //Terminate before checking : the bytes past length-offset are stale leftovers of the original string
+     //( e.g. "x//" compacts to "x/" followed by the old "/" ) and would falsely trip the "//" check below
+     if (offset>0) { filename[length-offset]=0; }
+
      if (strstr(filename,"//")!=0)
      {
          errorID(ASV_ERROR_REDUCE_SLASHSES_FAILED);
@@ -517,8 +521,6 @@ int ReducePathSlashes_Inplace(char * filename)
      if (offset>0)
      {
        //We have reduced the total slashes..!
-       //Append new null termination
-       filename[length-offset]=0;
        //fprintf(stderr,"String shortened to %s.. :P\n",filename);
        return 1;
      }
