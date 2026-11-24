@@ -64,6 +64,7 @@ int ASRV_Send(
        {
         instance->statistics.totalUploadKB+=(unsigned long) opres/1024;
         instance->statistics.totalUploadBytes+=(unsigned long)opres;
+        transaction->bytesSent+=(unsigned long)opres;
        }
   return opres;
 }

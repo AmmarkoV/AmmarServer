@@ -328,7 +328,7 @@ static enum FastPathOneRequestResult TryServeOneRequest(struct AmmServer_Instanc
   if (sent==(ssize_t) total)
    {
      free(responseBuf);
-     AccessLogAppend(ipStr,0,0,200,(unsigned long) body_len,verified_filename,0);
+     AccessLogAppend(ipStr,0,0,200,(unsigned long) total,verified_filename,0); //Bytes sent incl. header , like the main path
      clientList_signalClientStoppedUsingResource(instance->clientList,cid,resource);
      if (!keepalive) { close(clientsock); return FASTPATH_DONE; }
      return FASTPATH_AGAIN; //caller re-peeks immediately instead of going back through epoll

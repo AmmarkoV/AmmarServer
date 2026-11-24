@@ -255,18 +255,20 @@ extern int MAX_SESSIONS;
 /**  @brief Number of accesses between log checks..!*/
 #define POLL_LOG_SIZES_EVERY_X_ACCESSES 200
 
-/** @brief Access/error log write buffering mode ( applied via setvbuf() in AccessLogAppend()/ErrorLogAppend(),
-           tools/logs.c ) - a straight speed-vs-durability tradeoff, since every log write happens under a
+/** @brief Access/error log write buffering mode ( LogAppend() , tools/logs.c ) - a straight speed-vs-durability
+           tradeoff, since every log write happens under a
            single global mutex ( AccessLogMutex/ErrorLogMutex ) shared by every request-serving thread :
-             1 = _IOLBF ( line-buffered, the historical/safe default ). Every log line ends in '\n', so every
-                 single logged request costs a real write() syscall *while holding that mutex* - under
+             1 = line-buffered ( the historical/safe default ). Every single logged request costs a real
+                 write() syscall *while holding that mutex* - under
                  concurrent load this serializes every thread through a syscall, one at a time, on every
                  request. Safest option : nothing can ever be lost except the one line ( if any ) that was
                  actively mid-write at the exact moment of an unrecognized-signal hard kill - everything before
-                 it is already durably on disk the instant each fprintf() returns.
-             0 = _IOFBF ( fully buffered, LOG_WRITE_BUFFER_SIZE bytes ). Log lines accumulate in a real
-                 userspace buffer under the mutex - just a memcpy, no syscall - and only cost an actual write()
-                 once that buffer fills ( or the log file gets reopened, e.g. by compressLog() ). Substantially
+                 it is already durably on disk the instant each append returns.
+             0 = fully buffered ( LOG_WRITE_BUFFER_SIZE bytes ). Log lines accumulate in a real userspace
+                 buffer under the mutex - just a memcpy, no syscall - and only cost an actual write() once the
+                 next line no longer fits , LOG_MAX_UNWRITTEN_SECONDS pass , or the log file gets reopened ( e.g.
+                 by compressLog() ). Either way only whole lines are ever written , so concurrent writers to the
+                 same file ( another process ) can not splice each other's lines. Substantially
                  less lock-hold time and contention on the request-serving hot path under concurrent load. Cost:
                  up to one full LOG_WRITE_BUFFER_SIZE buffer's worth of the most recent, not-yet-flushed log
                  lines per log file can be lost - not just observability history, but also whatever evidence of
@@ -280,8 +282,12 @@ extern int MAX_SESSIONS;
                  ( SIGKILL, a segfault, `kill -9`, power loss ).
            Benchmark this against your own traffic pattern before flipping it - see scripts/benchmark_ammarserver.sh. */
 #define LOG_LINE_BUFFERED 0
-/** @brief Buffer size used for log writes when LOG_LINE_BUFFERED is 0 ( _IOFBF ) - irrelevant when it's 1. */
+/** @brief Per-shard log buffer size , also the longest a single log line can be ( longer ones get cut ). */
 #define LOG_WRITE_BUFFER_SIZE (64*1024)
+/** @brief With LOG_LINE_BUFFERED 0 , buffered lines are written out by the first append that finds the oldest
+           of them at least this many seconds old , so a quiet server's log still shows recent requests.
+           ( An idle shard keeps its last lines until its next append or a clean stop. ) */
+#define LOG_MAX_UNWRITTEN_SECONDS 5
 
 /** @brief Number of independent access-log ( and, separately, error-log ) shards - each with its own FILE*, own
            mutex, and own on-disk file - that AccessLogAppend()/ErrorLogAppend() ( tools/logs.c ) split writes

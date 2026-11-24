@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/syscall.h>
+#include <fcntl.h>
+#include <errno.h>
 // --------------------------------------------
 #include "logs.h"
 #include "http_tools.h"
@@ -205,169 +207,124 @@ static unsigned int GetLogShardForCurrentThread(void)
     return (unsigned int)( (unsigned long)syscall(SYS_gettid) % LOG_SHARD_COUNT );
 }
 
-static FILE * AccessLogFile[LOG_SHARD_COUNT] = {0};
+//One shard of the access or error log. Lines are formatted straight into `buffer` under `lock` ( a memcpy , no
+//syscall ) and only ever leave it as whole lines , in one write() on an O_APPEND descriptor. stdio's _IOFBF used
+//to cut its buffer at whatever byte it filled up on , so when two processes appended to the same shard file one
+//of them could land its write between the two halves of the other's line ( seen live : "89.210.253.23127.0.0.1" ).
+//O_APPEND write()s to a local file are positioned and applied atomically , so whole-line writes can no longer splice.
+struct LogShard
+{
+    int isOpen;
+    int fd;
+    unsigned int used;       //Bytes of complete , not yet written lines in buffer
+    unsigned int polls;      //Lines appended , drives the compressLog() size check
+    time_t oldestUnwritten;  //When the first line now waiting in buffer was added
+    char buffer[LOG_WRITE_BUFFER_SIZE];
+};
+
+static struct LogShard AccessLogShard[LOG_SHARD_COUNT] = {0};
 static pthread_mutex_t AccessLogMutex[LOG_SHARD_COUNT] = { [0 ... LOG_SHARD_COUNT-1] = PTHREAD_MUTEX_INITIALIZER };
-static unsigned int logAccessPollsShard[LOG_SHARD_COUNT] = {0};
+static struct LogShard ErrorLogShard[LOG_SHARD_COUNT] = {0};
+static pthread_mutex_t ErrorLogMutex[LOG_SHARD_COUNT] = { [0 ... LOG_SHARD_COUNT-1] = PTHREAD_MUTEX_INITIALIZER };
+
+//Caller holds the shard's mutex
+static void WriteOutLogShard(struct LogShard * shard)
+{
+    unsigned int done=0;
+    while ( (shard->isOpen) && (done<shard->used) )
+    {
+        ssize_t wrote = write(shard->fd,shard->buffer+done,shard->used-done);
+        if (wrote>0) { done+=(unsigned int) wrote; } else
+        if ( (wrote<0) && (errno==EINTR) ) { continue; } else
+                                           { fprintf(stderr,"Failed writing log , %u bytes dropped\n",shard->used-done); break; }
+    }
+    shard->used=0;
+}
+
+//Caller holds the shard's mutex
+static void CloseLogShard(struct LogShard * shard)
+{
+    WriteOutLogShard(shard);
+    if (shard->isOpen) { close(shard->fd); shard->isOpen=0; }
+}
+
+static int FormatLogLine(char * out,unsigned int outSize,const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
+{
+    return snprintf(out,outSize,"%s - - [%s] \"%s\" %u %lu \"%s\" \"%s\"\n",IP,DateStr,Request,ResponseCode,ResponseLength,Location,Useragent);
+}
+
+static int LogAppend(struct LogShard * shards,pthread_mutex_t * mutexes,const char * baseFilename,const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
+{
+    unsigned int shardID = GetLogShardForCurrentThread();
+    struct LogShard * shard = &shards[shardID];
+    pthread_mutex_lock(&mutexes[shardID]);
+
+    char shardFilename[MAX_FILE_PATH];
+    GetShardedLogFilename(baseFilename,shardID,shardFilename,sizeof(shardFilename));
+
+    if ( shard->polls % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
+    {
+        //compressLog may rename/gzip this file from under us , so write out and release our handle to it before
+        //calling it and let it get lazily reopened ( against the fresh file ) right below
+        CloseLogShard(shard);
+        compressLog(shardFilename,shard->polls);
+    }
+
+    if (!shard->isOpen)
+    {
+        shard->fd = open(shardFilename,O_WRONLY|O_CREAT|O_APPEND|O_CLOEXEC,0666);
+        if (shard->fd<0) { pthread_mutex_unlock(&mutexes[shardID]); return 0; }
+        shard->isOpen=1;
+    }
+
+    time_t now = time(NULL);
+
+    char autoDateBuffer[64]={"Unk Unk 0 0:0:0 Unkn"};
+    if (DateStr==0)
+    {
+        struct tm tmNow;
+        if (localtime_r(&now,&tmNow)!=0) { strftime(autoDateBuffer,sizeof(autoDateBuffer),"%c",&tmNow); }
+        DateStr = autoDateBuffer;
+    }
+    if (IP==0)        { IP="0.0.0.0"; }
+    if (Request==0)   { Request=" "; }
+    if (Location==0)  { Location=" "; }
+    if (Useragent==0) { Useragent=" "; }
+
+    unsigned int room = LOG_WRITE_BUFFER_SIZE - shard->used;
+    int length = FormatLogLine(shard->buffer+shard->used,room,IP,DateStr,Request,ResponseCode,ResponseLength,Location,Useragent);
+    if ( (length>=0) && ((unsigned int) length>=room) )
+    {
+        //Does not fit behind the lines already waiting : write those out and format again into the empty buffer
+        WriteOutLogShard(shard);
+        room = LOG_WRITE_BUFFER_SIZE;
+        length = FormatLogLine(shard->buffer,room,IP,DateStr,Request,ResponseCode,ResponseLength,Location,Useragent);
+        //A single line longer than the whole buffer gets cut , but still ends in '\n'
+        if ( (length>=0) && ((unsigned int) length>=room) ) { length=(int) room-1; shard->buffer[length-1]='\n'; }
+    }
+    if (length<0) { pthread_mutex_unlock(&mutexes[shardID]); return 0; }
+
+    if (shard->used==0) { shard->oldestUnwritten=now; }
+    shard->used += (unsigned int) length;
+    ++shard->polls;
+
+    //See LOG_LINE_BUFFERED / LOG_MAX_UNWRITTEN_SECONDS ( server_configuration.h ) for when lines leave the buffer
+    if ( (LOG_LINE_BUFFERED) || (now - shard->oldestUnwritten >= LOG_MAX_UNWRITTEN_SECONDS) ) { WriteOutLogShard(shard); }
+
+    pthread_mutex_unlock(&mutexes[shardID]);
+    return 1;
+}
 
 int AccessLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
 {
     if (!AccessLogEnable) { return 0; }
-
-    unsigned int shard = GetLogShardForCurrentThread();
-    pthread_mutex_lock(&AccessLogMutex[shard]);
-
-    char shardFilename[MAX_FILE_PATH];
-    GetShardedLogFilename(AccessLog,shard,shardFilename,sizeof(shardFilename));
-
-    if ( logAccessPollsShard[shard] % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
-    {
-        //compressLog may rename/gzip this file from under us , so release our handle to it before calling it and
-        //let it get lazily reopened ( against the fresh file ) right below
-        if (AccessLogFile[shard]!=0) { fclose(AccessLogFile[shard]); AccessLogFile[shard]=0; }
-        compressLog(shardFilename,logAccessPollsShard[shard]);
-    }
-
-    if (AccessLogFile[shard]==0)
-    {
-        AccessLogFile[shard] = fopen (shardFilename, "a");
-        if (AccessLogFile[shard]==0) { pthread_mutex_unlock(&AccessLogMutex[shard]); return 0; }
-        //See LOG_LINE_BUFFERED's doc comment ( server_configuration.h ) for the speed-vs-durability tradeoff this switches.
-        #if LOG_LINE_BUFFERED
-         setvbuf(AccessLogFile[shard],0,_IOLBF,0);
-        #else
-         setvbuf(AccessLogFile[shard],0,_IOFBF,LOG_WRITE_BUFFER_SIZE);
-        #endif
-    }
-    FILE * pFile = AccessLogFile[shard];
-
-
-    char nullIP[10]={"0.0.0.0"};
-    const char * ipPTR = 0;
-    if ( IP !=0 ) { ipPTR  = IP; } else
-                  { ipPTR  = nullIP;  }
-
-    char autoDateBuffer[64]={"Unk Unk 0 0:0:0 Unkn"};
-    const char * datePtr = 0;
-    if ( DateStr !=0 ) { datePtr = DateStr; } else
-                       {
-                         time_t t = time(NULL);
-                         struct tm *tm = localtime(&t);
-                         strftime(autoDateBuffer, sizeof(autoDateBuffer), "%c", tm);
-                         datePtr = autoDateBuffer;
-                        }
-
-
-    char nullBuffer[10]={" "};
-    const char * locationPtr = 0;
-    if ( Location !=0 ) { locationPtr = Location; } else
-                        { locationPtr = nullBuffer;  }
-
-
-    const char * UseragentPtr = 0;
-    if ( Useragent !=0 ) { UseragentPtr = Useragent; } else
-                         { UseragentPtr = nullBuffer;  }
-
-
-    const char * RequestPtr = 0;
-    if ( Request !=0 ) { RequestPtr = Request; } else
-                       { RequestPtr = nullBuffer;  }
-
-    fprintf(pFile,"%s - - [%s] \"%s\" %u %u \"%s\" \"%s\"\n",
-                  ipPTR,
-                  datePtr,
-                  RequestPtr,
-                  ResponseCode,
-                  (unsigned int) ResponseLength,
-                  locationPtr,
-                  UseragentPtr
-             );
-
-    ++logAccessPollsShard[shard];
-    pthread_mutex_unlock(&AccessLogMutex[shard]);
-    return 1;
+    return LogAppend(AccessLogShard,AccessLogMutex,AccessLog,IP,DateStr,Request,ResponseCode,ResponseLength,Location,Useragent);
 }
-
-
-static FILE * ErrorLogFile[LOG_SHARD_COUNT] = {0};
-static pthread_mutex_t ErrorLogMutex[LOG_SHARD_COUNT] = { [0 ... LOG_SHARD_COUNT-1] = PTHREAD_MUTEX_INITIALIZER };
-static unsigned int logErrorPollsShard[LOG_SHARD_COUNT] = {0};
 
 int ErrorLogAppend(const char * IP,const char * DateStr,const char * Request,unsigned int ResponseCode,unsigned long ResponseLength,const char * Location,const char * Useragent)
 {
     if (!ErrorLogEnable) { return 0; }
-
-    unsigned int shard = GetLogShardForCurrentThread();
-    pthread_mutex_lock(&ErrorLogMutex[shard]);
-
-    char shardFilename[MAX_FILE_PATH];
-    GetShardedLogFilename(ErrorLog,shard,shardFilename,sizeof(shardFilename));
-
-    if ( logErrorPollsShard[shard] % POLL_LOG_SIZES_EVERY_X_ACCESSES == 0 )
-    {
-        //compressLog may rename/gzip this file from under us , so release our handle to it before calling it and
-        //let it get lazily reopened ( against the fresh file ) right below
-        if (ErrorLogFile[shard]!=0) { fclose(ErrorLogFile[shard]); ErrorLogFile[shard]=0; }
-        compressLog(shardFilename,logErrorPollsShard[shard]);
-    }
-
-    if (ErrorLogFile[shard]==0)
-    {
-        ErrorLogFile[shard] = fopen (shardFilename, "a");
-        if (ErrorLogFile[shard]==0) { pthread_mutex_unlock(&ErrorLogMutex[shard]); return 0; }
-        //See LOG_LINE_BUFFERED's doc comment ( server_configuration.h ) for the speed-vs-durability tradeoff this switches.
-        #if LOG_LINE_BUFFERED
-         setvbuf(ErrorLogFile[shard],0,_IOLBF,0);
-        #else
-         setvbuf(ErrorLogFile[shard],0,_IOFBF,LOG_WRITE_BUFFER_SIZE);
-        #endif
-    }
-    FILE * pFile = ErrorLogFile[shard];
-
-
-    char nullIP[10]={"0.0.0.0"};
-    const char * ipPTR = 0;
-    if ( IP !=0 ) { ipPTR  = IP; } else
-                  { ipPTR  = nullIP;  }
-
-    char autoDateBuffer[64]={"Unk Unk 0 0:0:0 Unkn"};
-    const char * datePtr = 0;
-    if ( DateStr !=0 ) { datePtr = DateStr; } else
-                       {
-                         time_t t = time(NULL);
-                         struct tm *tm = localtime(&t);
-                         strftime(autoDateBuffer, sizeof(autoDateBuffer), "%c", tm);
-                         datePtr = autoDateBuffer;
-                       }
-
-
-    char nullBuffer[10]={" "};
-    const char * locationPtr = 0;
-    if ( Location !=0 ) { locationPtr = Location; } else
-                        { locationPtr = nullBuffer;  }
-
-
-    const char * UseragentPtr = 0;
-    if ( Useragent !=0 ) { UseragentPtr = Useragent; } else
-                         { UseragentPtr = nullBuffer;  }
-
-
-    const char * RequestPtr = 0;
-    if ( Request !=0 ) { RequestPtr = Request; } else
-                       { RequestPtr = nullBuffer;  }
-
-    fprintf(pFile,"%s - - [%s] \"%s\" %u %u \"%s\" \"%s\"\n",
-                  ipPTR,
-                  datePtr,
-                  RequestPtr,
-                  ResponseCode,
-                  (unsigned int) ResponseLength,
-                  locationPtr,
-                  UseragentPtr
-             );
-
-    ++logErrorPollsShard[shard];
-    pthread_mutex_unlock(&ErrorLogMutex[shard]);
-    return 1;
+    return LogAppend(ErrorLogShard,ErrorLogMutex,ErrorLog,IP,DateStr,Request,ResponseCode,ResponseLength,Location,Useragent);
 }
 
 
@@ -377,33 +334,33 @@ void FlushAccessAndErrorLogs(void)
     for (i=0; i<LOG_SHARD_COUNT; i++)
     {
         pthread_mutex_lock(&AccessLogMutex[i]);
-        if (AccessLogFile[i]!=0) { fflush(AccessLogFile[i]); }
+        WriteOutLogShard(&AccessLogShard[i]);
         pthread_mutex_unlock(&AccessLogMutex[i]);
     }
 
     for (i=0; i<LOG_SHARD_COUNT; i++)
     {
         pthread_mutex_lock(&ErrorLogMutex[i]);
-        if (ErrorLogFile[i]!=0) { fflush(ErrorLogFile[i]); }
+        WriteOutLogShard(&ErrorLogShard[i]);
         pthread_mutex_unlock(&ErrorLogMutex[i]);
     }
 }
 
-//Flushes and closes every log shard. A later append ( another instance still running ) lazily reopens its shard.
+//Writes out and closes every log shard. A later append ( another instance still running ) lazily reopens its shard.
 void CloseAccessAndErrorLogs(void)
 {
     unsigned int i;
     for (i=0; i<LOG_SHARD_COUNT; i++)
     {
         pthread_mutex_lock(&AccessLogMutex[i]);
-        if (AccessLogFile[i]!=0) { fclose(AccessLogFile[i]); AccessLogFile[i]=0; }
+        CloseLogShard(&AccessLogShard[i]);
         pthread_mutex_unlock(&AccessLogMutex[i]);
     }
 
     for (i=0; i<LOG_SHARD_COUNT; i++)
     {
         pthread_mutex_lock(&ErrorLogMutex[i]);
-        if (ErrorLogFile[i]!=0) { fclose(ErrorLogFile[i]); ErrorLogFile[i]=0; }
+        CloseLogShard(&ErrorLogShard[i]);
         pthread_mutex_unlock(&ErrorLogMutex[i]);
     }
 }

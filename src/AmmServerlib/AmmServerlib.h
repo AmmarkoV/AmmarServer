@@ -551,6 +551,12 @@ struct HTTPTransaction
   char * outgoingBody;
   unsigned int outgoingBodySize;
 
+  //What actually went out for the request being served , for the access/error log : responseCode is the status
+  //line's code ( set by whichever Send*Header()/SendErrorResponse() sent it , 0 if none went out ) and bytesSent
+  //counts every byte ASRV_Send() wrote ( headers + body , like Apache's %O ). Reset per keep-alive request.
+  unsigned int responseCode;
+  unsigned long bytesSent;
+
   unsigned int resourceCacheID;
 
   //Raw Set-Cookie header line(s) a dynamic-content callback queued via AmmServer_SetCookie() ( or that

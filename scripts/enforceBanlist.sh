@@ -10,7 +10,7 @@ input="db/banlist"
 
 
 #Get Bad IPs from error logs
-cat log/*_error.log | grep -vE '127\.0\.0\.1|STRINGHERE|0\.0\.0\.0' | cut -d ' ' -f 1 | sort | uniq -u > banNew
+find log -name '*_error.log*' ! -name '*.gz' -exec cat {} + | grep -vE '127\.0\.0\.1|STRINGHERE|0\.0\.0\.0' | cut -d ' ' -f 1 | sort | uniq -u > banNew
 #Add already known bad IPs 
 cat $input >> banNew
 #Keep everything only once

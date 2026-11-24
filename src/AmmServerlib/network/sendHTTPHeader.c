@@ -68,6 +68,7 @@ unsigned long SendErrorResponse(
 
   int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),flags);
   if (opres<=0) { fprintf(stderr,"Failed sending error response header (%u)\n",error_code); return 0; }
+  transaction->responseCode=error_code;
 
   if ( (!headRequest) && (body!=0) && (bodyLength>0) )
    {
@@ -116,6 +117,7 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
       //so let the kernel coalesce this with the caller's next write instead of emitting its own small TCP segment
       int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
+      transaction->responseCode=(unsigned int) success_code;
 
       return 1;
 }
@@ -135,6 +137,7 @@ unsigned long SendNotModifiedHeader(struct AmmServer_Instance * instance,struct 
       //so let the kernel coalesce this with the caller's next write instead of emitting its own small TCP segment
       int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
+      transaction->responseCode=304;
 
       return 1;
 }
@@ -161,6 +164,7 @@ unsigned long SendAuthorizationHeader(struct AmmServer_Instance * instance,struc
       //so let the kernel coalesce this with the caller's next write instead of emitting its own small TCP segment
       int opres=ASRV_Send(instance,transaction,reply_header,strlen(reply_header),MSG_WAITALL|MSG_NOSIGNAL|MSG_MORE);  //Send filesize as soon as we've got it
       if (opres<=0) { fprintf(stderr,"Error sending date\n"); return 0; }
+      transaction->responseCode=401;
 
       return 1;
 }

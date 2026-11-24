@@ -66,8 +66,8 @@ int logSuccess(const struct AmmServer_Instance * instance,const struct HTTPTrans
                           0, // Auto Date It NOW!
                           transaction->incomingHeader.GETrequest
                           //transaction->incomingHeader.resource
-                          ,logCode
-                          ,transaction->outgoingBodySize // <- This might be wrong
+                          ,(transaction->responseCode!=0) ? transaction->responseCode : logCode //What was really sent , logCode if nothing was
+                          ,transaction->bytesSent
                           ,filename
                           ,transaction->incomingHeader.userAgent
                          );
@@ -79,8 +79,8 @@ int logError(const struct AmmServer_Instance * instance,const struct HTTPTransac
                           0, // Auto Date It NOW!
                           transaction->incomingHeader.GETrequest
                           //transaction->incomingHeader.resource
-                          ,logCode
-                          ,transaction->outgoingBodySize // <- This might be wrong
+                          ,(transaction->responseCode!=0) ? transaction->responseCode : logCode //What was really sent , logCode if nothing was
+                          ,transaction->bytesSent
                           ,filename
                           ,transaction->incomingHeader.userAgent
                          );
@@ -279,6 +279,10 @@ int ServeClientKeepAliveLoop(struct AmmServer_Instance * instance,struct HTTPTra
   //Remember the IP of this client.. ( already resolved once in ServeClientInternal - the peer can't change for the
   //life of this connection , so skip re-deriving it via getpeername() on every keep-alive request )
   if (transaction->ipStr[0]==0) { getSocketIPAddress(instance,transaction->clientSock,transaction->ipStr,MAX_IP_STRING_SIZE,&transaction->port); }
+
+   //Fresh per-request log fields , this transaction may be serving its Nth keep-alive request
+   transaction->responseCode=0;
+   transaction->bytesSent=0;
 
    //We have our connection / instancing /etc covered if we are here
    //In order to serve our client we must first receive the request header , so we do it now..!
