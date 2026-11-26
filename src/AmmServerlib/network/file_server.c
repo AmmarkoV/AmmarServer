@@ -436,6 +436,7 @@ unsigned long SendEmbeddedFile
                        transaction,
                        200,
                        verified_filename_pending_copy,
+                       0,
                        0
                      );
 
@@ -586,13 +587,19 @@ unsigned long SendFile
   //the request string itself is wrong - that's exactly why PathResolvesWithinDirectory() also gets checked
   //here, before any header goes out , so a rejected request gets a proper error instead of a 200 header
   //already having gone out with no body to follow.
-  if ( (!FilenameStripperOk(verified_filename)) || (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) )
+  //A dynamic resource is a name the program registered , not a file , so it needs no folder on disk : "/api/items"
+  //must work without a webserver_root/api/ . Only an exact registered name skips the filesystem check , and the
+  //string-level one still applies ; a file such a callback asks to stream is checked on its own ( PathIsServable ).
+  struct cache_item * cache = (struct cache_item *) instance->cache;
+  unsigned int registeredIndex=0;
+  unsigned char isRegisteredDynamicResource = ( (cache_FindResource(instance,verified_filename,&registeredIndex)) &&
+                                                (cache[registeredIndex].dynamicRequestCallbackFunction!=0) );
+  if ( (!FilenameStripperOk(verified_filename)) ||
+       ( (!isRegisteredDynamicResource) && (!PathResolvesWithinDirectory(instance->webserver_root,verified_filename)) ) )
   {
      SendErrorFile(instance,transaction,400);
      return 1;
   }
-
-  struct cache_item * cache = (struct cache_item *) instance->cache;
 
   int opres=0;
   unsigned int index=0;
@@ -738,7 +745,9 @@ unsigned long SendFile
 
   //Send the status line only after size , preconditions and range are resolved
   unsigned int responseCode=partialContent ? 206 : ( (dynamicResponseCode!=0) ? dynamicResponseCode : 200 );
-  if (!SendSuccessCodeHeader(instance,transaction,responseCode,verified_filename,alwaysFresh))
+  //What a callback generated carries the type its handler declared ( if any ) , a file it asked to stream does not
+  const char * declaredContentType = (isDynamicMemory) ? cache[index].contentType : 0;
+  if (!SendSuccessCodeHeader(instance,transaction,responseCode,verified_filename,alwaysFresh,declaredContentType))
   {
     fprintf(stderr,"Failed sending success code \n");
     freeMallocIfNeeded(cached_buffer,free_cached_buffer_after_use);
@@ -853,7 +862,7 @@ unsigned long SendMemoryBlockAsFile
     unsigned long mem_block // The size of the memory block to be sent
   )
 {
-  if (! SendSuccessCodeHeader(instance,transaction,200,filename,0)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
+  if (! SendSuccessCodeHeader(instance,transaction,200,filename,0,0)) { fprintf(stderr,"Failed sending success code \n"); return 0; }
 
 
   char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0};

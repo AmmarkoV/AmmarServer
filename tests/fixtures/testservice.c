@@ -1,6 +1,7 @@
 /* Minimal AmmarServer application used only by the test suite ( tests/test_application.py ).
  *
- *   testservice <ammarserver arguments>          dynamic pages : /cookie.html , /session.html , /echo.html
+ *   testservice <ammarserver arguments>          dynamic pages : /cookie.html , /session.html , /echo.html , /typed ,
+ *                                                /virtual/folder/echo ( a folder that does not exist on disk )
  *   testservice -api <rings> -p PORT -bind IP    API mode ( rings=0 : epoll layer , >0 : io_uring )
  *
  * It exists so that cookies , sessions and API mode , which the vanilla ammarserver binary has no handler
@@ -15,6 +16,8 @@ static struct AmmServer_Instance * server=0;
 static struct AmmServer_RH_Context cookiePage={0};
 static struct AmmServer_RH_Context sessionPage={0};
 static struct AmmServer_RH_Context echoPage={0};
+static struct AmmServer_RH_Context typedPage={0};
+static struct AmmServer_RH_Context nestedPage={0};
 
 //Echoes the "flavor" cookie back and , when asked with ?set=value , sets it
 static void * cookie_callback(struct AmmServer_DynamicRequest * rqst)
@@ -48,6 +51,16 @@ static void * echo_callback(struct AmmServer_DynamicRequest * rqst)
   _GETcpy(rqst,"a",a,sizeof(a));
   _POSTcpy(rqst,"b",b,sizeof(b));
   snprintf(rqst->content,rqst->MAXcontentSize,"a=[%s] b=[%s]",a,b);
+  rqst->contentSize=strlen(rqst->content);
+  return 0;
+}
+
+//An extension-less resource whose handler declares its Content-Type ; ?status=N answers with that status
+static void * typed_callback(struct AmmServer_DynamicRequest * rqst)
+{
+  unsigned int status=_GETuint(rqst,"status");
+  if (status!=0) { rqst->headerResponse=status; }
+  snprintf(rqst->content,rqst->MAXcontentSize,"{\"typed\":true}");
   rqst->contentSize=strlen(rqst->content);
   return 0;
 }
@@ -107,6 +120,11 @@ int main(int argc,char *argv[])
      AmmServer_AddResourceHandler(server,&sessionPage,"/session.html",4096,0,&session_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
      sessionPage.requestContext.useSessionLifecycle=1;
      AmmServer_AddResourceHandler(server,&echoPage,"/echo.html",4096,0,&echo_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+     AmmServer_AddResourceHandler(server,&typedPage,"/typed",4096,0,&typed_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+     if (!AmmServer_SetResourceHandlerContentType(server,&typedPage,"application/json")) { return 1; }
+     AmmServer_AddResourceHandler(server,&nestedPage,"/virtual/folder/echo",4096,0,&echo_callback,DIFFERENT_PAGE_FOR_EACH_CLIENT);
+     //Must be refused ( it would inject a header ) , so /echo.html keeps the type of its extension
+     if (AmmServer_SetResourceHandlerContentType(server,&echoPage,"text/plain\r\nX-Injected: 1")) { return 1; }
    }
 
   while (AmmServer_Running(server)) { usleep(50000); }
@@ -114,6 +132,8 @@ int main(int argc,char *argv[])
   AmmServer_RemoveResourceHandler(server,&cookiePage,1);
   AmmServer_RemoveResourceHandler(server,&sessionPage,1);
   AmmServer_RemoveResourceHandler(server,&echoPage,1);
+  AmmServer_RemoveResourceHandler(server,&typedPage,1);
+  AmmServer_RemoveResourceHandler(server,&nestedPage,1);
   AmmServer_Stop(server);
   return 0;
 }

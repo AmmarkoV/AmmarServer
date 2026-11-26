@@ -8,6 +8,7 @@
 #define FILE_CACHING_H_INCLUDED
 
 #include "../AmmServerlib.h"
+#include "../server_configuration.h"
 
 #include "../header_analysis/http_header_analysis.h"
 #include "../tools/http_tools.h"
@@ -48,6 +49,10 @@ struct cache_item
    unsigned long * compressedContentSize;
 
    contentType contentTypeID; /*AS Declared in http_tools int GetContentType(char * filename,char * content_type) */
+
+   //Content-Type for what a dynamic request's callback generates , set by AmmServer_SetResourceHandlerContentType ;
+   //empty = derive it from the resource's extension , as for every other resource
+   char contentType[MAX_CONTENT_TYPE+1];
 
    //Modification time..!
    struct timestamp modification;
@@ -128,6 +133,15 @@ int cache_AddMemoryBlock(struct AmmServer_Instance * instance,struct AmmServer_R
 * @param Resource filename
 * @retval 1=Success,0=Failure*/
 int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,const char * filename);
+
+/**
+* @brief Set the Content-Type of what a dynamic resource's callback generates
+* @ingroup cache
+* @param An AmmarServer Instance
+* @param Resource filename , which must already be a dynamic resource
+* @param Content-Type , already checked to be a single printable header value that fits
+* @retval 1=Success,0=Failure*/
+int cache_SetContentTypeForResource(struct AmmServer_Instance * instance,const char * filename,const char * contentType);
 
 /**
 * @brief Destroy Cache entry and resource context

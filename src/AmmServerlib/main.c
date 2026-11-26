@@ -717,6 +717,23 @@ int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,const char
     return cache_AddDoNOTCacheRuleForResource(instance,resource_name);
 }
 
+int AmmServer_SetResourceHandlerContentType(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,const char * contentType)
+{
+    if ( (instance==0) || (context==0) || (contentType==0) ) { return 0; }
+
+    //It goes into the response header verbatim , so one printable line that fits , or nothing
+    unsigned int length=strlen(contentType);
+    if ( (length==0) || (length>MAX_CONTENT_TYPE) ) { return 0; }
+    for (unsigned int i=0; i<length; i++)
+      { if ( ((unsigned char) contentType[i]<0x20) || ((unsigned char) contentType[i]==0x7F) ) { return 0; } }
+
+    char resource_name[MAX_FILE_PATH+MAX_RESOURCE+1]={0};
+    snprintf(resource_name,MAX_FILE_PATH+MAX_RESOURCE,"%s%s",context->web_root_path,context->resource_name);
+    ReducePathSlashes_Inplace(resource_name);
+
+    return cache_SetContentTypeForResource(instance,resource_name,contentType);
+}
+
 int AmmServer_RemoveResourceHandler(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,unsigned char free_mem)
 {
   return cache_RemoveContextAndResource(instance,context,free_mem);

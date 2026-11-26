@@ -413,6 +413,18 @@ int cache_AddDoNOTCacheRuleForResource(struct AmmServer_Instance * instance,cons
    return 0;
 }
 
+int cache_SetContentTypeForResource(struct AmmServer_Instance * instance,const char * filename,const char * contentType)
+{
+   struct cache_item * cache = (struct cache_item *) instance->cache;
+   unsigned int index=0;
+   //Only a dynamic resource : a file's type comes from its extension , and inventing a cache index here
+   //( as the no-cache rule does ) would let a typo silently create a resource nobody serves
+   if ( (!cache_FindResource(instance,filename,&index)) || (cache[index].dynamicRequestCallbackFunction==0) ) { return 0; }
+
+   snprintf(cache[index].contentType,sizeof(cache[index].contentType),"%s",contentType);
+   return 1;
+}
+
 int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index)
 {
     struct cache_item * cache = (struct cache_item *) instance->cache;
@@ -424,6 +436,7 @@ int cache_RemoveResource(struct AmmServer_Instance * instance,unsigned int index
         cache[i].dynamicRequestCallbackFunction=0;
         cache[i].content=0;
         cache[i].contentSize=0;
+        cache[i].contentType[0]=0;
      }
        else
      {

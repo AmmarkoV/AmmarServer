@@ -82,7 +82,7 @@ unsigned long SendErrorResponse(
   return 1;
 }
 
-unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename,unsigned char alwaysFresh)
+unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct HTTPTransaction * transaction,int success_code,const char * verified_filename,unsigned char alwaysFresh,const char * declaredContentType)
 {
 /*
     This function serves the first few lines for error headers but NOT all the header and definately NOT the page body..!
@@ -92,7 +92,8 @@ unsigned long SendSuccessCodeHeader(struct AmmServer_Instance * instance,struct 
       strncpy(content_type,"text/html",MAX_CONTENT_TYPE);
 
       //fprintf(stderr,"Sending File %s with response code 200 OK\n",verified_filename);
-      GetContentType(verified_filename,content_type,MAX_CONTENT_TYPE);
+      if ( (declaredContentType!=0) && (declaredContentType[0]!=0) ) { snprintf(content_type,sizeof(content_type),"%s",declaredContentType); } else
+                                                                     { GetContentType(verified_filename,content_type,MAX_CONTENT_TYPE); }
 
       char reply_header[MAX_HTTP_REQUEST_HEADER_REPLY+1]={0}; //Accept-Ranges: bytes\n
       //GetHTTPReasonPhrase , not a hardcoded "OK" : a dynamic-content callback can ask for any status code here

@@ -1535,6 +1535,18 @@ int AmmServer_DoNOTCacheResource(struct AmmServer_Instance * instance,const char
 
 
 /**
+* @brief Declare the Content-Type of what a resource handler's callback generates , e.g. "application/json" for
+*        /api/items . Without it the type comes from the resource's extension , so a resource without one is
+*        served as text/html. A file the callback asks to stream keeps the type of that file.
+* @ingroup tools
+* @param Instance of an AmmarServer
+* @param Resource context already added with AmmServer_AddResourceHandler
+* @param Content-Type , a single printable header value of at most MAX_CONTENT_TYPE ( server_configuration.h , 128 ) characters
+* @retval 1=Success,0=Failure ( not a dynamic resource , or an empty / too long / multi-line type ) */
+int AmmServer_SetResourceHandlerContentType(struct AmmServer_Instance * instance,struct AmmServer_RH_Context * context,const char * contentType);
+
+
+/**
 * @brief Planned functionality for a default http administrator panel per server per instance , currently not implemented correctly
 * @ingroup core
 * @param IP to bind the interface at

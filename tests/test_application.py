@@ -80,6 +80,30 @@ class TestCookiesAndFields(ServerTestCase):
         # a static file with an empty query is still that file
         self.assertEqual(self.request("GET", "/text.txt?").status, 200)
 
+    def test_09_declared_content_type(self):
+        # AmmServer_SetResourceHandlerContentType : an extension-less resource
+        # can say what it generates , error statuses included
+        for target, status in (("/typed", 200), ("/typed?status=400", 400)):
+            response = self.request("GET", target)
+            self.assertEqual(response.status, status, target)
+            self.assertEqual(response.header("Content-Type"), "application/json", target)
+            self.assertEqual(response.body, b'{"typed":true}', target)
+        head = self.request("HEAD", "/typed")
+        self.assertEqual(head.header("Content-Type"), "application/json")
+        # a type with a line break was refused , so nothing is injected and the
+        # extension still decides
+        response = self.request("GET", "/echo.html")
+        self.assertEqual(response.header("Content-Type"), "text/html")
+        self.assertIsNone(response.header("X-Injected"))
+
+    def test_10_dynamic_resource_in_a_folder_not_on_disk(self):
+        # a registered name needs no folder on disk ...
+        response = self.request("GET", "/virtual/folder/echo?a=nested")
+        self.assertEqual(response.status, 200)
+        self.assertIn(b"a=[nested]", response.body)
+        # ... but other names in that folder are still not served
+        self.assertNotEqual(self.request("GET", "/virtual/folder/other").status, 200)
+
 
 class TestSessions(ServerTestCase):
     server_binary = TESTSERVICE_BINARY
